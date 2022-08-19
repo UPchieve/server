@@ -176,6 +176,8 @@ export async function getMultipleQuestionsById(
       { ids },
       getClient()
     )
+    //TODO: the problem here is that it's trying to assign something that's string | undefined to a property that's string | null
+    //      this is fine elsewhere I think but makes vs code cross here for SOME REASON
     return result.map(v => makeSomeRequired(v, ['imageSrc']))
   } catch (err) {
     throw new RepoReadError(err)

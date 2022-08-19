@@ -195,7 +195,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       getClient()
     )
     const rows = result.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
+      makeSomeRequired(v, ['volunteerPartnerOrg'])
     )
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({

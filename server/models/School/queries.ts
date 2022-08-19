@@ -16,6 +16,7 @@ export async function findSchoolByUpchieveId(
 
     if (result.length) {
       // pgTyped does not camelCase a letter preceding a number, like g_10Offered
+      //TODO: this is erroring because ID is supposedly optional...but it isn't? no idea what is going on here
       return makeSomeRequired(result[0], [
         'fipst',
         'schoolYear',
@@ -34,7 +35,7 @@ export async function findSchoolByUpchieveId(
         // @ts-expect-error
         'g11Offered',
         // @ts-expect-error
-        'g12Offered',
+        'g12Offered'
       ])
     }
   } catch (err) {
@@ -47,7 +48,6 @@ export async function getSchool(
 ): Promise<AdminSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
-
     // TODO: fix return type to upper case
     if (result.length) {
       return makeSomeRequired(result[0], ['zipCode'])
@@ -80,8 +80,6 @@ export async function getSchools(
       },
       getClient()
     )
-    const schools = result.map(v => makeRequired(v))
-
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
