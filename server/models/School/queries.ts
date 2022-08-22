@@ -25,7 +25,7 @@ export async function findSchoolByUpchieveId(
         'mcity',
         'mzip',
         'lcity',
-        'lzip'
+        'lzip',
       ])
     }
   } catch (err) {
