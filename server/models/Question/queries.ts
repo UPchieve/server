@@ -170,15 +170,15 @@ export async function getSubcategoriesForQuiz(
 
 export async function getMultipleQuestionsById(
   ids: number[]
-): Promise<pgQueries.IGetMultipleQuestionsByIdResult[]> {
+): Promise<Question[]> {
   try {
-    const result = await pgQueries.getMultipleQuestionsById.run(
+    const questions = await pgQueries.getMultipleQuestionsById.run(
       { ids },
       getClient()
     )
-    //TODO: the problem here is that it's trying to assign something that's string | undefined to a property that's string | null
-    //      this is fine elsewhere I think but makes vs code cross here for SOME REASON
-    return result.map(v => makeSomeRequired(v, ['imageSrc']))
+    const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
+    const parsedResult = result.map(res => parseQueryResult(res))
+    return parsedResult
   } catch (err) {
     throw new RepoReadError(err)
   }
