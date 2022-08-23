@@ -127,7 +127,8 @@ WHERE
 SELECT
     FORMAT(sq.response_display_text, subjects.display_name) AS display_label,
     (
-        CASE WHEN src.choice_text = 'Other' AND uss.open_response IS NULL THEN
+        CASE WHEN src.choice_text = 'Other'
+            AND uss.open_response IS NULL THEN
             'Other - ask them what their goal is!'
         WHEN src.choice_text = 'Other' THEN
             uss.open_response

@@ -3,3 +3,4 @@ CREATE INDEX IF NOT EXISTS school_name_search ON upchieve.schools USING GIN (nam
 
 -- migrate:down
 DROP INDEX IF EXISTS upchieve.school_name_search;
+

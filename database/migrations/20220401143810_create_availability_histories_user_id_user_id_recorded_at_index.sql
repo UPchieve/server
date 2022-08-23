@@ -3,3 +3,4 @@ CREATE INDEX IF NOT EXISTS availability_histories_user_id_recorded_at ON upchiev
 
 -- migrate:down
 DROP INDEX IF EXISTS upchieve.availability_histories_user_id_recorded_at;
+

@@ -1,5 +1,6 @@
 -- migrate:up
 DROP TABLE IF EXISTS upchieve.references CASCADE;
+
 CREATE TABLE IF NOT EXISTS upchieve.volunteer_references (
     id uuid PRIMARY KEY,
     user_id uuid NOT NULL REFERENCES upchieve.users (id),
@@ -19,8 +20,9 @@ CREATE TABLE IF NOT EXISTS upchieve.volunteer_references (
     created_at timestamp NOT NULL,
     updated_at timestamp NOT NULL
 );
+
 ALTER TABLE upchieve.volunteer_references
-  ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
+    ADD CONSTRAINT user_id_ref_email_unique UNIQUE (user_id, email);
 
 -- migrate:down
 CREATE TABLE IF NOT EXISTS upchieve.references (
@@ -42,4 +44,6 @@ CREATE TABLE IF NOT EXISTS upchieve.references (
     created_at timestamp NOT NULL,
     updated_at timestamp NOT NULL
 );
+
 DROP TABLE IF EXISTS upchieve.volunteer_references CASCADE;
+
