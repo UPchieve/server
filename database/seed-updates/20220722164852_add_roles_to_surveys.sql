@@ -8,7 +8,8 @@ OR upchieve.surveys.name = 'College Planning Pre-Session Survey'
 OR upchieve.surveys.name = 'College Essays Pre-Session Survey'
 OR upchieve.surveys.name = 'College Applications Pre-Session Survey'
 OR upchieve.surveys.name = 'SAT Prep Pre-Session Survey'
-OR upchieve.surveys.name = 'Student Post-Session Survey';
+OR upchieve.surveys.name = 'Student Post-Session Survey'
+OR upchieve.surveys.name = 'U.S. History Pre-Session Survey';
 
 UPDATE upchieve.surveys
 SET role_id = 2, updated_at = NOW()

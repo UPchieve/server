@@ -975,7 +975,7 @@ export default {
 
   &__subtext {
     font-weight: 400;
-    font-size: 10pt;
+    font-size: 12px;
     color: $c-secondary-grey;
     margin-top: 10px;
     margin-bottom: 14px;
