@@ -179,6 +179,7 @@
                 :position="index"
                 :options="question.options"
                 v-model="question.answer"
+                :direction="question.direction"
               />
             </div>
           </li>
