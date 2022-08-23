@@ -580,12 +580,8 @@ export default {
       return undefined
     },
 
-    // checks if the question has a row of responses that require to show a display image
     isRowOfImages(question) {
-      if (this.isPostsessionSurveyActive) {
-        return question.questionType === 'emoji' || question.questionType === 'star'
-      }
-      return question.responses.some((a) => a.responseDisplayImage)
+      return question.questionType === 'emoji' || question.questionType === 'star'
     },
     isStarRankingQuestion(question) {
       return question.questionText.startsWith("Your goal for this session") || question.questionText.endsWith('achieve their goal?')
