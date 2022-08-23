@@ -57,7 +57,8 @@
   "pre-commit": [
     "lint:backend:dry",
     "lint:frontend:dry",
-    "lint:database:dry"
+    "lint:database:dry",
+    "lint:sql"
   ],
   "dependencies": {
     "@azure/identity": "^1.2.3",
