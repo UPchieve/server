@@ -127,13 +127,13 @@ WITH replacement_column_cte AS (
   SELECT sq.id,
   CASE
     WHEN sq.replacement_column_1 = 'student_name' THEN u_student.first_name
-    WHEN sq.replacement_column_1 = 'student_goal' AND src.choice_text = 'Other' THEN COALESCE(uss.open_response)
+    WHEN sq.replacement_column_1 = 'student_goal' AND src.choice_text = 'Other' THEN COALESCE(uss.open_response, 'get help')
     WHEN sq.replacement_column_1 = 'student_goal' AND src.choice_text <> 'Other' THEN COALESCE(src.choice_text)
     WHEN sq.replacement_column_1 = 'coach_name' THEN u_volunteer.first_name
     WHEN sq.replacement_column_1 = 'subject_name' THEN subjects.display_name
   END AS replacement_text_1,
   CASE
-    WHEN sq.replacement_column_2 = 'student_goal' AND src.choice_text = 'Other' THEN COALESCE(uss.open_response)
+    WHEN sq.replacement_column_2 = 'student_goal' AND src.choice_text = 'Other' THEN COALESCE(uss.open_response, 'get help')
     WHEN sq.replacement_column_2 = 'student_goal' AND src.choice_text <> 'OTHER' THEN COALESCE(src.choice_text)
     WHEN sq.replacement_column_2 = 'subject_name' THEN subjects.display_name
   END AS replacement_text_2
