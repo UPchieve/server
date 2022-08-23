@@ -37,7 +37,7 @@ export async function postalCodes(numZipCodes: number | undefined) {
       code: typedRecord.zipcode,
       usStateCode: typedRecord.state,
       income: typedRecord.income,
-      lattitude: typedRecord.latitude,
+      latitude: typedRecord.latitude,
       longitude: typedRecord.longitude,
     })
   })
@@ -46,7 +46,7 @@ export async function postalCodes(numZipCodes: number | undefined) {
     code: '00000',
     usStateCode: 'NA',
     income: 0,
-    lattitude: 0,
+    latitude: 0,
     longitude: 0
   })
 }
