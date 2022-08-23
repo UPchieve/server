@@ -21,6 +21,7 @@
     "lint:database": "prettier --write \"database/seeds/**/*.ts\" > /dev/null",
     "lint:database:dry": "prettier --check \"database/seeds/**/*.ts\"",
     "lint:sql": "./bin/lint_sql.sh",
+    "lint:sql:check": "./bin/lint_sql_check.sh",
     "lint:sql:manual": "pg-formatter --keyword-case=\"uppercase\" --inplace --placeholder=\":\\w+!\"",
     "lint:write": "npm run lint:backend && npm run lint:frontend",
     "start": "node build/main",
@@ -58,7 +59,7 @@
     "lint:backend:dry",
     "lint:frontend:dry",
     "lint:database:dry",
-    "lint:sql"
+    "lint:sql:check"
   ],
   "dependencies": {
     "@azure/identity": "^1.2.3",
