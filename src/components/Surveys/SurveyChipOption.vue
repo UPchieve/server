@@ -1,12 +1,10 @@
 <template>
-  <div
-    @click="handleChipClick">
     <chip
+      @click.native="handleChipClick"
       class="issue-reason"
       :class="{'selected-chip': isSelected}"
       :chipContent="label"
     />
-  </div>
 </template>
 
 <script>
