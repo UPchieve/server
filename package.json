@@ -54,6 +54,11 @@
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
     "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up"
   },
+  "pre-commit": [
+    "lint:backend:dry",
+    "lint:frontend:dry",
+    "lint:database:dry"
+  ],
   "dependencies": {
     "@azure/identity": "^1.2.3",
     "@azure/storage-blob": "^12.4.1",
@@ -247,6 +252,7 @@
     "nodemon": "^1.18.10",
     "nyc": "^13.3.0",
     "pino-pretty": "^4.3.0",
+    "pre-commit": "^1.2.2",
     "prettier": "1.19.1",
     "prettier-config-standard": "^1.0.1",
     "prettier-standard": "^9.1.1",
