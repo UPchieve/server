@@ -25,9 +25,9 @@ for filename in $(find ./database/seed-updates -name "*.sql"); do
 done
 
 if [[ $(git ls-files -m "*.sql") ]]; then
-  "SQL code changes made by pg-formatter, please stage the files and try again."
+  echo "SQL code changes made by pg-formatter, please stage the files and try again."
   exit 1
 else
-  "No sql code changes made by pg-formatter!"
+  echo "No sql code changes made by pg-formatter!"
   exit 0
 fi
