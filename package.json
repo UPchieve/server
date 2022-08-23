@@ -38,6 +38,7 @@
     "build-storybook": "build-storybook",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
+    "pgtyped:check": "./bin/pgtyped_check.sh",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",
     "telepresence:leave": "./bin/telepresence_leave.sh",
     "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts",
@@ -56,6 +57,7 @@
     "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up"
   },
   "pre-commit": [
+    "pgtyped:check",
     "lint:backend:dry",
     "lint:frontend:dry",
     "lint:database:dry",
