@@ -45,6 +45,33 @@ export default {
 }
 </script>
 <style lang='scss' scoped>
+@media only screen and (max-width: 660px) {
+  .round-container {
+    margin: 10px 15px;
+    height: 30px;
+    width: 30px;
+  }
+  .round-text {
+    font-size: 15px;
+    margin-top: 4px;
+  }
+  .survey-rate-label {
+    font-size: 15px;
+  }
+}
+
+@media only screen and (min-width: 661px) {
+  .round-container {
+    margin: 20px 20px;
+    height: 60px;
+    width: 60px;
+  }
+  .round-text {
+    font-size: 18pt;
+    margin-top: 10px;
+  }
+}
+
   .round-container {
     border: solid 1px $c-border-grey;
     justify-content: center;
@@ -52,16 +79,11 @@ export default {
     align-self: flex-start;
     border-radius: 100%;
     padding: 0 0;
-    margin: 20px 20px;
-    height: 60px;
-    width: 60px;
     display: inherit;
   }
   .round-text {
-    font-size: 18pt;
     color: $c-secondary-grey;
     text-align: center;
-    margin-top: 10px;
     cursor: pointer;
   }
   .selected-container {
@@ -80,5 +102,4 @@ export default {
     margin-top: -10px;
     text-align: center;
   }
-
 </style>

@@ -67,14 +67,20 @@ export default {
     transition: transform 0.2s;
     height: 38px;
     width: 38px;
-    margin: 20px 20px;
 
 
-    @include breakpoint-above('small') {
+    @media only screen and (max-width: 660px) {
+      margin: 10px 15px;
+      height: 20px;
+      width: 20px;
+    }
+
+
+    @media only screen and (min-width: 661px) {
+      margin: 20px 20px;
       height: 50px;
       width: 50px;
     }
-    
 
     &:hover {
       filter: grayscale(0);
