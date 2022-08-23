@@ -12,15 +12,15 @@ export async function associatedPartnersTest(
       key: 'associatedWithSponsorOrg',
       vpoId: vpoIds['Big Telecom'] as string,
       spoId: undefined,
-      soId: sponsorIds['onlySponsorsSchools'] as string
+      soId: sponsorIds['onlySponsorsSchools'] as string,
     },
     {
       id: getDbUlid(),
       key: 'associatedWithPartnerOrg',
       vpoId: vpoIds['Big Telecom'] as string,
       spoId: spoIds['College Mentors'] as string,
-      soId: undefined
-    }
+      soId: undefined,
+    },
   ]
 
   const associatedPartners: NameToId = {}

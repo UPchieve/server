@@ -6,7 +6,7 @@ export async function photoIdStatuses(): Promise<NameToId> {
     { name: 'approved' },
     { name: 'submitted' },
     { name: 'rejected' },
-    { name: 'empty' }
+    { name: 'empty' },
   ]
   const temp: NameToId = {}
   for (const status of statuses) {
