@@ -434,7 +434,6 @@ export const FEATURE_FLAGS = {
   COACH_FAVORITING: 'coach-favoriting',
   SESSION_HISTORY: 'session-history',
   DASHBOARD_BANNER: 'dashboard-banner',
-  UPCHIEVE_101_GRACE_PERIOD_BANNER: 'training-grace-period-banner',
   US_HISTORY_LAUNCH_VOLUNTEER: 'us-history-launch-volunteer',
   US_HISTORY_LAUNCH_STUDENT: 'us-history-launch-student',
   CONTEXT_SHARING_WITH_VOLUNTEER: 'context-sharing-with-volunteer',
