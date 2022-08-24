@@ -434,7 +434,6 @@ export const FEATURE_FLAGS = {
   SESSION_HISTORY: 'session-history',
   DASHBOARD_BANNER: 'dashboard-banner',
   CONTEXT_SHARING_WITH_VOLUNTEER: 'context-sharing-with-volunteer',
-  ENVIRONMENTAL_SCIENCE_LAUNCH_STUDENT: 'environmental-science-launch-student',
 }
 
 export const ANALYTICS_REPORT_ROW = {

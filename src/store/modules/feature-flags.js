@@ -56,7 +56,6 @@ export default {
       [FEATURE_FLAGS.SESSION_HISTORY]: false,
       [FEATURE_FLAGS.DASHBOARD_BANNER]: false,
       [FEATURE_FLAGS.CONTEXT_SHARING_WITH_VOLUNTEER]: true,
-      [FEATURE_FLAGS.ENVIRONMENTAL_SCIENCE_LAUNCH_STUDENT]: false,
     },
   },
   mutations: {
@@ -88,6 +87,5 @@ export default {
     isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
     isDashboardBannerActive: state => state.flags[FEATURE_FLAGS.DASHBOARD_BANNER],
     isContextSharingWithVolunteerActive: state => state.flags[FEATURE_FLAGS.CONTEXT_SHARING_WITH_VOLUNTEER],
-    isEnvironmentalScienceLaunchStudentActive: state => state.flags[FEATURE_FLAGS.ENVIRONMENTAL_SCIENCE_LAUNCH_STUDENT],
   },
 }
