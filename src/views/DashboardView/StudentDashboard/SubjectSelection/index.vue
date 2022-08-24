@@ -120,7 +120,6 @@ export default {
     ...mapGetters({
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive',
-      isUsHistroyLaunchStudentActive: 'featureFlags/isUsHistroyLaunchStudentActive',
       isEnvironmentalScienceLaunchStudentActive: 'featureFlags/isEnvironmentalScienceLaunchStudentActive'
     }),
     waitingPeriodMessage() {
@@ -158,10 +157,9 @@ export default {
               'environmentalScience'
             ]
             return !temporarilyHiddenSubjects.includes(subject)
-          })  
+          })
 
-     }  
-      if(!this.isUsHistroyLaunchStudentActive)  cards.splice(3, 1); 
+     }
       return cards;
     }
   },
