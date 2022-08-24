@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import LargeButton from '@/components/LargeButton'
 import { topics } from '@/utils/topics'
@@ -153,8 +153,7 @@ export default {
           show: () => {
             if (
               this.isFavoriteCoach ||
-              this.isFavoriteCoachLimitReached ||
-              !this.isCoachFavoritingActive
+              this.isFavoriteCoachLimitReached
             )
               return false
 
@@ -253,11 +252,6 @@ export default {
     ...mapState({
       user: state => state.user.user
     }),
-    ...mapGetters({
-      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
-      isContextSharingWithVolunteerActive:
-        'featureFlags/isContextSharingWithVolunteerActive',
-    }),
     sessionPartnerFirstName() {
       return this.user.isVolunteer
         ? this.session.student.firstName
@@ -279,7 +273,6 @@ export default {
     },
     sessionGoal() {
       if (
-        this.isContextSharingWithVolunteerActive &&
         this.studentPresessionGoal
       ) {
         return this.studentPresessionGoal
@@ -368,7 +361,7 @@ export default {
       return
     }
 
-    if (!this.user.isVolunteer && this.isCoachFavoritingActive) {
+    if (!this.user.isVolunteer) {
       const response = await NetworkService.checkIsFavoriteVolunteer(
         this.session.volunteer._id
       )
@@ -416,8 +409,7 @@ export default {
         requests.push(NetworkService.feedback(this, data))
         if (
           !this.isVolunteer &&
-          this.isFavoritingCoach &&
-          this.isCoachFavoritingActive
+          this.isFavoritingCoach
         )
           requests.push(
             NetworkService.updateFavoriteVolunteerStatus(

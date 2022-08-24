@@ -51,18 +51,6 @@ WHERE
     user_id = :userId!;
 
 
-/* @name updateUpfGatesQualifiedFlagById */
-UPDATE
-    user_product_flags
-SET
-    gates_qualified = :gatesQualified!,
-    updated_at = NOW()
-WHERE
-    user_id = :userId!
-RETURNING
-    user_id AS ok;
-
-
 /* @name updateSentInactiveThirtyDayEmail */
 UPDATE
     user_product_flags

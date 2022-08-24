@@ -120,8 +120,6 @@ export default {
     ...mapGetters({
       mobileMode: 'app/mobileMode',
       isSessionAlive: 'user/isSessionAlive',
-      isUsHistroyLaunchStudentActive: 'featureFlags/isUsHistroyLaunchStudentActive',
-      isEnvironmentalScienceLaunchStudentActive: 'featureFlags/isEnvironmentalScienceLaunchStudentActive'
     }),
     waitingPeriodMessage() {
       const countdown = calculateWaitingPeriodCountdown(
@@ -151,17 +149,7 @@ export default {
             return !temporarilyHiddenSubjects.includes(subject)
           })
 
-        // Temporarily hide Environmental Science from students
-        if (card.topic === 'science' && !this.isEnvironmentalScienceLaunchStudentActive)
-          card.subtopics = card.subtopics.filter(subject => {
-            const temporarilyHiddenSubjects = [
-              'environmentalScience'
-            ]
-            return !temporarilyHiddenSubjects.includes(subject)
-          })  
-
-     }  
-      if(!this.isUsHistroyLaunchStudentActive)  cards.splice(3, 1); 
+     }
       return cards;
     }
   },

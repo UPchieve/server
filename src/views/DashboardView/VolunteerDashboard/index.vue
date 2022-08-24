@@ -3,25 +3,6 @@
     <dashboard-banner />
 
     <div
-      v-if="!downtimeMessage && showUpchieve101Notice"
-      class="dashboard-notice"
-    >
-      <router-link to="training/course/upchieve101">
-        Please complete UPchieve 101 to remain an active coach
-      </router-link>
-    </div>
-
-    <!-- TODO: Remove with feature flag training-grace-period-banner cleanup -->
-    <div
-      v-if="!downtimeMessage && showUpchieve101NoticeForGracePeriod"
-      class="dashboard-notice"
-    >
-      <router-link to="training/course/upchieve101" class="">
-        Our bad! Because of a bug, you skipped a critical step in your UPchieve onboarding. Please take the UPchieve101 quiz before July 1st to keep coaching. <arrow-icon class="arrow-icon--banner" />
-      </router-link>
-    </div>
-
-    <div
       v-if="downtimeMessage"
       class="dashboard-notice"
       :class="'dashboard-notice--info'"
@@ -258,7 +239,6 @@ export default {
       hasSelectedAvailability: 'user/hasSelectedAvailability',
       isDowntimeBannerActive: 'featureFlags/isDowntimeBannerActive',
       isDashboardBannerActive: 'featureFlags/isDashboardBannerActive',
-      isUpchieve101GracePeriodBannerActive: 'featureFlags/isUpchieve101GracePeriodBannerActive',
     }),
 
     isCustomVolunteerPartner() {
@@ -269,27 +249,6 @@ export default {
 
     isNewVolunteer() {
       return !this.user.pastSessions || !this.user.pastSessions.length
-    },
-
-    showUpchieve101NoticeForLegacyVolunteers() {
-      if (!this.user.isApproved || !this.user.isOnboarded) return false
-      if (this.user.certifications.upchieve101.passed) return false
-      return new Date(this.user.createdAt) < new Date('9/18/20')
-    },
-
-    /**
-     * Volunteers in 2022 who got to skip completing the UPchieve 101 quiz but
-     * became onboarded will see a grace period banner that prompts
-     * them to take the UPchieve 101 quiz
-     */
-    // TODO: Remove with feature flag upchieve-101-grace-period-banner cleanup
-    showUpchieve101NoticeForGracePeriod() {
-      return (
-        this.user.isOnboarded &&
-        !this.user.certifications['upchieve101'].passed &&
-        new Date(this.user.createdAt) >= new Date('01/01/2022') &&
-        this.isUpchieve101GracePeriodBannerActive
-      )
     },
 
     downtimeMessage() {

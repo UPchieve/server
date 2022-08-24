@@ -1477,19 +1477,6 @@ export async function getVolunteersOnDeck(
   }
 }
 
-export async function removeOnboardedStatusForUnqualifiedVolunteers(): Promise<
-  void
-> {
-  try {
-    await pgQueries.removeOnboardedStatusForUnqualifiedVolunteers.run(
-      undefined,
-      getClient()
-    )
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
 // TODO: break out anything that uses RO client into their own repo
 export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   volunteerPartnerOrg: string,

@@ -2,7 +2,7 @@
   <div class="survey-container">
     <cross-icon @click="cancel()" class="cross-icon" />
     <div class="presession-survey">
-      <template v-if="isContextSharingWithVolunteerActive">
+      <template>
         <div class="presession-survey__title">Tell us about your request</div>
         <div class="presession-survey__subtitle">
           This will give your coach the info they need to help you.
@@ -36,7 +36,7 @@
                     userResponse[currentQuestion.questionId].responseId ===
                     response.responseId
                   "
-                  @survey-image-click="updateUserResponse" 
+                  @survey-image-click="updateUserResponse"
                 />
 
                 <survey-radio
@@ -87,69 +87,6 @@
             v-if="currentStep === survey.length"
             @click.native="submitSurvey"
             :disabled="!isSurveyComplete"
-            >Start a chat</large-button
-          >
-        </div>
-      </template>
-      <!-- 
-        TODO: remove in context sharing feature flag cleanup.
-        old presession survey below. remove the template
-        below 
-      -->
-      <template v-else>
-        <div class="presession-survey__title presession-survey__title-legacy">
-          Tell us a little about your request
-        </div>
-        <div class="presession-survey__subtitle presession-survey__subtitle-legacy">
-          This info will help us find the best coach to pair you with
-        </div>
-
-        <div class="questions-container">
-          <div
-            v-for="question in questions"
-            :key="question.title"
-            class="question-legacy"
-          >
-            <div class="question-legacy__title">{{ question.title }}</div>
-            <div class="question-legacy__options">
-              <div
-                v-for="option in question.options"
-                :key="option.displayName"
-                class="question-legacy__option"
-              >
-                <input
-                  v-model="responses[question.key].answer"
-                  type="radio"
-                  tabindex="-1"
-                  :id="`${question.key}_${option.value}`"
-                  :value="option.value"
-                />
-                <label
-                  :for="`${question.key}_${option.value}`"
-                  tabindex="0"
-                  @keydown.space="responses[question.key].answer = option.value"
-                >
-                  <span>{{ option.displayName }}</span>
-                  <input
-                    v-if="option.value === 'other'"
-                    type="text"
-                    tabindex="-1"
-                    v-model="responses[question.key].other"
-                    :disabled="responses[question.key].answer !== 'other'"
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="!mobileMode" class="presession-survey__separator" />
-        <div class="presession-survey__buttons">
-          <large-button @click.native="cancel()">Cancel</large-button>
-          <large-button
-            primary
-            @click.native="submitSurvey"
-            :disabled="!isComplete"
             >Start a chat</large-button
           >
         </div>
@@ -227,12 +164,12 @@ const questions = [
 ]
 
 export default {
-  components: { 
-    LargeButton, 
-    Stepper, 
-    CrossIcon, 
-    SurveyRadio, 
-    SurveyImage 
+  components: {
+    LargeButton,
+    Stepper,
+    CrossIcon,
+    SurveyRadio,
+    SurveyImage
   },
 
   props: {
@@ -264,13 +201,11 @@ export default {
   },
 
   async mounted() {
-    if (this.isContextSharingWithVolunteerActive) {
-      const response = await NetworkService.getPresessionSurvey(this.subject)
-      this.survey = response.data.survey
-      this.surveyId = response.data.surveyId
-      this.surveyTypeId = response.data.surveyTypeId
-      this.buildUserResponse()
-    }
+    const response = await NetworkService.getPresessionSurvey(this.subject)
+    this.survey = response.data.survey
+    this.surveyId = response.data.surveyId
+    this.surveyTypeId = response.data.surveyTypeId
+    this.buildUserResponse()
     /**
      *
      *
@@ -288,8 +223,6 @@ export default {
   computed: {
     ...mapGetters({
       mobileMode: 'app/mobileMode',
-      isContextSharingWithVolunteerActive:
-        'featureFlags/isContextSharingWithVolunteerActive',
     }),
     // TODO: remove in context sharing feature flag cleanup
     isComplete() {
@@ -341,25 +274,23 @@ export default {
     submitSurvey() {
       let surveyResponses = this.responses
 
-      if (this.isContextSharingWithVolunteerActive) {
-        if (!this.isSurveyComplete) return
+      if (!this.isSurveyComplete) return
 
-        const submissions = []
-        for (const question of this.survey) {
-          const questionId = question.questionId
-          const response = this.userResponse[questionId]
-          submissions.push({
-            questionId: Number(questionId),
-            responseChoiceId: response.responseId,
-            openResponse: response.openResponse,
-          })
-        }
+      const submissions = []
+      for (const question of this.survey) {
+        const questionId = question.questionId
+        const response = this.userResponse[questionId]
+        submissions.push({
+          questionId: Number(questionId),
+          responseChoiceId: response.responseId,
+          openResponse: response.openResponse,
+        })
+      }
 
-        surveyResponses = {
-          surveyId: this.surveyId,
-          surveyTypeId: this.surveyTypeId,
-          submissions,
-        }
+      surveyResponses = {
+        surveyId: this.surveyId,
+        surveyTypeId: this.surveyTypeId,
+        submissions,
       }
       this.$store.dispatch('user/updatePresessionSurvey', surveyResponses)
       this.$emit('survey-completed')
@@ -500,7 +431,7 @@ export default {
 
     &-image {
       flex-basis: 30%;
-  
+
       @include breakpoint-above('medium') {
         flex-basis: 20%;
       }
