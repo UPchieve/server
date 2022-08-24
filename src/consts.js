@@ -433,7 +433,6 @@ export const FEATURE_FLAGS = {
   CHATBOT: 'chatbot',
   SESSION_HISTORY: 'session-history',
   DASHBOARD_BANNER: 'dashboard-banner',
-  US_HISTORY_LAUNCH_VOLUNTEER: 'us-history-launch-volunteer',
   US_HISTORY_LAUNCH_STUDENT: 'us-history-launch-student',
   CONTEXT_SHARING_WITH_VOLUNTEER: 'context-sharing-with-volunteer',
   ENVIRONMENTAL_SCIENCE_LAUNCH_STUDENT: 'environmental-science-launch-student',

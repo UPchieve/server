@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 import AccordionItem from '@/components/AccordionItem'
 import TrainingDropDown from '@/components/TrainingDropDown'
 import SubjectCertsDropDown from '@/components/SubjectCertsDropDown'
@@ -85,9 +85,6 @@ export default {
   computed: {
     ...mapState({
       user: state => state.user.user
-    }),
-    ...mapGetters({
-      isUsHistroyLaunchVolunteerActive: 'featureFlags/isUsHistroyLaunchVolunteerActive',
     }),
     currentSubject() {
       return this[this.currentSubjectType]
@@ -122,24 +119,14 @@ export default {
         }
     },
     subjectTypes() {
-      if(this.isUsHistroyLaunchVolunteerActive){
-        return [
-          { displayName: 'Math', key: 'math' },
-          { displayName: 'Science', key: 'science' },
-          { displayName: 'Reading and Writing', key: 'readingWriting' },
-          { displayName: 'Social Studies', key: 'socialStudies' },
-          { displayName: 'College Counseling', key: 'college' },
-          { displayName: 'Standardized Testing', key: 'sat' }
-        ]
-      } else {
-        return [
-          { displayName: 'Math', key: 'math' },
-          { displayName: 'Science', key: 'science' },
-          { displayName: 'Reading and Writing', key: 'readingWriting' },
-          { displayName: 'College Counseling', key: 'college' },
-          { displayName: 'Standardized Testing', key: 'sat' }
-        ]
-      }
+      return [
+        { displayName: 'Math', key: 'math' },
+        { displayName: 'Science', key: 'science' },
+        { displayName: 'Reading and Writing', key: 'readingWriting' },
+        { displayName: 'Social Studies', key: 'socialStudies' },
+        { displayName: 'College Counseling', key: 'college' },
+        { displayName: 'Standardized Testing', key: 'sat' }
+      ]
     },
     math() {
       return this.algebraTwoLaunchMath
@@ -271,7 +258,7 @@ export default {
       }
     },
     science() {
-       return { 
+       return {
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // { displayName: "Tutoring Skills", key: "tutoringSkills" }
@@ -363,7 +350,7 @@ export default {
       }
     },
     college() {
-      return  { 
+      return  {
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // { displayName: "College Counseling", key: "collegeCounseling" }
@@ -410,7 +397,7 @@ export default {
       }
     },
     sat() {
-      return { 
+      return {
         training: [
           { displayName: 'UPchieve 101', key: 'upchieve101' }
           // Hide until SAT Strategies is completed
