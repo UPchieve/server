@@ -15,7 +15,6 @@ export async function findSchoolByUpchieveId(
     )
 
     if (result.length) {
-      // pgTyped does not camelCase a letter preceding a number, like g_10Offered
       return makeSomeRequired(result[0], [
         'fipst',
         'schoolYear',
@@ -27,14 +26,6 @@ export async function findSchoolByUpchieveId(
         'mzip',
         'lcity',
         'lzip',
-        // @ts-expect-error
-        'g9Offered',
-        // @ts-expect-error
-        'g10Offered',
-        // @ts-expect-error
-        'g11Offered',
-        // @ts-expect-error
-        'g12Offered',
       ])
     }
   } catch (err) {

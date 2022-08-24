@@ -173,7 +173,7 @@ export async function endSession(
     !isAdmin &&
     !sessionUtils.isSessionParticipant(
       session.student.id,
-      session.volunteer.id,
+      session.volunteer?.id,
       endedBy ? endedBy : null
     )
   )
@@ -325,7 +325,7 @@ export async function processSessionEditors(sessionId: Ulid) {
 
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
-  if (session.volunteer.numPastSessions === 10)
+  if (session.volunteer?.numPastSessions === 10)
     await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
       volunteerId: session.volunteer.id,
     })

@@ -105,8 +105,6 @@ export async function getFeedbackBySessionIdUserType(
       'studentTutoringFeedback',
       'volunteerFeedback',
       'responseData',
-      'subTopic',
-      'type',
     ])
     return {
       userId: temp.id,
@@ -166,8 +164,6 @@ export async function getFeedbackByUserId(
         'studentCounselingFeedback',
         'studentTutoringFeedback',
         'volunteerFeedback',
-        'subTopic',
-        'type',
         'responseData',
       ])
       return {
