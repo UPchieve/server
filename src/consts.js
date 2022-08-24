@@ -431,7 +431,6 @@ export const FEATURE_FLAGS = {
   DASHBOARD_REDESIGN: 'dashboard-redesign',
   DOWNTIME_BANNER: 'downtime-banner',
   CHATBOT: 'chatbot',
-  SESSION_HISTORY: 'session-history',
   DASHBOARD_BANNER: 'dashboard-banner',
 }
 

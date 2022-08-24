@@ -8,7 +8,7 @@
       </sidebar-link>
 
       <sidebar-link
-        v-if="!isVolunteer && isSessionHistoryActive"
+        v-if="!isVolunteer"
         to='/sessions/history'
         text="Session History"
       >
@@ -93,7 +93,6 @@ export default {
   computed: {
     ...mapGetters({
       isReferFriendsActive: 'featureFlags/isReferFriendsActive',
-      isSessionHistoryActive: 'featureFlags/isSessionHistoryActive',
     }),
   },
 }

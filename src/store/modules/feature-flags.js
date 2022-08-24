@@ -53,7 +53,6 @@ export default {
       [FEATURE_FLAGS.DASHBOARD_REDESIGN]: false,
       [FEATURE_FLAGS.DOWNTIME_BANNER]: false,
       [FEATURE_FLAGS.CHATBOT]: false,
-      [FEATURE_FLAGS.SESSION_HISTORY]: false,
       [FEATURE_FLAGS.DASHBOARD_BANNER]: false,
     },
   },
@@ -83,7 +82,6 @@ export default {
       state.flags[FEATURE_FLAGS.DASHBOARD_REDESIGN],
     isDowntimeBannerActive: state => state.flags[FEATURE_FLAGS.DOWNTIME_BANNER],
     isChatbotActive: state => state.flags[FEATURE_FLAGS.CHATBOT],
-    isSessionHistoryActive: state => state.flags[FEATURE_FLAGS.SESSION_HISTORY],
     isDashboardBannerActive: state => state.flags[FEATURE_FLAGS.DASHBOARD_BANNER],
   },
 }
