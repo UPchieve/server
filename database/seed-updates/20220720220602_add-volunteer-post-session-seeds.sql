@@ -140,7 +140,7 @@ WHERE
 
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Tech issues' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Ran out of time' AND sub.text::int = 20) OR
-  (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'I didn''t know topic' AND sub.text::int = 30) OR
+  (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'I didn''t know the topic' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Wrong subject' AND sub.text::int = 40) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Student participation' AND sub.text::int = 50) OR
   (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR

@@ -986,4 +986,9 @@ export default {
   color: $c-secondary-grey;
 }
 
+.issue-reason {
+  margin-top: 1em;
+  margin-right: 1em;
+}
+
 </style>

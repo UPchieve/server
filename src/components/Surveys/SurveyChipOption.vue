@@ -42,8 +42,6 @@ export default {
 
 <style lang='scss' scoped>
 .issue-reason {
-  margin-top: 1em;
-  margin-right: 1em;
   color: black;
   border-color: $c-border-grey;
   font-size: 14px;
