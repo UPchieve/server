@@ -1,6 +1,4 @@
 import expressWs from 'express-ws'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,

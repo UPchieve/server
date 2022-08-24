@@ -637,11 +637,6 @@ export default {
       .post(`${API_ROOT}/user/volunteer-approval/background-information`, data)
       .then(this._successHandler, this._errorHandler)
   },
-  submitPresessionSurvey(sessionId, responseData) {
-    return Vue.http
-      .post(`${API_ROOT}/survey/presession/${sessionId}`, { responseData })
-      .then(this._successHandler, this._errorHandler)
-  },
   submitSurvey(survey) {
     return Vue.http
       .post(`${API_ROOT}/survey/save`, survey)
@@ -665,11 +660,6 @@ export default {
   getPresessionSurveyResponse(sessionId) {
     return Vue.http
       .get(`${API_ROOT}/survey/presession/response/${sessionId}`)
-      .then(this._successHandler, this._errorHandler)
-  },
-  getPostsessionSurvey(subjectName) {
-    return Vue.http
-      .get(`${API_ROOT}/survey/postsession?subject=${subjectName}`)
       .then(this._successHandler, this._errorHandler)
   },
   getUserProductFlags() {
