@@ -1549,6 +1549,58 @@ paths:
       responses:
         '200':
           description: OK
+  /api/survey/presession/{:sessionId}/goal:
+    get:
+      tags:
+        - survey
+      summary: Gets the student's presession goal
+      description: Gets the student's presession goal
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          required: true
+          in: path
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Responds with an object containing the student's goal
+  /api/survey/save:
+    post:
+      tags:
+        - survey
+      summary:  Sends user survey and user survey answers to be saved
+      description: Sends user survey and user survey answers to be saved
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                surveyId:
+                  type: integer
+                sessionId:
+                  type: string
+                surveyTypeId:
+                  type: number
+                submissions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      questionId:
+                        type: integer
+                      responseChoiceId:
+                        type: integer
+                      openResponse:
+                        type: string
+      responses:
+        '200':
+          description: OK
   /api/survey/presession:
     get:
       tags:
@@ -1561,6 +1613,23 @@ paths:
         - name: subjectName
           required: true
           in: body
+          schema:
+            $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/postsession:
+    get:
+      tags:
+        - survey
+      summary: Gets postsession survey
+      description: Gets postsession survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: subjectName
+          required: true
+          in: query
           schema:
             $ref: '#/components/schemas/Category'
       responses:

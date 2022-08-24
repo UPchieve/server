@@ -6,7 +6,7 @@ SET
     updated_at = NOW()
 WHERE
     upchieve.survey_response_choices.choice_text = 'Improve my understanding of a topic';
-    
+
 UPDATE
     upchieve.survey_response_choices
 SET
@@ -23,7 +23,7 @@ SET
     updated_at = NOW()
 WHERE
     upchieve.survey_response_choices.choice_text = 'Deepen my understanding of a topic';
-    
+
 UPDATE
     upchieve.survey_response_choices
 SET
@@ -31,3 +31,4 @@ SET
     updated_at = NOW()
 WHERE
     upchieve.survey_response_choices.choice_text = 'Deepen my understanding of a concept';
+

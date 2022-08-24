@@ -486,3 +486,9 @@ export const ANALYTICS_REPORT_SUMMARY = {
   TOTAL_VOLUNTEER_HOURS: 'Total volunteer hours completed',
   TOTAL_UNIQUE_STUDENTS_HELPED: 'Total unique students helped'
 }
+
+export const QUESTION_TYPES = {
+  multipleChoice: 'multiple choice',
+  checkBox: 'check box',
+  freeResponse: 'free response'
+}

@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS upchieve.push_tokens (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.push_tokens CASCADE;
+

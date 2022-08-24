@@ -41,6 +41,8 @@ import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-token
 import deleteDuplicateFeedbacks from '../../scripts/delete-duplicate-feedbacks'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import removeUnqualifiedOnboardedVolunteers from '../../scripts/remove-unqualified-onboarded-volunteers'
+import migrateHistoricalPartnerData from '../../scripts/migrate-partner-orgs'
+import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -105,6 +107,10 @@ export enum Jobs {
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
 
   RemoveUnqualifiedOnboardedVolunteers = 'RemoveUnqualifiedOnboardedVolunteers',
+
+  // Migration scripts
+  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
+  UpsertPostalCodes = 'UpsertPostalCodes',
 }
 
 // register new job processors here
@@ -317,6 +323,15 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.DeleteDuplicateFeedbacks,
     processor: deleteDuplicateFeedbacks,
+  },
+  // TODO: uncomment this processor when ready to migrate
+  //{
+  //  name: Jobs.MigrateHistoricalPartnerData,
+  //  processor: migrateHistoricalPartnerData
+  //},
+  {
+    name: Jobs.UpsertPostalCodes,
+    processor: upsertPostalCodes,
   },
 ]
 

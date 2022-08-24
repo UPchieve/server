@@ -15,7 +15,6 @@ import { associatedPartnersTest } from './testData/partners/associated-partners'
 async function seedData(): Promise<void> {
   let exitCode = 0
   try {
-
     const spoIds = await studentPartnerOrgsTest()
     await studentPartnerOrgSitesTest(spoIds)
     const vpoIds = await volunteerPartnerOrgsTest()

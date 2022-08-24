@@ -4,27 +4,10 @@
 set -o errexit
 
 # temporarily stop pgAmdin container
-docker ps -q --filter "name=subway-pgadmin-1" | grep -q . && docker stop subway-pgadmin-1
+docker ps -q --filter "name=subway-pgadmin-1" | grep -q . && docker stop subway-pgadmin-1 1> /dev/null
 
-PGURL='postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable' 
+PGPASSFILE='database/.pgpass' dropdb -h localhost -p 5432 -U admin -w --if-exists upchieve 1> /dev/null
+PGPASSFILE='database/.pgpass' psql -w -h localhost -p 5432 -d postgres -U admin -c "create database upchieve;" 1> /dev/null
 
-# drop upchieve database
-dbmate --url $PGURL drop
-
-# rebuild schema from scratch
-dbmate \
-  -d ./database/migrations \
-  --no-dump-schema \
-  --url $PGURL \
-  --migrations-table 'schema_migrations' \
-  up \
-  > /dev/null
-
-# drop seed migrations table
-PGPASSFILE="database/.pgpass" psql -w -h localhost -p 5432 -d upchieve -U admin -c "DELETE FROM public.seed_migrations" >/dev/null
-
-# reapply auth credentials to subway user
-PGPASSFILE="database/.pgpass" psql -w -h localhost -p 5432 -d upchieve -f ./database/db_init/auth.sql -U admin >/dev/null
-
-# restart mgAdmin container
-docker ps -q --all --filter "name=subway-pgadmin-1" | grep -q . && docker start subway-pgadmin-1
+# restart pgAdmin container
+docker ps -q --all --filter "name=subway-pgadmin-1" | grep -q . && docker start subway-pgadmin-1 1> /dev/null

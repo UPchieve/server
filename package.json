@@ -21,6 +21,7 @@
     "lint:database": "prettier --write \"database/seeds/**/*.ts\" > /dev/null",
     "lint:database:dry": "prettier --check \"database/seeds/**/*.ts\"",
     "lint:sql": "./bin/lint_sql.sh",
+    "lint:sql:check": "./bin/lint_sql_check.sh",
     "lint:sql:manual": "pg-formatter --keyword-case=\"uppercase\" --inplace --placeholder=\":\\w+!\"",
     "lint:write": "npm run lint:backend && npm run lint:frontend",
     "start": "node build/main",
@@ -37,16 +38,31 @@
     "build-storybook": "build-storybook",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
-    "seeds:copy": "PGPASSFILE=\"database/.pgpass\" pg_dump -a -f database/db_init/seeds.sql -n upchieve -h localhost -p 5432 -U admin upchieve",
-    "seeds:copy:migration": "PGPASSFILE=\"database/.pgpass\" pg_dump -a -f database/db_init/seed_migrations.sql -t \"seed_migrations\" -h localhost -p 5432 -U admin upchieve",
-    "seeds:copy:test": "PGPASSFILE=\"database/.pgpass\" pg_dump -a -f database/db_init/test_seeds.sql -n upchieve -h localhost -p 5432 -U admin upchieve",
-    "seeds:build": "./bin/build_static_seeds.sh",
-    "seeds:build:test": "./bin/build_static_seeds.sh 100",
-    "seeds:reset": "./bin/reset_db.sh",
+    "pgtyped:check": "./bin/pgtyped_check.sh",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",
     "telepresence:leave": "./bin/telepresence_leave.sh",
-    "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts"
+    "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts",
+    "db:reset": "./bin/reset_db.sh",
+    "db:schema": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/schema.sql\" &> /dev/null",
+    "db:auth": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/auth.sql\" &> /dev/null",
+    "db:seeds": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/test_seeds.sql\" -f \"database/db_init/seed_migrations.sql\" &> /dev/null",
+    "db:reset-schema": "npm run db:reset && npm run db:schema && npm run db:auth",
+    "db:reset-seeds": "npm run db:reset-schema && npm run db:seeds",
+    "db:build-seeds": "npm run db:reset-schema && ./bin/build_static_seeds.sh 100",
+    "db:dump": "dbmate --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" -s \"./database/db_init/schema.sql\" dump && PGPASSFILE=\"database/.pgpass\" pg_dump -a -f database/db_init/test_seeds.sql -n upchieve -h localhost -p 5432 -U admin upchieve && PGPASSFILE=\"database/.pgpass\" pg_dump -a -f \"database/db_init/seed_migrations.sql\" -t seed_migrations -h localhost -p 5432 -U admin upchieve",
+    "db:schema-new": "dbmate -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" new",
+    "db:seeds-new": "dbmate -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" new",
+    "db:schema-up": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" up",
+    "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
+    "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up"
   },
+  "pre-commit": [
+    "pgtyped:check",
+    "lint:backend:dry",
+    "lint:frontend:dry",
+    "lint:database:dry",
+    "lint:sql:check"
+  ],
   "dependencies": {
     "@azure/identity": "^1.2.3",
     "@azure/storage-blob": "^12.4.1",
@@ -97,6 +113,7 @@
     "express-ws": "^5.0.2",
     "firebase-admin": "^8.10.0",
     "gleap": "^6.4.3",
+    "heic2any": "^0.0.3",
     "helmet": "^4.6.0",
     "id128": "^1.6.6",
     "ioredis": "^4.25.0",
@@ -239,6 +256,7 @@
     "nodemon": "^1.18.10",
     "nyc": "^13.3.0",
     "pino-pretty": "^4.3.0",
+    "pre-commit": "^1.2.2",
     "prettier": "1.19.1",
     "prettier-config-standard": "^1.0.1",
     "prettier-standard": "^9.1.1",
@@ -255,8 +273,8 @@
     "webpack-bundle-analyzer": "^3.7.0"
   },
   "engines": {
-    "node": "~16.8.0",
-    "npm": "~7.21.0"
+    "node": "~16.16.0",
+    "npm": "~8.11.0"
   },
   "standard": {
     "parser": "babel-eslint"

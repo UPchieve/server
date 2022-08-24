@@ -18,8 +18,13 @@
       ref="zwibDiv"
     ></div>
     <transition name="reset-whiteboard-error">
-      <p class="reset-whiteboard-error " v-show="resetWhiteboardError">
+      <p class="error" v-show="resetWhiteboardError">
         Unable to reset the whiteboard.
+      </p>
+    </transition>
+    <transition name="uploading-picture-error">
+      <p class="error" v-show="uploadingPictureError">
+        Unable to upload the picture.
       </p>
     </transition>
     <div id="toolbar" class="toolbar">
@@ -198,7 +203,7 @@
         <FileDialog
           ref="fileDialog"
           class="upload-photo"
-          accept="image/*"
+          accept="image/*, image/heic"
           @file-selected="uploadPhoto"
         />
         <PhotoUploadIcon class="toolbar-item__svg--photo" />
@@ -255,6 +260,7 @@ import ResetWhiteboardModal from './ResetWhiteboardModal'
 import LoadingMessage from '@/components/LoadingMessage'
 import * as Sentry from '@sentry/browser'
 import config from '../../config'
+import heic2any from 'heic2any'
 
 export default {
   components: {
@@ -312,7 +318,8 @@ export default {
       hadConnectionIssue: false,
       showResetWhiteboardModal: false,
       shouldResetWhiteboard: false,
-      resetWhiteboardError: false
+      resetWhiteboardError: false,
+      uploadingPictureError: false
     }
   },
   computed: {
@@ -362,6 +369,9 @@ export default {
     this.loadZwibbler()
   },
   methods: {
+    isMobile() {
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    },
     resizeViewRectangle() {
       this.zwibblerCtx.setViewRectangle({
         x: 0,
@@ -449,7 +459,7 @@ export default {
     },
     async uploadPhoto(uploadEvents) {
       const { files } = uploadEvents.fileSelectionEvent.target
-      const file = files[0]
+      let file = files[0]
       const tenMegabytes = 10 * 1000000
 
       if (!this.isWhiteboardOpen && this.mobileMode) this.toggleWhiteboard()
@@ -462,26 +472,53 @@ export default {
 
       this.usePickTool(uploadEvents.dialogOpeningEvent)
 
-      const response = await NetworkService.getSessionPhotoUploadUrl(
-        this.sessionId
-      )
-      const {
-        body: { uploadUrl, imageUrl }
-      } = response
+      this.isLoading = true
 
-      if (uploadUrl) {
-        this.isLoading = true
-        await axios.put(uploadUrl, file, {
-          headers: {
-            'Content-Type': file.type
-          }
-        })
+      try {
+        // Convert HEIC images to jpeg on desktop devices
+        if (!this.isMobile() && file.type === 'image/heic') {
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+          })
 
-        this.insertPhoto(imageUrl)
+          const fileType = convertedBlob.type.split('/')[1]
+          const previousFileName = file.name.split('.')[0]
+          const newFileName = `${previousFileName}.${fileType}`
+          file = new File([convertedBlob], newFileName, {
+            lastModified: new Date().getTime(),
+          })
+        }
+
+        const response = await NetworkService.getSessionPhotoUploadUrl(
+          this.sessionId
+        )
+        const {
+          body: { uploadUrl, imageUrl }
+        } = response
+
+        if (uploadUrl) {
+          await axios.put(uploadUrl, file, {
+            headers: {
+              'Content-Type': file.type
+            }
+          })
+
+          this.insertPhoto(imageUrl)
+        }
+      } catch(error) {
+         this.isLoading = false
+         this.uploadingPictureError = true
+        setTimeout(() => {
+          this.uploadingPictureError = false
+        }, 2000)
+        Sentry.captureException(error)
+        return
+      } finally {
+        // Reset the file input
+        uploadEvents.fileSelectionEvent.target.value = ''
       }
 
-      // Reset the file input
-      event.target.value = ''
     },
     insertPhoto(imageUrl) {
       const nodeId = this.zwibblerCtx.createNode('ImageNode', {
@@ -1005,7 +1042,7 @@ export default {
   justify-content: center;
 }
 
-.reset-whiteboard-error {
+.error {
   width: 100%;
   background-color: $c-error-red;
   color: #fff;

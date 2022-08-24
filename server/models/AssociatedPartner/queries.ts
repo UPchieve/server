@@ -1,9 +1,10 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import { makeSomeRequired } from '../pgUtils'
-import { RepoReadError } from '../Errors'
+import { RepoReadError, RepoUpdateError } from '../Errors'
 import { AssociatedPartner, AssociatedPartnersAndSchools } from './types'
 import * as SponsorOrgRepo from '../SponsorOrg/queries'
+import { PoolClient } from 'pg'
 
 export async function getAssociatedPartners(): Promise<AssociatedPartner[]> {
   try {
@@ -139,4 +140,34 @@ export async function getAssociatedPartnersAndSchools(
   }
 
   return { associatedStudentPartnerOrgs, associatedPartnerSchools }
+}
+
+export async function migrateStudentPartnerOrgAssociatedPartners(
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.migrateStudentPartnerOrgAssociatedPartners.run(
+      undefined,
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoUpdateError(
+      `Failed to migrate student partner orgs for associated partners: ${err}`
+    )
+  }
+}
+
+export async function migrateSponsorOrgAssociatedPartners(
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.migrateSponsorOrgAssociatedPartners.run(
+      undefined,
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoUpdateError(
+      `Failed to migrate sponsor orgs for associated partners: ${err}`
+    )
+  }
 }

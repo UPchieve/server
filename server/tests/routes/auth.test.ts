@@ -7,7 +7,7 @@ import {
   buildStudentPartnerOrg,
   buildUserContactInfo,
   buildVolunteerPartnerOrg,
-} from '../pg-generate'
+} from '../mocks/generate'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
 import { CreatedVolunteer } from '../../models/Volunteer'
 

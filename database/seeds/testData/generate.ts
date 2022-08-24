@@ -41,8 +41,8 @@ export function buildStudent(
 }
 
 type StudentProfileOverrides = {
-  userId: string,
-  studentPartnerOrgId?: string,
+  userId: string
+  studentPartnerOrgId?: string
   schoolId?: string
 } & Partial<IInsertStudentProfileParams>
 
@@ -53,7 +53,7 @@ export function buildStudentProfile(
     {
       userId: overrides.userId,
       studentPartnerOrgId: undefined,
-      schoolId: undefined
+      schoolId: undefined,
     },
     overrides
   )
@@ -144,8 +144,5 @@ type SessionOverrides = {
 } & Partial<IInsertSessionParams>
 
 export function buildSession(overrides: SessionOverrides) {
-  return Object.assign(
-    { id: getDbUlid() },
-    overrides
-  )
+  return Object.assign({ id: getDbUlid() }, overrides)
 }

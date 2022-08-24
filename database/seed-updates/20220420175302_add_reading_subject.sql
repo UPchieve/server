@@ -83,3 +83,4 @@ WHERE upchieve.subjects.name = 'reading';
 
 DELETE FROM upchieve.certifications
 WHERE upchieve.certifications.name = 'reading';
+

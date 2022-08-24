@@ -6,3 +6,4 @@ CREATE TABLE IF NOT EXISTS upchieve.surveys_presession (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.surveys_presession CASCADE;
+

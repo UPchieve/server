@@ -1,6 +1,6 @@
 -- migrate:up
 INSERT INTO upchieve.topics (name, icon_link, color, dashboard_order, display_name, created_at, updated_at)
-     VALUES ('socialStudies', null, null, 6, 'Social Studies', NOW(), NOW())
+    VALUES ('socialStudies', NULL, NULL, 6, 'Social Studies', NOW(), NOW())
 ON CONFLICT ON CONSTRAINT topics_dashboard_order_key
     DO NOTHING;
 
@@ -19,7 +19,7 @@ FROM (
         upchieve.tool_types.id AS tool_type_id
     FROM
         upchieve.topics
-        JOIN upchieve.tool_types ON upchieve.tool_types.name = 'documenteditor' 
+        JOIN upchieve.tool_types ON upchieve.tool_types.name = 'documenteditor'
     WHERE
         upchieve.topics.name = 'socialStudies') AS subquery
 ON CONFLICT (display_name)
@@ -80,8 +80,6 @@ RETURNING
     quiz_id AS ok;
 
 -- migrate:down
-
-
 DELETE FROM upchieve.quiz_certification_grants USING upchieve.quizzes
 WHERE upchieve.quizzes.id = upchieve.quiz_certification_grants.quiz_id
     AND upchieve.quizzes.name = 'usHistory';
@@ -89,7 +87,6 @@ WHERE upchieve.quizzes.id = upchieve.quiz_certification_grants.quiz_id
 DELETE FROM upchieve.certification_subject_unlocks USING upchieve.subjects
 WHERE upchieve.subjects.id = upchieve.certification_subject_unlocks.subject_id
     AND upchieve.subjects.name = 'usHistory';
-
 
 DELETE FROM upchieve.quizzes
 WHERE upchieve.quizzes.name = 'usHistory';
@@ -100,5 +97,6 @@ WHERE upchieve.certifications.name = 'usHistory';
 DELETE FROM upchieve.subjects
 WHERE upchieve.subjects.name = 'usHistory';
 
-DELETE FROM  upchieve.topics
+DELETE FROM upchieve.topics
 WHERE upchieve.topics.name = 'socialStudies';
+
