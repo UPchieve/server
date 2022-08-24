@@ -433,7 +433,6 @@ export const FEATURE_FLAGS = {
   CHATBOT: 'chatbot',
   SESSION_HISTORY: 'session-history',
   DASHBOARD_BANNER: 'dashboard-banner',
-  CONTEXT_SHARING_WITH_VOLUNTEER: 'context-sharing-with-volunteer',
 }
 
 export const ANALYTICS_REPORT_ROW = {

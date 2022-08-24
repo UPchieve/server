@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import LargeButton from '@/components/LargeButton'
 import { topics } from '@/utils/topics'
@@ -252,10 +252,6 @@ export default {
     ...mapState({
       user: state => state.user.user
     }),
-    ...mapGetters({
-      isContextSharingWithVolunteerActive:
-        'featureFlags/isContextSharingWithVolunteerActive',
-    }),
     sessionPartnerFirstName() {
       return this.user.isVolunteer
         ? this.session.student.firstName
@@ -277,7 +273,6 @@ export default {
     },
     sessionGoal() {
       if (
-        this.isContextSharingWithVolunteerActive &&
         this.studentPresessionGoal
       ) {
         return this.studentPresessionGoal
