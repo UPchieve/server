@@ -153,8 +153,7 @@ export default {
           show: () => {
             if (
               this.isFavoriteCoach ||
-              this.isFavoriteCoachLimitReached ||
-              !this.isCoachFavoritingActive
+              this.isFavoriteCoachLimitReached
             )
               return false
 
@@ -254,7 +253,6 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
-      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
       isContextSharingWithVolunteerActive:
         'featureFlags/isContextSharingWithVolunteerActive',
     }),
@@ -368,7 +366,7 @@ export default {
       return
     }
 
-    if (!this.user.isVolunteer && this.isCoachFavoritingActive) {
+    if (!this.user.isVolunteer) {
       const response = await NetworkService.checkIsFavoriteVolunteer(
         this.session.volunteer._id
       )
@@ -416,8 +414,7 @@ export default {
         requests.push(NetworkService.feedback(this, data))
         if (
           !this.isVolunteer &&
-          this.isFavoritingCoach &&
-          this.isCoachFavoritingActive
+          this.isFavoritingCoach
         )
           requests.push(
             NetworkService.updateFavoriteVolunteerStatus(
