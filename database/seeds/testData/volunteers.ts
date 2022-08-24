@@ -72,7 +72,7 @@ export async function volunteers(
       verified: true,
       phone: '+12125551216',
       testUser: false,
-      timeTutored: (0).toString()
+      timeTutored: (0).toString(),
     },
     {
       id: volunteer6,
@@ -84,14 +84,22 @@ export async function volunteers(
       verified: true,
       phone: '+12125551217',
       testUser: false,
-      timeTutored: (0).toString()
+      timeTutored: (0).toString(),
     },
   ]
 
   const userMap: NameToId = {}
   for (const user of users) {
-    userMap[user.id] = await wrapInsert('users', pgQueries.insertVolunteerUser.run, { ...user })
-    await wrapInsert('user_session_metrics', pgQueries.insertUserSessionMetrics.run, { id: user.id })
+    userMap[user.id] = await wrapInsert(
+      'users',
+      pgQueries.insertVolunteerUser.run,
+      { ...user }
+    )
+    await wrapInsert(
+      'user_session_metrics',
+      pgQueries.insertUserSessionMetrics.run,
+      { id: user.id }
+    )
   }
 
   const profiles = [

@@ -6,3 +6,4 @@ CREATE TABLE IF NOT EXISTS upchieve.question_types (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.question_types CASCADE;
+

@@ -14,8 +14,8 @@ export async function banReasons(): Promise<NameToId> {
     },
     { name: 'admin' },
     {
-      name: 'banned service provider'
-    }
+      name: 'banned service provider',
+    },
   ]
   const temp: NameToId = {}
   for (const reason of reasons) {

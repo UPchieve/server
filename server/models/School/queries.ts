@@ -47,7 +47,6 @@ export async function getSchool(
 ): Promise<AdminSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
-
     // TODO: fix return type to upper case
     if (result.length) {
       return makeSomeRequired(result[0], ['zipCode'])
@@ -80,8 +79,6 @@ export async function getSchools(
       },
       getClient()
     )
-    const schools = result.map(v => makeRequired(v))
-
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)

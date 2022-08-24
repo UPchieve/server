@@ -7,5 +7,4 @@ const client = new Pool({
   database: 'upchieve',
 })
 
-
 export default client

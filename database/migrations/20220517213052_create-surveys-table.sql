@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS upchieve.surveys (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.surveys CASCADE;
+

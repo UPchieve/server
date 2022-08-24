@@ -122,3 +122,66 @@ const getVolunteerPartnerOrgsIR: any = {"name":"getVolunteerPartnerOrgs","params
 export const getVolunteerPartnerOrgs = new PreparedQuery<IGetVolunteerPartnerOrgsParams,IGetVolunteerPartnerOrgsResult>(getVolunteerPartnerOrgsIR);
 
 
+/** 'MigrateExistingVolunteerPartnerOrgs' parameters type */
+export type IMigrateExistingVolunteerPartnerOrgsParams = void;
+
+/** 'MigrateExistingVolunteerPartnerOrgs' return type */
+export type IMigrateExistingVolunteerPartnerOrgsResult = void;
+
+/** 'MigrateExistingVolunteerPartnerOrgs' query type */
+export interface IMigrateExistingVolunteerPartnerOrgsQuery {
+  params: IMigrateExistingVolunteerPartnerOrgsParams;
+  result: IMigrateExistingVolunteerPartnerOrgsResult;
+}
+
+const migrateExistingVolunteerPartnerOrgsIR: any = {"name":"migrateExistingVolunteerPartnerOrgs","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    vpo.id,\n    vpo.created_at,\n    NOW()\nFROM\n    volunteer_partner_orgs vpo","loc":{"a":1166,"b":1380,"line":47,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     vpo.id,
+ *     vpo.created_at,
+ *     NOW()
+ * FROM
+ *     volunteer_partner_orgs vpo
+ * ```
+ */
+export const migrateExistingVolunteerPartnerOrgs = new PreparedQuery<IMigrateExistingVolunteerPartnerOrgsParams,IMigrateExistingVolunteerPartnerOrgsResult>(migrateExistingVolunteerPartnerOrgsIR);
+
+
+/** 'MigrateExistingvolunteerPartnerOrgRelationships' parameters type */
+export type IMigrateExistingvolunteerPartnerOrgRelationshipsParams = void;
+
+/** 'MigrateExistingvolunteerPartnerOrgRelationships' return type */
+export type IMigrateExistingvolunteerPartnerOrgRelationshipsResult = void;
+
+/** 'MigrateExistingvolunteerPartnerOrgRelationships' query type */
+export interface IMigrateExistingvolunteerPartnerOrgRelationshipsQuery {
+  params: IMigrateExistingvolunteerPartnerOrgRelationshipsParams;
+  result: IMigrateExistingvolunteerPartnerOrgRelationshipsResult;
+}
+
+const migrateExistingvolunteerPartnerOrgRelationshipsIR: any = {"name":"migrateExistingvolunteerPartnerOrgRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL","loc":{"a":1445,"b":1758,"line":58,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     users.id,
+ *     vp.volunteer_partner_org_id,
+ *     vp.created_at,
+ *     NOW()
+ * FROM
+ *     users
+ *     JOIN volunteer_profiles vp ON vp.user_id = users.id
+ * WHERE
+ *     vp.volunteer_partner_org_id IS NOT NULL
+ * ```
+ */
+export const migrateExistingvolunteerPartnerOrgRelationships = new PreparedQuery<IMigrateExistingvolunteerPartnerOrgRelationshipsParams,IMigrateExistingvolunteerPartnerOrgRelationshipsResult>(migrateExistingvolunteerPartnerOrgRelationshipsIR);
+
+

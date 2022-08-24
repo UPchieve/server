@@ -11,7 +11,8 @@ FROM
     LEFT JOIN student_partner_orgs_sponsor_orgs sposo ON so.id = sposo.sponsor_org_id
     LEFT JOIN student_partner_orgs spo ON sposo.student_partner_org_id = spo.id
 GROUP BY
-    so.key, so.name;
+    so.key,
+    so.name;
 
 
 /* @name getSponsorOrgsByKey */
@@ -29,5 +30,39 @@ FROM
 WHERE
     so.key = :sponsorOrg!
 GROUP BY
-    so.key, so.name;
+    so.key,
+    so.name;
+
+
+/* @name migrateExistingSponsorOrgs */
+INSERT INTO sponsor_orgs_upchieve_instances (id, sponsor_org_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    so.id,
+    so.created_at,
+    NOW()
+FROM
+    sponsor_orgs so;
+
+
+/* @name migrateExistingPartnerOrgSponsorOrgRelationships */
+INSERT INTO student_partner_orgs_sponsor_orgs_instances (student_partner_org_id, sponsor_org_id, created_at, updated_at)
+SELECT
+    sposo.student_partner_org_id,
+    sposo.sponsor_org_id,
+    sposo.created_at,
+    NOW()
+FROM
+    student_partner_orgs_sponsor_orgs sposo;
+
+
+/* @name migrateExistingSchoolsSponsorOrgRelationships */
+INSERT INTO schools_sponsor_orgs_instances (school_id, sponsor_org_id, created_at, updated_at)
+SELECT
+    sso.school_id,
+    sso.sponsor_org_id,
+    sso.created_at,
+    NOW()
+FROM
+    schools_sponsor_orgs sso;
 
