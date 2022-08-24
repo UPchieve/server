@@ -21,6 +21,7 @@
     "lint:database": "prettier --write \"database/seeds/**/*.ts\" > /dev/null",
     "lint:database:dry": "prettier --check \"database/seeds/**/*.ts\"",
     "lint:sql": "./bin/lint_sql.sh",
+    "lint:sql:check": "./bin/lint_sql_check.sh",
     "lint:sql:manual": "pg-formatter --keyword-case=\"uppercase\" --inplace --placeholder=\":\\w+!\"",
     "lint:write": "npm run lint:backend && npm run lint:frontend",
     "start": "node build/main",
@@ -37,6 +38,7 @@
     "build-storybook": "build-storybook",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
+    "pgtyped:check": "./bin/pgtyped_check.sh",
     "telepresence:intercept": "./bin/telepresence_intercept.sh",
     "telepresence:leave": "./bin/telepresence_leave.sh",
     "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts",
@@ -54,6 +56,13 @@
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
     "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up"
   },
+  "pre-commit": [
+    "pgtyped:check",
+    "lint:backend:dry",
+    "lint:frontend:dry",
+    "lint:database:dry",
+    "lint:sql:check"
+  ],
   "dependencies": {
     "@azure/identity": "^1.2.3",
     "@azure/storage-blob": "^12.4.1",
@@ -247,6 +256,7 @@
     "nodemon": "^1.18.10",
     "nyc": "^13.3.0",
     "pino-pretty": "^4.3.0",
+    "pre-commit": "^1.2.2",
     "prettier": "1.19.1",
     "prettier-config-standard": "^1.0.1",
     "prettier-standard": "^9.1.1",

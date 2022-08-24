@@ -9,18 +9,18 @@ export async function sponsorOrgsTest(
     {
       id: getDbUlid(),
       key: 'onlySponsorsSchools',
-      name: 'Only Sponsors Schools'
+      name: 'Only Sponsors Schools',
     },
     {
       id: getDbUlid(),
       key: 'onlySponsorsPartnerOrgs',
-      name: 'Only Sponsors Partner Orgs'
+      name: 'Only Sponsors Partner Orgs',
     },
     {
       id: getDbUlid(),
       key: 'sponsorsBoth',
-      name: 'Sponsors Both'
-    }
+      name: 'Sponsors Both',
+    },
   ]
 
   const sponsorOrgs: NameToId = {}
@@ -31,16 +31,16 @@ export async function sponsorOrgsTest(
       { ...sponsor }
     )
   }
-  
+
   const schoolSponsor = [
     {
       schoolId: schoolIds['Approved Partner School'] as string,
-      sponsorOrgId: sponsorOrgs['onlySponsorsSchools'] as string
+      sponsorOrgId: sponsorOrgs['onlySponsorsSchools'] as string,
     },
     {
       schoolId: schoolIds['Another Approved Partner School'] as string,
-      sponsorOrgId: sponsorOrgs['sponsorsBoth'] as string
-    }
+      sponsorOrgId: sponsorOrgs['sponsorsBoth'] as string,
+    },
   ]
 
   for (const school of schoolSponsor) {
@@ -54,12 +54,12 @@ export async function sponsorOrgsTest(
   const spoSponsor = [
     {
       spoId: spoIds['Community Org'] as string,
-      sponsorOrgId: sponsorOrgs['onlySponsorsPartnerOrgs'] as string
+      sponsorOrgId: sponsorOrgs['onlySponsorsPartnerOrgs'] as string,
     },
     {
       spoId: spoIds['School Helpers'] as string,
-      sponsorOrgId: sponsorOrgs['sponsorsBoth'] as string
-    }
+      sponsorOrgId: sponsorOrgs['sponsorsBoth'] as string,
+    },
   ]
 
   for (const spo of spoSponsor) {

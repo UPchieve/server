@@ -5,3 +5,4 @@ CREATE TABLE public.seed_migrations (
 
 -- migrate:down
 DROP TABLE IF EXISTS public.seed_migrations;
+

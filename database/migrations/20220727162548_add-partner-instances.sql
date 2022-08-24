@@ -59,9 +59,16 @@ CREATE TABLE IF NOT EXISTS upchieve.student_partner_orgs_volunteer_partner_orgs_
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.student_partner_orgs_upchieve_instances;
+
 DROP TABLE IF EXISTS upchieve.volunteer_partner_orgs_upchieve_instances;
+
 DROP TABLE IF EXISTS upchieve.users_student_partner_orgs_instances;
+
 DROP TABLE IF EXISTS upchieve.users_volunteer_partner_orgs_instances;
+
 DROP TABLE IF EXISTS upchieve.sponsor_orgs_upchieve_instances;
+
 DROP TABLE IF EXISTS upchieve.student_partner_orgs_sponsor_orgs_instances;
+
 DROP TABLE IF EXISTS upchieve.student_partner_orgs_volunteer_partner_orgs_instances;
+

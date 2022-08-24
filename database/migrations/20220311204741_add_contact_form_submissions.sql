@@ -11,3 +11,4 @@ CREATE TABLE IF NOT EXISTS upchieve.contact_form_submissions (
 
 -- migrate:down
 DROP TABLE upchieve.contact_form_submissions CASCADE;
+
