@@ -375,9 +375,7 @@ input {
 }
 
 .error {
-  color: $c-error-red;
-  text-align: left;
-  margin: 2em 0;
+  margin: 64px 0;
   font-size: 16px;
 }
 </style>
