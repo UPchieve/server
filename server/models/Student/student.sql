@@ -191,19 +191,25 @@ WHERE
 RETURNING
     id AS ok;
 
+/* @name getPartnerOrgNamesByStudent */ 
+SELECT 
+    spo.name
+FROM users_student_partner_orgs_instances uspoi
+JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
+WHERE 
+    uspoi.user_id = :studentId!
+    AND deactivated_on IS NULL;
 
-/* @name adminUpdateStudentProfile */
-UPDATE
-    student_profiles
-SET
-    student_partner_org_id = :partnerOrgId,
-    student_partner_org_site_id = :partnerOrgSiteId,
-    updated_at = NOW()
-WHERE
-    user_id = :userId!
-RETURNING
-    user_id AS ok;
+/* @name adminDeactivateStudentPartnershipInstance */
+UPDATE users_student_partner_orgs_instances
+SET deactivated_on = NOW()
+WHERE user_id = :userId! AND student_partner_org_id = :spoId!
+RETURNING user_id AS ok;
 
+/* @name adminInsertStudentPartnershipInstance */
+INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
+VALUES (:userId!, :partnerOrgId!, :partnerOrgSiteId, NOW(), NOW())
+RETURNING user_id AS ok;
 
 /* @name getPartnerOrgByKey */
 SELECT

@@ -284,17 +284,11 @@ const migrateStudentPartnerOrgAssociatedPartnersIR: any = {"name":"migrateStuden
 export const migrateStudentPartnerOrgAssociatedPartners = new PreparedQuery<IMigrateStudentPartnerOrgAssociatedPartnersParams,IMigrateStudentPartnerOrgAssociatedPartnersResult>(migrateStudentPartnerOrgAssociatedPartnersIR);
 
 
-/** 'MigrateSponsorOrgAssociatedPartners' parameters type */
-export type IMigrateSponsorOrgAssociatedPartnersParams = void;
+/** Query 'MigrateSponsorOrgAssociatedPartners' is invalid, so its result is assigned type 'never' */
+export type IMigrateSponsorOrgAssociatedPartnersResult = never;
 
-/** 'MigrateSponsorOrgAssociatedPartners' return type */
-export type IMigrateSponsorOrgAssociatedPartnersResult = void;
-
-/** 'MigrateSponsorOrgAssociatedPartners' query type */
-export interface IMigrateSponsorOrgAssociatedPartnersQuery {
-  params: IMigrateSponsorOrgAssociatedPartnersParams;
-  result: IMigrateSponsorOrgAssociatedPartnersResult;
-}
+/** Query 'MigrateSponsorOrgAssociatedPartners' is invalid, so its parameters are assigned type 'never' */
+export type IMigrateSponsorOrgAssociatedPartnersParams = never;
 
 const migrateSponsorOrgAssociatedPartnersIR: any = {"name":"migrateSponsorOrgAssociatedPartners","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_sponsor_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_sponsor_org_id IS NOT NULL","loc":{"a":3736,"b":4039,"line":113,"col":0}}};
 
