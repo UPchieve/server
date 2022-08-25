@@ -91,3 +91,21 @@ export async function migrateExistingvolunteerPartnerOrgRelationships(
     )
   }
 }
+
+export async function backfillVolunteerPartnerOrgStartDates(
+  vpoName: string,
+  createdAt: Date,
+  endedAt?: Date,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.backfillVolunteerPartnerOrgStartDates.run(
+      { vpoName, createdAt, endedAt },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to backfill volunteer partner org start date: ${err}`
+    )
+  }
+}

@@ -106,16 +106,36 @@ export async function migrateExistingStudentPartnerOrgRelationships(
 // Will need custom mapping of school names to student_partner_orgs_upchieve_instance.created_at
 // MUST BE RUN FIRST
 export async function migratePartnerSchoolsToPartnerOrgs(
+  schoolName: string,
+  createdAt: Date,
   client?: PoolClient
 ): Promise<void> {
   try {
     await pgQueries.migratepPartnerSchoolsToPartnerOrgs.run(
-      undefined,
+      { schoolName, createdAt },
       client || getClient()
     )
   } catch (err) {
     throw new RepoReadError(
       `Failed to migrate schools to student partner orgs: ${err}`
+    )
+  }
+}
+
+export async function backfillStudentPartnerOrgStartDates(
+  spoName: string,
+  createdAt: Date,
+  endedAt?: Date,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.backfillStudentPartnerOrgStartDates.run(
+      { spoName, createdAt, endedAt },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to backfill student partner org start date: ${err}`
     )
   }
 }
