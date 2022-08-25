@@ -317,7 +317,7 @@ async function adminUpdateStudentPartnerOrgInstance(
       client
     )
     const newPartnerOrgData = newPartnerOrgResult.length
-      ? makeRequired(newPartnerOrgResult[0])
+      ? makeSomeRequired(newPartnerOrgResult[0], ['siteId', 'siteName'])
       : undefined
     if (!newPartnerOrgData) throw new Error('New partner org does not exist')
 

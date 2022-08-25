@@ -151,11 +151,17 @@ const migrateExistingPartnerOrgSponsorOrgRelationshipsIR: any = {"name":"migrate
 export const migrateExistingPartnerOrgSponsorOrgRelationships = new PreparedQuery<IMigrateExistingPartnerOrgSponsorOrgRelationshipsParams,IMigrateExistingPartnerOrgSponsorOrgRelationshipsResult>(migrateExistingPartnerOrgSponsorOrgRelationshipsIR);
 
 
-/** Query 'MigrateExistingSchoolsSponsorOrgRelationships' is invalid, so its result is assigned type 'never' */
-export type IMigrateExistingSchoolsSponsorOrgRelationshipsResult = never;
+/** 'MigrateExistingSchoolsSponsorOrgRelationships' parameters type */
+export type IMigrateExistingSchoolsSponsorOrgRelationshipsParams = void;
 
-/** Query 'MigrateExistingSchoolsSponsorOrgRelationships' is invalid, so its parameters are assigned type 'never' */
-export type IMigrateExistingSchoolsSponsorOrgRelationshipsParams = never;
+/** 'MigrateExistingSchoolsSponsorOrgRelationships' return type */
+export type IMigrateExistingSchoolsSponsorOrgRelationshipsResult = void;
+
+/** 'MigrateExistingSchoolsSponsorOrgRelationships' query type */
+export interface IMigrateExistingSchoolsSponsorOrgRelationshipsQuery {
+  params: IMigrateExistingSchoolsSponsorOrgRelationshipsParams;
+  result: IMigrateExistingSchoolsSponsorOrgRelationshipsResult;
+}
 
 const migrateExistingSchoolsSponsorOrgRelationshipsIR: any = {"name":"migrateExistingSchoolsSponsorOrgRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO schools_sponsor_orgs_instances (school_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sso.school_id,\n    sso.sponsor_org_id,\n    sso.created_at,\n    NOW()\nFROM\n    schools_sponsor_orgs sso","loc":{"a":1969,"b":2176,"line":60,"col":0}}};
 
