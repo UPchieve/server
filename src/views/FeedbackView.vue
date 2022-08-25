@@ -72,6 +72,7 @@
                     :isSelected="userResponse[questionInfo.questionId].responseId &&
                       userResponse[questionInfo.questionId].responseId.find(r => r === response.responseId)"
                     @chip-click="updateUserResponseMultiselect"
+                    class='issue-reason-chip'
                   />
                   <survey-image
                     v-else-if="questionInfo.questionType === 'star'"
@@ -986,7 +987,7 @@ export default {
   color: $c-secondary-grey;
 }
 
-.issue-reason {
+.issue-reason-chip {
   margin-top: 1em;
   margin-right: 1em;
 }

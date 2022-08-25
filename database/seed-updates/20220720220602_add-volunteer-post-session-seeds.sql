@@ -42,7 +42,7 @@ WHERE
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
 VALUES 
   (0, 'No', NOW(), NOW()),
-  (0, 'I didn''t know topic', NOW(), NOW()),
+  (0, 'I didn''t know the topic', NOW(), NOW()),
   (0, 'Wrong subject', NOW(), NOW()),
   (0, 'Student participation', NOW(), NOW()),
   (0, 'Student shared their email, last name, or other personally identifiable information', NOW(), NOW()),
@@ -107,7 +107,7 @@ WHERE
 
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Tech issues' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Ran out of time' AND sub.text::int = 20) OR
-  (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'I didn''t know topic' AND sub.text::int = 30) OR
+  (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'I didn''t know the topic' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Wrong subject' AND sub.text::int = 40) OR
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Student participation' AND sub.text::int = 50) OR
   (upchieve.surveys.name = 'General Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR
@@ -173,7 +173,7 @@ WHERE
 
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Tech issues' AND sub.text::int = 10) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Ran out of time' AND sub.text::int = 20) OR
-  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'I didn''t know topic' AND sub.text::int = 30) OR
+  (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'I didn''t know the topic' AND sub.text::int = 30) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Wrong subject' AND sub.text::int = 40) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Student participation' AND sub.text::int = 50) OR
   (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey' AND sq.question_text = 'Sorry to hear that, what happened?' AND rc.choice_text = 'Other' AND sub.text::int = 60) OR
@@ -253,7 +253,7 @@ DELETE FROM upchieve.survey_questions
   'This can be about the web app, the student you helped, technical issues, etc.');
 
 DELETE FROM upchieve.survey_response_choices
-  WHERE upchieve.survey_response_choices.choice_text in ('No', 'I didn''t know topic', 'Wrong subject', 'Student participation',
+  WHERE upchieve.survey_response_choices.choice_text in ('No', 'I didn''t know the topic', 'Wrong subject', 'Student participation',
     'Student shared their email, last name, or other personally identifiable information', 'Student is in severe emotional distress and/or unsafe',
     'Student was pressuring me to do their work for them', 'Student was working on a quiz or exam', 'Student was mean or inappropriate', 
     'Student made me feel uncomfortable', 'Other (please provide details below)', 'Your thoughts');
