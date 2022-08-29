@@ -50,8 +50,10 @@ SET
 WHERE
     upchieve.survey_questions.question_text = 'Overall, how do you feel about the %s section?'
     OR upchieve.survey_questions.question_text = 'Overall, how do you feel about %s?';
-  
--- migrate:down
 
-UPDATE upchieve.survey_questions
-SET replacement_column_1 = NULL, replacement_column_2 = NULL 
+-- migrate:down
+UPDATE
+    upchieve.survey_questions
+SET
+    replacement_column_1 = NULL,
+    replacement_column_2 = NULL

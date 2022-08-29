@@ -261,7 +261,6 @@ WHERE (upchieve.surveys.name = 'Student Post-Session Survey'
 
 -- migrate:down
 -- NOTE: run `truncate table upchieve.users_surveys` if this down migration fails
-
 DELETE FROM upchieve.surveys
 WHERE upchieve.surveys.name = 'Student Post-Session Survey';
 

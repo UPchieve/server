@@ -202,7 +202,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import LargeButton from '@/components/LargeButton'
 import { topics } from '@/utils/topics'
