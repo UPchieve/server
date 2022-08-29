@@ -194,9 +194,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
-    )
+    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -1474,19 +1472,6 @@ export async function getVolunteersOnDeck(
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
-  }
-}
-
-export async function removeOnboardedStatusForUnqualifiedVolunteers(): Promise<
-  void
-> {
-  try {
-    await pgQueries.removeOnboardedStatusForUnqualifiedVolunteers.run(
-      undefined,
-      getClient()
-    )
-  } catch (err) {
-    throw new RepoUpdateError(err)
   }
 }
 

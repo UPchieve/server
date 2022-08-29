@@ -7,3 +7,4 @@ ALTER TABLE upchieve.user_actions
 ALTER TABLE upchieve.user_actions
     DROP COLUMN reference_email,
     DROP COLUMN volunteer_id;
+

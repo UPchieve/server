@@ -17,11 +17,7 @@ SELECT
     meta.mcity,
     meta.mzip,
     meta.lcity,
-    meta.lzip,
-    meta.g_9_offered,
-    meta.g_10_offered,
-    meta.g_11_offered,
-    meta.g_12_offered
+    meta.lzip
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id

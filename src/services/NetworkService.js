@@ -637,11 +637,6 @@ export default {
       .post(`${API_ROOT}/user/volunteer-approval/background-information`, data)
       .then(this._successHandler, this._errorHandler)
   },
-  submitPresessionSurvey(sessionId, responseData) {
-    return Vue.http
-      .post(`${API_ROOT}/survey/presession/${sessionId}`, { responseData })
-      .then(this._successHandler, this._errorHandler)
-  },
   submitSurvey(survey) {
     return Vue.http
       .post(`${API_ROOT}/survey/save`, survey)

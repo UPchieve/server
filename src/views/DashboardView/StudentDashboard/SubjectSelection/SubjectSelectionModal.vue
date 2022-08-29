@@ -69,9 +69,8 @@ export default {
         )
       }
     }),
-    ...mapGetters({ 
-        mobileMode: 'app/mobileMode',       
-        isContextSharingWithVolunteerActive: 'featureFlags/isContextSharingWithVolunteerActive', 
+    ...mapGetters({
+        mobileMode: 'app/mobileMode',
       }),
     title() {
       if (this.modalData.topic === 'college')
@@ -117,7 +116,6 @@ export default {
     },
     onAccept() {
       if (this.selectedSubtopic === '') return
-      if (!this.isContextSharingWithVolunteerActive && this.isTopicSkippingSurvey) this.onSurveyCompleted()
       else this.showSurvey = true
     },
     onSurveyCompleted() {

@@ -6,9 +6,11 @@ CREATE TABLE IF NOT EXISTS upchieve.cities (
     created_at timestamp NOT NULL,
     updated_at timestamp NOT NULL
 );
+
 ALTER TABLE upchieve.cities
     ADD CONSTRAINT unique_city_name_state UNIQUE (name, us_state_code)
+    -- migrate:down
+    DROP CONSTRAINT IF EXISTS unique_city_name_state;
 
--- migrate:down
-DROP CONSTRAINT IF EXISTS unique_city_name_state;
 DROP TABLE IF EXISTS upchieve.cities CASCADE;
+

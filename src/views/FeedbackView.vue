@@ -202,7 +202,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import LargeButton from '@/components/LargeButton'
 import { topics } from '@/utils/topics'
@@ -297,8 +297,7 @@ export default {
           show: () => {
             if (
               this.isFavoriteCoach ||
-              this.isFavoriteCoachLimitReached ||
-              !this.isCoachFavoritingActive
+              this.isFavoriteCoachLimitReached
             )
               return false
 
@@ -401,7 +400,6 @@ export default {
       user: state => state.user.user
     }),
     ...mapGetters({
-      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
       isPostsessionSurveyActive:
         'featureFlags/isPostsessionSurveyActive',
     }),
@@ -531,7 +529,7 @@ export default {
       return
     }
 
-    if (!this.user.isVolunteer && this.isCoachFavoritingActive) {
+    if (!this.user.isVolunteer) {
       const response = await NetworkService.checkIsFavoriteVolunteer(
         this.session.volunteer._id
       )
@@ -735,14 +733,12 @@ export default {
           if (answer && Array.isArray(answer) && answer.length > 0)
             data[feedbackPath][id] = answer.sort((a, b) => a - b)
         }
-
         try {
           const requests = []
           requests.push(NetworkService.feedback(this, data))
           if (
             !this.isVolunteer &&
-            this.isFavoritingCoach &&
-            this.isCoachFavoritingActive
+            this.isFavoritingCoach
           )
             requests.push(
               NetworkService.updateFavoriteVolunteerStatus(

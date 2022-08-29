@@ -192,7 +192,6 @@
 
 <script>
 // NOTE: can get rid of this entire component once we've fully transferred over to new postsession survey
-
 import { mapState, mapGetters } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import Case from 'case'
@@ -308,15 +307,11 @@ export default {
     ...mapState({
       user: state => state.user.user
     }),
-    ...mapGetters({
-      isCoachFavoritingActive: 'featureFlags/isCoachFavoritingActive',
-    }),
     showFavoriteQuestion() {
       return (
         this.userResponse['coach-ratings']['coach-help-again'] >= 4 &&
         !this.isFavoriteCoach &&
-        !this.isFavoriteCoachLimitReached &&
-        this.isCoachFavoritingActive
+        !this.isFavoriteCoachLimitReached
       )
     },
   },
@@ -359,7 +354,7 @@ export default {
           this.userResponse[question.alias] = {}
       })
 
-    if (!this.user.isVolunteer && this.isCoachFavoritingActive) {
+    if (!this.user.isVolunteer) {
       const response = await NetworkService.checkIsFavoriteVolunteer(
         this.session.volunteer._id
       )
@@ -401,7 +396,7 @@ export default {
             volunteerId: this.volunteerId,
           })
         )
-        if (this.isFavoritingCoach && this.isCoachFavoritingActive)
+        if (this.isFavoritingCoach)
           requests.push(
             NetworkService.updateFavoriteVolunteerStatus(
               this.session.volunteer._id,

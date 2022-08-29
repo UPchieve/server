@@ -16,6 +16,10 @@ const LEGAL_LINK = {
 };
 const PROFILE_LINK = { to: "/profile", text: "Profile" };
 
+// Student links
+const SESSION_HISTORY_LINK = { to: '/sessions/history', text: 'Session History' }
+const FAVORITE_COACHES_LINK = { to: '/favorite-coaches', text: 'Favorite Coaches' }
+
 // Volunteer links
 const CALENDAR_LINK = { to: "/calendar", text: "Schedule" };
 
@@ -33,6 +37,8 @@ const links = {
     loggedOut: [],
     student: [
       DASHBOARD_LINK,
+      SESSION_HISTORY_LINK,
+      FAVORITE_COACHES_LINK,
       PROFILE_LINK,
       CONTACT_LINK,
       LEGAL_LINK
@@ -47,6 +53,8 @@ const links = {
     ],
     admin: [
       DASHBOARD_LINK,
+      TRAINING_LINK,
+      CALENDAR_LINK,
       ADMIN_LINK,
       PROFILE_LINK,
       CONTACT_LINK,
@@ -151,7 +159,8 @@ describe("SidebarLinks", () => {
         const wrapper = getWrapper({
           mobileMode: true,
           isAdmin: true,
-          authenticated: true
+          authenticated: true,
+          isVolunteer: true,
         });
         testLinks(wrapper, links.default.admin);
       });
@@ -195,7 +204,8 @@ describe("SidebarLinks", () => {
         const wrapper = getWrapper({
           mobileMode: false,
           isAdmin: true,
-          authenticated: true
+          authenticated: true,
+          isVolunteer: true,
         });
         testLinks(wrapper, links.default.admin);
       });

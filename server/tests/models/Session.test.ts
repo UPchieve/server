@@ -56,7 +56,6 @@ describe('createSession', () => {
       studentId: getObjectId(),
       type: SUBJECT_TYPES.MATH,
       subTopic: SUBJECTS.ALGEBRA_ONE,
-      isStudentBanned: false,
     }
 
     const result = await SessionRepo.createSession(newSession)

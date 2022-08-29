@@ -28,7 +28,7 @@ describe('SubjectSelection', () => {
     { title: 'Math Tutoring', topic: 'math' },
     { title: 'Reading and Writing Tutoring', topic: 'readingWriting' },
     { title: 'Science Tutoring', topic: 'science' },
-    // { title: 'Social Studies', topic: 'socialStudies' },
+    { title: 'Social Studies', topic: 'socialStudies' },
     { title: 'College Counseling', topic: 'college' },
     { title: 'Standardized Testing Tutoring', topic: 'sat' },
     {
@@ -71,6 +71,7 @@ describe('SubjectSelection', () => {
       expect(p.exists()).toBe(false)
 
       const subjectCards = wrapper.findAll(SubjectCard)
+      console.log(subjectCards.length)
       expect(subjectCards.length).toBe(cards.length)
 
       cards.forEach((card, i) => {

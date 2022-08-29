@@ -47,7 +47,7 @@
           v-else-if="user.isVolunteer && studentPresessionResponses.length > 0"
           class="about-session-container"
         >
-          <div 
+          <div
           class="about-session-button"
           @click="handleAboutSessionClick"
           >
@@ -195,7 +195,6 @@ export default {
       isAuthenticated: 'user/isAuthenticated',
       isVolunteer: 'user/isVolunteer',
       isSessionOver: 'user/isSessionOver',
-      isContextSharingWithVolunteerActive: 'featureFlags/isContextSharingWithVolunteerActive',
     }),
 
     auxiliaryType() {
@@ -284,21 +283,14 @@ export default {
 
         // If we have a pre-session survey, submit it now
         if (Object.keys(this.presessionSurvey).length) {
-          if (this.isContextSharingWithVolunteerActive) {
-            try {
-              await backOff(() =>
-                NetworkService.submitSurvey(
-                  Object.assign({}, this.presessionSurvey, { sessionId })
-                )
+          try {
+            await backOff(() =>
+              NetworkService.submitSurvey(
+                Object.assign({}, this.presessionSurvey, { sessionId })
               )
-            } catch (err) {
-              Sentry.captureException(err)
-            }
-          } else {
-            NetworkService.submitPresessionSurvey(
-              sessionId,
-              this.presessionSurvey
             )
+          } catch (err) {
+            Sentry.captureException(err)
           }
           this.$store.dispatch('user/clearPresessionSurvey')
         }
@@ -313,7 +305,7 @@ export default {
         Gleap.setCustomData("sessionId", sessionId)
         this.$store.dispatch('user/sessionConnected')
 
-        if (this.user.isVolunteer && this.isContextSharingWithVolunteerActive) {
+        if (this.user.isVolunteer) {
           await this.getSessionContext(sessionId)
         }
 
@@ -535,7 +527,7 @@ export default {
       width: 100%;
       @include flex-container(row);
     }
-  
+
   &-button {
     @include font-category('subheading');
      background-color: $light-blue-background;
@@ -544,7 +536,7 @@ export default {
       background-color:rgba(196, 196, 196, 0.2);
       cursor: pointer;
     }
-    
+
     border-radius: 4px;
     padding: 0.4rem 0.5rem;
   }

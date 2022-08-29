@@ -188,7 +188,7 @@ export type SessionToEnd = Pick<
   | 'volunteerJoinedAt'
 > & {
   student: SessionToEndUserInfo
-} & { volunteer: SessionToEndUserInfo }
+} & { volunteer?: SessionToEndUserInfo }
 
 export async function getSessionToEndById(
   sessionId: Ulid
@@ -208,6 +208,23 @@ export async function getSessionToEndById(
       'volunteerNumPastSessions',
       'volunteerPartnerOrg',
     ])
+
+    let volunteerValue: SessionToEndUserInfo | undefined = undefined
+    if (
+      rawSession.volunteerId &&
+      rawSession.volunteerFirstName &&
+      rawSession.volunteerEmail &&
+      !!rawSession.volunteerNumPastSessions
+    ) {
+      volunteerValue = {
+        id: rawSession.volunteerId,
+        firstName: rawSession.volunteerFirstName,
+        email: rawSession.volunteerEmail?.toLowerCase(),
+        numPastSessions: rawSession.volunteerNumPastSessions,
+        volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
+      }
+    }
+
     return {
       ...rawSession,
       student: {
@@ -216,13 +233,7 @@ export async function getSessionToEndById(
         email: rawSession.studentEmail?.toLowerCase(),
         numPastSessions: rawSession.studentNumPastSessions,
       },
-      volunteer: {
-        id: rawSession.volunteerId,
-        firstName: rawSession.volunteerFirstName,
-        email: rawSession.volunteerEmail?.toLowerCase(),
-        numPastSessions: rawSession.volunteerNumPastSessions,
-        volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
-      },
+      volunteer: volunteerValue,
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -609,9 +620,10 @@ export async function getCurrentSessionByUserId(
     return {
       ...session,
       student: { _id: session.studentId, ...student },
-      volunteer: !!volunteer
-        ? { _id: session.volunteerId, ...volunteer }
-        : undefined,
+      volunteer:
+        !!volunteer && session.volunteerId
+          ? { _id: session.volunteerId, ...volunteer }
+          : undefined,
       _id: session.id,
       messages,
     }
@@ -648,9 +660,10 @@ export async function getCurrentSessionBySessionId(
     return {
       ...session,
       student: { _id: session.studentId, ...student },
-      volunteer: !!volunteer
-        ? { _id: session.volunteerId, ...volunteer }
-        : undefined,
+      volunteer:
+        !!volunteer && session.volunteerId
+          ? { _id: session.volunteerId, ...volunteer }
+          : undefined,
       _id: session.id,
       messages,
     }
@@ -961,7 +974,13 @@ export async function getSessionsForAdminFilter(
         session.volunteerFeedback as any
       )
       let volunteer = undefined
-      if (session.volunteerEmail) {
+      if (
+        session.volunteerFirstName &&
+        session.volunteerEmail &&
+        !!session.volunteerIsBanned &&
+        !!session.volunteerTestUser &&
+        !!session.volunteerTotalPastSessions
+      ) {
         volunteer = {
           firstname: session.volunteerFirstName,
           isBanned: session.volunteerIsBanned,

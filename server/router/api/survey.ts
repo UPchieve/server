@@ -1,5 +1,4 @@
 import expressWs from 'express-ws'
-import { USER_ROLES } from '../../constants'
 import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
