@@ -395,7 +395,7 @@ export type CreatedStudent = StudentContactInfo & {
   isBanned: boolean
   verified: boolean
   zipCode?: string
-  currentGrade: string
+  currentGrade?: string
   lastname: string
   firstname: string
 }
