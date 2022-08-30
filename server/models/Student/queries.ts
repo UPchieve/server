@@ -394,8 +394,8 @@ export type CreatedStudent = StudentContactInfo & {
   isAdmin: boolean
   isBanned: boolean
   verified: boolean
-  zipCode: string
-  currentGrade: string
+  zipCode?: string
+  currentGrade?: string
   lastname: string
   firstname: string
 }
@@ -438,6 +438,8 @@ export async function createStudent(
         'partnerSite',
         'college',
         'schoolId',
+        'postalCode',
+        'gradeLevel',
       ])
       const user = makeRequired(userResult[0])
 
