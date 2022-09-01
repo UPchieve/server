@@ -72,7 +72,7 @@ WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
     OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND sub.text::int = 50)
-        -- TODO BEFORE MERGE: delete these because they aren't working anyway (true of all College Counseling Vol Post-Session Survey)
+    -- TODO BEFORE MERGE: delete these because they aren't working anyway (true of all College Counseling Vol Post-Session Survey)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
         AND sub.text::int = 10)
