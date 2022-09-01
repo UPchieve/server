@@ -47,17 +47,20 @@ FROM
         AND upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
         AND sub.text::int = 10)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
+        AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?'
         AND sub.text::int = 20)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+        AND upchieve.survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
         AND sub.text::int = 30)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?'
+        AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
         AND sub.text::int = 40)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'Please select all that apply'
+        AND sub.text::int = 50)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
-        AND sub.text::int = 50);
+        AND sub.text::int = 60);
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
@@ -171,7 +174,7 @@ INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, up
     VALUES (0, 'Student shared their email, last name, or other personally identifiable information', NOW(), NOW()), (0, 'Student is in severe emotional distress and/or unsafe', NOW(), NOW()), (0, 'Student was pressuring me to do their work for them', NOW(), NOW()), (0, 'Student was working on a quiz or exam', NOW(), NOW()), (0, 'Student was mean or inappropriate', NOW(), NOW()), (0, 'Student made me feel uncomfortable', NOW(), NOW()), (0, 'Other (please provide details below)', NOW(), NOW()), (0, 'Your thoughts', NOW(), NOW());
 
 UPDATE upchieve.surveys_survey_questions
-SET display_priority = 60
+SET display_priority = 70
 FROM upchieve.survey_questions
 WHERE survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
@@ -351,7 +354,7 @@ WHERE survey_questions.question_text = 'Were there any student safety, academic 
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
 UPDATE upchieve.surveys_survey_questions
-SET display_priority = 20
+SET display_priority = 10
 FROM upchieve.survey_questions
 WHERE (survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
         OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
