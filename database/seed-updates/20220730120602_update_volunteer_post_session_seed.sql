@@ -149,7 +149,7 @@ FROM
     upchieve.surveys
     JOIN upchieve.subjects ON TRUE
     JOIN upchieve.survey_types ON TRUE
-    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.subjects.name = 'planning'
         AND upchieve.survey_types.name = 'postsession')
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
