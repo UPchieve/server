@@ -1,4 +1,34 @@
 -- migrate:up
+-- handle duplicate values introduced in add_volunteer_post_session_seeds that we can't directly fix now
+WITH yes_ids AS (
+    SELECT
+        (array_agg(id ORDER BY created_at DESC))[2:] AS ids
+    FROM
+        upchieve.survey_response_choices
+    WHERE
+        choice_text = 'Yes')
+DELETE FROM upchieve.survey_response_choices
+WHERE (
+        SELECT
+            id = ANY (ids)
+        FROM
+            yes_ids);
+
+WITH no_ids AS (
+    SELECT
+        (array_agg(id ORDER BY created_at DESC))[2:] AS ids
+    FROM
+        upchieve.survey_response_choices
+    WHERE
+        choice_text = 'No')
+DELETE FROM upchieve.survey_response_choices
+WHERE (
+        SELECT
+            id = ANY (ids)
+        FROM
+            no_ids);
+
+
 UPDATE upchieve.surveys
 SET
     name = 'College Counseling Volunteer Post-Session Survey',
