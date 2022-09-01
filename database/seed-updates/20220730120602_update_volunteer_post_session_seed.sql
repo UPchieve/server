@@ -65,7 +65,7 @@ FROM
     JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
     JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
     JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
-    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
         AND rc.choice_text = 'Not at all'
         AND sub.text::int = 10)
