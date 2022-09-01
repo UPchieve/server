@@ -36,7 +36,19 @@ FROM
     upchieve.surveys
     JOIN upchieve.survey_questions ON TRUE
     JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
-WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+        AND sub.text::int = 10)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
+        AND sub.text::int = 20)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+        AND sub.text::int = 30)
+    OR (upchieve.surveys.name = 'College Counseling Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'Please select all that apply'
+        AND sub.text::int = 40)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND sub.text::int = 50);
 
