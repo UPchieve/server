@@ -24,6 +24,130 @@ SET
 WHERE
     name = 'College Counseling Post-Session Survey';
 
+-- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
+INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
+SELECT
+    upchieve.surveys.id,
+    upchieve.survey_questions.id,
+    sub.text::int,
+    NOW(),
+    NOW()
+FROM
+    upchieve.surveys
+    JOIN upchieve.survey_questions ON TRUE
+    JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
+WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
+        AND sub.text::int = 50);
+
+INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
+SELECT
+    ssq.id,
+    rc.id,
+    sub.text::int,
+    NOW(),
+    NOW()
+FROM
+    upchieve.surveys_survey_questions ssq
+    JOIN upchieve.survey_response_choices rc ON TRUE
+    JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
+    JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
+    JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+        AND rc.choice_text = 'Not at all'
+        AND sub.text::int = 10)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+        AND rc.choice_text = 'Sorta but not really'
+        AND sub.text::int = 20)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+        AND rc.choice_text = 'Somewhat'
+        AND sub.text::int = 30)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+        AND rc.choice_text = 'Mostly'
+        AND sub.text::int = 40)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+        AND rc.choice_text = 'A lot'
+        AND sub.text::int = 50)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'How do you think %s feels about %s at the end of this session?'
+        AND rc.choice_text = 'Stressed'
+        AND sub.text::int = 10)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'How do you think %s feels about %s at the end of this session?'
+        AND rc.choice_text = 'Nervous'
+        AND sub.text::int = 20)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'How do you think %s feels about %s at the end of this session?'
+        AND rc.choice_text = 'Neutral'
+        AND sub.text::int = 30)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'How do you think %s feels about %s at the end of this session?'
+        AND rc.choice_text = 'Optimistic'
+        AND sub.text::int = 40)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'How do you think %s feels about %s at the end of this session?'
+        AND rc.choice_text = 'Confident'
+        AND sub.text::int = 50)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+        AND rc.choice_text = 'Yes'
+        AND sub.text::int = 10)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+        AND rc.choice_text = 'No'
+        AND sub.text::int = 20)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Please select all that apply'
+        AND rc.choice_text = 'Tech issues'
+        AND sub.text::int = 10)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Please select all that apply'
+        AND rc.choice_text = 'Ran out of time'
+        AND sub.text::int = 20)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Please select all that apply'
+        AND rc.choice_text = 'I didn''t know topic'
+        AND sub.text::int = 30)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Please select all that apply'
+        AND rc.choice_text = 'Wrong subject'
+        AND sub.text::int = 40)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Please select all that apply'
+        AND rc.choice_text = 'Student participation'
+        AND sub.text::int = 50)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'Please select all that apply'
+        AND rc.choice_text = 'Other'
+        AND sub.text::int = 60);
+
+INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
+SELECT
+    upchieve.surveys.id,
+    upchieve.subjects.id,
+    upchieve.survey_types.id,
+    NOW(),
+    NOW()
+FROM
+    upchieve.surveys
+    JOIN upchieve.subjects ON TRUE
+    JOIN upchieve.survey_types ON TRUE
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'planning'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'applications'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'essays'
+        AND upchieve.survey_types.name = 'postsession');
+
+
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
     VALUES (0, 'Student shared their email, last name, or other personally identifiable information', NOW(), NOW()), (0, 'Student is in severe emotional distress and/or unsafe', NOW(), NOW()), (0, 'Student was pressuring me to do their work for them', NOW(), NOW()), (0, 'Student was working on a quiz or exam', NOW(), NOW()), (0, 'Student was mean or inappropriate', NOW(), NOW()), (0, 'Student made me feel uncomfortable', NOW(), NOW()), (0, 'Other (please provide details below)', NOW(), NOW()), (0, 'Your thoughts', NOW(), NOW());
 
