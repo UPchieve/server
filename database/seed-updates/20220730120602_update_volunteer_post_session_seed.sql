@@ -28,7 +28,7 @@ WHERE
 
 UPDATE upchieve.survey_questions
   SET question_text = 'Sorry to hear that, what happened?'
-  WHERE sq.question_text = 'Please select all that apply';
+  WHERE question_text = 'Please select all that apply';
 
 -- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
