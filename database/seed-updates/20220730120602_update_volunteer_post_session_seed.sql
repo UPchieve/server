@@ -18,13 +18,17 @@ WITH extra_yes_ids AS (
 DELETE FROM upchieve.survey_response_choices as sqrc using extra_yes_ids
 where extra_yes_ids.id = sqrc.id;
 
---
+--rename things that had the wrong name 
 UPDATE upchieve.surveys
 SET
     name = 'College Counseling Volunteer Post-Session Survey',
     updated_at = NOW()
 WHERE
     name = 'College Counseling Post-Session Survey';
+
+UPDATE upchieve.survey_questions
+  SET question_text = 'Sorry to hear that, what happened?'
+  WHERE sq.question_text = 'Please select all that apply';
 
 -- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
@@ -48,7 +52,7 @@ FROM
         AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
         AND sub.text::int = 30)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'Please select all that apply'
+        AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?'
         AND sub.text::int = 40)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
@@ -116,27 +120,27 @@ FROM
         AND rc.choice_text = 'No'
         AND sub.text::int = 20)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
+        AND sq.question_text = 'Sorry to hear that, what happened?'
         AND rc.choice_text = 'Tech issues'
         AND sub.text::int = 10)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
+        AND sq.question_text = 'Sorry to hear that, what happened?'
         AND rc.choice_text = 'Ran out of time'
         AND sub.text::int = 20)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
+        AND sq.question_text = 'Sorry to hear that, what happened?'
         AND rc.choice_text = 'I didn''t know topic'
         AND sub.text::int = 30)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
+        AND sq.question_text = 'Sorry to hear that, what happened?'
         AND rc.choice_text = 'Wrong subject'
         AND sub.text::int = 40)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
+        AND sq.question_text = 'Sorry to hear that, what happened?'
         AND rc.choice_text = 'Student participation'
         AND sub.text::int = 50)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
+        AND sq.question_text = 'Sorry to hear that, what happened?'
         AND rc.choice_text = 'Other'
         AND sub.text::int = 60);
 
@@ -191,23 +195,23 @@ WHERE (survey_questions.question_text = 'How do you think %s feels about applyin
         OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
-SELECT
-    upchieve.surveys.id,
-    upchieve.survey_questions.id,
-    20,
-    NOW(),
-    NOW()
-FROM
-    upchieve.surveys
-    JOIN upchieve.survey_questions ON TRUE
-    JOIN UNNEST(ARRAY[20]) AS sub ON TRUE
-WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-    AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?')
-OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-    AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?')
-OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-    AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?');
+-- INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
+-- SELECT
+--     upchieve.surveys.id,
+--     upchieve.survey_questions.id,
+--     20,
+--     NOW(),
+--     NOW()
+-- FROM
+--     upchieve.surveys
+--     JOIN upchieve.survey_questions ON TRUE
+--     JOIN UNNEST(ARRAY[20]) AS sub ON TRUE
+-- WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+--     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?')
+-- OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+--     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?')
+-- OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+--     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?');
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
@@ -223,30 +227,6 @@ FROM
     JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
     JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
 WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-    AND sq.question_text = 'Sorry to hear that, what happened?'
-    AND rc.choice_text = 'Tech issues'
-    AND sub.text::int = 10)
-    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Ran out of time'
-        AND sub.text::int = 20)
-    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'I didn''t know the topic'
-        AND sub.text::int = 30)
-    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Wrong subject'
-        AND sub.text::int = 40)
-    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Student participation'
-        AND sub.text::int = 50)
-    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Other'
-        AND sub.text::int = 60)
-    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
         AND sq.question_text = 'Please select all that apply'
         AND rc.choice_text = 'Student shared their email, last name, or other personally identifiable information'
         AND sub.text::int = 10)
@@ -278,30 +258,6 @@ WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
         AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND rc.choice_text = 'Your thoughts'
         AND sub.text::int = 10)
-    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Tech issues'
-        AND sub.text::int = 10)
-    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Ran out of time'
-        AND sub.text::int = 20)
-    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'I didn''t know the topic'
-        AND sub.text::int = 30)
-    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Wrong subject'
-        AND sub.text::int = 40)
-    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Student participation'
-        AND sub.text::int = 50)
-    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-        AND sq.question_text = 'Sorry to hear that, what happened?'
-        AND rc.choice_text = 'Other'
-        AND sub.text::int = 60)
     OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
         AND sq.question_text = 'Please select all that apply'
         AND rc.choice_text = 'Student shared their email, last name, or other personally identifiable information'
@@ -360,9 +316,9 @@ WHERE
     OR choice_text = 'Other (please provide details below)'
     OR choice_text = 'Your thoughts';
 
-DELETE FROM upchieve.surveys_survey_questions USING upchieve.survey_questions
-WHERE surveys_survey_questions.survey_question_id = survey_questions.id
-AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?';
+-- DELETE FROM upchieve.surveys_survey_questions USING upchieve.survey_questions
+-- WHERE surveys_survey_questions.survey_question_id = survey_questions.id
+-- AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?';
 
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 50
