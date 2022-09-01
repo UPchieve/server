@@ -1,4 +1,22 @@
 -- migrate:up
+-- deal with duplicate Yes values
+UPDATE upchieve.survey_questions_response_choices
+SET response_choice_id = (
+    SELECT id
+    FROM survey_response_choices
+    WHERE choice_text = 'Yes'
+    LIMIT 1 )
+WHERE response_choice_id = (
+    SELECT id 
+    FROM survey_response_choices 
+    WHERE choice_text = 'Yes' offset 1 rows fetch next 1 rows only);
+
+DELETE FROM survey_response_choices
+    WHERE id = (
+        SELECT id 
+        FROM survey_response_choices 
+        WHERE choice_text = 'Yes' offset 1 rows fetch next 1 rows only);
+
 UPDATE upchieve.surveys
 SET
     name = 'College Counseling Volunteer Post-Session Survey',
