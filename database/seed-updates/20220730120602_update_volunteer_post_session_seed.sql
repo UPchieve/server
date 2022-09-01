@@ -199,7 +199,7 @@ WHERE (survey_questions.question_text = 'Sorry to hear that, what happened?');
 INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
 SELECT
     upchieve.question_types.id,
-    'Please seelct all that apply',
+    'Please select all that apply',
     NOW(),
     NOW()
 FROM
