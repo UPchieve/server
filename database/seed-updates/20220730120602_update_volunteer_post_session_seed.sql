@@ -1,51 +1,24 @@
 -- migrate:up
 -- deal with duplicate Yes values
-INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
-    VALUES (0, 'Yes', NOW(), NOW());
-
-UPDATE
-    upchieve.users_surveys_submissions
-SET
-    survey_response_choice_id = subquery.ids[1],
-    updated_at = NOW()
-FROM (
+WITH extra_yes_ids AS (
     SELECT
-        array_agg(id ORDER BY created_at DESC) AS ids
-    FROM
-        upchieve.survey_response_choices
-    WHERE
-        choice_text = 'Yes') AS subquery
-WHERE
-    upchieve.users_surveys_submissions.survey_response_choice_id = ANY (subquery.ids);
-
-UPDATE upchieve.survey_questions_response_choices
-SET
-    response_choice_id = subquery.ids[1],
-    updated_at = NOW()
-FROM (
+        (select distinct response_choice_id 
+        from upchieve.survey_questions_response_choices as sqrc
+  		join upchieve.survey_response_choices on survey_response_choices.id = sqrc.response_choice_id
+         where choice_text = 'Yes' offset 1 rows fetch next 1 rows only)
+  )
+delete from upchieve.survey_questions_response_choices sqrc using extra_yes_ids
+where extra_yes_ids.response_choice_id = sqrc.response_choice_id;
+  
+WITH extra_yes_ids AS (
     SELECT
-        array_agg(id ORDER BY created_at DESC) AS ids
-    FROM
-        upchieve.survey_response_choices
-    WHERE
-        choice_text = 'Yes') AS subquery
-WHERE
-    upchieve.users_surveys_submissions.survey_response_choice_id = ANY (subquery.ids);
+        (select id from upchieve.survey_response_choices
+         where choice_text = 'Yes' offset 1 rows fetch next 1 rows only)
+  )
+DELETE FROM upchieve.survey_response_choices as sqrc using extra_yes_ids
+where extra_yes_ids.id = sqrc.id;
 
-WITH yes_ids AS (
-    SELECT
-        (array_agg(id ORDER BY created_at DESC))[2:] AS ids
-    FROM
-        upchieve.survey_response_choices
-    WHERE
-        choice_text = 'Yes')
-DELETE FROM upchieve.survey_response_choices
-WHERE (
-        SELECT
-            id = ANY (ids)
-        FROM
-            not_at_all_ids);
-
+--
 UPDATE upchieve.surveys
 SET
     name = 'College Counseling Volunteer Post-Session Survey',
