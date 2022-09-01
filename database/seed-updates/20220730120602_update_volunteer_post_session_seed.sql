@@ -28,7 +28,6 @@ WHERE
 
 UPDATE upchieve.survey_questions
   SET question_text = 'Sorry to hear that, what happened?',
-  display_priority = 20,
   updated_at = NOW()
   WHERE question_text = 'Please select all that apply';
 
@@ -190,6 +189,12 @@ WHERE (survey_questions.question_text = 'How do you think %s feels about applyin
         OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
         OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
+
+UPDATE upchieve.surveys_survey_questions
+SET display_priority = 20
+FROM upchieve.survey_questions
+WHERE (survey_questions.question_text = 'Sorry to hear that, what happened?')
+
 
 INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
 SELECT
