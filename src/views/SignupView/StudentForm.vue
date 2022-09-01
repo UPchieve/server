@@ -273,7 +273,6 @@
           :get-result-value="getSchoolDisplayName"
           @submit="handleSelectHighSchool"
         >
-          HELLO
           <template #result="{ result, props }">
             <li v-bind="props">
               <div>
