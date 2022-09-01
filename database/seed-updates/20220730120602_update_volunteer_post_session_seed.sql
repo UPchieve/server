@@ -194,7 +194,7 @@ AND survey_questions.id = surveys_survey_questions.survey_question_id;
 INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
 SELECT
     upchieve.question_types.id,
-    'Please seelct all that apply'
+    'Please seelct all that apply',
     NOW(),
     NOW()
 FROM
