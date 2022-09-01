@@ -176,12 +176,6 @@ WHERE survey_questions.question_text = 'This can be about the web app, the stude
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
 UPDATE upchieve.surveys_survey_questions
-SET display_priority = 50
-FROM upchieve.survey_questions
-WHERE survey_questions.question_text = 'Please select all that apply'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
-
-UPDATE upchieve.surveys_survey_questions
 SET display_priority = 40
 FROM upchieve.survey_questions
 WHERE survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
@@ -195,23 +189,23 @@ WHERE (survey_questions.question_text = 'How do you think %s feels about applyin
         OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
--- INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
--- SELECT
---     upchieve.surveys.id,
---     upchieve.survey_questions.id,
---     20,
---     NOW(),
---     NOW()
--- FROM
---     upchieve.surveys
---     JOIN upchieve.survey_questions ON TRUE
---     JOIN UNNEST(ARRAY[20]) AS sub ON TRUE
--- WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
---     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?')
--- OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
---     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?')
--- OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
---     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?');
+INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
+SELECT
+    upchieve.surveys.id,
+    upchieve.survey_questions.id,
+    50,
+    NOW(),
+    NOW()
+FROM
+    upchieve.surveys
+    JOIN upchieve.survey_questions ON TRUE
+    JOIN UNNEST(ARRAY[20]) AS sub ON TRUE
+WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+    AND upchieve.survey_questions.question_text = 'Please select all that apply')
+OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+    AND upchieve.survey_questions.question_text = 'Please select all that apply')
+OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    AND upchieve.survey_questions.question_text = 'Please select all that apply');
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
