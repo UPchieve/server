@@ -40,6 +40,7 @@ COPY public.seed_migrations (version) FROM stdin;
 20220730181613
 20220730194852
 20220730203032
+20220901163201
 \.
 
 
