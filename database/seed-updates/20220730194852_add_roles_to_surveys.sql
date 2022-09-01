@@ -23,7 +23,7 @@ SET
 WHERE
     upchieve.surveys.name = 'General Volunteer Post-Session Survey'
     OR upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-    OR upchieve.surveys.name = 'College Counseling Post-Session Survey';
+    OR upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey';
 
 -- migrate:down
 UPDATE
