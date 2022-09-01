@@ -1,21 +1,50 @@
 -- migrate:up
 -- deal with duplicate Yes values
-UPDATE upchieve.survey_questions_response_choices
-SET response_choice_id = (
-    SELECT id
-    FROM upchieve.survey_response_choices
-    WHERE choice_text = 'Yes'
-    LIMIT 1 )
-WHERE response_choice_id = (
-    SELECT id 
-    FROM upchieve.survey_response_choices 
-    WHERE choice_text = 'Yes' offset 1 rows fetch next 1 rows only);
+INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
+    VALUES (0, 'Yes', NOW(), NOW());
 
+UPDATE
+    upchieve.users_surveys_submissions
+SET
+    survey_response_choice_id = subquery.ids[1],
+    updated_at = NOW()
+FROM (
+    SELECT
+        array_agg(id ORDER BY created_at DESC) AS ids
+    FROM
+        upchieve.survey_response_choices
+    WHERE
+        choice_text = 'Yes') AS subquery
+WHERE
+    upchieve.users_surveys_submissions.survey_response_choice_id = ANY (subquery.ids);
+
+UPDATE upchieve.survey_questions_response_choices
+SET
+    response_choice_id = subquery.ids[1],
+    updated_at = NOW()
+FROM (
+    SELECT
+        array_agg(id ORDER BY created_at DESC) AS ids
+    FROM
+        upchieve.survey_response_choices
+    WHERE
+        choice_text = 'Yes') AS subquery
+WHERE
+    upchieve.users_surveys_submissions.survey_response_choice_id = ANY (subquery.ids);
+
+WITH yes_ids AS (
+    SELECT
+        (array_agg(id ORDER BY created_at DESC))[2:] AS ids
+    FROM
+        upchieve.survey_response_choices
+    WHERE
+        choice_text = 'Yes')
 DELETE FROM upchieve.survey_response_choices
-    WHERE id = (
-        SELECT id 
-        FROM upchieve.survey_response_choices 
-        WHERE choice_text = 'Yes' offset 1 rows fetch next 1 rows only);
+WHERE (
+        SELECT
+            id = ANY (ids)
+        FROM
+            not_at_all_ids);
 
 UPDATE upchieve.surveys
 SET
