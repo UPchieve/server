@@ -276,7 +276,7 @@
           <template #result="{ result, props }">
             <li v-bind="props">
               <div>
-                <span v-if="result.name"> {{ result.name }} HELLO</span>
+                <span v-if="result.name"> {{ result.name }} ({{ result.city }}, {{ result.state }})</span>
                 <a v-if="result.cantFindSchool"
                   href="https://upchieve.org/cant-find-school"
                   @click="cantFindSchool"
