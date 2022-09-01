@@ -27,7 +27,9 @@ WHERE
     name = 'College Counseling Post-Session Survey';
 
 UPDATE upchieve.survey_questions
-  SET question_text = 'Sorry to hear that, what happened?'
+  SET question_text = 'Sorry to hear that, what happened?',
+  display_priority = 20,
+  updated_at = NOW()
   WHERE question_text = 'Please select all that apply';
 
 -- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
@@ -188,6 +190,17 @@ WHERE (survey_questions.question_text = 'How do you think %s feels about applyin
         OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
         OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
+
+INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
+SELECT
+    upchieve.question_types.id,
+    'Please seelct all that apply'
+    NOW(),
+    NOW()
+FROM
+    upchieve.question_types
+WHERE
+    upchieve.question_types.name = 'multiple choice';
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
