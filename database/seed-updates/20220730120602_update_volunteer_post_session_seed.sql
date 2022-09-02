@@ -55,9 +55,6 @@ FROM
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
         AND sub.text::int = 40)
-    -- OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-    --     AND upchieve.survey_questions.question_text = 'Please select all that apply'
-    --     AND sub.text::int = 50)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND sub.text::int = 60);
@@ -179,9 +176,11 @@ INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, up
 
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 70
-FROM upchieve.survey_questions
+FROM upchieve.survey_questions, upchieve.surveys
 WHERE survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
+AND survey_questions.id = surveys_survey_questions.survey_question_id
+AND surveys.id = surveys_survey_questions.survey_id
+and surveys.name <> 'College Counseling Volunteer Post-Session Survey';
 
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 40
