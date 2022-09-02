@@ -191,6 +191,7 @@
 </template>
 
 <script>
+// NOTE: can get rid of this entire component once we've fully transferred over to new postsession survey
 import { mapState } from 'vuex'
 import NetworkService from '@/services/NetworkService'
 import Case from 'case'

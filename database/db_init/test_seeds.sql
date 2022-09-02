@@ -2934,7 +2934,7 @@ SELECT pg_catalog.setval('upchieve.subjects_id_seq', 26, true);
 -- Name: survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 19, true);
+SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 20, true);
 
 
 --
@@ -2948,7 +2948,7 @@ SELECT pg_catalog.setval('upchieve.survey_questions_question_tags_id_seq', 1, fa
 -- Name: survey_response_choices_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 71, true);
+SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 79, true);
 
 
 --
@@ -2969,7 +2969,7 @@ SELECT pg_catalog.setval('upchieve.surveys_id_seq', 12, true);
 -- Name: surveys_survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 40, true);
+SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 46, true);
 
 
 --

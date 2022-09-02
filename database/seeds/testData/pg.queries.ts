@@ -430,7 +430,7 @@ const insertUserSessionMetricsIR: any = {
   usedParamSet: { id: true },
   statement: {
     body:
-      'INSERT INTO user_session_metrics(user_id, created_at, updated_at)\nVALUES (:id!, NOW(), NOW())\nRETURNING user_id AS ok                                                                                                                                                                                                                                                                                                                                                               ',
+      'INSERT INTO user_session_metrics(user_id, created_at, updated_at)\nVALUES (:id!, NOW(), NOW())\nRETURNING user_id AS ok',
     loc: { a: 1353, b: 1469, line: 45, col: 0 },
   },
 }
@@ -476,37 +476,37 @@ const insertVolunteerProfileIR: any = {
       name: 'userId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2001, b: 2007, line: 53, col: 140 }] },
+      codeRefs: { used: [{ a: 1648, b: 1654, line: 50, col: 140 }] },
     },
     {
       name: 'timezone',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2011, b: 2019, line: 53, col: 150 }] },
+      codeRefs: { used: [{ a: 1658, b: 1666, line: 50, col: 150 }] },
     },
     {
       name: 'approved',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2023, b: 2031, line: 53, col: 162 }] },
+      codeRefs: { used: [{ a: 1670, b: 1678, line: 50, col: 162 }] },
     },
     {
       name: 'onboarded',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2035, b: 2044, line: 53, col: 174 }] },
+      codeRefs: { used: [{ a: 1682, b: 1691, line: 50, col: 174 }] },
     },
     {
       name: 'college',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2048, b: 2055, line: 53, col: 187 }] },
+      codeRefs: { used: [{ a: 1695, b: 1702, line: 50, col: 187 }] },
     },
     {
       name: 'volunteerPartnerOrgId',
       required: false,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2059, b: 2079, line: 53, col: 198 }] },
+      codeRefs: { used: [{ a: 1706, b: 1726, line: 50, col: 198 }] },
     },
   ],
   usedParamSet: {
@@ -520,7 +520,7 @@ const insertVolunteerProfileIR: any = {
   statement: {
     body:
       'INSERT INTO volunteer_profiles (user_id, timezone, approved, onboarded, college, volunteer_partner_org_id, created_at, updated_at) VALUES (:userId!, :timezone!, :approved!, :onboarded!, :college!, :volunteerPartnerOrgId, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok',
-    loc: { a: 1861, b: 2141, line: 53, col: 0 },
+    loc: { a: 1508, b: 1788, line: 50, col: 0 },
   },
 }
 
@@ -559,20 +559,20 @@ const insertUserCertificationIR: any = {
       name: 'userId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2275, b: 2281, line: 56, col: 94 }] },
+      codeRefs: { used: [{ a: 1922, b: 1928, line: 53, col: 94 }] },
     },
     {
       name: 'certificationId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2285, b: 2300, line: 56, col: 104 }] },
+      codeRefs: { used: [{ a: 1932, b: 1947, line: 53, col: 104 }] },
     },
   ],
   usedParamSet: { userId: true, certificationId: true },
   statement: {
     body:
       'INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at) VALUES (:userId!, :certificationId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok',
-    loc: { a: 2181, b: 2362, line: 56, col: 0 },
+    loc: { a: 1828, b: 2009, line: 53, col: 0 },
   },
 }
 
@@ -613,32 +613,32 @@ const insertIntoUserQuizzesIR: any = {
       name: 'userId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2496, b: 2502, line: 59, col: 96 }] },
+      codeRefs: { used: [{ a: 2143, b: 2149, line: 56, col: 96 }] },
     },
     {
       name: 'quizId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2506, b: 2512, line: 59, col: 106 }] },
+      codeRefs: { used: [{ a: 2153, b: 2159, line: 56, col: 106 }] },
     },
     {
       name: 'attempts',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2516, b: 2524, line: 59, col: 116 }] },
+      codeRefs: { used: [{ a: 2163, b: 2171, line: 56, col: 116 }] },
     },
     {
       name: 'passed',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2528, b: 2534, line: 59, col: 128 }] },
+      codeRefs: { used: [{ a: 2175, b: 2181, line: 56, col: 128 }] },
     },
   ],
   usedParamSet: { userId: true, quizId: true, attempts: true, passed: true },
   statement: {
     body:
       'INSERT INTO users_quizzes (user_id, quiz_id, attempts, passed, created_at, updated_at) VALUES (:userId!, :quizId!, :attempts!, :passed!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok',
-    loc: { a: 2400, b: 2596, line: 59, col: 0 },
+    loc: { a: 2047, b: 2243, line: 56, col: 0 },
   },
 }
 
@@ -676,14 +676,14 @@ const insertAdminProfileIR: any = {
       name: 'userId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2701, b: 2707, line: 62, col: 70 }] },
+      codeRefs: { used: [{ a: 2348, b: 2354, line: 59, col: 70 }] },
     },
   ],
   usedParamSet: { userId: true },
   statement: {
     body:
       'INSERT INTO admin_profiles (user_id, created_at, updated_at) VALUES (:userId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING user_id AS ok',
-    loc: { a: 2631, b: 2769, line: 62, col: 0 },
+    loc: { a: 2278, b: 2416, line: 59, col: 0 },
   },
 }
 
@@ -724,25 +724,25 @@ const insertSessionIR: any = {
       name: 'id',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2896, b: 2898, line: 65, col: 97 }] },
+      codeRefs: { used: [{ a: 2543, b: 2545, line: 62, col: 97 }] },
     },
     {
       name: 'studentId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2902, b: 2911, line: 65, col: 103 }] },
+      codeRefs: { used: [{ a: 2549, b: 2558, line: 62, col: 103 }] },
     },
     {
       name: 'volunteerId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2915, b: 2926, line: 65, col: 116 }] },
+      codeRefs: { used: [{ a: 2562, b: 2573, line: 62, col: 116 }] },
     },
     {
       name: 'subjectId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 2930, b: 2939, line: 65, col: 131 }] },
+      codeRefs: { used: [{ a: 2577, b: 2586, line: 62, col: 131 }] },
     },
   ],
   usedParamSet: {
@@ -754,7 +754,7 @@ const insertSessionIR: any = {
   statement: {
     body:
       'INSERT INTO sessions (id, student_id, volunteer_id, subject_id, created_at, updated_at) VALUES (:id!, :studentId!, :volunteerId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 2799, b: 2996, line: 65, col: 0 },
+    loc: { a: 2446, b: 2643, line: 62, col: 0 },
   },
 }
 
@@ -793,20 +793,20 @@ const insertStudentFavoriteVolunteersIR: any = {
       name: 'studentId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 3144, b: 3153, line: 68, col: 100 }] },
+      codeRefs: { used: [{ a: 2791, b: 2800, line: 65, col: 100 }] },
     },
     {
       name: 'volunteerId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 3157, b: 3168, line: 68, col: 113 }] },
+      codeRefs: { used: [{ a: 2804, b: 2815, line: 65, col: 113 }] },
     },
   ],
   usedParamSet: { studentId: true, volunteerId: true },
   statement: {
     body:
       'INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at) VALUES (:studentId!, :volunteerId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING student_id AS ok',
-    loc: { a: 3044, b: 3233, line: 68, col: 0 },
+    loc: { a: 2691, b: 2880, line: 65, col: 0 },
   },
 }
 
@@ -842,7 +842,7 @@ const getVolunteerPartnerOrgsIR: any = {
   usedParamSet: {},
   statement: {
     body: 'SELECT\n  id,\n  key AS name\nFROM volunteer_partner_orgs',
-    loc: { a: 3273, b: 3326, line: 71, col: 0 },
+    loc: { a: 2920, b: 2973, line: 68, col: 0 },
   },
 }
 
@@ -881,7 +881,7 @@ const getStudentPartnerOrgsIR: any = {
   usedParamSet: {},
   statement: {
     body: 'SELECT\n  id,\n  key AS name\nFROM student_partner_orgs',
-    loc: { a: 3364, b: 3415, line: 77, col: 0 },
+    loc: { a: 3011, b: 3062, line: 74, col: 0 },
   },
 }
 
@@ -920,7 +920,7 @@ const getCertificationsIR: any = {
   usedParamSet: {},
   statement: {
     body: 'SELECT id, name FROM certifications',
-    loc: { a: 3449, b: 3483, line: 83, col: 0 },
+    loc: { a: 3096, b: 3130, line: 80, col: 0 },
   },
 }
 
@@ -956,7 +956,7 @@ const getQuizzesIR: any = {
   usedParamSet: {},
   statement: {
     body: 'SELECT id, name FROM quizzes',
-    loc: { a: 3510, b: 3537, line: 86, col: 0 },
+    loc: { a: 3157, b: 3184, line: 83, col: 0 },
   },
 }
 
@@ -993,7 +993,7 @@ const getAlgebraOneSubcategoriesIR: any = {
   statement: {
     body:
       "SELECT qs.id, qs.name FROM quiz_subcategories qs JOIN quizzes q ON q.id = qs.quiz_id WHERE q.name = 'algebraOne'",
-    loc: { a: 3580, b: 3691, line: 89, col: 0 },
+    loc: { a: 3227, b: 3338, line: 86, col: 0 },
   },
 }
 
@@ -1034,25 +1034,25 @@ const insertQuizQuestionIR: any = {
       name: 'questionText',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 3857, b: 3869, line: 93, col: 9 }] },
+      codeRefs: { used: [{ a: 3504, b: 3516, line: 90, col: 9 }] },
     },
     {
       name: 'possibleAnswers',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 3873, b: 3888, line: 93, col: 25 }] },
+      codeRefs: { used: [{ a: 3520, b: 3535, line: 90, col: 25 }] },
     },
     {
       name: 'correctAnswer',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 3892, b: 3905, line: 93, col: 44 }] },
+      codeRefs: { used: [{ a: 3539, b: 3552, line: 90, col: 44 }] },
     },
     {
       name: 'quizSubcategoryId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 3909, b: 3926, line: 93, col: 61 }] },
+      codeRefs: { used: [{ a: 3556, b: 3573, line: 90, col: 61 }] },
     },
   ],
   usedParamSet: {
@@ -1064,7 +1064,7 @@ const insertQuizQuestionIR: any = {
   statement: {
     body:
       'INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, quiz_subcategory_id, created_at, updated_at)\nVALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :quizSubcategoryId!, NOW(), NOW())\nRETURNING id AS ok',
-    loc: { a: 3726, b: 3960, line: 92, col: 0 },
+    loc: { a: 3373, b: 3607, line: 89, col: 0 },
   },
 }
 
@@ -1105,20 +1105,20 @@ const insertCityIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 4061, b: 4065, line: 98, col: 9 }] },
+      codeRefs: { used: [{ a: 3708, b: 3712, line: 95, col: 9 }] },
     },
     {
       name: 'usStateCode',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 4069, b: 4080, line: 98, col: 17 }] },
+      codeRefs: { used: [{ a: 3716, b: 3727, line: 95, col: 17 }] },
     },
   ],
   usedParamSet: { name: true, usStateCode: true },
   statement: {
     body:
       'INSERT INTO cities (name, us_state_code, created_at, updated_at)\nVALUES (:name!, :usStateCode!, NOW(), NOW())\nRETURNING id as ok',
-    loc: { a: 3987, b: 4114, line: 97, col: 0 },
+    loc: { a: 3634, b: 3761, line: 94, col: 0 },
   },
 }
 
