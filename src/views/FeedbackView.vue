@@ -24,12 +24,12 @@
 
       <template v-else>
         <ul class="feedback__questions-list">
-          <li
-            v-for="(questionInfo, index) in filteredQuestions"
-            :key="questionInfo.question.id"
-            :class="{'feedback__questions-item': !(questionInfo.questionType === 'radio')}"
-          >
-            <div v-if="isPostsessionSurveyActive">
+          <div v-if="isPostsessionSurveyActive">
+            <li
+              v-for="(questionInfo, index) in filteredQuestions"
+              :key="questionInfo.question.id"
+              :class="{'feedback__questions-item': !(questionInfo.questionType === 'radio')}"
+            >
               <div v-if="questionInfo.headerText">
                 <hr/>
                 <div class="question__section-header">
@@ -154,8 +154,12 @@
               <div class="response-answer-text" v-if="questionInfo.questionType === 'star' && userResponse[questionInfo.questionId].responseId">
                 {{getAnswerToQuestion(questionInfo.question)}}
               </div>
-            </div>
-            <div v-else>
+            </li>
+          </div>
+          <div v-else>
+            <li v-for="(question, index) in filteredQuestions"
+              :key="question.id"
+              :class='feedback__questions-item'>
               <h2
                 class="feedback__question"
                 v-html="
@@ -182,8 +186,8 @@
                 v-model="question.answer"
                 :direction="question.direction"
               />
-            </div>
-          </li>
+            </li>
+          </div>
         </ul>
 
         <p v-if="error" class="feedback__error">{{ error }}</p>
@@ -300,7 +304,6 @@ export default {
               this.isFavoriteCoachLimitReached
             )
               return false
-
             const question = this.questions.find((q) => q.id === 'coach-rating')
             return question.answer && question.answer >= 4
           },
@@ -465,7 +468,6 @@ export default {
       if (this.isPostsessionSurveyActive) {
         return this.allQuestions.filter(q => q.isVisible)
       }
-
       return this.questions.filter(item => !item.show || item.show())
     }
   },
@@ -638,9 +640,11 @@ export default {
           const coachFavoritingAnswer = this.getAnswerToQuestion(coachFavoritingQuestion)
           return coachFavoritingAnswer && coachFavoritingAnswer === 'Yes'
         }
+        console.log('beep')
         const coachFavoritingQuestion = this.filteredQuestions.find(
           (q) => q.id === 'coach-favoriting'
         )
+        console.log(coachFavoritingQuestion)
         // `1` is the first answer option when asking the student if they would like
         // to favorite the coach. That means the student wants to favorite them
         return coachFavoritingQuestion && coachFavoritingQuestion.answer === 1
