@@ -26,7 +26,7 @@
         <ul class="feedback__questions-list">
           <div v-if="isPostsessionSurveyActive">
             <li
-              v-for="(questionInfo, index) in filteredQuestions"
+              v-for="(questionInfo) in filteredQuestions"
               :key="questionInfo.question.id"
               :class="{'feedback__questions-item': !(questionInfo.questionType === 'radio')}"
             >
@@ -640,11 +640,9 @@ export default {
           const coachFavoritingAnswer = this.getAnswerToQuestion(coachFavoritingQuestion)
           return coachFavoritingAnswer && coachFavoritingAnswer === 'Yes'
         }
-        console.log('beep')
         const coachFavoritingQuestion = this.filteredQuestions.find(
           (q) => q.id === 'coach-favoriting'
         )
-        console.log(coachFavoritingQuestion)
         // `1` is the first answer option when asking the student if they would like
         // to favorite the coach. That means the student wants to favorite them
         return coachFavoritingQuestion && coachFavoritingQuestion.answer === 1

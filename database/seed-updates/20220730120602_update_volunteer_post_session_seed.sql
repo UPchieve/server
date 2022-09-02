@@ -81,9 +81,7 @@ WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND sub.text::int = 60);
 
-
-DELETE FROM upchieve.survey_questions_response_choices
-    USING upchieve.surveys_survey_questions, upchieve.surveys, upchieve.survey_questions, upchieve.survey_response_choices
+DELETE FROM upchieve.survey_questions_response_choices USING upchieve.surveys_survey_questions, upchieve.surveys, upchieve.survey_questions, upchieve.survey_response_choices
 WHERE upchieve.surveys_survey_questions.id = upchieve.survey_questions_response_choices.surveys_survey_question_id
     AND upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
     AND upchieve.survey_questions.id = upchieve.surveys_survey_questions.survey_question_id
@@ -91,7 +89,6 @@ WHERE upchieve.surveys_survey_questions.id = upchieve.survey_questions_response_
     AND upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
     AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
     AND upchieve.survey_response_choices.choice_text = 'Not at all';
-
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
@@ -197,18 +194,18 @@ FROM
 WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
     AND upchieve.subjects.name = 'planning'
     AND upchieve.survey_types.name = 'postsession')
-OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-    AND upchieve.subjects.name = 'applications'
-    AND upchieve.survey_types.name = 'postsession')
-OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-    AND upchieve.subjects.name = 'essays'
-    AND upchieve.survey_types.name = 'postsession')
-OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-    AND upchieve.subjects.name = 'usHistory'
-    AND upchieve.survey_types.name = 'postsession')
-OR (upchieve.surveys.name = 'Student Post-Session Survey'
-    AND upchieve.subjects.name = 'usHistory'
-    AND upchieve.survey_types.name = 'postsession');
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'applications'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'essays'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'usHistory'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'Student Post-Session Survey'
+        AND upchieve.subjects.name = 'usHistory'
+        AND upchieve.survey_types.name = 'postsession');
 
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
     VALUES (0, 'Student shared their email, last name, or other personally identifiable information', NOW(), NOW()), (0, 'Student is in severe emotional distress and/or unsafe', NOW(), NOW()), (0, 'Student was pressuring me to do their work for them', NOW(), NOW()), (0, 'Student was working on a quiz or exam', NOW(), NOW()), (0, 'Student was mean or inappropriate', NOW(), NOW()), (0, 'Student made me feel uncomfortable', NOW(), NOW()), (0, 'Other (please provide details below)', NOW(), NOW()), (0, 'Your thoughts', NOW(), NOW());
