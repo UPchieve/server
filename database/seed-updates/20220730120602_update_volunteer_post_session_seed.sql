@@ -209,18 +209,6 @@ and surveys.name IN (
     'SAT Prep Volunteer Post-Session Survey',
     'College Counseling Volunteer Post-Session Survey');
 
-
-INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
-SELECT
-    upchieve.question_types.id,
-    'Please select all that apply',
-    NOW(),
-    NOW()
-FROM
-    upchieve.question_types
-WHERE
-    upchieve.question_types.name = 'multiple choice';
-
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
     upchieve.surveys.id,
