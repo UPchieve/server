@@ -26,15 +26,10 @@ SET
 WHERE
     name = 'College Counseling Post-Session Survey';
 
--- need to update things that had "please select all that apply" to use OLD 'sorry to hear that, what happened'
+-- need to update things that had "please select all that apply" to use 'sorry to hear that, what happened'
 UPDATE upchieve.surveys_survey_questions ssq
 SET survey_question_id = (SELECT id from upchieve.survey_questions where question_text = 'Sorry to hear that, what happened?')
 WHERE survey_question_id = (SELECT id FROM upchieve.survey_questions where question_text = 'Please select all that apply');
-
--- UPDATE upchieve.survey_questions
---   SET question_text = 'Sorry to hear that, what happened?',
---   updated_at = NOW()
---   WHERE question_text = 'Please select all that apply';
 
 -- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
