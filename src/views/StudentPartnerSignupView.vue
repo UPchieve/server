@@ -203,7 +203,7 @@
               <template #result="{ result, props }">
                 <li v-bind="props">
                   <div>
-                    <span v-if="result.name"> {{ result.name }}</span>
+                    <span v-if="result.name"> {{ result.name }}, ({{ result.city }}, {{ result.state }})</span>
                     <a v-if="result.cantFindSchool"
                     href="https://upchieve.org/cant-find-school"
                     >
@@ -585,7 +585,7 @@ export default {
       this.isLoadingSignupSource = true
       try {
         const data = await backOff(() => NetworkService.getStudentSignupSources())
-        this.signupSourcesOptions = data.body.signupSources 
+        this.signupSourcesOptions = data.body.signupSources
       } catch (err) {
         Sentry.captureException(err)
       } finally {

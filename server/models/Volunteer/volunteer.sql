@@ -36,6 +36,8 @@ WHERE
     AND users.test_user IS FALSE;
 
 
+/* TODO: 8-30-22 at Katie O'Connor's request we are excluding corporate partner volunteers
+ we may want to remove the final AND condition at a later date */
 /* @name getVolunteersForBlackoutOver */
 SELECT
     users.id,
@@ -52,7 +54,9 @@ WHERE
     users.last_activity_at < :startDate!
     AND users.banned IS FALSE
     AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+    AND users.test_user IS FALSE
+    AND volunteer_profiles.onboarded IS TRUE
+    AND volunteer_profiles.volunteer_partner_org_id IS NULL;
 
 
 /* @name getVolunteerForQuickTips*/
@@ -362,7 +366,8 @@ WHERE
     AND users.last_activity_at < :end!
     AND users.banned IS FALSE
     AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+    AND users.test_user IS FALSE
+    AND volunteer_profiles.onboarded IS TRUE;
 
 
 /* @name updateVolunteerReferenceSentById */
