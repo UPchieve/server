@@ -46,9 +46,9 @@ FROM
     WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
         AND sub.text::int = 10)
-    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?'
-        AND sub.text::int = 20)
+    -- OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    --     AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?'
+    --     AND sub.text::int = 20)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
         AND sub.text::int = 30)
