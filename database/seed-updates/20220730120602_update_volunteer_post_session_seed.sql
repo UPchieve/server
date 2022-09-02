@@ -56,7 +56,7 @@ FROM
         AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
         AND sub.text::int = 40)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'Please select all that apply'
+        AND upchieve.survey_questions.question_text = 'Please select all that'
         AND sub.text::int = 50)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
@@ -220,7 +220,6 @@ SELECT
 FROM
     upchieve.surveys
     JOIN upchieve.survey_questions ON TRUE
-    JOIN UNNEST(ARRAY[20]) AS sub ON TRUE
 WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
     AND upchieve.survey_questions.question_text = 'Please select all that apply')
 OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
@@ -354,7 +353,7 @@ WHERE survey_questions.question_text = 'Were there any student safety, academic 
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
 UPDATE upchieve.surveys_survey_questions
-SET display_priority = 10
+SET display_priority = 20
 FROM upchieve.survey_questions
 WHERE (survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
         OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
