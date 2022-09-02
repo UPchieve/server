@@ -2,24 +2,31 @@
 -- deal with duplicate Yes values
 WITH extra_yes_ids AS (
     SELECT
-        (select distinct response_choice_id 
-        from upchieve.survey_questions_response_choices as sqrc
-  		join upchieve.survey_response_choices on survey_response_choices.id = sqrc.response_choice_id
-         where choice_text = 'Yes' offset 1 rows fetch next 1 rows only)
-  )
-delete from upchieve.survey_questions_response_choices sqrc using extra_yes_ids
-where extra_yes_ids.response_choice_id = sqrc.response_choice_id;
-  
+        ( SELECT DISTINCT
+                response_choice_id
+            FROM
+                upchieve.survey_questions_response_choices AS sqrc
+                JOIN upchieve.survey_response_choices ON survey_response_choices.id = sqrc.response_choice_id
+            WHERE
+                choice_text = 'Yes' offset 1 ROWS FETCH NEXT 1 ROWS ONLY))
+DELETE FROM upchieve.survey_questions_response_choices sqrc USING extra_yes_ids
+WHERE extra_yes_ids.response_choice_id = sqrc.response_choice_id;
+
 WITH extra_yes_ids AS (
     SELECT
-        (select id from upchieve.survey_response_choices
-         where choice_text = 'Yes' offset 1 rows fetch next 1 rows only)
-  )
-DELETE FROM upchieve.survey_response_choices as sqrc using extra_yes_ids
-where extra_yes_ids.id = sqrc.id;
+        (
+            SELECT
+                id
+            FROM
+                upchieve.survey_response_choices
+            WHERE
+                choice_text = 'Yes' offset 1 ROWS FETCH NEXT 1 ROWS ONLY))
+DELETE FROM upchieve.survey_response_choices AS sqrc USING extra_yes_ids
+WHERE extra_yes_ids.id = sqrc.id;
 
---rename things that had the wrong name 
-UPDATE upchieve.surveys
+--rename things that had the wrong name
+UPDATE
+    upchieve.surveys
 SET
     name = 'College Counseling Volunteer Post-Session Survey',
     updated_at = NOW()
@@ -27,9 +34,24 @@ WHERE
     name = 'College Counseling Post-Session Survey';
 
 -- need to update things that had "please select all that apply" to use 'sorry to hear that, what happened'
-UPDATE upchieve.surveys_survey_questions ssq
-SET survey_question_id = (SELECT id from upchieve.survey_questions where question_text = 'Sorry to hear that, what happened?')
-WHERE survey_question_id = (SELECT id FROM upchieve.survey_questions where question_text = 'Please select all that apply');
+UPDATE
+    upchieve.surveys_survey_questions ssq
+SET
+    survey_question_id = (
+        SELECT
+            id
+        FROM
+            upchieve.survey_questions
+        WHERE
+            question_text = 'Sorry to hear that, what happened?')
+WHERE
+    survey_question_id = (
+        SELECT
+            id
+        FROM
+            upchieve.survey_questions
+        WHERE
+            question_text = 'Please select all that apply');
 
 -- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
@@ -43,9 +65,9 @@ FROM
     upchieve.surveys
     JOIN upchieve.survey_questions ON TRUE
     JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
-    WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
-        AND sub.text::int = 10)
+WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    AND upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+    AND sub.text::int = 10)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?'
         AND sub.text::int = 20)
@@ -72,10 +94,10 @@ FROM
     JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
     JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
     JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
-    WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
-        AND rc.choice_text = 'Not at all'
-        AND sub.text::int = 10)
+WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+    AND rc.choice_text = 'Not at all'
+    AND sub.text::int = 10)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
         AND rc.choice_text = 'Sorta but not really'
@@ -160,9 +182,9 @@ FROM
     upchieve.surveys
     JOIN upchieve.subjects ON TRUE
     JOIN upchieve.survey_types ON TRUE
-    WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.subjects.name = 'planning'
-        AND upchieve.survey_types.name = 'postsession')
+WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+    AND upchieve.subjects.name = 'planning'
+    AND upchieve.survey_types.name = 'postsession')
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.subjects.name = 'applications'
         AND upchieve.survey_types.name = 'postsession')
@@ -170,39 +192,50 @@ FROM
         AND upchieve.subjects.name = 'essays'
         AND upchieve.survey_types.name = 'postsession');
 
-
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
     VALUES (0, 'Student shared their email, last name, or other personally identifiable information', NOW(), NOW()), (0, 'Student is in severe emotional distress and/or unsafe', NOW(), NOW()), (0, 'Student was pressuring me to do their work for them', NOW(), NOW()), (0, 'Student was working on a quiz or exam', NOW(), NOW()), (0, 'Student was mean or inappropriate', NOW(), NOW()), (0, 'Student made me feel uncomfortable', NOW(), NOW()), (0, 'Other (please provide details below)', NOW(), NOW()), (0, 'Your thoughts', NOW(), NOW());
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 70
-FROM upchieve.survey_questions
-WHERE survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 70
+FROM
+    upchieve.survey_questions
+WHERE
+    survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
+    AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 40
-FROM upchieve.survey_questions
-WHERE survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 40
+FROM
+    upchieve.survey_questions
+WHERE
+    survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+    AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 30
-FROM upchieve.survey_questions
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 30
+FROM
+    upchieve.survey_questions
 WHERE (survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
-        OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
+    OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 20
-FROM upchieve.survey_questions, upchieve.surveys
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 20
+FROM
+    upchieve.survey_questions,
+    upchieve.surveys
 WHERE (survey_questions.question_text = 'Sorry to hear that, what happened?')
-AND survey_questions.id = surveys_survey_questions.survey_question_id
-AND surveys.id = surveys_survey_questions.survey_id
-and surveys.name IN (
-    'General Volunteer Post-Session Survey',
-    'SAT Prep Volunteer Post-Session Survey',
-    'College Counseling Volunteer Post-Session Survey');
+    AND survey_questions.id = surveys_survey_questions.survey_question_id
+    AND surveys.id = surveys_survey_questions.survey_id
+    AND surveys.name IN ('General Volunteer Post-Session Survey', 'SAT Prep Volunteer Post-Session Survey', 'College Counseling Volunteer Post-Session Survey');
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
@@ -216,10 +249,10 @@ FROM
     JOIN upchieve.survey_questions ON TRUE
 WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
     AND upchieve.survey_questions.question_text = 'Please select all that apply')
-OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
-    AND upchieve.survey_questions.question_text = 'Please select all that apply')
-OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-    AND upchieve.survey_questions.question_text = 'Please select all that apply');
+    OR (upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'Please select all that apply')
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND upchieve.survey_questions.question_text = 'Please select all that apply');
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
@@ -235,9 +268,9 @@ FROM
     JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
     JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
 WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
-        AND sq.question_text = 'Please select all that apply'
-        AND rc.choice_text = 'Student shared their email, last name, or other personally identifiable information'
-        AND sub.text::int = 10)
+    AND sq.question_text = 'Please select all that apply'
+    AND rc.choice_text = 'Student shared their email, last name, or other personally identifiable information'
+    AND sub.text::int = 10)
     OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
         AND sq.question_text = 'Please select all that apply'
         AND rc.choice_text = 'Student is in severe emotional distress and/or unsafe'
@@ -329,16 +362,16 @@ WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND rc.choice_text = 'Your thoughts'
-        AND sub.text::int = 10)    
+        AND sub.text::int = 10)
     -- student survey response that was missed in original seeding
     OR (upchieve.surveys.name = 'Student Post-Session Survey'
         AND sq.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.'
         AND rc.choice_text = 'Your thoughts'
         AND sub.text::int = 10);
 
-
 -- migrate:down
-UPDATE upchieve.surveys
+UPDATE
+    upchieve.surveys
 SET
     name = 'College Counseling Post-Session Survey',
     updated_at = NOW()
@@ -346,8 +379,7 @@ WHERE
     name = 'College Counseling Volunteer Post-Session Survey';
 
 DELETE FROM upchieve.survey_response_choices
-WHERE
-    choice_text = 'Student shared their email, last name, or other personally identifiable information'
+WHERE choice_text = 'Student shared their email, last name, or other personally identifiable information'
     OR choice_text = 'Student is in severe emotional distress and/or unsafe'
     OR choice_text = 'Student was pressuring me to do their work for them'
     OR choice_text = 'Student was working on a quiz or exam'
@@ -359,33 +391,46 @@ WHERE
 -- DELETE FROM upchieve.surveys_survey_questions USING upchieve.survey_questions
 -- WHERE surveys_survey_questions.survey_question_id = survey_questions.id
 -- AND upchieve.survey_questions.question_text = 'Sorry to hear that, what happened?';
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 50
+FROM
+    upchieve.survey_questions
+WHERE
+    survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
+    AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 50
-FROM upchieve.survey_questions
-WHERE survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 40
+FROM
+    upchieve.survey_questions
+WHERE
+    survey_questions.question_text = 'Please select all that apply'
+    AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 40
-FROM upchieve.survey_questions
-WHERE survey_questions.question_text = 'Please select all that apply'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 30
+FROM
+    upchieve.survey_questions
+WHERE
+    survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+    AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 30
-FROM upchieve.survey_questions
-WHERE survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
-
-UPDATE upchieve.surveys_survey_questions
-SET display_priority = 20
-FROM upchieve.survey_questions
+UPDATE
+    upchieve.surveys_survey_questions
+SET
+    display_priority = 20
+FROM
+    upchieve.survey_questions
 WHERE (survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
-        OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
-        OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
+    OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
+    OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
-
 
 DELETE FROM upchieve.survey_questions_response_choices USING upchieve.surveys_survey_questions, upchieve.surveys, upchieve.survey_questions
 WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_survey_questions.id
@@ -400,3 +445,4 @@ WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_survey_questions.i
         OR upchieve.survey_questions.question_text = 'Please select all that apply'
         OR upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         OR upchieve.survey_questions.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?');
+
