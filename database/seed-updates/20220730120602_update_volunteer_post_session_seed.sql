@@ -176,11 +176,9 @@ INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, up
 
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 70
-FROM upchieve.survey_questions, upchieve.surveys
+FROM upchieve.survey_questions
 WHERE survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
-AND survey_questions.id = surveys_survey_questions.survey_question_id
-AND surveys.id = surveys_survey_questions.survey_id
-and surveys.name <> 'College Counseling Volunteer Post-Session Survey';
+AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 40
@@ -335,6 +333,10 @@ WHERE (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
         AND sq.question_text = 'Please select all that apply'
         AND rc.choice_text = 'Other (please provide details below)'
         AND sub.text::int = 70)
+    OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
+        AND sq.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
+        AND rc.choice_text = 'Your thoughts'
+        AND sub.text::int = 10)    
     -- student survey response that was missed in original seeding
     OR (upchieve.surveys.name = 'Student Post-Session Survey'
         AND sq.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.'
