@@ -432,6 +432,7 @@ export const FEATURE_FLAGS = {
   DOWNTIME_BANNER: 'downtime-banner',
   CHATBOT: 'chatbot',
   DASHBOARD_BANNER: 'dashboard-banner',
+  POSTSESSION_SURVEY: 'postsession-survey'
 }
 
 export const ANALYTICS_REPORT_ROW = {

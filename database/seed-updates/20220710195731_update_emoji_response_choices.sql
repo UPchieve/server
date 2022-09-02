@@ -118,6 +118,7 @@ WHERE
     upchieve.survey_questions_response_choices.response_choice_id = subquery.id;
 
 -- migrate:down
+-- NOTE: run `truncate table upchieve.users_surveys_submissions` if this down migration fails
 DELETE FROM upchieve.survey_questions_response_choices USING upchieve.survey_response_choices
 WHERE upchieve.survey_questions_response_choices.response_choice_id = upchieve.survey_response_choices.id
     AND upchieve.survey_response_choices.choice_text = 'Neutral';

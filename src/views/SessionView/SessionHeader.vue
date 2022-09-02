@@ -155,7 +155,8 @@ export default {
       isSessionWaitingForVolunteer: 'user/isSessionWaitingForVolunteer',
       isSessionInProgress: 'user/isSessionInProgress',
       isSessionOver: 'user/isSessionOver',
-      isChatbotActive: 'featureFlags/isChatbotActive'
+      isChatbotActive: 'featureFlags/isChatbotActive',
+      isPostsessionSurveyActive: 'featureFlags/isPostsessionSurveyActive'
     }),
 
     partnerAvatar() {
@@ -256,7 +257,7 @@ export default {
       // or if the student was not paired with a tutor
       if (this.isAbsentUser()) return this.$router.push('/')
 
-      if (!this.user.isVolunteer && this.session.type === 'college') {
+      if (!this.isPostsessionSurveyActive && !this.user.isVolunteer && this.session.type === 'college') {
         this.goToStudentCounselingFeedbackPage()
         return
       }

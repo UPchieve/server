@@ -31,6 +31,7 @@
                   :key="`${response.responseId}-image`"
                   :src="response.responseDisplayImage"
                   :label="response.responseText"
+                  :questionId="currentQuestion.questionId"
                   :responseId="response.responseId"
                   :isSelected="
                     userResponse[currentQuestion.questionId].responseId ===
@@ -53,6 +54,7 @@
                     userResponse[currentQuestion.questionId].responseId ===
                     response.responseId
                   "
+                  :questionId="currentQuestion.questionId"
                   :responseId="response.responseId"
                   :label="response.responseText"
                   :isOpenResponseDisabled="
@@ -256,7 +258,7 @@ export default {
     },
     // checks if the current question has a row of responses that require to show a display image
     isRowOfImages() {
-      return this.currentQuestion.responses.some((a) => a.responseDisplayImage)
+      return this.currentQuestion.responses.every((a) => a.responseDisplayImage)
     },
     questionTypes() {
       return QUESTION_TYPES
@@ -318,8 +320,7 @@ export default {
 
       this.userResponse = userResponse
     },
-    updateUserResponse(responseId, openResponseText = '') {
-      const questionId = this.currentQuestion.questionId
+    updateUserResponse(questionId, responseId, openResponseText = '') {
       // Vue cannot detect property addition or deletion on objects. A new object
       // must be created for Vue to recognize changes on said object
       const responseAnswer = {

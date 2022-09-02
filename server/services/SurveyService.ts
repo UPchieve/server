@@ -7,7 +7,14 @@ import {
 } from '../models/Survey'
 import { getTotalSessionsByUserId } from '../models/User'
 import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
-import { asArray, asFactory, asNumber, asString } from '../utils/type-utils'
+import {
+  asArray,
+  asEnum,
+  asFactory,
+  asNumber,
+  asString,
+} from '../utils/type-utils'
+import { USER_ROLES_TYPE, USER_ROLES } from '../constants'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -55,6 +62,16 @@ export async function validateSaveUserSurveyAndSubmissions(
     sessionId: survey.sessionId,
     surveyTypeId: survey.surveyTypeId,
   }
-  const submissions = survey.submissions
+  // filter out questions the user didn't answer
+  const submissions = survey.submissions.filter(
+    resp => resp.responseChoiceId !== null
+  )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
+}
+
+export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)
+
+export function parseUserRole(param: string) {
+  const cleanedInput = asUserRole(param)
+  return cleanedInput
 }
