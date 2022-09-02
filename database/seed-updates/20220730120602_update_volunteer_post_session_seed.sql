@@ -81,6 +81,18 @@ WHERE (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
         AND sub.text::int = 60);
 
+
+DELETE FROM upchieve.survey_questions_response_choices
+    USING upchieve.surveys_survey_questions, upchieve.surveys, upchieve.survey_questions, upchieve.survey_response_choices
+WHERE upchieve.surveys_survey_questions.id = upchieve.survey_questions_response_choices.surveys_survey_question_id
+    AND upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
+    AND upchieve.survey_questions.id = upchieve.surveys_survey_questions.survey_question_id
+    AND upchieve.survey_response_choices.id = survey_questions_response_choices.response_choice_id
+    AND upchieve.surveys.name = 'SAT Prep Volunteer Post-Session Survey'
+    AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
+    AND upchieve.survey_response_choices.choice_text = 'Not at all';
+
+
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority, created_at, updated_at)
 SELECT
     ssq.id,
