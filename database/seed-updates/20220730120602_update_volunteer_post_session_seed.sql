@@ -26,10 +26,15 @@ SET
 WHERE
     name = 'College Counseling Post-Session Survey';
 
-UPDATE upchieve.survey_questions
-  SET question_text = 'Sorry to hear that, what happened?',
-  updated_at = NOW()
-  WHERE question_text = 'Please select all that apply';
+-- need to update things that had "please select all that apply" to use OLD 'sorry to hear that, what happened'
+UPDATE upchieve.surveys_survey_questions ssq
+SET survey_question_id = (SELECT id from upchieve.survey_questions where question_text = 'Sorry to hear that, what happened?')
+WHERE survey_question_id = (SELECT id FROM upchieve.survey_questions where question_text = 'Please select all that apply');
+
+-- UPDATE upchieve.survey_questions
+--   SET question_text = 'Sorry to hear that, what happened?',
+--   updated_at = NOW()
+--   WHERE question_text = 'Please select all that apply';
 
 -- fix college counseling volunteer post-session survey stuff that didn't seed properly in add_volunteer_post_session_seeds
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
@@ -195,9 +200,14 @@ AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 20
-FROM upchieve.survey_questions
+FROM upchieve.survey_questions, upchieve.surveys
 WHERE (survey_questions.question_text = 'Sorry to hear that, what happened?')
-AND survey_questions.id = surveys_survey_questions.survey_question_id;
+AND survey_questions.id = surveys_survey_questions.survey_question_id
+AND surveys.id = surveys_survey_questions.survey_id
+and surveys.name IN (
+    'General Volunteer Post-Session Survey',
+    'SAT Prep Volunteer Post-Session Survey',
+    'College Counseling Volunteer Post-Session Survey');
 
 
 INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
