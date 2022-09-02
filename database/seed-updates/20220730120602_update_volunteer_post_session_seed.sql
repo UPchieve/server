@@ -56,7 +56,7 @@ FROM
         AND upchieve.survey_questions.question_text = 'Were there any student safety, academic integrity, or community guideline issues during this session?'
         AND sub.text::int = 40)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
-        AND upchieve.survey_questions.question_text = 'Please select all that'
+        AND upchieve.survey_questions.question_text = 'Please select all that apply'
         AND sub.text::int = 50)
     OR (upchieve.surveys.name = 'College Counseling Volunteer Post-Session Survey'
         AND upchieve.survey_questions.question_text = 'This can be about the web app, the student you helped, technical issues, etc.'
@@ -188,8 +188,7 @@ AND survey_questions.id = surveys_survey_questions.survey_question_id;
 UPDATE upchieve.surveys_survey_questions
 SET display_priority = 30
 FROM upchieve.survey_questions
-WHERE (survey_questions.question_text = 'How do you think %s feels about applying to college at the end of this session?'
-        OR survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
+WHERE (survey_questions.question_text = 'How do you think %s feels about the %s at the end of this session?'
         OR survey_questions.question_text = 'How do you think %s feels about %s at the end of this session?')
 AND survey_questions.id = surveys_survey_questions.survey_question_id;
 
