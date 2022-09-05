@@ -5,17 +5,15 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import cacheControl from 'express-cache-controller'
-import expressPino from 'express-pino-logger'
 import expressWs from 'express-ws'
 import fs from 'fs'
 import helmet from 'helmet'
-import Mustache from 'mustache'
-import path from 'path'
 import swaggerUi from 'swagger-ui-express'
 import { promisify } from 'util'
 import YAML from 'yaml'
 import config from './config'
 import logger from './logger'
+import pinoHttp from 'pino-http'
 import router from './router'
 import socketServer from './socket-server'
 import {
@@ -34,54 +32,6 @@ import {
 } from './securitySettings'
 const csrf = require('csurf')
 
-const distDir = '../dist'
-
-function renderIndexHtml() {
-  let template = ''
-  const indexPath = path.join(__dirname, `${distDir}/index.html`)
-  try {
-    template = fs.readFileSync(indexPath, 'utf8')
-  } catch (err) {
-    logger.error(`error reading index.html file: ${err}`)
-
-    if (config.NODE_ENV !== 'dev') {
-      process.exit(1)
-    }
-  }
-  // speeds up rendering on the first request
-  Mustache.parse(template)
-
-  const frontendConfig = {
-    zwibblerUrl: config.zwibblerUrl,
-    websocketRoot: config.websocketRoot,
-    serverRoot: config.serverRoot,
-    featureFlagRoot: config.featureFlagRoot,
-    socketAddress: config.socketAddress,
-    mainWebsiteUrl: config.mainWebsiteUrl,
-    featureFlagClientKey: config.featureFlagClientKey,
-    posthogToken: config.posthogToken,
-    unleashUrl: config.vueAppUnleashUrl,
-    unleashName: config.vueAppUnleashName,
-    unleashId: config.vueAppUnleashId,
-    newRelicBrowserAccountId: config.newRelicBrowserAccountId,
-    newRelicBrowserTrustKey: config.newRelicBrowserTrustKey,
-    newRelicBrowserAgentId: config.newRelicBrowserAgentId,
-    newRelicBrowserLicenseKey: config.newRelicBrowserLicenseKey,
-    newRelicBrowserAppId: config.newRelicBrowserAppId,
-    newRelicApprovedOrigin: config.newRelicApprovedOrigin,
-    devtools: config.vueDevtools,
-    nodeEnv: config.NODE_ENV,
-    version: config.version,
-    sentryEnv: config.vueAppSentryEnv,
-    sentryDsn: config.vueAppSentryDsn,
-    customVolunteerPartnerOrgs: config.customVolunteerPartnerOrgs,
-    gleapSdkKey: config.gleapSdkKey,
-  }
-
-  const rendered = Mustache.render(template, frontendConfig)
-  return rendered
-}
-
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
 }
@@ -96,14 +46,20 @@ Sentry.init({
 // Express App
 const app = express()
 
-const indexHtml = renderIndexHtml()
-
 /**
  * @note: must typecast many handlers with express.RequestHandler
  * due to @types/node >=15.9.x and @types/express <14.7.1
  * see https://github.com/helmetjs/helmet/issues/325
  * see https://github.com/expressjs/express/issues/4618
  */
+
+app.use(
+  pinoHttp({
+    logger,
+  }) as express.RequestHandler
+)
+
+app.use(timeout('300000'))
 
 app.use(
   helmet({
@@ -126,11 +82,6 @@ app.use(
     frameguard: false,
   }) as express.RequestHandler
 )
-
-const expressLogger = expressPino({ logger })
-app.use(expressLogger as express.RequestHandler)
-
-app.use(timeout('300000'))
 
 /**
  * Account for nginx proxy when getting client's IP address
@@ -234,12 +185,5 @@ app.use(
 )
 
 app.use(haltOnTimedout)
-
-app.use(express.static(path.join(__dirname, distDir), { index: indexHtml }))
-
-app.use((req, res, next) => {
-  res.send(indexHtml).status(200)
-  next()
-})
 
 export default app
