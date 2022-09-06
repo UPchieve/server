@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "./bin/build_backend.sh",
-    "lint": "npm run lint:backend:dry && npm run lint:frontend:dry",
+    "lint": "npm run lint:backend:dry",
     "build:database": "docker build -t subway-postgres .",
     "dev": "npm run build:frontend && npm run dev:backend & npm run dev:frontend",
     "dev:backend": "ts-node-dev -P tsconfig.server.json --watch server --transpile-only server/main",

@@ -22,7 +22,6 @@ import {
   connectSrc,
   defaultSrc,
   fontSrc,
-  // frameAncestors,
   imgSrc,
   objectSrc,
   scriptSrc,
@@ -79,7 +78,6 @@ app.use(
         upgradeInsecureRequests,
       },
     },
-    frameguard: false,
   }) as express.RequestHandler
 )
 
