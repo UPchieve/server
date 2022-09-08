@@ -634,7 +634,7 @@ export default {
       return selectedResponse.responseText
     },
     isFavoritingCoach() {
-      if (!this.isVolunteer) {
+      if (!this.user.isVolunteer) {
         if (this.isPostsessionSurveyActive) {
           const coachFavoritingQuestion = this.filteredQuestions.find(q => this.isHighRatingQuestion(q))
           const coachFavoritingAnswer = this.getAnswerToQuestion(coachFavoritingQuestion)
@@ -689,11 +689,7 @@ export default {
         try {
           const requests = []
           requests.push(NetworkService.submitSurvey(surveyResponse))
-          if (
-            !this.isVolunteer &&
-            this.isFavoritingCoach &&
-            this.isCoachFavoritingActive
-          ) {
+          if (!this.user.isVolunteer && this.isFavoritingCoach) {
             requests.push(
               NetworkService.updateFavoriteVolunteerStatus(
                 this.session.volunteer._id,
@@ -739,7 +735,7 @@ export default {
           const requests = []
           requests.push(NetworkService.feedback(this, data))
           if (
-            !this.isVolunteer &&
+            !this.user.isVolunteer &&
             this.isFavoritingCoach
           )
             requests.push(
