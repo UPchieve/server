@@ -1,4 +1,4 @@
-UPchieve Web App
+UPchieve API Server and Worker
 ===================
 
 > Web app providing api endpoints and serving a SPA frontend.
@@ -8,12 +8,14 @@ UPchieve Web App
 [Contributing Guide](CONTRIBUTING.md)
 
 ## GITLAB
-
 NOTE: Active development on this project has moved to https://gitlab.com/upchieve/subway, no more pushes should go straight to the Github repo.
+
+## IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY
+This repository is the backend API server and queue worker only. To work on the frontend, you also need to follow [the readme for the frontend repo](https://gitlab.com/upchieve/application/high-line).
 
 **Table of Contents**
 
-- [UPchieve Web App](#upchieve-web-app)
+- [UPchieve API Server and Worker](#upchieve-api-server-and-worker)
   - [GITLAB](#gitlab)
   - [Local Development](#local-development)
     - [Local Dependencies](#local-dependencies)
@@ -45,7 +47,7 @@ Local Development
 The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v16.8.0, you can switch to this using
 
 ```shell
-$ nvm install v16.8.0 && nvm use v16.8.0
+$ nvm install v16.16.0 && nvm use v16.16.0
 ```
 
 After switching npm versions using nvm, you will need to run `$ npm install`. Next install [`Docker`][Docker] and start according to their instructions for your operating system.
@@ -61,11 +63,10 @@ On Linux systems you may need to install [`docker-compose` manually](https://doc
 ```shell
 $ docker-compose up -d
 ```
-2. Seed the mongo and postgres database by running `npm run dev:init`
-3. Confirm the seeds worked by making a query in a DB admin tool
+1. Confirm the seeds worked by making a query in a DB admin tool
     - connect via `localhost:5432` with the admin or subway users OR
     - use PGAdmin at [`http://localhost:80`](http://localhost:80) with username `admin` and password `Password123`
-4. Run the follow command to stop and remove the containers when finished
+1. Run the follow command to stop and remove the containers when finished
 ```shell
 $ docker-compose down
 ```
@@ -84,20 +85,15 @@ export SUBWAY_DB_HOST=localhost
 
 ### Run the app
 
-Once you have the dependencies running and installed, run the following commands to build the frontend and start the server in development mode.
+#### IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY
+This repository is the backend API server and queue worker only. To work on the frontend, you also need to follow [the readme for the frontend repo](https://gitlab.com/upchieve/application/high-line).
 
-```
-$ npm run dev:frontend
-```
-
-This will kick off a build of the frontend assets and watch the frontend files to rebuild. Once the first build is done, you can run the following in a separate shell instance.
+Once you have the dependencies running and installed, you can run the following
 
 ```
 $ npm run dev:backend
 ```
-to start the dev server and a watch for changes to the frontend build and server code. Then you can visit `http://localhost:3000` and you're good to go!
-
-Even though the frontend is doing a production build, Vue dev tools should still be available as long as your NODE_ENV is `dev` which is the default.
+to start the dev server and a watch for changes to the server code. Once you also have the frontend running you can visit http://localhost:8080 and you're good to go!
 
 ### Database updates
 
@@ -108,7 +104,7 @@ All database administration files live in `/database`. The `db_init` directory h
 1. `schema.sql` to create the UPchieve schema
 2. `auth.sql` to create relevant app roles and grant them permission over the schema
 3. `test_seeds.sql` to fill the db with static seeds and test data for local development
-4. `seed_migrations.sql` to populate the `public.seed_migrations` table so we know how to apply future seed migrations 
+4. `seed_migrations.sql` to populate the `public.seed_migrations` table so we know how to apply future seed migrations
 
 #### Package.json Scripts
 1. `db:reset`: resets the local postgres container's `pchieve` database to an empty state
@@ -163,11 +159,9 @@ The database is populated with the following users for local development:
 Structure
 ---------
 
-The repo is split into two components, the server, and the frontend Vue SPA.
+The app is split into two components, the server/worker, and the frontend Vue SPA.
 
-Server code is found in the `server` directory, and SPA code in the `src` directory.
-
-The SPA is managed using the vue-cli-service which is opinionated about directory structure.
+Server code is found in the `server` directory, and SPA code in a [separate repository](https://gitlab.com/upchieve/application/high-line).
 
 ## Server
 
@@ -211,34 +205,3 @@ A [Bull](https://github.com/OptimalBits/bull) worker reading from a local [Redis
 
 ### Worker Jobs
 - [Update Elapsed Availability](worker/jobs/updateElapsedAvailability.ts): updates all volunteers' elapsed availabilities every day at 4 am.
-
-## Component Library
-
-We are transitioning to [Storybook](https://storybook.js.org/) to manage our frontend component library, with the goal
-of having a cohesive look that is easily expressed by any contributor as we continue to build the site out.
-
-Our Storybook is hosted at the Gitlab pages site for this repository: https://upchieve.gitlab.io/subway/
-
-Each component from `src/components` is imported into a `Component.stories.js` file in `src/stories`. A story
-represents one possible rendered state of that component.
-
-Our goal is to have 100% of our components shifted into Storybook, and do refactoring as we go to make them
-easier/more logical to use.
-
-Storybook is capable of doing nested component testing all the way up through full view rendering. We'll update
-this documentation as we decide how much we want to use storybook beyond atomic components.
-
-All _new_ components should go into Storybook, with stories for each of their states.
-
-### Testing
-
-Story states can be imported into unit tests for a component to check things like applied classes and simple behaviors.
-
-Additionally, we use [Storyshots](https://storybook.js.org/docs/react/workflows/snapshot-testing) to check rendered html for a given component to ensure changes aren't breaking the
-rendering.
-
-#### Known issue with visually testing SVG components:
-
-Our unit tests do not incorporate visual testing for SVG components (refer to this [component](src/views/DashboardView/StudentDashboard/SubjectSelection/RecentSubjectCard.vue) and its [unit test](tests/unit/components/RecentSubjectCard.spec.js)). The SVG components get successfully rendered on the application itself but not within unit or snapshot test markups.
-
-So, after extensive research and exhausting nearly all possible options of rendering and testing SVGs, as of August 4 2021, we realized that this has been a prolonged JSDOM/JavaScript [issue](https://github.com/vuejs/vue-test-utils/issues/369) and not something that is occuring due to vue-test-utils or jest capabilities. Hence, consider it acceptable to not visually test SVGs for the time being.
