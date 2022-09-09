@@ -26,14 +26,13 @@ const config: Static<typeof Config> = {
   NODE_ENV: nodeEnv,
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
-  host: process.env.SUBWAY_SERVER_HOST || 'localhost:3000',
+  host: process.env.SUBWAY_SERVER_HOST || 'http://localhost:8080',
   additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge: parseInt(
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'
   ),
   saltRounds: 10,
-  gleapSdkKey: process.env.VUE_APP_GLEAP_SDK_KEY || 'bogus',
   smtp: {
     host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
     port: parseInt(process.env.SUBWAY_SMTP_PORT || '2525'),
@@ -270,35 +269,14 @@ const config: Static<typeof Config> = {
   unleashUrl:
     process.env.SUBWAY_UNLEASH_URL ||
     'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
-  vueAppUnleashUrl:
-    process.env.VUE_APP_UNLEASH_URL ||
-    'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
-  vueAppUnleashId: process.env.VUE_APP_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
-  vueAppUnleashName: process.env.VUE_APP_UNLEASH_NAME || 'dev',
-  vueAppSentryEnv: process.env.VUE_APP_SENTRY_ENV || 'development',
-  vueAppSentryDsn: process.env.VUE_APP_SENTRY_DSN || '',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
-  zwibblerUrl:
-    process.env.VUE_APP_ZWIBBLER_URL || '/static/js/zwibbler-demo.js',
-  websocketRoot: process.env.VUE_APP_WEBSOCKET_ROOT || 'ws://localhost:3000',
-  serverRoot: process.env.VUE_APP_SERVER_ROOT || 'http://localhost:3000',
-  featureFlagRoot:
-    process.env.VUE_APP_FEATURE_FLAG_ROOT || 'http://localhost:3002/proxy',
-  socketAddress: process.env.VUE_APP_SOCKET_ADDRESS || 'http://localhost:3001',
-  mainWebsiteUrl:
-    process.env.VUE_APP_MAIN_WEBSITE_URL || 'http://localhost:8080',
   featureFlagClientKey: process.env.FEATURE_FLAG_CLIENT_KEY || 'development',
-  newRelicBrowserAccountId: process.env.VUE_APP_NEW_RELIC_ACCOUNT_ID || 'bogus',
-  newRelicBrowserTrustKey: process.env.VUE_APP_NEW_RELIC_TRUST_KEY || 'bogus',
-  newRelicBrowserAgentId: process.env.VUE_APP_NEW_RELIC_AGENT_ID || 'bogus',
-  newRelicApprovedOrigin:
-    process.env.VUE_APP_NEW_RELIC_APPROVED_ORIGIN || 'bogus',
-  newRelicBrowserLicenseKey:
-    process.env.VUE_APP_NEW_RELIC_LICENSE_KEY || 'bogus',
-  newRelicBrowserAppId: process.env.VUE_APP_NEW_RELIC_APP_ID || 'bogus',
-  vueDevtools: nodeEnv === 'dev',
+  vueAppUnleashUrl:
+    process.env.VUE_APP_UNLEASH_URL ||
+    'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
+
   /**
    *
    * @note: DefaultAzureCredential() requires AZURE_CLIENT_ID, AZURE_TENANT_ID, and AZURE_CLIENT_SECRET.
