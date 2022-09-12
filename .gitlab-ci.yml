@@ -114,7 +114,7 @@ lint:
 
 lint_sql:
   stage: test
-  image: node:16.8.0-bullseye
+  image: node:16.16.0-bullseye
   tags:
     - upchieve
   before_script:
@@ -129,7 +129,7 @@ lint_sql:
 
 lint_database:
   stage: test
-  image: node:16.8.0-bullseye
+  image: node:16.16.0-bullseye
   tags:
     - upchieve
   before_script:
