@@ -321,21 +321,21 @@ async function adminUpdateStudentPartnerOrgInstance(
       : undefined
     if (!newPartnerOrgData) throw new Error('New partner org does not exist')
 
-    const oldPartnerOrgResult = await pgQueries.getPartnerOrgNamesByStudent.run(
+    const oldPartnerOrgResult = await pgQueries.getPartnerOrgsByStudent.run(
       { studentId },
       client
     )
-    const oldPartnerOrgs = oldPartnerOrgResult.map(v => makeRequired(v).name)
+    const oldPartnerOrgs = oldPartnerOrgResult.map(v => makeRequired(v))
 
     if (oldPartnerOrgs.length > 1)
       throw new Error('Student has more than 1 partner org; cannot update')
 
-    if (oldPartnerOrgs[0] !== newPartnerOrgData.partnerName) {
+    if (oldPartnerOrgs[0].name !== newPartnerOrgData.partnerName) {
       const updateResult = await pgQueries.adminDeactivateStudentPartnershipInstance.run(
-        { userId: studentId, spoId: newPartnerOrgData.partnerId },
+        { userId: studentId, spoId: oldPartnerOrgs[0].id },
         client
       )
-      const insertResult = await pgQueries.adminInsertStudentPartnershipInstance.run(
+      const insertResult = await pgQueries.insertStudentPartnershipInstance.run(
         {
           userId: studentId,
           partnerOrgId: newPartnerOrgData.partnerId,
@@ -346,7 +346,9 @@ async function adminUpdateStudentPartnerOrgInstance(
       if (
         !(makeRequired(updateResult[0]).ok && makeRequired(insertResult[0]).ok)
       )
-        throw new Error('Deactivating old partner data and inserting new instance failed')
+        throw new Error(
+          'Deactivating old partner data and inserting new instance failed'
+        )
     }
   } catch (err) {
     throw new RepoReadError(`Could not update student partner org: ${err}`)
@@ -374,6 +376,11 @@ export async function adminUpdateStudent(
       transactionClient
     )
 
+    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run(
+      { userId: studentId, inGatesStudy: update.inGatesStudy },
+      transactionClient
+    )
+
     if (update.studentPartnerOrg)
       await adminUpdateStudentPartnerOrgInstance(
         studentId,
@@ -382,10 +389,6 @@ export async function adminUpdateStudent(
         transactionClient
       )
 
-    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run(
-      { userId: studentId, inGatesStudy: update.inGatesStudy },
-      transactionClient
-    )
     if (
       !(
         updateStudentResult.length &&
@@ -476,7 +479,7 @@ export async function createStudent(
         },
         transactionClient
       )
-      if (!makeRequired(spoInstanceResult)[0].ok)
+      if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
         throw new RepoCreateError(
           'Could not create student: user partner org instance creation did not return rows'
         )

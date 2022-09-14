@@ -1131,6 +1131,21 @@ export async function createVolunteer(
       },
       client
     )
+
+    if (volunteerData.volunteerPartnerOrg) {
+      const spoInstanceResult = await pgQueries.createUserVolunteerPartnerOrgInstance.run(
+        {
+          userId,
+          vpoName: volunteerData.volunteerPartnerOrg
+        },
+        client
+      )
+      if (!makeRequired(spoInstanceResult)[0].ok)
+        throw new RepoCreateError(
+          'Could not create student: user partner org instance creation did not return rows'
+        )
+    }
+
     if (!profileResult.length && makeRequired(profileResult[0]).ok)
       throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
@@ -1199,6 +1214,57 @@ export type AdminUpdateVolunteer = {
   isDeactivated: boolean
   isApproved: boolean | undefined
 }
+
+async function adminUpdateVolunteerPartnerOrgInstance(
+  volunteerId: Ulid,
+  newPartnerOrgKey: string,
+  client: PoolClient
+) {
+  try {
+    const newPartnerOrgResult = await pgQueries.getPartnerOrgByKey.run(
+      {
+        partnerOrgKey: newPartnerOrgKey,
+      },
+      client
+    )
+    const newPartnerOrgData = newPartnerOrgResult.length
+      ? makeRequired(newPartnerOrgResult[0])
+      : undefined
+    if (!newPartnerOrgData) throw new Error('New partner org does not exist')
+
+    const oldPartnerOrgResult = await pgQueries.getPartnerOrgsByVolunteer.run(
+      { volunteerId },
+      client
+    )
+    const oldPartnerOrgs = oldPartnerOrgResult.map(v => makeRequired(v))
+
+    if (oldPartnerOrgs.length > 1)
+      throw new Error('Student has more than 1 partner org; cannot update')
+
+    if (oldPartnerOrgs[0].name !== newPartnerOrgData.partnerName) {
+      const updateResult = await pgQueries.adminDeactivatevolunteerPartnershipInstance.run(
+        { userId: volunteerId, vpoId: oldPartnerOrgs[0].id },
+        client
+      )
+      const insertResult = await pgQueries.adminInsertvolunteerPartnershipInstance.run(
+        {
+          userId: volunteerId,
+          partnerOrgId: newPartnerOrgData.partnerId,
+        },
+        client
+      )
+      if (
+        !(makeRequired(updateResult[0]).ok && makeRequired(insertResult[0]).ok)
+      )
+        throw new Error(
+          'Deactivating old partner data and inserting new instance failed'
+        )
+    }
+  } catch (err) {
+    throw new RepoReadError(`Could not update volunteer partner org: ${err}`)
+  }
+}
+
 export async function updateVolunteerForAdmin(
   userId: Ulid,
   update: AdminUpdateVolunteer
@@ -1224,11 +1290,18 @@ export async function updateVolunteerForAdmin(
     const profileResult = await pgQueries.updateVolunteerProfilesForAdmin.run(
       {
         userId,
-        partnerOrgId,
         approved: update.isApproved,
       },
       client
     )
+
+    if (update.volunteerPartnerOrg)
+      await adminUpdateVolunteerPartnerOrgInstance(
+        userId,
+        update.volunteerPartnerOrg,
+        client
+      )
+
     if (
       !(
         userResult.length &&

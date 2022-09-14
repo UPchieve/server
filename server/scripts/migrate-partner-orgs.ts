@@ -106,4 +106,4 @@ export default async function migrateHistoricalPartnershipsData(): Promise<
   }
 }
 
-// migrateHistoricalPartnershipsData()
+migrateHistoricalPartnershipsData()

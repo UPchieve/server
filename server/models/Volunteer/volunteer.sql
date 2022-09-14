@@ -1076,7 +1076,6 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
-    volunteer_partner_org_id = :partnerOrgId,
     approved = COALESCE(:approved, approved)
 WHERE
     user_id = :userId!
@@ -1101,18 +1100,22 @@ FROM
 WHERE
     KEY = :volunteerPartnerOrg!;
 
-/* @name createUserStudentPartnerOrgInstance */
+
+/* @name createUserVolunteerPartnerOrgInstance */
 INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
 SELECT
     :userId!,
     vpo.id,
     NOW(),
     NOW()
-FROM volunteer_partner_orgs vpo
-WHERE 
+FROM
+    volunteer_partner_orgs vpo
+WHERE
     vpo.name = :vpoName!
 LIMIT 1
-RETURNING user_id as ok;
+RETURNING
+    user_id AS ok;
+
 
 /* @name createVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
@@ -1566,4 +1569,47 @@ WHERE
 AND volunteer_profiles.user_id = subquery.user_id
 RETURNING
     volunteer_profiles.user_id AS ok;
+
+
+/* @name getPartnerOrgsByVolunteer */
+SELECT
+    vpo.name,
+    vpo.id
+FROM
+    users_volunteer_partner_orgs_instances uvpoi
+    JOIN volunteer_partner_orgs vpo ON vpo.id = uvpoi.volunteer_partner_org_id
+WHERE
+    uvpoi.user_id = :volunteerId!
+    AND deactivated_on IS NULL;
+
+
+/* @name adminDeactivatevolunteerPartnershipInstance */
+UPDATE
+    users_volunteer_partner_orgs_instances
+SET
+    deactivated_on = NOW()
+WHERE
+    user_id = :userId!
+    AND volunteer_partner_org_id = :vpoId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name adminInsertvolunteerPartnershipInstance */
+INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+    VALUES (:userId!, :partnerOrgId!, NOW(), NOW())
+RETURNING
+    user_id AS ok;
+
+
+/* @name getPartnerOrgByKey */
+SELECT
+    volunteer_partner_orgs.id AS partner_id,
+    volunteer_partner_orgs.key AS partner_key,
+    volunteer_partner_orgs.name AS partner_name
+FROM
+    volunteer_partner_orgs
+WHERE
+    volunteer_partner_orgs.key = :partnerOrgKey
+LIMIT 1;
 
