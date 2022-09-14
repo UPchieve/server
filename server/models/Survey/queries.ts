@@ -13,6 +13,7 @@ import {
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
+import { USER_ROLES_TYPE } from '../../constants'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -148,61 +149,79 @@ export async function getStudentsPresessionGoal(
   }
 }
 
-export async function getSurveyDefinition(
+export async function getPresessionSurveyDefinition(
   subjectName: string,
   surveyType: SurveyType
 ): Promise<SurveyQueryResponse> {
   try {
-    const result = await pgQueries.getSurveyDefinition.run(
+    const result = await pgQueries.getPresessionSurveyDefinition.run(
       { subjectName, surveyType },
       getClient()
     )
-
     const resultArr = result.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
     )
-    const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
-
-    const survey: SurveyQuestionDefinition[] = []
-    for (const [question, rows] of Object.entries(rowsByQuestion)) {
-      const responses: SurveyResponseDefinition[] = []
-      const temp = rows[0]
-      const questionData = {
-        questionId: question,
-        questionText: temp.questionText,
-        displayPriority: temp.displayPriority,
-        questionType: temp.questionType,
-      }
-
-      const sortedRows = rows.sort(
-        (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
-      )
-
-      for (const row of sortedRows) {
-        const responseItem: SurveyResponseDefinition = {
-          responseId: row.responseId,
-          responseText: row.responseText,
-          responseDisplayPriority: row.responseDisplayPriority,
-          responseDisplayImage: row.responseDisplayImage,
-        }
-        responses.push(responseItem)
-      }
-
-      survey.push({
-        ...questionData,
-        responses: responses,
-      })
-    }
-
-    const data = {
-      surveyId: resultArr[0].surveyId,
-      surveyTypeId: resultArr[0].surveyTypeId,
-      survey,
-    }
-
-    return data
+    return formatSurveyDefinition(resultArr)
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function getPostsessionSurveyDefinition(
+  surveyType: SurveyType,
+  sessionId: Ulid,
+  userRole: USER_ROLES_TYPE
+): Promise<SurveyQueryResponse> {
+  try {
+    const result = await pgQueries.getPostsessionSurveyDefinition.run(
+      { surveyType, sessionId, userRole },
+      getClient()
+    )
+    const resultArr = result.map(v =>
+      makeSomeRequired(v, ['responseDisplayImage'])
+    )
+    return formatSurveyDefinition(resultArr)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export function formatSurveyDefinition(resultArr: any): SurveyQueryResponse {
+  const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
+
+  const survey: SurveyQuestionDefinition[] = []
+  for (const [question, rows] of Object.entries(rowsByQuestion)) {
+    const responses: SurveyResponseDefinition[] = []
+    const temp = rows[0]
+    const questionData = {
+      questionId: question,
+      questionText: temp.questionText,
+      displayPriority: temp.displayPriority,
+      questionType: temp.questionType,
+    }
+
+    const sortedRows = rows.sort(
+      (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+    )
+
+    for (const row of sortedRows) {
+      const responseItem: SurveyResponseDefinition = {
+        responseId: row.responseId,
+        responseText: row.responseText,
+        responseDisplayPriority: row.responseDisplayPriority,
+        responseDisplayImage: row.responseDisplayImage,
+      }
+      responses.push(responseItem)
+    }
+    survey.push({
+      ...questionData,
+      responses: responses,
+    })
+  }
+  return {
+    surveyId: resultArr[0].surveyId,
+    surveyTypeId: resultArr[0].surveyTypeId,
+    survey,
   }
 }
 
@@ -221,7 +240,6 @@ export async function getPresessionSurveyResponse(
       { sessionId },
       getClient()
     )
-
     if (result.length)
       return result.map(row => makeSomeRequired(row, ['displayImage']))
     return []

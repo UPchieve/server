@@ -32,10 +32,6 @@ export type School = {
   MZIP?: number
   LCITY?: string
   LZIP?: number
-  G_9_OFFERED?: string
-  G_10_OFFERED?: string
-  G_11_OFFERED?: string
-  G_12_OFFERED?: string
 
   // virtuals
   name?: string

@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS upchieve.survey_types (
 );
 
 DROP TABLE IF EXISTS upchieve.surveys_presession CASCADE;
+
 DROP TABLE IF EXISTS upchieve.surveys_postsession CASCADE;
+
 CREATE TABLE IF NOT EXISTS upchieve.surveys_context (
     survey_id integer NOT NULL REFERENCES upchieve.surveys (id),
     subject_id integer REFERENCES upchieve.subjects (id),
@@ -17,6 +19,7 @@ CREATE TABLE IF NOT EXISTS upchieve.surveys_context (
 );
 
 DROP TABLE IF EXISTS upchieve.users_surveys CASCADE;
+
 CREATE TABLE IF NOT EXISTS upchieve.users_surveys (
     id uuid PRIMARY KEY,
     survey_id integer NOT NULL REFERENCES upchieve.surveys (id),
@@ -29,12 +32,14 @@ CREATE TABLE IF NOT EXISTS upchieve.users_surveys (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.surveys_context CASCADE;
+
 CREATE TABLE IF NOT EXISTS upchieve.surveys_presession (
     survey_id integer NOT NULL REFERENCES upchieve.surveys (id),
     subject_id integer REFERENCES upchieve.subjects (id),
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL
 );
+
 CREATE TABLE IF NOT EXISTS upchieve.surveys_postsession (
     survey_id integer NOT NULL REFERENCES upchieve.surveys (id),
     subject_id integer REFERENCES upchieve.subjects (id),
@@ -42,8 +47,8 @@ CREATE TABLE IF NOT EXISTS upchieve.surveys_postsession (
     updated_at timestamptz NOT NULL
 );
 
-
 DROP TABLE IF EXISTS upchieve.users_surveys CASCADE;
+
 CREATE TABLE IF NOT EXISTS upchieve.users_surveys (
     id uuid PRIMARY KEY,
     survey_id integer NOT NULL REFERENCES upchieve.surveys (id),
@@ -53,3 +58,4 @@ CREATE TABLE IF NOT EXISTS upchieve.users_surveys (
 );
 
 DROP TABLE IF EXISTS upchieve.survey_types CASCADE;
+

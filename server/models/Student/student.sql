@@ -308,6 +308,7 @@ RETURNING
     created_at,
     updated_at;
 
+
 /* @name createUserStudentPartnerOrgInstance */
 INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
 SELECT
@@ -316,13 +317,17 @@ SELECT
     sposite.id,
     NOW(),
     NOW()
-FROM student_partner_orgs spo
-LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id
-WHERE 
+FROM
+    student_partner_orgs spo
+    LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id
+WHERE
     spo.name = :spoName!
-    and ((:spoSiteName)::text is null OR (:spoSiteName)::text = sposite.name)
+    AND ((:spoSiteName)::text IS NULL
+        OR (:spoSiteName)::text = sposite.name)
 LIMIT 1
-RETURNING user_id as ok;
+RETURNING
+    user_id AS ok;
+
 
 /* @name createUserStudentPartnerOrgInstance */
 INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)

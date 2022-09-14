@@ -10,17 +10,22 @@ export async function questions(subcatIds: NameToId): Promise<void> {
       questionText: 'test question (answer A)',
       possibleAnswers: [
         {
-          txt: 'Pick me', val: 'a'
+          txt: 'Pick me',
+          val: 'a',
         },
         {
-          txt: 'Wrong answer', val: 'b'
-        }
+          txt: 'Wrong answer',
+          val: 'b',
+        },
       ],
       correctAnswer: 'a',
-      quizSubcategoryId: subcategoryId as number
+      quizSubcategoryId: subcategoryId as number,
     }
     const result = await pgQueries.insertQuizQuestion.run(question, client)
     if (result.length && result[0].ok) inserted += 1
   }
-  if (inserted !== expected) console.error(`Expected to insert ${expected} questions but only inserted ${inserted}`)
+  if (inserted !== expected)
+    console.error(
+      `Expected to insert ${expected} questions but only inserted ${inserted}`
+    )
 }

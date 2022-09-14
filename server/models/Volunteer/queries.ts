@@ -38,7 +38,9 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    const ret = makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    ret.email = ret.email.toLowerCase()
+    return ret
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -65,7 +67,11 @@ export async function getVolunteerContactInfoByIds(
       { userIds },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => {
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -79,7 +85,11 @@ export async function getVolunteersForBlackoutOver(
       { startDate },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => {
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -102,6 +112,7 @@ export async function getVolunteerForQuickTips(
     if (!vResult.length) return
     const volunteer = makeSomeRequired(vResult[0], ['volunteerPartnerOrg'])
     const availability = await getAvailabilityForVolunteer(userId)
+    volunteer.email = volunteer.email.toLowerCase()
     return {
       ...volunteer,
       availability,
@@ -124,6 +135,7 @@ export async function getPartnerVolunteerForLowHours(
     )
     if (!vResult.length) return
     const volunteer = makeRequired(vResult[0]) // volunteerPartnerOrg must exist
+    volunteer.email = volunteer.email.toLowerCase()
     const availability = await getAvailabilityForVolunteer(userId)
     return {
       ...volunteer,
@@ -182,9 +194,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg', 'sentHourSummaryIntroEmail'])
-    )
+    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -288,7 +298,9 @@ export async function getVolunteerForOnboardingById(
       'country',
     ])
     const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
-
+    if (volunteer.email) {
+      volunteer.email = volunteer.email.toLowerCase()
+    }
     return {
       ...volunteer,
       hasCompletedUpchieve101: !!trainingCourses['upchieve101']?.complete,
@@ -363,7 +375,9 @@ export async function getVolunteerByReference(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    const ret = makeRequired(result[0])
+    ret.referenceEmail = ret.referenceEmail.toLowerCase()
+    return ret
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -379,6 +393,7 @@ export async function addVolunteerReferenceById(
   reference: ReferenceData
 ): Promise<void> {
   try {
+    reference.email = reference.email.toLowerCase()
     const result = await pgQueries.addVolunteerReferenceById.run(
       {
         id: getDbUlid(),
@@ -532,7 +547,7 @@ export async function deleteVolunteerReferenceByEmail(
     const result = await pgQueries.deleteVolunteerReferenceById.run(
       {
         userId,
-        referenceEmail,
+        referenceEmail: referenceEmail.toLowerCase(),
       },
       getClient()
     )
@@ -799,7 +814,7 @@ export async function getVolunteersForEmailReference(): Promise<
           id: ref.id,
           firstName: ref.firstName,
           lastName: ref.lastName,
-          email: ref.email,
+          email: ref.email.toLowerCase(),
         })
       }
       return {
@@ -836,7 +851,7 @@ export async function getVolunteersForEmailReferenceApology(): Promise<
           id: ref.id,
           firstName: ref.firstName,
           lastName: ref.lastName,
-          email: ref.email,
+          email: ref.email.toLowerCase(),
         })
       }
       return {
@@ -876,7 +891,11 @@ export async function getReferencesByVolunteer(
       { userId },
       client
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => {
+      const ret = makeRequired(v)
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -892,9 +911,17 @@ export async function getReferencesByVolunteerForAdminDetail(
       { userId },
       client
     )
-    return result.map(v =>
-      makeSomeOptional(v, ['id', 'firstName', 'lastName', 'status', 'email'])
-    )
+    return result.map(v => {
+      const ret = makeSomeOptional(v, [
+        'id',
+        'firstName',
+        'lastName',
+        'status',
+        'email',
+      ])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -910,7 +937,7 @@ export async function checkReferenceExistsBeforeAdding(
 ): Promise<ReferenceWithUserActions | undefined> {
   try {
     const result = await pgQueries.checkReferenceExistsBeforeAdding.run(
-      { userId, email },
+      { userId, email: email.toLowerCase() },
       getClient()
     )
     if (result.length) return makeRequired(result[0])
@@ -941,6 +968,7 @@ export async function getVolunteerForPendingStatus(
       'country',
       'volunteerPartnerOrg',
     ])
+    volunteer.email = volunteer.email.toLowerCase()
     const references = await getReferencesByVolunteer(userId)
     return {
       ...volunteer,
@@ -1002,7 +1030,11 @@ export async function getVolunteersForNiceToMeetYou(
       { start, end },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => {
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1016,7 +1048,11 @@ export async function getVolunteersForReadyToCoach(): Promise<
       undefined,
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => {
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1031,7 +1067,11 @@ export async function getVolunteersForWaitingReferences(
       { start, end },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    return result.map(v => {
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1107,6 +1147,7 @@ export async function createVolunteer(
 ): Promise<CreatedVolunteer> {
   const client = await getClient().connect()
   try {
+    volunteerData.email = volunteerData.email.toLowerCase()
     const partnerOrgId = volunteerData.volunteerPartnerOrg
       ? await getVolunteerPartnerOrgIdByKey(volunteerData.volunteerPartnerOrg)
       : undefined
@@ -1136,7 +1177,7 @@ export async function createVolunteer(
       const spoInstanceResult = await pgQueries.createUserVolunteerPartnerOrgInstance.run(
         {
           userId,
-          vpoName: volunteerData.volunteerPartnerOrg
+          vpoName: volunteerData.volunteerPartnerOrg,
         },
         client
       )
@@ -1280,7 +1321,7 @@ export async function updateVolunteerForAdmin(
         userId,
         firstName: update.firstName,
         lastName: update.lastName,
-        email: update.email,
+        email: update.email.toLowerCase(),
         isVerified: update.isVerified,
         isBanned: update.isBanned,
         isDeactivated: update.isDeactivated,
@@ -1337,7 +1378,11 @@ export async function getVolunteersToReview(
       { limit, offset },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => {
+      const ret = makeRequired(v)
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1361,7 +1406,11 @@ export async function getReferencesToFollowup(
       { start, end },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => {
+      const ret = makeRequired(v)
+      ret.referenceEmail = ret.referenceEmail.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1496,19 +1545,6 @@ export async function getVolunteersOnDeck(
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
-  }
-}
-
-export async function removeOnboardedStatusForUnqualifiedVolunteers(): Promise<
-  void
-> {
-  try {
-    await pgQueries.removeOnboardedStatusForUnqualifiedVolunteers.run(
-      undefined,
-      getClient()
-    )
-  } catch (err) {
-    throw new RepoUpdateError(err)
   }
 }
 

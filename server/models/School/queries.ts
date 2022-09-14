@@ -15,7 +15,6 @@ export async function findSchoolByUpchieveId(
     )
 
     if (result.length) {
-      // pgTyped does not camelCase a letter preceding a number, like g_10Offered
       return makeSomeRequired(result[0], [
         'fipst',
         'schoolYear',
@@ -27,14 +26,6 @@ export async function findSchoolByUpchieveId(
         'mzip',
         'lcity',
         'lzip',
-        // @ts-expect-error
-        'g9Offered',
-        // @ts-expect-error
-        'g10Offered',
-        // @ts-expect-error
-        'g11Offered',
-        // @ts-expect-error
-        'g12Offered',
       ])
     }
   } catch (err) {
@@ -47,7 +38,6 @@ export async function getSchool(
 ): Promise<AdminSchool | undefined> {
   try {
     const result = await pgQueries.getSchool.run({ schoolId }, getClient())
-
     // TODO: fix return type to upper case
     if (result.length) {
       return makeSomeRequired(result[0], ['zipCode'])
@@ -80,8 +70,6 @@ export async function getSchools(
       },
       getClient()
     )
-    const schools = result.map(v => makeRequired(v))
-
     return result.map(v => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)

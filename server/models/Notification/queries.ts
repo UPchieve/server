@@ -72,7 +72,11 @@ export async function getNotificationsForGentleWarning(
       { sessionId },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => {
+      const ret = makeRequired(v)
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -1,12 +1,12 @@
-import * as pgQueries from './pg.queries'
+import { PoolClient } from 'pg'
 import { getClient } from '../../db'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
+import { makeRequired, makeSomeRequired } from '../pgUtils'
+import * as pgQueries from './pg.queries'
 import {
   VolunteerPartnerOrg,
   VolunteerPartnerOrgForRegistration,
 } from './types'
-import { PoolClient } from 'pg'
 
 export async function getVolunteerPartnerOrgForRegistrationByKey(
   key: string

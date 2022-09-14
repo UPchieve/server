@@ -1,10 +1,10 @@
 -- migrate:up
 ALTER TABLE upchieve.student_partner_orgs
-  ADD COLUMN school_id uuid;
+    ADD COLUMN school_id uuid;
 
 ALTER TABLE upchieve.users_student_partner_orgs_instances
-  DROP COLUMN student_partner_org_user_id,
-  ADD COLUMN student_partner_org_user_id text;
+    DROP COLUMN student_partner_org_user_id,
+    ADD COLUMN student_partner_org_user_id text;
 
 CREATE TABLE IF NOT EXISTS upchieve.schools_sponsor_orgs_instances (
     school_id uuid REFERENCES upchieve.schools (id),
@@ -22,14 +22,15 @@ CREATE TABLE IF NOT EXISTS upchieve.sponsor_orgs_volunteer_partner_orgs_instance
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
-
 -- migrate:down
 ALTER TABLE upchieve.student_partner_orgs
-  DROP COLUMN school_id;
+    DROP COLUMN school_id;
 
 ALTER TABLE upchieve.users_student_partner_orgs_instances
-  DROP COLUMN student_partner_org_user_id,
-  ADD COLUMN student_partner_org_user_id uuid;
+    DROP COLUMN student_partner_org_user_id,
+    ADD COLUMN student_partner_org_user_id uuid;
 
 DROP TABLE upchieve.schools_sponsor_orgs_instances;
+
 DROP TABLE upchieve.sponsor_orgs_volunteer_partner_orgs_instances;
+

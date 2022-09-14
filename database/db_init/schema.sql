@@ -1347,7 +1347,9 @@ CREATE TABLE upchieve.survey_questions (
     question_text text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    response_display_text text
+    response_display_text text,
+    replacement_column_1 text,
+    replacement_column_2 text
 );
 
 
@@ -1467,7 +1469,8 @@ CREATE TABLE upchieve.surveys (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    role_id integer
 );
 
 
@@ -3386,6 +3389,13 @@ CREATE INDEX sessions_volunteer_id ON upchieve.sessions USING btree (volunteer_i
 
 
 --
+-- Name: survey_questions_response_choices_response_survey_question; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX survey_questions_response_choices_response_survey_question ON upchieve.survey_questions_response_choices USING btree (response_choice_id, surveys_survey_question_id);
+
+
+--
 -- Name: user_actions_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4119,6 +4129,14 @@ ALTER TABLE ONLY upchieve.surveys_context
 
 
 --
+-- Name: surveys surveys_role_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys
+    ADD CONSTRAINT surveys_role_id_fkey FOREIGN KEY (role_id) REFERENCES upchieve.user_roles(id);
+
+
+--
 -- Name: surveys_survey_questions surveys_survey_questions_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4548,4 +4566,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220711163000'),
     ('20220713170236'),
     ('20220727162548'),
-    ('20220815150518');
+    ('20220815150518'),
+    ('20220830164711'),
+    ('20220830180659'),
+    ('20220901190221');

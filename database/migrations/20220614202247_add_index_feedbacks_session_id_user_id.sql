@@ -3,3 +3,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS feedbacks_session_id_user_id ON upchieve.feedb
 
 -- migrate:down
 DROP INDEX IF EXISTS upchieve.feedbacks_session_id_user_id;
+

@@ -1,9 +1,9 @@
+import { readFile } from 'fs/promises'
+import { getClient } from '../db'
 import * as ApRepo from '../models/AssociatedPartner'
 import * as SoRepo from '../models/SponsorOrg'
 import * as SpoRepo from '../models/StudentPartnerOrg'
 import * as VpoRepo from '../models/VolunteerPartnerOrg'
-import { getClient } from '../db'
-import { readFile } from 'fs/promises'
 
 type PartnerRepresentation = {
   name: string

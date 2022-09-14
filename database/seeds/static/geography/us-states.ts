@@ -209,24 +209,24 @@ export async function usStates(): Promise<NameToId> {
     },
     {
       code: 'PR',
-      name: 'Puerto Rico'
+      name: 'Puerto Rico',
     },
     {
       code: 'GU',
-      name: 'Guam'
+      name: 'Guam',
     },
     {
       code: 'VI',
-      name: 'Virgin Islands'
+      name: 'Virgin Islands',
     },
     {
       code: 'AS',
-      name: 'American Samoa'
+      name: 'American Samoa',
     },
     {
       code: 'BI',
-      name: 'Bureau of Indian Education'
-    }
+      name: 'Bureau of Indian Education',
+    },
   ]
   const temp: NameToId = {}
   for (const state of usStates) {
@@ -236,6 +236,9 @@ export async function usStates(): Promise<NameToId> {
       { ...state }
     )
   }
-  temp['NA'] = await wrapInsert('us_states', pgQueries.insertUsState.run, { code: 'NA', name: 'NA' })
+  temp['NA'] = await wrapInsert('us_states', pgQueries.insertUsState.run, {
+    code: 'NA',
+    name: 'NA',
+  })
   return temp
 }

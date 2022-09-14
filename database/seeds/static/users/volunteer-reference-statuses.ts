@@ -8,7 +8,7 @@ export async function volunteerReferenceStatuses(): Promise<NameToId> {
     { name: 'approved' },
     { name: 'rejected' },
     { name: 'removed' },
-    { name: 'unsent' }
+    { name: 'unsent' },
   ]
   const temp: NameToId = {}
   for (const status of statuses) {

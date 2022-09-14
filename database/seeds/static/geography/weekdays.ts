@@ -10,7 +10,7 @@ export async function weekdays(): Promise<NameToId> {
     { id: 4, day: 'Wednesday' },
     { id: 5, day: 'Thursday' },
     { id: 6, day: 'Friday' },
-    { id: 7, day: 'Saturday' }
+    { id: 7, day: 'Saturday' },
   ]
   for (const weekday of weekdays) {
     temp[weekday.day] = await wrapInsert(

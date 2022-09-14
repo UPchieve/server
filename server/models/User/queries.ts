@@ -28,7 +28,10 @@ export async function getUserIdByEmail(
   email: string
 ): Promise<Ulid | undefined> {
   try {
-    const result = await pgQueries.getUserIdByEmail.run({ email }, getClient())
+    const result = await pgQueries.getUserIdByEmail.run(
+      { email: email.toLowerCase() },
+      getClient()
+    )
     if (result.length) return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
@@ -38,7 +41,7 @@ export async function getUserIdByEmail(
 export async function deleteUser(userId: Ulid, email: string) {
   try {
     const result = await pgQueries.deleteUser.run(
-      { userId: userId, email },
+      { userId: userId, email: email.toLowerCase() },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return
@@ -71,13 +74,16 @@ export async function getUserContactInfoById(
       { id },
       getClient()
     )
-    if (result.length)
-      return makeSomeRequired(result[0], [
+    if (result.length) {
+      const ret = makeSomeRequired(result[0], [
         'volunteerPartnerOrg',
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
       ])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -92,13 +98,16 @@ export async function getUserContactInfoByReferralCode(
       { referralCode },
       getClient()
     )
-    if (result.length)
-      return makeSomeRequired(result[0], [
+    if (result.length) {
+      const ret = makeSomeRequired(result[0], [
         'volunteerPartnerOrg',
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
       ])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -115,7 +124,7 @@ export async function getUserForPassport(
 ): Promise<PassportUser | undefined> {
   try {
     const result = await pgQueries.getUserForPassport.run(
-      { email },
+      { email: email.toLowerCase() },
       getClient()
     )
     if (result.length) return makeRequired(result[0])
@@ -133,13 +142,16 @@ export async function getUserContactInfoByResetToken(
       { resetToken },
       getClient()
     )
-    if (result.length)
-      return makeSomeRequired(result[0], [
+    if (result.length) {
+      const ret = makeSomeRequired(result[0], [
         'volunteerPartnerOrg',
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
       ])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -221,7 +233,7 @@ export async function updateUserVerifiedInfoById(
         getClient()
       )
     : pgQueries.updateUserVerifiedEmailById.run(
-        { userId, email: sendTo },
+        { userId, email: sendTo.toLowerCase() },
         getClient()
       )
   try {
@@ -286,6 +298,9 @@ function cleanPayload(payload: UserQuery): UserQuery {
   const temp: any = {}
   for (const [key, value] of Object.entries(payload)) {
     temp[key] = value === '' ? undefined : value
+  }
+  if (payload.email) {
+    temp.email = payload.email?.toLowerCase()
   }
   return temp as UserQuery
 }
@@ -382,6 +397,9 @@ export async function getUserForAdminDetail(
       'verified',
       'numPastSessions',
     ])
+    if (user.email) {
+      user.email = user.email.toLowerCase()
+    }
     const references = await getReferencesByVolunteerForAdminDetail(
       user.id,
       client

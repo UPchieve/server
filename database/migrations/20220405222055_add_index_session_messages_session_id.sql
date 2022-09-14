@@ -3,3 +3,4 @@ CREATE INDEX IF NOT EXISTS session_messages_session_id ON upchieve.session_messa
 
 -- migrate:down
 DROP INDEX IF EXISTS upchieve.session_messages_session_id;
+

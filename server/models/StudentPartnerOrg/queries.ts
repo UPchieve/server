@@ -1,9 +1,9 @@
-import * as pgQueries from './pg.queries'
-import { getClient } from '../../db'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
-import { RepoReadError } from '../Errors'
-import { StudentPartnerOrg, StudentPartnerOrgForRegistration } from './types'
 import { PoolClient } from 'pg'
+import { getClient } from '../../db'
+import { RepoReadError } from '../Errors'
+import { makeRequired, makeSomeRequired } from '../pgUtils'
+import * as pgQueries from './pg.queries'
+import { StudentPartnerOrg, StudentPartnerOrgForRegistration } from './types'
 
 export async function getStudentPartnerOrgForRegistrationByKey(
   key: string

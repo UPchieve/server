@@ -72,7 +72,7 @@ export async function volunteers(
       verified: true,
       phone: '+12125551216',
       testUser: false,
-      timeTutored: (0).toString()
+      timeTutored: (0).toString(),
     },
     {
       id: volunteer6,
@@ -84,14 +84,22 @@ export async function volunteers(
       verified: true,
       phone: '+12125551217',
       testUser: false,
-      timeTutored: (0).toString()
+      timeTutored: (0).toString(),
     },
   ]
 
   const userMap: NameToId = {}
   for (const user of users) {
-    userMap[user.id] = await wrapInsert('users', pgQueries.insertVolunteerUser.run, { ...user })
-    await wrapInsert('user_session_metrics', pgQueries.insertUserSessionMetrics.run, { id: user.id })
+    userMap[user.id] = await wrapInsert(
+      'users',
+      pgQueries.insertVolunteerUser.run,
+      { ...user }
+    )
+    await wrapInsert(
+      'user_session_metrics',
+      pgQueries.insertUserSessionMetrics.run,
+      { id: user.id }
+    )
   }
 
   const profiles = [
@@ -207,6 +215,14 @@ export async function volunteers(
     {
       userId: userMap[volunteer2] as string,
       certificationId: certIds['prealgebra'] as number,
+    },
+    {
+      userId: userMap[volunteer2] as string,
+      certificationId: certIds['satMath'] as number,
+    },
+    {
+      userId: userMap[volunteer2] as string,
+      certificationId: certIds['usHistory'] as number,
     },
     {
       userId: userMap[volunteer2] as string,
@@ -398,6 +414,24 @@ export async function volunteers(
     {
       userId: userMap[volunteer1] as string,
       quizId: quizIds['reading'] as number,
+      attempts: 1,
+      passed: true,
+    },
+    {
+      userId: userMap[volunteer1] as string,
+      quizId: quizIds['upchieve101'] as number,
+      attempts: 1,
+      passed: true,
+    },
+    {
+      userId: userMap[volunteer1] as string,
+      quizId: quizIds['usHistory'] as number,
+      attempts: 1,
+      passed: true,
+    },
+    {
+      userId: userMap[volunteer1] as string,
+      quizId: quizIds['satMath'] as number,
       attempts: 1,
       passed: true,
     },

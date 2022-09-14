@@ -188,7 +188,7 @@ export type SessionToEnd = Pick<
   | 'volunteerJoinedAt'
 > & {
   student: SessionToEndUserInfo
-} & { volunteer: SessionToEndUserInfo }
+} & { volunteer?: SessionToEndUserInfo }
 
 export async function getSessionToEndById(
   sessionId: Ulid
@@ -208,21 +208,32 @@ export async function getSessionToEndById(
       'volunteerNumPastSessions',
       'volunteerPartnerOrg',
     ])
+
+    let volunteerValue: SessionToEndUserInfo | undefined = undefined
+    if (
+      rawSession.volunteerId &&
+      rawSession.volunteerFirstName &&
+      rawSession.volunteerEmail &&
+      !!rawSession.volunteerNumPastSessions
+    ) {
+      volunteerValue = {
+        id: rawSession.volunteerId,
+        firstName: rawSession.volunteerFirstName,
+        email: rawSession.volunteerEmail?.toLowerCase(),
+        numPastSessions: rawSession.volunteerNumPastSessions,
+        volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
+      }
+    }
+
     return {
       ...rawSession,
       student: {
         id: rawSession.studentId,
         firstName: rawSession.studentFirstName,
-        email: rawSession.studentEmail,
+        email: rawSession.studentEmail?.toLowerCase(),
         numPastSessions: rawSession.studentNumPastSessions,
       },
-      volunteer: {
-        id: rawSession.volunteerId,
-        firstName: rawSession.volunteerFirstName,
-        email: rawSession.volunteerEmail,
-        numPastSessions: rawSession.volunteerNumPastSessions,
-        volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
-      },
+      volunteer: volunteerValue,
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -609,9 +620,10 @@ export async function getCurrentSessionByUserId(
     return {
       ...session,
       student: { _id: session.studentId, ...student },
-      volunteer: !!volunteer
-        ? { _id: session.volunteerId, ...volunteer }
-        : undefined,
+      volunteer:
+        !!volunteer && session.volunteerId
+          ? { _id: session.volunteerId, ...volunteer }
+          : undefined,
       _id: session.id,
       messages,
     }
@@ -648,9 +660,10 @@ export async function getCurrentSessionBySessionId(
     return {
       ...session,
       student: { _id: session.studentId, ...student },
-      volunteer: !!volunteer
-        ? { _id: session.volunteerId, ...volunteer }
-        : undefined,
+      volunteer:
+        !!volunteer && session.volunteerId
+          ? { _id: session.volunteerId, ...volunteer }
+          : undefined,
       _id: session.id,
       messages,
     }
@@ -821,7 +834,11 @@ export async function getVolunteersForGentleWarning(
       },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => {
+      const ret = makeRequired(v)
+      ret.email = ret.email.toLowerCase()
+      return ret
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -844,7 +861,9 @@ export async function getStudentForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    const ret = makeRequired(result[0])
+    ret.email = ret.email.toLowerCase()
+    return ret
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -862,7 +881,9 @@ export async function getVolunteerForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    const ret = makeRequired(result[0])
+    ret.email = ret.email.toLowerCase()
+    return ret
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -952,20 +973,30 @@ export async function getSessionsForAdminFilter(
       const volunteerRating = extractVolunteerRating(
         session.volunteerFeedback as any
       )
-      const volunteer = session.volunteerEmail
-        ? {
-            firstname: session.volunteerFirstName,
-            isBanned: session.volunteerIsBanned,
-            isTestUser: session.volunteerTestUser,
-            totalPastSessions: session.volunteerTotalPastSessions,
-          }
-        : undefined
+      let volunteer = undefined
+      if (
+        session.volunteerFirstName &&
+        session.volunteerEmail &&
+        !!session.volunteerIsBanned &&
+        !!session.volunteerTestUser &&
+        !!session.volunteerTotalPastSessions
+      ) {
+        volunteer = {
+          firstname: session.volunteerFirstName,
+          isBanned: session.volunteerIsBanned,
+          isTestUser: session.volunteerTestUser,
+          totalPastSessions: session.volunteerTotalPastSessions,
+        }
+        session.volunteerEmail = session.volunteerEmail.toLowerCase()
+      }
+
       const student = {
         firstname: session.studentFirstName,
         isBanned: session.studentIsBanned,
         isTestUser: session.studentTestUser,
         totalPastSessions: session.studentTotalPastSessions,
       }
+
       return {
         ...session,
         studentRating,

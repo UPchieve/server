@@ -140,42 +140,6 @@ const getPublicUpfByUserIdIR: any = {"name":"getPublicUpfByUserId","params":[{"n
 export const getPublicUpfByUserId = new PreparedQuery<IGetPublicUpfByUserIdParams,IGetPublicUpfByUserIdResult>(getPublicUpfByUserIdIR);
 
 
-/** 'UpdateUpfGatesQualifiedFlagById' parameters type */
-export interface IUpdateUpfGatesQualifiedFlagByIdParams {
-  gatesQualified: boolean;
-  userId: string;
-}
-
-/** 'UpdateUpfGatesQualifiedFlagById' return type */
-export interface IUpdateUpfGatesQualifiedFlagByIdResult {
-  ok: string;
-}
-
-/** 'UpdateUpfGatesQualifiedFlagById' query type */
-export interface IUpdateUpfGatesQualifiedFlagByIdQuery {
-  params: IUpdateUpfGatesQualifiedFlagByIdParams;
-  result: IUpdateUpfGatesQualifiedFlagByIdResult;
-}
-
-const updateUpfGatesQualifiedFlagByIdIR: any = {"name":"updateUpfGatesQualifiedFlagById","params":[{"name":"gatesQualified","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1096,"b":1110,"line":58,"col":23}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1157,"b":1163,"line":61,"col":15}]}}],"usedParamSet":{"gatesQualified":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    gates_qualified = :gatesQualified!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1039,"b":1191,"line":55,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     user_product_flags
- * SET
- *     gates_qualified = :gatesQualified!,
- *     updated_at = NOW()
- * WHERE
- *     user_id = :userId!
- * RETURNING
- *     user_id AS ok
- * ```
- */
-export const updateUpfGatesQualifiedFlagById = new PreparedQuery<IUpdateUpfGatesQualifiedFlagByIdParams,IUpdateUpfGatesQualifiedFlagByIdResult>(updateUpfGatesQualifiedFlagByIdIR);
-
-
 /** 'UpdateSentInactiveThirtyDayEmail' parameters type */
 export interface IUpdateSentInactiveThirtyDayEmailParams {
   sentInactiveThirtyDayEmail: boolean;
@@ -193,7 +157,7 @@ export interface IUpdateSentInactiveThirtyDayEmailQuery {
   result: IUpdateSentInactiveThirtyDayEmailResult;
 }
 
-const updateSentInactiveThirtyDayEmailIR: any = {"name":"updateSentInactiveThirtyDayEmail","params":[{"name":"sentInactiveThirtyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1313,"b":1339,"line":70,"col":38}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1386,"b":1392,"line":73,"col":15}]}}],"usedParamSet":{"sentInactiveThirtyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = :sentInactiveThirtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1241,"b":1420,"line":67,"col":0}}};
+const updateSentInactiveThirtyDayEmailIR: any = {"name":"updateSentInactiveThirtyDayEmail","params":[{"name":"sentInactiveThirtyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1112,"b":1138,"line":58,"col":38}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1185,"b":1191,"line":61,"col":15}]}}],"usedParamSet":{"sentInactiveThirtyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = :sentInactiveThirtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1040,"b":1219,"line":55,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -229,7 +193,7 @@ export interface IUpdateSentInactiveSixtyDayEmailQuery {
   result: IUpdateSentInactiveSixtyDayEmailResult;
 }
 
-const updateSentInactiveSixtyDayEmailIR: any = {"name":"updateSentInactiveSixtyDayEmail","params":[{"name":"sentInactiveSixtyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1540,"b":1565,"line":82,"col":37}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1612,"b":1618,"line":85,"col":15}]}}],"usedParamSet":{"sentInactiveSixtyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_sixty_day_email = :sentInactiveSixtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1469,"b":1646,"line":79,"col":0}}};
+const updateSentInactiveSixtyDayEmailIR: any = {"name":"updateSentInactiveSixtyDayEmail","params":[{"name":"sentInactiveSixtyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1339,"b":1364,"line":70,"col":37}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1411,"b":1417,"line":73,"col":15}]}}],"usedParamSet":{"sentInactiveSixtyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_sixty_day_email = :sentInactiveSixtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1268,"b":1445,"line":67,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -265,7 +229,7 @@ export interface IUpdateSentInactiveNinetyDayEmailQuery {
   result: IUpdateSentInactiveNinetyDayEmailResult;
 }
 
-const updateSentInactiveNinetyDayEmailIR: any = {"name":"updateSentInactiveNinetyDayEmail","params":[{"name":"sentInactiveNinetyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1768,"b":1794,"line":94,"col":38}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1841,"b":1847,"line":97,"col":15}]}}],"usedParamSet":{"sentInactiveNinetyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = :sentInactiveNinetyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1696,"b":1875,"line":91,"col":0}}};
+const updateSentInactiveNinetyDayEmailIR: any = {"name":"updateSentInactiveNinetyDayEmail","params":[{"name":"sentInactiveNinetyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1567,"b":1593,"line":82,"col":38}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1640,"b":1646,"line":85,"col":15}]}}],"usedParamSet":{"sentInactiveNinetyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = :sentInactiveNinetyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1495,"b":1674,"line":79,"col":0}}};
 
 /**
  * Query generated from SQL:

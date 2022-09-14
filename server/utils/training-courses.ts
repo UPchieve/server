@@ -64,7 +64,7 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.LINK,
             isRequired: false,
             linkUrl:
-              'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-qktuitjb-g6YlDPHsSr6voER3pClz7A',
+              'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-1du9r34w6-Jwjh_qW49UtPto~Egsw4Qg',
           },
           {
             name: "Register for UPchieve's Monthly Coach Meetings",

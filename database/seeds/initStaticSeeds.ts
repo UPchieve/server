@@ -28,7 +28,9 @@ import { priorityGroups } from './static/notifications/priority-groups'
 
 import { weekdays } from './static/geography/weekdays'
 
-export async function initStaticSeedData(numZipCodes: number | undefined): Promise<void>{
+export async function initStaticSeedData(
+  numZipCodes: number | undefined
+): Promise<void> {
   await usStates()
   await postalCodes(numZipCodes)
   await weekdays()
