@@ -122,11 +122,13 @@ export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
 export interface ResetConfirmData {
   email: string
   password: string
+  newpassword: string
   token: string
 }
 export const asResetConfirmData = asFactory<ResetConfirmData>({
   email: asString,
   password: asString,
+  newpassword: asString,
   token: asString,
 })
 

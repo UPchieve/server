@@ -522,6 +522,7 @@ describe('Password reset tests', () => {
     await AuthService.confirmReset({
       email: userContactInfo.email,
       password: newPassword,
+      newpassword: newPassword,
       token: token,
     })
 
@@ -565,6 +566,7 @@ describe('Password reset tests', () => {
     const payload = {
       email: user.email,
       password: 'Password456',
+      newpassword: 'Password456',
       token: 'bad token',
     }
 
@@ -581,6 +583,7 @@ describe('Password reset tests', () => {
     const payload = {
       email: user.email,
       password: 'Password456',
+      newpassword: 'Password456',
       token: '0123456789abcdef0123456789abcdef',
     }
 
@@ -599,6 +602,7 @@ describe('Password reset tests', () => {
     const payload = {
       email: 'different email',
       password: 'Password456',
+      newpassword: 'Password456',
       token: '0123456789abcdef0123456789abcdef',
     }
 
@@ -606,6 +610,25 @@ describe('Password reset tests', () => {
 
     await expect(t(payload)).rejects.toThrow(
       new ResetError('Email did not match the password reset token')
+    )
+  })
+
+  test('Confirm mismatch passwords', async () => {
+    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
+      userContactInfo
+    )
+
+    const payload = {
+      email: 'different email',
+      password: 'Password123',
+      newpassword: 'Password456',
+      token: '0123456789abcdef0123456789abcdef',
+    }
+
+    const t = async <T>(p: T) => await AuthService.confirmReset(p)
+
+    await expect(t(payload)).rejects.toThrow(
+      new ResetError('The passwords you entered do not match')
     )
   })
 })
