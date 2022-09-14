@@ -468,31 +468,6 @@ paths:
             - Missing email or password
             - Must reenter password
             - Passwords do not match
-  /auth/reset/verify:
-    post:
-      tags:
-        - authorization
-      summary: Verify password reset token
-      description: |
-        Verify token for password reset
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-      responses:
-        '204':
-          description: Token is valid
-        '404':
-          description: URL no longer valid
-        '422':
-          description: URL doesn't match link provided in email
   /auth/partner/student/code:
     get:
       tags:
