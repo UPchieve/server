@@ -442,12 +442,20 @@ export async function sendReset(
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
-  const { email, password, token } = asResetConfirmData(data)
+  const {
+    email,
+    password,
+    newpassword: reenteredPassword,
+    token,
+  } = asResetConfirmData(data)
   // make sure token is a valid 16-byte hex string
   if (!token.match(/^[a-f0-9]{32}$/)) {
     // early exit
     throw new ResetError('Invalid password reset token')
   }
+
+  if (password !== reenteredPassword)
+    throw new ResetError('The passwords you entered do not match')
 
   const user = await getUserContactInfoByResetToken(token)
 
