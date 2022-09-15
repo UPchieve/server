@@ -60,7 +60,7 @@ export async function saveUserSurveyAndSubmissions(
   userId: Ulid,
   surveyData: SaveUserSurvey,
   submissions: SaveUserSurveySubmission[]
-): Promise<string> {
+): Promise<void> {
   const client = await getClient().connect()
   try {
     await client.query('BEGIN')
@@ -101,7 +101,6 @@ export async function saveUserSurveyAndSubmissions(
     }
     if (errors.length) throw new RepoReadError(errors.join('\n'))
     await client.query('COMMIT')
-    return survey.id
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)
