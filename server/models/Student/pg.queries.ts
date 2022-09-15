@@ -1070,3 +1070,27 @@ const getStudentSignupSourcesIR: any = {"name":"getStudentSignupSources","params
 export const getStudentSignupSources = new PreparedQuery<IGetStudentSignupSourcesParams,IGetStudentSignupSourcesResult>(getStudentSignupSourcesIR);
 
 
+/** 'DeleteSelfFavoritedVolunteers' parameters type */
+export type IDeleteSelfFavoritedVolunteersParams = void;
+
+/** 'DeleteSelfFavoritedVolunteers' return type */
+export type IDeleteSelfFavoritedVolunteersResult = void;
+
+/** 'DeleteSelfFavoritedVolunteers' query type */
+export interface IDeleteSelfFavoritedVolunteersQuery {
+  params: IDeleteSelfFavoritedVolunteersParams;
+  result: IDeleteSelfFavoritedVolunteersResult;
+}
+
+const deleteSelfFavoritedVolunteersIR: any = {"name":"deleteSelfFavoritedVolunteers","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM student_favorite_volunteers\nWHERE student_id = volunteer_id","loc":{"a":15679,"b":15749,"line":479,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM student_favorite_volunteers
+ * WHERE student_id = volunteer_id
+ * ```
+ */
+export const deleteSelfFavoritedVolunteers = new PreparedQuery<IDeleteSelfFavoritedVolunteersParams,IDeleteSelfFavoritedVolunteersResult>(deleteSelfFavoritedVolunteersIR);
+
+
