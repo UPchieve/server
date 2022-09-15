@@ -253,7 +253,8 @@ SELECT
     ur.name AS user_role,
     s.id AS session_id,
     sq.question_text,
-    src.choice_text
+    src.choice_text,
+    src.score
 FROM
     upchieve.users_surveys AS us
     JOIN upchieve.sessions AS s ON us.session_id = s.id

@@ -144,6 +144,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback && uvd.feedback) {
       const feedback = uvd.feedback
       if (
@@ -161,6 +162,12 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
           if (value <= 2) return 1
         }
       }
+    // todo: this is postsession survey, delete above once it goes live
+    } else {
+      const coachRatingFromStudent = uvd.surveyResponses?.find(resp => resp.questionText === 'Overall, how supportive was your coach today?')?.score
+      if (coachRatingFromStudent && coachRatingFromStudent <= 2) {
+        return 1
+      }
     }
     return 0
   }
@@ -175,6 +182,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       const feedback = uvd.feedback
       if (
@@ -189,6 +197,13 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
       )
         return 1
     }
+    // todo: this is postsession survey, delete above once it goes live
+    else {
+      const sessionRatingFromSTudent = uvd.surveyResponses?.find(resp => resp.questionText === 'Did UPchieve help you achieve your goal?')?.score
+      if (sessionRatingFromSTudent && sessionRatingFromSTudent <= 2) {
+        return 1
+      }
+    }
     return 0
   }
   public computeReviewReason = (pd: ProcessorData) =>
@@ -202,6 +217,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       const feedback = uvd.feedback
       if (
@@ -209,6 +225,13 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
         feedback.volunteerFeedback['session-enjoyable']! <= 2
       )
         return 1
+    }
+    // todo: this is postsession survey, delete above once it goes live
+    else {
+      const sessionRatingFromCoach = uvd.surveyResponses?.find(resp => resp.questionText.endsWith('Were you able to help them achieve their goal?'))?.score
+      if (sessionRatingFromCoach && sessionRatingFromCoach <= 2) {
+        return 1
+      }
     }
     return 0
   }
@@ -235,6 +258,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       const feedback = uvd.feedback
       if (
@@ -246,6 +270,12 @@ class RudeOrInappropriate extends CounterMetricProcessor {
         )) {
           if (value === 7) return 1
         }
+      }
+    // todo: this is postsession survey, delete above once it goes live
+    } else {
+      const meanOrInappropriate = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student was mean or inappropriate')
+      if (meanOrInappropriate) {
+        return 1
       }
     }
     return 0
@@ -263,6 +293,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       const feedback = uvd.feedback
       if (
@@ -274,6 +305,12 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
         )) {
           if (value === 8) return 1
         }
+      }
+    }    // todo: this is postsession survey, delete above once it goes live
+    else {
+      const onlyLookingForAnswers = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student was pressuring me to do their work for them')
+      if (onlyLookingForAnswers) {
+        return 1
       }
     }
     return 0
@@ -302,11 +339,18 @@ class CommentFromStudent extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       const feedback = uvd.feedback.studentTutoringFeedback
         ? uvd.feedback.studentTutoringFeedback
         : uvd.feedback.studentCounselingFeedback
       return feedback && feedback['other-feedback'] ? 1 : 0
+    }    // todo: this is postsession survey, delete above once it goes live
+    else {
+      const studentComment = uvd.surveyResponses?.find(resp => resp.questionText === 'Your thoughts' && resp.userRole === 'student')
+      if (studentComment) {
+        return 1
+      }
     }
     return 0
   }
@@ -320,9 +364,16 @@ class CommentFromVolunteer extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       if (uvd.session.volunteerId && uvd.feedback.volunteerFeedback)
         return uvd.feedback.volunteerFeedback['other-feedback'] ? 1 : 0
+    }   // todo: this is postsession survey, delete above once it goes live
+    else {
+      const volunteerComment = uvd.surveyResponses?.find(resp => resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer')
+      if (volunteerComment) {
+        return 1
+      }
     }
     return 0
   }
@@ -362,6 +413,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
+    // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
     if (uvd.feedback) {
       if (
         uvd.feedback.volunteerFeedback &&
@@ -372,6 +424,12 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
         )) {
           if (value === 1) return 1
         }
+      }
+    }// todo: this is postsession survey, delete above once it goes live
+    else {
+      const techIssues = uvd.surveyResponses?.find(resp => resp.choiceText === 'Tech issue')
+      if (techIssues) {
+        return 1
       }
     }
     return 0

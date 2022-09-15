@@ -242,6 +242,7 @@ export type PostsessionSurveyResponse = {
   sessionId: Ulid
   questionText: string
   choiceText: string
+  score: number
 }
 
 export async function getPresessionSurveyResponse(

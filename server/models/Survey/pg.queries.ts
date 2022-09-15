@@ -494,6 +494,7 @@ export interface IGetPostsessionSurveyResponsesParams {
 export interface IGetPostsessionSurveyResponsesResult {
   choiceText: string;
   questionText: string;
+  score: number;
   sessionId: string;
   subTopic: string;
   type: string;
@@ -508,7 +509,7 @@ export interface IGetPostsessionSurveyResponsesQuery {
   result: IGetPostsessionSurveyResponsesResult;
 }
 
-const getPostsessionSurveyResponsesIR: any = {"name":"getPostsessionSurveyResponses","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9440,"b":9449,"line":271,"col":21}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    us.id AS user_survey_id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    us.user_id,\n    ur.name AS user_role,\n    s.id AS session_id,\n    sq.question_text,\n    src.choice_text\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON us.session_id = s.id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.topics ON subjects.topic_id = topics.id\n    JOIN upchieve.surveys ON us.survey_id = surveys.id\n    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\nWHERE\n    us.session_id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":8419,"b":9519,"line":248,"col":0}}};
+const getPostsessionSurveyResponsesIR: any = {"name":"getPostsessionSurveyResponses","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9455,"b":9464,"line":272,"col":21}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    us.id AS user_survey_id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    us.user_id,\n    ur.name AS user_role,\n    s.id AS session_id,\n    sq.question_text,\n    src.choice_text,\n    src.score\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON us.session_id = s.id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.topics ON subjects.topic_id = topics.id\n    JOIN upchieve.surveys ON us.survey_id = surveys.id\n    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\nWHERE\n    us.session_id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":8419,"b":9534,"line":248,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -521,7 +522,8 @@ const getPostsessionSurveyResponsesIR: any = {"name":"getPostsessionSurveyRespon
  *     ur.name AS user_role,
  *     s.id AS session_id,
  *     sq.question_text,
- *     src.choice_text
+ *     src.choice_text,
+ *     src.score
  * FROM
  *     upchieve.users_surveys AS us
  *     JOIN upchieve.sessions AS s ON us.session_id = s.id
