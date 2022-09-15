@@ -102,3 +102,9 @@ INSERT INTO user_actions (user_id, action_type, action, created_at, updated_at)
 RETURNING
     id AS ok;
 
+
+/* @name deleteSelfFavoritedVolunteersActions */
+DELETE FROM user_actions
+WHERE user_id = volunteer_id
+    AND action = 'VOLUNTEER FAVORITED';
+

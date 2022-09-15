@@ -666,3 +666,11 @@ export async function getStudentSignupSources(): Promise<
     throw new RepoReadError(err)
   }
 }
+
+export async function deleteSelfFavoritedVolunteers(): Promise<void> {
+  try {
+    await pgQueries.deleteSelfFavoritedVolunteers.run(undefined, getClient())
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}

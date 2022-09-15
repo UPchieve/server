@@ -345,3 +345,28 @@ const createAdminActionIR: any = {"name":"createAdminAction","params":[{"name":"
 export const createAdminAction = new PreparedQuery<ICreateAdminActionParams,ICreateAdminActionResult>(createAdminActionIR);
 
 
+/** 'DeleteSelfFavoritedVolunteersActions' parameters type */
+export type IDeleteSelfFavoritedVolunteersActionsParams = void;
+
+/** 'DeleteSelfFavoritedVolunteersActions' return type */
+export type IDeleteSelfFavoritedVolunteersActionsResult = void;
+
+/** 'DeleteSelfFavoritedVolunteersActions' query type */
+export interface IDeleteSelfFavoritedVolunteersActionsQuery {
+  params: IDeleteSelfFavoritedVolunteersActionsParams;
+  result: IDeleteSelfFavoritedVolunteersActionsResult;
+}
+
+const deleteSelfFavoritedVolunteersActionsIR: any = {"name":"deleteSelfFavoritedVolunteersActions","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM user_actions\nWHERE user_id = volunteer_id\n    AND action = 'VOLUNTEER FAVORITED'","loc":{"a":2737,"b":2828,"line":107,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM user_actions
+ * WHERE user_id = volunteer_id
+ *     AND action = 'VOLUNTEER FAVORITED'
+ * ```
+ */
+export const deleteSelfFavoritedVolunteersActions = new PreparedQuery<IDeleteSelfFavoritedVolunteersActionsParams,IDeleteSelfFavoritedVolunteersActionsResult>(deleteSelfFavoritedVolunteersActionsIR);
+
+
