@@ -269,11 +269,9 @@ export async function getPostsessionSurveyResponses(
       { sessionId },
       getClient()
     )
-    if (result.length)
-      return result.map(row => makeRequired(row))
+    if (result.length) return result.map(row => makeRequired(row))
     return []
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
-

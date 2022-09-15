@@ -18,7 +18,9 @@ export async function sessionFlags(): Promise<NameToId> {
     {
       name: 'Low coach rating from student',
     },
-    { name: 'Reported' },
+    {
+      name: 'Reported',
+    },
     {
       name: 'Pressuring coach',
     },
@@ -44,8 +46,8 @@ export async function sessionFlags(): Promise<NameToId> {
       name: 'Graded assignment',
     },
     {
-      name: 'Coach uncomfortable'
-    }
+      name: 'Coach uncomfortable',
+    },
   ]
   const temp: NameToId = {}
   for (const flag of flags) {

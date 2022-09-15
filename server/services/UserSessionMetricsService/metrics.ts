@@ -162,9 +162,12 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
           if (value <= 2) return 1
         }
       }
-    // todo: this is postsession survey, delete above once it goes live
+      // todo: this is postsession survey, delete above once it goes live
     } else {
-      const coachRatingFromStudent = uvd.surveyResponses?.find(resp => resp.questionText === 'Overall, how supportive was your coach today?')?.score
+      const coachRatingFromStudent = uvd.surveyResponses?.find(
+        resp =>
+          resp.questionText === 'Overall, how supportive was your coach today?'
+      )?.score
       if (coachRatingFromStudent && coachRatingFromStudent <= 2) {
         return 1
       }
@@ -199,7 +202,9 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
     }
     // todo: this is postsession survey, delete above once it goes live
     else {
-      const sessionRatingFromSTudent = uvd.surveyResponses?.find(resp => resp.questionText === 'Did UPchieve help you achieve your goal?')?.score
+      const sessionRatingFromSTudent = uvd.surveyResponses?.find(
+        resp => resp.questionText === 'Did UPchieve help you achieve your goal?'
+      )?.score
       if (sessionRatingFromSTudent && sessionRatingFromSTudent <= 2) {
         return 1
       }
@@ -228,7 +233,11 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
     }
     // todo: this is postsession survey, delete above once it goes live
     else {
-      const sessionRatingFromCoach = uvd.surveyResponses?.find(resp => resp.questionText.endsWith('Were you able to help them achieve their goal?'))?.score
+      const sessionRatingFromCoach = uvd.surveyResponses?.find(resp =>
+        resp.questionText.endsWith(
+          'Were you able to help them achieve their goal?'
+        )
+      )?.score
       if (sessionRatingFromCoach && sessionRatingFromCoach <= 2) {
         return 1
       }
@@ -271,9 +280,11 @@ class RudeOrInappropriate extends CounterMetricProcessor {
           if (value === 7) return 1
         }
       }
-    // todo: this is postsession survey, delete above once it goes live
+      // todo: this is postsession survey, delete above once it goes live
     } else {
-      const meanOrInappropriate = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student was mean or inappropriate')
+      const meanOrInappropriate = uvd.surveyResponses?.find(
+        resp => resp.choiceText === 'Student was mean or inappropriate'
+      )
       if (meanOrInappropriate) {
         return 1
       }
@@ -306,9 +317,13 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
           if (value === 8) return 1
         }
       }
-    }    // todo: this is postsession survey, delete above once it goes live
+    } // todo: this is postsession survey, delete above once it goes live
     else {
-      const onlyLookingForAnswers = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student was pressuring me to do their work for them')
+      const onlyLookingForAnswers = uvd.surveyResponses?.find(
+        resp =>
+          resp.choiceText ===
+          'Student was pressuring me to do their work for them'
+      )
       if (onlyLookingForAnswers) {
         return 1
       }
@@ -345,9 +360,12 @@ class CommentFromStudent extends CounterMetricProcessor {
         ? uvd.feedback.studentTutoringFeedback
         : uvd.feedback.studentCounselingFeedback
       return feedback && feedback['other-feedback'] ? 1 : 0
-    }    // todo: this is postsession survey, delete above once it goes live
+    } // todo: this is postsession survey, delete above once it goes live
     else {
-      const studentComment = uvd.surveyResponses?.find(resp => resp.questionText === 'Your thoughts' && resp.userRole === 'student')
+      const studentComment = uvd.surveyResponses?.find(
+        resp =>
+          resp.questionText === 'Your thoughts' && resp.userRole === 'student'
+      )
       if (studentComment) {
         return 1
       }
@@ -368,9 +386,12 @@ class CommentFromVolunteer extends CounterMetricProcessor {
     if (uvd.feedback) {
       if (uvd.session.volunteerId && uvd.feedback.volunteerFeedback)
         return uvd.feedback.volunteerFeedback['other-feedback'] ? 1 : 0
-    }   // todo: this is postsession survey, delete above once it goes live
+    } // todo: this is postsession survey, delete above once it goes live
     else {
-      const volunteerComment = uvd.surveyResponses?.find(resp => resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer')
+      const volunteerComment = uvd.surveyResponses?.find(
+        resp =>
+          resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer'
+      )
       if (volunteerComment) {
         return 1
       }
@@ -425,9 +446,11 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
           if (value === 1) return 1
         }
       }
-    }// todo: this is postsession survey, delete above once it goes live
+    } // todo: this is postsession survey, delete above once it goes live
     else {
-      const techIssues = uvd.surveyResponses?.find(resp => resp.choiceText === 'Tech issue')
+      const techIssues = uvd.surveyResponses?.find(
+        resp => resp.choiceText === 'Tech issue'
+      )
       if (techIssues) {
         return 1
       }
@@ -444,13 +467,18 @@ class PersonalIdentifyingInfo extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const personalInfo = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student shared their email, last name, or other personally identifiable information')
+    const personalInfo = uvd.surveyResponses?.find(
+      resp =>
+        resp.choiceText ===
+        'Student shared their email, last name, or other personally identifiable information'
+    )
     if (personalInfo) {
       return 1
     }
     return 0
   }
-  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
@@ -460,13 +488,16 @@ class GradedAssignment extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const gradedAssignment = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student was working on a quiz or exam')
+    const gradedAssignment = uvd.surveyResponses?.find(
+      resp => resp.choiceText === 'Student was working on a quiz or exam'
+    )
     if (gradedAssignment) {
       return 1
     }
     return 0
   }
-  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
@@ -476,13 +507,16 @@ class CoachUncomfortable extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const coachUncomfortable = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student made me feel uncomfortable')
+    const coachUncomfortable = uvd.surveyResponses?.find(
+      resp => resp.choiceText === 'Student made me feel uncomfortable'
+    )
     if (coachUncomfortable) {
       return 1
     }
     return 0
   }
-  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = () => NO_ACTIONS
 }
@@ -503,7 +537,7 @@ export const METRIC_PROCESSORS = {
   HasHadTechnicalIssues: new HasHadTechnicalIssues(),
   PersonalIdentifyingInfo: new PersonalIdentifyingInfo(),
   GradedAssignment: new GradedAssignment(),
-  CoachUncomfortable: new CoachUncomfortable()
+  CoachUncomfortable: new CoachUncomfortable(),
 }
 
 export type MetricProcessorOutputs = {

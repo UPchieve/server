@@ -30,7 +30,10 @@ import {
   CounterMetricProcessor,
 } from './types'
 import { asString } from '../../utils/type-utils'
-import { getPostsessionSurveyResponses, PostsessionSurveyResponse } from '../../models/Survey'
+import {
+  getPostsessionSurveyResponses,
+  PostsessionSurveyResponse,
+} from '../../models/Survey'
 
 export interface MetricProcessorPayload {
   session: Session
@@ -56,7 +59,7 @@ export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
     feedback,
     studentUSM,
     volunteerUSM,
-    surveyResponses
+    surveyResponses,
   } = await getValuesToPrepareMetrics(sessionId)
   const payload = await prepareMetrics(
     SESSION_METRICS_PROCESSORS,
@@ -79,7 +82,7 @@ export async function prepareFeedbackProcessors(
     feedback,
     studentUSM,
     volunteerUSM,
-    surveyResponses
+    surveyResponses,
   } = await getValuesToPrepareMetrics(sessionId, feedbackId)
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
@@ -99,7 +102,7 @@ export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
     feedback,
     studentUSM,
     volunteerUSM,
-    surveyResponses
+    surveyResponses,
   } = await getValuesToPrepareMetrics(asString(sessionId))
 
   const payload = await prepareMetrics(
@@ -120,7 +123,7 @@ export async function getValuesToPrepareMetrics(
   session: Session
   feedback?: Feedback
   studentUSM: UserSessionMetrics
-  volunteerUSM?: UserSessionMetrics,
+  volunteerUSM?: UserSessionMetrics
   surveyResponses?: PostsessionSurveyResponse[]
 }> {
   const session = await getSessionById(sessionId)
@@ -147,7 +150,7 @@ export async function getValuesToPrepareMetrics(
       studentUSM,
       volunteerUSM,
     }
-  // TODO: this handles new postsession survey, delete above once postsession goes live
+    // TODO: this handles new postsession survey, delete above once postsession goes live
   } else {
     const surveyResponses = await getPostsessionSurveyResponses(sessionId)
     const uvd = { session } as UpdateValueData
@@ -167,7 +170,7 @@ export async function getValuesToPrepareMetrics(
       session,
       studentUSM,
       volunteerUSM,
-      surveyResponses
+      surveyResponses,
     }
   }
 }
