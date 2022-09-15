@@ -451,6 +451,54 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
   }
 }
 
+class PersonalIdentifyingInfo extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.personalIdentifyingInfo
+  public requiresFeedback = true
+
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    const personalInfo = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student shared their email, last name, or other personally identifiable information')
+    if (personalInfo) {
+      return 1
+    }
+    return 0
+  }
+  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
+  public triggerActions = () => NO_ACTIONS
+}
+
+class GradedAssignment extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.gradedAssignment
+  public requiresFeedback = true
+
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    const gradedAssignment = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student was working on a quiz or exam')
+    if (gradedAssignment) {
+      return 1
+    }
+    return 0
+  }
+  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
+  public triggerActions = () => NO_ACTIONS
+}
+
+class CoachUncomfortable extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.gradedAssignment
+  public requiresFeedback = true
+
+  public computeUpdateValue = (uvd: UpdateValueData) => {
+    const coachUncomfortable = uvd.surveyResponses?.find(resp => resp.choiceText === 'Student made me feel uncomfortable')
+    if (coachUncomfortable) {
+      return 1
+    }
+    return 0
+  }
+  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
+  public triggerActions = () => NO_ACTIONS
+}
+
 // export each metric as a singleton instance
 export const METRIC_PROCESSORS = {
   HasBeenUnmatched: new HasBeenUnmatched(),
@@ -465,6 +513,9 @@ export const METRIC_PROCESSORS = {
   CommentFromStudent: new CommentFromStudent(),
   CommentFromVolunteer: new CommentFromVolunteer(),
   HasHadTechnicalIssues: new HasHadTechnicalIssues(),
+  PersonalIdentifyingInfo: new PersonalIdentifyingInfo(),
+  GradedAssignment: new GradedAssignment(),
+  CoachUncomfortable: new CoachUncomfortable()
 }
 
 export type MetricProcessorOutputs = {
