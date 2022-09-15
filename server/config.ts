@@ -95,8 +95,6 @@ const config: Static<typeof Config> = {
     volunteerAbsentStudentApologyTemplate: 'd-e45797aba9d04bb29a9745988a52fc1f',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
     failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
-    // TODO: get template id
-    techIssueApologyTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

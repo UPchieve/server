@@ -436,19 +436,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
   }
   public computeReviewReason = () => NO_FLAGS
   public computeFlag = () => NO_FLAGS
-  public triggerActions = (pd: ProcessorData) => {
-    const actions: Promise<any>[] = []
-    // Send an apology email to the student and volunteer when a tech issue is reported in their session
-    if (pd.value)
-      actions.push(
-        QueueService.add(Jobs.EmailTechIssueApology, {
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        })
-      )
-
-    return actions
-  }
+  public triggerActions = () => NO_ACTIONS
 }
 
 class PersonalIdentifyingInfo extends CounterMetricProcessor {
