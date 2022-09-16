@@ -26,6 +26,10 @@ RETURNING
     has_been_unmatched,
     has_had_technical_issues,
     reported,
+    personal_identifying_info,
+    graded_assignment,
+    coach_uncomfortable,
+    student_crisis,
     created_at,
     updated_at;
 
@@ -45,6 +49,10 @@ SELECT
     has_been_unmatched,
     has_had_technical_issues,
     reported,
+    personal_identifying_info,
+    graded_assignment,
+    coach_uncomfortable,
+    student_crisis,
     created_at,
     updated_at
 FROM
