@@ -531,3 +531,8 @@ FROM
 ORDER BY
     RANDOM();
 
+
+/* @name deleteSelfFavoritedVolunteers */
+DELETE FROM student_favorite_volunteers
+WHERE student_id = volunteer_id;
+
