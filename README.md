@@ -57,16 +57,17 @@ After switching npm versions using nvm, you will need to run `$ npm install`. Ne
 [Docker]: https://www.docker.com/products/docker-desktop
 
 ### App Dependencies
-On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server.
+On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server, and also seeds the PostgreSQL database with test data.
 
 1. Run the following command to start the containers
 ```shell
 $ docker-compose up -d
 ```
-1. Confirm the seeds worked by making a query in a DB admin tool
-    - connect via `localhost:5432` with the admin or subway users OR
-    - use PGAdmin at [`http://localhost:80`](http://localhost:80) with username `admin` and password `Password123`
-1. Run the follow command to stop and remove the containers when finished
+2. Confirm PostgreSQL is running and the database is properly seeded by making a query in a DB admin tool
+    - connect via `$ psql --host 127.0.0.1 --port 5432 --username admin --dbname upchieve` and password `Password123` OR
+    - use PGAdmin at [`http://localhost:80`](http://localhost:80) with username `admin@upchieve.org` and password `Password123`
+
+When you want to stop and remove the containers, run:
 ```shell
 $ docker-compose down
 ```
