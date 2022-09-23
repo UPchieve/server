@@ -194,4 +194,5 @@ export const Config = Record({
   favoriteVolunteerLimit: Number,
   eligibleIncomeThreshold: Number,
   customManualStudentPartnerOrg: String,
+  mongoDbConn: String,
 })

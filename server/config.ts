@@ -304,6 +304,7 @@ const config: Static<typeof Config> = {
     Number(process.env.SUBWAY_ELIGIBLE_INCOME_THRESHOLD) || 60000,
   customManualStudentPartnerOrg:
     process.env.SUBWAY_CUSTOM_MANUAL_STUDENT_PARTNER_ORG || 'bogus',
+  mongoDbConn: process.env.MONGO_DB_CONN || 'bogus',
 }
 
 module.exports = config
