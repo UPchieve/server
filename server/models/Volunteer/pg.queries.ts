@@ -3280,7 +3280,7 @@ export interface IGetVolunteerWithCertQuery {
   result: IGetVolunteerWithCertResult;
 }
 
-const getVolunteerWithCertIR: any = {"name":"getVolunteerWithCert","params":[{"name":"mongoId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":46771,"b":46778,"line":1541,"col":22}]}}],"usedParamSet":{"mongoId":true},"statement":{"body":"SELECT\n    users.id,\n    users.mongo_id,\n    json_object_agg(certifications.name, TRUE) AS certifications\nFROM\n    users\n    LEFT JOIN users_certifications ON users_certifications.user_id = users.id\n    JOIN certifications ON users_certifications.certification_id = certifications.id\nWHERE\n    users.mongo_id = :mongoId!\nGROUP BY\n    users.id,\n    users.mongo_id","loc":{"a":46459,"b":46820,"line":1532,"col":0}}};
+const getVolunteerWithCertIR: any = {"name":"getVolunteerWithCert","params":[{"name":"mongoId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":46794,"b":46801,"line":1541,"col":22}]}}],"usedParamSet":{"mongoId":true},"statement":{"body":"SELECT\n    users.id,\n    users.mongo_id,\n    json_object_agg(COALESCE(certifications.name, 'noop'), TRUE) AS certifications\nFROM\n    users\n    LEFT JOIN users_certifications ON users_certifications.user_id = users.id\n    LEFT JOIN certifications ON users_certifications.certification_id = certifications.id\nWHERE\n    users.mongo_id = :mongoId!\nGROUP BY\n    users.id,\n    users.mongo_id","loc":{"a":46459,"b":46843,"line":1532,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -3288,11 +3288,11 @@ const getVolunteerWithCertIR: any = {"name":"getVolunteerWithCert","params":[{"n
  * SELECT
  *     users.id,
  *     users.mongo_id,
- *     json_object_agg(certifications.name, TRUE) AS certifications
+ *     json_object_agg(COALESCE(certifications.name, 'noop'), TRUE) AS certifications
  * FROM
  *     users
  *     LEFT JOIN users_certifications ON users_certifications.user_id = users.id
- *     JOIN certifications ON users_certifications.certification_id = certifications.id
+ *     LEFT JOIN certifications ON users_certifications.certification_id = certifications.id
  * WHERE
  *     users.mongo_id = :mongoId!
  * GROUP BY
@@ -3321,7 +3321,7 @@ export interface IAddMissingQuizQuery {
   result: IAddMissingQuizResult;
 }
 
-const addMissingQuizIR: any = {"name":"addMissingQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":46958,"b":46964,"line":1550,"col":5}]}},{"name":"passed","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":46996,"b":47002,"line":1553,"col":5}]}},{"name":"quiz","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":47122,"b":47126,"line":1562,"col":24}]}}],"usedParamSet":{"userId":true,"passed":true,"quiz":true},"statement":{"body":"INSERT INTO users_quizzes AS ins (user_id, quiz_id, attempts, passed, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    1,\n    :passed!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        quizzes.id\n    FROM\n        quizzes\n    WHERE\n        quizzes.name = :quiz!) AS subquery\nON CONFLICT (user_id,\n    quiz_id)\n    DO NOTHING\nRETURNING\n    user_id AS ok","loc":{"a":46852,"b":47217,"line":1548,"col":0}}};
+const addMissingQuizIR: any = {"name":"addMissingQuiz","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":46981,"b":46987,"line":1550,"col":5}]}},{"name":"passed","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":47019,"b":47025,"line":1553,"col":5}]}},{"name":"quiz","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":47145,"b":47149,"line":1562,"col":24}]}}],"usedParamSet":{"userId":true,"passed":true,"quiz":true},"statement":{"body":"INSERT INTO users_quizzes AS ins (user_id, quiz_id, attempts, passed, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    1,\n    :passed!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        quizzes.id\n    FROM\n        quizzes\n    WHERE\n        quizzes.name = :quiz!) AS subquery\nON CONFLICT (user_id,\n    quiz_id)\n    DO NOTHING\nRETURNING\n    user_id AS ok","loc":{"a":46875,"b":47240,"line":1548,"col":0}}};
 
 /**
  * Query generated from SQL:

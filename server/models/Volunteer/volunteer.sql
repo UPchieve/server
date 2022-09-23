@@ -1532,11 +1532,11 @@ ORDER BY
 SELECT
     users.id,
     users.mongo_id,
-    json_object_agg(certifications.name, TRUE) AS certifications
+    json_object_agg(COALESCE(certifications.name, 'noop'), TRUE) AS certifications
 FROM
     users
     LEFT JOIN users_certifications ON users_certifications.user_id = users.id
-    JOIN certifications ON users_certifications.certification_id = certifications.id
+    LEFT JOIN certifications ON users_certifications.certification_id = certifications.id
 WHERE
     users.mongo_id = :mongoId!
 GROUP BY
