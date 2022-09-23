@@ -331,3 +331,26 @@ export async function getQuizScore(
     idCorrectAnswerMap,
   }
 }
+
+// Given a cert, this function will see what other subjects that cert unlocks
+// Basically a stripped down version of getQuizScore that only adds missing certs
+export async function addMissingCerts(
+  userId: string,
+  cert: string
+): Promise<void> {
+  const userQuizzesMap = await VolunteerModel.getQuizzesForVolunteers([userId])
+  const userQuizzes = userQuizzesMap[userId]
+  const unlockedSubjects = getUnlockedSubjects(cert, userQuizzes)
+
+  for (const subject of unlockedSubjects) {
+    const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(userId)
+    if (!currentSubjects.includes(subject)) {
+      await createQuizAction({
+        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+        userId,
+        quizSubcategory: cert,
+      })
+      await VolunteerModel.addVolunteerCertification(userId, subject)
+    }
+  }
+}
