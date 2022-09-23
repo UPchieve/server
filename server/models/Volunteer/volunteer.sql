@@ -1527,3 +1527,42 @@ WHERE
 ORDER BY
     users.created_at DESC;
 
+
+/* @name getVolunteerWithCert */
+SELECT
+    users.id,
+    users.mongo_id,
+    json_object_agg(certifications.name, TRUE) AS certifications
+FROM
+    users
+    LEFT JOIN users_certifications ON users_certifications.user_id = users.id
+    JOIN certifications ON users_certifications.certification_id = certifications.id
+WHERE
+    users.mongo_id = :mongoId!
+GROUP BY
+    users.id,
+    users.mongo_id;
+
+
+/* @name addMissingQuiz */
+INSERT INTO users_quizzes AS ins (user_id, quiz_id, attempts, passed, created_at, updated_at)
+SELECT
+    :userId!,
+    subquery.id,
+    1,
+    :passed!,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        quizzes.id
+    FROM
+        quizzes
+    WHERE
+        quizzes.name = :quiz!) AS subquery
+ON CONFLICT (user_id,
+    quiz_id)
+    DO NOTHING
+RETURNING
+    user_id AS ok;
+

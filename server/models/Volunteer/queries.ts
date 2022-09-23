@@ -1550,3 +1550,46 @@ export async function getVolunteersForAnalyticsReport(
     throw new RepoReadError(err)
   }
 }
+
+export type MissingCerts = {
+  [key: string]: boolean
+}
+
+export type MissingCertVolunteers = {
+  mongoId: string
+  id: Ulid
+  certifications: MissingCerts
+}
+
+export async function getVolunteerWithCert(
+  mongoId: string
+): Promise<MissingCertVolunteers | undefined> {
+  try {
+    const result = await pgQueries.getVolunteerWithCert.run(
+      { mongoId },
+      getRoClient()
+    )
+
+    if (result.length)
+      return result.map(row => makeRequired(row))[0] as MissingCertVolunteers
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function addMissingQuiz(
+  userId: Ulid,
+  quiz: string,
+  passed: boolean
+): Promise<void> {
+  try {
+    const result = await pgQueries.addMissingQuiz.run(
+      { userId, quiz, passed },
+      getClient()
+    )
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new RepoUpdateError('update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
