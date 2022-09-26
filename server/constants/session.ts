@@ -14,7 +14,7 @@ export enum USER_SESSION_METRICS {
   personalIdentifyingInfo = 'PII',
   gradedAssignment = 'Graded assignment',
   coachUncomfortable = 'Coach uncomfortable',
-  studentCrisis = 'Student in distress'
+  studentCrisis = 'Student in distress',
 }
 
 // amount of volunteers to text notifications to per session

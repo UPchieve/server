@@ -521,21 +521,23 @@ class CoachUncomfortable extends CounterMetricProcessor {
   public triggerActions = () => NO_ACTIONS
 }
 
-
 class StudentCrisis extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.studentCrisis
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const studentInCrisis = uvd.surveyResponses?.find(
-      resp => resp.choiceText === 'Student is in severe emotional distress and/or unsafe'
+      resp =>
+        resp.choiceText ===
+        'Student is in severe emotional distress and/or unsafe'
     )
     if (studentInCrisis) {
       return 1
     }
     return 0
   }
-  public computeReviewReason = (pd: ProcessorData) => pd.value ? [this.key] : NO_FLAGS
+  public computeReviewReason = (pd: ProcessorData) =>
+    pd.value ? [this.key] : NO_FLAGS
   public computeFlag = (pd: ProcessorData) => (pd.value ? [this.key] : NO_FLAGS)
   public triggerActions = (pd: ProcessorData) => {
     const actions: Promise<any>[] = []
