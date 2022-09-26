@@ -446,7 +446,9 @@ SELECT
     student_partner_org_sites.name AS partner_site,
     student_partner_orgs.name AS student_partner_org,
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
-    volunteer_profiles.total_volunteer_hours
+    volunteer_profiles.total_volunteer_hours,
+    schools.name AS school_name,
+    grade_levels.name AS grade_level
 FROM
     users
     LEFT JOIN (
@@ -511,6 +513,8 @@ FROM
         WHERE
             student_id = :userId!
             OR volunteer_id = :userId!) AS past_sessions ON TRUE
+    LEFT JOIN schools ON student_profiles.school_id = schools.id
+    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
     users.id = :userId!;
 
