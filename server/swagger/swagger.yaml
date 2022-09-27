@@ -1469,6 +1469,21 @@ paths:
       responses:
         '200':
           description: Responds with number of remaining volunteers a student is allowed to favorite
+  /api/students/partners/active:
+    get:
+      summary: Retrieves the active partner orgs that a student has
+      description: |
+        - Students only
+        - Retrieves the active partner orgs that a student has
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: student
+          required: true
+          in: query
+      responses:
+        '200':
+          description: Responds with a list of active partner orgs
   /api/survey/presession/{:sessionId}:
     get:
       tags:
