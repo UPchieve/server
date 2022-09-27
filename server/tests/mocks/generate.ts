@@ -202,6 +202,7 @@ export function buildStudentPartnerOrg(
     collegeSignup: false,
     signupCode: 'SCHOOLHELPERS',
     sites: [],
+    isSchool: false,
     ...overrides,
   }
 }
