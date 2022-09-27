@@ -1081,6 +1081,7 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
+    volunteer_partner_org_id = :partnerOrgId,
     approved = COALESCE(:approved, approved)
 WHERE
     user_id = :userId!
@@ -1104,22 +1105,6 @@ FROM
     volunteer_partner_orgs
 WHERE
     KEY = :volunteerPartnerOrg!;
-
-
-/* @name createUserStudentPartnerOrgInstance */
-INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
-SELECT
-    :userId!,
-    vpo.id,
-    NOW(),
-    NOW()
-FROM
-    volunteer_partner_orgs vpo
-WHERE
-    vpo.name = :vpoName!
-LIMIT 1
-RETURNING
-    user_id AS ok;
 
 
 /* @name createUserVolunteerPartnerOrgInstance */
@@ -1604,7 +1589,7 @@ WHERE
     AND deactivated_on IS NULL;
 
 
-/* @name adminDeactivatevolunteerPartnershipInstance */
+/* @name adminDeactivateVolunteerPartnershipInstance */
 UPDATE
     users_volunteer_partner_orgs_instances
 SET
@@ -1616,7 +1601,7 @@ RETURNING
     user_id AS ok;
 
 
-/* @name adminInsertvolunteerPartnershipInstance */
+/* @name adminInsertVolunteerPartnershipInstance */
 INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
     VALUES (:userId!, :partnerOrgId!, NOW(), NOW())
 RETURNING

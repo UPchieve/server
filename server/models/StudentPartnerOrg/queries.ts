@@ -111,7 +111,7 @@ export async function migratePartnerSchoolsToPartnerOrgs(
   client?: PoolClient
 ): Promise<void> {
   try {
-    await pgQueries.migratepPartnerSchoolsToPartnerOrgs.run(
+    await pgQueries.migratePartnerSchoolsToPartnerOrgs.run(
       { schoolName, createdAt },
       client || getClient()
     )

@@ -19,6 +19,7 @@ import {
   Ulid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
+import * as SchoolRepo from '../School/queries'
 
 export type ReportedStudent = {
   id: Ulid
@@ -293,6 +294,36 @@ export async function deleteStudent(studentId: Ulid, email: string) {
   }
 }
 
+export type StudentPartnerOrgByKey = {
+  partnerId: Ulid
+  partnerKey: string
+  partnerName: string
+  siteId?: string
+  siteName?: string
+  schoolId?: Ulid
+}
+
+export async function getPartnerOrgByKey(
+  partnerKey: string,
+  partnerSite: string | undefined,
+  client: PoolClient
+): Promise<StudentPartnerOrgByKey | undefined> {
+  try {
+    const result = await pgQueries.getPartnerOrgByKey.run(
+      {
+        partnerOrgKey: partnerKey,
+        partnerOrgSiteName: partnerSite,
+      },
+      client
+    )
+    return result.length
+      ? makeSomeRequired(result[0], ['siteId', 'siteName', 'schoolId'])
+      : undefined
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 // if partnerOrg isnt provided then remove partnerOrg entirely
 // if parttnerSite isnt provided then remove partnerSite entirely
 // if gates study isnt provided then dont touch it
@@ -307,55 +338,166 @@ export type AdminUpdateStudent = {
   isBanned: boolean
   isDeactivated: boolean
   inGatesStudy: boolean | undefined
+  partnerSchool: string | undefined
+}
+
+export type StudentPartnerOrgInstance = {
+  name: string
+  id: Ulid
+  schoolId?: Ulid
 }
 
 async function adminUpdateStudentPartnerOrgInstance(
   studentId: Ulid,
-  newPartnerOrgKey: string,
+  newPartnerOrgKey: string | undefined,
   newPartnerSite: string | undefined,
+  schoolPartnerKey: string | undefined,
   client: PoolClient
 ) {
   try {
-    const newPartnerOrgResult = await pgQueries.getPartnerOrgByKey.run(
-      {
-        partnerOrgKey: newPartnerOrgKey,
-        partnerOrgSiteName: newPartnerSite,
-      },
-      client
-    )
-    const newPartnerOrgData = newPartnerOrgResult.length
-      ? makeSomeRequired(newPartnerOrgResult[0], ['siteId', 'siteName'])
+    const newPartnerOrg = newPartnerOrgKey
+      ? await getPartnerOrgByKey(newPartnerOrgKey, newPartnerSite, client)
       : undefined
-    if (!newPartnerOrgData) throw new Error('New partner org does not exist')
+    if (newPartnerOrgKey && !newPartnerOrg)
+      throw new Error(`New partner org ${newPartnerOrgKey} does not exist`)
 
-    const oldPartnerOrgResult = await pgQueries.getPartnerOrgsByStudent.run(
+    const newSchoolOrg = schoolPartnerKey
+      ? await getPartnerOrgByKey(schoolPartnerKey, undefined, client)
+      : undefined
+    if (schoolPartnerKey && !newSchoolOrg)
+      throw new Error(`New school org ${schoolPartnerKey} does not exist`)
+
+    const activePartnerOrgInstanceResults = await pgQueries.getPartnerOrgsByStudent.run(
       { studentId },
       client
     )
-    const oldPartnerOrgs = oldPartnerOrgResult.map(v => makeRequired(v))
+    const activePartnerOrgInstances = activePartnerOrgInstanceResults.map(v =>
+      makeSomeRequired(v, ['schoolId'])
+    )
 
-    if (oldPartnerOrgs.length > 1)
-      throw new Error('Student has more than 1 partner org; cannot update')
+    // students may be involved with a partner org and go to a partner school
+    if (activePartnerOrgInstances.length > 2)
+      throw new Error(
+        `Student ${studentId} has more than 2 partner orgs; cannot update`
+      )
 
-    if (oldPartnerOrgs[0].name !== newPartnerOrgData.partnerName) {
+    let activePartnerInstance: StudentPartnerOrgInstance | undefined
+    let activeSchoolInstance: StudentPartnerOrgInstance | undefined
+
+    for (let org of activePartnerOrgInstances) {
+      if (org.schoolId) activeSchoolInstance = org
+      else activePartnerInstance = org
+    }
+
+    /**
+     *
+     * We attempt to deactive the active (partner org or partner school) instance in two cases:
+     * 1. We're removing a partner org and there is an active instance
+     * 2. We're changing the partner org and there is an active instance
+     *
+     */
+    if (
+      (activePartnerInstance && !newPartnerOrg) ||
+      (activePartnerInstance &&
+        newPartnerOrg &&
+        activePartnerInstance.name !== newPartnerOrg.partnerName)
+    ) {
       const updateResult = await pgQueries.adminDeactivateStudentPartnershipInstance.run(
-        { userId: studentId, spoId: oldPartnerOrgs[0].id },
+        { userId: studentId, spoId: activePartnerInstance.id },
         client
       )
+      if (!makeRequired(updateResult[0]).ok)
+        throw new Error(
+          `Deactivating active partner org instance failed for student ${studentId}`
+        )
+    }
+    if (
+      (activeSchoolInstance && !newSchoolOrg) ||
+      (activeSchoolInstance &&
+        newSchoolOrg &&
+        activeSchoolInstance.name !== newSchoolOrg.partnerName)
+    ) {
+      const updateResult = await pgQueries.adminDeactivateStudentPartnershipInstance.run(
+        { userId: studentId, spoId: activeSchoolInstance.id },
+        client
+      )
+      if (!makeRequired(updateResult[0]).ok)
+        throw new Error(
+          `Deactivating active partner org instance failed for student ${studentId}`
+        )
+    }
+
+    /**
+     *
+     * TODO: Remove once the use of `student_partner_org_id` on the `student_profile` table
+     *       is no longer needed. This is legacy and is currently here to achieve dual writes
+     *
+     */
+    await pgQueries.adminUpdateStudentProfile.run(
+      {
+        userId: studentId,
+        partnerOrgId: newPartnerOrg ? newPartnerOrg.partnerId : undefined,
+        partnerOrgSiteId: newPartnerOrg ? newPartnerOrg.siteId : undefined,
+      },
+      client
+    )
+
+    /**
+     *
+     * We attempt to add a new active org (partner org or partner school) instance in two cases:
+     * 1. We're adding a new partner org and there is no active instance
+     * 2. We're changing the partner org
+     *
+     */
+    if (
+      (!activePartnerInstance && newPartnerOrg) ||
+      (newPartnerOrg &&
+        activePartnerInstance &&
+        activePartnerInstance.name !== newPartnerOrg.partnerName)
+    ) {
       const insertResult = await pgQueries.insertStudentPartnershipInstance.run(
         {
           userId: studentId,
-          partnerOrgId: newPartnerOrgData.partnerId,
-          partnerOrgSiteId: newPartnerOrgData.siteId,
+          partnerOrgId: newPartnerOrg.partnerId,
+          partnerOrgSiteId: newPartnerOrg.siteId,
         },
         client
       )
-      if (
-        !(makeRequired(updateResult[0]).ok && makeRequired(insertResult[0]).ok)
-      )
+      if (!makeRequired(insertResult[0]).ok)
         throw new Error(
-          'Deactivating old partner data and inserting new instance failed'
+          `Inserting partner org ${newPartnerOrg.partnerId} instance failed for student ${studentId}`
         )
+    }
+
+    if (
+      (!activeSchoolInstance && newSchoolOrg) ||
+      (newSchoolOrg &&
+        activeSchoolInstance &&
+        activeSchoolInstance.name !== newSchoolOrg.partnerName)
+    ) {
+      const insertResult = await pgQueries.insertStudentPartnershipInstance.run(
+        {
+          userId: studentId,
+          partnerOrgId: newSchoolOrg.partnerId,
+          partnerOrgSiteId: undefined,
+        },
+        client
+      )
+      if (!makeRequired(insertResult[0]).ok)
+        throw new Error(
+          `Inserting school partner org ${newSchoolOrg.partnerId} instance failed for student ${studentId}`
+        )
+
+      if (newSchoolOrg.schoolId) {
+        const updateSchoolResult = await pgQueries.adminUpdateStudentSchool.run(
+          { userId: studentId, schoolId: newSchoolOrg.schoolId },
+          client
+        )
+        if (!makeRequired(updateSchoolResult[0]).ok)
+          throw new Error(
+            `Updating school ${newSchoolOrg.schoolId} failed for student profile ${studentId}`
+          )
+      }
     }
   } catch (err) {
     throw new RepoReadError(`Could not update student partner org: ${err}`)
@@ -388,13 +530,15 @@ export async function adminUpdateStudent(
       transactionClient
     )
 
-    if (update.studentPartnerOrg)
-      await adminUpdateStudentPartnerOrgInstance(
-        studentId,
-        update.studentPartnerOrg,
-        update.partnerSite,
-        transactionClient
-      )
+    console.log('the update bro', update)
+
+    await adminUpdateStudentPartnerOrgInstance(
+      studentId,
+      update.studentPartnerOrg,
+      update.partnerSite,
+      update.partnerSchool,
+      transactionClient
+    )
 
     if (
       !(
@@ -478,18 +622,45 @@ export async function createStudent(
     )
 
     if (studentData.studentPartnerOrg) {
-      const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstance.run(
-        {
-          userId,
-          spoName: studentData.studentPartnerOrg,
-          spoSiteName: studentData.partnerSite,
-        },
+      const partnerOrg = await getPartnerOrgByKey(
+        studentData.studentPartnerOrg,
+        studentData.partnerSite,
         transactionClient
       )
-      if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
-        throw new RepoCreateError(
-          'Could not create student: user partner org instance creation did not return rows'
+
+      if (partnerOrg) {
+        const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstance.run(
+          {
+            userId,
+            spoName: partnerOrg.partnerName,
+            spoSiteName: studentData.partnerSite,
+          },
+          transactionClient
         )
+        if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
+          throw new RepoCreateError(
+            'Could not create student: user partner org instance creation did not return rows'
+          )
+      }
+    }
+
+    if (studentData.approvedHighschool) {
+      const school = await SchoolRepo.getSchool(studentData.approvedHighschool)
+
+      if (school && school.isPartner) {
+        const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstance.run(
+          {
+            userId,
+            spoName: school.name,
+            spoSiteName: undefined,
+          },
+          transactionClient
+        )
+        if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
+          throw new RepoCreateError(
+            'Could not create student: user school partner instance creation did not return rows'
+          )
+      }
     }
 
     if (userResult.length && profileResult.length) {
@@ -734,3 +905,25 @@ export async function deleteSelfFavoritedVolunteers(): Promise<void> {
     throw new RepoDeleteError(err)
   }
 }
+
+export async function getActivePartnersForStudent(
+  studentId: Ulid
+): Promise<StudentPartnerOrgInstance[] | undefined> {
+  try {
+    const result = await pgQueries.getPartnerOrgsByStudent.run(
+      { studentId },
+      getClient()
+    )
+
+    console.log('the result', result)
+
+    if (result.length)
+      return result.map(row => makeSomeRequired(row, ['schoolId']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+// TODOS: when making a school a partner school
+// we need to add the org upchieve instance
+// When creating a new partner org, we need to make the org instance

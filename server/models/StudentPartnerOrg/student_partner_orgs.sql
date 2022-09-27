@@ -25,7 +25,13 @@ SELECT
     high_school_signup,
     college_signup,
     school_signup_required,
-    sites.sites
+    sites.sites,
+    (
+        CASE WHEN school_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_school
 FROM
     student_partner_orgs spo
     LEFT JOIN LATERAL (
@@ -47,7 +53,13 @@ SELECT
     high_school_signup,
     college_signup,
     school_signup_required,
-    sites.sites
+    sites.sites,
+    (
+        CASE WHEN school_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_school
 FROM
     student_partner_orgs spo
     LEFT JOIN LATERAL (
@@ -95,7 +107,7 @@ RETURNING
     student_partner_orgs_upchieve_instances.id AS ok;
 
 
-/* @name migratepPartnerSchoolsToPartnerOrgs */
+/* @name migratePartnerSchoolsToPartnerOrgs */
 INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
 SELECT
     generate_ulid (),

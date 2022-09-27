@@ -192,10 +192,24 @@ RETURNING
     id AS ok;
 
 
+/* @name adminUpdateStudentProfile */
+UPDATE
+    student_profiles
+SET
+    student_partner_org_id = :partnerOrgId,
+    student_partner_org_site_id = :partnerOrgSiteId,
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
+
 /* @name getPartnerOrgsByStudent */
 SELECT
     spo.name,
-    spo.id
+    spo.id,
+    spo.school_id
 FROM
     users_student_partner_orgs_instances uspoi
     JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
@@ -228,6 +242,7 @@ SELECT
     student_partner_orgs.id AS partner_id,
     student_partner_orgs.key AS partner_key,
     student_partner_orgs.name AS partner_name,
+    student_partner_orgs.school_id AS school_id,
     student_partner_org_sites.id AS site_id,
     student_partner_org_sites.name AS site_name
 FROM
@@ -329,23 +344,17 @@ RETURNING
     user_id AS ok;
 
 
-/* @name createUserStudentPartnerOrgInstance */
-INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
+/* @name getActiveStudentOrgInstance */
 SELECT
-    :userId!,
-    spo.id,
-    sposite.id,
-    NOW(),
-    NOW()
+    spo.name,
+    spo.id
 FROM
-    student_partner_orgs spo
-    LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id
+    users_student_partner_orgs_instances uspoi
+    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
 WHERE
-    spo.name = :spoName!
-    AND ((:spoSiteName)::text IS NULL
-        OR (:spoSiteName)::text = sposite.name)
-RETURNING
-    user_id AS ok;
+    uspoi.user_id = :studentId!
+    AND uspoi.student_partner_org_id = :spoId!
+    AND deactivated_on IS NULL;
 
 
 /* @name getSessionReport */
@@ -535,4 +544,28 @@ ORDER BY
 /* @name deleteSelfFavoritedVolunteers */
 DELETE FROM student_favorite_volunteers
 WHERE student_id = volunteer_id;
+
+
+/* @name adminUpdateStudentSchool */
+UPDATE
+    student_profiles
+SET
+    school_id = :schoolId!
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name getActivePartnersForStudent */
+SELECT
+    spo.name,
+    spo.id,
+    spo.school_id
+FROM
+    users_student_partner_orgs_instances uspoi
+    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
+WHERE
+    uspoi.user_id = :studentId!
+    AND deactivated_on IS NOT NULL;
 
