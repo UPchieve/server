@@ -1,5 +1,5 @@
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
-import { USER_BAN_REASONS } from '../../constants'
+import { GRADES, USER_BAN_REASONS } from '../../constants'
 import {
   Reference,
   Certifications,
@@ -58,6 +58,9 @@ export type LegacyUserModel = {
   elapsedAvailability?: number
   references?: Reference[]
   photoIdStatus?: string
+  // student
+  gradeLevel: GRADES
+  schoolName: string
 }
 
 export async function getLegacyUserObject(
