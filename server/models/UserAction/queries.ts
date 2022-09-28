@@ -1,7 +1,12 @@
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired, makeSomeRequired } from '../pgUtils'
-import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
+import {
+  RepoReadError,
+  RepoCreateError,
+  RepoUpdateError,
+  RepoDeleteError,
+} from '../Errors'
 import { UserActionAgent, QuizzesPassedForDateRange } from './types'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -227,5 +232,16 @@ export async function createAdminAction(
       throw new Error('insertion of admin user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function deleteSelfFavoritedVolunteersActions(): Promise<void> {
+  try {
+    await pgQueries.deleteSelfFavoritedVolunteersActions.run(
+      undefined,
+      getClient()
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
