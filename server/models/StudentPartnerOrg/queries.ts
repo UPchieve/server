@@ -166,7 +166,7 @@ export async function createSchoolStudentPartnerOrg(
       client || getClient()
     )
 
-    await pgQueries.insertStudentPartnerOrgUpchieveInstance.run(
+    await pgQueries.createStudentPartnerOrgInstance.run(
       { spoName: schoolName },
       client || getClient()
     )
