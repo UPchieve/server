@@ -107,6 +107,54 @@ RETURNING
     student_partner_orgs_upchieve_instances.id AS ok;
 
 
+/* @name createStudentPartnerOrgInstance */
+INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    spo.id,
+    spo.created_at,
+    NOW()
+FROM
+    student_partner_orgs spo
+WHERE
+    spo.name = :spoName!;
+
+
+/* @name createSchoolStudentPartnerOrg */
+INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),
+    schools.name,
+    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),
+    TRUE,
+    FALSE,
+    TRUE,
+    COALESCE(schools.id, NULL),
+    NOW(),
+    NOW()
+FROM
+    schools
+WHERE
+    partner IS TRUE
+    AND name = :schoolName!;
+
+
+/* @name deactivateStudentPartnerOrg */
+UPDATE
+    student_partner_orgs_upchieve_instances
+SET
+    deactivated_on = NOW(),
+    updated_at = NOW()
+FROM
+    student_partner_orgs spo
+WHERE
+    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
+    AND spo.name = :spoName!
+RETURNING
+    student_partner_orgs_upchieve_instances.id AS ok;
+
+
 /* @name migratePartnerSchoolsToPartnerOrgs */
 INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
 SELECT

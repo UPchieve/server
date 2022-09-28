@@ -155,3 +155,40 @@ export async function migrateExistingPartnerSchoolRelationships(
     )
   }
 }
+
+export async function createSchoolStudentPartnerOrg(
+  schoolName: string,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.createSchoolStudentPartnerOrg.run(
+      { schoolName },
+      client || getClient()
+    )
+
+    await pgQueries.insertStudentPartnerOrgUpchieveInstance.run(
+      { spoName: schoolName },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to create school partner ${schoolName} and partner instance: ${err}`
+    )
+  }
+}
+
+export async function deactivateStudentPartnerOrg(
+  spoName: string,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.deactivateStudentPartnerOrg.run(
+      { spoName },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to deactivate student partner org ${spoName}: ${err}`
+    )
+  }
+}

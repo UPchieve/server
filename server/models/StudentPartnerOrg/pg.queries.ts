@@ -263,6 +263,119 @@ const backfillStudentPartnerOrgStartDatesIR: any = {"name":"backfillStudentPartn
 export const backfillStudentPartnerOrgStartDates = new PreparedQuery<IBackfillStudentPartnerOrgStartDatesParams,IBackfillStudentPartnerOrgStartDatesResult>(backfillStudentPartnerOrgStartDatesIR);
 
 
+/** 'CreateStudentPartnerOrgInstance' parameters type */
+export interface ICreateStudentPartnerOrgInstanceParams {
+  spoName: string;
+}
+
+/** 'CreateStudentPartnerOrgInstance' return type */
+export type ICreateStudentPartnerOrgInstanceResult = void;
+
+/** 'CreateStudentPartnerOrgInstance' query type */
+export interface ICreateStudentPartnerOrgInstanceQuery {
+  params: ICreateStudentPartnerOrgInstanceParams;
+  result: ICreateStudentPartnerOrgInstanceResult;
+}
+
+const createStudentPartnerOrgInstanceIR: any = {"name":"createStudentPartnerOrgInstance","params":[{"name":"spoName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2595,"b":2602,"line":120,"col":16}]}}],"usedParamSet":{"spoName":true},"statement":{"body":"INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.name = :spoName!","loc":{"a":2363,"b":2602,"line":111,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     spo.id,
+ *     spo.created_at,
+ *     NOW()
+ * FROM
+ *     student_partner_orgs spo
+ * WHERE
+ *     spo.name = :spoName!
+ * ```
+ */
+export const createStudentPartnerOrgInstance = new PreparedQuery<ICreateStudentPartnerOrgInstanceParams,ICreateStudentPartnerOrgInstanceResult>(createStudentPartnerOrgInstanceIR);
+
+
+/** 'CreateSchoolStudentPartnerOrg' parameters type */
+export interface ICreateSchoolStudentPartnerOrgParams {
+  schoolName: string;
+}
+
+/** 'CreateSchoolStudentPartnerOrg' return type */
+export type ICreateSchoolStudentPartnerOrgResult = void;
+
+/** 'CreateSchoolStudentPartnerOrg' query type */
+export interface ICreateSchoolStudentPartnerOrgQuery {
+  params: ICreateSchoolStudentPartnerOrgParams;
+  result: ICreateSchoolStudentPartnerOrgResult;
+}
+
+const createSchoolStudentPartnerOrgIR: any = {"name":"createSchoolStudentPartnerOrg","params":[{"name":"schoolName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3102,"b":3112,"line":140,"col":16}]}}],"usedParamSet":{"schoolName":true},"statement":{"body":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    COALESCE(schools.id, NULL),\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!","loc":{"a":2649,"b":3112,"line":124,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),
+ *     schools.name,
+ *     TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),
+ *     TRUE,
+ *     FALSE,
+ *     TRUE,
+ *     COALESCE(schools.id, NULL),
+ *     NOW(),
+ *     NOW()
+ * FROM
+ *     schools
+ * WHERE
+ *     partner IS TRUE
+ *     AND name = :schoolName!
+ * ```
+ */
+export const createSchoolStudentPartnerOrg = new PreparedQuery<ICreateSchoolStudentPartnerOrgParams,ICreateSchoolStudentPartnerOrgResult>(createSchoolStudentPartnerOrgIR);
+
+
+/** 'DeactivateStudentPartnerOrg' parameters type */
+export interface IDeactivateStudentPartnerOrgParams {
+  spoName: string;
+}
+
+/** 'DeactivateStudentPartnerOrg' return type */
+export interface IDeactivateStudentPartnerOrgResult {
+  ok: string;
+}
+
+/** 'DeactivateStudentPartnerOrg' query type */
+export interface IDeactivateStudentPartnerOrgQuery {
+  params: IDeactivateStudentPartnerOrgParams;
+  result: IDeactivateStudentPartnerOrgResult;
+}
+
+const deactivateStudentPartnerOrgIR: any = {"name":"deactivateStudentPartnerOrg","params":[{"name":"spoName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3399,"b":3406,"line":153,"col":20}]}}],"usedParamSet":{"spoName":true},"statement":{"body":"UPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id\n    AND spo.name = :spoName!\nRETURNING\n    student_partner_orgs_upchieve_instances.id AS ok","loc":{"a":3157,"b":3469,"line":144,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     student_partner_orgs_upchieve_instances
+ * SET
+ *     deactivated_on = NOW(),
+ *     updated_at = NOW()
+ * FROM
+ *     student_partner_orgs spo
+ * WHERE
+ *     spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
+ *     AND spo.name = :spoName!
+ * RETURNING
+ *     student_partner_orgs_upchieve_instances.id AS ok
+ * ```
+ */
+export const deactivateStudentPartnerOrg = new PreparedQuery<IDeactivateStudentPartnerOrgParams,IDeactivateStudentPartnerOrgResult>(deactivateStudentPartnerOrgIR);
+
+
 /** 'MigratePartnerSchoolsToPartnerOrgs' parameters type */
 export interface IMigratePartnerSchoolsToPartnerOrgsParams {
   createdAt: Date;
@@ -278,7 +391,7 @@ export interface IMigratePartnerSchoolsToPartnerOrgsQuery {
   result: IMigratePartnerSchoolsToPartnerOrgsResult;
 }
 
-const migratePartnerSchoolsToPartnerOrgsIR: any = {"name":"migratePartnerSchoolsToPartnerOrgs","params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2728,"b":2737,"line":121,"col":5}]}},{"name":"schoolName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2809,"b":2819,"line":127,"col":16}]}}],"usedParamSet":{"createdAt":true,"schoolName":true},"statement":{"body":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    schools.id,\n    :createdAt!,\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!","loc":{"a":2366,"b":2819,"line":111,"col":0}}};
+const migratePartnerSchoolsToPartnerOrgsIR: any = {"name":"migratePartnerSchoolsToPartnerOrgs","params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3883,"b":3892,"line":169,"col":5}]}},{"name":"schoolName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3964,"b":3974,"line":175,"col":16}]}}],"usedParamSet":{"createdAt":true,"schoolName":true},"statement":{"body":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    schools.id,\n    :createdAt!,\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!","loc":{"a":3521,"b":3974,"line":159,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -317,7 +430,7 @@ export interface IMigrateExistingStudentPartnerOrgRelationshipsQuery {
   result: IMigrateExistingStudentPartnerOrgRelationshipsResult;
 }
 
-const migrateExistingStudentPartnerOrgRelationshipsIR: any = {"name":"migrateExistingStudentPartnerOrgRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    sp.student_partner_org_site_id,\n    sp.student_partner_org_user_id,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\nWHERE\n    sp.student_partner_org_id IS NOT NULL","loc":{"a":2882,"b":3315,"line":131,"col":0}}};
+const migrateExistingStudentPartnerOrgRelationshipsIR: any = {"name":"migrateExistingStudentPartnerOrgRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    sp.student_partner_org_site_id,\n    sp.student_partner_org_user_id,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\nWHERE\n    sp.student_partner_org_id IS NOT NULL","loc":{"a":4037,"b":4470,"line":179,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -352,7 +465,7 @@ export interface IMigrateExistingPartnerSchoolRelationshipsQuery {
   result: IMigrateExistingPartnerSchoolRelationshipsResult;
 }
 
-const migrateExistingPartnerSchoolRelationshipsIR: any = {"name":"migrateExistingPartnerSchoolRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    NULL,\n    NULL,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\n    JOIN student_partner_orgs spo ON spo.school_id = sp.school_id","loc":{"a":3374,"b":3773,"line":147,"col":0}}};
+const migrateExistingPartnerSchoolRelationshipsIR: any = {"name":"migrateExistingPartnerSchoolRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    NULL,\n    NULL,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\n    JOIN student_partner_orgs spo ON spo.school_id = sp.school_id","loc":{"a":4529,"b":4928,"line":195,"col":0}}};
 
 /**
  * Query generated from SQL:
