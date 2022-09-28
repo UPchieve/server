@@ -19,6 +19,7 @@ build:
   cache: {}
   tags:
     - upchieve
+    - containerbuild
   variables:
     DOCKER_TLS_CERTDIR: ""
   services:
