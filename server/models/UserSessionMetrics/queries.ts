@@ -78,7 +78,7 @@ export async function executeUSMUpdatesByUserId(
         personalIdentifyingInfo: update['personalIdentifyingInfo'],
         gradedAssignment: update['gradedAssignment'],
         coachUncomfortable: update['coachUncomfortable'],
-        studentCrisis: update['studentCrisis']
+        studentCrisis: update['studentCrisis'],
       },
       getClient()
     )
