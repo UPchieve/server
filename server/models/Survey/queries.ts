@@ -249,7 +249,7 @@ export async function getPresessionSurveyResponse(
 }
 
 export type PostsessionSurveyResponse = {
-  questionText: string
+  displayLabel: string
   response: string
   displayOrder: number
 }

@@ -246,7 +246,7 @@ ORDER BY
 
 /* @name getStudentPostsessionSurveyResponse */
 SELECT
-    sq.question_text,
+    sq.question_text AS display_label,
     (
         CASE WHEN src.choice_text = 'Other' THEN
             uss.open_response
@@ -274,7 +274,7 @@ ORDER BY
 
 /* @name getVolunteerPostsessionSurveyResponse */
 SELECT
-    sq.question_text,
+    sq.question_text AS display_label,
     (
         CASE WHEN src.choice_text = 'Other' THEN
             uss.open_response

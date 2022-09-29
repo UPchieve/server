@@ -492,9 +492,8 @@ export interface IGetStudentPostsessionSurveyResponseParams {
 
 /** 'GetStudentPostsessionSurveyResponse' return type */
 export interface IGetStudentPostsessionSurveyResponseResult {
-  displayImage: string | null;
+  displayLabel: string;
   displayOrder: number;
-  questionText: string;
   response: string | null;
 }
 
@@ -504,21 +503,20 @@ export interface IGetStudentPostsessionSurveyResponseQuery {
   result: IGetStudentPostsessionSurveyResponseResult;
 }
 
-const getStudentPostsessionSurveyResponseIR: any = {"name":"getStudentPostsessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9332,"b":9341,"line":268,"col":21},{"a":9359,"b":9368,"line":269,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n\tsq.question_text,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON s.student_id = us.user_id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    and st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":8424,"b":9438,"line":247,"col":0}}};
+const getStudentPostsessionSurveyResponseIR: any = {"name":"getStudentPostsessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9313,"b":9322,"line":268,"col":21},{"a":9340,"b":9349,"line":269,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sq.question_text as display_label,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    ssq.display_priority AS display_order\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON s.student_id = us.user_id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":8425,"b":9419,"line":248,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- * 	sq.question_text,
+ *     sq.question_text as display_label,
  *     (
  *         CASE WHEN src.choice_text = 'Other' THEN
  *             uss.open_response
  *         ELSE
  *             src.choice_text
  *         END) AS response,
- *     ssq.display_priority AS display_order,
- *     src.display_image AS display_image
+ *     ssq.display_priority AS display_order
  * FROM
  *     upchieve.users_surveys AS us
  *     JOIN upchieve.sessions AS s ON s.student_id = us.user_id
@@ -532,7 +530,7 @@ const getStudentPostsessionSurveyResponseIR: any = {"name":"getStudentPostsessio
  * WHERE
  *     us.session_id = :sessionId!
  *     AND s.id = :sessionId!
- *     and st.name = 'postsession'
+ *     AND st.name = 'postsession'
  * ORDER BY
  *     ssq.display_priority ASC
  * ```
@@ -547,9 +545,8 @@ export interface IGetVolunteerPostsessionSurveyResponseParams {
 
 /** 'GetVolunteerPostsessionSurveyResponse' return type */
 export interface IGetVolunteerPostsessionSurveyResponseResult {
-  displayImage: string | null;
+  displayLabel: string;
   displayOrder: number;
-  questionText: string;
   response: string | null;
 }
 
@@ -559,21 +556,20 @@ export interface IGetVolunteerPostsessionSurveyResponseQuery {
   result: IGetVolunteerPostsessionSurveyResponseResult;
 }
 
-const getVolunteerPostsessionSurveyResponseIR: any = {"name":"getVolunteerPostsessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10403,"b":10412,"line":297,"col":21},{"a":10430,"b":10439,"line":298,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n\tsq.question_text,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON s.volunteer_id = us.user_id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    and st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":9493,"b":10509,"line":276,"col":0}}};
+const getVolunteerPostsessionSurveyResponseIR: any = {"name":"getVolunteerPostsessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10364,"b":10373,"line":296,"col":21},{"a":10391,"b":10400,"line":297,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sq.question_text as display_label,\n    (\n        CASE WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    ssq.display_priority AS display_order\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON s.volunteer_id = us.user_id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":9474,"b":10470,"line":276,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- * 	sq.question_text,
+ *     sq.question_text as display_label,
  *     (
  *         CASE WHEN src.choice_text = 'Other' THEN
  *             uss.open_response
  *         ELSE
  *             src.choice_text
  *         END) AS response,
- *     ssq.display_priority AS display_order,
- *     src.display_image AS display_image
+ *     ssq.display_priority AS display_order
  * FROM
  *     upchieve.users_surveys AS us
  *     JOIN upchieve.sessions AS s ON s.volunteer_id = us.user_id
@@ -587,7 +583,7 @@ const getVolunteerPostsessionSurveyResponseIR: any = {"name":"getVolunteerPostse
  * WHERE
  *     us.session_id = :sessionId!
  *     AND s.id = :sessionId!
- *     and st.name = 'postsession'
+ *     AND st.name = 'postsession'
  * ORDER BY
  *     ssq.display_priority ASC
  * ```
