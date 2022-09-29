@@ -23,7 +23,13 @@ import {
   getSessionNotificationsWithSessionId,
   SessionNotification,
 } from '../Notification'
-import { getPresessionSurveyResponse, getPostsessionSurveyResponse, PresessionSurveyResponseData, PostsessionSurveyResponse, StudentPresessionSurveyResponse } from '../Survey'
+import {
+  getPresessionSurveyResponse,
+  getPostsessionSurveyResponse,
+  PresessionSurveyResponseData,
+  PostsessionSurveyResponse,
+  StudentPresessionSurveyResponse,
+} from '../Survey'
 import { USER_ROLES_TYPE } from '../../constants'
 
 export type NotificationData = {
@@ -475,8 +481,8 @@ export type SessionByIdWithStudentAndVolunteer = {
   endedBy?: Ulid
   feedbacks?: Feedback // need this to display legacy feedback from before context sharing
   surveyResponses: {
-    presessionSurvey: StudentPresessionSurveyResponse[],
-    studentPostsessionSurvey: PostsessionSurveyResponse[],
+    presessionSurvey: StudentPresessionSurveyResponse[]
+    studentPostsessionSurvey: PostsessionSurveyResponse[]
     volunteerPostsessionSurvey: PostsessionSurveyResponse[]
   }
   userAgent?: Partial<UserActionAgent>
@@ -551,8 +557,14 @@ export async function getSessionByIdWithStudentAndVolunteer(
     const messages = await getMessagesForFrontend(sessionId, client)
     const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
     const presessionSurvey = await getPresessionSurveyResponse(sessionId)
-    const studentPostsessionSurvey = await getPostsessionSurveyResponse(sessionId, USER_ROLES.STUDENT)
-    const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(sessionId, USER_ROLES.VOLUNTEER)
+    const studentPostsessionSurvey = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.STUDENT
+    )
+    const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.VOLUNTEER
+    )
     const notifications = await getSessionNotificationsWithSessionId(sessionId)
 
     return {
@@ -564,7 +576,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       surveyResponses: {
         presessionSurvey,
         studentPostsessionSurvey,
-        volunteerPostsessionSurvey
+        volunteerPostsessionSurvey,
       },
       _id: session.id,
       userAgent,

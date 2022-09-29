@@ -243,9 +243,10 @@ WHERE
 ORDER BY
     ssq.display_priority ASC;
 
+
 /* @name getStudentPostsessionSurveyResponse */
 SELECT
-	sq.question_text,
+    sq.question_text,
     (
         CASE WHEN src.choice_text = 'Other' THEN
             uss.open_response
@@ -266,14 +267,14 @@ FROM
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
-    and st.name = 'postsession'
+    AND st.name = 'postsession'
 ORDER BY
     ssq.display_priority ASC;
 
 
 /* @name getVolunteerPostsessionSurveyResponse */
 SELECT
-	sq.question_text,
+    sq.question_text,
     (
         CASE WHEN src.choice_text = 'Other' THEN
             uss.open_response
@@ -294,6 +295,7 @@ FROM
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
-    and st.name = 'postsession'
+    AND st.name = 'postsession'
 ORDER BY
     ssq.display_priority ASC;
+
