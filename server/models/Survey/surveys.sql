@@ -248,7 +248,7 @@ ORDER BY
 SELECT
     sq.question_text AS display_label,
     (
-        CASE WHEN src.choice_text = 'Other' THEN
+        CASE WHEN (src.choice_text = 'Other' OR qt.name = 'free response') THEN
             uss.open_response
         ELSE
             src.choice_text
@@ -264,6 +264,7 @@ FROM
     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
+    LEFT JOIN upchieve.question_types as qt ON qt.id = sq.question_type_id
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
@@ -276,7 +277,7 @@ ORDER BY
 SELECT
     sq.question_text AS display_label,
     (
-        CASE WHEN src.choice_text = 'Other' THEN
+        CASE WHEN (src.choice_text = 'Other' OR qt.name = 'free response') THEN
             uss.open_response
         ELSE
             src.choice_text
@@ -292,6 +293,7 @@ FROM
     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
+    LEFT JOIN upchieve.question_types as qt ON qt.id = sq.question_type_id
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
