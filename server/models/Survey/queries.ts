@@ -13,7 +13,7 @@ import {
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import _ from 'lodash'
-import { USER_ROLES_TYPE } from '../../constants'
+import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -247,3 +247,37 @@ export async function getPresessionSurveyResponse(
     throw new RepoReadError(err)
   }
 }
+
+export type PostsessionSurveyResponse = {
+  questionText: string
+  response: string
+  displayOrder: number
+}
+
+export async function getPostsessionSurveyResponse(
+  sessionId: string,
+  userRole: USER_ROLES_TYPE
+): Promise<PostsessionSurveyResponse[]> {
+  try {
+    if (userRole === USER_ROLES.STUDENT) {
+      const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
+        { sessionId },
+        getClient()
+      )
+      if (result.length)
+        return result.map(row => makeSomeRequired(row, ['displayImage']))
+      return []
+    } else {
+      const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
+        { sessionId },
+        getClient()
+      )
+      if (result.length)
+        return result.map(row => makeSomeRequired(row, ['displayImage']))
+      return []
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
