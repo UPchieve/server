@@ -294,7 +294,8 @@ WITH replacement_column_cte AS (
 SELECT
     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
     (
-        CASE WHEN (src.choice_text = 'Other' OR qt.name = 'free response') THEN
+        CASE WHEN (src.choice_text = 'Other'
+            OR qt.name = 'free response') THEN
             uss.open_response
         ELSE
             src.choice_text
@@ -311,8 +312,8 @@ FROM
     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
-    LEFT JOIN upchieve.question_types as qt ON qt.id = sq.question_type_id
-        JOIN replacement_column_cte rcc ON rcc.id = sq.id
+    LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
+    JOIN replacement_column_cte rcc ON rcc.id = sq.id
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
@@ -371,7 +372,8 @@ WITH replacement_column_cte AS (
 SELECT
     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
     (
-        CASE WHEN (src.choice_text = 'Other' OR qt.name = 'free response') THEN
+        CASE WHEN (src.choice_text = 'Other'
+            OR qt.name = 'free response') THEN
             uss.open_response
         ELSE
             src.choice_text
@@ -388,7 +390,7 @@ FROM
     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
-    LEFT JOIN upchieve.question_types as qt ON qt.id = sq.question_type_id
+    LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
     JOIN replacement_column_cte rcc ON rcc.id = sq.id
 WHERE
     us.session_id = :sessionId!
