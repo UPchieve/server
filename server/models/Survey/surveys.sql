@@ -299,6 +299,7 @@ SELECT
         ELSE
             src.choice_text
         END) AS response,
+    COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order
 FROM
     upchieve.users_surveys AS us
@@ -375,6 +376,7 @@ SELECT
         ELSE
             src.choice_text
         END) AS response,
+    COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order
 FROM
     upchieve.users_surveys AS us

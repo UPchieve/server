@@ -251,6 +251,7 @@ export async function getPresessionSurveyResponse(
 export type PostsessionSurveyResponse = {
   displayLabel: string
   response: string
+  score: number
   displayOrder: number
 }
 
