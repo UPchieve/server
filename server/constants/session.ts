@@ -5,12 +5,16 @@ export enum USER_SESSION_METRICS {
   lowSessionRatingFromStudent = 'Low session rating from student',
   lowCoachRatingFromStudent = 'Low coach rating from student',
   reported = 'Reported',
-  onlyLookingForAnswers = 'Only looking for answers',
-  rudeOrInappropriate = 'Rude or inappropriate',
+  onlyLookingForAnswers = 'Pressuring coach',
+  rudeOrInappropriate = 'Mean or inappropriate',
   commentFromStudent = 'Comment from student',
   commentFromVolunteer = 'Comment from volunteer',
   hasBeenUnmatched = 'Has been unmatched',
   hasHadTechnicalIssues = 'Has had technical issues',
+  personalIdentifyingInfo = 'PII',
+  gradedAssignment = 'Graded assignment',
+  coachUncomfortable = 'Coach uncomfortable',
+  studentCrisis = 'Student in distress',
 }
 
 // amount of volunteers to text notifications to per session

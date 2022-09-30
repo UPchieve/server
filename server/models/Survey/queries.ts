@@ -12,7 +12,7 @@ import {
   SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
-import _ from 'lodash'
+import _, { result } from 'lodash'
 import { USER_ROLES_TYPE } from '../../constants'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
@@ -232,6 +232,18 @@ export type StudentPresessionSurveyResponse = {
   displayOrder: number
 }
 
+export type PostsessionSurveyResponse = {
+  userSurveyId: Ulid
+  type: string
+  subTopic: string
+  userId: Ulid
+  userRole: string
+  sessionId: Ulid
+  questionText: string
+  choiceText: string
+  score: number
+}
+
 export async function getPresessionSurveyResponse(
   sessionId: string
 ): Promise<StudentPresessionSurveyResponse[]> {
@@ -242,6 +254,21 @@ export async function getPresessionSurveyResponse(
     )
     if (result.length)
       return result.map(row => makeSomeRequired(row, ['displayImage']))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPostsessionSurveyResponses(
+  sessionId: string
+): Promise<PostsessionSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getPostsessionSurveyResponses.run(
+      { sessionId },
+      getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
     return []
   } catch (err) {
     throw new RepoReadError(err)
