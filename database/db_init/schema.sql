@@ -1756,7 +1756,11 @@ CREATE TABLE upchieve.user_session_metrics (
     has_been_unmatched integer DEFAULT 0 NOT NULL,
     has_had_technical_issues integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    personal_identifying_info integer DEFAULT 0 NOT NULL,
+    graded_assignment integer DEFAULT 0 NOT NULL,
+    coach_uncomfortable integer DEFAULT 0 NOT NULL,
+    student_crisis integer DEFAULT 0 NOT NULL
 );
 
 
@@ -4569,4 +4573,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220815150518'),
     ('20220830164711'),
     ('20220830180659'),
-    ('20220901190221');
+    ('20220901190221'),
+    ('20220916002003');

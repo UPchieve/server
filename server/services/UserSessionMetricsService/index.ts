@@ -30,6 +30,10 @@ import {
   CounterMetricProcessor,
 } from './types'
 import { asString } from '../../utils/type-utils'
+import {
+  getPostsessionSurveyResponses,
+  PostsessionSurveyResponse,
+} from '../../models/Survey'
 
 export interface MetricProcessorPayload {
   session: Session
@@ -55,13 +59,15 @@ export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
     feedback,
     studentUSM,
     volunteerUSM,
+    surveyResponses,
   } = await getValuesToPrepareMetrics(sessionId)
   const payload = await prepareMetrics(
     SESSION_METRICS_PROCESSORS,
     session,
     studentUSM,
     feedback,
-    volunteerUSM
+    volunteerUSM,
+    surveyResponses
   )
   emitter.emit(USM_EVENTS.SESSION_PROCESSORS_READY, payload)
 }
@@ -69,20 +75,22 @@ export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
 // registered as listener on feedback-saved
 export async function prepareFeedbackProcessors(
   sessionId: Ulid,
-  feedbackId: Ulid
+  feedbackId?: Ulid
 ): Promise<void> {
   const {
     session,
     feedback,
     studentUSM,
     volunteerUSM,
+    surveyResponses,
   } = await getValuesToPrepareMetrics(sessionId, feedbackId)
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
     session,
     studentUSM,
     feedback,
-    volunteerUSM
+    volunteerUSM,
+    surveyResponses
   )
   emitter.emit(USM_EVENTS.FEEDBACK_PROCESSORS_READY, payload)
 }
@@ -94,13 +102,16 @@ export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
     feedback,
     studentUSM,
     volunteerUSM,
+    surveyResponses,
   } = await getValuesToPrepareMetrics(asString(sessionId))
+
   const payload = await prepareMetrics(
     REPORT_METRICS_PROCESSORS,
     session,
     studentUSM,
     feedback,
-    volunteerUSM
+    volunteerUSM,
+    surveyResponses
   )
   emitter.emit(USM_EVENTS.REPORT_PROCESSORS_READY, payload)
 }
@@ -113,30 +124,54 @@ export async function getValuesToPrepareMetrics(
   feedback?: Feedback
   studentUSM: UserSessionMetrics
   volunteerUSM?: UserSessionMetrics
+  surveyResponses?: PostsessionSurveyResponse[]
 }> {
   const session = await getSessionById(sessionId)
-  const feedback = feedbackId
-    ? ((await getFeedbackById(feedbackId)) as Feedback)
-    : undefined
-  const uvd = { session, feedback } as UpdateValueData
+  // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
+  if (feedbackId) {
+    const feedback = (await getFeedbackById(feedbackId)) as Feedback
+    const uvd = { session, feedback } as UpdateValueData
 
-  const studentUSM = await getUSMByUserId(uvd.session.studentId)
-  if (!studentUSM)
-    throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
-  let volunteerUSM: UserSessionMetrics | undefined
-  if (uvd.session.volunteerId) {
-    volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
-    if (!volunteerUSM)
-      throw new Error(
-        `Could not find USM for volunteer ${uvd.session.volunteerId}`
-      )
-  }
+    const studentUSM = await getUSMByUserId(uvd.session.studentId)
+    if (!studentUSM)
+      throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
+    let volunteerUSM: UserSessionMetrics | undefined
+    if (uvd.session.volunteerId) {
+      volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
+      if (!volunteerUSM)
+        throw new Error(
+          `Could not find USM for volunteer ${uvd.session.volunteerId}`
+        )
+    }
 
-  return {
-    session,
-    feedback,
-    studentUSM,
-    volunteerUSM,
+    return {
+      session,
+      feedback,
+      studentUSM,
+      volunteerUSM,
+    }
+    // TODO: this handles new postsession survey, delete above once postsession goes live
+  } else {
+    const surveyResponses = await getPostsessionSurveyResponses(sessionId)
+    const uvd = { session } as UpdateValueData
+
+    const studentUSM = await getUSMByUserId(uvd.session.studentId)
+    if (!studentUSM)
+      throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
+    let volunteerUSM: UserSessionMetrics | undefined
+    if (uvd.session.volunteerId) {
+      volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
+      if (!volunteerUSM)
+        throw new Error(
+          `Could not find USM for volunteer ${uvd.session.volunteerId}`
+        )
+    }
+    return {
+      session,
+      studentUSM,
+      volunteerUSM,
+      surveyResponses,
+    }
   }
 }
 
@@ -145,11 +180,11 @@ export async function prepareMetrics(
   session: Session,
   studentUSM: UserSessionMetrics,
   feedback?: Feedback,
-  volunteerUSM?: UserSessionMetrics
+  volunteerUSM?: UserSessionMetrics,
+  surveyResponses?: PostsessionSurveyResponse[]
 ): Promise<MetricProcessorPayload> {
   const messages = await getMessagesForFrontend(session.id)
-  const uvd = { session, feedback, messages }
-
+  const uvd = { session, feedback, messages, surveyResponses }
   const outputs: MetricProcessorOutputs = {}
   for (const metric of metrics) {
     try {

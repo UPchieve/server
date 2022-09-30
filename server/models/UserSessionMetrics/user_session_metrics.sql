@@ -26,6 +26,10 @@ RETURNING
     has_been_unmatched,
     has_had_technical_issues,
     reported,
+    personal_identifying_info,
+    graded_assignment,
+    coach_uncomfortable,
+    student_crisis,
     created_at,
     updated_at;
 
@@ -45,6 +49,10 @@ SELECT
     has_been_unmatched,
     has_had_technical_issues,
     reported,
+    personal_identifying_info,
+    graded_assignment,
+    coach_uncomfortable,
+    student_crisis,
     created_at,
     updated_at
 FROM
@@ -68,6 +76,10 @@ SET
     comment_from_volunteer = COALESCE(:commentFromVolunteer!, comment_from_volunteer),
     has_been_unmatched = COALESCE(:hasBeenUnmatched!, has_been_unmatched),
     has_had_technical_issues = COALESCE(:hasHadTechnicalIssues!, has_had_technical_issues),
+    personal_identifying_info = COALESCE(:personalIdentifyingInfo!, personal_identifying_info),
+    graded_assignment = COALESCE(:gradedAssignment!, graded_assignment),
+    coach_uncomfortable = COALESCE(:coachUncomfortable!, coach_uncomfortable),
+    student_crisis = COALESCE(:studentCrisis!, student_crisis),
     reported = COALESCE(:reported!, reported),
     updated_at = NOW()
 WHERE
