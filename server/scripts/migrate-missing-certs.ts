@@ -23,8 +23,8 @@ async function main() {
 
     // Get all volunteers from MongoDB
     const cursor = usersCollection
-      .find({ isVolunteer: true })
-      .project({ _id: 1, certifications: 1 })
+      .find({ isVolunteer: true, 'certifications.calculusAB.passed': true })
+      .project({ _id: 1, 'certifications.calculusAB': 1 })
     for await (const doc of cursor) {
       // We need to stringify _id because it is type ObjectId
       // We're grabbing the volunteer using mongo's _id
