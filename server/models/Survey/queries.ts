@@ -250,7 +250,7 @@ export async function getPresessionSurveyResponse(
 
 export type PostsessionSurveyResponse = {
   displayLabel: string
-  response: string
+  response?: string
   score: number
   displayOrder: number
 }
@@ -266,9 +266,7 @@ export async function getPostsessionSurveyResponse(
         getClient()
       )
       if (result.length)
-        return result.map(row =>
-          makeSomeRequired(row, ['response', 'displayImage'])
-        )
+        return result.map(row => makeSomeRequired(row, ['response']))
       return []
     } else {
       const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
@@ -276,9 +274,7 @@ export async function getPostsessionSurveyResponse(
         getClient()
       )
       if (result.length)
-        return result.map(row =>
-          makeSomeRequired(row, ['response', 'displayImage'])
-        )
+        return result.map(row => makeSomeRequired(row, ['response']))
       return []
     }
   } catch (err) {
