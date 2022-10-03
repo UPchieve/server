@@ -598,29 +598,6 @@ describe('Metrics have correct "triggerActions" functions', () => {
     })
   })
 
-  describe('HasHadTechnicalIssues', () => {
-    test('Queue an tech issue apology email to the both student and volunteer when a tech issue is submitted for their session', () => {
-      const studentUSM = buildUSM(student._id, { hasHadTechnicalIssues: 2 })
-      const volunteerUSM = buildUSM(student._id, { hasHadTechnicalIssues: 0 })
-      const payload = {
-        session,
-        studentUSM,
-        volunteerUSM,
-        value: 1,
-      } as ProcessorData<Counter>
-
-      const processor = METRIC_PROCESSORS.HasHadTechnicalIssues
-      const result = processor.triggerActions(payload)
-      expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailTechIssueApology,
-        {
-          studentId: session.student,
-          volunteerId: session.volunteer,
-        }
-      )
-      expect(result).toHaveLength(1)
-    })
-
     test('Should return empty list of actions if no technical issue was submitted for the session', () => {
       const studentUSM = buildUSM(student._id, { hasHadTechnicalIssues: 2 })
       const volunteerUSM = buildUSM(student._id, { hasHadTechnicalIssues: 3 })

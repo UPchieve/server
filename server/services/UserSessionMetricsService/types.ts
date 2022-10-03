@@ -3,11 +3,13 @@ import { Session, MessageForFrontend } from '../../models/Session'
 import { Feedback } from '../../models/Feedback'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 import { USER_SESSION_METRICS } from '../../constants'
+import { PostsessionSurveyResponse } from '../../models/Survey'
 
 export interface UpdateValueData {
   session: Session // a completed session
   messages: MessageForFrontend[]
-  feedback?: Feedback // prepopulate the feedback
+  feedback?: Feedback // prepopulate the feedback TODO: this is old feedback, not new, delete once postsession updated
+  surveyResponses?: PostsessionSurveyResponse[] // postsession feedback
 }
 
 export interface ProcessorData {
