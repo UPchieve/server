@@ -209,10 +209,12 @@ RETURNING
 SELECT
     spo.name,
     spo.id,
-    spo.school_id
+    spo.school_id,
+    sposite.name AS site_name
 FROM
     users_student_partner_orgs_instances uspoi
     JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
+    LEFT JOIN student_partner_org_sites sposite ON sposite.id = uspoi.student_partner_org_site_id
 WHERE
     uspoi.user_id = :studentId!
     AND deactivated_on IS NULL;

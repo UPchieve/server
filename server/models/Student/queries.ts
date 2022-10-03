@@ -345,6 +345,7 @@ export type StudentPartnerOrgInstance = {
   name: string
   id: Ulid
   schoolId?: Ulid
+  siteName?: string
 }
 
 async function adminUpdateStudentPartnerOrgInstance(
@@ -372,7 +373,7 @@ async function adminUpdateStudentPartnerOrgInstance(
       client
     )
     const activePartnerOrgInstances = activePartnerOrgInstanceResults.map(v =>
-      makeSomeRequired(v, ['schoolId'])
+      makeSomeRequired(v, ['schoolId', 'siteName'])
     )
 
     // students may be involved with a partner org and go to a partner school
@@ -393,14 +394,15 @@ async function adminUpdateStudentPartnerOrgInstance(
      *
      * We attempt to deactive the active (partner org or partner school) instance in two cases:
      * 1. We're removing a partner org and there is an active instance
-     * 2. We're changing the partner org and there is an active instance
+     * 2. We're changing the partner org OR site and there is an active instance
      *
      */
     if (
       (activePartnerInstance && !newPartnerOrg) ||
       (activePartnerInstance &&
         newPartnerOrg &&
-        activePartnerInstance.name !== newPartnerOrg.partnerName)
+        (activePartnerInstance.name !== newPartnerOrg.partnerName ||
+          activePartnerInstance.siteName !== newPartnerOrg.siteName))
     ) {
       const updateResult = await pgQueries.adminDeactivateStudentPartnershipInstance.run(
         { userId: studentId, spoId: activePartnerInstance.id },
@@ -446,14 +448,15 @@ async function adminUpdateStudentPartnerOrgInstance(
      *
      * We attempt to add a new active org (partner org or partner school) instance in two cases:
      * 1. We're adding a new partner org and there is no active instance
-     * 2. We're changing the partner org
+     * 2. We're changing the partner org OR site
      *
      */
     if (
       (!activePartnerInstance && newPartnerOrg) ||
       (newPartnerOrg &&
         activePartnerInstance &&
-        activePartnerInstance.name !== newPartnerOrg.partnerName)
+        (activePartnerInstance.name !== newPartnerOrg.partnerName ||
+          activePartnerInstance.siteName !== newPartnerOrg.siteName))
     ) {
       const insertResult = await pgQueries.insertStudentPartnershipInstance.run(
         {
@@ -529,8 +532,6 @@ export async function adminUpdateStudent(
       { userId: studentId, inGatesStudy: update.inGatesStudy },
       transactionClient
     )
-
-    console.log('the update bro', update)
 
     await adminUpdateStudentPartnerOrgInstance(
       studentId,
@@ -915,15 +916,9 @@ export async function getActivePartnersForStudent(
       getClient()
     )
 
-    console.log('the result', result)
-
     if (result.length)
-      return result.map(row => makeSomeRequired(row, ['schoolId']))
+      return result.map(row => makeSomeRequired(row, ['schoolId', 'siteName']))
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
-
-// TODOS: when making a school a partner school
-// we need to add the org upchieve instance
-// When creating a new partner org, we need to make the org instance
