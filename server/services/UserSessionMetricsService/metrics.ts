@@ -202,8 +202,8 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
     }
     // todo: this is postsession survey, delete above once it goes live
     else {
-      const sessionRatingFromSTudent = uvd.surveyResponses?.find(
-        resp => resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
+      const sessionRatingFromSTudent = uvd.surveyResponses?.find(resp =>
+        resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
       )?.score
       if (sessionRatingFromSTudent && sessionRatingFromSTudent <= 2) {
         return 1
