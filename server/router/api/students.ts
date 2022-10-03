@@ -99,7 +99,7 @@ export function routeStudents(router: Router): void {
       const activePartners = await StudentService.adminGetActivePartnersForStudent(
         asString(studentId)
       )
-      res.json({ activePartners })
+      res.json({ activePartners: activePartners || [] })
     } catch (err) {
       resError(res, err)
     }
