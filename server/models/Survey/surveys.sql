@@ -292,6 +292,8 @@ WITH replacement_column_cte AS (
         AND ur.name = 'student'
 )
 SELECT
+    'student' AS user_role,
+    sq.question_text,
     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
     (
         CASE WHEN (src.choice_text = 'Other'
@@ -317,36 +319,6 @@ FROM
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
-    AND st.name = 'postsession'
-ORDER BY
-    ssq.display_priority ASC;
-
-/* @name getPostsessionSurveyResponses */
-SELECT
-    us.id AS user_survey_id,
-    topics.name AS TYPE,
-    subjects.name AS sub_topic,
-    us.user_id,
-    ur.name AS user_role,
-    s.id AS session_id,
-    sq.question_text,
-    src.choice_text,
-    src.score
-FROM
-    upchieve.users_surveys AS us
-    JOIN upchieve.sessions AS s ON us.session_id = s.id
-    JOIN upchieve.subjects ON s.subject_id = subjects.id
-    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id
-    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id
-    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id
-    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
-    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
-        AND uss.survey_question_id = ssq.survey_question_id
-    LEFT JOIN upchieve.topics ON subjects.topic_id = topics.id
-    JOIN upchieve.surveys ON us.survey_id = surveys.id
-    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
-WHERE
-    us.session_id = :sessionId!
     AND st.name = 'postsession'
 ORDER BY
     ssq.display_priority ASC;
@@ -400,6 +372,8 @@ WITH replacement_column_cte AS (
         AND ur.name = 'volunteer'
 )
 SELECT
+    'volunteer' AS user_role,
+    sq.question_text,
     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
     (
         CASE WHEN (src.choice_text = 'Other'

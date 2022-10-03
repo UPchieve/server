@@ -12,13 +12,8 @@ import {
   SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
-<<<<<<< HEAD
-import _ from 'lodash'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
-=======
-import _, { result } from 'lodash'
-import { USER_ROLES_TYPE } from '../../constants'
->>>>>>> main
+import _ from 'lodash'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -237,25 +232,6 @@ export type StudentPresessionSurveyResponse = {
   displayOrder: number
 }
 
-export type PostsessionSurveyResponse = {
-  userSurveyId: Ulid
-  type: string
-  subTopic: string
-  userId: Ulid
-  userRole: string
-  sessionId: Ulid
-  questionText: string
-  choiceText: string
-  score: number
-}
-
-export type PostsessionSurveyResponseForAdmin = {
-  displayLabel: string
-  response?: string
-  displayOrder: number
-  score: number
-}
-
 export async function getPresessionSurveyResponse(
   sessionId: string
 ): Promise<StudentPresessionSurveyResponse[]> {
@@ -272,10 +248,19 @@ export async function getPresessionSurveyResponse(
   }
 }
 
+export type PostsessionSurveyResponse = {
+  userRole: string
+  questionText: string
+  displayLabel: string
+  response?: string
+  displayOrder: number
+  score: number
+}
+
 export async function getPostsessionSurveyResponse(
   sessionId: string,
   userRole: USER_ROLES_TYPE
-): Promise<PostsessionSurveyResponseForAdmin[]> {
+): Promise<PostsessionSurveyResponse[]> {
   try {
     if (userRole === USER_ROLES.STUDENT) {
       const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
@@ -299,16 +284,19 @@ export async function getPostsessionSurveyResponse(
   }
 }
 
-export async function getPostsessionSurveyResponses(
+export async function getPostsessionSurveyResponsesForSessionMetrics(
   sessionId: string
 ): Promise<PostsessionSurveyResponse[]> {
   try {
-    const result = await pgQueries.getPostsessionSurveyResponses.run(
-      { sessionId },
-      getClient()
+    const studentResponses = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.STUDENT
     )
-    if (result.length) return result.map(row => makeRequired(row))
-    return []
+    const volunteerResponses = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.VOLUNTEER
+    )
+    return studentResponses.concat(volunteerResponses)
   } catch (err) {
     throw new RepoReadError(err)
   }
