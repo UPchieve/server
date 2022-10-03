@@ -166,7 +166,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
     } else {
       const coachRatingFromStudent = uvd.surveyResponses?.find(
         resp =>
-          resp.response === 'Overall, how supportive was your coach today?'
+          resp.questionText === 'Overall, how supportive was your coach today?'
       )?.score
       if (coachRatingFromStudent && coachRatingFromStudent <= 2) {
         return 1
@@ -203,7 +203,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
     // todo: this is postsession survey, delete above once it goes live
     else {
       const sessionRatingFromSTudent = uvd.surveyResponses?.find(
-        resp => resp.response === 'Did UPchieve help you achieve your goal?'
+        resp => resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
       )?.score
       if (sessionRatingFromSTudent && sessionRatingFromSTudent <= 2) {
         return 1
@@ -234,7 +234,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
     // todo: this is postsession survey, delete above once it goes live
     else {
       const sessionRatingFromCoach = uvd.surveyResponses?.find(resp =>
-        resp.response?.endsWith(
+        resp.questionText.endsWith(
           'Were you able to help them achieve their goal?'
         )
       )?.score
