@@ -86,8 +86,6 @@ export enum Jobs {
   SendAssistmentsData = 'SendAssistmentsData',
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   SendFollowupText = 'SendFollowupText',
-  // TODO: add the tech issue apology job to the job processor once it is ready to be released
-  EmailTechIssueApology = 'EmailTechIssueApology',
   Chatbot = 'Chatbot',
 
   // TODO: remove the following deprecated job names

@@ -14,7 +14,8 @@ import {
   asNumber,
   asString,
 } from '../utils/type-utils'
-import { USER_ROLES_TYPE, USER_ROLES } from '../constants'
+import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
+import { emitter } from './EventsService'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -67,6 +68,7 @@ export async function validateSaveUserSurveyAndSubmissions(
     resp => resp.responseChoiceId !== null
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
+  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, survey.sessionId)
 }
 
 export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)

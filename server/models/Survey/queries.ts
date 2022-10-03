@@ -12,8 +12,13 @@ import {
   SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
+<<<<<<< HEAD
 import _ from 'lodash'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
+=======
+import _, { result } from 'lodash'
+import { USER_ROLES_TYPE } from '../../constants'
+>>>>>>> main
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -232,6 +237,25 @@ export type StudentPresessionSurveyResponse = {
   displayOrder: number
 }
 
+export type PostsessionSurveyResponse = {
+  userSurveyId: Ulid
+  type: string
+  subTopic: string
+  userId: Ulid
+  userRole: string
+  sessionId: Ulid
+  questionText: string
+  choiceText: string
+  score: number
+}
+
+export type PostsessionSurveyResponseForAdmin = {
+  displayLabel: string
+  response?: string
+  displayOrder: number
+  score: number
+}
+
 export async function getPresessionSurveyResponse(
   sessionId: string
 ): Promise<StudentPresessionSurveyResponse[]> {
@@ -248,17 +272,10 @@ export async function getPresessionSurveyResponse(
   }
 }
 
-export type PostsessionSurveyResponse = {
-  displayLabel: string
-  response?: string
-  score: number
-  displayOrder: number
-}
-
 export async function getPostsessionSurveyResponse(
   sessionId: string,
   userRole: USER_ROLES_TYPE
-): Promise<PostsessionSurveyResponse[]> {
+): Promise<PostsessionSurveyResponseForAdmin[]> {
   try {
     if (userRole === USER_ROLES.STUDENT) {
       const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
@@ -277,6 +294,21 @@ export async function getPostsessionSurveyResponse(
         return result.map(row => makeSomeRequired(row, ['response']))
       return []
     }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPostsessionSurveyResponses(
+  sessionId: string
+): Promise<PostsessionSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getPostsessionSurveyResponses.run(
+      { sessionId },
+      getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
