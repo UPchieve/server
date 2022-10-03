@@ -195,7 +195,7 @@ WHERE
 INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)
 SELECT
     users.id,
-    sp.student_partner_org_id,
+    spo.id,
     NULL,
     NULL,
     sp.created_at,
