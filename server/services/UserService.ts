@@ -101,7 +101,7 @@ export async function addReference(data: unknown) {
   const referenceData = {
     firstName: referenceFirstName,
     lastName: referenceLastName,
-    email: referenceEmail,
+    email: referenceEmail.toLowerCase(),
   }
 
   if (userEmail === referenceData.email) {
@@ -116,7 +116,7 @@ export async function addReference(data: unknown) {
   )
   if (
     isExistingReference &&
-    isExistingReference.email === referenceEmail &&
+    isExistingReference.email.toLowerCase() === referenceEmail.toLowerCase() &&
     !isExistingReference.actions.includes(
       ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE
     )
