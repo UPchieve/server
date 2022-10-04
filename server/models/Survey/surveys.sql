@@ -244,20 +244,69 @@ ORDER BY
     ssq.display_priority ASC;
 
 
-/* @name getPostsessionSurveyResponses */
+/* @name getStudentPostsessionSurveyResponse */
+WITH replacement_column_cte AS (
+    SELECT
+        sq.id,
+        CASE WHEN sq.replacement_column_1 = 'student_name' THEN
+            u_student.first_name
+        WHEN sq.replacement_column_1 = 'student_goal'
+            AND src.choice_text = 'Other' THEN
+            COALESCE(uss.open_response, 'get help')
+        WHEN sq.replacement_column_1 = 'student_goal'
+            AND src.choice_text <> 'Other' THEN
+            COALESCE(src.choice_text)
+        WHEN sq.replacement_column_1 = 'coach_name' THEN
+            u_volunteer.first_name
+        WHEN sq.replacement_column_1 = 'subject_name' THEN
+            subjects.display_name
+        END AS replacement_text_1,
+        CASE WHEN sq.replacement_column_2 = 'student_goal'
+            AND src.choice_text = 'Other' THEN
+            COALESCE(uss.open_response, 'get help')
+        WHEN sq.replacement_column_2 = 'student_goal'
+            AND src.choice_text <> 'OTHER' THEN
+            COALESCE(src.choice_text)
+        WHEN sq.replacement_column_2 = 'subject_name' THEN
+            subjects.display_name
+        END AS replacement_text_2
+    FROM
+        upchieve.sessions s
+        JOIN upchieve.subjects ON s.subject_id = subjects.id
+        JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
+        JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
+        JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
+        JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id
+        JOIN upchieve.users u_student ON u_student.id = s.student_id
+        JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id
+        JOIN upchieve.users_surveys us ON us.session_id = s.id
+        JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+        JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+        JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id
+            AND sq_goal.question_text = 'What is your primary goal for today''s session?'
+        JOIN upchieve.surveys ON sc.survey_id = surveys.id
+        JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+    WHERE
+        st.name = 'postsession'
+        AND s.id = :sessionId!
+        AND ur.name = 'student'
+)
 SELECT
-    us.id AS user_survey_id,
-    topics.name AS TYPE,
-    subjects.name AS sub_topic,
-    us.user_id,
-    ur.name AS user_role,
-    s.id AS session_id,
+    'student' AS user_role,
     sq.question_text,
-    src.choice_text,
-    src.score
+    FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
+    (
+        CASE WHEN (src.choice_text = 'Other'
+            OR qt.name = 'free response') THEN
+            uss.open_response
+        ELSE
+            src.choice_text
+        END) AS response,
+    COALESCE(src.score, 0) AS score,
+    ssq.display_priority AS display_order
 FROM
     upchieve.users_surveys AS us
-    JOIN upchieve.sessions AS s ON us.session_id = s.id
+    JOIN upchieve.sessions AS s ON s.student_id = us.user_id
     JOIN upchieve.subjects ON s.subject_id = subjects.id
     JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id
     JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id
@@ -265,11 +314,91 @@ FROM
     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
-    LEFT JOIN upchieve.topics ON subjects.topic_id = topics.id
-    JOIN upchieve.surveys ON us.survey_id = surveys.id
-    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+    LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
+    JOIN replacement_column_cte rcc ON rcc.id = sq.id
 WHERE
     us.session_id = :sessionId!
+    AND s.id = :sessionId!
+    AND st.name = 'postsession'
+ORDER BY
+    ssq.display_priority ASC;
+
+
+/* @name getVolunteerPostsessionSurveyResponse */
+WITH replacement_column_cte AS (
+    SELECT
+        sq.id,
+        CASE WHEN sq.replacement_column_1 = 'student_name' THEN
+            u_student.first_name
+        WHEN sq.replacement_column_1 = 'student_goal'
+            AND src.choice_text = 'Other' THEN
+            COALESCE(uss.open_response, 'get help')
+        WHEN sq.replacement_column_1 = 'student_goal'
+            AND src.choice_text <> 'Other' THEN
+            COALESCE(src.choice_text)
+        WHEN sq.replacement_column_1 = 'coach_name' THEN
+            u_volunteer.first_name
+        WHEN sq.replacement_column_1 = 'subject_name' THEN
+            subjects.display_name
+        END AS replacement_text_1,
+        CASE WHEN sq.replacement_column_2 = 'student_goal'
+            AND src.choice_text = 'Other' THEN
+            COALESCE(uss.open_response, 'get help')
+        WHEN sq.replacement_column_2 = 'student_goal'
+            AND src.choice_text <> 'OTHER' THEN
+            COALESCE(src.choice_text)
+        WHEN sq.replacement_column_2 = 'subject_name' THEN
+            subjects.display_name
+        END AS replacement_text_2
+    FROM
+        upchieve.sessions s
+        JOIN upchieve.subjects ON s.subject_id = subjects.id
+        JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
+        JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
+        JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
+        JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id
+        JOIN upchieve.users u_student ON u_student.id = s.student_id
+        JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id
+        JOIN upchieve.users_surveys us ON us.session_id = s.id
+        JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+        JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+        JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id
+            AND sq_goal.question_text = 'What is your primary goal for today''s session?'
+        JOIN upchieve.surveys ON sc.survey_id = surveys.id
+        JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+    WHERE
+        st.name = 'postsession'
+        AND s.id = :sessionId!
+        AND ur.name = 'volunteer'
+)
+SELECT
+    'volunteer' AS user_role,
+    sq.question_text,
+    FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
+    (
+        CASE WHEN (src.choice_text = 'Other'
+            OR qt.name = 'free response') THEN
+            uss.open_response
+        ELSE
+            src.choice_text
+        END) AS response,
+    COALESCE(src.score, 0) AS score,
+    ssq.display_priority AS display_order
+FROM
+    upchieve.users_surveys AS us
+    JOIN upchieve.sessions AS s ON s.volunteer_id = us.user_id
+    JOIN upchieve.subjects ON s.subject_id = subjects.id
+    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id
+    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id
+    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id
+    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
+    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
+        AND uss.survey_question_id = ssq.survey_question_id
+    LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
+    JOIN replacement_column_cte rcc ON rcc.id = sq.id
+WHERE
+    us.session_id = :sessionId!
+    AND s.id = :sessionId!
     AND st.name = 'postsession'
 ORDER BY
     ssq.display_priority ASC;
