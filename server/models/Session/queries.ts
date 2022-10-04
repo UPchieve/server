@@ -11,7 +11,7 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import { Session } from './types'
 import 'moment-timezone'
-import { USER_SESSION_METRICS } from '../../constants'
+import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
 import { ResponseData, StudentCounselingFeedback } from '../Feedback'
@@ -23,6 +23,14 @@ import {
   getSessionNotificationsWithSessionId,
   SessionNotification,
 } from '../Notification'
+import {
+  getPresessionSurveyResponse,
+  getPostsessionSurveyResponse,
+  PresessionSurveyResponseData,
+  PostsessionSurveyResponse,
+  StudentPresessionSurveyResponse,
+} from '../Survey'
+import { USER_ROLES_TYPE } from '../../constants'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -471,7 +479,12 @@ export type SessionByIdWithStudentAndVolunteer = {
   volunteerjoinedAt?: Date
   endedAt?: Date
   endedBy?: Ulid
-  feedbacks?: Feedback
+  feedbacks?: Feedback // need this to display legacy feedback from before context sharing
+  surveyResponses: {
+    presessionSurvey: StudentPresessionSurveyResponse[]
+    studentPostsessionSurvey: PostsessionSurveyResponse[]
+    volunteerPostsessionSurvey: PostsessionSurveyResponse[]
+  }
   userAgent?: Partial<UserActionAgent>
   type: string
   subTopic: string
@@ -542,7 +555,16 @@ export async function getSessionByIdWithStudentAndVolunteer(
     if (!student)
       throw new RepoReadError(`Did not find student for session ${sessionId}`)
     const messages = await getMessagesForFrontend(sessionId, client)
-    const feedbacks = await getFeedbackBySessionId(sessionId)
+    const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
+    const presessionSurvey = await getPresessionSurveyResponse(sessionId)
+    const studentPostsessionSurvey = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.STUDENT
+    )
+    const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.VOLUNTEER
+    )
     const notifications = await getSessionNotificationsWithSessionId(sessionId)
 
     return {
@@ -551,6 +573,11 @@ export async function getSessionByIdWithStudentAndVolunteer(
       volunteer: volunteer ? { ...volunteer, _id: volunteer.id } : undefined,
       messages,
       feedbacks,
+      surveyResponses: {
+        presessionSurvey,
+        studentPostsessionSurvey,
+        volunteerPostsessionSurvey,
+      },
       _id: session.id,
       userAgent,
       notifications,

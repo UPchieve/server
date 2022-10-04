@@ -31,7 +31,7 @@ import {
 } from './types'
 import { asString } from '../../utils/type-utils'
 import {
-  getPostsessionSurveyResponses,
+  getPostsessionSurveyResponsesForSessionMetrics,
   PostsessionSurveyResponse,
 } from '../../models/Survey'
 
@@ -152,7 +152,9 @@ export async function getValuesToPrepareMetrics(
     }
     // TODO: this handles new postsession survey, delete above once postsession goes live
   } else {
-    const surveyResponses = await getPostsessionSurveyResponses(sessionId)
+    const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
+      sessionId
+    )
     const uvd = { session } as UpdateValueData
 
     const studentUSM = await getUSMByUserId(uvd.session.studentId)
