@@ -5,6 +5,7 @@ import {
   getStudentsPresessionGoal,
   getPresessionSurveyDefinition,
   getPostsessionSurveyDefinition,
+  getPostsessionSurveyResponse,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
@@ -111,6 +112,20 @@ export function routeSurvey(router: expressWs.Router): void {
         parsedRole
       )
       res.json({ survey })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/postsession/response', async (req, res) => {
+    try {
+      const { sessionId, role } = req.query
+      let parsedRole = parseUserRole(asString(role))
+      const surveyResponse = await getPostsessionSurveyResponse(
+        asUlid(sessionId),
+        parsedRole
+      )
+      res.json(surveyResponse)
     } catch (error) {
       resError(res, error)
     }
