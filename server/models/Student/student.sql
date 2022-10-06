@@ -471,6 +471,8 @@ SELECT
     name
 FROM
     signup_sources
+WHERE
+    name <> 'Roster'
 ORDER BY
     RANDOM();
 

@@ -1053,7 +1053,7 @@ export interface IGetStudentSignupSourcesQuery {
   result: IGetStudentSignupSourcesResult;
 }
 
-const getStudentSignupSourcesIR: any = {"name":"getStudentSignupSources","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nORDER BY\n    RANDOM()","loc":{"a":15564,"b":15632,"line":469,"col":0}}};
+const getStudentSignupSourcesIR: any = {"name":"getStudentSignupSources","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    name <> 'Roster'\nORDER BY\n    RANDOM()","loc":{"a":15564,"b":15659,"line":469,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1063,6 +1063,8 @@ const getStudentSignupSourcesIR: any = {"name":"getStudentSignupSources","params
  *     name
  * FROM
  *     signup_sources
+ * WHERE
+ *     name <> 'Roster'
  * ORDER BY
  *     RANDOM()
  * ```
@@ -1082,7 +1084,7 @@ export interface IDeleteSelfFavoritedVolunteersQuery {
   result: IDeleteSelfFavoritedVolunteersResult;
 }
 
-const deleteSelfFavoritedVolunteersIR: any = {"name":"deleteSelfFavoritedVolunteers","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM student_favorite_volunteers\nWHERE student_id = volunteer_id","loc":{"a":15679,"b":15749,"line":479,"col":0}}};
+const deleteSelfFavoritedVolunteersIR: any = {"name":"deleteSelfFavoritedVolunteers","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM student_favorite_volunteers\nWHERE student_id = volunteer_id","loc":{"a":15706,"b":15776,"line":481,"col":0}}};
 
 /**
  * Query generated from SQL:
