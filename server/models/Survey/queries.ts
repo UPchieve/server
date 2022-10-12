@@ -1,6 +1,12 @@
 import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getDbUlid, makeRequired, makeSomeOptional, makeSomeRequired, Ulid } from '../pgUtils'
+import {
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   LegacySurvey,
@@ -179,7 +185,7 @@ export async function getPostsessionSurveyDefinition(
     )
 
     const replacementColumnsArr = replacementColumns.map(c =>
-      makeSomeOptional(c,[])
+      makeSomeOptional(c, [])
     )
 
     const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
