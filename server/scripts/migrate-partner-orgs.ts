@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises'
 import { getClient } from '../db'
 import * as ApRepo from '../models/AssociatedPartner'
+import { RepoTransactionError } from '../models/Errors'
 import * as SoRepo from '../models/SponsorOrg'
 import * as SpoRepo from '../models/StudentPartnerOrg'
 import * as VpoRepo from '../models/VolunteerPartnerOrg'
@@ -99,8 +100,7 @@ export default async function migrateHistoricalPartnershipsData(): Promise<
     await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
-    console.log(err)
-    throw err
+    throw new RepoTransactionError(err)
   } finally {
     client.release()
   }
