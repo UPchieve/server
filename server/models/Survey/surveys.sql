@@ -122,6 +122,7 @@ WHERE
     subjects.name = :subjectName!
     AND st.name = :surveyType!;
 
+
 /* @name getPostsessionSurveyReplacementColumns */
 SELECT
     sq.id,
@@ -167,6 +168,7 @@ WHERE
     st.name = :surveyType!
     AND s.id = :sessionId!
     AND ur.name = :userRole!;
+
 
 /* @name getPostsessionSurveyDefinitionWithoutReplacementColumns */
 SELECT

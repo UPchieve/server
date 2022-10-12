@@ -174,11 +174,11 @@ export async function getPostsessionSurveyDefinition(
 ): Promise<SurveyQueryResponse> {
   try {
     const replacementColumns = await pgQueries.getPostsessionSurveyReplacementColumns.run(
-      {surveyType, sessionId, userRole},
+      { surveyType, sessionId, userRole },
       getClient()
     )
     const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
-      { surveyType, sessionId, userRole},
+      { surveyType, sessionId, userRole },
       getClient()
     )
 
@@ -191,7 +191,10 @@ export async function getPostsessionSurveyDefinition(
   }
 }
 
-export function formatSurveyDefinition(resultArr: any, replacementColumns?: any): SurveyQueryResponse {
+export function formatSurveyDefinition(
+  resultArr: any,
+  replacementColumns?: any
+): SurveyQueryResponse {
   const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
   const survey: SurveyQuestionDefinition[] = []
   for (const [question, rows] of Object.entries(rowsByQuestion)) {
@@ -199,12 +202,23 @@ export function formatSurveyDefinition(resultArr: any, replacementColumns?: any)
     const temp = rows[0]
 
     let questionText = temp.questionText
-    if (replacementColumns){
-      const associatedReplacementColumns = replacementColumns.filter((col: any) => question == col.id)[0]
-      if (associatedReplacementColumns && associatedReplacementColumns.replacement_text_1) {
-        questionText = questionText.replace(/%s/, associatedReplacementColumns.replacement_text_1)
+    if (replacementColumns) {
+      const associatedReplacementColumns = replacementColumns.filter(
+        (col: any) => question == col.id
+      )[0]
+      if (
+        associatedReplacementColumns &&
+        associatedReplacementColumns.replacement_text_1
+      ) {
+        questionText = questionText.replace(
+          /%s/,
+          associatedReplacementColumns.replacement_text_1
+        )
         if (associatedReplacementColumns.replacement_text_2) {
-          questionText = questionText.replace(/%s/, associatedReplacementColumns.replacement_text_2)
+          questionText = questionText.replace(
+            /%s/,
+            associatedReplacementColumns.replacement_text_2
+          )
         }
       }
     }
