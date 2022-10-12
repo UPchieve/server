@@ -304,7 +304,7 @@ export type StudentPartnerOrgByKey = {
 }
 
 export async function getPartnerOrgByKey(
-  partnerKey: string,
+  partnerKey: string | undefined,
   partnerSite: string | undefined,
   client: PoolClient
 ): Promise<StudentPartnerOrgByKey | undefined> {
@@ -356,15 +356,19 @@ async function adminUpdateStudentPartnerOrgInstance(
   client: PoolClient
 ) {
   try {
-    const newPartnerOrg = newPartnerOrgKey
-      ? await getPartnerOrgByKey(newPartnerOrgKey, newPartnerSite, client)
-      : undefined
+    const newPartnerOrg = await getPartnerOrgByKey(
+      newPartnerOrgKey,
+      newPartnerSite,
+      client
+    )
     if (newPartnerOrgKey && !newPartnerOrg)
       throw new Error(`New partner org ${newPartnerOrgKey} does not exist`)
 
-    const newSchoolOrg = schoolPartnerKey
-      ? await getPartnerOrgByKey(schoolPartnerKey, undefined, client)
-      : undefined
+    const newSchoolOrg = await getPartnerOrgByKey(
+      schoolPartnerKey,
+      undefined,
+      client
+    )
     if (schoolPartnerKey && !newSchoolOrg)
       throw new Error(`New school org ${schoolPartnerKey} does not exist`)
 
