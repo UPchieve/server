@@ -173,29 +173,58 @@ export async function getPostsessionSurveyDefinition(
   userRole: USER_ROLES_TYPE
 ): Promise<SurveyQueryResponse> {
   try {
-    const result = await pgQueries.getPostsessionSurveyDefinition.run(
+    const replacementColumns = await pgQueries.getPostsessionSurveyReplacementColumns.run(
       { surveyType, sessionId, userRole },
       getClient()
     )
-    const resultArr = result.map(v =>
+    const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
+      { surveyType, sessionId, userRole },
+      getClient()
+    )
+
+    const resultArr = surveyDefinitionExceptReplacementColumns.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
     )
-    return formatSurveyDefinition(resultArr)
+    return formatSurveyDefinition(resultArr, replacementColumns)
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export function formatSurveyDefinition(resultArr: any): SurveyQueryResponse {
+export function formatSurveyDefinition(
+  resultArr: any,
+  replacementColumns?: any
+): SurveyQueryResponse {
   const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
-
   const survey: SurveyQuestionDefinition[] = []
   for (const [question, rows] of Object.entries(rowsByQuestion)) {
     const responses: SurveyResponseDefinition[] = []
     const temp = rows[0]
+
+    let questionText = temp.questionText
+    if (replacementColumns) {
+      const associatedReplacementColumns = replacementColumns.filter(
+        (col: any) => question == col.id
+      )[0]
+      if (
+        associatedReplacementColumns &&
+        associatedReplacementColumns.replacement_text_1
+      ) {
+        questionText = questionText.replace(
+          /%s/,
+          associatedReplacementColumns.replacement_text_1
+        )
+        if (associatedReplacementColumns.replacement_text_2) {
+          questionText = questionText.replace(
+            /%s/,
+            associatedReplacementColumns.replacement_text_2
+          )
+        }
+      }
+    }
     const questionData = {
       questionId: question,
-      questionText: temp.questionText,
+      questionText: questionText,
       displayPriority: temp.displayPriority,
       questionType: temp.questionType,
     }
