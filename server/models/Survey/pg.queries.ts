@@ -485,48 +485,94 @@ const getPresessionSurveyResponseIR: any = {"name":"getPresessionSurveyResponse"
 export const getPresessionSurveyResponse = new PreparedQuery<IGetPresessionSurveyResponseParams,IGetPresessionSurveyResponseResult>(getPresessionSurveyResponseIR);
 
 
-/** 'GetPostsessionSurveyResponses' parameters type */
-export interface IGetPostsessionSurveyResponsesParams {
+/** 'GetStudentPostsessionSurveyResponse' parameters type */
+export interface IGetStudentPostsessionSurveyResponseParams {
   sessionId: string;
 }
 
-/** 'GetPostsessionSurveyResponses' return type */
-export interface IGetPostsessionSurveyResponsesResult {
-  choiceText: string;
+/** 'GetStudentPostsessionSurveyResponse' return type */
+export interface IGetStudentPostsessionSurveyResponseResult {
+  displayLabel: string | null;
+  displayOrder: number;
   questionText: string;
-  score: number;
-  sessionId: string;
-  subTopic: string;
-  type: string;
-  userId: string;
-  userRole: string;
-  userSurveyId: string;
+  response: string | null;
+  score: number | null;
+  userRole: string | null;
 }
 
-/** 'GetPostsessionSurveyResponses' query type */
-export interface IGetPostsessionSurveyResponsesQuery {
-  params: IGetPostsessionSurveyResponsesParams;
-  result: IGetPostsessionSurveyResponsesResult;
+/** 'GetStudentPostsessionSurveyResponse' query type */
+export interface IGetStudentPostsessionSurveyResponseQuery {
+  params: IGetStudentPostsessionSurveyResponseParams;
+  result: IGetStudentPostsessionSurveyResponseResult;
 }
 
-const getPostsessionSurveyResponsesIR: any = {"name":"getPostsessionSurveyResponses","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9455,"b":9464,"line":272,"col":21}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    us.id AS user_survey_id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    us.user_id,\n    ur.name AS user_role,\n    s.id AS session_id,\n    sq.question_text,\n    src.choice_text,\n    src.score\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON us.session_id = s.id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.topics ON subjects.topic_id = topics.id\n    JOIN upchieve.surveys ON us.survey_id = surveys.id\n    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\nWHERE\n    us.session_id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":8419,"b":9534,"line":248,"col":0}}};
+const getStudentPostsessionSurveyResponseIR: any = {"name":"getStudentPostsessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10657,"b":10666,"line":291,"col":20},{"a":11905,"b":11914,"line":320,"col":21},{"a":11932,"b":11941,"line":321,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"WITH replacement_column_cte AS (\n    SELECT\n        sq.id,\n        CASE WHEN sq.replacement_column_1 = 'student_name' THEN\n            u_student.first_name\n        WHEN sq.replacement_column_1 = 'student_goal'\n            AND src.choice_text = 'Other' THEN\n            COALESCE(uss.open_response, 'get help')\n        WHEN sq.replacement_column_1 = 'student_goal'\n            AND src.choice_text <> 'Other' THEN\n            COALESCE(src.choice_text)\n        WHEN sq.replacement_column_1 = 'coach_name' THEN\n            u_volunteer.first_name\n        WHEN sq.replacement_column_1 = 'subject_name' THEN\n            subjects.display_name\n        END AS replacement_text_1,\n        CASE WHEN sq.replacement_column_2 = 'student_goal'\n            AND src.choice_text = 'Other' THEN\n            COALESCE(uss.open_response, 'get help')\n        WHEN sq.replacement_column_2 = 'student_goal'\n            AND src.choice_text <> 'OTHER' THEN\n            COALESCE(src.choice_text)\n        WHEN sq.replacement_column_2 = 'subject_name' THEN\n            subjects.display_name\n        END AS replacement_text_2\n    FROM\n        upchieve.sessions s\n        JOIN upchieve.subjects ON s.subject_id = subjects.id\n        JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id\n        JOIN upchieve.survey_types st ON st.id = sc.survey_type_id\n        JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id\n        JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id\n        JOIN upchieve.users u_student ON u_student.id = s.student_id\n        JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id\n        JOIN upchieve.users_surveys us ON us.session_id = s.id\n        JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n        JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n        JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id\n            AND sq_goal.question_text = 'What is your primary goal for today''s session?'\n        JOIN upchieve.surveys ON sc.survey_id = surveys.id\n        JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\n    WHERE\n        st.name = 'postsession'\n        AND s.id = :sessionId!\n        AND ur.name = 'student'\n)\nSELECT\n    'student' as user_role,\n    sq.question_text,\n    FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,\n    (\n        CASE WHEN (src.choice_text = 'Other'\n            OR qt.name = 'free response') THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON s.student_id = us.user_id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id\n    JOIN replacement_column_cte rcc ON rcc.id = sq.id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":8425,"b":12011,"line":248,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH replacement_column_cte AS (
+ *     SELECT
+ *         sq.id,
+ *         CASE WHEN sq.replacement_column_1 = 'student_name' THEN
+ *             u_student.first_name
+ *         WHEN sq.replacement_column_1 = 'student_goal'
+ *             AND src.choice_text = 'Other' THEN
+ *             COALESCE(uss.open_response, 'get help')
+ *         WHEN sq.replacement_column_1 = 'student_goal'
+ *             AND src.choice_text <> 'Other' THEN
+ *             COALESCE(src.choice_text)
+ *         WHEN sq.replacement_column_1 = 'coach_name' THEN
+ *             u_volunteer.first_name
+ *         WHEN sq.replacement_column_1 = 'subject_name' THEN
+ *             subjects.display_name
+ *         END AS replacement_text_1,
+ *         CASE WHEN sq.replacement_column_2 = 'student_goal'
+ *             AND src.choice_text = 'Other' THEN
+ *             COALESCE(uss.open_response, 'get help')
+ *         WHEN sq.replacement_column_2 = 'student_goal'
+ *             AND src.choice_text <> 'OTHER' THEN
+ *             COALESCE(src.choice_text)
+ *         WHEN sq.replacement_column_2 = 'subject_name' THEN
+ *             subjects.display_name
+ *         END AS replacement_text_2
+ *     FROM
+ *         upchieve.sessions s
+ *         JOIN upchieve.subjects ON s.subject_id = subjects.id
+ *         JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
+ *         JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
+ *         JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
+ *         JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id
+ *         JOIN upchieve.users u_student ON u_student.id = s.student_id
+ *         JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id
+ *         JOIN upchieve.users_surveys us ON us.session_id = s.id
+ *         JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+ *         JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ *         JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id
+ *             AND sq_goal.question_text = 'What is your primary goal for today''s session?'
+ *         JOIN upchieve.surveys ON sc.survey_id = surveys.id
+ *         JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+ *     WHERE
+ *         st.name = 'postsession'
+ *         AND s.id = :sessionId!
+ *         AND ur.name = 'student'
+ * )
  * SELECT
- *     us.id AS user_survey_id,
- *     topics.name AS TYPE,
- *     subjects.name AS sub_topic,
- *     us.user_id,
- *     ur.name AS user_role,
- *     s.id AS session_id,
+ *     'student' as user_role,
  *     sq.question_text,
- *     src.choice_text,
- *     src.score
+ *     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
+ *     (
+ *         CASE WHEN (src.choice_text = 'Other'
+ *             OR qt.name = 'free response') THEN
+ *             uss.open_response
+ *         ELSE
+ *             src.choice_text
+ *         END) AS response,
+ *     COALESCE(src.score, 0) AS score,
+ *     ssq.display_priority AS display_order
  * FROM
  *     upchieve.users_surveys AS us
- *     JOIN upchieve.sessions AS s ON us.session_id = s.id
+ *     JOIN upchieve.sessions AS s ON s.student_id = us.user_id
  *     JOIN upchieve.subjects ON s.subject_id = subjects.id
  *     JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id
  *     JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id
@@ -534,16 +580,124 @@ const getPostsessionSurveyResponsesIR: any = {"name":"getPostsessionSurveyRespon
  *     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
  *     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
  *         AND uss.survey_question_id = ssq.survey_question_id
- *     LEFT JOIN upchieve.topics ON subjects.topic_id = topics.id
- *     JOIN upchieve.surveys ON us.survey_id = surveys.id
- *     JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+ *     LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
+ *     JOIN replacement_column_cte rcc ON rcc.id = sq.id
  * WHERE
  *     us.session_id = :sessionId!
+ *     AND s.id = :sessionId!
  *     AND st.name = 'postsession'
  * ORDER BY
  *     ssq.display_priority ASC
  * ```
  */
-export const getPostsessionSurveyResponses = new PreparedQuery<IGetPostsessionSurveyResponsesParams,IGetPostsessionSurveyResponsesResult>(getPostsessionSurveyResponsesIR);
+export const getStudentPostsessionSurveyResponse = new PreparedQuery<IGetStudentPostsessionSurveyResponseParams,IGetStudentPostsessionSurveyResponseResult>(getStudentPostsessionSurveyResponseIR);
+
+
+/** 'GetVolunteerPostsessionSurveyResponse' parameters type */
+export interface IGetVolunteerPostsessionSurveyResponseParams {
+  sessionId: string;
+}
+
+/** 'GetVolunteerPostsessionSurveyResponse' return type */
+export interface IGetVolunteerPostsessionSurveyResponseResult {
+  displayLabel: string | null;
+  displayOrder: number;
+  questionText: string;
+  response: string | null;
+  score: number | null;
+  userRole: string | null;
+}
+
+/** 'GetVolunteerPostsessionSurveyResponse' query type */
+export interface IGetVolunteerPostsessionSurveyResponseQuery {
+  params: IGetVolunteerPostsessionSurveyResponseParams;
+  result: IGetVolunteerPostsessionSurveyResponseResult;
+}
+
+const getVolunteerPostsessionSurveyResponseIR: any = {"name":"getVolunteerPostsessionSurveyResponse","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":14297,"b":14306,"line":370,"col":20},{"a":15551,"b":15560,"line":399,"col":21},{"a":15578,"b":15587,"line":400,"col":16}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"WITH replacement_column_cte AS (\n    SELECT\n        sq.id,\n        CASE WHEN sq.replacement_column_1 = 'student_name' THEN\n            u_student.first_name\n        WHEN sq.replacement_column_1 = 'student_goal'\n            AND src.choice_text = 'Other' THEN\n            COALESCE(uss.open_response, 'get help')\n        WHEN sq.replacement_column_1 = 'student_goal'\n            AND src.choice_text <> 'Other' THEN\n            COALESCE(src.choice_text)\n        WHEN sq.replacement_column_1 = 'coach_name' THEN\n            u_volunteer.first_name\n        WHEN sq.replacement_column_1 = 'subject_name' THEN\n            subjects.display_name\n        END AS replacement_text_1,\n        CASE WHEN sq.replacement_column_2 = 'student_goal'\n            AND src.choice_text = 'Other' THEN\n            COALESCE(uss.open_response, 'get help')\n        WHEN sq.replacement_column_2 = 'student_goal'\n            AND src.choice_text <> 'OTHER' THEN\n            COALESCE(src.choice_text)\n        WHEN sq.replacement_column_2 = 'subject_name' THEN\n            subjects.display_name\n        END AS replacement_text_2\n    FROM\n        upchieve.sessions s\n        JOIN upchieve.subjects ON s.subject_id = subjects.id\n        JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id\n        JOIN upchieve.survey_types st ON st.id = sc.survey_type_id\n        JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id\n        JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id\n        JOIN upchieve.users u_student ON u_student.id = s.student_id\n        JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id\n        JOIN upchieve.users_surveys us ON us.session_id = s.id\n        JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n        JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n        JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id\n            AND sq_goal.question_text = 'What is your primary goal for today''s session?'\n        JOIN upchieve.surveys ON sc.survey_id = surveys.id\n        JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\n    WHERE\n        st.name = 'postsession'\n        AND s.id = :sessionId!\n        AND ur.name = 'volunteer'\n)\nSELECT\n    'volunteer' as user_role,\n    sq.question_text,\n    FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,\n    (\n        CASE WHEN (src.choice_text = 'Other'\n            OR qt.name = 'free response') THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order\nFROM\n    upchieve.users_surveys AS us\n    JOIN upchieve.sessions AS s ON s.volunteer_id = us.user_id\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id\n    JOIN replacement_column_cte rcc ON rcc.id = sq.id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'postsession'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":12065,"b":15657,"line":327,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH replacement_column_cte AS (
+ *     SELECT
+ *         sq.id,
+ *         CASE WHEN sq.replacement_column_1 = 'student_name' THEN
+ *             u_student.first_name
+ *         WHEN sq.replacement_column_1 = 'student_goal'
+ *             AND src.choice_text = 'Other' THEN
+ *             COALESCE(uss.open_response, 'get help')
+ *         WHEN sq.replacement_column_1 = 'student_goal'
+ *             AND src.choice_text <> 'Other' THEN
+ *             COALESCE(src.choice_text)
+ *         WHEN sq.replacement_column_1 = 'coach_name' THEN
+ *             u_volunteer.first_name
+ *         WHEN sq.replacement_column_1 = 'subject_name' THEN
+ *             subjects.display_name
+ *         END AS replacement_text_1,
+ *         CASE WHEN sq.replacement_column_2 = 'student_goal'
+ *             AND src.choice_text = 'Other' THEN
+ *             COALESCE(uss.open_response, 'get help')
+ *         WHEN sq.replacement_column_2 = 'student_goal'
+ *             AND src.choice_text <> 'OTHER' THEN
+ *             COALESCE(src.choice_text)
+ *         WHEN sq.replacement_column_2 = 'subject_name' THEN
+ *             subjects.display_name
+ *         END AS replacement_text_2
+ *     FROM
+ *         upchieve.sessions s
+ *         JOIN upchieve.subjects ON s.subject_id = subjects.id
+ *         JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
+ *         JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
+ *         JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
+ *         JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id
+ *         JOIN upchieve.users u_student ON u_student.id = s.student_id
+ *         JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id
+ *         JOIN upchieve.users_surveys us ON us.session_id = s.id
+ *         JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+ *         JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ *         JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id
+ *             AND sq_goal.question_text = 'What is your primary goal for today''s session?'
+ *         JOIN upchieve.surveys ON sc.survey_id = surveys.id
+ *         JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
+ *     WHERE
+ *         st.name = 'postsession'
+ *         AND s.id = :sessionId!
+ *         AND ur.name = 'volunteer'
+ * )
+ * SELECT
+ *     'volunteer' as user_role,
+ *     sq.question_text,
+ *     FORMAT(sq.question_text, rcc.replacement_text_1, rcc.replacement_text_2) AS display_label,
+ *     (
+ *         CASE WHEN (src.choice_text = 'Other'
+ *             OR qt.name = 'free response') THEN
+ *             uss.open_response
+ *         ELSE
+ *             src.choice_text
+ *         END) AS response,
+ *     COALESCE(src.score, 0) AS score,
+ *     ssq.display_priority AS display_order
+ * FROM
+ *     upchieve.users_surveys AS us
+ *     JOIN upchieve.sessions AS s ON s.volunteer_id = us.user_id
+ *     JOIN upchieve.subjects ON s.subject_id = subjects.id
+ *     JOIN upchieve.survey_types AS st ON us.survey_type_id = st.id
+ *     JOIN upchieve.users_surveys_submissions AS uss ON us.id = uss.user_survey_id
+ *     LEFT JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id
+ *     JOIN upchieve.survey_questions AS sq ON uss.survey_question_id = sq.id
+ *     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
+ *         AND uss.survey_question_id = ssq.survey_question_id
+ *     LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
+ *     JOIN replacement_column_cte rcc ON rcc.id = sq.id
+ * WHERE
+ *     us.session_id = :sessionId!
+ *     AND s.id = :sessionId!
+ *     AND st.name = 'postsession'
+ * ORDER BY
+ *     ssq.display_priority ASC
+ * ```
+ */
+export const getVolunteerPostsessionSurveyResponse = new PreparedQuery<IGetVolunteerPostsessionSurveyResponseParams,IGetVolunteerPostsessionSurveyResponseResult>(getVolunteerPostsessionSurveyResponseIR);
 
 
