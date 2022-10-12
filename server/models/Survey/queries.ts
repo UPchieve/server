@@ -13,7 +13,7 @@ import {
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
-import _, { replace } from 'lodash'
+import _ from 'lodash'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
