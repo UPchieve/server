@@ -331,7 +331,11 @@ INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_i
 SELECT
     :userId!,
     spo.id,
-    sposite.id,
+    CASE WHEN (:spoSiteName)::text IS NOT NULL THEN
+        sposite.id
+    ELSE
+        NULL
+    END,
     NOW(),
     NOW()
 FROM
