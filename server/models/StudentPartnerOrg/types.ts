@@ -13,4 +13,5 @@ export type StudentPartnerOrg = {
   signupCode: string
   sites?: string[]
   isSchool: boolean
+  deactivated?: boolean
 }

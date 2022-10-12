@@ -31,7 +31,12 @@ SELECT
             TRUE
         ELSE
             FALSE
-        END) AS is_school
+        END) AS is_school,
+    CASE WHEN spoui.deactivated_on IS NULL THEN
+        FALSE
+    ELSE
+        TRUE
+    END AS deactivated
 FROM
     student_partner_orgs spo
     LEFT JOIN LATERAL (
@@ -41,6 +46,7 @@ FROM
             student_partner_org_sites spos
         WHERE
             spo.id = spos.student_partner_org_id) AS sites ON TRUE
+    JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id
 WHERE
     KEY = :key!;
 
@@ -59,7 +65,12 @@ SELECT
             TRUE
         ELSE
             FALSE
-        END) AS is_school
+        END) AS is_school,
+    CASE WHEN spoui.deactivated_on IS NULL THEN
+        FALSE
+    ELSE
+        TRUE
+    END AS deactivated
 FROM
     student_partner_orgs spo
     LEFT JOIN LATERAL (
@@ -68,7 +79,8 @@ FROM
         FROM
             student_partner_org_sites spos
         WHERE
-            spo.id = spos.student_partner_org_id) AS sites ON TRUE;
+            spo.id = spos.student_partner_org_id) AS sites ON TRUE
+    JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id;
 
 
 /* @name getStudentPartnerOrgKeyByCode */
