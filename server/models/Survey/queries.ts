@@ -183,11 +183,9 @@ export async function getPostsessionSurveyDefinition(
       { surveyType, sessionId, userRole },
       getClient()
     )
-
     const replacementColumnsArr = replacementColumns.map(c =>
       makeSomeOptional(c, ['id'])
     )
-
     const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
       { surveyType, sessionId, userRole },
       getClient()
