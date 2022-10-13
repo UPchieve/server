@@ -185,7 +185,7 @@ export async function getPostsessionSurveyDefinition(
     )
 
     const replacementColumnsArr = replacementColumns.map(c =>
-      makeSomeOptional(c, [])
+      makeSomeOptional(c, ['id'])
     )
 
     const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
@@ -202,9 +202,29 @@ export async function getPostsessionSurveyDefinition(
   }
 }
 
+export type SurveyDefinitionExceptReplacementColumns = {
+  surveyId: number
+  name?: string
+  surveyTypeId: number
+  displayPriority: number
+  questionId: number
+  questionText: string
+  questionType: string
+  responseId: number
+  responseText: string
+  responseDisplayImage?: string
+  responseDisplayPriority: number
+}
+
+export type SurveyReplacementColumn = {
+  id: number
+  replacementText1?: string
+  replacementText2?: string
+}
+
 export function formatSurveyDefinition(
-  resultArr: any,
-  replacementColumns?: any
+  resultArr: SurveyDefinitionExceptReplacementColumns[],
+  replacementColumns?: SurveyReplacementColumn[]
 ): SurveyQueryResponse {
   const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
   const survey: SurveyQuestionDefinition[] = []
