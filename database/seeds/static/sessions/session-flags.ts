@@ -18,14 +18,12 @@ export async function sessionFlags(): Promise<NameToId> {
     {
       name: 'Low coach rating from student',
     },
+    { name: 'Reported' },
     {
-      name: 'Reported',
+      name: 'Only looking for answers',
     },
     {
-      name: 'Pressuring coach',
-    },
-    {
-      name: 'Mean or inappropriate',
+      name: 'Rude or inappropriate',
     },
     {
       name: 'Comment from student',
@@ -38,18 +36,6 @@ export async function sessionFlags(): Promise<NameToId> {
     },
     {
       name: 'Has had technical issues',
-    },
-    {
-      name: 'PII',
-    },
-    {
-      name: 'Graded assignment',
-    },
-    {
-      name: 'Coach uncomfortable',
-    },
-    {
-      name: 'Student in distress',
     },
   ]
   const temp: NameToId = {}
