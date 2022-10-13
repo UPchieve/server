@@ -29,7 +29,14 @@ SELECT
 FROM
     volunteer_partner_orgs vpo
     LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
-    JOIN volunteer_partner_orgs_upchieve_instances vpoui ON vpo.id = vpoui.volunteer_partner_org_id
+    JOIN ( SELECT DISTINCT ON (volunteer_partner_org_id)
+            volunteer_partner_org_id,
+            deactivated_on
+        FROM
+            volunteer_partner_orgs_upchieve_instances
+        ORDER BY
+            volunteer_partner_org_id,
+            created_at DESC) AS vpoui ON vpo.id = vpoui.volunteer_partner_org_id
 WHERE
     KEY = :key!
 GROUP BY
@@ -51,7 +58,14 @@ SELECT
 FROM
     volunteer_partner_orgs vpo
     LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
-    JOIN volunteer_partner_orgs_upchieve_instances vpoui ON vpo.id = vpoui.volunteer_partner_org_id
+    JOIN ( SELECT DISTINCT ON (volunteer_partner_org_id)
+            volunteer_partner_org_id,
+            deactivated_on
+        FROM
+            volunteer_partner_orgs_upchieve_instances
+        ORDER BY
+            volunteer_partner_org_id,
+            created_at DESC) AS vpoui ON vpo.id = vpoui.volunteer_partner_org_id
 GROUP BY
     vpo.key,
     vpoui.deactivated_on;

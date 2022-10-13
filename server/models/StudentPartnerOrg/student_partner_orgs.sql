@@ -46,7 +46,14 @@ FROM
             student_partner_org_sites spos
         WHERE
             spo.id = spos.student_partner_org_id) AS sites ON TRUE
-    JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id
+    JOIN ( SELECT DISTINCT ON (student_partner_org_id)
+            student_partner_org_id,
+            deactivated_on
+        FROM
+            student_partner_orgs_upchieve_instances
+        ORDER BY
+            student_partner_org_id,
+            created_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id
 WHERE
     KEY = :key!;
 
@@ -80,7 +87,14 @@ FROM
             student_partner_org_sites spos
         WHERE
             spo.id = spos.student_partner_org_id) AS sites ON TRUE
-    JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id;
+    JOIN ( SELECT DISTINCT ON (student_partner_org_id)
+            student_partner_org_id,
+            deactivated_on
+        FROM
+            student_partner_orgs_upchieve_instances
+        ORDER BY
+            student_partner_org_id,
+            created_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id;
 
 
 /* @name getStudentPartnerOrgKeyByCode */
