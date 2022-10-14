@@ -1,6 +1,12 @@
 import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import {
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   LegacySurvey,
@@ -177,6 +183,9 @@ export async function getPostsessionSurveyDefinition(
       { surveyType, sessionId, userRole },
       getClient()
     )
+    const replacementColumnsArr = replacementColumns.map(c =>
+      makeSomeOptional(c, ['id'])
+    )
     const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
       { surveyType, sessionId, userRole },
       getClient()
@@ -185,15 +194,35 @@ export async function getPostsessionSurveyDefinition(
     const resultArr = surveyDefinitionExceptReplacementColumns.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
     )
-    return formatSurveyDefinition(resultArr, replacementColumns)
+    return formatSurveyDefinition(resultArr, replacementColumnsArr)
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
+export type SurveyDefinitionExceptReplacementColumns = {
+  surveyId: number
+  name?: string
+  surveyTypeId: number
+  displayPriority: number
+  questionId: number
+  questionText: string
+  questionType: string
+  responseId: number
+  responseText: string
+  responseDisplayImage?: string
+  responseDisplayPriority: number
+}
+
+export type SurveyReplacementColumn = {
+  id: number
+  replacementText1?: string
+  replacementText2?: string
+}
+
 export function formatSurveyDefinition(
-  resultArr: any,
-  replacementColumns?: any
+  resultArr: SurveyDefinitionExceptReplacementColumns[],
+  replacementColumns?: SurveyReplacementColumn[]
 ): SurveyQueryResponse {
   const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
   const survey: SurveyQuestionDefinition[] = []
@@ -208,16 +237,16 @@ export function formatSurveyDefinition(
       )[0]
       if (
         associatedReplacementColumns &&
-        associatedReplacementColumns.replacement_text_1
+        associatedReplacementColumns.replacementText1
       ) {
         questionText = questionText.replace(
           /%s/,
-          associatedReplacementColumns.replacement_text_1
+          associatedReplacementColumns.replacementText1
         )
-        if (associatedReplacementColumns.replacement_text_2) {
+        if (associatedReplacementColumns.replacementText2) {
           questionText = questionText.replace(
             /%s/,
-            associatedReplacementColumns.replacement_text_2
+            associatedReplacementColumns.replacementText2
           )
         }
       }
