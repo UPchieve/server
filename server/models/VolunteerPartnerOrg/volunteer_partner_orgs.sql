@@ -20,14 +20,28 @@ SELECT
     KEY,
     max(name) AS name,
     bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,
-    array_agg(DOMAIN) AS domains
+    array_agg(DOMAIN) AS domains,
+    CASE WHEN vpoui.deactivated_on IS NULL THEN
+        FALSE
+    ELSE
+        TRUE
+    END AS deactivated
 FROM
     volunteer_partner_orgs vpo
     LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+    JOIN ( SELECT DISTINCT ON (volunteer_partner_org_id)
+            volunteer_partner_org_id,
+            deactivated_on
+        FROM
+            volunteer_partner_orgs_upchieve_instances
+        ORDER BY
+            volunteer_partner_org_id,
+            created_at DESC) AS vpoui ON vpo.id = vpoui.volunteer_partner_org_id
 WHERE
     KEY = :key!
 GROUP BY
-    vpo.key;
+    vpo.key,
+    vpoui.deactivated_on;
 
 
 /* @name getVolunteerPartnerOrgs */
@@ -35,12 +49,26 @@ SELECT
     KEY,
     max(name) AS name,
     bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,
-    array_agg(DOMAIN) AS domains
+    array_agg(DOMAIN) AS domains,
+    CASE WHEN vpoui.deactivated_on IS NULL THEN
+        FALSE
+    ELSE
+        TRUE
+    END AS deactivated
 FROM
     volunteer_partner_orgs vpo
     LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id
+    JOIN ( SELECT DISTINCT ON (volunteer_partner_org_id)
+            volunteer_partner_org_id,
+            deactivated_on
+        FROM
+            volunteer_partner_orgs_upchieve_instances
+        ORDER BY
+            volunteer_partner_org_id,
+            created_at DESC) AS vpoui ON vpo.id = vpoui.volunteer_partner_org_id
 GROUP BY
-    vpo.key;
+    vpo.key,
+    vpoui.deactivated_on;
 
 
 /* @name migrateExistingVolunteerPartnerOrgs */

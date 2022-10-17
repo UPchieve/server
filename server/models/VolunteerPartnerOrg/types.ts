@@ -8,4 +8,5 @@ export type VolunteerPartnerOrg = {
   key: string
   name: string
   receiveWeeklyHourSummaryEmail: boolean
+  deactivated?: boolean
 }
