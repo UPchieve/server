@@ -187,6 +187,7 @@ export function buildVolunteerPartnerOrg(
     name: 'Health Co',
     receiveWeeklyHourSummaryEmail: false,
     domains: [],
+    deactivated: false,
     ...overrides,
   }
 }
@@ -203,6 +204,7 @@ export function buildStudentPartnerOrg(
     signupCode: 'SCHOOLHELPERS',
     sites: [],
     isSchool: false,
+    deactivated: false,
     ...overrides,
   }
 }
