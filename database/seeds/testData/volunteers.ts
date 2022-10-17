@@ -100,6 +100,11 @@ export async function volunteers(
       pgQueries.insertUserSessionMetrics.run,
       { id: user.id }
     )
+    await wrapInsert(
+      'user_product_flags',
+      pgQueries.insertUserProductFlags.run,
+      { id: user.id }
+    )
   }
 
   const profiles = [

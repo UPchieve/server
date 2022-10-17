@@ -67,3 +67,19 @@ FROM
 WHERE
     vp.volunteer_partner_org_id IS NOT NULL;
 
+
+/* @name backfillVolunteerPartnerOrgStartDates */
+UPDATE
+    volunteer_partner_orgs_upchieve_instances
+SET
+    created_at = :createdAt!,
+    deactivated_on = :endedAt,
+    updated_at = NOW()
+FROM
+    volunteer_partner_orgs vpo
+WHERE
+    vpo.id = volunteer_partner_orgs_upchieve_instances.volunteer_partner_org_id
+    AND vpo.name = :vpoName!
+RETURNING
+    volunteer_partner_orgs_upchieve_instances.id AS ok;
+

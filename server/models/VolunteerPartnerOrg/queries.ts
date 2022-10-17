@@ -1,12 +1,12 @@
-import * as pgQueries from './pg.queries'
+import { PoolClient } from 'pg'
 import { getClient } from '../../db'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
+import { makeRequired, makeSomeRequired } from '../pgUtils'
+import * as pgQueries from './pg.queries'
 import {
   VolunteerPartnerOrg,
   VolunteerPartnerOrgForRegistration,
 } from './types'
-import { PoolClient } from 'pg'
 
 export async function getVolunteerPartnerOrgForRegistrationByKey(
   key: string
@@ -88,6 +88,24 @@ export async function migrateExistingvolunteerPartnerOrgRelationships(
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to mgirate user-vpo relationships for volunteer partner orgs: ${err}`
+    )
+  }
+}
+
+export async function backfillVolunteerPartnerOrgStartDates(
+  vpoName: string,
+  createdAt: Date,
+  endedAt?: Date,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.backfillVolunteerPartnerOrgStartDates.run(
+      { vpoName, createdAt, endedAt },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to backfill volunteer partner org start date: ${err}`
     )
   }
 }

@@ -4,6 +4,10 @@ import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
+import {
+  createSchoolStudentPartnerOrg,
+  deactivateStudentPartnerOrg,
+} from '../StudentPartnerOrg'
 
 export async function findSchoolByUpchieveId(
   schoolId: Ulid
@@ -70,7 +74,7 @@ export async function getSchools(
       },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => makeSomeRequired(v, ['zipCode']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -143,15 +147,28 @@ export async function updateIsPartner(
   schoolId: Ulid,
   isPartner: boolean
 ): Promise<void> {
+  const transactionClient = await getClient().connect()
   try {
+    await transactionClient.query('BEGIN')
     const result = await pgQueries.updateIsPartner.run(
       { schoolId, isPartner },
       getClient()
     )
 
+    const school = await getSchool(schoolId)
+    if (school) {
+      if (isPartner)
+        await createSchoolStudentPartnerOrg(school.name, transactionClient)
+      else await deactivateStudentPartnerOrg(school.name, transactionClient)
+    }
+
+    await transactionClient.query('COMMIT')
     if (result.length) return makeRequired(result[0])
   } catch (err) {
+    await transactionClient.query('ROLLBACK')
     throw new RepoUpdateError(err)
+  } finally {
+    transactionClient.release()
   }
 }
 

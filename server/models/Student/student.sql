@@ -205,11 +205,46 @@ RETURNING
     user_id AS ok;
 
 
+/* @name getPartnerOrgsByStudent */
+SELECT
+    spo.name,
+    spo.id,
+    spo.school_id,
+    sposite.name AS site_name
+FROM
+    users_student_partner_orgs_instances uspoi
+    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
+    LEFT JOIN student_partner_org_sites sposite ON sposite.id = uspoi.student_partner_org_site_id
+WHERE
+    uspoi.user_id = :studentId!
+    AND deactivated_on IS NULL;
+
+
+/* @name adminDeactivateStudentPartnershipInstance */
+UPDATE
+    users_student_partner_orgs_instances
+SET
+    deactivated_on = NOW()
+WHERE
+    user_id = :userId!
+    AND student_partner_org_id = :spoId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name insertStudentPartnershipInstance */
+INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
+    VALUES (:userId!, :partnerOrgId!, :partnerOrgSiteId, NOW(), NOW())
+RETURNING
+    user_id AS ok;
+
+
 /* @name getPartnerOrgByKey */
 SELECT
     student_partner_orgs.id AS partner_id,
     student_partner_orgs.key AS partner_key,
     student_partner_orgs.name AS partner_name,
+    student_partner_orgs.school_id AS school_id,
     student_partner_org_sites.id AS site_id,
     student_partner_org_sites.name AS site_name
 FROM
@@ -289,6 +324,43 @@ RETURNING
     college,
     created_at,
     updated_at;
+
+
+/* @name createUserStudentPartnerOrgInstance */
+INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
+SELECT
+    :userId!,
+    spo.id,
+    CASE WHEN (:spoSiteName)::text IS NOT NULL THEN
+        sposite.id
+    ELSE
+        NULL
+    END,
+    NOW(),
+    NOW()
+FROM
+    student_partner_orgs spo
+    LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id
+WHERE
+    spo.name = :spoName!
+    AND ((:spoSiteName)::text IS NULL
+        OR (:spoSiteName)::text = sposite.name)
+LIMIT 1
+RETURNING
+    user_id AS ok;
+
+
+/* @name getActiveStudentOrgInstance */
+SELECT
+    spo.name,
+    spo.id
+FROM
+    users_student_partner_orgs_instances uspoi
+    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
+WHERE
+    uspoi.user_id = :studentId!
+    AND uspoi.student_partner_org_id = :spoId!
+    AND deactivated_on IS NULL;
 
 
 /* @name getSessionReport */
@@ -480,4 +552,28 @@ ORDER BY
 /* @name deleteSelfFavoritedVolunteers */
 DELETE FROM student_favorite_volunteers
 WHERE student_id = volunteer_id;
+
+
+/* @name adminUpdateStudentSchool */
+UPDATE
+    student_profiles
+SET
+    school_id = :schoolId!
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name getActivePartnersForStudent */
+SELECT
+    spo.name,
+    spo.id,
+    spo.school_id
+FROM
+    users_student_partner_orgs_instances uspoi
+    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
+WHERE
+    uspoi.user_id = :studentId!
+    AND deactivated_on IS NOT NULL;
 

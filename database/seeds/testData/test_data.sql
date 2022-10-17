@@ -94,3 +94,9 @@ RETURNING id AS ok;
 INSERT INTO cities (name, us_state_code, created_at, updated_at)
 VALUES (:name!, :usStateCode!, NOW(), NOW())
 RETURNING id as ok;
+
+
+/* @name insertUserProductFlags */
+INSERT INTO user_product_flags (user_id, created_at, updated_at)
+VALUES (:id!, NOW(), NOW())
+RETURNING user_id AS ok;
