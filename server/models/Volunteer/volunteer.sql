@@ -1107,6 +1107,22 @@ WHERE
     KEY = :volunteerPartnerOrg!;
 
 
+/* @name createUserVolunteerPartnerOrgInstance */
+INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+SELECT
+    :userId!,
+    vpo.id,
+    NOW(),
+    NOW()
+FROM
+    volunteer_partner_orgs vpo
+WHERE
+    vpo.name = :vpoName!
+LIMIT 1
+RETURNING
+    user_id AS ok;
+
+
 /* @name createVolunteerProfile */
 INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)
     VALUES (:userId!, FALSE, :partnerOrgId, :timezone, NOW(), NOW())
@@ -1526,4 +1542,80 @@ WHERE
     volunteer_partner_orgs.key = :volunteerPartnerOrg!
 ORDER BY
     users.created_at DESC;
+
+
+/* @name removeOnboardedStatusForUnqualifiedVolunteers */
+UPDATE
+    volunteer_profiles
+SET
+    onboarded = FALSE,
+    updated_at = NOW()
+FROM (
+    SELECT
+        users_training_courses.complete AS training_course_complete,
+        users_training_courses.user_id,
+        users_quizzes.passed AS training_quiz_passed
+    FROM
+        users_training_courses
+    LEFT JOIN (
+        SELECT
+            users_quizzes.passed,
+            users_quizzes.user_id,
+            quizzes.name
+        FROM
+            users_quizzes
+            LEFT JOIN quizzes ON users_quizzes.quiz_id = quizzes.id) AS users_quizzes ON users_quizzes.user_id = users_training_courses.user_id
+            AND users_quizzes.name = 'upchieve101') AS subquery
+WHERE
+    volunteer_profiles.onboarded IS TRUE
+    AND volunteer_profiles.created_at >= '2022-01-01 00:00:00.000000+00'
+    AND subquery.training_course_complete IS TRUE
+    AND (subquery.training_quiz_passed IS FALSE
+        OR subquery.training_quiz_passed IS NULL)
+AND volunteer_profiles.user_id = subquery.user_id
+RETURNING
+    volunteer_profiles.user_id AS ok;
+
+
+/* @name getPartnerOrgsByVolunteer */
+SELECT
+    vpo.name,
+    vpo.id
+FROM
+    users_volunteer_partner_orgs_instances uvpoi
+    JOIN volunteer_partner_orgs vpo ON vpo.id = uvpoi.volunteer_partner_org_id
+WHERE
+    uvpoi.user_id = :volunteerId!
+    AND deactivated_on IS NULL;
+
+
+/* @name adminDeactivateVolunteerPartnershipInstance */
+UPDATE
+    users_volunteer_partner_orgs_instances
+SET
+    deactivated_on = NOW()
+WHERE
+    user_id = :userId!
+    AND volunteer_partner_org_id = :vpoId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name adminInsertVolunteerPartnershipInstance */
+INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+    VALUES (:userId!, :partnerOrgId!, NOW(), NOW())
+RETURNING
+    user_id AS ok;
+
+
+/* @name getPartnerOrgByKey */
+SELECT
+    volunteer_partner_orgs.id AS partner_id,
+    volunteer_partner_orgs.key AS partner_key,
+    volunteer_partner_orgs.name AS partner_name
+FROM
+    volunteer_partner_orgs
+WHERE
+    volunteer_partner_orgs.key = :partnerOrgKey
+LIMIT 1;
 

@@ -1134,3 +1134,50 @@ export const insertCity = new PreparedQuery<
   IInsertCityParams,
   IInsertCityResult
 >(insertCityIR)
+
+/** 'InsertUserProductFlags' parameters type */
+export interface IInsertUserProductFlagsParams {
+  id: string
+}
+
+/** 'InsertUserProductFlags' return type */
+export interface IInsertUserProductFlagsResult {
+  ok: string
+}
+
+/** 'InsertUserProductFlags' query type */
+export interface IInsertUserProductFlagsQuery {
+  params: IInsertUserProductFlagsParams
+  result: IInsertUserProductFlagsResult
+}
+
+const insertUserProductFlagsIR: any = {
+  name: 'insertUserProductFlags',
+  params: [
+    {
+      name: 'id',
+      required: true,
+      transform: { type: 'scalar' },
+      codeRefs: { used: [{ a: 3875, b: 3877, line: 101, col: 9 }] },
+    },
+  ],
+  usedParamSet: { id: true },
+  statement: {
+    body:
+      'INSERT INTO user_product_flags (user_id, created_at, updated_at)\nVALUES (:id!, NOW(), NOW())\nRETURNING user_id AS ok',
+    loc: { a: 3801, b: 3916, line: 100, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO user_product_flags (user_id, created_at, updated_at)
+ * VALUES (:id!, NOW(), NOW())
+ * RETURNING user_id AS ok
+ * ```
+ */
+export const insertUserProductFlags = new PreparedQuery<
+  IInsertUserProductFlagsParams,
+  IInsertUserProductFlagsResult
+>(insertUserProductFlagsIR)

@@ -6,6 +6,7 @@ import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'
 import { FavoriteLimitReachedError } from '../../services/Errors'
+import { authPassport } from '../../utils/auth-utils'
 
 export function routeStudents(router: Router): void {
   router.get('/students/remaining-favorite-volunteers', async function(
@@ -86,6 +87,21 @@ export function routeStudents(router: Router): void {
           message: error.message,
         })
       } else resError(res, error)
+    }
+  })
+
+  router.get('/students/partners/active', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
+    try {
+      const studentId = req.query.student
+      const activePartners = await StudentService.adminGetActivePartnersForStudent(
+        asString(studentId)
+      )
+      res.json({ activePartners: activePartners || [] })
+    } catch (err) {
+      resError(res, err)
     }
   })
 }

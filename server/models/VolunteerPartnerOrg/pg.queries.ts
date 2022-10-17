@@ -185,3 +185,44 @@ const migrateExistingvolunteerPartnerOrgRelationshipsIR: any = {"name":"migrateE
 export const migrateExistingvolunteerPartnerOrgRelationships = new PreparedQuery<IMigrateExistingvolunteerPartnerOrgRelationshipsParams,IMigrateExistingvolunteerPartnerOrgRelationshipsResult>(migrateExistingvolunteerPartnerOrgRelationshipsIR);
 
 
+/** 'BackfillVolunteerPartnerOrgStartDates' parameters type */
+export interface IBackfillVolunteerPartnerOrgStartDatesParams {
+  createdAt: Date;
+  endedAt: Date | null | void;
+  vpoName: string;
+}
+
+/** 'BackfillVolunteerPartnerOrgStartDates' return type */
+export interface IBackfillVolunteerPartnerOrgStartDatesResult {
+  ok: string;
+}
+
+/** 'BackfillVolunteerPartnerOrgStartDates' query type */
+export interface IBackfillVolunteerPartnerOrgStartDatesQuery {
+  params: IBackfillVolunteerPartnerOrgStartDatesParams;
+  result: IBackfillVolunteerPartnerOrgStartDatesResult;
+}
+
+const backfillVolunteerPartnerOrgStartDatesIR: any = {"name":"backfillVolunteerPartnerOrgStartDates","params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1888,"b":1897,"line":75,"col":18}]}},{"name":"endedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1922,"b":1928,"line":76,"col":22}]}},{"name":"vpoName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2096,"b":2103,"line":82,"col":20}]}}],"usedParamSet":{"createdAt":true,"endedAt":true,"vpoName":true},"statement":{"body":"UPDATE\n    volunteer_partner_orgs_upchieve_instances\nSET\n    created_at = :createdAt!,\n    deactivated_on = :endedAt,\n    updated_at = NOW()\nFROM\n    volunteer_partner_orgs vpo\nWHERE\n    vpo.id = volunteer_partner_orgs_upchieve_instances.volunteer_partner_org_id\n    AND vpo.name = :vpoName!\nRETURNING\n    volunteer_partner_orgs_upchieve_instances.id AS ok","loc":{"a":1813,"b":2168,"line":72,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     volunteer_partner_orgs_upchieve_instances
+ * SET
+ *     created_at = :createdAt!,
+ *     deactivated_on = :endedAt,
+ *     updated_at = NOW()
+ * FROM
+ *     volunteer_partner_orgs vpo
+ * WHERE
+ *     vpo.id = volunteer_partner_orgs_upchieve_instances.volunteer_partner_org_id
+ *     AND vpo.name = :vpoName!
+ * RETURNING
+ *     volunteer_partner_orgs_upchieve_instances.id AS ok
+ * ```
+ */
+export const backfillVolunteerPartnerOrgStartDates = new PreparedQuery<IBackfillVolunteerPartnerOrgStartDatesParams,IBackfillVolunteerPartnerOrgStartDatesResult>(backfillVolunteerPartnerOrgStartDatesIR);
+
+

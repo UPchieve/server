@@ -25,7 +25,13 @@ SELECT
     high_school_signup,
     college_signup,
     school_signup_required,
-    sites.sites
+    sites.sites,
+    (
+        CASE WHEN school_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_school
 FROM
     student_partner_orgs spo
     LEFT JOIN LATERAL (
@@ -47,7 +53,13 @@ SELECT
     high_school_signup,
     college_signup,
     school_signup_required,
-    sites.sites
+    sites.sites,
+    (
+        CASE WHEN school_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_school
 FROM
     student_partner_orgs spo
     LEFT JOIN LATERAL (
@@ -79,22 +91,88 @@ FROM
     student_partner_orgs spo;
 
 
-/* @name migratepPartnerSchoolsToPartnerOrgs */
-INSERT INTO student_partner_orgs (id, KEY, name, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+/* @name backfillStudentPartnerOrgStartDates */
+UPDATE
+    student_partner_orgs_upchieve_instances
+SET
+    created_at = :createdAt!,
+    deactivated_on = :endedAt,
+    updated_at = NOW()
+FROM
+    student_partner_orgs spo
+WHERE
+    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
+    AND spo.name = :spoName!
+RETURNING
+    student_partner_orgs_upchieve_instances.id AS ok;
+
+
+/* @name createStudentPartnerOrgInstance */
+INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)
 SELECT
     generate_ulid (),
+    spo.id,
+    spo.created_at,
+    NOW()
+FROM
+    student_partner_orgs spo
+WHERE
+    spo.name = :spoName!;
+
+
+/* @name createSchoolStudentPartnerOrg */
+INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),
     schools.name,
-    schools.name,
+    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),
     TRUE,
     FALSE,
     TRUE,
-    schools.id,
-    schools.created_at,
+    COALESCE(schools.id, NULL),
+    NOW(),
     NOW()
 FROM
     schools
 WHERE
-    partner IS TRUE;
+    partner IS TRUE
+    AND name = :schoolName!;
+
+
+/* @name deactivateStudentPartnerOrg */
+UPDATE
+    student_partner_orgs_upchieve_instances
+SET
+    deactivated_on = NOW(),
+    updated_at = NOW()
+FROM
+    student_partner_orgs spo
+WHERE
+    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
+    AND spo.name = :spoName!
+RETURNING
+    student_partner_orgs_upchieve_instances.id AS ok;
+
+
+/* @name migratePartnerSchoolsToPartnerOrgs */
+INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),
+    schools.name,
+    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),
+    TRUE,
+    FALSE,
+    TRUE,
+    schools.id,
+    :createdAt!,
+    NOW()
+FROM
+    schools
+WHERE
+    partner IS TRUE
+    AND name = :schoolName!;
 
 
 /* @name migrateExistingStudentPartnerOrgRelationships */
@@ -117,7 +195,7 @@ WHERE
 INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)
 SELECT
     users.id,
-    sp.student_partner_org_id,
+    spo.id,
     NULL,
     NULL,
     sp.created_at,
