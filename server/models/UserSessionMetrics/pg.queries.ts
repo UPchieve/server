@@ -10,17 +10,21 @@ export interface ICreateUsmByUserIdParams {
 export interface ICreateUsmByUserIdResult {
   absentStudent: number;
   absentVolunteer: number;
+  coachUncomfortable: number;
   commentFromStudent: number;
   commentFromVolunteer: number;
   createdAt: Date;
+  gradedAssignment: number;
   hasBeenUnmatched: number;
   hasHadTechnicalIssues: number;
   lowCoachRatingFromStudent: number;
   lowSessionRatingFromCoach: number;
   lowSessionRatingFromStudent: number;
   onlyLookingForAnswers: number;
+  personalIdentifyingInfo: number;
   reported: number;
   rudeOrInappropriate: number;
+  studentCrisis: number;
   updatedAt: Date;
   userId: string;
 }
@@ -31,7 +35,7 @@ export interface ICreateUsmByUserIdQuery {
   result: ICreateUsmByUserIdResult;
 }
 
-const createUsmByUserIdIR: any = {"name":"createUSMByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":109,"b":115,"line":4,"col":5},{"a":274,"b":280,"line":14,"col":23}]}}],"usedParamSet":{"userId":true},"statement":{"body":"INSERT INTO user_session_metrics (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_session_metrics\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    absent_student,\n    absent_volunteer,\n    low_session_rating_from_coach,\n    low_session_rating_from_student,\n    low_coach_rating_from_student,\n    only_looking_for_answers,\n    rude_or_inappropriate,\n    comment_from_student,\n    comment_from_volunteer,\n    has_been_unmatched,\n    has_had_technical_issues,\n    reported,\n    created_at,\n    updated_at","loc":{"a":30,"b":663,"line":2,"col":0}}};
+const createUsmByUserIdIR: any = {"name":"createUSMByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":109,"b":115,"line":4,"col":5},{"a":274,"b":280,"line":14,"col":23}]}}],"usedParamSet":{"userId":true},"statement":{"body":"INSERT INTO user_session_metrics (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_session_metrics\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    absent_student,\n    absent_volunteer,\n    low_session_rating_from_coach,\n    low_session_rating_from_student,\n    low_coach_rating_from_student,\n    only_looking_for_answers,\n    rude_or_inappropriate,\n    comment_from_student,\n    comment_from_volunteer,\n    has_been_unmatched,\n    has_had_technical_issues,\n    reported,\n    personal_identifying_info,\n    graded_assignment,\n    coach_uncomfortable,\n    student_crisis,\n    created_at,\n    updated_at","loc":{"a":30,"b":762,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -63,6 +67,10 @@ const createUsmByUserIdIR: any = {"name":"createUSMByUserId","params":[{"name":"
  *     has_been_unmatched,
  *     has_had_technical_issues,
  *     reported,
+ *     personal_identifying_info,
+ *     graded_assignment,
+ *     coach_uncomfortable,
+ *     student_crisis,
  *     created_at,
  *     updated_at
  * ```
@@ -79,17 +87,21 @@ export interface IGetUsmByUserIdParams {
 export interface IGetUsmByUserIdResult {
   absentStudent: number;
   absentVolunteer: number;
+  coachUncomfortable: number;
   commentFromStudent: number;
   commentFromVolunteer: number;
   createdAt: Date;
+  gradedAssignment: number;
   hasBeenUnmatched: number;
   hasHadTechnicalIssues: number;
   lowCoachRatingFromStudent: number;
   lowSessionRatingFromCoach: number;
   lowSessionRatingFromStudent: number;
   onlyLookingForAnswers: number;
+  personalIdentifyingInfo: number;
   reported: number;
   rudeOrInappropriate: number;
+  studentCrisis: number;
   updatedAt: Date;
   userId: string;
 }
@@ -100,7 +112,7 @@ export interface IGetUsmByUserIdQuery {
   result: IGetUsmByUserIdResult;
 }
 
-const getUsmByUserIdIR: any = {"name":"getUSMByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1125,"b":1131,"line":53,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    absent_student,\n    absent_volunteer,\n    low_session_rating_from_coach,\n    low_session_rating_from_student,\n    low_coach_rating_from_student,\n    only_looking_for_answers,\n    rude_or_inappropriate,\n    comment_from_student,\n    comment_from_volunteer,\n    has_been_unmatched,\n    has_had_technical_issues,\n    reported,\n    created_at,\n    updated_at\nFROM\n    user_session_metrics\nWHERE\n    user_id = :userId!","loc":{"a":695,"b":1131,"line":34,"col":0}}};
+const getUsmByUserIdIR: any = {"name":"getUSMByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1323,"b":1329,"line":61,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    absent_student,\n    absent_volunteer,\n    low_session_rating_from_coach,\n    low_session_rating_from_student,\n    low_coach_rating_from_student,\n    only_looking_for_answers,\n    rude_or_inappropriate,\n    comment_from_student,\n    comment_from_volunteer,\n    has_been_unmatched,\n    has_had_technical_issues,\n    reported,\n    personal_identifying_info,\n    graded_assignment,\n    coach_uncomfortable,\n    student_crisis,\n    created_at,\n    updated_at\nFROM\n    user_session_metrics\nWHERE\n    user_id = :userId!","loc":{"a":794,"b":1329,"line":38,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -119,6 +131,10 @@ const getUsmByUserIdIR: any = {"name":"getUSMByUserId","params":[{"name":"userId
  *     has_been_unmatched,
  *     has_had_technical_issues,
  *     reported,
+ *     personal_identifying_info,
+ *     graded_assignment,
+ *     coach_uncomfortable,
+ *     student_crisis,
  *     created_at,
  *     updated_at
  * FROM
@@ -134,16 +150,20 @@ export const getUsmByUserId = new PreparedQuery<IGetUsmByUserIdParams,IGetUsmByU
 export interface IExecuteUsmUpdatesByUserIdParams {
   absentStudent: number;
   absentVolunteer: number;
+  coachUncomfortable: number;
   commentFromStudent: number;
   commentFromVolunteer: number;
+  gradedAssignment: number;
   hasBeenUnmatched: number;
   hasHadTechnicalIssues: number;
   lowCoachRatingFromStudent: number;
   lowSessionRatingFromCoach: number;
   lowSessionRatingFromStudent: number;
   onlyLookingForAnswers: number;
+  personalIdentifyingInfo: number;
   reported: number;
   rudeOrInappropriate: number;
+  studentCrisis: number;
   userId: string;
 }
 
@@ -158,7 +178,7 @@ export interface IExecuteUsmUpdatesByUserIdQuery {
   result: IExecuteUsmUpdatesByUserIdResult;
 }
 
-const executeUsmUpdatesByUserIdIR: any = {"name":"executeUSMUpdatesByUserId","params":[{"name":"absentStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1241,"b":1254,"line":60,"col":31}]}},{"name":"absentVolunteer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1307,"b":1322,"line":61,"col":33}]}},{"name":"lowSessionRatingFromCoach","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1390,"b":1415,"line":62,"col":46}]}},{"name":"lowSessionRatingFromStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1498,"b":1525,"line":63,"col":48}]}},{"name":"lowCoachRatingFromStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1608,"b":1633,"line":64,"col":46}]}},{"name":"onlyLookingForAnswers","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1709,"b":1730,"line":65,"col":41}]}},{"name":"rudeOrInappropriate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1798,"b":1817,"line":66,"col":38}]}},{"name":"commentFromStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1881,"b":1899,"line":67,"col":37}]}},{"name":"commentFromVolunteer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1964,"b":1984,"line":68,"col":39}]}},{"name":"hasBeenUnmatched","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2047,"b":2063,"line":69,"col":35}]}},{"name":"hasHadTechnicalIssues","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2128,"b":2149,"line":70,"col":41}]}},{"name":"reported","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2204,"b":2212,"line":71,"col":25}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2270,"b":2276,"line":74,"col":15}]}}],"usedParamSet":{"absentStudent":true,"absentVolunteer":true,"lowSessionRatingFromCoach":true,"lowSessionRatingFromStudent":true,"lowCoachRatingFromStudent":true,"onlyLookingForAnswers":true,"rudeOrInappropriate":true,"commentFromStudent":true,"commentFromVolunteer":true,"hasBeenUnmatched":true,"hasHadTechnicalIssues":true,"reported":true,"userId":true},"statement":{"body":"UPDATE\n    user_session_metrics\nSET\n    absent_student = COALESCE(:absentStudent!, absent_student),\n    absent_volunteer = COALESCE(:absentVolunteer!, absent_volunteer),\n    low_session_rating_from_coach = COALESCE(:lowSessionRatingFromCoach!, low_session_rating_from_coach),\n    low_session_rating_from_student = COALESCE(:lowSessionRatingFromStudent!, low_session_rating_from_student),\n    low_coach_rating_from_student = COALESCE(:lowCoachRatingFromStudent!, low_coach_rating_from_student),\n    only_looking_for_answers = COALESCE(:onlyLookingForAnswers!, only_looking_for_answers),\n    rude_or_inappropriate = COALESCE(:rudeOrInappropriate!, rude_or_inappropriate),\n    comment_from_student = COALESCE(:commentFromStudent!, comment_from_student),\n    comment_from_volunteer = COALESCE(:commentFromVolunteer!, comment_from_volunteer),\n    has_been_unmatched = COALESCE(:hasBeenUnmatched!, has_been_unmatched),\n    has_had_technical_issues = COALESCE(:hasHadTechnicalIssues!, has_had_technical_issues),\n    reported = COALESCE(:reported!, reported),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1174,"b":2304,"line":57,"col":0}}};
+const executeUsmUpdatesByUserIdIR: any = {"name":"executeUSMUpdatesByUserId","params":[{"name":"absentStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1439,"b":1452,"line":68,"col":31}]}},{"name":"absentVolunteer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1505,"b":1520,"line":69,"col":33}]}},{"name":"lowSessionRatingFromCoach","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1588,"b":1613,"line":70,"col":46}]}},{"name":"lowSessionRatingFromStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1696,"b":1723,"line":71,"col":48}]}},{"name":"lowCoachRatingFromStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1806,"b":1831,"line":72,"col":46}]}},{"name":"onlyLookingForAnswers","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1907,"b":1928,"line":73,"col":41}]}},{"name":"rudeOrInappropriate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1996,"b":2015,"line":74,"col":38}]}},{"name":"commentFromStudent","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2079,"b":2097,"line":75,"col":37}]}},{"name":"commentFromVolunteer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2162,"b":2182,"line":76,"col":39}]}},{"name":"hasBeenUnmatched","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2245,"b":2261,"line":77,"col":35}]}},{"name":"hasHadTechnicalIssues","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2326,"b":2347,"line":78,"col":41}]}},{"name":"personalIdentifyingInfo","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2419,"b":2442,"line":79,"col":42}]}},{"name":"gradedAssignment","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2507,"b":2523,"line":80,"col":34}]}},{"name":"coachUncomfortable","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2582,"b":2600,"line":81,"col":36}]}},{"name":"studentCrisis","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2656,"b":2669,"line":82,"col":31}]}},{"name":"reported","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2714,"b":2722,"line":83,"col":25}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2780,"b":2786,"line":86,"col":15}]}}],"usedParamSet":{"absentStudent":true,"absentVolunteer":true,"lowSessionRatingFromCoach":true,"lowSessionRatingFromStudent":true,"lowCoachRatingFromStudent":true,"onlyLookingForAnswers":true,"rudeOrInappropriate":true,"commentFromStudent":true,"commentFromVolunteer":true,"hasBeenUnmatched":true,"hasHadTechnicalIssues":true,"personalIdentifyingInfo":true,"gradedAssignment":true,"coachUncomfortable":true,"studentCrisis":true,"reported":true,"userId":true},"statement":{"body":"UPDATE\n    user_session_metrics\nSET\n    absent_student = COALESCE(:absentStudent!, absent_student),\n    absent_volunteer = COALESCE(:absentVolunteer!, absent_volunteer),\n    low_session_rating_from_coach = COALESCE(:lowSessionRatingFromCoach!, low_session_rating_from_coach),\n    low_session_rating_from_student = COALESCE(:lowSessionRatingFromStudent!, low_session_rating_from_student),\n    low_coach_rating_from_student = COALESCE(:lowCoachRatingFromStudent!, low_coach_rating_from_student),\n    only_looking_for_answers = COALESCE(:onlyLookingForAnswers!, only_looking_for_answers),\n    rude_or_inappropriate = COALESCE(:rudeOrInappropriate!, rude_or_inappropriate),\n    comment_from_student = COALESCE(:commentFromStudent!, comment_from_student),\n    comment_from_volunteer = COALESCE(:commentFromVolunteer!, comment_from_volunteer),\n    has_been_unmatched = COALESCE(:hasBeenUnmatched!, has_been_unmatched),\n    has_had_technical_issues = COALESCE(:hasHadTechnicalIssues!, has_had_technical_issues),\n    personal_identifying_info = COALESCE(:personalIdentifyingInfo!, personal_identifying_info),\n    graded_assignment = COALESCE(:gradedAssignment!, graded_assignment),\n    coach_uncomfortable = COALESCE(:coachUncomfortable!, coach_uncomfortable),\n    student_crisis = COALESCE(:studentCrisis!, student_crisis),\n    reported = COALESCE(:reported!, reported),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1372,"b":2814,"line":65,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -177,6 +197,10 @@ const executeUsmUpdatesByUserIdIR: any = {"name":"executeUSMUpdatesByUserId","pa
  *     comment_from_volunteer = COALESCE(:commentFromVolunteer!, comment_from_volunteer),
  *     has_been_unmatched = COALESCE(:hasBeenUnmatched!, has_been_unmatched),
  *     has_had_technical_issues = COALESCE(:hasHadTechnicalIssues!, has_had_technical_issues),
+ *     personal_identifying_info = COALESCE(:personalIdentifyingInfo!, personal_identifying_info),
+ *     graded_assignment = COALESCE(:gradedAssignment!, graded_assignment),
+ *     coach_uncomfortable = COALESCE(:coachUncomfortable!, coach_uncomfortable),
+ *     student_crisis = COALESCE(:studentCrisis!, student_crisis),
  *     reported = COALESCE(:reported!, reported),
  *     updated_at = NOW()
  * WHERE

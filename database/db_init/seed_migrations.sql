@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
--- Dumped by pg_dump version 14.5
+-- Dumped by pg_dump version 14.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -40,6 +40,8 @@ COPY public.seed_migrations (version) FROM stdin;
 20220730181613
 20220730194852
 20220730203032
+20220927210433
+20221006194506
 \.
 
 

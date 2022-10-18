@@ -1148,8 +1148,8 @@ export async function createVolunteer(
   const client = await getClient().connect()
   try {
     volunteerData.email = volunteerData.email.toLowerCase()
-    const partnerOrgId = volunteerData.volunteerPartnerOrg
-      ? await getVolunteerPartnerOrgIdByKey(volunteerData.volunteerPartnerOrg)
+    const partnerOrg = volunteerData.volunteerPartnerOrg
+      ? await getPartnerOrgByKey(volunteerData.volunteerPartnerOrg, client)
       : undefined
     await client.query('BEGIN')
     const userId = getDbUlid()
@@ -1168,10 +1168,25 @@ export async function createVolunteer(
       {
         userId: user.id,
         timezone: volunteerData.timezone,
-        partnerOrgId,
+        partnerOrgId: partnerOrg?.partnerId,
       },
       client
     )
+
+    if (partnerOrg) {
+      const vpoInstanceResult = await pgQueries.createUserVolunteerPartnerOrgInstance.run(
+        {
+          userId,
+          vpoName: partnerOrg.partnerName,
+        },
+        client
+      )
+      if (!makeRequired(vpoInstanceResult)[0].ok)
+        throw new RepoCreateError(
+          'Could not create volunteer: user partner org instance creation did not return rows'
+        )
+    }
+
     if (!profileResult.length && makeRequired(profileResult[0]).ok)
       throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
@@ -1228,6 +1243,30 @@ export async function getVolunteerPartnerOrgIdByKey(
   }
 }
 
+export type VolunteerPartnerOrgByKey = {
+  partnerId: Ulid
+  partnerKey: string
+  partnerName: string
+}
+
+export async function getPartnerOrgByKey(
+  partnerKey: string | undefined,
+  client: PoolClient
+): Promise<VolunteerPartnerOrgByKey | undefined> {
+  if (!partnerKey) return
+  try {
+    const result = await pgQueries.getPartnerOrgByKey.run(
+      {
+        partnerOrgKey: partnerKey,
+      },
+      client
+    )
+    return result.length ? makeRequired(result[0]) : undefined
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 // if partnerOrg isnt provided then remove partnerOrg entirely
 // all other fields override
 export type AdminUpdateVolunteer = {
@@ -1240,6 +1279,86 @@ export type AdminUpdateVolunteer = {
   isDeactivated: boolean
   isApproved: boolean | undefined
 }
+
+async function adminUpdateVolunteerPartnerOrgInstance(
+  volunteerId: Ulid,
+  newPartnerOrgKey: string | undefined,
+  client: PoolClient
+) {
+  try {
+    const newPartnerOrg = await getPartnerOrgByKey(newPartnerOrgKey, client)
+    if (newPartnerOrgKey && !newPartnerOrg)
+      throw new Error(`New partner org ${newPartnerOrgKey} does not exist`)
+
+    const activePartnerOrgInstanceResults = await pgQueries.getPartnerOrgsByVolunteer.run(
+      { volunteerId },
+      client
+    )
+    const activePartnerOrgInstances = activePartnerOrgInstanceResults.map(v =>
+      makeRequired(v)
+    )
+
+    // volunteers should not have more than one partner org
+    if (activePartnerOrgInstances.length > 1)
+      throw new Error(
+        `Volunteer ${volunteerId} has more than 1 partner org; cannot update`
+      )
+
+    const activeOrgInstance = activePartnerOrgInstances[0]
+
+    /**
+     *
+     * We attempt to deactive the active instance in two cases:
+     * 1. We're removing a partner org and there is an active instance
+     * 2. We're changing the partner org and there is an active instance
+     *
+     */
+    if (
+      (activeOrgInstance && !newPartnerOrg) ||
+      (activeOrgInstance &&
+        newPartnerOrg &&
+        activeOrgInstance.name !== newPartnerOrg.partnerName)
+    ) {
+      const updateResult = await pgQueries.adminDeactivateVolunteerPartnershipInstance.run(
+        { userId: volunteerId, vpoId: activeOrgInstance.id },
+        client
+      )
+      if (!makeRequired(updateResult[0]).ok)
+        throw new Error(
+          `Deactivating active partner org instance failed for volunteer ${volunteerId}`
+        )
+    }
+
+    /**
+     *
+     * We attempt to add a new active org instance in two cases:
+     * 1. We're adding a new partner org and there is no active instance
+     * 2. We're changing the partner org
+     *
+     */
+    if (
+      (!activeOrgInstance && newPartnerOrg) ||
+      (activeOrgInstance &&
+        newPartnerOrg &&
+        activeOrgInstance.name !== newPartnerOrg.partnerName)
+    ) {
+      const insertResult = await pgQueries.createUserVolunteerPartnerOrgInstance.run(
+        {
+          userId: volunteerId,
+          vpoName: newPartnerOrg.partnerName,
+        },
+        client
+      )
+      if (!makeRequired(insertResult[0]).ok)
+        throw new Error(
+          `Inserting new partner org instance failed for volunteer ${volunteerId}`
+        )
+    }
+  } catch (err) {
+    throw new RepoReadError(`Could not update volunteer partner org: ${err}`)
+  }
+}
+
 export async function updateVolunteerForAdmin(
   userId: Ulid,
   update: AdminUpdateVolunteer
@@ -1265,11 +1384,18 @@ export async function updateVolunteerForAdmin(
     const profileResult = await pgQueries.updateVolunteerProfilesForAdmin.run(
       {
         userId,
-        partnerOrgId,
         approved: update.isApproved,
+        partnerOrgId,
       },
       client
     )
+
+    await adminUpdateVolunteerPartnerOrgInstance(
+      userId,
+      update.volunteerPartnerOrg,
+      client
+    )
+
     if (
       !(
         userResult.length &&

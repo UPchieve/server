@@ -350,7 +350,7 @@ SELECT
     users.test_user AS is_test_user,
     student_profiles.postal_code AS zip_code,
     student_partner_orgs.name AS student_partner_org,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
+    volunteer_partner_orgs.name AS volunteer_partner_org,
     volunteer_profiles.photo_id_s3_key,
     photo_id_statuses.name AS photo_id_status,
     volunteer_profiles.country,
@@ -446,7 +446,9 @@ SELECT
     student_partner_org_sites.name AS partner_site,
     student_partner_orgs.name AS student_partner_org,
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
-    volunteer_profiles.total_volunteer_hours
+    volunteer_profiles.total_volunteer_hours,
+    schools.name AS school_name,
+    grade_levels.name AS grade_level
 FROM
     users
     LEFT JOIN (
@@ -511,6 +513,8 @@ FROM
         WHERE
             student_id = :userId!
             OR volunteer_id = :userId!) AS past_sessions ON TRUE
+    LEFT JOIN schools ON student_profiles.school_id = schools.id
+    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
     users.id = :userId!;
 

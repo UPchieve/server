@@ -12,4 +12,6 @@ export type StudentPartnerOrg = {
   schoolSignupRequired: boolean
   signupCode: string
   sites?: string[]
+  isSchool: boolean
+  deactivated?: boolean
 }

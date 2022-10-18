@@ -9,7 +9,10 @@ import config from '../config'
 import { Ulid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
 import { createAccountAction } from '../models/UserAction'
-import { StudentSignupSources } from '../models/Student/queries'
+import {
+  StudentPartnerOrgInstance,
+  StudentSignupSources,
+} from '../models/Student/queries'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -111,4 +114,10 @@ export async function getStudentSignupSources(): Promise<
   StudentSignupSources[] | undefined
 > {
   return await StudentRepo.getStudentSignupSources()
+}
+
+export async function adminGetActivePartnersForStudent(
+  studentId: Ulid
+): Promise<StudentPartnerOrgInstance[] | undefined> {
+  return await StudentRepo.getActivePartnersForStudent(studentId)
 }

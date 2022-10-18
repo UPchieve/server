@@ -101,7 +101,7 @@ export async function addReference(data: unknown) {
   const referenceData = {
     firstName: referenceFirstName,
     lastName: referenceLastName,
-    email: referenceEmail,
+    email: referenceEmail.toLowerCase(),
   }
 
   if (userEmail === referenceData.email) {
@@ -116,7 +116,7 @@ export async function addReference(data: unknown) {
   )
   if (
     isExistingReference &&
-    isExistingReference.email === referenceEmail &&
+    isExistingReference.email.toLowerCase() === referenceEmail.toLowerCase() &&
     !isExistingReference.actions.includes(
       ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE
     )
@@ -237,6 +237,7 @@ interface AdminUpdate {
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
+  partnerSchool?: string
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   userId: asString,
@@ -250,6 +251,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
+  partnerSchool: asOptional(asString),
 })
 
 export async function flagForDeletion(user: UserContactInfo) {
@@ -278,6 +280,7 @@ export async function adminUpdateUser(data: unknown) {
     isDeactivated,
     isApproved,
     inGatesStudy,
+    partnerSchool,
   } = asAdminUpdate(data)
   // replaced by UserRepo.getUserForAdminUpdate
   const userBeforeUpdate = await getUserContactInfoById(userId)
@@ -314,6 +317,7 @@ export async function adminUpdateUser(data: unknown) {
     partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
     inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
     banReason: isBanned ? 'admin' : undefined,
+    partnerSchool: !isVolunteer && partnerSchool ? partnerSchool : undefined,
   }
 
   if (!isVolunteer) {

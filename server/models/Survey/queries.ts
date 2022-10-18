@@ -1,6 +1,12 @@
 import { getClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import {
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   LegacySurvey,
@@ -12,8 +18,8 @@ import {
   SurveyType,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
+import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 import _ from 'lodash'
-import { USER_ROLES_TYPE } from '../../constants'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -173,29 +179,81 @@ export async function getPostsessionSurveyDefinition(
   userRole: USER_ROLES_TYPE
 ): Promise<SurveyQueryResponse> {
   try {
-    const result = await pgQueries.getPostsessionSurveyDefinition.run(
+    const replacementColumns = await pgQueries.getPostsessionSurveyReplacementColumns.run(
       { surveyType, sessionId, userRole },
       getClient()
     )
-    const resultArr = result.map(v =>
+    const replacementColumnsArr = replacementColumns.map(c =>
+      makeSomeOptional(c, ['id'])
+    )
+    const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
+      { surveyType, sessionId, userRole },
+      getClient()
+    )
+
+    const resultArr = surveyDefinitionExceptReplacementColumns.map(v =>
       makeSomeRequired(v, ['responseDisplayImage'])
     )
-    return formatSurveyDefinition(resultArr)
+    return formatSurveyDefinition(resultArr, replacementColumnsArr)
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export function formatSurveyDefinition(resultArr: any): SurveyQueryResponse {
-  const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
+export type SurveyDefinitionExceptReplacementColumns = {
+  surveyId: number
+  name?: string
+  surveyTypeId: number
+  displayPriority: number
+  questionId: number
+  questionText: string
+  questionType: string
+  responseId: number
+  responseText: string
+  responseDisplayImage?: string
+  responseDisplayPriority: number
+}
 
+export type SurveyReplacementColumn = {
+  id: number
+  replacementText1?: string
+  replacementText2?: string
+}
+
+export function formatSurveyDefinition(
+  resultArr: SurveyDefinitionExceptReplacementColumns[],
+  replacementColumns?: SurveyReplacementColumn[]
+): SurveyQueryResponse {
+  const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
   const survey: SurveyQuestionDefinition[] = []
   for (const [question, rows] of Object.entries(rowsByQuestion)) {
     const responses: SurveyResponseDefinition[] = []
     const temp = rows[0]
+
+    let questionText = temp.questionText
+    if (replacementColumns) {
+      const associatedReplacementColumns = replacementColumns.filter(
+        (col: any) => question == col.id
+      )[0]
+      if (
+        associatedReplacementColumns &&
+        associatedReplacementColumns.replacementText1
+      ) {
+        questionText = questionText.replace(
+          /%s/,
+          associatedReplacementColumns.replacementText1
+        )
+        if (associatedReplacementColumns.replacementText2) {
+          questionText = questionText.replace(
+            /%s/,
+            associatedReplacementColumns.replacementText2
+          )
+        }
+      }
+    }
     const questionData = {
       questionId: question,
-      questionText: temp.questionText,
+      questionText: questionText,
       displayPriority: temp.displayPriority,
       questionType: temp.questionType,
     }
@@ -243,6 +301,60 @@ export async function getPresessionSurveyResponse(
     if (result.length)
       return result.map(row => makeSomeRequired(row, ['displayImage']))
     return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type PostsessionSurveyResponse = {
+  userRole: string
+  questionText: string
+  displayLabel: string
+  response?: string
+  displayOrder: number
+  score: number
+}
+
+export async function getPostsessionSurveyResponse(
+  sessionId: string,
+  userRole: USER_ROLES_TYPE
+): Promise<PostsessionSurveyResponse[]> {
+  try {
+    if (userRole === USER_ROLES.STUDENT) {
+      const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
+        { sessionId },
+        getClient()
+      )
+      if (result.length)
+        return result.map(row => makeSomeRequired(row, ['response']))
+      return []
+    } else {
+      const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
+        { sessionId },
+        getClient()
+      )
+      if (result.length)
+        return result.map(row => makeSomeRequired(row, ['response']))
+      return []
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPostsessionSurveyResponsesForSessionMetrics(
+  sessionId: string
+): Promise<PostsessionSurveyResponse[]> {
+  try {
+    const studentResponses = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.STUDENT
+    )
+    const volunteerResponses = await getPostsessionSurveyResponse(
+      sessionId,
+      USER_ROLES.VOLUNTEER
+    )
+    return studentResponses.concat(volunteerResponses)
   } catch (err) {
     throw new RepoReadError(err)
   }
