@@ -362,7 +362,6 @@ FROM
     student_partner_orgs spo
 WHERE
     spo.school_id = :schoolId!
-LIMIT 1
 RETURNING
     user_id AS ok;
 
