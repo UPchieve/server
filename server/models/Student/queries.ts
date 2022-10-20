@@ -653,11 +653,10 @@ export async function createStudent(
       const school = await SchoolRepo.getSchool(studentData.approvedHighschool)
 
       if (school && school.isPartner) {
-        const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstance.run(
+        const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstanceWithSchoolId.run(
           {
             userId,
-            spoName: school.name,
-            spoSiteName: undefined,
+            schoolId: school.id,
           },
           transactionClient
         )
