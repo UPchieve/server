@@ -118,3 +118,4 @@ FROM
     JOIN user_roles ON feedbacks.user_role_id = user_roles.id
 WHERE
     feedbacks.user_id = :userId!;
+
