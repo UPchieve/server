@@ -34,7 +34,8 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
-    session_count.total = 1 AS is_first_time_student
+    session_count.total = 1 AS is_first_time_student,
+    subjects.display_name AS subject_display_name
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id

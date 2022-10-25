@@ -71,6 +71,7 @@ export type UnfulfilledSessions = {
   createdAt: Date
   type: string
   volunteer?: Ulid
+  subjectDisplayName: string
 }
 
 // sessions that have not yet been fulfilled by a volunteer
