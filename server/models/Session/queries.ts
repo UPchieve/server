@@ -14,10 +14,8 @@ import 'moment-timezone'
 import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
-import { ResponseData, StudentCounselingFeedback } from '../Feedback'
 import { PoolClient } from 'pg'
-import { VolunteerFeedback, Feedback } from '../Feedback'
-import { fixNumberInt } from '../../utils/fix-number-int'
+import { Feedback } from '../Feedback'
 import { isPgId } from '../../utils/type-utils'
 import {
   getSessionNotificationsWithSessionId,
@@ -26,17 +24,10 @@ import {
 import {
   getPresessionSurveyResponse,
   getPostsessionSurveyResponse,
-  PresessionSurveyResponseData,
   PostsessionSurveyResponse,
   StudentPresessionSurveyResponse,
-  getPostsessionSurveyResponsesForSessionMetrics,
   getSessionRating,
 } from '../Survey'
-import { USER_ROLES_TYPE } from '../../constants'
-import {
-  getStudentSessionRating,
-  getVolunteerSessionRating,
-} from '../Survey/pg.queries'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility

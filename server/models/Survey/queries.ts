@@ -363,7 +363,7 @@ export async function getPostsessionSurveyResponsesForSessionMetrics(
 export async function getSessionRating(
   sessionId: string,
   userRole: USER_ROLES_TYPE
-) {
+): Promise<number | undefined> {
   if (userRole === USER_ROLES.STUDENT) {
     const ratings = await pgQueries.getStudentSessionRating.run(
       { sessionId },
@@ -377,5 +377,14 @@ export async function getSessionRating(
     getClient()
   )
   const result = ratings.map(rate => rate.score)
+  return result.length ? result[0] : undefined
+}
+
+export async function getAverageSessionRating(userId: string): Promise<number | undefined> {
+  const averages = await pgQueries.getAverageSessionRating.run(
+    { userId },
+    getClient()
+  )
+  const result = averages.map(avg => avg.avg || undefined)
   return result.length ? result[0] : undefined
 }

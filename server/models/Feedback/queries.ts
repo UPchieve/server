@@ -1,6 +1,6 @@
-import { getClient, getRoClient } from '../../db'
-import { RepoCreateError, RepoReadError } from '../Errors'
-import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import { getClient } from '../../db'
+import { RepoReadError } from '../Errors'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Feedback } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
@@ -74,16 +74,6 @@ export async function getFeedbackBySessionId(
   }
 }
 
-export async function getFeedbackById(id: Ulid): Promise<Feedback | undefined> {
-  try {
-    const result = await pgQueries.getFeedbackById.run({ id }, getClient())
-    if (!result.length) return
-    return buildFeedback(result)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type SingleFeedback = Feedback & {
   userId: Ulid
   createdAt: Date
@@ -125,59 +115,6 @@ export type FeedbackPayload = Pick<
   | 'volunteerFeedback'
   | 'comment'
 >
-export async function upsertFeedback(
-  sessionId: Ulid,
-  userRole: 'student' | 'volunteer',
-  feedback: FeedbackPayload
-): Promise<Ulid> {
-  try {
-    const result = await pgQueries.upsertFeedback.run(
-      {
-        id: getDbUlid(),
-        sessionId,
-        userRole,
-        studentCounselingFeedback: feedback.studentCounselingFeedback,
-        studentTutoringFeedback: feedback.studentTutoringFeedback,
-        volunteerFeedback: feedback.volunteerFeedback,
-        comment: feedback.comment,
-      },
-      getClient()
-    )
-    return makeRequired(result[0]).id
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-// TODO: break out anything that uses RO client into their own repo
-export async function getFeedbackByUserId(
-  userId: Ulid
-): Promise<SingleFeedback[] | undefined> {
-  try {
-    const result = await pgQueries.getFeedbackByUserId.run(
-      { userId },
-      getRoClient()
-    )
-    if (!result.length) return
-    return result.map(row => {
-      const temp = makeSomeRequired(row, [
-        'legacyFeedbacks',
-        'studentCounselingFeedback',
-        'studentTutoringFeedback',
-        'volunteerFeedback',
-        'responseData',
-      ])
-      return {
-        userId: temp.id,
-        createdAt: temp.createdAt,
-        updatedAt: temp.updatedAt,
-        ...buildFeedback([temp]),
-      }
-    })
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
 
 export async function removeDuplicateFeedbacks() {
   await pgQueries.removeDuplicateFeedbacks.run(undefined, getClient())

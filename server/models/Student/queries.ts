@@ -1,6 +1,5 @@
 import { PoolClient } from 'pg'
 import { getClient, getRoClient } from '../../db'
-import * as FeedbackRepo from '../../models/Feedback/queries'
 import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
@@ -9,8 +8,6 @@ import {
   RepoTransactionError,
   RepoUpdateError,
 } from '../Errors'
-import { SingleFeedback } from '../Feedback/queries'
-import { ResponseData, StudentCounselingFeedback } from '../Feedback/types'
 import {
   generateReferralCode,
   getDbUlid,
@@ -20,6 +17,8 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
+import { getSessionRating } from '../Survey'
+import { USER_ROLES } from '../../constants'
 
 export type ReportedStudent = {
   id: Ulid
@@ -736,16 +735,6 @@ export type SessionReportRow = {
   sponsorOrg?: string
 }
 
-function toObject<T>(obj: unknown): T {
-  const thing =
-    typeof obj === 'object'
-      ? obj
-      : typeof obj === 'string'
-      ? JSON.parse(obj)
-      : obj
-  return thing
-}
-
 // TODO: break out anything that uses RO client into their own repo
 export async function getSessionReport(
   query: StudentSessionReportQuery
@@ -771,31 +760,13 @@ export async function getSessionReport(
 
     if (result.length) {
       for (const row of result) {
-        const feedback = await FeedbackRepo.getFeedbackBySessionIdUserType(
-          row.sessionId,
-          'student'
-        )
         const session = makeSomeRequired(row, [
           'partnerSite',
           'volunteerJoinedAt',
           'sponsorOrg',
           'waitTimeMins',
         ])
-
-        let sessionRating: number | undefined
-
-        if (feedback) {
-          const counselingFeedback:
-            | StudentCounselingFeedback
-            | undefined = toObject(feedback.studentCounselingFeedback)
-          const responseData: ResponseData | undefined = toObject(
-            feedback.responseData
-          )
-
-          sessionRating =
-            counselingFeedback?.['rate-session']?.rating ||
-            responseData?.['rate-session']?.rating
-        }
+        const sessionRating = await getSessionRating(session.sessionId, USER_ROLES.STUDENT)
         row.email = row.email.toLowerCase()
         report.push({ ...session, sessionRating })
       }
@@ -832,7 +803,6 @@ export type UsageReportRow = {
   totalSessionLengthMins: number
   rangeTotalSessions: number
   rangeSessionLengthMins: number
-  feedbacks: SingleFeedback[]
 }
 
 // TODO: break out anything that uses RO client into their own repo
@@ -862,7 +832,6 @@ export async function getUsageReport(
 
     if (result.length) {
       for (const row of result) {
-        const feedbacks = await FeedbackRepo.getFeedbackByUserId(row.userId)
         const session = makeSomeRequired(row, [
           'partnerSite',
           'studentPartnerOrg',
@@ -871,8 +840,7 @@ export async function getUsageReport(
         ])
         row.email = row.email.toLowerCase()
         report.push({
-          ...session,
-          feedbacks: feedbacks?.length ? feedbacks : [],
+          ...session
         })
       }
 

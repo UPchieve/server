@@ -744,19 +744,19 @@ export interface IGetStudentSessionRatingQuery {
   result: IGetStudentSessionRatingResult;
 }
 
-const getStudentSessionRatingIR: any = {"name":"getStudentSessionRating","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15790,"b":15799,"line":415,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n score\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE \n    users_surveys.session_id = :sessionId!\n    AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'","loc":{"a":15456,"b":15907,"line":407,"col":0}}};
+const getStudentSessionRatingIR: any = {"name":"getStudentSessionRating","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15793,"b":15802,"line":416,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    score\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    users_surveys.session_id = :sessionId!\n    AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'","loc":{"a":15457,"b":15910,"line":408,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *  score
+ *     score
  * FROM
  *     upchieve.users_surveys
  *     JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
  *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
  *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
- * WHERE 
+ * WHERE
  *     users_surveys.session_id = :sessionId!
  *     AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
  * ```
@@ -780,13 +780,13 @@ export interface IGetVolunteerSessionRatingQuery {
   result: IGetVolunteerSessionRatingResult;
 }
 
-const getVolunteerSessionRatingIR: any = {"name":"getVolunteerSessionRating","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16282,"b":16291,"line":427,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n score\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    users_surveys.session_id = :sessionId!\n    AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'","loc":{"a":15949,"b":16406,"line":419,"col":0}}};
+const getVolunteerSessionRatingIR: any = {"name":"getVolunteerSessionRating","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16289,"b":16298,"line":429,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    score\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    users_surveys.session_id = :sessionId!\n    AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'","loc":{"a":15953,"b":16413,"line":421,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *  score
+ *     score
  * FROM
  *     upchieve.users_surveys
  *     JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
@@ -798,5 +798,42 @@ const getVolunteerSessionRatingIR: any = {"name":"getVolunteerSessionRating","pa
  * ```
  */
 export const getVolunteerSessionRating = new PreparedQuery<IGetVolunteerSessionRatingParams,IGetVolunteerSessionRatingResult>(getVolunteerSessionRatingIR);
+
+
+/** 'GetAverageSessionRating' parameters type */
+export interface IGetAverageSessionRatingParams {
+  userId: string;
+}
+
+/** 'GetAverageSessionRating' return type */
+export interface IGetAverageSessionRatingResult {
+  avg: number | null;
+}
+
+/** 'GetAverageSessionRating' query type */
+export interface IGetAverageSessionRatingQuery {
+  params: IGetAverageSessionRatingParams;
+  result: IGetAverageSessionRatingResult;
+}
+
+const getAverageSessionRatingIR: any = {"name":"getAverageSessionRating","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16785,"b":16791,"line":442,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    AVG(score)::float\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    user_id = :userId!\n    AND (sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'\n    OR sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?')","loc":{"a":16454,"b":17015,"line":434,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     AVG(score)::float
+ * FROM
+ *     upchieve.users_surveys
+ *     JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
+ *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+ *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ * WHERE
+ *     user_id = :userId!
+ *     AND (sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+ *     OR sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?')
+ * ```
+ */
+export const getAverageSessionRating = new PreparedQuery<IGetAverageSessionRatingParams,IGetAverageSessionRatingResult>(getAverageSessionRatingIR);
 
 
