@@ -413,8 +413,6 @@ export async function adminFilteredSessions(data: unknown) {
       studentRating: studentRating ? Number(studentRating) : undefined,
     }
   )
-  console.log('aaaaaaa')
-  console.log(sessions)
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
 }
