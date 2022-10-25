@@ -17,11 +17,9 @@ import {
   SESSION_EVENTS,
   USM_EVENTS,
 } from '../../constants'
-import { Feedback } from '../../models/Feedback'
 import { emitter } from '../EventsService'
 import logger from '../../logger'
 import { safeAsync } from '../../utils/safe-async'
-import { getFeedbackById } from '../../models/Feedback'
 import { METRIC_PROCESSORS, MetricProcessorOutputs } from './metrics'
 import {
   UpdateValueData,
@@ -56,7 +54,6 @@ for (const metric of Object.values(METRIC_PROCESSORS)) {
 export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
   const {
     session,
-    feedback,
     studentUSM,
     volunteerUSM,
     surveyResponses,
@@ -65,7 +62,6 @@ export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
     SESSION_METRICS_PROCESSORS,
     session,
     studentUSM,
-    feedback,
     volunteerUSM,
     surveyResponses
   )
@@ -74,21 +70,18 @@ export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
 
 // registered as listener on feedback-saved
 export async function prepareFeedbackProcessors(
-  sessionId: Ulid,
-  feedbackId?: Ulid
+  sessionId: Ulid
 ): Promise<void> {
   const {
     session,
-    feedback,
     studentUSM,
     volunteerUSM,
     surveyResponses,
-  } = await getValuesToPrepareMetrics(sessionId, feedbackId)
+  } = await getValuesToPrepareMetrics(sessionId)
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
     session,
     studentUSM,
-    feedback,
     volunteerUSM,
     surveyResponses
   )
@@ -99,7 +92,6 @@ export async function prepareFeedbackProcessors(
 export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
   const {
     session,
-    feedback,
     studentUSM,
     volunteerUSM,
     surveyResponses,
@@ -109,7 +101,6 @@ export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
     REPORT_METRICS_PROCESSORS,
     session,
     studentUSM,
-    feedback,
     volunteerUSM,
     surveyResponses
   )
@@ -117,11 +108,9 @@ export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
 }
 
 export async function getValuesToPrepareMetrics(
-  sessionId: Ulid,
-  feedbackId?: Ulid
+  sessionId: Ulid
 ): Promise<{
   session: Session
-  feedback?: Feedback
   studentUSM: UserSessionMetrics
   volunteerUSM?: UserSessionMetrics
   surveyResponses?: PostsessionSurveyResponse[]
@@ -155,12 +144,11 @@ export async function prepareMetrics(
   metrics: MetricProcessor[],
   session: Session,
   studentUSM: UserSessionMetrics,
-  feedback?: Feedback,
   volunteerUSM?: UserSessionMetrics,
   surveyResponses?: PostsessionSurveyResponse[]
 ): Promise<MetricProcessorPayload> {
   const messages = await getMessagesForFrontend(session.id)
-  const uvd = { session, feedback, messages, surveyResponses }
+  const uvd = { session, messages, surveyResponses }
   const outputs: MetricProcessorOutputs = {}
   for (const metric of metrics) {
     try {
