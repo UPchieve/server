@@ -107,15 +107,3 @@ export async function getFeedbackBySessionIdUserType(
     throw new RepoReadError(err)
   }
 }
-
-export type FeedbackPayload = Pick<
-  Feedback,
-  | 'studentCounselingFeedback'
-  | 'studentTutoringFeedback'
-  | 'volunteerFeedback'
-  | 'comment'
->
-
-export async function removeDuplicateFeedbacks() {
-  await pgQueries.removeDuplicateFeedbacks.run(undefined, getClient())
-}
