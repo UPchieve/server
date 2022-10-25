@@ -58,6 +58,7 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
   return feedback
 }
 
+// need this for session review, which still displays legacy feedback
 export async function getFeedbackBySessionId(
   sessionId: Ulid
 ): Promise<Feedback | undefined> {

@@ -127,53 +127,27 @@ export async function getValuesToPrepareMetrics(
   surveyResponses?: PostsessionSurveyResponse[]
 }> {
   const session = await getSessionById(sessionId)
-  // TODO: this handles old feedback mechanism, once new postsession survey goes live we delete this
-  if (feedbackId) {
-    const feedback = (await getFeedbackById(feedbackId)) as Feedback
-    const uvd = { session, feedback } as UpdateValueData
+  const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
+    sessionId
+  )
+  const uvd = { session } as UpdateValueData
 
-    const studentUSM = await getUSMByUserId(uvd.session.studentId)
-    if (!studentUSM)
-      throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
-    let volunteerUSM: UserSessionMetrics | undefined
-    if (uvd.session.volunteerId) {
-      volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
-      if (!volunteerUSM)
-        throw new Error(
-          `Could not find USM for volunteer ${uvd.session.volunteerId}`
-        )
-    }
-
-    return {
-      session,
-      feedback,
-      studentUSM,
-      volunteerUSM,
-    }
-    // TODO: this handles new postsession survey, delete above once postsession goes live
-  } else {
-    const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
-      sessionId
-    )
-    const uvd = { session } as UpdateValueData
-
-    const studentUSM = await getUSMByUserId(uvd.session.studentId)
-    if (!studentUSM)
-      throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
-    let volunteerUSM: UserSessionMetrics | undefined
-    if (uvd.session.volunteerId) {
-      volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
-      if (!volunteerUSM)
-        throw new Error(
-          `Could not find USM for volunteer ${uvd.session.volunteerId}`
-        )
-    }
-    return {
-      session,
-      studentUSM,
-      volunteerUSM,
-      surveyResponses,
-    }
+  const studentUSM = await getUSMByUserId(uvd.session.studentId)
+  if (!studentUSM)
+    throw new Error(`Could not find USM for student ${uvd.session.studentId}`)
+  let volunteerUSM: UserSessionMetrics | undefined
+  if (uvd.session.volunteerId) {
+    volunteerUSM = await getUSMByUserId(uvd.session.volunteerId)
+    if (!volunteerUSM)
+      throw new Error(
+        `Could not find USM for volunteer ${uvd.session.volunteerId}`
+      )
+  }
+  return {
+    session,
+    studentUSM,
+    volunteerUSM,
+    surveyResponses,
   }
 }
 

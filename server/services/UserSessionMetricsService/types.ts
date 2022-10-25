@@ -8,7 +8,6 @@ import { PostsessionSurveyResponse } from '../../models/Survey'
 export interface UpdateValueData {
   session: Session // a completed session
   messages: MessageForFrontend[]
-  feedback?: Feedback // prepopulate the feedback TODO: this is old feedback, not new, delete once postsession updated
   surveyResponses?: PostsessionSurveyResponse[] // postsession feedback
 }
 

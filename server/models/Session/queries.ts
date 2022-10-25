@@ -29,8 +29,14 @@ import {
   PresessionSurveyResponseData,
   PostsessionSurveyResponse,
   StudentPresessionSurveyResponse,
+  getPostsessionSurveyResponsesForSessionMetrics,
+  getSessionRating,
 } from '../Survey'
 import { USER_ROLES_TYPE } from '../../constants'
+import {
+  getStudentSessionRating,
+  getVolunteerSessionRating,
+} from '../Survey/pg.queries'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -274,21 +280,20 @@ export async function getSessionsToReview(
       { limit, offset },
       getClient()
     )
-    return result.map(v => {
-      const temp = makeSomeRequired(v, [
-        'volunteer',
-        'reviewReasons',
-        'studentCounselingFeedback',
-      ])
-      const studentRating = extractStudentRating(
-        fixNumberInt(temp.studentCounselingFeedback)
-      )
-      return {
-        ...temp,
-        studentRating,
-        _id: temp.id,
-      }
-    })
+    return Promise.all(
+      result.map(async v => {
+        const temp = makeSomeRequired(v, ['volunteer', 'reviewReasons'])
+        const studentRating = await getSessionRating(
+          temp.id,
+          USER_ROLES.STUDENT
+        )
+        return {
+          ...temp,
+          studentRating,
+          _id: temp.id,
+        }
+      })
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -825,20 +830,23 @@ export async function getSessionsVolunteerRating(
       { volunteerId },
       getClient()
     )
-    return result.map(row => {
-      const session = makeSomeRequired(row, ['volunteerFeedback'])
-      const sessionVolunteerRating: SessionVolunteerRating = {
-        id: session.id,
-      }
-      if (session.volunteerFeedback) {
-        const rating = extractVolunteerRating(
-          session.volunteerFeedback as VolunteerFeedback
-        )
-        sessionVolunteerRating.sessionRating = rating
-      }
+    return Promise.all(
+      result.map(async row => {
+        const session = makeSomeRequired(row, ['volunteerFeedback'])
+        const sessionVolunteerRating: SessionVolunteerRating = {
+          id: session.id,
+        }
+        if (session.volunteerFeedback) {
+          const rating = await getSessionRating(
+            session.id,
+            USER_ROLES.VOLUNTEER
+          )
+          sessionVolunteerRating.sessionRating = rating
+        }
 
-      return sessionVolunteerRating
-    })
+        return sessionVolunteerRating
+      })
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -948,27 +956,6 @@ export type AdminFilterOptions = {
   firstTimeVolunteer: boolean | undefined
 }
 
-function extractVolunteerRating(
-  rawFeedback: VolunteerFeedback | ResponseData | undefined
-): number | undefined {
-  if (!rawFeedback) return undefined
-  const feedback = fixNumberInt(rawFeedback)
-  let rating: number | undefined
-  if ((feedback as VolunteerFeedback)['session-enjoyable'])
-    rating = (feedback as VolunteerFeedback)['session-enjoyable'] as number
-  else if ((feedback as ResponseData)['rate-session'])
-    rating = (feedback as ResponseData)['rate-session'].rating as number
-  return rating
-}
-function extractStudentRating(
-  rawFeedback: StudentCounselingFeedback | ResponseData | undefined
-): number | undefined {
-  if (!rawFeedback) return undefined
-  const feedback = fixNumberInt(rawFeedback)
-  if ((feedback as StudentCounselingFeedback)['rate-session'])
-    return (feedback as StudentCounselingFeedback)['rate-session']
-      ?.rating as number
-}
 export async function getSessionsForAdminFilter(
   start: Date,
   end: Date,
@@ -983,8 +970,6 @@ export async function getSessionsForAdminFilter(
     )
     const sessions = sessionResult.map(v =>
       makeSomeRequired(v, [
-        'volunteerFeedback',
-        'studentCounselingFeedback',
         'volunteerEmail',
         'volunteerFirstName',
         'volunteerIsBanned',
@@ -993,12 +978,14 @@ export async function getSessionsForAdminFilter(
         'reviewReasons',
       ])
     )
-    return sessions.map(session => {
-      const studentRating = extractStudentRating(
-        session.studentCounselingFeedback as any
+    const sessionsInfo = sessions.map(async session => {
+      const studentRating = await getSessionRating(
+        session.id,
+        USER_ROLES.STUDENT
       )
-      const volunteerRating = extractVolunteerRating(
-        session.volunteerFeedback as any
+      const volunteerRating = await getSessionRating(
+        session.id,
+        USER_ROLES.VOLUNTEER
       )
       let volunteer = undefined
       if (
@@ -1034,6 +1021,7 @@ export async function getSessionsForAdminFilter(
         _id: session.id,
       }
     })
+    return Promise.all(sessionsInfo)
   } catch (err) {
     throw new RepoReadError(err)
   }
