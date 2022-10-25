@@ -441,4 +441,5 @@ FROM
 WHERE
     user_id = :userId!
     AND (sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
-    OR sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?');
+        OR sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?');
+

@@ -161,30 +161,34 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   })
 
   if (report && report.length) {
-    const studentUsage = Promise.all(report.map(async student => {
-      const avgRating = (await getAverageSessionRating(student.userId))?.toFixed(2)
+    const studentUsage = Promise.all(
+      report.map(async student => {
+        const avgRating = (
+          await getAverageSessionRating(student.userId)
+        )?.toFixed(2)
 
-      const dataFormat: UsageReport = {
-        'First name': student.firstName,
-        'Last name': student.lastName,
-        Email: student.email,
-        'Join date': formatDate(student.joinDate),
-        'Total sessions': student.totalSessions,
-        'Total minutes': student.totalSessionLengthMins,
-        'Average session rating': avgRating ? parseInt(avgRating, 10): 0,
-        'Sessions over date range': student.rangeTotalSessions,
-        'Minutes over date range': student.rangeSessionLengthMins,
-        'High school name': student.school ? student.school : '',
-        'Partner site': student.partnerSite ? student.partnerSite : '-',
-        'HS/College': student.school ? 'High school' : 'College',
-        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
-        'Partner Org': student.studentPartnerOrg
-          ? student.studentPartnerOrg
-          : '',
-      }
+        const dataFormat: UsageReport = {
+          'First name': student.firstName,
+          'Last name': student.lastName,
+          Email: student.email,
+          'Join date': formatDate(student.joinDate),
+          'Total sessions': student.totalSessions,
+          'Total minutes': student.totalSessionLengthMins,
+          'Average session rating': avgRating ? parseInt(avgRating, 10) : 0,
+          'Sessions over date range': student.rangeTotalSessions,
+          'Minutes over date range': student.rangeSessionLengthMins,
+          'High school name': student.school ? student.school : '',
+          'Partner site': student.partnerSite ? student.partnerSite : '-',
+          'HS/College': student.school ? 'High school' : 'College',
+          'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
+          'Partner Org': student.studentPartnerOrg
+            ? student.studentPartnerOrg
+            : '',
+        }
 
-      return dataFormat
-    }))
+        return dataFormat
+      })
+    )
 
     return studentUsage
   }

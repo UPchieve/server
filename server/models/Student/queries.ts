@@ -766,7 +766,10 @@ export async function getSessionReport(
           'sponsorOrg',
           'waitTimeMins',
         ])
-        const sessionRating = await getSessionRating(session.sessionId, USER_ROLES.STUDENT)
+        const sessionRating = await getSessionRating(
+          session.sessionId,
+          USER_ROLES.STUDENT
+        )
         row.email = row.email.toLowerCase()
         report.push({ ...session, sessionRating })
       }
@@ -840,7 +843,7 @@ export async function getUsageReport(
         ])
         row.email = row.email.toLowerCase()
         report.push({
-          ...session
+          ...session,
         })
       }
 
