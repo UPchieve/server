@@ -6,7 +6,7 @@ SELECT
     topics.display_name AS topic_display_name
 FROM
     subjects
-    JOIN topics ON subjects.topic_id = subjects.id
+    JOIN topics ON subjects.topic_id = topics.id
 WHERE
     subjects.name = :subject!
     AND topics.name = :topic!;
