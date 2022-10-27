@@ -271,7 +271,8 @@ CREATE TABLE upchieve.certifications (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    active boolean DEFAULT false NOT NULL
 );
 
 
@@ -797,7 +798,8 @@ CREATE TABLE upchieve.quizzes (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    active boolean DEFAULT false NOT NULL
 );
 
 
@@ -2908,14 +2910,6 @@ ALTER TABLE ONLY upchieve.student_profiles
 
 
 --
--- Name: subjects subjects_display_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.subjects
-    ADD CONSTRAINT subjects_display_name_key UNIQUE (display_name);
-
-
---
 -- Name: subjects subjects_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4574,4 +4568,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220830164711'),
     ('20220830180659'),
     ('20220901190221'),
-    ('20220916002003');
+    ('20220916002003'),
+    ('20221026004526'),
+    ('20221027064644');
