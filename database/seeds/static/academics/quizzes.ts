@@ -1313,7 +1313,10 @@ export async function quizSubcategories(quizIds: NameToId) {
     { name: 'basic', quizId: quizIds['applicationEssays'] as number },
     { name: 'unique', quizId: quizIds['applicationEssays'] as number },
     { name: 'revision', quizId: quizIds['applicationEssays'] as number },
-    { name: 'supplemental basic', quizId: quizIds['applicationEssays'] as number },
+    {
+      name: 'supplemental basic',
+      quizId: quizIds['applicationEssays'] as number,
+    },
     { name: 'needed', quizId: quizIds['applicationEssays'] as number },
     { name: 'topic', quizId: quizIds['applicationEssays'] as number },
     { name: 'safety', quizId: quizIds['applicationEssays'] as number },
@@ -1555,8 +1558,6 @@ export async function quizSubcategories(quizIds: NameToId) {
 // { name: 'passage unity', quizId: quizIds['essayFeedback'] as number },
 // { name: 'passage conclusion', quizId: quizIds['essayFeedback'] as number },
 
-
-
 // Please add a new sub-topics to College Counseling
 //  - College List
 //  - Financial Aid
@@ -1572,34 +1573,29 @@ export async function quizSubcategories(quizIds: NameToId) {
 //  - Application Essays
 //  - Financial Aid
 
-
-
 // TODO:
 // - loaders
 // - making pre-session survey responses
 // - testing
 // - a lot of testing
-// 
+//
 
-
- 
 // Update pre-session goals
 
-// College Prep (current Planning) 
+// College Prep (current Planning)
 // Understand college requirements (INSERTED AS A RESPONSE ALREADY)
 // Pick classes
 // Choose extracurricular activities
 // Find free summer programs
 // Research majors or careers (INSERTED AS A RESPONSE ALREADY)
 // Other (INSERTED AS A RESPONSE ALREADY)
-// 
+//
 
 // College List
 // Determine preferences
 // Research colleges
 // Balance your list
 // Other (INSERTED AS A RESPONSE ALREADY)
-
 
 // Applications
 // Understand the parts of an application (INSERTED AS A RESPONSE ALREADY)
@@ -1609,10 +1605,8 @@ export async function quizSubcategories(quizIds: NameToId) {
 // Other (INSERTED AS A RESPONSE ALREADY)
 // make sure to copy the old applications to the new one
 
-
 // Application Essays (goals stays same) (essays)
 // Make sure to copy over this one to the new one
-
 
 // Financial Aid
 // Overview of financial aid
