@@ -620,6 +620,7 @@ export type CurrentSession = {
   volunteerJoinedAt?: Date
   messages: MessageForFrontend[]
   endedAt?: Date
+  toolType: string
 }
 export async function getCurrentSessionByUserId(
   userId: Ulid
