@@ -121,34 +121,6 @@ export async function quizCertificationGrants(
       quizId: quizIds['collegeCounseling'] as number,
       certificationId: certIds['applications'] as number,
     },
-    // {
-    //   quizId: quizIds['financialAid'] as number,
-    //   certificationId: certIds['financialAid'] as number,
-    // },
-    // {
-    //   quizId: quizIds['applicationEssays'] as number,
-    //   certificationId: certIds['applicationEssays'] as number,
-    // },
-    // {
-    //   quizId: quizIds['collegeApps'] as number,
-    //   certificationId: certIds['collegeApps'] as number,
-    // },
-    // {
-    //   quizId: quizIds['collegeList'] as number,
-    //   certificationId: certIds['collegeList'] as number,
-    // },
-    // {
-    //   quizId: quizIds['collegePrep'] as number,
-    //   certificationId: certIds['collegePrep'] as number,
-    // },
-    // {
-    //   quizId: quizIds['essayPlanning'] as number,
-    //   certificationId: certIds['essayPlanning'] as number,
-    // },
-    // {
-    //   quizId: quizIds['essayFeedback'] as number,
-    //   certificationId: certIds['essayFeedback'] as number,
-    // },
     {
       quizId: quizIds['humanitiesEssays'] as number,
       certificationId: certIds['humanitiesEssays'] as number,
@@ -1179,7 +1151,7 @@ export async function quizSubcategories(quizIds: NameToId) {
       quizId: quizIds['humanitiesEssays'] as number,
     },
     {
-      name: 'nonnvarying_sentence_length',
+      name: 'nonvarying_sentence_length',
       quizId: quizIds['humanitiesEssays'] as number,
     },
     {
@@ -1408,7 +1380,7 @@ export async function quizSubcategories(quizIds: NameToId) {
     },
     { name: 'plagiarism', quizId: quizIds['essayFeedback'] as number },
     {
-      name: 'nonnvarying sentence length',
+      name: 'nonvarying sentence length',
       quizId: quizIds['essayFeedback'] as number,
     },
     { name: 'wordiness', quizId: quizIds['essayFeedback'] as number },
@@ -1435,182 +1407,3 @@ export async function quizSubcategories(quizIds: NameToId) {
     })
   }
 }
-
-// --- financialAid
-// {name: 'true cost', quizId: quizIds['financialAid'] as number },
-// {name: 'needblind', quizId: quizIds['financialAid'] as number },
-// {name: 'FAFSA', quizId: quizIds['financialAid'] as number },
-// {name: 'source', quizId: quizIds['financialAid'] as number },
-// {name: 'CSS', quizId: quizIds['financialAid'] as number },
-// {name: 'scholarships', quizId: quizIds['financialAid'] as number },
-// {name: '100', quizId: quizIds['financialAid'] as number },
-// {name: 'cost', quizId: quizIds['financialAid'] as number },
-// {name: 'residency', quizId: quizIds['financialAid'] as number },
-// {name: 'state aid', quizId: quizIds['financialAid'] as number },
-// {name: 'direct', quizId: quizIds['financialAid'] as number },
-// {name: 'timeline', quizId: quizIds['financialAid'] as number },
-// {name: 'FAFSA advanced', quizId: quizIds['financialAid'] as number },
-// {name: 'type', quizId: quizIds['financialAid'] as number },
-// {name: 'special', quizId: quizIds['financialAid'] as number },
-// {name: 'free tuition', quizId: quizIds['financialAid'] as number },
-// {name: 'basic', quizId: quizIds['financialAid'] as number },
-
-// --- applicationEssays
-// { name: 'length', quizId: quizIds['applicationEssays'] as number },
-// { name: 'basic', quizId: quizIds['applicationEssays'] as number },
-// { name: 'unique', quizId: quizIds['applicationEssays'] as number },
-// { name: 'revision', quizId: quizIds['applicationEssays'] as number },
-// { name: 'supplemental basic', quizId: quizIds['applicationEssays'] as number },
-// { name: 'needed', quizId: quizIds['applicationEssays'] as number },
-// { name: 'topic', quizId: quizIds['applicationEssays'] as number },
-// { name: 'safety', quizId: quizIds['applicationEssays'] as number },
-// { name: 'supplemental advanced', quizId: quizIds['applicationEssays'] as number },
-// { name: 'edit', quizId: quizIds['applicationEssays'] as number },
-
-// ---collegeApps
-// { name: 'common app', quizId: quizIds['collegeApps'] as number },
-// { name: 'programs', quizId: quizIds['collegeApps'] as number },
-// { name: 'SAT', quizId: quizIds['collegeApps'] as number },
-// { name: 'ED', quizId: quizIds['collegeApps'] as number },
-// { name: 'timeline', quizId: quizIds['collegeApps'] as number },
-// { name: 'components', quizId: quizIds['collegeApps'] as number },
-// { name: 'email', quizId: quizIds['collegeApps'] as number },
-// { name: 'transcript', quizId: quizIds['collegeApps'] as number },
-// { name: 'tests', quizId: quizIds['collegeApps'] as number },
-// { name: 'test advising', quizId: quizIds['collegeApps'] as number },
-// { name: 'EC', quizId: quizIds['collegeApps'] as number },
-// { name: 'other', quizId: quizIds['collegeApps'] as number },
-// { name: 'letters', quizId: quizIds['collegeApps'] as number },
-// { name: 'fee', quizId: quizIds['collegeApps'] as number },
-// { name: 'dhistory', quizId: quizIds['collegeApps'] as number },
-
-// --- collegeList
-// { name: 'preference', quizId: quizIds['collegeList'] as number },
-// { name: 'basic', quizId: quizIds['collegeList'] as number },
-// { name: 'public', quizId: quizIds['collegeList'] as number },
-// { name: 'cost', quizId: quizIds['collegeList'] as number },
-// { name: 'majors', quizId: quizIds['collegeList'] as number },
-// { name: 'community college', quizId: quizIds['collegeList'] as number },
-// { name: 'financial', quizId: quizIds['collegeList'] as number },
-// { name: 'reach', quizId: quizIds['collegeList'] as number },
-// { name: 'balance', quizId: quizIds['collegeList'] as number },
-// { name: 'research', quizId: quizIds['collegeList'] as number },
-// { name: 'advising', quizId: quizIds['collegeList'] as number },
-// { name: 'type', quizId: quizIds['collegeList'] as number },
-
-// --- collegePrep
-// { name: 'grades', quizId: quizIds['collegePrep'] as number },
-// { name: 'ninth', quizId: quizIds['collegePrep'] as number },
-// { name: 'eleventh', quizId: quizIds['collegePrep'] as number },
-// { name: 'national merit ', quizId: quizIds['collegePrep'] as number },
-// { name: 'extracurricular', quizId: quizIds['collegePrep'] as number },
-// { name: 'flyin', quizId: quizIds['collegePrep'] as number },
-// { name: 'courses', quizId: quizIds['collegePrep'] as number },
-// { name: 'major', quizId: quizIds['collegePrep'] as number },
-// { name: 'lor', quizId: quizIds['collegePrep'] as number },
-// { name: 'timeline', quizId: quizIds['collegePrep'] as number },
-// { name: 'basic', quizId: quizIds['collegePrep'] as number },
-// { name: 'type', quizId: quizIds['collegePrep'] as number },
-
-// --- essayPlanning
-// { name: 'type of essays', quizId: quizIds['essayPlanning'] as number },
-// { name: 'role', quizId: quizIds['essayPlanning'] as number },
-// { name: 'stages of writing ', quizId: quizIds['essayPlanning'] as number },
-// { name: 'starting a session', quizId: quizIds['essayPlanning'] as number },
-// { name: 'set expectations ', quizId: quizIds['essayPlanning'] as number },
-// { name: 'planning steps', quizId: quizIds['essayPlanning'] as number },
-// { name: '3 key ideas ', quizId: quizIds['essayPlanning'] as number },
-// { name: 'gather information', quizId: quizIds['essayPlanning'] as number },
-// { name: 'thesis', quizId: quizIds['essayPlanning'] as number },
-// { name: 'outlines', quizId: quizIds['essayPlanning'] as number },
-// { name: 'outlines applied', quizId: quizIds['essayPlanning'] as number },
-// { name: 'drafting', quizId: quizIds['essayPlanning'] as number },
-// { name: 'tricky', quizId: quizIds['essayPlanning'] as number },
-// { name: 'common requests', quizId: quizIds['essayPlanning'] as number },
-// { name: 'essay structure', quizId: quizIds['essayPlanning'] as number },
-// { name: 'types of essays', quizId: quizIds['essayPlanning'] as number },
-
-// --- essayFeedback
-// { name: 'types of essays', quizId: quizIds['essayFeedback'] as number },
-// { name: 'basics', quizId: quizIds['essayFeedback'] as number },
-// { name: 'thesis', quizId: quizIds['essayFeedback'] as number },
-// { name: 'details', quizId: quizIds['essayFeedback'] as number },
-// { name: 'structure', quizId: quizIds['essayFeedback'] as number },
-// { name: 'unity', quizId: quizIds['essayFeedback'] as number },
-// { name: 'conclusion', quizId: quizIds['essayFeedback'] as number },
-// { name: 'passage thesis', quizId: quizIds['essayFeedback'] as number },
-// { name: 'role', quizId: quizIds['essayFeedback'] as number },
-// { name: 'stages of writing', quizId: quizIds['essayFeedback'] as number },
-// { name: 'starting a session', quizId: quizIds['essayFeedback'] as number },
-// { name: 'point of view', quizId: quizIds['essayFeedback'] as number },
-// { name: 'citations', quizId: quizIds['essayFeedback'] as number },
-// { name: 'independent and dependent clauses', quizId: quizIds['essayFeedback'] as number },
-// { name: 'punctuation', quizId: quizIds['essayFeedback'] as number },
-// { name: 'subject verb agreement', quizId: quizIds['essayFeedback'] as number },
-// { name: 'specificity and coherence', quizId: quizIds['essayFeedback'] as number },
-// { name: 'plagiarism', quizId: quizIds['essayFeedback'] as number },
-// { name: 'nonnvarying sentence length', quizId: quizIds['essayFeedback'] as number },
-// { name: 'wordiness', quizId: quizIds['essayFeedback'] as number },
-// { name: 'grammatical errors', quizId: quizIds['essayFeedback'] as number },
-// { name: 'common requests', quizId: quizIds['essayFeedback'] as number },
-// { name: 'passage details', quizId: quizIds['essayFeedback'] as number },
-// { name: 'passage structure', quizId: quizIds['essayFeedback'] as number },
-// { name: 'passage unity', quizId: quizIds['essayFeedback'] as number },
-// { name: 'passage conclusion', quizId: quizIds['essayFeedback'] as number },
-
-// Please add a new sub-topics to College Counseling
-//  - College List
-//  - Financial Aid
-
-// Please update current subject names
-//  - Planning → College Prep
-//  - College Essays → Application Essays
-
-// Display in this order:
-//  - College Prep
-//  - College List
-//  - Applications
-//  - Application Essays
-//  - Financial Aid
-
-// TODO:
-// - loaders
-// - making pre-session survey responses
-// - testing
-// - a lot of testing
-//
-
-// Update pre-session goals
-
-// College Prep (current Planning)
-// Understand college requirements (INSERTED AS A RESPONSE ALREADY)
-// Pick classes
-// Choose extracurricular activities
-// Find free summer programs
-// Research majors or careers (INSERTED AS A RESPONSE ALREADY)
-// Other (INSERTED AS A RESPONSE ALREADY)
-//
-
-// College List
-// Determine preferences
-// Research colleges
-// Balance your list
-// Other (INSERTED AS A RESPONSE ALREADY)
-
-// Applications
-// Understand the parts of an application (INSERTED AS A RESPONSE ALREADY)
-// Create an application timeline (INSERTED AS A RESPONSE ALREADY)
-// Work on an application (INSERTED AS A RESPONSE ALREADY)
-// Prepare for an interview (INSERTED AS A RESPONSE ALREADY)
-// Other (INSERTED AS A RESPONSE ALREADY)
-// make sure to copy the old applications to the new one
-
-// Application Essays (goals stays same) (essays)
-// Make sure to copy over this one to the new one
-
-// Financial Aid
-// Overview of financial aid
-// Research scholarships
-// Complete forms
-// Understand aid letters
-// Other (INSERTED AS A RESPONSE ALREADY)
