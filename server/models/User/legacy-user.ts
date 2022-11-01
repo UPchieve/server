@@ -5,6 +5,7 @@ import {
   Certifications,
   TrainingCourses,
   getVolunteerTrainingCourses,
+  getActiveQuizzesForVolunteers,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -46,6 +47,8 @@ export type LegacyUserModel = {
   isApproved?: boolean
   volunteerPartnerOrg?: string
   subjects?: string[]
+  activeSubjects?: string[]
+  totalActiveCertifications: number
   availability?: Availability
   certifications?: Certifications
   availabilityLastModifiedAt?: Date
@@ -109,6 +112,7 @@ export async function getLegacyUserObject(
     const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
+      if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       volunteerUser.availability = await getAvailabilityForVolunteer(
         userId,
         client
@@ -139,6 +143,10 @@ export async function getLegacyUserObject(
         ...legacyCertifications,
         ...(await getQuizzesForVolunteers([userId], client))[userId],
       }
+      const totalActiveCerts = Object.keys(
+        (await getActiveQuizzesForVolunteers([userId], client))[userId]
+      ).length
+      volunteerUser.totalActiveCertifications = totalActiveCerts
     }
     const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
     return final as LegacyUserModel

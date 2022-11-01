@@ -195,14 +195,11 @@ export function buildNotificationContent(
   volunteer: VolunteerContactInfo,
   associatedPartner: AssociatedPartner | undefined
 ) {
-  // Format multi-word subtopics from a key name to a display name
-  // ex: physicsOne -> Physics 1
-  const subtopic = formatMultiWordSubject(session.subject)
   const sessionUrl = getSessionUrl(session)
   return `Hi ${volunteer.firstName}, ${buildTargetStudentContent(
     volunteer,
     associatedPartner
-  )} needs help in ${subtopic} on UPchieve! ${sessionUrl}`
+  )} needs help in ${session.subjectDisplayName} on UPchieve! ${sessionUrl}`
 }
 
 export async function getAssociatedPartner(

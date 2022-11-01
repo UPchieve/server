@@ -181,6 +181,37 @@ export async function getQuizzesForVolunteers(
   }
 }
 
+export async function getActiveQuizzesForVolunteers(
+  userIds: Ulid[],
+  poolClient?: PoolClient
+): Promise<VolunteerQuizMap> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.getActiveQuizzesForVolunteers.run(
+      { userIds },
+      client
+    )
+    const rows = result.map(v => makeRequired(v))
+    const rowsByUser = _.groupBy(rows, v => v.userId)
+    const map: VolunteerQuizMap = {}
+    for (const user of userIds) {
+      const temp: Quizzes = {}
+      const rows = rowsByUser[user] || []
+      for (const row of rows) {
+        temp[row.name] = {
+          passed: row.passed,
+          tries: row.tries,
+          lastAttemptedAt: row.lastAttemptedAt,
+        }
+      }
+      map[user] = temp
+    }
+    return map
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerForWeeklyHourSummary = VolunteerContactInfo & {
   sentHourSummaryIntroEmail: boolean
   quizzes: Quizzes

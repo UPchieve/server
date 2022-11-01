@@ -1136,12 +1136,28 @@ SELECT
     attempts AS tries,
     users_quizzes.updated_at AS last_attempted_at,
     passed,
-    quizzes.name
+    quizzes.name,
+    quizzes.active
 FROM
     users_quizzes
     JOIN quizzes ON users_quizzes.quiz_id = quizzes.id
 WHERE
     user_id = ANY (:userIds!);
+
+
+/* @name getActiveQuizzesForVolunteers */
+SELECT
+    user_id,
+    attempts AS tries,
+    users_quizzes.updated_at AS last_attempted_at,
+    passed,
+    quizzes.name
+FROM
+    users_quizzes
+    JOIN quizzes ON users_quizzes.quiz_id = quizzes.id
+WHERE
+    user_id = ANY (:userIds!)
+    AND quizzes.active IS TRUE;
 
 
 /* @name getSubjectsForVolunteer */
