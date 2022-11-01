@@ -20,6 +20,7 @@ import { routeTraining } from './training'
 import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
+import { routeSubjects } from './subjects'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -39,6 +40,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeStats(router)
   routeProductFlags(router)
   routeStudents(router)
+  routeSubjects(router)
 
   app.use(addLastActivity)
   app.use(addUserAction)

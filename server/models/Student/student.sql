@@ -350,6 +350,22 @@ RETURNING
     user_id AS ok;
 
 
+/* @name createUserStudentPartnerOrgInstanceWithSchoolId */
+INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
+SELECT
+    :userId!,
+    spo.id,
+    NULL,
+    NOW(),
+    NOW()
+FROM
+    student_partner_orgs spo
+WHERE
+    spo.school_id = :schoolId!
+RETURNING
+    user_id AS ok;
+
+
 /* @name getActiveStudentOrgInstance */
 SELECT
     spo.name,

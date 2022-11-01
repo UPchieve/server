@@ -34,7 +34,8 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
-    session_count.total = 1 AS is_first_time_student
+    session_count.total = 1 AS is_first_time_student,
+    subjects.display_name AS subject_display_name
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -535,12 +536,14 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
-    sessions.ended_at
+    sessions.ended_at,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE (sessions.student_id = :userId!
     OR sessions.volunteer_id = :userId!)
 AND sessions.ended_at IS NULL;
@@ -555,12 +558,14 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
-    sessions.ended_at
+    sessions.ended_at,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     sessions.id = :sessionId;
 

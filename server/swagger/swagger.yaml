@@ -2800,6 +2800,39 @@ paths:
             - Student ended/cancelled their session
         '404':
           description: Missing phone number
+  /subjects:
+    get:
+      tags:
+        - subjects
+      summary:  Gets all subjects to hydrate the client
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Sends subjects for the client to display for users
+  /subjects/training:
+    get:
+      tags:
+        - subjects
+      summary:  Gets all training for the volunteer
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Sends training for the volunteer to display the training material
+  /subjects/is-valid:
+    get:
+      tags:
+        - subjects
+      summary: Checks if a subject and topic are a valid pair
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Checks if a subject and topic are a valid pair
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
