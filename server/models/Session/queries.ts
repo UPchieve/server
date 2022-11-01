@@ -71,6 +71,7 @@ export type UnfulfilledSessions = {
   createdAt: Date
   type: string
   volunteer?: Ulid
+  subjectDisplayName: string
 }
 
 // sessions that have not yet been fulfilled by a volunteer
@@ -619,6 +620,7 @@ export type CurrentSession = {
   volunteerJoinedAt?: Date
   messages: MessageForFrontend[]
   endedAt?: Date
+  toolType: string
 }
 export async function getCurrentSessionByUserId(
   userId: Ulid
