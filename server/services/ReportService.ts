@@ -27,7 +27,6 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
-import { getAverageSessionRating } from '../models/Survey/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -60,7 +59,6 @@ type UsageReport = {
   'Join date': string | Date
   'Total sessions': number
   'Sessions over date range': number
-  'Average session rating': number
   'High school name': string
   'Partner site': string
   'HS/College': string
@@ -163,10 +161,6 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   if (report && report.length) {
     const studentUsage = Promise.all(
       report.map(async student => {
-        const avgRating = (
-          await getAverageSessionRating(student.userId)
-        )?.toFixed(2)
-
         const dataFormat: UsageReport = {
           'First name': student.firstName,
           'Last name': student.lastName,
@@ -174,7 +168,6 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
           'Join date': formatDate(student.joinDate),
           'Total sessions': student.totalSessions,
           'Total minutes': student.totalSessionLengthMins,
-          'Average session rating': avgRating ? parseInt(avgRating, 10) : 0,
           'Sessions over date range': student.rangeTotalSessions,
           'Minutes over date range': student.rangeSessionLengthMins,
           'High school name': student.school ? student.school : '',

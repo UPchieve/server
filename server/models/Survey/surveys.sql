@@ -428,18 +428,3 @@ FROM
 WHERE
     users_surveys.session_id = :sessionId!
     AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?';
-
-
-/* @name getAverageSessionRating */
-SELECT
-    AVG(score)::float
-FROM
-    upchieve.users_surveys
-    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
-    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
-    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
-WHERE
-    user_id = :userId!
-    AND (sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
-        OR sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?');
-

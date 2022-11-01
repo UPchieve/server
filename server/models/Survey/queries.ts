@@ -380,13 +380,3 @@ export async function getSessionRating(
   return result.length ? result[0] : undefined
 }
 
-export async function getAverageSessionRating(
-  userId: string
-): Promise<number | undefined> {
-  const averages = await pgQueries.getAverageSessionRating.run(
-    { userId },
-    getClient()
-  )
-  const result = averages.map(avg => avg.avg || undefined)
-  return result.length ? result[0] : undefined
-}
