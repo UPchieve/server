@@ -448,7 +448,8 @@ SELECT
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
-    grade_levels.name AS grade_level
+    grade_levels.name AS grade_level,
+    total_subjects.active_subjects AS active_subjects
 FROM
     users
     LEFT JOIN (
@@ -478,15 +479,18 @@ FROM
     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN (
         SELECT
-            array_agg(subjects_unlocked.subject) AS subjects
+            array_agg(subjects_unlocked.subject) AS subjects,
+            array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_cert IS TRUE) AS active_subjects
         FROM (
             SELECT
                 subjects.name AS subject,
                 COUNT(*)::int AS earned_certs,
-                subject_certs.total
+                subject_certs.total,
+                certifications.active AS active_cert
             FROM
                 users_certifications
                 JOIN certification_subject_unlocks USING (certification_id)
+                JOIN certifications ON users_certifications.certification_id = certifications.id
                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
                 JOIN users ON users.id = users_certifications.user_id
                 JOIN (
@@ -501,7 +505,8 @@ FROM
                     users.id = :userId!
                 GROUP BY
                     subjects.name,
-                    subject_certs.total
+                    subject_certs.total,
+                    certifications.active
                 HAVING
                     COUNT(*)::int >= subject_certs.total) AS subjects_unlocked) AS total_subjects ON TRUE
     LEFT JOIN (

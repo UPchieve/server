@@ -42,6 +42,11 @@ const numQuestions = {
   // NOTE: Once College Counseling is implemented Planning and Applications will be phased to subjects that are unlocked instead of certs
   [COLLEGE_CERTS.PLANNING]: 4,
   [COLLEGE_CERTS.APPLICATIONS]: 2,
+  [COLLEGE_CERTS.COLLEGE_APPS]: 2,
+  [COLLEGE_CERTS.COLLEGE_PREP]: 2,
+  [COLLEGE_CERTS.COLLEGE_LIST]: 2,
+  [COLLEGE_CERTS.APPLICATION_ESSAYS]: 2,
+  [COLLEGE_CERTS.FINANCIAL_AID]: 2,
   [SCIENCE_CERTS.BIOLOGY]: 1,
   [SCIENCE_CERTS.CHEMISTRY]: 1,
   [SCIENCE_CERTS.PHYSICS_ONE]: 1,

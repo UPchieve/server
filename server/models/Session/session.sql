@@ -63,6 +63,7 @@ SELECT
     student_id,
     volunteer_id,
     subjects.name AS subject,
+    subjects.display_name AS subject_display_name,
     topics.name AS topic,
     has_whiteboard_doc,
     quill_doc,
