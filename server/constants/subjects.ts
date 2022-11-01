@@ -539,3 +539,315 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays',
   [READING_WRITING_SUBJECTS.READING]: 'Reading',
 }
+
+// TODO: This is taken directly as is from the front-end. We will refactor this as we move towards hydrating subjects and training from the database
+export const topics = {
+  math: {
+    subtopics: {
+      prealgebra: { displayName: 'Pre-algebra' },
+      algebraOne: { displayName: 'Algebra 1' },
+      algebraTwo: { displayName: 'Algebra 2' },
+      geometry: { displayName: 'Geometry' },
+      trigonometry: { displayName: 'Trigonometry' },
+      statistics: { displayName: 'Statistics' },
+      precalculus: { displayName: 'Precalculus' },
+      calculusAB: { displayName: 'Calculus AB' },
+      calculusBC: { displayName: 'Calculus BC' },
+      integratedMathOne: { displayName: 'Integrated Math 1' },
+      integratedMathTwo: { displayName: 'Integrated Math 2' },
+      integratedMathThree: { displayName: 'Integrated Math 3' },
+      integratedMathFour: { displayName: 'Integrated Math 4' },
+    },
+    displayName: 'Math Tutoring',
+  },
+  science: {
+    subtopics: {
+      biology: { displayName: 'Biology' },
+      chemistry: { displayName: 'Chemistry' },
+      physicsOne: { displayName: 'Physics 1' },
+      physicsTwo: { displayName: 'Physics 2' },
+      environmentalScience: { displayName: 'Environmental Science' },
+    },
+    displayName: 'Science Tutoring',
+  },
+  readingWriting: {
+    subtopics: {
+      humanitiesEssays: { displayName: 'Humanities Essays' },
+      reading: { displayName: 'Reading' },
+    },
+    displayName: 'Reading and Writing Tutoring',
+  },
+  socialStudies: {
+    subtopics: {
+      usHistory: { displayName: 'U.S. History' },
+    },
+    displayName: 'Social Studies',
+  },
+  college: {
+    subtopics: {
+      planning: { displayName: 'Planning' },
+      essays: { displayName: 'College Essays' },
+      applications: { displayName: 'Applications' },
+    },
+    displayName: 'College Counseling',
+  },
+  sat: {
+    subtopics: {
+      satMath: { displayName: 'SAT Math' },
+      satReading: { displayName: 'SAT Reading' },
+    },
+    displayName: 'Standardized Testing Tutoring',
+  },
+  training: {
+    subtopics: {
+      upchieve101: { displayName: 'UPchieve 101' },
+      tutoringSkills: { displayName: 'Tutoring Skills' },
+      collegeSkills: { displayName: 'College Counseling Skills' },
+    },
+    displayName: 'UPchieve Training',
+  },
+}
+
+// TODO: This is taken directly as is from the front-end. We will refactor this as we move towards hydrating subjects and training from the database
+export const trainingView = {
+  subjectTypes: [
+    { displayName: 'Math', key: 'math' },
+    { displayName: 'Science', key: 'science' },
+    { displayName: 'Reading and Writing', key: 'readingWriting' },
+    { displayName: 'Social Studies', key: 'socialStudies' },
+    { displayName: 'College Counseling', key: 'college' },
+    { displayName: 'Standardized Testing', key: 'sat' },
+  ],
+  math: {
+    training: [{ displayName: 'UPchieve 101', key: 'upchieve101' }],
+    certifications: [
+      {
+        displayName: 'Pre-algebra',
+        subjectsIncluded: [{ displayName: 'Pre-algebra', key: 'prealgebra' }],
+        key: 'prealgebra',
+      },
+      {
+        displayName: 'Algebra 1',
+        subjectsIncluded: [
+          { displayName: 'Pre-algebra', key: 'prealgebra' },
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+        ],
+        key: 'algebraOne',
+      },
+      {
+        displayName: 'Algebra 2',
+        subjectsIncluded: [
+          { displayName: 'Pre-algebra', key: 'prealgebra' },
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+          { displayName: 'Algebra 2', key: 'algebraTwo' },
+        ],
+        key: 'algebraTwo',
+      },
+      {
+        displayName: 'Geometry',
+        subjectsIncluded: [{ displayName: 'Geometry', key: 'geometry' }],
+        key: 'geometry',
+      },
+      {
+        displayName: 'Trigonometry',
+        subjectsIncluded: [
+          { displayName: 'Trigonometry', key: 'trigonometry' },
+        ],
+        key: 'trigonometry',
+      },
+      {
+        displayName: 'Statistics',
+        subjectsIncluded: [{ displayName: 'Statistics', key: 'statistics' }],
+        key: 'statistics',
+      },
+      {
+        displayName: 'Precalculus',
+        subjectsIncluded: [
+          { displayName: 'Pre-algebra', key: 'prealgebra' },
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+          { displayName: 'Algebra 2', key: 'algebraTwo' },
+          { displayName: 'Trigonometry', key: 'trigonometry' },
+          { displayName: 'Precalculus', key: 'precalculus' },
+        ],
+        key: 'precalculus',
+      },
+      {
+        displayName: 'Calculus AB',
+        subjectsIncluded: [
+          { displayName: 'Pre-algebra', key: 'prealgebra' },
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+          { displayName: 'Algebra 2', key: 'algebraTwo' },
+          { displayName: 'Trigonometry', key: 'trigonometry' },
+          { displayName: 'Precalculus', key: 'precalculus' },
+          { displayName: 'Calculus AB', key: 'calculusAB' },
+        ],
+        key: 'calculusAB',
+      },
+      {
+        displayName: 'Calculus BC',
+        subjectsIncluded: [
+          { displayName: 'Pre-algebra', key: 'prealgebra' },
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+          { displayName: 'Algebra 2', key: 'algebraTwo' },
+          { displayName: 'Trigonometry', key: 'trigonometry' },
+          { displayName: 'Precalculus', key: 'precalculus' },
+          { displayName: 'Calculus AB', key: 'calculusAB' },
+          { displayName: 'Calculus BC', key: 'calculusBC' },
+        ],
+        key: 'calculusBC',
+      },
+    ],
+    additionalSubjects: [
+      {
+        displayName: 'Integrated Math 1',
+        subjectsIncluded: [
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+          { displayName: 'Geometry', key: 'geometry' },
+          { displayName: 'Statistics', key: 'statistics' },
+        ],
+        key: 'integratedMathOne',
+      },
+      {
+        displayName: 'Integrated Math 2',
+        subjectsIncluded: [
+          { displayName: 'Algebra 1', key: 'algebraOne' },
+          { displayName: 'Geometry', key: 'geometry' },
+          { displayName: 'Trigonometry', key: 'trigonometry' },
+          { displayName: 'Statistics', key: 'statistics' },
+        ],
+        key: 'integratedMathTwo',
+      },
+      {
+        displayName: 'Integrated Math 3',
+        subjectsIncluded: [
+          { displayName: 'Precalculus', key: 'precalculus' },
+          { displayName: 'Statistics', key: 'statistics' },
+        ],
+        key: 'integratedMathThree',
+      },
+      {
+        displayName: 'Integrated Math 4',
+        subjectsIncluded: [{ displayName: 'Precalculus', key: 'precalculus' }],
+
+        key: 'integratedMathFour',
+      },
+    ],
+  },
+  science: {
+    training: [{ displayName: 'UPchieve 101', key: 'upchieve101' }],
+    certifications: [
+      {
+        displayName: 'Biology',
+        subjectsIncluded: [{ displayName: 'Biology', key: 'biology' }],
+        key: 'biology',
+      },
+      {
+        displayName: 'Chemistry',
+        subjectsIncluded: [{ displayName: 'Chemistry', key: 'chemistry' }],
+        key: 'chemistry',
+      },
+      {
+        displayName: 'Physics 1',
+        subjectsIncluded: [{ displayName: 'Physics 1', key: 'physicsOne' }],
+        key: 'physicsOne',
+      },
+      {
+        displayName: 'Physics 2',
+        subjectsIncluded: [{ displayName: 'Physics 2', key: 'physicsTwo' }],
+        key: 'physicsTwo',
+      },
+      {
+        displayName: 'Environmental Science',
+        subjectsIncluded: [
+          {
+            displayName: 'Environmental Science',
+            key: 'environmentalScience',
+          },
+        ],
+        key: 'environmentalScience',
+      },
+    ],
+    additionalSubjects: [],
+  },
+  readingWriting: {
+    training: [{ displayName: 'UPchieve 101', key: 'upchieve101' }],
+    certifications: [
+      {
+        displayName: 'Humanities Essays',
+        subjectsIncluded: [
+          {
+            displayName: 'Humanities Essays',
+            key: 'humanitiesEssays',
+          },
+        ],
+        key: 'humanitiesEssays',
+      },
+      {
+        displayName: 'Reading',
+        subjectsIncluded: [
+          {
+            displayName: 'Reading',
+            key: 'reading',
+          },
+        ],
+        key: 'reading',
+      },
+    ],
+    additionalSubjects: [],
+  },
+  socialStudies: {
+    training: [{ displayName: 'UPchieve 101', key: 'upchieve101' }],
+    certifications: [
+      {
+        displayName: 'U.S. History',
+        subjectsIncluded: [
+          {
+            displayName: 'U.S. History',
+            key: 'usHistory',
+          },
+        ],
+        key: 'usHistory',
+      },
+    ],
+    additionalSubjects: [],
+  },
+  college: {
+    training: [{ displayName: 'UPchieve 101', key: 'upchieve101' }],
+    certifications: [
+      {
+        displayName: 'College Essays',
+        subjectsIncluded: [{ displayName: 'College Essays', key: 'essays' }],
+        key: 'essays',
+      },
+      {
+        displayName: 'Planning',
+        subjectsIncluded: [{ displayName: 'Planning', key: 'planning' }],
+        key: 'planning',
+      },
+      {
+        displayName: 'Applications',
+        subjectsIncluded: [
+          { displayName: 'Applications', key: 'applications' },
+        ],
+        key: 'applications',
+      },
+    ],
+    additionalSubjects: [],
+  },
+  sat: {
+    training: [{ displayName: 'UPchieve 101', key: 'upchieve101' }],
+    certifications: [
+      {
+        displayName: 'SAT Math',
+        subjectsIncluded: [{ displayName: 'SAT Math', key: 'satMath' }],
+        key: 'satMath',
+      },
+      {
+        displayName: 'SAT Reading',
+        subjectsIncluded: [{ displayName: 'SAT Reading', key: 'satReading' }],
+        key: 'satReading',
+      },
+    ],
+    additionalSubjects: [],
+  },
+}
