@@ -428,3 +428,4 @@ FROM
 WHERE
     users_surveys.session_id = :sessionId!
     AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?';
+

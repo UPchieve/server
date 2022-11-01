@@ -379,4 +379,3 @@ export async function getSessionRating(
   const result = ratings.map(rate => rate.score)
   return result.length ? result[0] : undefined
 }
-
