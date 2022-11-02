@@ -1,22 +1,10 @@
 import expressWs from 'express-ws'
-import * as FeedbackService from '../../services/FeedbackService'
 import { getFeedbackBySessionIdUserType } from '../../models/Feedback/queries'
 import { InputError } from '../../models/Errors'
 import { asString, asUlid } from '../../utils/type-utils'
 import { resError } from '../res-error'
 
 export function routeFeedback(router: expressWs.Router): void {
-  router.post('/feedback', async (req, res) => {
-    try {
-      const feedbackId = await FeedbackService.upsertFeedback(req.body)
-      res.json({
-        feedback: feedbackId,
-      })
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.get('/feedback', async (req, res) => {
     if (
       !req.query.hasOwnProperty('sessionId') ||

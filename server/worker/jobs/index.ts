@@ -7,7 +7,6 @@ import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-mee
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
-import deleteDuplicateFeedbacks from '../../scripts/delete-duplicate-feedbacks'
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
@@ -311,10 +310,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillUpdateElapsedAvailability,
     processor: backfillUpdateElapsedAvailability,
-  },
-  {
-    name: Jobs.DeleteDuplicateFeedbacks,
-    processor: deleteDuplicateFeedbacks,
   },
   {
     name: Jobs.DeleteSelfFavoritedVolunteers,

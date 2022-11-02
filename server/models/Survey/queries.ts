@@ -19,7 +19,7 @@ import {
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
-import _ from 'lodash'
+import _, { result } from 'lodash'
 
 export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
   responseData: pgQueries.Json
@@ -358,4 +358,24 @@ export async function getPostsessionSurveyResponsesForSessionMetrics(
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+export async function getSessionRating(
+  sessionId: string,
+  userRole: USER_ROLES_TYPE
+): Promise<number | undefined> {
+  if (userRole === USER_ROLES.STUDENT) {
+    const ratings = await pgQueries.getStudentSessionRating.run(
+      { sessionId },
+      getClient()
+    )
+    const result = ratings.map(rate => rate.score)
+    return result.length ? result[0] : undefined
+  }
+  const ratings = await pgQueries.getVolunteerSessionRating.run(
+    { sessionId },
+    getClient()
+  )
+  const result = ratings.map(rate => rate.score)
+  return result.length ? result[0] : undefined
 }

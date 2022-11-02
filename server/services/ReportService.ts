@@ -27,7 +27,6 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
-import { SingleFeedback } from '../models/Feedback/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -60,7 +59,6 @@ type UsageReport = {
   'Join date': string | Date
   'Total sessions': number
   'Sessions over date range': number
-  'Average session rating': number
   'High school name': string
   'Partner site': string
   'HS/College': string
@@ -73,28 +71,6 @@ const formatDate = (date: string | Date): Date | string => {
   return moment(date)
     .tz('America/New_York')
     .format('l h:mm a')
-}
-
-function calcAverageRating(allFeedback: SingleFeedback[]): number {
-  let ratingsSum = 0
-  let ratingsCount = 0
-
-  for (let i = 0; i < allFeedback.length; i++) {
-    const feedback = allFeedback[i]
-    let sessionRatingKey = 'studentCounselingFeedback.rate-session.rating'
-
-    if (feedback.studentCounselingFeedback)
-      sessionRatingKey = 'studentCounselingFeedback.rate-session.rating'
-    else if (feedback.responseData)
-      sessionRatingKey = 'responseData.rate-session.rating'
-    const sessionRating = _.get(feedback, sessionRatingKey, null)
-    if (sessionRating) {
-      ratingsSum += sessionRating
-      ratingsCount += 1
-    }
-  }
-
-  return Number((ratingsSum / (ratingsCount || 1)).toFixed(2))
 }
 
 function dateStringToDateEST(dateString: string): Date {
@@ -183,30 +159,29 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
   })
 
   if (report && report.length) {
-    const studentUsage = report.map(student => {
-      const feedback = Array.from(student.feedbacks)
+    const studentUsage = Promise.all(
+      report.map(async student => {
+        const dataFormat: UsageReport = {
+          'First name': student.firstName,
+          'Last name': student.lastName,
+          Email: student.email,
+          'Join date': formatDate(student.joinDate),
+          'Total sessions': student.totalSessions,
+          'Total minutes': student.totalSessionLengthMins,
+          'Sessions over date range': student.rangeTotalSessions,
+          'Minutes over date range': student.rangeSessionLengthMins,
+          'High school name': student.school ? student.school : '',
+          'Partner site': student.partnerSite ? student.partnerSite : '-',
+          'HS/College': student.school ? 'High school' : 'College',
+          'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
+          'Partner Org': student.studentPartnerOrg
+            ? student.studentPartnerOrg
+            : '',
+        }
 
-      const dataFormat: UsageReport = {
-        'First name': student.firstName,
-        'Last name': student.lastName,
-        Email: student.email,
-        'Join date': formatDate(student.joinDate),
-        'Total sessions': student.totalSessions,
-        'Total minutes': student.totalSessionLengthMins,
-        'Average session rating': calcAverageRating(feedback),
-        'Sessions over date range': student.rangeTotalSessions,
-        'Minutes over date range': student.rangeSessionLengthMins,
-        'High school name': student.school ? student.school : '',
-        'Partner site': student.partnerSite ? student.partnerSite : '-',
-        'HS/College': student.school ? 'High school' : 'College',
-        'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
-        'Partner Org': student.studentPartnerOrg
-          ? student.studentPartnerOrg
-          : '',
-      }
-
-      return dataFormat
-    })
+        return dataFormat
+      })
+    )
 
     return studentUsage
   }
