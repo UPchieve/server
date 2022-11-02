@@ -20,4 +20,5 @@ export type Session = {
   updatedAt: Date
   reported: boolean
   flags: string[]
+  subjectDisplayName: string
 }

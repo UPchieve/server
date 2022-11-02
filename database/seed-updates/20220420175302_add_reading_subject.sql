@@ -17,8 +17,6 @@ FROM (
         JOIN upchieve.tool_types ON upchieve.tool_types.name = 'documenteditor'
     WHERE
         upchieve.topics.name = 'readingWriting') AS subquery
-ON CONFLICT (display_name)
-    DO NOTHING
 RETURNING
     id AS ok;
 
