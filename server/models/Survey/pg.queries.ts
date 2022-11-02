@@ -728,3 +728,75 @@ const getVolunteerPostsessionSurveyResponseIR: any = {"name":"getVolunteerPostse
 export const getVolunteerPostsessionSurveyResponse = new PreparedQuery<IGetVolunteerPostsessionSurveyResponseParams,IGetVolunteerPostsessionSurveyResponseResult>(getVolunteerPostsessionSurveyResponseIR);
 
 
+/** 'GetStudentSessionRating' parameters type */
+export interface IGetStudentSessionRatingParams {
+  sessionId: string;
+}
+
+/** 'GetStudentSessionRating' return type */
+export interface IGetStudentSessionRatingResult {
+  score: number;
+}
+
+/** 'GetStudentSessionRating' query type */
+export interface IGetStudentSessionRatingQuery {
+  params: IGetStudentSessionRatingParams;
+  result: IGetStudentSessionRatingResult;
+}
+
+const getStudentSessionRatingIR: any = {"name":"getStudentSessionRating","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":15793,"b":15802,"line":416,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    score\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    users_surveys.session_id = :sessionId!\n    AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'","loc":{"a":15457,"b":15910,"line":408,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     score
+ * FROM
+ *     upchieve.users_surveys
+ *     JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
+ *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+ *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ * WHERE
+ *     users_surveys.session_id = :sessionId!
+ *     AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
+ * ```
+ */
+export const getStudentSessionRating = new PreparedQuery<IGetStudentSessionRatingParams,IGetStudentSessionRatingResult>(getStudentSessionRatingIR);
+
+
+/** 'GetVolunteerSessionRating' parameters type */
+export interface IGetVolunteerSessionRatingParams {
+  sessionId: string;
+}
+
+/** 'GetVolunteerSessionRating' return type */
+export interface IGetVolunteerSessionRatingResult {
+  score: number;
+}
+
+/** 'GetVolunteerSessionRating' query type */
+export interface IGetVolunteerSessionRatingQuery {
+  params: IGetVolunteerSessionRatingParams;
+  result: IGetVolunteerSessionRatingResult;
+}
+
+const getVolunteerSessionRatingIR: any = {"name":"getVolunteerSessionRating","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":16289,"b":16298,"line":429,"col":32}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    score\nFROM\n    upchieve.users_surveys\n    JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    users_surveys.session_id = :sessionId!\n    AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'","loc":{"a":15953,"b":16413,"line":421,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     score
+ * FROM
+ *     upchieve.users_surveys
+ *     JOIN upchieve.users_surveys_submissions uss ON users_surveys.id = uss.user_survey_id
+ *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+ *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ * WHERE
+ *     users_surveys.session_id = :sessionId!
+ *     AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+ * ```
+ */
+export const getVolunteerSessionRating = new PreparedQuery<IGetVolunteerSessionRatingParams,IGetVolunteerSessionRatingResult>(getVolunteerSessionRatingIR);
+
+

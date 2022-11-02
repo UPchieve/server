@@ -1,5 +1,4 @@
 import { Ulid } from '../pgUtils'
-import { Json } from './pg.queries'
 
 export type ResponseData = {
   'rate-session': { rating: number }

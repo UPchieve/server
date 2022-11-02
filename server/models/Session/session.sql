@@ -770,8 +770,6 @@ SELECT
     volunteers.banned AS volunteer_is_banned,
     volunteers.test_user AS volunteer_test_user,
     volunteer_sessions.total AS volunteer_total_past_sessions,
-    student_feedback.student_counseling_feedback,
-    volunteer_feedback.volunteer_feedback,
     review_reasons.review_reasons
 FROM
     sessions
@@ -835,10 +833,6 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE
-    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
-            AND student_feedback.user_id = sessions.student_id)
-    LEFT JOIN feedbacks volunteer_feedback ON (volunteer_feedback.session_id = sessions.id
-            AND volunteer_feedback.volunteer_feedback IS NOT NULL)
     LEFT JOIN LATERAL (
         SELECT
             MAX(created_at) AS last_banned_at
@@ -871,12 +865,6 @@ WHERE
     AND ((:firstTimeVolunteer)::boolean IS NULL
         OR (:firstTimeVolunteer)::boolean IS FALSE
         OR volunteer_sessions.total = 1)
-    AND ((:studentRating)::int IS NULL
-        OR (student_feedback.student_counseling_feedback IS NOT NULL
-            AND (student_feedback.student_counseling_feedback -> 'rate-session' -> 'rating' ->> '$numberInt')::int = (:studentRating)::int))
-    AND ((:volunteerRating)::int IS NULL
-        OR (volunteer_feedback.volunteer_feedback IS NOT NULL
-            AND (volunteer_feedback.volunteer_feedback -> 'session-enjoyable' ->> '$numberInt')::int = (:volunteerRating)::int))
 ORDER BY
     (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
