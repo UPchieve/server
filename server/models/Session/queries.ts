@@ -274,7 +274,11 @@ export async function getSessionsToReview(
     )
     return Promise.all(
       result.map(async v => {
-        const temp = makeSomeRequired(v, ['volunteer', 'reviewReasons'])
+        const temp = makeSomeRequired(v, [
+          'volunteer',
+          'reviewReasons',
+          'studentCounselingFeedback',
+        ])
         const studentRating = await getSessionRating(
           temp.id,
           USER_ROLES.STUDENT
