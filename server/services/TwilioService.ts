@@ -459,6 +459,10 @@ export async function sendVerification(
     logger.warn('Twilio client not loaded.')
     return
   }
+  if (verificationMethod === VERIFICATION_METHOD.SMS) {
+    logger.warn('SMS verification not supported')
+    return
+  }
   await twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
     .verifications.create({

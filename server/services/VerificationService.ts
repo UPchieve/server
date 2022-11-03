@@ -51,19 +51,18 @@ export async function initiateVerification(data: unknown): Promise<void> {
   } = asInitiateVerificationData(data)
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
+  if (isPhoneVerification) {
+    throw new InputError('SMS verification not supported')
+  }
+
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
-  if (isPhoneVerification) {
-    existingUserErrorMessage = 'The phone number you entered is already in use'
-    if (!isValidInternationalPhoneNumber(sendTo))
-      throw new InputError('Must supply a valid phone number')
-    existingUserId = await getUserIdByPhone(sendTo)
-  } else {
-    existingUserErrorMessage = 'The email address you entered is already in use'
-    if (!isValidEmail(sendTo))
-      throw new InputError('Must supply a valid email address')
-    existingUserId = await getUserIdByEmail(sendTo)
-  }
+
+  existingUserErrorMessage = 'The email address you entered is already in use'
+  if (!isValidEmail(sendTo))
+    throw new InputError('Must supply a valid email address')
+  existingUserId = await getUserIdByEmail(sendTo)
+
   if (existingUserId && !(userId === existingUserId))
     throw new LookupError(existingUserErrorMessage)
   if (verificationMethod === VERIFICATION_METHOD.EMAIL && !existingUserId)
