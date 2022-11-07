@@ -34,7 +34,8 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
-    session_count.total = 1 AS is_first_time_student
+    session_count.total = 1 AS is_first_time_student,
+    subjects.display_name AS subject_display_name
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -62,6 +63,7 @@ SELECT
     student_id,
     volunteer_id,
     subjects.name AS subject,
+    subjects.display_name AS subject_display_name,
     topics.name AS topic,
     has_whiteboard_doc,
     quill_doc,
@@ -535,12 +537,14 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
-    sessions.ended_at
+    sessions.ended_at,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE (sessions.student_id = :userId!
     OR sessions.volunteer_id = :userId!)
 AND sessions.ended_at IS NULL;
@@ -555,12 +559,14 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
-    sessions.ended_at
+    sessions.ended_at,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     sessions.id = :sessionId;
 
@@ -764,8 +770,6 @@ SELECT
     volunteers.banned AS volunteer_is_banned,
     volunteers.test_user AS volunteer_test_user,
     volunteer_sessions.total AS volunteer_total_past_sessions,
-    student_feedback.student_counseling_feedback,
-    volunteer_feedback.volunteer_feedback,
     review_reasons.review_reasons
 FROM
     sessions
@@ -829,10 +833,6 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE
-    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
-            AND student_feedback.user_id = sessions.student_id)
-    LEFT JOIN feedbacks volunteer_feedback ON (volunteer_feedback.session_id = sessions.id
-            AND volunteer_feedback.volunteer_feedback IS NOT NULL)
     LEFT JOIN LATERAL (
         SELECT
             MAX(created_at) AS last_banned_at
@@ -865,12 +865,6 @@ WHERE
     AND ((:firstTimeVolunteer)::boolean IS NULL
         OR (:firstTimeVolunteer)::boolean IS FALSE
         OR volunteer_sessions.total = 1)
-    AND ((:studentRating)::int IS NULL
-        OR (student_feedback.student_counseling_feedback IS NOT NULL
-            AND (student_feedback.student_counseling_feedback -> 'rate-session' -> 'rating' ->> '$numberInt')::int = (:studentRating)::int))
-    AND ((:volunteerRating)::int IS NULL
-        OR (volunteer_feedback.volunteer_feedback IS NOT NULL
-            AND (volunteer_feedback.volunteer_feedback -> 'session-enjoyable' ->> '$numberInt')::int = (:volunteerRating)::int))
 ORDER BY
     (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;

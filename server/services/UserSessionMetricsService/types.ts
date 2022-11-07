@@ -1,6 +1,5 @@
 import { UserSessionMetrics } from '../../models/UserSessionMetrics'
 import { Session, MessageForFrontend } from '../../models/Session'
-import { Feedback } from '../../models/Feedback'
 import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
 import { USER_SESSION_METRICS } from '../../constants'
 import { PostsessionSurveyResponse } from '../../models/Survey'
@@ -8,8 +7,7 @@ import { PostsessionSurveyResponse } from '../../models/Survey'
 export interface UpdateValueData {
   session: Session // a completed session
   messages: MessageForFrontend[]
-  feedback?: Feedback // prepopulate the feedback TODO: this is old feedback, not new, delete once postsession updated
-  surveyResponses?: PostsessionSurveyResponse[] // postsession feedback
+  surveyResponses?: PostsessionSurveyResponse[]
 }
 
 export interface ProcessorData {
@@ -24,7 +22,7 @@ type MetricUpdateQuery = { [key: string]: number }
 export interface MetricProcessor {
   key: USER_SESSION_METRICS // metric name
   requiresFeedback: boolean
-  // computes value to update metric based on uvd.session/feedback
+  // computes value to update metric based on uvd.session
   computeUpdateValue(uvd: UpdateValueData): number
   // computes list of review reasons to be set on session
   computeReviewReason(pd: ProcessorData): USER_SESSION_METRICS[]

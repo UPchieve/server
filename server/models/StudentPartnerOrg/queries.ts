@@ -1,9 +1,9 @@
-import * as pgQueries from './pg.queries'
-import { getClient } from '../../db'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
-import { RepoReadError } from '../Errors'
-import { StudentPartnerOrg, StudentPartnerOrgForRegistration } from './types'
 import { PoolClient } from 'pg'
+import { getClient } from '../../db'
+import { RepoReadError } from '../Errors'
+import { makeRequired, makeSomeRequired } from '../pgUtils'
+import * as pgQueries from './pg.queries'
+import { StudentPartnerOrg, StudentPartnerOrgForRegistration } from './types'
 
 export async function getStudentPartnerOrgForRegistrationByKey(
   key: string
@@ -106,16 +106,36 @@ export async function migrateExistingStudentPartnerOrgRelationships(
 // Will need custom mapping of school names to student_partner_orgs_upchieve_instance.created_at
 // MUST BE RUN FIRST
 export async function migratePartnerSchoolsToPartnerOrgs(
+  schoolName: string,
+  createdAt: Date,
   client?: PoolClient
 ): Promise<void> {
   try {
-    await pgQueries.migratepPartnerSchoolsToPartnerOrgs.run(
-      undefined,
+    await pgQueries.migratePartnerSchoolsToPartnerOrgs.run(
+      { schoolName, createdAt },
       client || getClient()
     )
   } catch (err) {
     throw new RepoReadError(
       `Failed to migrate schools to student partner orgs: ${err}`
+    )
+  }
+}
+
+export async function backfillStudentPartnerOrgStartDates(
+  spoName: string,
+  createdAt: Date,
+  endedAt?: Date,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.backfillStudentPartnerOrgStartDates.run(
+      { spoName, createdAt, endedAt },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to backfill student partner org start date: ${err}`
     )
   }
 }
@@ -132,6 +152,43 @@ export async function migrateExistingPartnerSchoolRelationships(
   } catch (err) {
     throw new RepoReadError(
       `Failed to migrate user-school relationship for student partner orgs: ${err}`
+    )
+  }
+}
+
+export async function createSchoolStudentPartnerOrg(
+  schoolName: string,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.createSchoolStudentPartnerOrg.run(
+      { schoolName },
+      client || getClient()
+    )
+
+    await pgQueries.createStudentPartnerOrgInstance.run(
+      { spoName: schoolName },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to create school partner ${schoolName} and partner instance: ${err}`
+    )
+  }
+}
+
+export async function deactivateStudentPartnerOrg(
+  spoName: string,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.deactivateStudentPartnerOrg.run(
+      { spoName },
+      client || getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(
+      `Failed to deactivate student partner org ${spoName}: ${err}`
     )
   }
 }

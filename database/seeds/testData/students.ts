@@ -53,6 +53,11 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
       pgQueries.insertUserSessionMetrics.run,
       { id: user.id }
     )
+    await wrapInsert(
+      'user_product_flags',
+      pgQueries.insertUserProductFlags.run,
+      { id: user.id }
+    )
   }
 
   const profiles = [
