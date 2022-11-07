@@ -91,7 +91,7 @@
     "ioredis": "^4.25.0",
     "jquery": "^3.5.0",
     "lodash": "^4.17.19",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "moment-range": "^4.0.2",
     "moment-timezone": "^0.5.33",
     "newrelic": "^8.3.0",
