@@ -93,7 +93,7 @@
     "lodash": "^4.17.19",
     "moment": "^2.29.1",
     "moment-range": "^4.0.2",
-    "moment-timezone": "^0.5.33",
+    "moment-timezone": "^0.5.35",
     "newrelic": "^8.3.0",
     "nodemailer": "^6.6.0",
     "nodemailer-express-handlebars": "^4.0.0",
