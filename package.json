@@ -110,7 +110,7 @@
     "quill-delta": "^4.2.2",
     "redlock": "^4.2.0",
     "runtypes": "^4.2.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "socket.io-client": "^2.3.0",
     "socket.io-redis": "^5.4.0",
     "swagger-ui-express": "^4.1.6",
