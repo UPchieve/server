@@ -9,6 +9,7 @@ export async function gradeLevels(): Promise<NameToId> {
     { name: '11th' },
     { name: '12th' },
     { name: 'College' },
+    { name: 'Other' },
   ]
   const temp: NameToId = {}
   for (const grade of grades) {
