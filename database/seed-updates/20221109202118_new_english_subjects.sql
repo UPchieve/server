@@ -122,6 +122,25 @@ ON CONFLICT (quiz_id,
 RETURNING
     quiz_id AS ok;
 
+-- presession is complicated so it's in its own migration but postsession just uses generic student postsession survey
+INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
+SELECT
+    upchieve.surveys.id,
+    upchieve.subjects.id,
+    upchieve.survey_types.id,
+    NOW(),
+    NOW()
+FROM
+    upchieve.surveys
+    JOIN upchieve.subjects ON TRUE
+    JOIN upchieve.survey_types ON TRUE
+WHERE (upchieve.surveys.name = 'Student Post-Session Survey'
+    AND upchieve.subjects.name = 'essayPlanning'
+    AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'Student Post-Session Survey'
+        AND upchieve.subjects.name = 'essayFeedback'
+        AND upchieve.survey_types.name = 'postsession');
+
 -- migrate:down
 DELETE FROM upchieve.certification_subject_unlocks USING upchieve.subjects
 WHERE upchieve.subjects.id = upchieve.certification_subject_unlocks.subject_id
@@ -164,4 +183,8 @@ SET
     display_order = 2
 WHERE
     name = 'reading';
+
+DELETE FROM upchieve.surveys_context USING upchieve.subjects
+WHERE upchieve.surveys_context.subject_id = subjects.id
+    AND subjects.name IN ('essayPlanning', 'essayFeedback');
 
