@@ -85,12 +85,12 @@ COPY upchieve.tool_types (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.topics (id, name, icon_link, color, dashboard_order, display_name, created_at, updated_at) FROM stdin;
-1	math	\N	\N	1	Math	2022-09-28 19:58:50.051287+00	2022-09-28 19:58:50.051287+00
-2	science	\N	\N	4	Science	2022-09-28 19:58:50.052816+00	2022-09-28 19:58:50.052816+00
-3	college	\N	\N	3	College Counseling	2022-09-28 19:58:50.053904+00	2022-09-28 19:58:50.053904+00
-4	sat	\N	\N	2	Standardized Testing	2022-09-28 19:58:50.055006+00	2022-09-28 19:58:50.055006+00
-5	readingWriting	\N	\N	5	Reading and Writing	2022-09-28 19:58:50.056065+00	2022-09-28 19:58:50.056065+00
-6	socialStudies	\N	\N	6	Social Studies	2022-09-28 19:58:50.788195+00	2022-09-28 19:58:50.788195+00
+1	math	\N	\N	1	Math	2022-11-07 22:41:41.755456+00	2022-11-07 22:41:41.755456+00
+2	science	\N	\N	4	Science	2022-11-07 22:41:41.756851+00	2022-11-07 22:41:41.756851+00
+4	sat	\N	\N	2	Standardized Testing	2022-11-07 22:41:41.759229+00	2022-11-07 22:41:41.759229+00
+6	socialStudies	\N	\N	6	Social Studies	2022-11-07 22:41:43.212398+00	2022-11-07 22:41:43.212398+00
+3	college	\N	\N	3	College Advising	2022-11-07 22:41:41.758125+00	2022-11-07 22:41:43.315746+00
+5	readingWriting	\N	\N	5	English	2022-11-07 22:41:41.760269+00	2022-11-07 22:41:41.760269+00
 \.
 
 
