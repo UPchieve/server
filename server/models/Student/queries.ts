@@ -866,8 +866,14 @@ export async function getStudentSignupSources(): Promise<
       undefined,
       getClient()
     )
-
-    if (result.length) return result.map(row => makeRequired(row))
+    if (result.length) {
+      // query returns sources in a random order, but we want to make sure Other is at the end
+      const res = result.map(row => makeRequired(row))
+      const otherIndex = res.findIndex(x => x.name === 'Other')
+      const other = res.splice(otherIndex, 1)[0]
+      res.push(other)
+      return res
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
