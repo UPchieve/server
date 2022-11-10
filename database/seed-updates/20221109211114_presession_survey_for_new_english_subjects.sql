@@ -35,7 +35,7 @@ WHERE (upchieve.surveys.name = 'Essay Feedback Pre-Session Survey'
     AND upchieve.survey_types.name = 'presession');
 
 INSERT INTO upchieve.survey_response_choices (score, choice_text, created_at, updated_at)
-    VALUES (0, 'Brainstorm an essay topic', NOW(), NOW()), (0, 'Gather information or research', NOW(), NOW()), (0, 'Create an outline', NOW(), NOW());
+    VALUES (0, 'Brainstorm an essay topic', NOW(), NOW()), (0, 'Gather information or research', NOW(), NOW());
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
@@ -208,7 +208,7 @@ WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_survey_questions.i
     AND surveys.name IN ('Essay Planning Pre-Session Survey', 'Essay Feedback Pre-Session Survey');
 
 DELETE FROM upchieve.survey_response_choices
-WHERE upchieve.survey_response_choices.choice_text IN ('Brainstorm an essay topic', 'Gather information or research', 'Create an outline');
+WHERE upchieve.survey_response_choices.choice_text IN ('Brainstorm an essay topic', 'Gather information or research');
 
 DELETE FROM upchieve.surveys_survey_questions USING upchieve.surveys
 WHERE upchieve.surveys_survey_questions.survey_id = surveys.id
