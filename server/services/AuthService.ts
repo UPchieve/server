@@ -113,6 +113,7 @@ export async function registerOpenStudent(
     lastName,
     currentGrade,
     signupSourceId,
+    otherSignupSource,
   } = asOpenStudentRegData(data)
 
   await Promise.all([
@@ -152,6 +153,7 @@ export async function registerOpenStudent(
     password,
     currentGrade,
     signupSourceId,
+    otherSignupSource,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)

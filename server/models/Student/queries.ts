@@ -577,6 +577,7 @@ export type CreateStudentPayload = {
   partnerUserId?: string
   college?: string
   signupSourceId?: number
+  otherSignupSource?: string
 }
 export type CreatedStudent = StudentContactInfo & {
   isDeactivated: boolean
@@ -609,6 +610,7 @@ export async function createStudent(
         password: studentData.password,
         referredBy: studentData.referredBy,
         signupSourceId: studentData.signupSourceId,
+        otherSignupSource: studentData.otherSignupSource,
       },
       transactionClient
     )
