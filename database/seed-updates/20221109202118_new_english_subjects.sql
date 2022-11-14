@@ -122,7 +122,7 @@ ON CONFLICT (quiz_id,
 RETURNING
     quiz_id AS ok;
 
--- presession is complicated so it's in its own migration but postsession just uses generic student postsession survey
+-- presession is complicated so it's in its own migration but postsession just uses generic postsession surveys
 INSERT INTO upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
 SELECT
     upchieve.surveys.id,
@@ -138,6 +138,12 @@ WHERE (upchieve.surveys.name = 'Student Post-Session Survey'
     AND upchieve.subjects.name = 'essayPlanning'
     AND upchieve.survey_types.name = 'postsession')
     OR (upchieve.surveys.name = 'Student Post-Session Survey'
+        AND upchieve.subjects.name = 'essayFeedback'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
+        AND upchieve.subjects.name = 'essayPlanning'
+        AND upchieve.survey_types.name = 'postsession')
+    OR (upchieve.surveys.name = 'General Volunteer Post-Session Survey'
         AND upchieve.subjects.name = 'essayFeedback'
         AND upchieve.survey_types.name = 'postsession');
 
