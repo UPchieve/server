@@ -180,6 +180,7 @@ export async function registerPartnerStudent(
     partnerSite,
     currentGrade,
     signupSourceId,
+    otherSignupSource,
   } = asPartnerStudentRegData(data)
 
   await Promise.all([
@@ -231,6 +232,10 @@ export async function registerPartnerStudent(
     signupSourceId:
       studentPartnerOrg === config.customManualStudentPartnerOrg
         ? signupSourceId
+        : undefined,
+    otherSignupSource:
+      studentPartnerOrg === config.customManualStudentPartnerOrg
+        ? otherSignupSource
         : undefined,
   }
 
