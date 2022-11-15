@@ -1315,7 +1315,8 @@ CREATE TABLE upchieve.subjects (
     topic_id integer NOT NULL,
     tool_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    active boolean DEFAULT true NOT NULL
 );
 
 
@@ -4570,4 +4571,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220901190221'),
     ('20220916002003'),
     ('20221026004526'),
-    ('20221027064644');
+    ('20221027064644'),
+    ('20221109203803');
