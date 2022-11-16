@@ -95,11 +95,15 @@ export enum SAT_SUBJECTS {
 export enum READING_WRITING_CERTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
   READING = 'reading',
+  ESSAY_PLANNING = 'essayPlanning',
+  ESSAY_FEEDBACK = 'essayFeedback',
 }
 
 export enum READING_WRITING_SUBJECTS {
   HUMANITIES_ESSAYS = 'humanitiesEssays',
   READING = 'reading',
+  ESSAY_PLANNING = 'essayPlanning',
+  ESSAY_FEEDBACK = 'essayFeedback',
 }
 
 export enum SOCIAL_STUDIES_CERTS {
@@ -194,6 +198,12 @@ export const CERT_UNLOCKING = {
     READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS,
   ],
   [READING_WRITING_CERTS.READING]: [READING_WRITING_SUBJECTS.READING],
+  [READING_WRITING_CERTS.ESSAY_PLANNING]: [
+    READING_WRITING_SUBJECTS.ESSAY_PLANNING,
+  ],
+  [READING_WRITING_CERTS.ESSAY_FEEDBACK]: [
+    READING_WRITING_SUBJECTS.ESSAY_FEEDBACK,
+  ],
 }
 
 export const COMPUTED_CERTS = {
@@ -262,6 +272,8 @@ export const FORMAT_SUBJECT_TO_DISPLAY_NAME = {
   [SAT_SUBJECTS.SAT_READING]: 'SAT Reading',
   [READING_WRITING_SUBJECTS.HUMANITIES_ESSAYS]: 'Humanities Essays',
   [READING_WRITING_SUBJECTS.READING]: 'Reading',
+  [READING_WRITING_SUBJECTS.ESSAY_PLANNING]: 'Essay Planning',
+  [READING_WRITING_SUBJECTS.ESSAY_FEEDBACK]: 'Essay Feedback',
 }
 
 // TODO: This is taken directly as is from the front-end. We will refactor this as we move towards hydrating subjects and training from the database
@@ -298,8 +310,10 @@ export const topics = {
     subtopics: {
       humanitiesEssays: { displayName: 'Humanities Essays' },
       reading: { displayName: 'Reading' },
+      essayPlanning: { displayName: 'Essay Planning' },
+      essayFeedback: { displayName: 'Essay Feedback' },
     },
-    displayName: 'Reading and Writing Tutoring',
+    displayName: 'English Tutoring',
   },
   socialStudies: {
     subtopics: {
@@ -340,7 +354,7 @@ export const trainingView = {
   subjectTypes: [
     { displayName: 'Math', key: 'math' },
     { displayName: 'Science', key: 'science' },
-    { displayName: 'Reading and Writing', key: 'readingWriting' },
+    { displayName: 'English', key: 'readingWriting' },
     { displayName: 'Social Studies', key: 'socialStudies' },
     { displayName: 'College Advising', key: 'college' },
     { displayName: 'Standardized Testing', key: 'sat' },
@@ -518,6 +532,26 @@ export const trainingView = {
           },
         ],
         key: 'reading',
+      },
+      {
+        displayName: 'Essay Planning',
+        subjectsIncluded: [
+          {
+            displayName: 'Essay Planning',
+            key: 'essayPlanning',
+          },
+        ],
+        key: 'essayPlanning',
+      },
+      {
+        displayName: 'Essay Feedback',
+        subjectsIncluded: [
+          {
+            displayName: 'Essay Feedback',
+            key: 'essayFeedback',
+          },
+        ],
+        key: 'essayFeedback',
       },
     ],
     additionalSubjects: [],
