@@ -1181,3 +1181,65 @@ export const insertUserProductFlags = new PreparedQuery<
   IInsertUserProductFlagsParams,
   IInsertUserProductFlagsResult
 >(insertUserProductFlagsIR)
+
+/** 'InsertSchoolStudentPartners' parameters type */
+export interface IInsertSchoolStudentPartnersParams {
+  schoolName: string
+}
+
+/** 'InsertSchoolStudentPartners' return type */
+export interface IInsertSchoolStudentPartnersResult {
+  ok: string
+}
+
+/** 'InsertSchoolStudentPartners' query type */
+export interface IInsertSchoolStudentPartnersQuery {
+  params: IInsertSchoolStudentPartnersParams
+  result: IInsertSchoolStudentPartnersResult
+}
+
+const insertSchoolStudentPartnersIR: any = {
+  name: 'insertSchoolStudentPartners',
+  params: [
+    {
+      name: 'schoolName',
+      required: true,
+      transform: { type: 'scalar' },
+      codeRefs: { used: [{ a: 4398, b: 4408, line: 122, col: 16 }] },
+    },
+  ],
+  usedParamSet: { schoolName: true },
+  statement: {
+    body:
+      "INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    schools.id,\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!\n    RETURNING id as ok",
+    loc: { a: 3961, b: 4431, line: 106, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),
+ *     schools.name,
+ *     TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),
+ *     TRUE,
+ *     FALSE,
+ *     TRUE,
+ *     schools.id,
+ *     NOW(),
+ *     NOW()
+ * FROM
+ *     schools
+ * WHERE
+ *     partner IS TRUE
+ *     AND name = :schoolName!
+ *     RETURNING id as ok
+ * ```
+ */
+export const insertSchoolStudentPartners = new PreparedQuery<
+  IInsertSchoolStudentPartnersParams,
+  IInsertSchoolStudentPartnersResult
+>(insertSchoolStudentPartnersIR)

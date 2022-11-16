@@ -39,6 +39,12 @@ export async function schools(cityIds: NameToId): Promise<NameToId> {
       pgQueries.insertSchool.run,
       { ...school }
     )
+    if (school.partner)
+      await wrapInsert(
+        'student_partner_orgs',
+        pgQueries.insertSchoolStudentPartners.run,
+        { schoolName: school.name }
+      )
   }
   return temp
 }
