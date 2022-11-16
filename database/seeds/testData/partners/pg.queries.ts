@@ -520,3 +520,429 @@ export const insertStudentPartnerSponsorOrg = new PreparedQuery<
   IInsertStudentPartnerSponsorOrgParams,
   IInsertStudentPartnerSponsorOrgResult
 >(insertStudentPartnerSponsorOrgIR)
+
+/** 'InsertStudentPartnerOrgInstances' parameters type */
+export type IInsertStudentPartnerOrgInstancesParams = void
+
+/** 'InsertStudentPartnerOrgInstances' return type */
+export type IInsertStudentPartnerOrgInstancesResult = void
+
+/** 'InsertStudentPartnerOrgInstances' query type */
+export interface IInsertStudentPartnerOrgInstancesQuery {
+  params: IInsertStudentPartnerOrgInstancesParams
+  result: IInsertStudentPartnerOrgInstancesResult
+}
+
+const insertStudentPartnerOrgInstancesIR: any = {
+  name: 'insertStudentPartnerOrgInstances',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo',
+    loc: { a: 2087, b: 2295, line: 26, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     spo.id,
+ *     spo.created_at,
+ *     NOW()
+ * FROM
+ *     student_partner_orgs spo
+ * ```
+ */
+export const insertStudentPartnerOrgInstances = new PreparedQuery<
+  IInsertStudentPartnerOrgInstancesParams,
+  IInsertStudentPartnerOrgInstancesResult
+>(insertStudentPartnerOrgInstancesIR)
+
+/** 'InsertExistingStudentPartnerOrgRelationships' parameters type */
+export type IInsertExistingStudentPartnerOrgRelationshipsParams = void
+
+/** 'InsertExistingStudentPartnerOrgRelationships' return type */
+export type IInsertExistingStudentPartnerOrgRelationshipsResult = void
+
+/** 'InsertExistingStudentPartnerOrgRelationships' query type */
+export interface IInsertExistingStudentPartnerOrgRelationshipsQuery {
+  params: IInsertExistingStudentPartnerOrgRelationshipsParams
+  result: IInsertExistingStudentPartnerOrgRelationshipsResult
+}
+
+const insertExistingStudentPartnerOrgRelationshipsIR: any = {
+  name: 'insertExistingStudentPartnerOrgRelationships',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    sp.student_partner_org_site_id,\n    sp.student_partner_org_user_id,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\nWHERE\n    sp.student_partner_org_id IS NOT NULL',
+    loc: { a: 2357, b: 2790, line: 37, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)
+ * SELECT
+ *     users.id,
+ *     sp.student_partner_org_id,
+ *     sp.student_partner_org_site_id,
+ *     sp.student_partner_org_user_id,
+ *     sp.created_at,
+ *     NOW()
+ * FROM
+ *     users
+ *     JOIN student_profiles sp ON sp.user_id = users.id
+ * WHERE
+ *     sp.student_partner_org_id IS NOT NULL
+ * ```
+ */
+export const insertExistingStudentPartnerOrgRelationships = new PreparedQuery<
+  IInsertExistingStudentPartnerOrgRelationshipsParams,
+  IInsertExistingStudentPartnerOrgRelationshipsResult
+>(insertExistingStudentPartnerOrgRelationshipsIR)
+
+/** 'InsertExistingPartnerSchoolRelationships' parameters type */
+export type IInsertExistingPartnerSchoolRelationshipsParams = void
+
+/** 'InsertExistingPartnerSchoolRelationships' return type */
+export type IInsertExistingPartnerSchoolRelationshipsResult = void
+
+/** 'InsertExistingPartnerSchoolRelationships' query type */
+export interface IInsertExistingPartnerSchoolRelationshipsQuery {
+  params: IInsertExistingPartnerSchoolRelationshipsParams
+  result: IInsertExistingPartnerSchoolRelationshipsResult
+}
+
+const insertExistingPartnerSchoolRelationshipsIR: any = {
+  name: 'insertExistingPartnerSchoolRelationships',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    spo.id,\n    NULL,\n    NULL,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\n    JOIN student_partner_orgs spo ON spo.school_id = sp.school_id',
+    loc: { a: 2848, b: 3228, line: 53, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)
+ * SELECT
+ *     users.id,
+ *     spo.id,
+ *     NULL,
+ *     NULL,
+ *     sp.created_at,
+ *     NOW()
+ * FROM
+ *     users
+ *     JOIN student_profiles sp ON sp.user_id = users.id
+ *     JOIN student_partner_orgs spo ON spo.school_id = sp.school_id
+ * ```
+ */
+export const insertExistingPartnerSchoolRelationships = new PreparedQuery<
+  IInsertExistingPartnerSchoolRelationshipsParams,
+  IInsertExistingPartnerSchoolRelationshipsResult
+>(insertExistingPartnerSchoolRelationshipsIR)
+
+/** 'InsertExistingVolunteerPartnerOrgs' parameters type */
+export type IInsertExistingVolunteerPartnerOrgsParams = void
+
+/** 'InsertExistingVolunteerPartnerOrgs' return type */
+export type IInsertExistingVolunteerPartnerOrgsResult = void
+
+/** 'InsertExistingVolunteerPartnerOrgs' query type */
+export interface IInsertExistingVolunteerPartnerOrgsQuery {
+  params: IInsertExistingVolunteerPartnerOrgsParams
+  result: IInsertExistingVolunteerPartnerOrgsResult
+}
+
+const insertExistingVolunteerPartnerOrgsIR: any = {
+  name: 'insertExistingVolunteerPartnerOrgs',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    vpo.id,\n    vpo.created_at,\n    NOW()\nFROM\n    volunteer_partner_orgs vpo',
+    loc: { a: 3281, b: 3495, line: 69, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     vpo.id,
+ *     vpo.created_at,
+ *     NOW()
+ * FROM
+ *     volunteer_partner_orgs vpo
+ * ```
+ */
+export const insertExistingVolunteerPartnerOrgs = new PreparedQuery<
+  IInsertExistingVolunteerPartnerOrgsParams,
+  IInsertExistingVolunteerPartnerOrgsResult
+>(insertExistingVolunteerPartnerOrgsIR)
+
+/** 'InsertExistingVolunteerPartnerOrgRelationships' parameters type */
+export type IInsertExistingVolunteerPartnerOrgRelationshipsParams = void
+
+/** 'InsertExistingVolunteerPartnerOrgRelationships' return type */
+export type IInsertExistingVolunteerPartnerOrgRelationshipsResult = void
+
+/** 'InsertExistingVolunteerPartnerOrgRelationships' query type */
+export interface IInsertExistingVolunteerPartnerOrgRelationshipsQuery {
+  params: IInsertExistingVolunteerPartnerOrgRelationshipsParams
+  result: IInsertExistingVolunteerPartnerOrgRelationshipsResult
+}
+
+const insertExistingVolunteerPartnerOrgRelationshipsIR: any = {
+  name: 'insertExistingVolunteerPartnerOrgRelationships',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL',
+    loc: { a: 3559, b: 3872, line: 80, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     users.id,
+ *     vp.volunteer_partner_org_id,
+ *     vp.created_at,
+ *     NOW()
+ * FROM
+ *     users
+ *     JOIN volunteer_profiles vp ON vp.user_id = users.id
+ * WHERE
+ *     vp.volunteer_partner_org_id IS NOT NULL
+ * ```
+ */
+export const insertExistingVolunteerPartnerOrgRelationships = new PreparedQuery<
+  IInsertExistingVolunteerPartnerOrgRelationshipsParams,
+  IInsertExistingVolunteerPartnerOrgRelationshipsResult
+>(insertExistingVolunteerPartnerOrgRelationshipsIR)
+
+/** 'InsertExistingSponsorOrgs' parameters type */
+export type IInsertExistingSponsorOrgsParams = void
+
+/** 'InsertExistingSponsorOrgs' return type */
+export type IInsertExistingSponsorOrgsResult = void
+
+/** 'InsertExistingSponsorOrgs' query type */
+export interface IInsertExistingSponsorOrgsQuery {
+  params: IInsertExistingSponsorOrgsParams
+  result: IInsertExistingSponsorOrgsResult
+}
+
+const insertExistingSponsorOrgsIR: any = {
+  name: 'insertExistingSponsorOrgs',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO sponsor_orgs_upchieve_instances (id, sponsor_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    so.id,\n    so.created_at,\n    NOW()\nFROM\n    sponsor_orgs so',
+    loc: { a: 3915, b: 4096, line: 94, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO sponsor_orgs_upchieve_instances (id, sponsor_org_id, created_at, updated_at)
+ * SELECT
+ *     generate_ulid (),
+ *     so.id,
+ *     so.created_at,
+ *     NOW()
+ * FROM
+ *     sponsor_orgs so
+ * ```
+ */
+export const insertExistingSponsorOrgs = new PreparedQuery<
+  IInsertExistingSponsorOrgsParams,
+  IInsertExistingSponsorOrgsResult
+>(insertExistingSponsorOrgsIR)
+
+/** 'InsertExistingPartnerOrgSponsorOrgRelationships' parameters type */
+export type IInsertExistingPartnerOrgSponsorOrgRelationshipsParams = void
+
+/** 'InsertExistingPartnerOrgSponsorOrgRelationships' return type */
+export type IInsertExistingPartnerOrgSponsorOrgRelationshipsResult = void
+
+/** 'InsertExistingPartnerOrgSponsorOrgRelationships' query type */
+export interface IInsertExistingPartnerOrgSponsorOrgRelationshipsQuery {
+  params: IInsertExistingPartnerOrgSponsorOrgRelationshipsParams
+  result: IInsertExistingPartnerOrgSponsorOrgRelationshipsResult
+}
+
+const insertExistingPartnerOrgSponsorOrgRelationshipsIR: any = {
+  name: 'insertExistingPartnerOrgSponsorOrgRelationships',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO student_partner_orgs_sponsor_orgs_instances (student_partner_org_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sposo.student_partner_org_id,\n    sposo.sponsor_org_id,\n    sposo.created_at,\n    NOW()\nFROM\n    student_partner_orgs_sponsor_orgs sposo',
+    loc: { a: 4161, b: 4428, line: 105, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs_sponsor_orgs_instances (student_partner_org_id, sponsor_org_id, created_at, updated_at)
+ * SELECT
+ *     sposo.student_partner_org_id,
+ *     sposo.sponsor_org_id,
+ *     sposo.created_at,
+ *     NOW()
+ * FROM
+ *     student_partner_orgs_sponsor_orgs sposo
+ * ```
+ */
+export const insertExistingPartnerOrgSponsorOrgRelationships = new PreparedQuery<
+  IInsertExistingPartnerOrgSponsorOrgRelationshipsParams,
+  IInsertExistingPartnerOrgSponsorOrgRelationshipsResult
+>(insertExistingPartnerOrgSponsorOrgRelationshipsIR)
+
+/** 'InsertExistingSchoolsSponsorOrgRelationships' parameters type */
+export type IInsertExistingSchoolsSponsorOrgRelationshipsParams = void
+
+/** 'InsertExistingSchoolsSponsorOrgRelationships' return type */
+export type IInsertExistingSchoolsSponsorOrgRelationshipsResult = void
+
+/** 'InsertExistingSchoolsSponsorOrgRelationships' query type */
+export interface IInsertExistingSchoolsSponsorOrgRelationshipsQuery {
+  params: IInsertExistingSchoolsSponsorOrgRelationshipsParams
+  result: IInsertExistingSchoolsSponsorOrgRelationshipsResult
+}
+
+const insertExistingSchoolsSponsorOrgRelationshipsIR: any = {
+  name: 'insertExistingSchoolsSponsorOrgRelationships',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO schools_sponsor_orgs_instances (school_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sso.school_id,\n    sso.sponsor_org_id,\n    sso.created_at,\n    NOW()\nFROM\n    schools_sponsor_orgs sso',
+    loc: { a: 4490, b: 4697, line: 116, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO schools_sponsor_orgs_instances (school_id, sponsor_org_id, created_at, updated_at)
+ * SELECT
+ *     sso.school_id,
+ *     sso.sponsor_org_id,
+ *     sso.created_at,
+ *     NOW()
+ * FROM
+ *     schools_sponsor_orgs sso
+ * ```
+ */
+export const insertExistingSchoolsSponsorOrgRelationships = new PreparedQuery<
+  IInsertExistingSchoolsSponsorOrgRelationshipsParams,
+  IInsertExistingSchoolsSponsorOrgRelationshipsResult
+>(insertExistingSchoolsSponsorOrgRelationshipsIR)
+
+/** 'InsertStudentPartnerOrgAssociatedPartners' parameters type */
+export type IInsertStudentPartnerOrgAssociatedPartnersParams = void
+
+/** 'InsertStudentPartnerOrgAssociatedPartners' return type */
+export type IInsertStudentPartnerOrgAssociatedPartnersResult = void
+
+/** 'InsertStudentPartnerOrgAssociatedPartners' query type */
+export interface IInsertStudentPartnerOrgAssociatedPartnersQuery {
+  params: IInsertStudentPartnerOrgAssociatedPartnersParams
+  result: IInsertStudentPartnerOrgAssociatedPartnersResult
+}
+
+const insertStudentPartnerOrgAssociatedPartnersIR: any = {
+  name: 'insertStudentPartnerOrgAssociatedPartners',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_partner_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_partner_org_id IS NOT NULL',
+    loc: { a: 4756, b: 5075, line: 127, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     ap.student_partner_org_id,
+ *     ap.volunteer_partner_org_id,
+ *     ap.created_at,
+ *     NOW()
+ * FROM
+ *     associated_partners ap
+ * WHERE
+ *     ap.student_partner_org_id IS NOT NULL
+ * ```
+ */
+export const insertStudentPartnerOrgAssociatedPartners = new PreparedQuery<
+  IInsertStudentPartnerOrgAssociatedPartnersParams,
+  IInsertStudentPartnerOrgAssociatedPartnersResult
+>(insertStudentPartnerOrgAssociatedPartnersIR)
+
+/** 'InsertSponsorOrgAssociatedPartners' parameters type */
+export type IInsertSponsorOrgAssociatedPartnersParams = void
+
+/** 'InsertSponsorOrgAssociatedPartners' return type */
+export type IInsertSponsorOrgAssociatedPartnersResult = void
+
+/** 'InsertSponsorOrgAssociatedPartners' query type */
+export interface IInsertSponsorOrgAssociatedPartnersQuery {
+  params: IInsertSponsorOrgAssociatedPartnersParams
+  result: IInsertSponsorOrgAssociatedPartnersResult
+}
+
+const insertSponsorOrgAssociatedPartnersIR: any = {
+  name: 'insertSponsorOrgAssociatedPartners',
+  params: [],
+  usedParamSet: {},
+  statement: {
+    body:
+      'INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_sponsor_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_sponsor_org_id IS NOT NULL',
+    loc: { a: 5127, b: 5430, line: 140, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)
+ * SELECT
+ *     ap.student_sponsor_org_id,
+ *     ap.volunteer_partner_org_id,
+ *     ap.created_at,
+ *     NOW()
+ * FROM
+ *     associated_partners ap
+ * WHERE
+ *     ap.student_sponsor_org_id IS NOT NULL
+ * ```
+ */
+export const insertSponsorOrgAssociatedPartners = new PreparedQuery<
+  IInsertSponsorOrgAssociatedPartnersParams,
+  IInsertSponsorOrgAssociatedPartnersResult
+>(insertSponsorOrgAssociatedPartnersIR)

@@ -11,6 +11,7 @@ import { volunteerPartnerOrgsTest } from './testData/partners/volunteer-partner-
 import { requiredEmailDomainsTest } from './testData/partners/required-email-domains-test'
 import { sponsorOrgsTest } from './testData/partners/sponsor-orgs'
 import { associatedPartnersTest } from './testData/partners/associated-partners'
+import { partnerOrgInstances } from './testData/partners/partner-org-instances'
 
 async function seedData(): Promise<void> {
   let exitCode = 0
@@ -31,6 +32,7 @@ async function seedData(): Promise<void> {
 
     await volunteers(vpoIds, certIds, quizIds)
     await students(spoIds, schoolIds)
+    await partnerOrgInstances()
     // await studentFavoriteVolunteers(certIds, quizIds)
 
     console.log('All test data is seeded!')
