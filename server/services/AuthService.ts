@@ -113,6 +113,7 @@ export async function registerOpenStudent(
     lastName,
     currentGrade,
     signupSourceId,
+    otherSignupSource,
   } = asOpenStudentRegData(data)
 
   await Promise.all([
@@ -152,6 +153,7 @@ export async function registerOpenStudent(
     password,
     currentGrade,
     signupSourceId,
+    otherSignupSource,
   }
 
   const student = await UserCtrl.createStudent(studentData, ip)
@@ -178,6 +180,7 @@ export async function registerPartnerStudent(
     partnerSite,
     currentGrade,
     signupSourceId,
+    otherSignupSource,
   } = asPartnerStudentRegData(data)
 
   await Promise.all([
@@ -229,6 +232,10 @@ export async function registerPartnerStudent(
     signupSourceId:
       studentPartnerOrg === config.customManualStudentPartnerOrg
         ? signupSourceId
+        : undefined,
+    otherSignupSource:
+      studentPartnerOrg === config.customManualStudentPartnerOrg
+        ? otherSignupSource
         : undefined,
   }
 

@@ -69,6 +69,7 @@ export interface StudentRegData extends UserRegData {
 export interface OpenStudentRegData extends StudentRegData {
   currentGrade: GRADES
   signupSourceId?: number
+  otherSignupSource?: string
 }
 export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
@@ -76,6 +77,7 @@ export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   zipCode: asOptional(asString),
   currentGrade: asEnum(GRADES),
   signupSourceId: asOptional(asNumber),
+  otherSignupSource: asOptional(asString),
 })
 
 export interface PartnerStudentRegData extends StudentRegData {
@@ -85,6 +87,7 @@ export interface PartnerStudentRegData extends StudentRegData {
   college?: string
   currentGrade?: GRADES
   signupSourceId?: number
+  otherSignupSource?: string
 }
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
@@ -96,6 +99,7 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   college: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
   signupSourceId: asOptional(asNumber),
+  otherSignupSource: asOptional(asString),
 })
 
 export interface VolunteerRegData extends UserRegData {
