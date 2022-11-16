@@ -44,7 +44,7 @@ Local Development
 -----------------
 ### Local Dependencies
 
-The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v16.8.0, you can switch to this using
+The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v16.16.0, you can switch to this using
 
 ```shell
 $ nvm install v16.16.0 && nvm use v16.16.0
