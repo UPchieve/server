@@ -65,7 +65,7 @@ export async function queueOnboardingReminderOneEmail(
   await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
     { volunteerId },
-    { delay: sevenDaysInMs }
+    { delay: sevenDaysInMs, removeOnComplete: true, removeOnFail: true }
   )
 }
 
@@ -76,7 +76,11 @@ export async function queueOnboardingEventEmails(
     Jobs.EmailVolunteerQuickTips,
     { volunteerId },
     // process job 5 days after the volunteer is onboarded
-    { delay: 1000 * 60 * 60 * 24 * 5 }
+    {
+      delay: 1000 * 60 * 60 * 24 * 5,
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
   )
 }
 
@@ -86,12 +90,19 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Ulid
 ) {
-  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
-    category,
-    email,
-    firstName,
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.EmailFailedFirstAttemptedQuiz,
+    {
+      category,
+      email,
+      firstName,
+      volunteerId,
+    },
+    {
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
+  )
 }
 
 export async function queuePartnerOnboardingEventEmails(
@@ -101,7 +112,11 @@ export async function queuePartnerOnboardingEventEmails(
     Jobs.EmailPartnerVolunteerLowHoursSelected,
     { volunteerId },
     // process job 10 days after the volunteer is onboarded
-    { delay: 1000 * 60 * 60 * 24 * 10 }
+    {
+      delay: 1000 * 60 * 60 * 24 * 10,
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
   )
 }
 

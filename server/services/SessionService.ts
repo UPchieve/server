@@ -141,7 +141,10 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   }
 
   if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, emailData)
+    await QueueService.add(Jobs.EmailSessionReported, emailData, {
+      removeOnComplete: true,
+      removeOnFail: true,
+    })
   else
     await cache.saveWithExpiration(
       `${sessionId}-reported`,
@@ -207,7 +210,11 @@ export async function processAssistmentsSession(sessionId: Ulid) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (session?.volunteerId && (await isSessionAssistments(sessionId))) {
     logger.info(`Ending an assistments session: ${sessionId}`)
-    await QueueService.add(Jobs.SendAssistmentsData, { sessionId })
+    await QueueService.add(
+      Jobs.SendAssistmentsData,
+      { sessionId },
+      { removeOnComplete: true, removeOnFail: true }
+    )
   }
 }
 
@@ -215,7 +222,8 @@ export async function processSessionReported(sessionId: Ulid) {
   try {
     await QueueService.add(
       Jobs.EmailSessionReported,
-      JSON.parse(await cache.get(`${sessionId}-reported`))
+      JSON.parse(await cache.get(`${sessionId}-reported`)),
+      { removeOnComplete: true, removeOnFail: true }
     )
     await cache.remove(`${sessionId}-reported`)
   } catch (err) {
@@ -267,7 +275,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session._id,
       },
-      { delay }
+      { delay, removeOnComplete: true, removeOnFail: true }
     )
   if (sendVolunteerFirstSessionCongrats) {
     await QueueService.add(
@@ -275,7 +283,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session._id,
       },
-      { delay }
+      { delay, removeOnComplete: true, removeOnFail: true }
     )
   }
 }
@@ -326,9 +334,13 @@ export async function processSessionEditors(sessionId: Ulid) {
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.volunteer?.numPastSessions === 10)
-    await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
-      volunteerId: session.volunteer.id,
-    })
+    await QueueService.add(
+      Jobs.EmailVolunteerTenSessionMilestone,
+      {
+        volunteerId: session.volunteer.id,
+      },
+      { removeOnComplete: true, removeOnFail: true }
+    )
 }
 
 /**
@@ -511,12 +523,16 @@ export async function startSession(user: UserContactInfo, data: unknown) {
   await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSessionId },
-    { delay }
+    { delay, removeOnComplete: true, removeOnFail: true }
   )
 
   // Begin chat bot messages immedeately
   if (isEnabled(FEATURE_FLAGS.CHATBOT))
-    await QueueService.add(Jobs.Chatbot, { sessionId: newSessionId })
+    await QueueService.add(
+      Jobs.Chatbot,
+      { sessionId: newSessionId },
+      { removeOnComplete: true, removeOnFail: true }
+    )
 
   await createSessionAction({
     userId: user.id,
@@ -774,7 +790,11 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
   try {
     const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     if (Boolean(state)) {
-      await QueueService.add(Jobs.Chatbot, { sessionId })
+      await QueueService.add(
+        Jobs.Chatbot,
+        { sessionId },
+        { removeOnComplete: true, removeOnFail: true }
+      )
       await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     }
   } catch (err) {
