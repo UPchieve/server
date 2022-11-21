@@ -16,7 +16,14 @@ export const WAIT_FOR_REPLY = 3 * ONE_MINUTE
 async function textMoreVolunteers(sessionId: Ulid): Promise<void> {
   // ignore the initial delay on the notification schedule and notify tutors ASAP
   const notificationSchedule = config.notificationSchedule.slice(1)
-  await QueueService.add(Jobs.NotifyTutors, { sessionId, notificationSchedule })
+  await QueueService.add(
+    Jobs.NotifyTutors,
+    { sessionId, notificationSchedule },
+    {
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
+  )
 }
 
 export async function updateActivityStatus(sessionId: Ulid): Promise<void> {
@@ -85,7 +92,7 @@ export const m3a = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_MATCH }
+      { delay: WAIT_FOR_MATCH, removeOnComplete: true, removeOnFail: true }
     )
   },
 }
@@ -104,7 +111,7 @@ export const m3b = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_MATCH }
+      { delay: WAIT_FOR_MATCH, removeOnComplete: true, removeOnFail: true }
     )
   },
 }
@@ -123,7 +130,7 @@ export const m3c = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_MATCH }
+      { delay: WAIT_FOR_MATCH, removeOnComplete: true, removeOnFail: true }
     )
   },
 }
@@ -151,7 +158,7 @@ export const m4 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_REPLY }
+      { delay: WAIT_FOR_REPLY, removeOnComplete: true, removeOnFail: true }
     )
   },
 }
@@ -178,7 +185,7 @@ export const m5 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_MATCH }
+      { delay: WAIT_FOR_MATCH, removeOnComplete: true, removeOnFail: true }
     )
     await textMoreVolunteers(session.id)
   },
@@ -205,7 +212,7 @@ export const m6 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_REPLY }
+      { delay: WAIT_FOR_REPLY, removeOnComplete: true, removeOnFail: true }
     )
   },
 }
@@ -232,7 +239,7 @@ export const m7 = {
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: session.id },
-      { delay: WAIT_FOR_MATCH }
+      { delay: WAIT_FOR_MATCH, removeOnComplete: true, removeOnFail: true }
     )
     await textMoreVolunteers(session.id)
   },

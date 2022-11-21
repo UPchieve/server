@@ -48,12 +48,19 @@ class AbsentStudent extends CounterMetricProcessor {
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
       actions.push(
-        QueueService.add(Jobs.EmailStudentAbsentWarning, {
-          sessionSubtopic: pd.session.subject,
-          sessionDate: pd.session.createdAt,
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        })
+        QueueService.add(
+          Jobs.EmailStudentAbsentWarning,
+          {
+            sessionSubtopic: pd.session.subject,
+            sessionDate: pd.session.createdAt,
+            studentId: pd.session.studentId,
+            volunteerId: pd.session.volunteerId,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
       )
 
     // Send an apology email to the volunteer the first time he or she encounters an absent student
@@ -62,12 +69,19 @@ class AbsentStudent extends CounterMetricProcessor {
       this.computeFinalValue(pd.volunteerUSM, pd.value) === 1
     )
       actions.push(
-        QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
-          sessionSubtopic: pd.session.subject,
-          sessionDate: pd.session.createdAt,
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        })
+        QueueService.add(
+          Jobs.EmailVolunteerAbsentStudentApology,
+          {
+            sessionSubtopic: pd.session.subject,
+            sessionDate: pd.session.createdAt,
+            studentId: pd.session.studentId,
+            volunteerId: pd.session.volunteerId,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
       )
 
     return actions
@@ -116,23 +130,37 @@ class AbsentVolunteer extends CounterMetricProcessor {
       this.computeFinalValue(pd.volunteerUSM, pd.value) === 1
     )
       actions.push(
-        QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
-          sessionSubtopic: pd.session.subject,
-          sessionDate: pd.session.createdAt,
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        })
+        QueueService.add(
+          Jobs.EmailVolunteerAbsentWarning,
+          {
+            sessionSubtopic: pd.session.subject,
+            sessionDate: pd.session.createdAt,
+            studentId: pd.session.studentId,
+            volunteerId: pd.session.volunteerId,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
       )
 
     // Send an apology email to the student the first time he or she encounters an absent volunteer
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
       actions.push(
-        QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
-          sessionSubtopic: pd.session.subject,
-          sessionDate: pd.session.createdAt,
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        })
+        QueueService.add(
+          Jobs.EmailStudentAbsentVolunteerApology,
+          {
+            sessionSubtopic: pd.session.subject,
+            sessionDate: pd.session.createdAt,
+            studentId: pd.session.studentId,
+            volunteerId: pd.session.volunteerId,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
       )
 
     return actions
@@ -254,12 +282,19 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
   public triggerActions = (pd: ProcessorData) => {
     if (pd.value && this.computeFinalValue(pd.studentUSM, pd.value) === 1)
       return [
-        QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, {
-          sessionSubtopic: pd.session.subject,
-          sessionDate: pd.session.createdAt,
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        }),
+        QueueService.add(
+          Jobs.EmailStudentOnlyLookingForAnswers,
+          {
+            sessionSubtopic: pd.session.subject,
+            sessionDate: pd.session.createdAt,
+            studentId: pd.session.studentId,
+            volunteerId: pd.session.volunteerId,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        ),
       ] as Promise<any>[]
     else return NO_ACTIONS
   }
@@ -317,12 +352,19 @@ class HasBeenUnmatched extends CounterMetricProcessor {
     // Send an apology email to the student the first time their session is unmatched
     if (this.computeFinalValue(pd.studentUSM, pd.value) === 1)
       actions.push(
-        QueueService.add(Jobs.EmailStudentUnmatchedApology, {
-          sessionSubtopic: pd.session.subject,
-          sessionDate: pd.session.createdAt,
-          studentId: pd.session.studentId,
-          volunteerId: pd.session.volunteerId,
-        })
+        QueueService.add(
+          Jobs.EmailStudentUnmatchedApology,
+          {
+            sessionSubtopic: pd.session.subject,
+            sessionDate: pd.session.createdAt,
+            studentId: pd.session.studentId,
+            volunteerId: pd.session.volunteerId,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
       )
 
     return actions
@@ -431,12 +473,19 @@ class StudentCrisis extends CounterMetricProcessor {
     // If session was not reported, follow report workflow for emotiona distress
     if (!pd.session.reported) {
       actions.push(
-        QueueService.add(Jobs.EmailSessionReported, {
-          studentId: pd.session.studentId,
-          reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
-          isBanReason: false,
-          sessionId: pd.session.id,
-        })
+        QueueService.add(
+          Jobs.EmailSessionReported,
+          {
+            studentId: pd.session.studentId,
+            reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
+            isBanReason: false,
+            sessionId: pd.session.id,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
       )
     }
     return actions
