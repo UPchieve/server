@@ -100,3 +100,24 @@ RETURNING id as ok;
 INSERT INTO user_product_flags (user_id, created_at, updated_at)
 VALUES (:id!, NOW(), NOW())
 RETURNING user_id AS ok;
+
+
+/* @name insertSchoolStudentPartners */
+INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
+SELECT
+    generate_ulid (),
+    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),
+    schools.name,
+    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),
+    TRUE,
+    FALSE,
+    TRUE,
+    schools.id,
+    NOW(),
+    NOW()
+FROM
+    schools
+WHERE
+    partner IS TRUE
+    AND name = :schoolName!
+    RETURNING id as ok;

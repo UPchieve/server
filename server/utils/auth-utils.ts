@@ -50,6 +50,8 @@ interface UserRegData {
   referredByCode?: string
   firstName: string
   lastName: string
+  signupSourceId?: number
+  otherSignupSource?: string
 }
 const userRegDataValidators = {
   ip: asString,
@@ -59,6 +61,8 @@ const userRegDataValidators = {
   referredByCode: asOptional(asString),
   firstName: asString,
   lastName: asString,
+  signupSourceId: asOptional(asNumber),
+  otherSignupSource: asOptional(asString),
 }
 
 export interface StudentRegData extends UserRegData {
@@ -69,13 +73,13 @@ export interface StudentRegData extends UserRegData {
 export interface OpenStudentRegData extends StudentRegData {
   currentGrade: GRADES
   signupSourceId?: number
+  otherSignupSource?: string
 }
 export const asOpenStudentRegData = asFactory<OpenStudentRegData>({
   ...userRegDataValidators,
   highSchoolId: asOptional(asString),
   zipCode: asOptional(asString),
   currentGrade: asEnum(GRADES),
-  signupSourceId: asOptional(asNumber),
 })
 
 export interface PartnerStudentRegData extends StudentRegData {
@@ -84,7 +88,6 @@ export interface PartnerStudentRegData extends StudentRegData {
   partnerSite?: string
   college?: string
   currentGrade?: GRADES
-  signupSourceId?: number
 }
 export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   ...userRegDataValidators,
@@ -95,7 +98,6 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
   partnerSite: asOptional(asString),
   college: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
-  signupSourceId: asOptional(asNumber),
 })
 
 export interface VolunteerRegData extends UserRegData {

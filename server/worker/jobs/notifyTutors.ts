@@ -20,9 +20,16 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   if (!session) return
   const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
-    await QueueService.add(Jobs.EmailVolunteerGentleWarning, {
-      sessionId,
-    })
+    await QueueService.add(
+      Jobs.EmailVolunteerGentleWarning,
+      {
+        sessionId,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    )
     return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }
   const delay = notificationSchedule.shift()
@@ -30,7 +37,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     await QueueService.add(
       Jobs.NotifyTutors,
       { sessionId: sessionId.toString(), notificationSchedule },
-      { delay }
+      { delay, removeOnComplete: true, removeOnFail: true }
     )
 
   try {
@@ -47,7 +54,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
           sessionId: sessionId.toString(),
           volunteerId: volunteerNotified.toString(),
         },
-        { delay: 1000 * 60 * 5 }
+        { delay: 1000 * 60 * 5, removeOnComplete: true, removeOnFail: true }
       )
     } else
       log(
