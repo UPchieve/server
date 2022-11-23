@@ -257,6 +257,8 @@ export async function registerVolunteer(
     firstName,
     lastName,
     timezone,
+    signupSourceId,
+    otherSignupSource,
   } = asVolunteerRegData(data)
 
   await Promise.all([
@@ -282,6 +284,8 @@ export async function registerVolunteer(
     password,
     timezone,
     volunteerPartnerOrg: undefined,
+    signupSourceId,
+    otherSignupSource,
   }
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)

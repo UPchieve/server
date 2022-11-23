@@ -1164,6 +1164,8 @@ export type CreateVolunteerPayload = {
   referredBy: Ulid | undefined
   volunteerPartnerOrg: string | undefined
   timezone: string | undefined
+  signupSourceId?: number
+  otherSignupSource?: string
 }
 export type CreatedVolunteer = VolunteerContactInfo & {
   deactivated: boolean
@@ -1172,6 +1174,8 @@ export type CreatedVolunteer = VolunteerContactInfo & {
   isVolunteer: boolean
   isAdmin: boolean
   banned: boolean
+  signupSourceId?: number
+  otherSignupSource?: string
 }
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload
@@ -1189,6 +1193,8 @@ export async function createVolunteer(
         userId,
         referralCode: generateReferralCode(userId),
         ...volunteerData,
+        signupSourceId: volunteerData.signupSourceId,
+        otherSignupSource: volunteerData.otherSignupSource,
       },
       client
     )
