@@ -86,7 +86,13 @@ const main = async (): Promise<void> => {
 
     log(`Starting jobs: \n${JSON.stringify(jobTemplates, null, ' ')}`)
     await Promise.all(
-      map(jobTemplates, job => queue.add(job.name, job.data, job.options))
+      map(jobTemplates, job =>
+        queue.add(job.name, job.data, {
+          ...job.options,
+          removeOnComplete: true,
+          removeOnFail: true,
+        })
+      )
     )
 
     process.exit(0)
