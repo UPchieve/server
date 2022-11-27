@@ -85,13 +85,6 @@ ON CONFLICT
     DO NOTHING;
 
 
-/* @name createSchool */
-INSERT INTO schools (id, name, approved, city_id, created_at, updated_at)
-    VALUES (:id!, :name!, :isApproved!, :cityId!, NOW(), NOW())
-RETURNING
-    id, approved AS is_approved, partner AS is_partner, name AS name_stored, updated_at, created_at;
-
-
 /* @name updateApproval */
 UPDATE
     schools

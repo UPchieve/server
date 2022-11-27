@@ -2381,6 +2381,7 @@ paths:
           description: Returns an array of school objects
   /api-public/eligibility/school/new:
     post:
+      deprecated: true
       tags:
         - eligibility
       summary:  Creates new eligible school

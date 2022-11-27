@@ -86,15 +86,6 @@ export function routes(app: Express) {
     }
   })
 
-  router.post('/school/new', authPassport.isAdmin, async function(req, res) {
-    try {
-      const school = await SchoolService.createSchool(req.body as unknown)
-      res.json({ schoolId: school.id })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router.post('/school/approval', authPassport.isAdmin, async function(
     req,
     res
