@@ -410,6 +410,19 @@ export async function getUserForAdminDetail(
       offset,
       client
     )
+
+    const background = {
+      occupation: user.occupation,
+      experience: user.experience,
+      languages: user.languages,
+      linkedInUrl: user.linkedinUrl,
+      country: user.country,
+      state: user.state,
+      city: user.city,
+      college: user.college,
+      company: user.company,
+    }
+
     return {
       ...user,
       references: references.map(ref => ({
@@ -422,6 +435,7 @@ export async function getUserForAdminDetail(
       ),
       _id: user.id,
       photoIdStatus: user.photoIdStatus?.toUpperCase(),
+      background,
     }
   } catch (err) {
     throw new RepoReadError(err)
