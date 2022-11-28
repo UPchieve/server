@@ -1,14 +1,11 @@
 /**
  * Processes incoming socket messages
  */
-// TODO: types for passport
-const passportSocketIo = require('passport.socketio')
+import passport from 'passport'
 import Sentry from '@sentry/node'
 import { PGStore } from 'connect-pg-simple'
-import cookieParser from 'cookie-parser'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
-import redisAdapter from 'socket.io-redis'
 import config from '../../config'
 import { Session } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
@@ -25,6 +22,9 @@ import { isEnabled } from 'unleash-client'
 import { v4 as uuidv4 } from 'uuid'
 import { LockError } from 'redlock'
 import { Ulid } from '../../models/pgUtils'
+import session from 'express-session'
+
+export type SocketUser = Socket & { request: { user?: UserContactInfo } }
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -51,63 +51,54 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
   if (user && user.isVolunteer) socket.join('volunteers')
 }
 
-// TODO: upgrade socketio and adapter so we can async this whole file
 export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
 
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
-    return await new Promise((resolve, reject) => {
-      io.in(room).clients((err: Error, clients: string[]) => {
-        if (err) return reject(err)
-        return resolve(clients)
-      })
-    })
+    const allSockets = await io.in(room).allSockets()
+    return Array.from(allSockets)
   }
 
-  async function remoteJoinRoom(socketId: string, room: string) {
-    return await new Promise((resolve, reject) => {
-      ;(io.of('/').adapter as redisAdapter.RedisAdapter).remoteJoin(
-        socketId,
-        room,
-        (err: Error) => {
-          if (err) reject(err)
-          resolve('success')
-        }
-      )
-    })
+  function remoteJoinRoom(socketId: string, room: string) {
+    return io.in(socketId).socketsJoin(room)
   }
 
   let chatbot: Ulid | undefined
 
-  // Authentication for sockets
-  io.use(
-    passportSocketIo.authorize({
-      cookieParser: cookieParser,
-      key: 'connect.sid',
-      secret: config.sessionSecret,
-      store: sessionStore,
-      // only allow authenticated users to connect to the socket instance
-      fail: (data: any, message: string, error: Error, accept: any) => {
-        logger.info(`Unauthenticated socket connection attempt: ${message}`)
-        if (error) {
-          logger.error(new Error(message))
-          throw new Error(message)
-        } else {
-          accept(null, false)
-        }
-      },
-    })
-  )
+  // Authentication middleware for sockets
+  const wrap = (middleware: Function) => (socket: Socket, next: Function) =>
+    middleware(socket.request, {}, next)
+  const sessionMiddleware = session({
+    resave: false,
+    saveUninitialized: false,
+    secret: config.sessionSecret,
+    store: sessionStore,
+    cookie: {
+      httpOnly: false,
+      maxAge: config.sessionCookieMaxAge,
+    },
+  })
 
-  io.on('connection', async function(socket) {
+  io.use(wrap(sessionMiddleware))
+  io.use(wrap(passport.initialize()))
+  io.use(wrap(passport.session()))
+  io.use((socket: SocketUser, next) => {
+    if (socket.request.user) {
+      next()
+    } else {
+      next(new Error('unauthorized'))
+    }
+  })
+
+  io.on('connection', async function(socket: SocketUser) {
     const {
       request: { user },
       handshake: {
-        query: { key: socketApiKey },
+        auth: { key: socketApiKey },
       },
     } = socket
 
-    if (user && user.logged_in) {
+    if (user) {
       await handleUser(socket, user)
     } else {
       if (!socketApiKey) {
