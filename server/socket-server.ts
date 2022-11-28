@@ -2,8 +2,8 @@
  * Creates the socket server and returns the Server instance
  */
 import * as http from 'http'
-import socket from 'socket.io'
-import redisAdapter from 'socket.io-redis'
+import { Server } from 'socket.io'
+import { createAdapter } from '@socket.io/redis-adapter'
 import config from './config'
 import logger from './logger'
 import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
@@ -27,18 +27,20 @@ export default function(app: Express) {
 
   logger.info('socket.io listening on port ' + port)
 
-  const io = socket(server, {
-    // set pingTimeout longer than pingInterval
-    // 60s used to be the default but they dropped it
-    // in 3.0 they're increasing it again
-    // (default interval is 25000)
-    pingInterval: 25000,
+  const io = new Server(server, {
     pingTimeout: 30000,
+    cors: {
+      origin: new RegExp(`^(${config.host})$`),
+      credentials: true,
+    },
+    cookie: {
+      name: 'subway-io',
+      httpOnly: false,
+    },
+    allowEIO3: true,
   })
   if (process.env.NODE_ENV === 'test') return io
 
-  io.adapter(
-    redisAdapter({ pubClient: socketIoPubClient, subClient: socketIoSubClient })
-  )
+  io.adapter(createAdapter(socketIoPubClient, socketIoSubClient))
   return io
 }
