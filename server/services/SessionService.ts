@@ -595,17 +595,8 @@ export async function joinSession(
   data: unknown
 ): Promise<void> {
   const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
-  const userAgent = socket.request.headers['user-agent']
-
-  // TODO: it is unclear how to extract IP from socketio connection
-  /**
-   * We used to use socket.handshake.address but new versions of socketio have allegedly
-   * moved the IP to request.connetion.remoteAddress
-   * The typing on that object is any so we have no idea if this is correct.
-   * Godspeed
-   */
-  const ipAddress =
-    socket.handshake?.address || socket.request?.connection.remoteAddress
+  const userAgent = socket.request?.headers['user-agent']
+  const ipAddress = socket.handshake?.address
 
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
@@ -632,7 +623,7 @@ export async function joinSession(
     await createSessionAction({
       userId: user.id,
       sessionId: session.id,
-      ...getUserAgentInfo(userAgent),
+      ...getUserAgentInfo(userAgent ? userAgent : ''),
       ipAddress,
       action: SESSION_USER_ACTIONS.JOINED,
     })
@@ -665,7 +656,7 @@ export async function joinSession(
     await createSessionAction({
       userId: user.id,
       sessionId: session.id,
-      ...getUserAgentInfo(userAgent),
+      ...getUserAgentInfo(userAgent ? userAgent : ''),
       ipAddress,
       action: SESSION_USER_ACTIONS.REJOINED,
     })
