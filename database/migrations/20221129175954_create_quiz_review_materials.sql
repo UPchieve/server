@@ -1,6 +1,6 @@
 -- migrate:up
 CREATE TABLE IF NOT EXISTS upchieve.quiz_review_materials (
-    id integer NOT NULL,
+    id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     quiz_id integer NOT NULL REFERENCES upchieve.quizzes (id),
     title text NOT NULL,
     pdf text NOT NULL,

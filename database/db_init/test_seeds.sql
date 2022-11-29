@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
--- Dumped by pg_dump version 14.2
+-- Dumped from database version 14.3 (Debian 14.3-1.pgdg110+1)
+-- Dumped by pg_dump version 14.5 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2452,6 +2452,58 @@ COPY upchieve.quiz_questions (id, question_text, possible_answers, correct_answe
 405	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	405	\N	2022-11-16 18:23:43.89346+00	2022-11-16 18:23:43.89346+00	\N
 406	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	406	\N	2022-11-16 18:23:43.898518+00	2022-11-16 18:23:43.898518+00	\N
 407	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	407	\N	2022-11-16 18:23:43.904763+00	2022-11-16 18:23:43.904763+00	\N
+\.
+
+
+--
+-- Data for Name: quiz_review_materials; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.quiz_review_materials (id, quiz_id, title, pdf, image, created_at, updated_at) FROM stdin;
+1	1	Topics & Resources	https://cdn.upchieve.org/review-materials/prealgebra-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/prealgebra-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+2	1	Concept Review	https://cdn.upchieve.org/review-materials/prealgebra-concept-review.pdf	https://cdn.upchieve.org/review-materials/prealgebra-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+3	2	Topics & Resources	https://cdn.upchieve.org/review-materials/statistics-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/statistics-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+4	2	Concept Review	https://cdn.upchieve.org/review-materials/statistics-concept-review.pdf	https://cdn.upchieve.org/review-materials/statistics-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+5	3	Topics & Resources	https://cdn.upchieve.org/review-materials/geometry-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/geometry-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+6	3	Concept Review	https://cdn.upchieve.org/review-materials/geometry-concept-review.pdf	https://cdn.upchieve.org/review-materials/geometry-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+7	4	Topics & Resources	https://cdn.upchieve.org/review-materials/biology-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/biology-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+8	4	Concept Review	https://cdn.upchieve.org/review-materials/biology-concept-review.pdf	https://cdn.upchieve.org/review-materials/biology-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+9	5	Topics & Resources	https://cdn.upchieve.org/review-materials/chemistry-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/chemistry-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+10	5	Concept Review	https://cdn.upchieve.org/review-materials/chemistry-concept-review.pdf	https://cdn.upchieve.org/review-materials/chemistry-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+11	6	Topics & Resources	https://cdn.upchieve.org/review-materials/physicsone-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/physicsone-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+12	6	Concept Review	https://cdn.upchieve.org/review-materials/physicsone-concept-review.pdf	https://cdn.upchieve.org/review-materials/physicsone-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+13	7	Topics & Resources	https://cdn.upchieve.org/review-materials/physicstwo-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/physicstwo-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+14	7	Concept Review	https://cdn.upchieve.org/review-materials/physicstwo-concept-review.pdf	https://cdn.upchieve.org/review-materials/physicstwo-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+15	8	Topics & Resources	https://cdn.upchieve.org/review-materials/environmentalscience-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/environmentalscience-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+16	8	Concept Review	https://cdn.upchieve.org/review-materials/environmentalscience-concept-review.pdf	https://cdn.upchieve.org/review-materials/environmentalscience-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+17	9	College Essays Review	https://cdn.upchieve.org/review-materials/college-essays-review.pdf	https://cdn.upchieve.org/review-materials/college-essays-review.pdf	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+18	10	College Applications Review	https://cdn.upchieve.org/review-materials/college-applications-review.pdf	https://cdn.upchieve.org/review-materials/college-applications-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+19	11	College Planning Review	https://cdn.upchieve.org/review-materials/college-planning-review.pdf	https://cdn.upchieve.org/review-materials/college-planning-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+20	12	SAT Math Review Guide	https://cdn.upchieve.org/review-materials/sat-math-review-guide.pdf	https://cdn.upchieve.org/review-materials/sat-math-review-guide.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+21	13	SAT Reading Review Guide	https://cdn.upchieve.org/review-materials/sat-reading-review-guide.pdf	https://cdn.upchieve.org/review-materials/sat-reading-review-guide.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+22	15	Humanities Essays Review Guide	https://cdn.upchieve.org/review-materials/humanities-essays-review-guide.pdf	https://cdn.upchieve.org/review-materials/humanities-essays-review-guide.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+23	16	Topics & Resources	https://cdn.upchieve.org/review-materials/algebraone-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/algebraone-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+24	16	Concept Review	https://cdn.upchieve.org/review-materials/algebraone-concept-review.pdf	https://cdn.upchieve.org/review-materials/algebraone-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+25	17	Topics & Resources	https://cdn.upchieve.org/review-materials/algebratwo-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/algebratwo-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+26	17	Concept Review	https://cdn.upchieve.org/review-materials/algebratwo-concept-review.pdf	https://cdn.upchieve.org/review-materials/algebratwo-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+27	18	Topics & Resources	https://cdn.upchieve.org/review-materials/trigonometry-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/trigonometry-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+28	18	Concept Review	https://cdn.upchieve.org/review-materials/trigonometry-concept-review.pdf	https://cdn.upchieve.org/review-materials/trigonometry-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+29	19	Topics & Resources	https://cdn.upchieve.org/review-materials/precalculus-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/precalculus-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+30	19	Concept Review	https://cdn.upchieve.org/review-materials/precalculus-concept-review.pdf	https://cdn.upchieve.org/review-materials/precalculus-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+31	20	Topics & Resources	https://cdn.upchieve.org/review-materials/calculusab-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/calculusab-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+32	20	Concept Review	https://cdn.upchieve.org/review-materials/calculusab-concept-review.pdf	https://cdn.upchieve.org/review-materials/calculusab-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+33	21	Topics & Resources	https://cdn.upchieve.org/review-materials/calculusbc-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/calculusbc-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+34	21	Concept Review	https://cdn.upchieve.org/review-materials/calculusbc-concept-review.pdf	https://cdn.upchieve.org/review-materials/calculusbc-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+35	23	Reading Review Guide	https://cdn.upchieve.org/review-materials/reading-review.pdf	https://cdn.upchieve.org/review-materials/reading-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+36	25	Financial Aid Review	https://cdn.upchieve.org/review-materials/financial-aid-review.pdf	https://cdn.upchieve.org/review-materials/financial-aid-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+37	26	Application Essays Review	https://cdn.upchieve.org/review-materials/application-essays-review.pdf	https://cdn.upchieve.org/review-materials/application-essays-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+38	27	College Applications Review	https://cdn.upchieve.org/review-materials/college-apps-review.pdf	https://cdn.upchieve.org/review-materials/college-apps-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+39	28	College List Review	https://cdn.upchieve.org/review-materials/college-list-review.pdf	https://cdn.upchieve.org/review-materials/college-list-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+40	29	College Prep Review	https://cdn.upchieve.org/review-materials/college-prep-review.pdf	https://cdn.upchieve.org/review-materials/college-prep-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+41	30	Essay Planning Review Guide	https://cdn.upchieve.org/review-materials/essay-planning-review.pdf	https://cdn.upchieve.org/review-materials/essay-planning-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+42	31	Essay Feedback Review Guide	https://cdn.upchieve.org/review-materials/feedback-review.pdf	https://cdn.upchieve.org/review-materials/essay-feedback-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+43	32	Topics & Resources	https://cdn.upchieve.org/review-materials/ushistory-topics-and-resources.pdf	https://cdn.upchieve.org/review-materials/ushistory-topics-and-resources.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
+44	32	Concept Review	https://cdn.upchieve.org/review-materials/ushistory-concept-review.pdf	https://cdn.upchieve.org/review-materials/ushistory-concept-review.png	2022-11-29 21:25:04.585236	2022-11-29 21:25:04.585236
 \.
 
 

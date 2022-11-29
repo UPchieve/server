@@ -773,6 +773,20 @@ CREATE TABLE upchieve.quiz_review_materials (
 
 
 --
+-- Name: quiz_review_materials_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.quiz_review_materials ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.quiz_review_materials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: quiz_subcategories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2660,6 +2674,14 @@ ALTER TABLE ONLY upchieve.quiz_questions
 
 ALTER TABLE ONLY upchieve.quiz_questions
     ADD CONSTRAINT quiz_questions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: quiz_review_materials quiz_review_materials_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_review_materials
+    ADD CONSTRAINT quiz_review_materials_pkey PRIMARY KEY (id);
 
 
 --
