@@ -1,14 +1,24 @@
 import { resError } from '../res-error'
 import { Router } from 'express'
-import { topics, trainingView } from '../../constants'
+import { topics, trainingView, FEATURE_FLAGS } from '../../constants'
 import { isValidSubjectAndTopic } from '../../services/SubjectsService'
+import { isEnabled } from 'unleash-client'
+import { getSubjectsWithTopic } from '../../models/Subjects'
 
 export function routeSubjects(router: Router): void {
   router.get('/subjects', async function(req, res) {
     try {
-      res.json({
-        subjects: topics,
-      })
+      if (isEnabled(FEATURE_FLAGS.SUBJECTS_DATABASE_HYDRATION)) {
+        const subjects = await getSubjectsWithTopic()
+        res.json({
+          subjects: subjects,
+        })
+      } else {
+        // remove below in subjects-database-hydration flag cleanup
+        res.json({
+          subjects: topics,
+        })
+      }
     } catch (err) {
       resError(res, err)
     }
