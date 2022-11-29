@@ -4,3 +4,18 @@ export type SubjectAndTopic = {
   topicName: string
   topicDisplayName: string
 }
+
+export type SubjectWithTopic = {
+  name: string
+  id: number
+  displayOrder: number
+  displayName: string
+  active: boolean
+  topicId: number
+  topicName: string
+  topicDisplayName: string
+  topicDashboardOrder: number
+  topicIconLink?: string
+}
+
+export type AllSubjectsWithTopics = { [subject: string]: SubjectWithTopic }
