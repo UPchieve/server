@@ -43,7 +43,8 @@
     "db:seeds-new": "dbmate -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" new",
     "db:schema-up": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" up",
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
-    "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up"
+    "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up",
+    "db:seeds-down": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" down"
   },
   "pre-commit": [
     "pgtyped:check",
