@@ -5,7 +5,7 @@ import {
   RepoUpdateError,
 } from '../Errors'
 import { makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
-import { Question } from './types'
+import { Question, ReviewMaterial } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 
@@ -197,6 +197,21 @@ export async function getQuestionsByCategory(
     const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
     const parsedResult = result.map(res => parseQueryResult(res))
     return parsedResult
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getQuizReviewMaterials(
+  category: string
+): Promise<ReviewMaterial[]> {
+  try {
+    const materials = await pgQueries.getQuizReviewMaterials.run(
+      { category },
+      getClient()
+    )
+    const result = materials.map(v => makeRequired(v))
+    return result
   } catch (err) {
     throw new RepoReadError(err)
   }

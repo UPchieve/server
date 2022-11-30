@@ -1721,8 +1721,8 @@ paths:
           schema:
             $ref: "#/components/schemas/Category"
       responses:
-        '204':
-          description: No content
+        '200':
+          description: Responds with an object of a list of review materials
   /training/score:
     post:
       tags:

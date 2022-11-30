@@ -11,6 +11,7 @@ import {
   createQuizAction,
 } from '../../models/UserAction/queries'
 import { QUIZ_USER_ACTIONS } from '../../constants'
+import { getQuizReviewMaterials } from '../../models/Question/queries'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
@@ -87,7 +88,7 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.get('/training/review/:category', function(req, res) {
+  router.get('/training/review/:category', async function(req, res) {
     try {
       const user = extractUser(req)
       const category = asString(req.params.category)
@@ -100,7 +101,10 @@ export function routeTraining(router: Router): void {
         ipAddress: ipAddress,
       })
 
-      res.sendStatus(204)
+      const resultList = await getQuizReviewMaterials(category)
+      if (resultList) {
+        res.status(200).json(resultList)
+      }
     } catch (err) {
       resError(res, err)
     }
