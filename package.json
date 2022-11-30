@@ -43,7 +43,8 @@
     "db:seeds-new": "dbmate -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" new",
     "db:schema-up": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" up",
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
-    "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up"
+    "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up",
+    "db:seeds-down": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" down"
   },
   "pre-commit": [
     "pgtyped:check",
@@ -53,7 +54,7 @@
   ],
   "dependencies": {
     "@azure/identity": "^1.2.3",
-    "@azure/storage-blob": "^12.4.1",
+    "@azure/storage-blob": "^12.12.0",
     "@pgtyped/cli": "^0.13.0",
     "@pgtyped/query": "^0.13.0",
     "@sendgrid/mail": "^6.4.0",
