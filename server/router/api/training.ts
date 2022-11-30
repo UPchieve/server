@@ -11,7 +11,6 @@ import {
   createQuizAction,
 } from '../../models/UserAction/queries'
 import { QUIZ_USER_ACTIONS } from '../../constants'
-import router from '..'
 import { getQuizReviewMaterials } from '../../models/Question/queries'
 
 export function routeTraining(router: Router): void {
