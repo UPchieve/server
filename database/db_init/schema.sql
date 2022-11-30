@@ -758,6 +758,35 @@ ALTER SEQUENCE upchieve.quiz_questions_id_seq OWNED BY upchieve.quiz_questions.i
 
 
 --
+-- Name: quiz_review_materials; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.quiz_review_materials (
+    id integer NOT NULL,
+    quiz_id integer NOT NULL,
+    title text NOT NULL,
+    pdf text NOT NULL,
+    image text NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: quiz_review_materials_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.quiz_review_materials ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.quiz_review_materials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: quiz_subcategories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2648,6 +2677,14 @@ ALTER TABLE ONLY upchieve.quiz_questions
 
 
 --
+-- Name: quiz_review_materials quiz_review_materials_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_review_materials
+    ADD CONSTRAINT quiz_review_materials_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: quiz_subcategories quiz_subcategories_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3697,6 +3734,14 @@ ALTER TABLE ONLY upchieve.quiz_questions
 
 
 --
+-- Name: quiz_review_materials quiz_review_materials_quiz_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.quiz_review_materials
+    ADD CONSTRAINT quiz_review_materials_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES upchieve.quizzes(id);
+
+
+--
 -- Name: quiz_subcategories quiz_subcategories_quiz_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4573,5 +4618,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20220916002003'),
     ('20221026004526'),
     ('20221027064644'),
+    ('20221109203803'),
     ('20221114200757'),
-    ('20221109203803');
+    ('20221129175954');
