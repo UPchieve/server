@@ -332,7 +332,7 @@ export const topics = {
       applicationEssays: { displayName: 'Application Essays' },
       financialAid: { displayName: 'Financial Aid' },
     },
-    displayName: 'College Advising',
+    displayName: 'College Counseling',
   },
   sat: {
     subtopics: {
@@ -356,7 +356,7 @@ export const trainingView = {
     { displayName: 'Science', key: 'science' },
     { displayName: 'English', key: 'readingWriting' },
     { displayName: 'Social Studies', key: 'socialStudies' },
-    { displayName: 'College Advising', key: 'college' },
+    { displayName: 'College Counseling', key: 'college' },
     { displayName: 'Standardized Testing', key: 'sat' },
   ],
   math: {
