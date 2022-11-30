@@ -16,6 +16,7 @@ export type SubjectWithTopic = {
   topicDisplayName: string
   topicDashboardOrder: number
   topicIconLink?: string
+  topicColor?: string
 }
 
 export type AllSubjectsWithTopics = { [subject: string]: SubjectWithTopic }

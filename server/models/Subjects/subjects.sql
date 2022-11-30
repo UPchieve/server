@@ -23,7 +23,8 @@ SELECT
     topics.display_name AS topic_display_name,
     topics.dashboard_order AS topic_dashboard_order,
     topics.id AS topic_id,
-    topics.icon_link AS topic_icon_link
+    topics.icon_link AS topic_icon_link,
+    topics.color AS topic_color
 FROM
     subjects
     JOIN topics ON subjects.topic_id = topics.id;
