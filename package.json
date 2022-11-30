@@ -62,7 +62,7 @@
     "@socket.io/redis-adapter": "^7.2.0",
     "@unleash/proxy": "^0.5.0",
     "aws-sdk": "^2.695.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.2",
     "base64url": "^3.0.1",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.18.3",
