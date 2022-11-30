@@ -156,3 +156,16 @@ WHERE
     quizzes.name = :category!
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
+
+/* @name getQuizReviewMaterials */
+SELECT
+    q.name AS category,
+    qm.title,
+    qm.pdf,
+    qm.image
+FROM
+    upchieve.quiz_review_materials AS qm
+    JOIN upchieve.quizzes AS q ON q.id = qm.quiz_id
+WHERE
+    q.name = :category!;
+

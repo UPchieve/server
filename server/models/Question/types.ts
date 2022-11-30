@@ -15,3 +15,10 @@ export type Question = {
   createdAt: Date
   updatedAt: Date
 }
+
+export type ReviewMaterial = {
+  category: string
+  title: string
+  pdf: string
+  image: string
+}

@@ -461,3 +461,42 @@ const getQuestionsByCategoryIR: any = {"name":"getQuestionsByCategory","params":
 export const getQuestionsByCategory = new PreparedQuery<IGetQuestionsByCategoryParams,IGetQuestionsByCategoryResult>(getQuestionsByCategoryIR);
 
 
+/** 'GetQuizReviewMaterials' parameters type */
+export interface IGetQuizReviewMaterialsParams {
+  category: string;
+}
+
+/** 'GetQuizReviewMaterials' return type */
+export interface IGetQuizReviewMaterialsResult {
+  category: string;
+  image: string;
+  pdf: string;
+  title: string;
+}
+
+/** 'GetQuizReviewMaterials' query type */
+export interface IGetQuizReviewMaterialsQuery {
+  params: IGetQuizReviewMaterialsParams;
+  result: IGetQuizReviewMaterialsResult;
+}
+
+const getQuizReviewMaterialsIR: any = {"name":"getQuizReviewMaterials","params":[{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3932,"b":3940,"line":170,"col":14}]}}],"usedParamSet":{"category":true},"statement":{"body":"SELECT\n    q.name AS category,\n    qm.title,\n    qm.pdf,\n    qm.image\nFROM\n    upchieve.quiz_review_materials AS qm\n    JOIN upchieve.quizzes AS q ON q.id = qm.quiz_id\nWHERE\n    q.name = :category!","loc":{"a":3744,"b":3940,"line":161,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     q.name AS category,
+ *     qm.title,
+ *     qm.pdf,
+ *     qm.image
+ * FROM
+ *     upchieve.quiz_review_materials AS qm
+ *     JOIN upchieve.quizzes AS q ON q.id = qm.quiz_id
+ * WHERE
+ *     q.name = :category!
+ * ```
+ */
+export const getQuizReviewMaterials = new PreparedQuery<IGetQuizReviewMaterialsParams,IGetQuizReviewMaterialsResult>(getQuizReviewMaterialsIR);
+
+
