@@ -3045,14 +3045,6 @@ ALTER TABLE ONLY upchieve.tool_types
 
 
 --
--- Name: topics topics_dashboard_order_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.topics
-    ADD CONSTRAINT topics_dashboard_order_key UNIQUE (dashboard_order);
-
-
---
 -- Name: topics topics_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4620,4 +4612,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221027064644'),
     ('20221109203803'),
     ('20221114200757'),
-    ('20221129175954');
+    ('20221129175954'),
+    ('20221130231208');
