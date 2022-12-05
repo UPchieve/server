@@ -1,6 +1,554 @@
 -- migrate:up
 INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
-    VALUES (1, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/prealgebra-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/prealgebra-topics-and-resources.png', NOW(), NOW()), (1, 'Concept Review', 'https://cdn.upchieve.org/review-materials/prealgebra-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/prealgebra-concept-review.png', NOW(), NOW()), (2, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/statistics-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/statistics-topics-and-resources.png', NOW(), NOW()), (2, 'Concept Review', 'https://cdn.upchieve.org/review-materials/statistics-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/statistics-concept-review.png', NOW(), NOW()), (3, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/geometry-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/geometry-topics-and-resources.png', NOW(), NOW()), (3, 'Concept Review', 'https://cdn.upchieve.org/review-materials/geometry-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/geometry-concept-review.png', NOW(), NOW()), (4, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/biology-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/biology-topics-and-resources.png', NOW(), NOW()), (4, 'Concept Review', 'https://cdn.upchieve.org/review-materials/biology-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/biology-concept-review.png', NOW(), NOW()), (5, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/chemistry-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/chemistry-topics-and-resources.png', NOW(), NOW()), (5, 'Concept Review', 'https://cdn.upchieve.org/review-materials/chemistry-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/chemistry-concept-review.png', NOW(), NOW()), (6, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/physicsone-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/physicsone-topics-and-resources.png', NOW(), NOW()), (6, 'Concept Review', 'https://cdn.upchieve.org/review-materials/physicsone-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/physicsone-concept-review.png', NOW(), NOW()), (7, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/physicstwo-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/physicstwo-topics-and-resources.png', NOW(), NOW()), (7, 'Concept Review', 'https://cdn.upchieve.org/review-materials/physicstwo-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/physicstwo-concept-review.png', NOW(), NOW()), (8, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/environmentalscience-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/environmentalscience-topics-and-resources.png', NOW(), NOW()), (8, 'Concept Review', 'https://cdn.upchieve.org/review-materials/environmentalscience-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/environmentalscience-concept-review.png', NOW(), NOW()), (9, 'College Essays Review', 'https://cdn.upchieve.org/review-materials/college-essays-review.pdf', 'https://cdn.upchieve.org/review-materials/college-essays-review.png', NOW(), NOW()), (10, 'College Applications Review', 'https://cdn.upchieve.org/review-materials/college-applications-review.pdf', 'https://cdn.upchieve.org/review-materials/college-applications-review.png', NOW(), NOW()), (11, 'College Planning Review', 'https://cdn.upchieve.org/review-materials/college-planning-review.pdf', 'https://cdn.upchieve.org/review-materials/college-planning-review.png', NOW(), NOW()), (12, 'SAT Math Review Guide', 'https://cdn.upchieve.org/review-materials/sat-math-review-guide.pdf', 'https://cdn.upchieve.org/review-materials/sat-math-review-guide.png', NOW(), NOW()), (13, 'SAT Reading Review Guide', 'https://cdn.upchieve.org/review-materials/sat-reading-review-guide.pdf', 'https://cdn.upchieve.org/review-materials/sat-reading-review-guide.png', NOW(), NOW()), (15, 'Humanities Essays Review Guide', 'https://cdn.upchieve.org/review-materials/humanities-essays-review-guide.pdf', 'https://cdn.upchieve.org/review-materials/humanities-essays-review-guide.png', NOW(), NOW()), (16, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/algebraone-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/algebraone-topics-and-resources.png', NOW(), NOW()), (16, 'Concept Review', 'https://cdn.upchieve.org/review-materials/algebraone-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/algebraone-concept-review.png', NOW(), NOW()), (17, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/algebratwo-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/algebratwo-topics-and-resources.png', NOW(), NOW()), (17, 'Concept Review', 'https://cdn.upchieve.org/review-materials/algebratwo-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/algebratwo-concept-review.png', NOW(), NOW()), (18, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/trigonometry-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/trigonometry-topics-and-resources.png', NOW(), NOW()), (18, 'Concept Review', 'https://cdn.upchieve.org/review-materials/trigonometry-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/trigonometry-concept-review.png', NOW(), NOW()), (19, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/precalculus-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/precalculus-topics-and-resources.png', NOW(), NOW()), (19, 'Concept Review', 'https://cdn.upchieve.org/review-materials/precalculus-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/precalculus-concept-review.png', NOW(), NOW()), (20, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/calculusab-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/calculusab-topics-and-resources.png', NOW(), NOW()), (20, 'Concept Review', 'https://cdn.upchieve.org/review-materials/calculusab-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/calculusab-concept-review.png', NOW(), NOW()), (21, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/calculusbc-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/calculusbc-topics-and-resources.png', NOW(), NOW()), (21, 'Concept Review', 'https://cdn.upchieve.org/review-materials/calculusbc-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/calculusbc-concept-review.png', NOW(), NOW()), (23, 'Reading Review Guide', 'https://cdn.upchieve.org/review-materials/reading-review.pdf', 'https://cdn.upchieve.org/review-materials/reading-review.png', NOW(), NOW()), (25, 'Financial Aid Review', 'https://cdn.upchieve.org/review-materials/financial-aid-review.pdf', 'https://cdn.upchieve.org/review-materials/financial-aid-review.png', NOW(), NOW()), (26, 'Application Essays Review', 'https://cdn.upchieve.org/review-materials/application-essays-review.pdf', 'https://cdn.upchieve.org/review-materials/application-essays-review.png', NOW(), NOW()), (27, 'College Applications Review', 'https://cdn.upchieve.org/review-materials/college-apps-review.pdf', 'https://cdn.upchieve.org/review-materials/college-apps-review.png', NOW(), NOW()), (28, 'College List Review', 'https://cdn.upchieve.org/review-materials/college-list-review.pdf', 'https://cdn.upchieve.org/review-materials/college-list-review.png', NOW(), NOW()), (29, 'College Prep Review', 'https://cdn.upchieve.org/review-materials/college-prep-review.pdf', 'https://cdn.upchieve.org/review-materials/college-prep-review.png', NOW(), NOW()), (30, 'Essay Planning Review Guide', 'https://cdn.upchieve.org/review-materials/essay-planning-review.pdf', 'https://cdn.upchieve.org/review-materials/essay-planning-review.png', NOW(), NOW()), (31, 'Essay Feedback Review Guide', 'https://cdn.upchieve.org/review-materials/feedback-review.pdf', 'https://cdn.upchieve.org/review-materials/essay-feedback-review.png', NOW(), NOW()), (32, 'Topics & Resources', 'https://cdn.upchieve.org/review-materials/ushistory-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/ushistory-topics-and-resources.png', NOW(), NOW()), (32, 'Concept Review', 'https://cdn.upchieve.org/review-materials/ushistory-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/ushistory-concept-review.png', NOW(), NOW());
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'prealgebra') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/prealgebra-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/prealgebra-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/prealgebra-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/prealgebra-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'statistics') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/statistics-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/statistics-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/statistics-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/statistics-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'geometry') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/geometry-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/geometry-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/geometry-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/geometry-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'biology') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/biology-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/biology-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/biology-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/biology-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'chemistry') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/chemistry-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/chemistry-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/chemistry-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/chemistry-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'physicsOne') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/physicsone-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/physicsone-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/physicsone-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/physicsone-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'physicsTwo') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/physicstwo-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/physicstwo-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/physicstwo-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/physicstwo-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'environmentalScience') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/environmentalscience-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/environmentalscience-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/environmentalscience-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/environmentalscience-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'essays') AS subquery
+    JOIN UNNEST(ARRAY['College Essays Review'], ARRAY['https://cdn.upchieve.org/review-materials/college-essays-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/college-essays-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'collegeApps') AS subquery
+    JOIN UNNEST(ARRAY['College Applications Review'], ARRAY['https://cdn.upchieve.org/review-materials/college-applications-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/college-applications-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'planning') AS subquery
+    JOIN UNNEST(ARRAY['College Planning Review'], ARRAY['https://cdn.upchieve.org/review-materials/college-planning-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/college-planning-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'satMath') AS subquery
+    JOIN UNNEST(ARRAY['SAT Math Review Guide'], ARRAY['https://cdn.upchieve.org/review-materials/sat-math-review-guide.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/sat-math-review-guide.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'satReading') AS subquery
+    JOIN UNNEST(ARRAY['SAT Reading Review Guide'], ARRAY['https://cdn.upchieve.org/review-materials/sat-reading-review-guide.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/sat-reading-review-guide.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'humanitiesEssays') AS subquery
+    JOIN UNNEST(ARRAY['Humanities Essays Review Guide'], ARRAY['https://cdn.upchieve.org/review-materials/humanities-essays-review-guide.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/humanities-essays-review-guide.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'algebraOne') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/algebraone-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/algebraone-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/algebraone-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/algebraone-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'algebraTwo') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/algebratwo-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/algebratwo-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/algebratwo-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/algebratwo-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'trigonometry') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/trigonometry-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/trigonometry-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/trigonometry-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/trigonometry-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'precalculus') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/precalculus-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/precalculus-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/precalculus-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/precalculus-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'calculusAB') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/calculusab-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/calculusab-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/calculusab-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/calculusab-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'calculusBC') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/calculusbc-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/calculusbc-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/calculusbc-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/calculusbc-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'reading') AS subquery
+    JOIN UNNEST(ARRAY['Reading Review Guide'], ARRAY['https://cdn.upchieve.org/review-materials/reading-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/reading-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'financialAid') AS subquery
+    JOIN UNNEST(ARRAY['Financial Aid Review'], ARRAY['https://cdn.upchieve.org/review-materials/financial-aid-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/financial-aid-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'applications') AS subquery
+    JOIN UNNEST(ARRAY['Application Essays Review'], ARRAY['https://cdn.upchieve.org/review-materials/application-essays-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/application-essays-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'collegeApps') AS subquery
+    JOIN UNNEST(ARRAY['College Applications Review'], ARRAY['https://cdn.upchieve.org/review-materials/college-apps-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/college-apps-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'collegeList') AS subquery
+    JOIN UNNEST(ARRAY['College List Review'], ARRAY['https://cdn.upchieve.org/review-materials/college-list-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/college-list-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'collegePrep') AS subquery
+    JOIN UNNEST(ARRAY['College Prep Review'], ARRAY['https://cdn.upchieve.org/review-materials/college-prep-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/college-prep-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'planning') AS subquery
+    JOIN UNNEST(ARRAY['Essay Planning Review Guide'], ARRAY['https://cdn.upchieve.org/review-materials/essay-planning-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/essay-planning-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'essayFeedback') AS subquery
+    JOIN UNNEST(ARRAY['Essay Feedback Review Guide'], ARRAY['https://cdn.upchieve.org/review-materials/essay-feedback-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/essay-feedback-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at)
+SELECT
+    subquery.quiz_id,
+    review_material.title,
+    review_material.pdf,
+    review_material.image,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        upchieve.quizzes.id AS quiz_id
+    FROM
+        upchieve.quizzes
+    WHERE
+        upchieve.quizzes.name = 'usHistory') AS subquery
+    JOIN UNNEST(ARRAY['Topics & Resources', 'Concept Review'], ARRAY['https://cdn.upchieve.org/review-materials/ushistory-topics-and-resources.pdf', 'https://cdn.upchieve.org/review-materials/ushistory-concept-review.pdf'], ARRAY['https://cdn.upchieve.org/review-materials/ushistory-topics-and-resources.png', 'https://cdn.upchieve.org/review-materials/ushistory-concept-review.png']) AS review_material (title,
+        pdf,
+        image) ON TRUE;
 
 -- migrate:down
 DELETE FROM upchieve.quiz_review_materials;
