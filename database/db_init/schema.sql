@@ -763,7 +763,7 @@ ALTER SEQUENCE upchieve.quiz_questions_id_seq OWNED BY upchieve.quiz_questions.i
 
 CREATE TABLE upchieve.quiz_review_materials (
     id integer NOT NULL,
-    quiz_id integer,
+    quiz_id integer NOT NULL,
     title text NOT NULL,
     pdf text NOT NULL,
     image text NOT NULL,
@@ -4613,5 +4613,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221109203803'),
     ('20221114200757'),
     ('20221129175954'),
-    ('20221130231208'),
-    ('20221205210310');
+    ('20221130231208');
