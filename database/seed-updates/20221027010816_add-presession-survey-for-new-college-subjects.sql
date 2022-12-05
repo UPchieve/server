@@ -433,36 +433,6 @@ WHERE (upchieve.surveys.name = 'College Prep Pre-Session Survey'
         AND rc.choice_text = 'Confident'
         AND sub.text::int = 50);
 
--- Add new response_choices
--- // Update pre-session goals
--- // College Prep (current Planning)
--- // Understand college requirements (INSERTED AS A RESPONSE ALREADY)
--- // Pick classes
--- // Choose extracurricular activities
--- // Find free summer programs
--- // Research majors or careers (INSERTED AS A RESPONSE ALREADY)
--- // Other (INSERTED AS A RESPONSE ALREADY)
--- //
--- // College List
--- // Determine preferences
--- // Research colleges
--- // Balance your list
--- // Other (INSERTED AS A RESPONSE ALREADY)
--- // Applications
--- // Understand the parts of an application (INSERTED AS A RESPONSE ALREADY)
--- // Create an application timeline (INSERTED AS A RESPONSE ALREADY)
--- // Work on an application (INSERTED AS A RESPONSE ALREADY)
--- // Prepare for an interview (INSERTED AS A RESPONSE ALREADY)
--- // Other (INSERTED AS A RESPONSE ALREADY)
--- // make sure to copy the old applications to the new one
--- // Application Essays (goals stays same) (essays)
--- // Make sure to copy over this one to the new one
--- // Financial Aid
--- // Overview of financial aid
--- // Research scholarships
--- // Complete forms
--- // Understand aid letters
--- // Other (INSERTED AS A RESPONSE ALREADY)
 -- migrate:down
 DELETE FROM upchieve.surveys
 WHERE upchieve.surveys.name = 'College Prep Pre-Session Survey'
@@ -471,20 +441,6 @@ WHERE upchieve.surveys.name = 'College Prep Pre-Session Survey'
     OR upchieve.surveys.name = 'Application Essays Pre-Session Survey'
     OR upchieve.surveys.name = 'Financial Aid Pre-Session Survey';
 
--- DELETE FROM upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
--- SELECT
---     upchieve.surveys.id,
---     upchieve.subjects.id,
---     upchieve.survey_types.id,
---     NOW(),
---     NOW()
--- FROM
---     upchieve.surveys
---     JOIN upchieve.subjects ON TRUE
---     JOIN upchieve.survey_types ON TRUE
--- WHERE (upchieve.surveys.name = 'Financial Aid Pre-Session Survey'
---     AND upchieve.subjects.name = 'financialAid'
---     AND upchieve.survey_types.name = 'presession');
 DELETE FROM upchieve.survey_response_choices
 WHERE upchieve.survey_response_choices.choice_text IN ('Pick classes', 'Choose extracurricular activities', 'Find free summer programs', 'Determine preferences', 'Research colleges', 'Balance your list', 'Overview of financial aid', 'Research scholarships', 'Complete forms', 'Understand aid letters');
 
