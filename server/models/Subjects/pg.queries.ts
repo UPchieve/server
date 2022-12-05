@@ -58,6 +58,7 @@ export interface IGetSubjectsResult {
   topicIconLink: string | null;
   topicId: number;
   topicName: string;
+  topicTrainingOrder: number;
 }
 
 /** 'GetSubjects' query type */
@@ -66,7 +67,7 @@ export interface IGetSubjectsQuery {
   result: IGetSubjectsResult;
 }
 
-const getSubjectsIR: any = {"name":"getSubjects","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id","loc":{"a":361,"b":833,"line":16,"col":0}}};
+const getSubjectsIR: any = {"name":"getSubjects","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id","loc":{"a":361,"b":884,"line":16,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -80,6 +81,7 @@ const getSubjectsIR: any = {"name":"getSubjects","params":[],"usedParamSet":{},"
  *     topics.name AS topic_name,
  *     topics.display_name AS topic_display_name,
  *     topics.dashboard_order AS topic_dashboard_order,
+ *     topics.training_order AS topic_training_order,
  *     topics.id AS topic_id,
  *     topics.icon_link AS topic_icon_link,
  *     topics.color AS topic_color
@@ -89,5 +91,171 @@ const getSubjectsIR: any = {"name":"getSubjects","params":[],"usedParamSet":{},"
  * ```
  */
 export const getSubjects = new PreparedQuery<IGetSubjectsParams,IGetSubjectsResult>(getSubjectsIR);
+
+
+/** 'GetTopics' parameters type */
+export type IGetTopicsParams = void;
+
+/** 'GetTopics' return type */
+export interface IGetTopicsResult {
+  dashboardOrder: number;
+  displayName: string;
+  iconLink: string | null;
+  id: number;
+  name: string;
+  trainingOrder: number;
+}
+
+/** 'GetTopics' query type */
+export interface IGetTopicsQuery {
+  params: IGetTopicsParams;
+  result: IGetTopicsResult;
+}
+
+const getTopicsIR: any = {"name":"getTopics","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name,\n    display_name,\n    icon_link,\n    dashboard_order,\n    training_order\nFROM\n    topics","loc":{"a":911,"b":1023,"line":35,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name,
+ *     display_name,
+ *     icon_link,
+ *     dashboard_order,
+ *     training_order
+ * FROM
+ *     topics
+ * ```
+ */
+export const getTopics = new PreparedQuery<IGetTopicsParams,IGetTopicsResult>(getTopicsIR);
+
+
+/** 'GetTrainingCourses' parameters type */
+export type IGetTrainingCoursesParams = void;
+
+/** 'GetTrainingCourses' return type */
+export interface IGetTrainingCoursesResult {
+  displayName: string | null;
+  id: number;
+  name: string;
+}
+
+/** 'GetTrainingCourses' query type */
+export interface IGetTrainingCoursesQuery {
+  params: IGetTrainingCoursesParams;
+  result: IGetTrainingCoursesResult;
+}
+
+const getTrainingCoursesIR: any = {"name":"getTrainingCourses","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name,\n    display_name\nFROM\n    training_courses","loc":{"a":1059,"b":1125,"line":47,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name,
+ *     display_name
+ * FROM
+ *     training_courses
+ * ```
+ */
+export const getTrainingCourses = new PreparedQuery<IGetTrainingCoursesParams,IGetTrainingCoursesResult>(getTrainingCoursesIR);
+
+
+/** 'GetQuizCertUnlocks' parameters type */
+export type IGetQuizCertUnlocksParams = void;
+
+/** 'GetQuizCertUnlocks' return type */
+export interface IGetQuizCertUnlocksResult {
+  quizDisplayName: string;
+  quizDisplayOrder: number;
+  quizName: string;
+  topicDashboardOrder: number;
+  topicDisplayName: string;
+  topicName: string;
+  topicTrainingOrder: number;
+  unlockedCertDisplayName: string;
+  unlockedCertDisplayOrder: number;
+  unlockedCertName: string;
+}
+
+/** 'GetQuizCertUnlocks' query type */
+export interface IGetQuizCertUnlocksQuery {
+  params: IGetQuizCertUnlocksParams;
+  result: IGetQuizCertUnlocksResult;
+}
+
+const getQuizCertUnlocksIR: any = {"name":"getQuizCertUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n        AND quizzes.active IS TRUE\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id","loc":{"a":1161,"b":1994,"line":56,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     quizzes.name AS quiz_name,
+ *     quiz_info.display_name AS quiz_display_name,
+ *     quiz_info.display_order AS quiz_display_order,
+ *     certs.name AS unlocked_cert_name,
+ *     cert_info.display_name AS unlocked_cert_display_name,
+ *     cert_info.display_order AS unlocked_cert_display_order,
+ *     topics.name AS topic_name,
+ *     topics.display_name AS topic_display_name,
+ *     topics.dashboard_order AS topic_dashboard_order,
+ *     topics.training_order AS topic_training_order
+ * FROM
+ *     quiz_certification_grants qcg
+ *     JOIN quizzes ON quizzes.id = qcg.quiz_id
+ *         AND quizzes.active IS TRUE
+ *     JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
+ *     JOIN certifications certs ON certs.id = qcg.certification_id
+ *     JOIN subjects AS cert_info ON cert_info.name = certs.name
+ *     JOIN topics ON topics.id = cert_info.topic_id
+ * ```
+ */
+export const getQuizCertUnlocks = new PreparedQuery<IGetQuizCertUnlocksParams,IGetQuizCertUnlocksResult>(getQuizCertUnlocksIR);
+
+
+/** 'GetCertSubjectUnlocks' parameters type */
+export type IGetCertSubjectUnlocksParams = void;
+
+/** 'GetCertSubjectUnlocks' return type */
+export interface IGetCertSubjectUnlocksResult {
+  certDisplayName: string;
+  certDisplayOrder: number;
+  certName: string;
+  topicName: string;
+  unlockedSubjectDisplayName: string;
+  unlockedSubjectDisplayOrder: number;
+  unlockedSubjectName: string;
+}
+
+/** 'GetCertSubjectUnlocks' query type */
+export interface IGetCertSubjectUnlocksQuery {
+  params: IGetCertSubjectUnlocksParams;
+  result: IGetCertSubjectUnlocksResult;
+}
+
+const getCertSubjectUnlocksIR: any = {"name":"getCertSubjectUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    unlocked_subject.name AS unlocked_subject_name,\n    unlocked_subject.display_name AS unlocked_subject_display_name,\n    unlocked_subject.display_order AS unlocked_subject_display_order,\n    certifications.name AS cert_name,\n    cert_info.display_name AS cert_display_name,\n    cert_info.display_order AS cert_display_order,\n    topics.name AS topic_name\nFROM\n    certification_subject_unlocks csu\n    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    JOIN topics ON topics.id = unlocked_subject.topic_id\n    JOIN subjects AS cert_info ON cert_info.name = certifications.name","loc":{"a":2033,"b":2713,"line":78,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     unlocked_subject.name AS unlocked_subject_name,
+ *     unlocked_subject.display_name AS unlocked_subject_display_name,
+ *     unlocked_subject.display_order AS unlocked_subject_display_order,
+ *     certifications.name AS cert_name,
+ *     cert_info.display_name AS cert_display_name,
+ *     cert_info.display_order AS cert_display_order,
+ *     topics.name AS topic_name
+ * FROM
+ *     certification_subject_unlocks csu
+ *     JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id
+ *     JOIN certifications ON certifications.id = csu.certification_id
+ *     JOIN topics ON topics.id = unlocked_subject.topic_id
+ *     JOIN subjects AS cert_info ON cert_info.name = certifications.name
+ * ```
+ */
+export const getCertSubjectUnlocks = new PreparedQuery<IGetCertSubjectUnlocksParams,IGetCertSubjectUnlocksResult>(getCertSubjectUnlocksIR);
 
 

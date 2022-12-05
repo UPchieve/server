@@ -1605,7 +1605,8 @@ CREATE TABLE upchieve.topics (
     dashboard_order smallint NOT NULL,
     display_name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    training_order smallint DEFAULT 0 NOT NULL
 );
 
 
@@ -1637,7 +1638,8 @@ CREATE TABLE upchieve.training_courses (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    display_name text
 );
 
 
@@ -4613,4 +4615,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221109203803'),
     ('20221114200757'),
     ('20221129175954'),
-    ('20221130231208');
+    ('20221130231208'),
+    ('20221201000842'),
+    ('20221201064546');
