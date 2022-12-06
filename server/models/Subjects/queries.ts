@@ -185,11 +185,11 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
         const mappedTopics = makeRequired(v)
         return {
           ...mappedTopics,
-          key: v.name,
-          order: v.trainingOrder,
+          key: mappedTopics.name,
+          order: mappedTopics.trainingOrder,
         }
       })
-      .sort((a, b) => a.trainingOrder - b.trainingOrder)
+      .sort((a, b) => a.order - b.order)
 
     const additionalSubjects = await getCertSubjectUnlocks()
     const quizCertificationUnlocks = await getQuizCertUnlocks()
@@ -210,12 +210,21 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
     } as TrainingView
 
     for (const topic of subjectTypes) {
+      // Filter out the training header if the topic has no active quizzes
+      // that unlock certs
+      if (!quizCertificationUnlocks[topic.key]) {
+        trainingView.subjectTypes = trainingView.subjectTypes.filter(
+          header => header.key !== topic.key
+        )
+        continue
+      }
+
       if (!trainingView[topic.key])
         trainingView[topic.key] = {} as TrainingPerTopic
       trainingView[topic.key].training = requiredTraining
       trainingView[topic.key].certifications = quizCertificationUnlocks[
         topic.key
-      ].sort((a: any, b: any) => a.order - b.order)
+      ].sort((a, b) => a.order - b.order)
       trainingView[topic.key].additionalSubjects =
         additionalSubjects[topic.key] || []
     }
