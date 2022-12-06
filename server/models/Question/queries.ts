@@ -5,7 +5,7 @@ import {
   RepoUpdateError,
 } from '../Errors'
 import { makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
-import { Question, ReviewMaterial } from './types'
+import { Question, Quiz, QuizUnlockCert, ReviewMaterial } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 
@@ -212,6 +212,32 @@ export async function getQuizReviewMaterials(
     )
     const result = materials.map(v => makeRequired(v))
     return result
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getQuizByName(
+  quizName: string
+): Promise<Quiz | undefined> {
+  try {
+    const results = await pgQueries.getQuizByName.run({ quizName }, getClient())
+    if (results.length) return makeRequired(results[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getQuizCertUnlocksByQuizName(
+  quizName: string
+): Promise<QuizUnlockCert[]> {
+  try {
+    const results = await pgQueries.getQuizCertUnlocksByQuizName.run(
+      { quizName },
+      getClient()
+    )
+    if (results.length) return results.map(v => makeRequired(v))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
