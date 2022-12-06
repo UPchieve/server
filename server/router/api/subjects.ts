@@ -30,7 +30,7 @@ export function routeSubjects(router: Router): void {
   router.get('/subjects/training', async function(req, res) {
     try {
       if (isEnabled(FEATURE_FLAGS.TRAINING_VIEW_DATABASE_HYDRATION)) {
-        const trainingView = await await getVolunteerTrainingData()
+        const trainingView = await getVolunteerTrainingData()
         res.json({
           training: trainingView,
         })

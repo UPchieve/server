@@ -1,6 +1,6 @@
 -- migrate:up
-INSERT INTO upchieve.topics (name, icon_link, color, dashboard_order, training_order, display_name, created_at, updated_at)
-    VALUES ('socialStudies', NULL, NULL, 6, 4, 'Social Studies', NOW(), NOW());
+INSERT INTO upchieve.topics (name, icon_link, color, dashboard_order, display_name, created_at, updated_at)
+    VALUES ('socialStudies', NULL, NULL, 6, 'Social Studies', NOW(), NOW());
 
 INSERT INTO upchieve.subjects (name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at)
 SELECT
