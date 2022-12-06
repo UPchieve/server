@@ -169,3 +169,39 @@ FROM
 WHERE
     q.name = :category!;
 
+
+/* @name getQuizCertUnlocksByQuizName */
+SELECT
+    quizzes.name AS quiz_name,
+    quiz_info.display_name AS quiz_display_name,
+    quiz_info.display_order AS quiz_display_order,
+    certs.name AS unlocked_cert_name,
+    cert_info.display_name AS unlocked_cert_display_name,
+    cert_info.display_order AS unlocked_cert_display_order,
+    topics.name AS topic_name,
+    topics.display_name AS topic_display_name,
+    topics.dashboard_order AS topic_dashboard_order,
+    topics.training_order AS topic_training_order
+FROM
+    quiz_certification_grants qcg
+    JOIN quizzes ON quizzes.id = qcg.quiz_id
+        AND quizzes.active IS TRUE
+    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
+    JOIN certifications certs ON certs.id = qcg.certification_id
+    JOIN subjects AS cert_info ON cert_info.name = certs.name
+    JOIN topics ON topics.id = cert_info.topic_id
+WHERE
+    quizzes.name = :quizName!;
+
+
+/* @name getQuizByName */
+SELECT
+    id,
+    name,
+    active,
+    questions_per_subcategory
+FROM
+    quizzes
+WHERE
+    quizzes.name = :quizName!;
+
