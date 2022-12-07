@@ -90,3 +90,21 @@ FROM
     JOIN topics ON topics.id = unlocked_subject.topic_id
     JOIN subjects AS cert_info ON cert_info.name = certifications.name;
 
+
+/* @name getSubjectType */
+SELECT
+    CASE WHEN topics.name IS NOT NULL THEN
+        topics.name
+    WHEN tc.name IS NOT NULL THEN
+        'training'
+    ELSE
+        ''
+    END AS subject_type
+FROM
+    quizzes
+    LEFT JOIN subjects ON subjects.name = quizzes.name
+    LEFT JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN training_courses tc ON tc.name = quizzes.name
+WHERE
+    quizzes.name = :subject!;
+

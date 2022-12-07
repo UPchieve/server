@@ -27,6 +27,7 @@ import {
 import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
+import * as SubjectsModel from '../models/Subjects'
 import { isEnabled } from 'unleash-client'
 import { asString } from '../utils/type-utils'
 
@@ -249,6 +250,7 @@ export interface GetQuizScoreOutput {
   passed: boolean
   score: number
   idCorrectAnswerMap: any
+  isTrainingSubject: boolean
 }
 
 export async function getQuizScore(
@@ -265,8 +267,11 @@ export async function getQuizScore(
   ).length
 
   const percent = score / questions.length
+  const subjectType = await SubjectsModel.getSubjectType(cert as string)
+  if (!subjectType)
+    throw new Error(`No subject type found for subject: ${cert}`)
   const threshold =
-    getSubjectType(cert as string) === SUBJECT_TYPES.TRAINING
+    subjectType === SUBJECT_TYPES.TRAINING
       ? TRAINING_THRESHOLD
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
@@ -350,5 +355,6 @@ export async function getQuizScore(
     passed,
     score,
     idCorrectAnswerMap,
+    isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
   }
 }

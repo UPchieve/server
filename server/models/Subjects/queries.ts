@@ -245,3 +245,14 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
     throw new RepoReadError(err)
   }
 }
+
+export async function getSubjectType(
+  subject: string
+): Promise<string | undefined> {
+  try {
+    const result = await pgQueries.getSubjectType.run({ subject }, getClient())
+    if (result.length) return makeRequired(result[0]).subjectType
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

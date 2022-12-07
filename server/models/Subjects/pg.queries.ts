@@ -259,3 +259,44 @@ const getCertSubjectUnlocksIR: any = {"name":"getCertSubjectUnlocks","params":[]
 export const getCertSubjectUnlocks = new PreparedQuery<IGetCertSubjectUnlocksParams,IGetCertSubjectUnlocksResult>(getCertSubjectUnlocksIR);
 
 
+/** 'GetSubjectType' parameters type */
+export interface IGetSubjectTypeParams {
+  subject: string;
+}
+
+/** 'GetSubjectType' return type */
+export interface IGetSubjectTypeResult {
+  subjectType: string | null;
+}
+
+/** 'GetSubjectType' query type */
+export interface IGetSubjectTypeQuery {
+  params: IGetSubjectTypeParams;
+  result: IGetSubjectTypeResult;
+}
+
+const getSubjectTypeIR: any = {"name":"getSubjectType","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3124,"b":3131,"line":109,"col":20}]}}],"usedParamSet":{"subject":true},"statement":{"body":"SELECT\n    CASE WHEN topics.name IS NOT NULL THEN\n        topics.name\n    WHEN tc.name IS NOT NULL THEN\n        'training'\n    ELSE\n        ''\n    END AS subject_type\nFROM\n    quizzes\n    LEFT JOIN subjects ON subjects.name = quizzes.name\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN training_courses tc ON tc.name = quizzes.name\nWHERE\n    quizzes.name = :subject!","loc":{"a":2745,"b":3131,"line":95,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     CASE WHEN topics.name IS NOT NULL THEN
+ *         topics.name
+ *     WHEN tc.name IS NOT NULL THEN
+ *         'training'
+ *     ELSE
+ *         ''
+ *     END AS subject_type
+ * FROM
+ *     quizzes
+ *     LEFT JOIN subjects ON subjects.name = quizzes.name
+ *     LEFT JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN training_courses tc ON tc.name = quizzes.name
+ * WHERE
+ *     quizzes.name = :subject!
+ * ```
+ */
+export const getSubjectType = new PreparedQuery<IGetSubjectTypeParams,IGetSubjectTypeResult>(getSubjectTypeIR);
+
+

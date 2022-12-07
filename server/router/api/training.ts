@@ -41,6 +41,7 @@ export function routeTraining(router: Router): void {
         passed,
         score,
         idCorrectAnswerMap,
+        isTrainingSubject,
       } = await TrainingCtrl.getQuizScore({
         user: user,
         ip,
@@ -82,6 +83,7 @@ export function routeTraining(router: Router): void {
         passed,
         score,
         idCorrectAnswerMap,
+        isTrainingSubject,
       })
     } catch (err) {
       resError(res, err)
