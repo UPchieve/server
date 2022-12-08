@@ -192,7 +192,6 @@ export function routeUser(router: Router): void {
   ) {
     const { userEmail } = req.params
     try {
-      console.log(userEmail)
       const userId = await getUserIdByEmail(userEmail)
       res.json({ userId: userId })
     } catch (err) {
