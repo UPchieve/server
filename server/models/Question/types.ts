@@ -22,3 +22,23 @@ export type ReviewMaterial = {
   pdf: string
   image: string
 }
+
+export type QuizUnlockCert = {
+  quizName: string
+  quizDisplayName: string
+  quizDisplayOrder: number
+  unlockedCertName: string
+  unlockedCertDisplayName: string
+  unlockedCertDisplayOrder: number
+  topicName: string
+  topicDisplayName: string
+  topicDashboardOrder: number
+  topicTrainingOrder: number
+}
+
+export type Quiz = {
+  id: number
+  name: string
+  active: boolean
+  questionsPerSubcategory: number
+}

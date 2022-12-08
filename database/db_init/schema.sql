@@ -828,7 +828,8 @@ CREATE TABLE upchieve.quizzes (
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    active boolean DEFAULT false NOT NULL
+    active boolean DEFAULT false NOT NULL,
+    questions_per_subcategory smallint DEFAULT 1 NOT NULL
 );
 
 
@@ -4617,4 +4618,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221129175954'),
     ('20221130231208'),
     ('20221201000842'),
-    ('20221201064546');
+    ('20221201064546'),
+    ('20221206021238');
