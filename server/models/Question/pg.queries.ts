@@ -500,3 +500,97 @@ const getQuizReviewMaterialsIR: any = {"name":"getQuizReviewMaterials","params":
 export const getQuizReviewMaterials = new PreparedQuery<IGetQuizReviewMaterialsParams,IGetQuizReviewMaterialsResult>(getQuizReviewMaterialsIR);
 
 
+/** 'GetQuizCertUnlocksByQuizName' parameters type */
+export interface IGetQuizCertUnlocksByQuizNameParams {
+  quizName: string;
+}
+
+/** 'GetQuizCertUnlocksByQuizName' return type */
+export interface IGetQuizCertUnlocksByQuizNameResult {
+  quizDisplayName: string;
+  quizDisplayOrder: number;
+  quizName: string;
+  topicDashboardOrder: number;
+  topicDisplayName: string;
+  topicName: string;
+  topicTrainingOrder: number;
+  unlockedCertDisplayName: string;
+  unlockedCertDisplayOrder: number;
+  unlockedCertName: string;
+}
+
+/** 'GetQuizCertUnlocksByQuizName' query type */
+export interface IGetQuizCertUnlocksByQuizNameQuery {
+  params: IGetQuizCertUnlocksByQuizNameParams;
+  result: IGetQuizCertUnlocksByQuizNameResult;
+}
+
+const getQuizCertUnlocksByQuizNameIR: any = {"name":"getQuizCertUnlocksByQuizName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4847,"b":4855,"line":194,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n        AND quizzes.active IS TRUE\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!","loc":{"a":3986,"b":4855,"line":174,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     quizzes.name AS quiz_name,
+ *     quiz_info.display_name AS quiz_display_name,
+ *     quiz_info.display_order AS quiz_display_order,
+ *     certs.name AS unlocked_cert_name,
+ *     cert_info.display_name AS unlocked_cert_display_name,
+ *     cert_info.display_order AS unlocked_cert_display_order,
+ *     topics.name AS topic_name,
+ *     topics.display_name AS topic_display_name,
+ *     topics.dashboard_order AS topic_dashboard_order,
+ *     topics.training_order AS topic_training_order
+ * FROM
+ *     quiz_certification_grants qcg
+ *     JOIN quizzes ON quizzes.id = qcg.quiz_id
+ *         AND quizzes.active IS TRUE
+ *     JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
+ *     JOIN certifications certs ON certs.id = qcg.certification_id
+ *     JOIN subjects AS cert_info ON cert_info.name = certs.name
+ *     JOIN topics ON topics.id = cert_info.topic_id
+ * WHERE
+ *     quizzes.name = :quizName!
+ * ```
+ */
+export const getQuizCertUnlocksByQuizName = new PreparedQuery<IGetQuizCertUnlocksByQuizNameParams,IGetQuizCertUnlocksByQuizNameResult>(getQuizCertUnlocksByQuizNameIR);
+
+
+/** 'GetQuizByName' parameters type */
+export interface IGetQuizByNameParams {
+  quizName: string;
+}
+
+/** 'GetQuizByName' return type */
+export interface IGetQuizByNameResult {
+  active: boolean;
+  id: number;
+  name: string;
+  questionsPerSubcategory: number;
+}
+
+/** 'GetQuizByName' query type */
+export interface IGetQuizByNameQuery {
+  params: IGetQuizByNameParams;
+  result: IGetQuizByNameResult;
+}
+
+const getQuizByNameIR: any = {"name":"getQuizByName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4996,"b":5004,"line":206,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    id,\n    name,\n    active,\n    questions_per_subcategory\nFROM\n    quizzes\nWHERE\n    quizzes.name = :quizName!","loc":{"a":4886,"b":5004,"line":198,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name,
+ *     active,
+ *     questions_per_subcategory
+ * FROM
+ *     quizzes
+ * WHERE
+ *     quizzes.name = :quizName!
+ * ```
+ */
+export const getQuizByName = new PreparedQuery<IGetQuizByNameParams,IGetQuizByNameResult>(getQuizByNameIR);
+
+

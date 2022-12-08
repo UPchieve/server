@@ -14,6 +14,7 @@ import {
   QUIZ_USER_ACTIONS,
   EVENTS,
   SOCIAL_STUDIES_CERTS,
+  FEATURE_FLAGS,
 } from '../constants'
 import { getSubjectType } from '../utils/getSubjectType'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
@@ -26,6 +27,9 @@ import {
 import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
+import * as SubjectsModel from '../models/Subjects'
+import { isEnabled } from 'unleash-client'
+import { asString } from '../utils/type-utils'
 
 // change depending on how many of each subcategory are wanted
 const numQuestions = {
@@ -83,6 +87,13 @@ export async function getQuestions(
     throw new Error('No subcategories defined for category: ' + category)
   }
 
+  let questionPerCategory = numQuestions[category as keyof typeof numQuestions]
+  if (isEnabled(FEATURE_FLAGS.DB_CERT_UNLOCKING)) {
+    const quiz = await QuestionModel.getQuizByName(category)
+    if (!quiz) throw new Error(`No quiz created for category: ${category}`)
+    questionPerCategory = quiz.questionsPerSubcategory
+  }
+
   const questions = await QuestionModel.listQuestions({
     category,
     subcategory: null,
@@ -94,10 +105,7 @@ export async function getQuestions(
 
   return _.shuffle(
     Object.entries(questionsBySubcategory).flatMap(([, subQuestions]) =>
-      _.sampleSize(
-        subQuestions,
-        numQuestions[category as keyof typeof numQuestions]
-      )
+      _.sampleSize(subQuestions, questionPerCategory)
     )
   )
 }
@@ -242,6 +250,7 @@ export interface GetQuizScoreOutput {
   passed: boolean
   score: number
   idCorrectAnswerMap: any
+  isTrainingSubject: boolean
 }
 
 export async function getQuizScore(
@@ -258,8 +267,11 @@ export async function getQuizScore(
   ).length
 
   const percent = score / questions.length
+  const subjectType = await SubjectsModel.getSubjectType(cert as string)
+  if (!subjectType)
+    throw new Error(`No subject type found for subject: ${cert}`)
   const threshold =
-    getSubjectType(cert as string) === SUBJECT_TYPES.TRAINING
+    subjectType === SUBJECT_TYPES.TRAINING
       ? TRAINING_THRESHOLD
       : SUBJECT_THRESHOLD
   const passed = percent >= threshold
@@ -276,16 +288,23 @@ export async function getQuizScore(
   )
 
   if (passed) {
-    const unlockedSubjects = getUnlockedSubjects(cert, userQuizzes)
+    // TODO: remove getUnlockedSubjects in db-cert-unlocking cleanup
+    let unlockedSubjects = getUnlockedSubjects(cert, userQuizzes)
+    if (isEnabled(FEATURE_FLAGS.DB_CERT_UNLOCKING)) {
+      const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
+        asString(cert)
+      )
+      unlockedSubjects = quizCertUnlocks.map(cert => cert.unlockedCertName)
+    }
 
     // set custom field passedUpchieve101 in SendGrid
     if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
 
+    const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
+      user.id
+    )
     // Create a user action for every subject unlocked
     for (const subject of unlockedSubjects) {
-      const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
-        user.id
-      )
       if (!currentSubjects.includes(subject)) {
         await createQuizAction({
           action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
@@ -336,5 +355,6 @@ export async function getQuizScore(
     passed,
     score,
     idCorrectAnswerMap,
+    isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
   }
 }

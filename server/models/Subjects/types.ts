@@ -73,3 +73,9 @@ export type FormattedTrainingPerTopic = {
 export type FormattedTrainingRowMappingPerTopic<T> = {
   [topicName: string]: T[]
 }
+
+export type TrainingCourses = {
+  id: number
+  name: string
+  displayName: string
+}

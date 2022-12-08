@@ -14,6 +14,7 @@ import {
   FormattedTrainingRowMappingToKeyOf,
   FormattedTrainingRowMappingPerTopic,
   TrainingPerTopic,
+  TrainingCourses,
 } from './types'
 import _ from 'lodash'
 import { asNumber, asString } from '../../utils/type-utils'
@@ -176,6 +177,19 @@ export async function getQuizCertUnlocks(): Promise<TrainingRowPerTopic> {
   }
 }
 
+export async function getTrainingCourses(): Promise<TrainingCourses[]> {
+  try {
+    const result = await pgQueries.getTrainingCourses.run(
+      undefined,
+      getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getVolunteerTrainingData(): Promise<TrainingView> {
   try {
     // Get all of the topics for the subject type headings for the training view
@@ -193,10 +207,7 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
 
     const additionalSubjects = await getCertSubjectUnlocks()
     const quizCertificationUnlocks = await getQuizCertUnlocks()
-    const trainingCourses = await pgQueries.getTrainingCourses.run(
-      undefined,
-      getClient()
-    )
+    const trainingCourses = await getTrainingCourses()
     const requiredTraining = trainingCourses.map(v => {
       const mappedTraining = makeRequired(v)
       return {
@@ -230,6 +241,17 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
     }
 
     return trainingView
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSubjectType(
+  subject: string
+): Promise<string | undefined> {
+  try {
+    const result = await pgQueries.getSubjectType.run({ subject }, getClient())
+    if (result.length) return makeRequired(result[0]).subjectType
   } catch (err) {
     throw new RepoReadError(err)
   }
