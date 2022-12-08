@@ -6,6 +6,7 @@ import { updateVolunteerProfileById } from '../../models/Volunteer/'
 import {
   countUsersReferredByOtherId,
   getUserForAdminDetail,
+  getUserIdByEmail,
 } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { Router } from 'express'
@@ -180,6 +181,19 @@ export function routeUser(router: Router): void {
       // the frontend is expecting to look at the length of an array, not a #
       const referredFriendsArr = Array(referredFriends)
       res.json({ referredFriendsArr })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/user/email/:userEmail', authPassport.isAdmin, async function(
+    req,
+    res
+  ) {
+    const { userEmail } = req.params
+    try {
+      const userId = await getUserIdByEmail(userEmail)
+      res.json({ userId: userId })
     } catch (err) {
       resError(res, err)
     }
