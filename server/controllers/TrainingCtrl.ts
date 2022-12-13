@@ -16,7 +16,6 @@ import {
   SOCIAL_STUDIES_CERTS,
   FEATURE_FLAGS,
 } from '../constants'
-import { getSubjectType } from '../utils/getSubjectType'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
 import { Quizzes } from '../models/Volunteer'
@@ -111,11 +110,13 @@ export async function getQuestions(
 }
 
 // Check if a given cert has the required training completed
-export function hasRequiredTraining(
+export async function hasRequiredTraining(
   subjectCert: keyof Quizzes,
   userCertifications: Quizzes
-): boolean {
-  const subjectCertType = getSubjectType(subjectCert as string)
+): Promise<boolean> {
+  const subjectCertType = await SubjectsModel.getSubjectType(
+    subjectCert as string
+  )
 
   if (
     (subjectCertType === SUBJECT_TYPES.MATH ||
@@ -167,10 +168,10 @@ export function hasCertForRequiredTraining(
   return false
 }
 
-export function getUnlockedSubjects(
+export async function getUnlockedSubjects(
   cert: keyof Quizzes,
   userCertifications: Quizzes
-): string[] {
+): Promise<string[]> {
   // update certifications to have the current cert completed set to passed
   Object.assign(userCertifications, {
     [cert]: { passed: true },
@@ -180,7 +181,7 @@ export function getUnlockedSubjects(
     [TRAINING.SAT_STRATEGIES]: { passed: true },
   })
 
-  const certType = getSubjectType(cert as string)
+  const certType = await SubjectsModel.getSubjectType(cert as string)
 
   // Check if the user has a certification for the required training
   if (
@@ -289,7 +290,7 @@ export async function getQuizScore(
 
   if (passed) {
     // TODO: remove getUnlockedSubjects in db-cert-unlocking cleanup
-    let unlockedSubjects = getUnlockedSubjects(cert, userQuizzes)
+    let unlockedSubjects = await getUnlockedSubjects(cert, userQuizzes)
     if (isEnabled(FEATURE_FLAGS.DB_CERT_UNLOCKING)) {
       const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
         asString(cert)
