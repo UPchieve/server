@@ -14,8 +14,8 @@ import {
   SESSION_USER_ACTIONS,
   USER_ACTION_TYPES,
 } from '../../constants'
-import { getSubjectType } from '../../utils/getSubjectType'
 import { PoolClient } from 'pg'
+import { getSubjectType } from '../Subjects'
 
 export async function getQuizzesPassedForDateRangeById(
   userId: Ulid,
@@ -113,12 +113,13 @@ export async function createQuizAction(params: QuizActionParams) {
   try {
     let ip = undefined
     if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
+    const subjectType = await getSubjectType(params.quizSubcategory)
     const result = await pgQueries.createQuizAction.run(
       {
         action: params.action,
         actionType: USER_ACTION_TYPES.QUIZ,
         ipAddressId: ip,
-        quizCategory: getSubjectType(params.quizSubcategory).toUpperCase(),
+        quizCategory: subjectType ? subjectType.toUpperCase() : '',
         quizSubcategory: (params.quizSubcategory as string).toUpperCase(),
         userId: params.userId,
       },
