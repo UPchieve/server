@@ -80,53 +80,6 @@ export async function getSchools(
   }
 }
 
-export type CreateSchoolPayload = {
-  name: string
-  city: string
-  state: string
-  zipCode: string
-  isApproved: boolean
-}
-
-export async function createSchool(data: CreateSchoolPayload): Promise<School> {
-  const client = await getClient().connect()
-  try {
-    await pgQueries.createSchoolMetaData.run({ zipCode: data.zipCode }, client)
-
-    // we need to find the city's id, or if it doesn't exist, create it
-    const upsertCityResult = await geoQueries.upsertCity.run(
-      { name: data.city, state: data.state },
-      client
-    )
-    const cityId = makeRequired(upsertCityResult[0]).id
-
-    const result = await pgQueries.createSchool.run(
-      {
-        cityId,
-        id: getDbUlid(),
-        isApproved: data.isApproved,
-        name: data.name,
-      },
-      client
-    )
-    if (result.length) {
-      const school = makeRequired(result[0])
-      await client.query('COMMIT')
-      return {
-        ...school,
-        stateStored: data.state,
-      }
-    } else {
-      throw new Error('inserting new school did not return a result')
-    }
-  } catch (err) {
-    await client.query('ROLLBACK')
-    throw new RepoCreateError(err)
-  } finally {
-    client.release()
-  }
-}
-
 export async function updateApproval(
   schoolId: Ulid,
   isApproved: boolean

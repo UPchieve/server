@@ -2379,36 +2379,6 @@ paths:
       responses:
         '200':
           description: Returns an array of school objects
-  /api-public/eligibility/school/new:
-    post:
-      tags:
-        - eligibility
-      summary:  Creates new eligible school
-      description: |
-        - Admin only
-        - Submits given body of new school for eligibility
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                city:
-                  type: string
-                state:
-                  type: string
-                zipCode:
-                  type: string
-                isApproved:
-                  type: boolean
-      responses:
-        '200':
-          description: Returns new school id
   /api-public/eligibility/school/approval:
     post:
       tags:

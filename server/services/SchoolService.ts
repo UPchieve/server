@@ -110,35 +110,6 @@ export function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
   return SchoolRepo.updateIsPartner(schoolId, isPartner)
 }
 
-interface CreateSchoolPayload {
-  name: string
-  city: string
-  state: string
-  zipCode: string
-  isApproved: boolean
-}
-const asCreateSchoolPayload = asFactory<CreateSchoolPayload>({
-  name: asString,
-  city: asString,
-  state: asString,
-  zipCode: asString,
-  isApproved: asBoolean,
-})
-
-export async function createSchool(data: unknown) {
-  const { name, city, state, zipCode, isApproved } = asCreateSchoolPayload(data)
-
-  const school = await SchoolRepo.createSchool({
-    name,
-    city,
-    state,
-    zipCode,
-    isApproved,
-  } as CreateSchoolPayload)
-
-  return school
-}
-
 interface AdminUpdate {
   schoolId: Ulid
   name: string
