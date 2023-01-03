@@ -25,8 +25,6 @@ import {
   asNumber,
 } from './type-utils'
 import validator from 'validator'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '../constants'
 
 // Custom errors
 export class RegistrationError extends CustomError {}

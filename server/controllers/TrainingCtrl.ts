@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import { captureEvent } from '../services/AnalyticsService'
 import {
-  CERT_UNLOCKING,
-  COMPUTED_CERTS,
   TRAINING,
   MATH_CERTS,
   SCIENCE_CERTS,
@@ -14,7 +12,6 @@ import {
   QUIZ_USER_ACTIONS,
   EVENTS,
   SOCIAL_STUDIES_CERTS,
-  FEATURE_FLAGS,
 } from '../constants'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
@@ -27,7 +24,6 @@ import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
 import * as SubjectsModel from '../models/Subjects'
-import { isEnabled } from 'unleash-client'
 import { asString } from '../utils/type-utils'
 
 // change depending on how many of each subcategory are wanted
@@ -86,12 +82,9 @@ export async function getQuestions(
     throw new Error('No subcategories defined for category: ' + category)
   }
 
-  let questionPerCategory = numQuestions[category as keyof typeof numQuestions]
-  if (isEnabled(FEATURE_FLAGS.DB_CERT_UNLOCKING)) {
-    const quiz = await QuestionModel.getQuizByName(category)
-    if (!quiz) throw new Error(`No quiz created for category: ${category}`)
-    questionPerCategory = quiz.questionsPerSubcategory
-  }
+  const quiz = await QuestionModel.getQuizByName(category)
+  if (!quiz) throw new Error(`No quiz created for category: ${category}`)
+  const questionPerCategory = quiz.questionsPerSubcategory
 
   const questions = await QuestionModel.listQuestions({
     category,
@@ -107,133 +100,6 @@ export async function getQuestions(
       _.sampleSize(subQuestions, questionPerCategory)
     )
   )
-}
-
-// Check if a given cert has the required training completed
-export async function hasRequiredTraining(
-  subjectCert: keyof Quizzes,
-  userCertifications: Quizzes
-): Promise<boolean> {
-  const subjectCertType = await SubjectsModel.getSubjectType(
-    subjectCert as string
-  )
-
-  if (
-    (subjectCertType === SUBJECT_TYPES.MATH ||
-      subjectCertType === SUBJECT_TYPES.SCIENCE ||
-      subjectCertType === SUBJECT_TYPES.SOCIAL_STUDIES ||
-      subjectCertType === SUBJECT_TYPES.READING_WRITING) &&
-    userCertifications[TRAINING.TUTORING_SKILLS].passed
-  )
-    return true
-
-  if (
-    subjectCertType === SUBJECT_TYPES.COLLEGE &&
-    userCertifications[TRAINING.COLLEGE_COUNSELING].passed
-  )
-    return true
-
-  if (
-    subjectCertType === SUBJECT_TYPES.SAT &&
-    userCertifications[TRAINING.SAT_STRATEGIES].passed
-  )
-    return true
-
-  return false
-}
-
-// Check if a required training cert has any associated passed certifications for it
-export function hasCertForRequiredTraining(
-  trainingCert: keyof Quizzes,
-  userCertifications: Quizzes
-): boolean {
-  // UPchieve 101 doesn't need any associated certs
-  if (trainingCert === TRAINING.UPCHIEVE_101) return true
-
-  // College counseling unlocks Planning and Essays by default, meaning no requirements are needed to unlock the college related certifications besides completing the required training
-  if (trainingCert === TRAINING.COLLEGE_COUNSELING) return true
-
-  if (
-    trainingCert === TRAINING.TUTORING_SKILLS &&
-    isCertifiedIn({ ...MATH_CERTS, ...SCIENCE_CERTS }, userCertifications)
-  )
-    return true
-
-  if (
-    trainingCert === TRAINING.SAT_STRATEGIES &&
-    isCertifiedIn(SAT_CERTS, userCertifications)
-  )
-    return true
-
-  return false
-}
-
-export async function getUnlockedSubjects(
-  cert: keyof Quizzes,
-  userCertifications: Quizzes
-): Promise<string[]> {
-  // update certifications to have the current cert completed set to passed
-  Object.assign(userCertifications, {
-    [cert]: { passed: true },
-    // @note: temporarily bypass training requirements until these training courses are added
-    [TRAINING.TUTORING_SKILLS]: { passed: true },
-    [TRAINING.COLLEGE_COUNSELING]: { passed: true },
-    [TRAINING.SAT_STRATEGIES]: { passed: true },
-  })
-
-  const certType = await SubjectsModel.getSubjectType(cert as string)
-
-  // Check if the user has a certification for the required training
-  if (
-    certType === SUBJECT_TYPES.TRAINING &&
-    !hasCertForRequiredTraining(cert, userCertifications)
-  )
-    return []
-
-  // Check if the user has completed required training for this cert
-  if (
-    certType !== SUBJECT_TYPES.TRAINING &&
-    !hasRequiredTraining(cert, userCertifications)
-  )
-    return []
-
-  // Add all the certifications that this completed cert unlocks into a Set
-  const currentSubjects = new Set<string>(
-    CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
-  )
-
-  for (const cert in userCertifications) {
-    // Check that the required training was completed for every certification that a user has
-    // Add all the other subjects that a certification unlocks to the Set
-    if (
-      userCertifications[cert as keyof Quizzes].passed &&
-      hasRequiredTraining(cert as keyof Quizzes, userCertifications) &&
-      CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
-    )
-      CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject =>
-        currentSubjects.add(subject)
-      )
-  }
-
-  // Check if the user has unlocked a new certification based on the current certifications they have
-  for (const cert in COMPUTED_CERTS) {
-    const prerequisiteCerts =
-      COMPUTED_CERTS[cert as keyof typeof COMPUTED_CERTS]
-    let meetsRequirements = true
-
-    for (let i = 0; i < prerequisiteCerts.length; i++) {
-      const prereqCert = prerequisiteCerts[i]
-
-      if (!currentSubjects.has(prereqCert)) {
-        meetsRequirements = false
-        break
-      }
-    }
-
-    if (meetsRequirements) currentSubjects.add(cert)
-  }
-
-  return Array.from(currentSubjects)
 }
 
 type AnswerMap = { [k: number]: string }
@@ -289,14 +155,10 @@ export async function getQuizScore(
   )
 
   if (passed) {
-    // TODO: remove getUnlockedSubjects in db-cert-unlocking cleanup
-    let unlockedSubjects = await getUnlockedSubjects(cert, userQuizzes)
-    if (isEnabled(FEATURE_FLAGS.DB_CERT_UNLOCKING)) {
-      const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
-        asString(cert)
-      )
-      unlockedSubjects = quizCertUnlocks.map(cert => cert.unlockedCertName)
-    }
+    const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
+      asString(cert)
+    )
+    const unlockedSubjects = quizCertUnlocks.map(cert => cert.unlockedCertName)
 
     // set custom field passedUpchieve101 in SendGrid
     if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)

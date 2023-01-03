@@ -477,12 +477,10 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       'Volunteers cannot create new sessions'
     )
 
-  if (isEnabled('student-banned-state')) {
-    if (user.banned)
-      throw new sessionUtils.StartSessionError(
-        'Banned students cannot request a new session'
-      )
-  }
+  if (user.banned)
+    throw new sessionUtils.StartSessionError(
+      'Banned students cannot request a new session'
+    )
 
   const currentSession = await SessionRepo.getCurrentSessionByUserId(userId)
   if (currentSession)
