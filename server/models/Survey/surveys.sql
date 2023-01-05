@@ -120,7 +120,9 @@ FROM
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
     subjects.name = :subjectName!
-    AND st.name = :surveyType!;
+    AND st.name = :surveyType!
+ORDER BY
+    ssq.display_priority ASC;
 
 
 /* @name getPostsessionSurveyReplacementColumns */

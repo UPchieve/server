@@ -423,14 +423,16 @@ FROM
     LEFT JOIN sponsor_orgs AS school_sponsor_org ON schools_sponsor_orgs.sponsor_org_id = school_sponsor_org.id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     JOIN sessions ON sessions.student_id = student_profiles.user_id
-    LEFT JOIN (
+    LEFT JOIN LATERAL (
         SELECT
             session_id,
             count(*) AS total
         FROM
             session_messages
+        WHERE
+            session_id = sessions.id
         GROUP BY
-            session_id) AS session_messages ON sessions.id = session_messages.session_id
+            session_id) AS session_messages ON TRUE
     JOIN subjects ON sessions.subject_id = subjects.id
     JOIN topics ON subjects.topic_id = topics.id
 WHERE
