@@ -330,6 +330,18 @@ ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 
 
 --
+-- Name: computed_subject_unlocks; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.computed_subject_unlocks (
+    subject_id integer NOT NULL,
+    certification_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: contact_form_submissions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2416,6 +2428,14 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: computed_subject_unlocks computed_subject_unlocks_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.computed_subject_unlocks
+    ADD CONSTRAINT computed_subject_unlocks_pkey PRIMARY KEY (subject_id, certification_id);
+
+
+--
 -- Name: contact_form_submissions contact_form_submissions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3545,6 +3565,22 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: computed_subject_unlocks computed_subject_unlocks_certification_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.computed_subject_unlocks
+    ADD CONSTRAINT computed_subject_unlocks_certification_id_fkey FOREIGN KEY (certification_id) REFERENCES upchieve.certifications(id);
+
+
+--
+-- Name: computed_subject_unlocks computed_subject_unlocks_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.computed_subject_unlocks
+    ADD CONSTRAINT computed_subject_unlocks_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
 -- Name: contact_form_submissions contact_form_submissions_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4619,4 +4655,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221130231208'),
     ('20221201000842'),
     ('20221201064546'),
-    ('20221206021238');
+    ('20221206021238'),
+    ('20230104192756');
