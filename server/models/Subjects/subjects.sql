@@ -91,6 +91,23 @@ FROM
     JOIN subjects AS cert_info ON cert_info.name = certifications.name;
 
 
+/* @name getComputedSubjectUnlocks */
+SELECT
+    unlocked_subject.name AS unlocked_subject_name,
+    unlocked_subject.display_name AS unlocked_subject_display_name,
+    unlocked_subject.display_order AS unlocked_subject_display_order,
+    certifications.name AS cert_name,
+    cert_info.display_name AS cert_display_name,
+    cert_info.display_order AS cert_display_order,
+    topics.name AS topic_name
+FROM
+    computed_subject_unlocks csu
+    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id
+    JOIN certifications ON certifications.id = csu.certification_id
+    JOIN topics ON topics.id = unlocked_subject.topic_id
+    JOIN subjects AS cert_info ON cert_info.name = certifications.name;
+
+
 /* @name getSubjectType */
 SELECT
     CASE WHEN topics.name IS NOT NULL THEN

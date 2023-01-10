@@ -6,6 +6,7 @@ import {
   TrainingCourses,
   getVolunteerTrainingCourses,
   getActiveQuizzesForVolunteers,
+  getCertificationsForVolunteer,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -137,11 +138,13 @@ export async function getLegacyUserObject(
           updatedAt: new Date(),
         }
       }
+      // TODO: ask if we want to allow users to take quizzes in subjects they already unlocked
       volunteerUser.trainingCourses = trainingCourses
       volunteerUser.certifications = {
         // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
         ...legacyCertifications,
         ...(await getQuizzesForVolunteers([userId], client))[userId],
+        ...(await getCertificationsForVolunteer([userId], client))[userId],
       }
       const totalActiveCerts = Object.keys(
         (await getActiveQuizzesForVolunteers([userId], client))[userId]
