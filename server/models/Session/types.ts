@@ -21,4 +21,5 @@ export type Session = {
   reported: boolean
   flags: string[]
   subjectDisplayName: string
+  toolType: string
 }

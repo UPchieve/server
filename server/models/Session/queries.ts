@@ -501,6 +501,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   volunteer?: UserForAdmin
   messages: MessageForFrontend[]
   toReview: boolean
+  toolType: string
 }
 
 export async function getMessagesForFrontend(
@@ -752,6 +753,7 @@ export type SessionForChatbot = {
   endedAt?: Date
   student: Ulid
   studentFirstName: string
+  toolType: string
 }
 export async function getSessionForChatbot(
   sessionId: Ulid

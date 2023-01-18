@@ -87,7 +87,7 @@ export const m3a = {
     !session.endedAt &&
     !chatbotSentMessage(session, chatbot) &&
     session.topic !== SUBJECT_TYPES.COLLEGE &&
-    isSubjectUsingDocumentEditor(session.subject),
+    isSubjectUsingDocumentEditor(session.toolType),
   action: async (session: SessionForChatbot) => {
     await QueueService.add(
       Jobs.Chatbot,
@@ -106,7 +106,7 @@ export const m3b = {
     !session.volunteerJoinedAt &&
     !session.endedAt &&
     !chatbotSentMessage(session, chatbot) &&
-    !isSubjectUsingDocumentEditor(session.subject),
+    !isSubjectUsingDocumentEditor(session.toolType),
   action: async (session: SessionForChatbot) => {
     await QueueService.add(
       Jobs.Chatbot,

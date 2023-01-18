@@ -53,6 +53,7 @@ import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
 import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
+import { getSubjectAndTopic } from '../models/Subjects'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -326,7 +327,7 @@ export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
 
 export async function processSessionEditors(sessionId: Ulid) {
   const session = await SessionRepo.getSessionById(sessionId)
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.subject))
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType))
     await storeAndDeleteQuillDoc(sessionId)
   else await storeAndDeleteWhiteboardDoc(sessionId)
 }
@@ -436,7 +437,7 @@ export async function adminSessionView(data: unknown) {
   )
 
   if (
-    sessionUtils.isSubjectUsingDocumentEditor(session.subTopic) &&
+    sessionUtils.isSubjectUsingDocumentEditor(session.toolType) &&
     !session.endedAt
   ) {
     const quillDoc = await QuillDocService.getDoc(sessionId)
@@ -465,11 +466,20 @@ export async function startSession(user: UserContactInfo, data: unknown) {
   const {
     ip,
     sessionSubTopic,
+    sessionType,
     problemId,
     assignmentId,
     studentId,
     userAgent,
   } = sessionUtils.asStartSessionData(data)
+  const subject = Case.camel(sessionSubTopic)
+  const topic = Case.camel(sessionType)
+
+  const isValid = await getSubjectAndTopic(subject, topic)
+  if (!isValid)
+    throw new sessionUtils.StartSessionError(
+      `Unable to start new session for the topic ${topic} and subject ${subject}`
+    )
 
   const userId = user.id
   if (user.isVolunteer)
@@ -491,7 +501,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
   const newSessionId = await SessionRepo.createSession(
     userId,
     // NOTE: sessionType and subtopic are kebab-case
-    Case.camel(sessionSubTopic),
+    subject,
     user.banned
   )
 
