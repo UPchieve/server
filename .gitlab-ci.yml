@@ -46,6 +46,7 @@ build:
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
         --buildpack heroku/nodejs \
         --buildpack heroku/procfile@0.6.2 \
+        --verbose \
         --publish
   rules:
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
