@@ -447,7 +447,7 @@ SELECT
     photo_id_statuses.name AS photo_id_status,
     COALESCE(past_sessions.sessions, '{}') AS past_sessions,
     round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
-    total_subjects.subjects AS subjects,
+    array_cat(total_subjects.subjects, computed_subjects.subjects) AS subjects,
     recent_availability.updated_at AS availability_last_modified_at,
     occupations.occupations AS occupation,
     student_partner_org_sites.name AS partner_site,
@@ -456,7 +456,8 @@ SELECT
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
     grade_levels.name AS grade_level,
-    total_subjects.active_subjects AS active_subjects
+    array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
+    users_quizzes.total::int AS total_quizzes_passed
 FROM
     users
     LEFT JOIN (
@@ -513,9 +514,39 @@ FROM
                 GROUP BY
                     subjects.name,
                     subject_certs.total,
+                    certifications.active) AS subjects_unlocked) AS total_subjects ON TRUE
+    LEFT JOIN (
+        SELECT
+            array_agg(computed_subjects_unlocked.subject) AS subjects,
+            array_agg(computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_cert IS TRUE) AS active_subjects
+        FROM (
+            SELECT
+                subjects.name AS subject,
+                COUNT(*)::int AS earned_certs,
+                subject_certs.total,
+                certifications.active AS active_cert
+            FROM
+                users_certifications
+                JOIN computed_subject_unlocks USING (certification_id)
+                JOIN certifications ON users_certifications.certification_id = certifications.id
+                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
+                JOIN users ON users.id = users_certifications.user_id
+                JOIN (
+                    SELECT
+                        subjects.name, COUNT(*)::int AS total
+                    FROM
+                        computed_subject_unlocks
+                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
+                    GROUP BY
+                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name
+                WHERE
+                    users.id = :userId!
+                GROUP BY
+                    subjects.name,
+                    subject_certs.total,
                     certifications.active
                 HAVING
-                    COUNT(*)::int >= subject_certs.total) AS subjects_unlocked) AS total_subjects ON TRUE
+                    COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE
     LEFT JOIN (
         SELECT
             array_agg(id) AS sessions,
@@ -525,6 +556,13 @@ FROM
         WHERE
             student_id = :userId!
             OR volunteer_id = :userId!) AS past_sessions ON TRUE
+    LEFT JOIN (
+        SELECT
+            count(*) AS total
+        FROM
+            users_quizzes
+        WHERE
+            user_id = :userId!) AS users_quizzes ON TRUE
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE

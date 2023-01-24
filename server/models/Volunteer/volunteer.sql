@@ -214,8 +214,7 @@ FROM
     LEFT JOIN (
         SELECT
             subjects.name AS subject,
-            COUNT(*)::int AS earned_certs,
-            CTE.total
+            COUNT(*)::int AS earned_certs
         FROM
             users_certifications
             JOIN certification_subject_unlocks USING (certification_id)
@@ -226,9 +225,7 @@ FROM
             users.id::uuid = :userId
             OR users.mongo_id::text = :mongoUserId
         GROUP BY
-            subjects.name, CTE.total
-        HAVING
-            COUNT(*)::int >= CTE.total) AS subjects_unlocked ON TRUE
+            subjects.name, CTE.total) AS subjects_unlocked ON TRUE
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN availabilities ON availabilities.user_id = users.id
 WHERE
@@ -892,44 +889,6 @@ ON CONFLICT (user_id,
         user_id AS ok;
 
 
-/* @name getVolunteersAdminAvailability */
-WITH certs_for_subject AS (
-    SELECT
-        COUNT(*)::int AS total
-    FROM
-        certification_subject_unlocks
-        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-    WHERE
-        subjects.name = :subject!
-)
-SELECT
-    users.id
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN (
-        SELECT
-            users_certifications.user_id,
-            COUNT(*)::int AS earned_certs,
-            certs_for_subject.total
-        FROM
-            users_certifications
-            JOIN certification_subject_unlocks USING (certification_id)
-            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-            JOIN certs_for_subject ON TRUE
-        WHERE
-            subjects.name = :subject!
-        GROUP BY
-            users_certifications.user_id, subjects.name, certs_for_subject.total
-        HAVING
-            COUNT(*)::int >= certs_for_subject.total) user_certs ON user_certs.user_id = users.id
-WHERE
-    users.test_user IS FALSE
-    AND volunteer_profiles.onboarded IS TRUE
-    AND users.deactivated IS FALSE
-    AND users.banned IS FALSE;
-
-
 /* @name getVolunteerForTextResponse */
 SELECT
     users.id AS volunteer_id,
@@ -1145,6 +1104,19 @@ WHERE
     user_id = ANY (:userIds!);
 
 
+/* @name getCertificationsForVolunteer */
+SELECT
+    user_id,
+    users_certifications.updated_at AS last_attempted_at,
+    certifications.name,
+    certifications.active
+FROM
+    users_certifications
+    JOIN certifications ON users_certifications.certification_id = certifications.id
+WHERE
+    user_id = ANY (:userIds!);
+
+
 /* @name getActiveQuizzesForVolunteers */
 SELECT
     user_id,
@@ -1202,6 +1174,16 @@ WITH subject_totals AS (
     GROUP BY
         subjects.name
 ),
+computed_subject_totals AS (
+    SELECT
+        subjects.name,
+        COUNT(*)::int AS total
+    FROM
+        computed_subject_unlocks
+        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
+    GROUP BY
+        subjects.name
+),
 candidates AS (
     SELECT
         users.id,
@@ -1230,9 +1212,24 @@ candidates AS (
                 WHERE
                     users_certifications.user_id = users.id
                 GROUP BY
-                    user_id, subjects.name, subject_totals.total
+                    user_id, subjects.name, subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT
+                array_agg(sub_unlocked.subject)::text[] AS subjects
+            FROM (
+                SELECT
+                    subjects.name AS subject
+                FROM
+                    users_certifications
+                    JOIN computed_subject_unlocks USING (certification_id)
+                    JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
+                    JOIN computed_subject_totals ON computed_subject_totals.name = subjects.name
+                WHERE
+                    users_certifications.user_id = users.id
+                GROUP BY
+                    user_id, subjects.name, computed_subject_totals.total
                 HAVING
-                    COUNT(*)::int >= subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
+                    COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
     WHERE
         test_user IS FALSE
         AND banned IS FALSE
@@ -1243,7 +1240,8 @@ candidates AS (
         AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
-        AND :subject! = ANY (subjects_unlocked.subjects)
+        AND (:subject! = ANY (subjects_unlocked.subjects)
+            OR :subject! = ANY (computed_subjects_unlocked.subjects))
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
@@ -1346,7 +1344,7 @@ FROM
     JOIN availabilities ON users.id = availabilities.user_id
     JOIN weekdays ON weekdays.id = availabilities.weekday_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    JOIN (
+    LEFT JOIN (
         SELECT
             sub_unlocked.user_id,
             subjects.name AS subject
@@ -1371,10 +1369,37 @@ FROM
                 GROUP BY
                     user_id,
                     subjects.name,
+                    subject_total.total) AS sub_unlocked
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+    LEFT JOIN (
+        SELECT
+            sub_unlocked.user_id,
+            subjects.name AS subject
+        FROM (
+            SELECT
+                user_id,
+                subjects.name AS subject,
+                COUNT(*)::int AS earned_certs,
+                subject_total.total
+            FROM
+                users_certifications
+                JOIN computed_subject_unlocks USING (certification_id)
+                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
+                JOIN (
+                    SELECT
+                        subjects.name, COUNT(*)::int AS total
+                    FROM
+                        computed_subject_unlocks
+                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
+                    GROUP BY
+                        subjects.name) AS subject_total ON subject_total.name = subjects.name
+                GROUP BY
+                    user_id,
+                    subjects.name,
                     subject_total.total
                 HAVING
                     COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
+                JOIN subjects ON sub_unlocked.subject = subjects.name) AS computed_subjects_unlocked ON computed_subjects_unlocked.user_id = users.id
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
@@ -1383,7 +1408,11 @@ WHERE
 AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
     AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
     AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND subjects_unlocked.subject = :subject!;
+    AND (subjects_unlocked.subject = :subject!
+        OR computed_subjects_unlocked.subject = :subject!)
+GROUP BY
+    users.id,
+    volunteer_partner_orgs.key;
 
 
 /* @name getUniqueStudentsHelpedForAnalyticsReportSummary */

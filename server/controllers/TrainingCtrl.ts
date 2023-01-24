@@ -26,52 +26,8 @@ import * as VolunteerModel from '../models/Volunteer'
 import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
 
-// change depending on how many of each subcategory are wanted
-const numQuestions = {
-  [MATH_CERTS.PREALGREBA]: 2,
-  [MATH_CERTS.ALGEBRA_ONE]: 2,
-  [MATH_CERTS.ALGEBRA_TWO]: 1,
-  [MATH_CERTS.GEOMETRY]: 2,
-  [MATH_CERTS.TRIGONOMETRY]: 2,
-  [MATH_CERTS.STATISTICS]: 1,
-  [MATH_CERTS.PRECALCULUS]: 2,
-  [MATH_CERTS.CALCULUS_AB]: 1,
-  [MATH_CERTS.CALCULUS_BC]: 1,
-  [COLLEGE_CERTS.ESSAYS]: 3,
-  // NOTE: Once College Counseling is implemented Planning and Applications will be phased to subjects that are unlocked instead of certs
-  [COLLEGE_CERTS.PLANNING]: 4,
-  [COLLEGE_CERTS.APPLICATIONS]: 2,
-  [COLLEGE_CERTS.COLLEGE_APPS]: 2,
-  [COLLEGE_CERTS.COLLEGE_PREP]: 2,
-  [COLLEGE_CERTS.COLLEGE_LIST]: 2,
-  [COLLEGE_CERTS.APPLICATION_ESSAYS]: 2,
-  [COLLEGE_CERTS.FINANCIAL_AID]: 2,
-  [SCIENCE_CERTS.BIOLOGY]: 1,
-  [SCIENCE_CERTS.CHEMISTRY]: 1,
-  [SCIENCE_CERTS.PHYSICS_ONE]: 1,
-  [SCIENCE_CERTS.PHYSICS_TWO]: 1,
-  [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: 1,
-  [TRAINING.UPCHIEVE_101]: 27,
-  [SAT_CERTS.SAT_MATH]: 1,
-  [SAT_CERTS.SAT_READING]: 1,
-  [READING_WRITING_CERTS.HUMANITIES_ESSAYS]: 1,
-  [READING_WRITING_CERTS.READING]: 1,
-  [READING_WRITING_CERTS.ESSAY_PLANNING]: 1,
-  [READING_WRITING_CERTS.ESSAY_FEEDBACK]: 1,
-  [SOCIAL_STUDIES_CERTS.US_HISTORY]: 1,
-}
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
-
-// Check if a user is certified in a given group of subject certs
-function isCertifiedIn(givenCerts: any, userCerts: Quizzes): boolean {
-  for (const cert in givenCerts) {
-    const subject = givenCerts[cert] as keyof Quizzes
-    if (userCerts[subject]?.passed) return true
-  }
-
-  return false
-}
 
 export async function getQuestions(
   category: string

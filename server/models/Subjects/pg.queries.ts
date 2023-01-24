@@ -259,6 +259,50 @@ const getCertSubjectUnlocksIR: any = {"name":"getCertSubjectUnlocks","params":[]
 export const getCertSubjectUnlocks = new PreparedQuery<IGetCertSubjectUnlocksParams,IGetCertSubjectUnlocksResult>(getCertSubjectUnlocksIR);
 
 
+/** 'GetComputedSubjectUnlocks' parameters type */
+export type IGetComputedSubjectUnlocksParams = void;
+
+/** 'GetComputedSubjectUnlocks' return type */
+export interface IGetComputedSubjectUnlocksResult {
+  certDisplayName: string;
+  certDisplayOrder: number;
+  certName: string;
+  topicName: string;
+  unlockedSubjectDisplayName: string;
+  unlockedSubjectDisplayOrder: number;
+  unlockedSubjectName: string;
+}
+
+/** 'GetComputedSubjectUnlocks' query type */
+export interface IGetComputedSubjectUnlocksQuery {
+  params: IGetComputedSubjectUnlocksParams;
+  result: IGetComputedSubjectUnlocksResult;
+}
+
+const getComputedSubjectUnlocksIR: any = {"name":"getComputedSubjectUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    unlocked_subject.name AS unlocked_subject_name,\n    unlocked_subject.display_name AS unlocked_subject_display_name,\n    unlocked_subject.display_order AS unlocked_subject_display_order,\n    certifications.name AS cert_name,\n    cert_info.display_name AS cert_display_name,\n    cert_info.display_order AS cert_display_order,\n    topics.name AS topic_name\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    JOIN topics ON topics.id = unlocked_subject.topic_id\n    JOIN subjects AS cert_info ON cert_info.name = certifications.name","loc":{"a":2756,"b":3431,"line":95,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     unlocked_subject.name AS unlocked_subject_name,
+ *     unlocked_subject.display_name AS unlocked_subject_display_name,
+ *     unlocked_subject.display_order AS unlocked_subject_display_order,
+ *     certifications.name AS cert_name,
+ *     cert_info.display_name AS cert_display_name,
+ *     cert_info.display_order AS cert_display_order,
+ *     topics.name AS topic_name
+ * FROM
+ *     computed_subject_unlocks csu
+ *     JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id
+ *     JOIN certifications ON certifications.id = csu.certification_id
+ *     JOIN topics ON topics.id = unlocked_subject.topic_id
+ *     JOIN subjects AS cert_info ON cert_info.name = certifications.name
+ * ```
+ */
+export const getComputedSubjectUnlocks = new PreparedQuery<IGetComputedSubjectUnlocksParams,IGetComputedSubjectUnlocksResult>(getComputedSubjectUnlocksIR);
+
+
 /** 'GetSubjectType' parameters type */
 export interface IGetSubjectTypeParams {
   subject: string;
@@ -275,7 +319,7 @@ export interface IGetSubjectTypeQuery {
   result: IGetSubjectTypeResult;
 }
 
-const getSubjectTypeIR: any = {"name":"getSubjectType","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3124,"b":3131,"line":109,"col":20}]}}],"usedParamSet":{"subject":true},"statement":{"body":"SELECT\n    CASE WHEN topics.name IS NOT NULL THEN\n        topics.name\n    WHEN tc.name IS NOT NULL THEN\n        'training'\n    ELSE\n        ''\n    END AS subject_type\nFROM\n    quizzes\n    LEFT JOIN subjects ON subjects.name = quizzes.name\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN training_courses tc ON tc.name = quizzes.name\nWHERE\n    quizzes.name = :subject!","loc":{"a":2745,"b":3131,"line":95,"col":0}}};
+const getSubjectTypeIR: any = {"name":"getSubjectType","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3842,"b":3849,"line":126,"col":20}]}}],"usedParamSet":{"subject":true},"statement":{"body":"SELECT\n    CASE WHEN topics.name IS NOT NULL THEN\n        topics.name\n    WHEN tc.name IS NOT NULL THEN\n        'training'\n    ELSE\n        ''\n    END AS subject_type\nFROM\n    quizzes\n    LEFT JOIN subjects ON subjects.name = quizzes.name\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN training_courses tc ON tc.name = quizzes.name\nWHERE\n    quizzes.name = :subject!","loc":{"a":3463,"b":3849,"line":112,"col":0}}};
 
 /**
  * Query generated from SQL:
