@@ -42,6 +42,7 @@ export type TrainingPerTopic = {
   training: TrainingItem[]
   certifications: TrainingRow[]
   additionalSubjects: TrainingRow[]
+  computedSubjects?: TrainingRow[]
 }
 
 export type TrainingView = {

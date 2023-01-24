@@ -181,6 +181,37 @@ export async function getQuizzesForVolunteers(
   }
 }
 
+export async function getCertificationsForVolunteer(
+  userIds: Ulid[],
+  poolClient?: PoolClient
+): Promise<VolunteerQuizMap> {
+  const client = poolClient ? poolClient : getClient()
+  try {
+    const result = await pgQueries.getCertificationsForVolunteer.run(
+      { userIds },
+      client
+    )
+    const rows = result.map(v => makeRequired(v))
+    const rowsByUser = _.groupBy(rows, v => v.userId)
+    const map: VolunteerQuizMap = {}
+    for (const user of userIds) {
+      const temp: Quizzes = {}
+      const rows = rowsByUser[user] || []
+      for (const row of rows) {
+        temp[row.name] = {
+          passed: true,
+          tries: 1,
+          lastAttemptedAt: row.lastAttemptedAt,
+        }
+      }
+      map[user] = temp
+    }
+    return map
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getActiveQuizzesForVolunteers(
   userIds: Ulid[],
   poolClient?: PoolClient
@@ -1138,20 +1169,6 @@ export async function updateVolunteerQuiz(
       throw new RepoUpdateError('update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
-  }
-}
-
-export async function getVolunteersAdminAvailability(
-  subject: string
-): Promise<Ulid[]> {
-  try {
-    const result = await pgQueries.getVolunteersAdminAvailability.run(
-      { subject },
-      getClient()
-    )
-    return result.map(v => makeRequired(v).id)
-  } catch (err) {
-    throw new RepoReadError(err)
   }
 }
 

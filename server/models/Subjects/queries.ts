@@ -114,10 +114,45 @@ export function generateTrainingRow(
 
 export async function getCertSubjectUnlocks(): Promise<TrainingRowPerTopic> {
   try {
+    // Get the subjects that are unlocked when a certification
+    // has been acquired for the subject
+    const certificationUnlocks = await pgQueries.getCertSubjectUnlocks.run(
+      undefined,
+      getClient()
+    )
+    // remove certifications that unlock themselves
+    const computedSubjects = certificationUnlocks
+      .map(v => makeRequired(v))
+      .filter(row => row.unlockedSubjectName !== row.certName)
+
+    const computedSubjectGrouped = _.groupBy(
+      computedSubjects,
+      row => row.topicName
+    )
+    const processedSubjectGrouped = processTrainingRow(computedSubjectGrouped, {
+      rowName: 'unlockedSubjectName',
+      rowDisplayName: 'unlockedSubjectDisplayName',
+      rowDisplayOrder: 'unlockedSubjectDisplayOrder',
+      rowListItemName: 'certName',
+      rowListItemDisplayName: 'certDisplayName',
+      rowListItemDisplayOrder: 'certDisplayOrder',
+    })
+    const additionalSubjects = generateTrainingRow(processedSubjectGrouped)
+
+    return additionalSubjects
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getComputedSubjectUnlocks(): Promise<
+  TrainingRowPerTopic
+> {
+  try {
     // Get the computed subjects that are unlocked when a combination of
     // quizzes have been completed
     // The purpose here is to find computed subjects that rely on having multiple certifications
-    const certificationUnlocks = await pgQueries.getCertSubjectUnlocks.run(
+    const certificationUnlocks = await pgQueries.getComputedSubjectUnlocks.run(
       undefined,
       getClient()
     )
@@ -206,6 +241,7 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
       .sort((a, b) => a.order - b.order)
 
     const additionalSubjects = await getCertSubjectUnlocks()
+    const computedSubjects = await getComputedSubjectUnlocks()
     const quizCertificationUnlocks = await getQuizCertUnlocks()
     const trainingCourses = await getTrainingCourses()
     const requiredTraining = trainingCourses.map(v => {
@@ -238,6 +274,8 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
       ].sort((a, b) => a.order - b.order)
       trainingView[topic.key].additionalSubjects =
         additionalSubjects[topic.key] || []
+      trainingView[topic.key].computedSubjects =
+        computedSubjects[topic.key] || []
     }
 
     return trainingView
