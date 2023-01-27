@@ -35,6 +35,7 @@ build:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - apk add --update curl tar
     - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.28.0/pack-v0.28.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+    - sleep 1800
     - |
       pack build "$image_tagged" \
         --creation-time now \
