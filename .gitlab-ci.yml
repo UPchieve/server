@@ -33,10 +33,11 @@ build:
     - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
     - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cat /root/.docker/config.json | head -3
     - apk add --update curl tar
     - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.28.0/pack-v0.28.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
     - |
-      pack build "$image_tagged" \
+      pack build "registry.gitlab.com/upchieve/subway/fixing-ci-build-issues:64bcaa379809c76b6019cc251714ad39c5c3b8bd" \
         --creation-time now \
         --builder heroku/buildpacks:20 \
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
