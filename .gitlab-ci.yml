@@ -15,15 +15,11 @@ variables:
 
 build:
   stage: build
-  image: "docker:20.10.6"
+  image: "docker:20.10.23"
   cache: {}
   tags:
     - upchieve
     - containerbuild
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  services:
-    - docker:20.10.6-dind
   script:
     - |
       if [[ -z "$CI_COMMIT_TAG" ]]; then
