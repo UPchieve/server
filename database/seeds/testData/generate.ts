@@ -1,5 +1,4 @@
 import faker from 'faker'
-import { ACTIVE_QUIZ_CATEGORIES } from '../../../server/constants'
 import {
   IInsertIntoUserQuizzesParams,
   IInsertStudentProfileParams,
@@ -102,7 +101,7 @@ export function buildVolunteerProfile(
 type CertOverrides = {
   volunteerId: string
   certIds: NameToId
-  cert: ACTIVE_QUIZ_CATEGORIES
+  cert: string
 } & Partial<IInsertUserCertificationParams>
 
 export function buildCerts(
@@ -120,7 +119,7 @@ export function buildCerts(
 type QuizOverrides = {
   volunteerId: string
   quizIds: NameToId
-  quiz: ACTIVE_QUIZ_CATEGORIES
+  quiz: string
 } & Partial<IInsertIntoUserQuizzesParams>
 
 export function buildQuizzes(
