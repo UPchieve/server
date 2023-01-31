@@ -2,14 +2,12 @@ import Case from 'case'
 import { Ulid } from '../models/pgUtils'
 import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
-import { SUBJECTS, SUBJECT_TYPES } from '../constants'
+import { TOOL_TYPES } from '../constants'
 import { DAYS, HOURS } from '../constants'
-import { InputError } from '../models/Errors'
 import { getMessagesForFrontend, Session } from '../models/Session'
 import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
-  asEnum,
   asFactory,
   asNumber,
   asOptional,
@@ -131,19 +129,8 @@ export function isSessionFulfilled(session: Session) {
   return hasEnded || hasVolunteerJoined
 }
 
-// TODO: use an actual subject type
-export function isSubjectUsingDocumentEditor(subject: string) {
-  switch (subject) {
-    case SUBJECTS.SAT_READING:
-    case SUBJECTS.ESSAYS:
-    case SUBJECTS.PLANNING:
-    case SUBJECTS.APPLICATIONS:
-    case SUBJECTS.HUMANITIES_ESSAYS:
-    case SUBJECTS.READING:
-      return true
-    default:
-      return false
-  }
+export function isSubjectUsingDocumentEditor(toolType: string) {
+  return toolType === TOOL_TYPES.DOCUMENT_EDITOR
 }
 
 export type HeatMapDay = {
@@ -183,16 +170,15 @@ export const asRequestIdentifiers = asFactory<RequestIdentifier>(
 
 export interface StartSessionData extends RequestIdentifier {
   sessionSubTopic: string
-  sessionType: SUBJECT_TYPES
+  sessionType: string
   problemId?: string
   assignmentId?: string
   studentId?: string
 }
 export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
-  // TODO: use validation against the enums SUBJECT_TYPES and SUBJECTS
   sessionSubTopic: asString,
-  sessionType: asSubjectType,
+  sessionType: asString,
   problemId: asOptional(asString),
   assignmentId: asOptional(asString),
   studentId: asOptional(asString),
@@ -240,15 +226,6 @@ export const asSessionTimedOutData = asFactory<SessionTimedOutData>({
   sessionId: asString,
   timeout: asNumber,
 })
-
-export function asSubjectType(s: unknown, errMsg?: string): SUBJECT_TYPES {
-  const cb = asEnum<SUBJECT_TYPES>(SUBJECT_TYPES)
-  if (typeof s === 'string') {
-    const subjectType = Case.camel(s)
-    return cb(subjectType)
-  }
-  throw new InputError(`${errMsg} ${s} is not a string`)
-}
 
 interface AdminFilteredSessionsData {
   showBannedUsers: string

@@ -77,7 +77,8 @@ SELECT
     sessions.created_at,
     sessions.updated_at,
     session_reported_count.total <> 0 AS reported,
-    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags
+    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,
+    tool_types.name AS tool_type
 FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
@@ -99,6 +100,7 @@ FROM
             LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
         WHERE
             sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     sessions.id = :sessionId!;
 
@@ -420,7 +422,8 @@ SELECT
     report_reasons.reason AS report_reason,
     session_review_reason.review_reasons,
     session_photo.photos,
-    sessions.to_review
+    sessions.to_review,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -444,6 +447,7 @@ FROM
             session_photos
         WHERE
             session_photos.session_id = sessions.id) AS session_photo ON TRUE
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     sessions.id = :sessionId!;
 
@@ -625,12 +629,14 @@ SELECT
     sessions.ended_at,
     sessions.volunteer_joined_at,
     sessions.student_id AS student,
-    users.first_name AS student_first_name
+    users.first_name AS student_first_name,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     sessions.id = :sessionId!;
 
