@@ -472,17 +472,17 @@ export const courses: TrainingCourse[] = [
               {
                 displayName: 'Learning What Students Know',
                 url:
-                  'https://docs.google.com/forms/d/1cXfMEi-jEfjxh3ln-9qnaUhyeRy9auEBjIqmSseEIHE/viewform?edit_requested=true',
+                  'https://docs.google.com/forms/d/1NotpEz8-vBDfWP0O0ejuLehTAaUp6cNoJHGxYMx4jF8/viewform?edit_requested=true',
               },
               {
                 displayName: 'Giving Effective Praise',
                 url:
-                  'https://docs.google.com/forms/d/15J35PVnoDCr1QdEglVJez222YgAq3OIfU6jIQ_-QBMg/viewform?edit_requested=true',
+                  'https://docs.google.com/forms/d/1XRt5QldoD_-LURjiE7VOxqBvNAjgj2ARenQa15jk5g4/viewform?edit_requested=true',
               },
               {
                 displayName: 'Responding to Student Errors',
                 url:
-                  'https://docs.google.com/forms/d/1Qexx4S1udF08U0TKKiXQecoP2wlDnRz-8Z44FyqRz_8/viewform?edit_requested=true',
+                  'https://docs.google.com/forms/d/e/1FAIpQLSfM48ah4KLpuoYEBVisvQ5s6LUgQjt01F2epdym_kuN6tfjQQ/viewform',
               },
             ],
           },
