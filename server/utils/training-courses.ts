@@ -340,6 +340,8 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.VIDEO,
             isRequired: true,
             resourceId: '459021055',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/introduction-to-upchieve-deck.pdf',
           },
           {
             name: 'Meet an UPchieve Student',
@@ -410,6 +412,8 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.VIDEO,
             isRequired: true,
             resourceId: '760386859',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/implementing-effective-coaching-strategies-deck.pdf',
           },
           {
             name: 'Coaching Strategies Review',
@@ -425,6 +429,8 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.VIDEO,
             isRequired: true,
             resourceId: '762040321',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/responding-to-tricky-coaching-situations-deck.pdf',
           },
           {
             name: 'Getting Familiar With the Platform',
@@ -497,6 +503,8 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.VIDEO,
             isRequired: true,
             resourceId: '459021056',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/dei-deck.pdf',
           },
           {
             name: 'UPchieve DEI Policy',
@@ -558,6 +566,8 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.VIDEO,
             isRequired: true,
             resourceId: '773599358',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/community-safety-&-success-deck.pdf',
           },
           {
             name: 'UPchieve Student Safety Policy',
@@ -573,6 +583,8 @@ export const courses: TrainingCourse[] = [
             type: MaterialType.VIDEO,
             isRequired: true,
             resourceId: '776267126',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/academic-integrity-deck.pdf',
           },
           {
             name: 'UPchieve Academic Integrity Policy',
