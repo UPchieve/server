@@ -404,7 +404,9 @@ export const courses: TrainingCourse[] = [
             materialKey: '212h45',
             type: MaterialType.VIDEO,
             isRequired: true,
-            resourceId: '458744827',
+            resourceId: '797113791',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/using-our-platform-deck.pdf',
           },
           {
             name: 'Effective Coaching Strategies',
@@ -454,8 +456,7 @@ export const courses: TrainingCourse[] = [
               },
               {
                 displayName: 'Watch a Real Session',
-                // TODO: Add link to video once uploaded
-                url: '',
+                url: 'https://www.youtube.com/watch?v=GnkLY2jpjcc',
               },
             ],
           },
