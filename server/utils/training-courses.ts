@@ -361,14 +361,6 @@ export const courses: TrainingCourse[] = [
               'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-1gihzt03n-Sj58fEdBiZjVwc4DPDdg0g',
           },
           {
-            name: "Register for UPchieve's Monthly Coach Meetings",
-            materialKey: '42j392',
-            type: MaterialType.LINK,
-            isRequired: false,
-            linkUrl:
-              'https://us02web.zoom.us/meeting/register/uZUsduiqrzgiO4_zJG9YvVJcx8vBxt4snA',
-          },
-          {
             name: 'Additional Resources',
             description:
               'This is a set of articles we recommend reading that can help deepen your understanding of why a platform like UPchieve is so important to low-income students.',
@@ -400,7 +392,7 @@ export const courses: TrainingCourse[] = [
         name: 'Becoming a Great Coach',
         materials: [
           {
-            name: 'Fulfilling Student Requests',
+            name: 'Using Our Platform',
             materialKey: '212h45',
             type: MaterialType.VIDEO,
             isRequired: true,
@@ -409,7 +401,7 @@ export const courses: TrainingCourse[] = [
               'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/using-our-platform-deck.pdf',
           },
           {
-            name: 'Effective Coaching Strategies',
+            name: 'Implementing Effective Coaching Strategies',
             materialKey: '7b6a76',
             type: MaterialType.VIDEO,
             isRequired: true,
@@ -596,19 +588,19 @@ export const courses: TrainingCourse[] = [
               'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf',
           },
           {
-            name: `You've Got Support: Coach Community`,
-            materialKey: 'n178sa',
-            type: MaterialType.VIDEO,
-            isRequired: true,
-            resourceId: '772490820',
-          },
-          {
-            name: 'Review: Coach Actions That Promote Success!',
+            name: 'Review Coach Actions That Promote Success!',
             materialKey: '827abs',
             type: MaterialType.DOCUMENT,
             isRequired: true,
             linkUrl:
               'https://cdn.upchieve.org/training-courses/upchieve101/review-coach-actions-that-promote-success.pdf',
+          },
+          {
+            name: `You've Got Support: Coach Community`,
+            materialKey: 'n178sa',
+            type: MaterialType.VIDEO,
+            isRequired: true,
+            resourceId: '772490820',
           },
           {
             name: 'Engage in Our Coach Community',
