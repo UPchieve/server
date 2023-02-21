@@ -353,7 +353,7 @@ export const courses: TrainingCourse[] = [
           {
             name: 'Join the UPchieve Slack Community',
             description:
-              'Join our Coach Slack community to connect with other coaches, learn from others about best-practices, and meet other equity-oriented people!',
+              'Join our Coach Slack Community to connect with other coaches, learn about best-practices, and meet our amazing team of equity-oriented volunteers!',
             materialKey: '1s3654',
             type: MaterialType.LINK,
             isRequired: false,
