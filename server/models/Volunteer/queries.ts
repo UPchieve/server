@@ -19,6 +19,7 @@ import { PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
+import { getProgress } from '../../utils/training-courses'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -712,7 +713,11 @@ export async function getVolunteerTrainingCourses(
     const map: VolunteerTrainingCourses = {}
     for (const row of result) {
       const temp = { ...makeRequired(row) }
-      map[temp.trainingCourse] = { ...temp, isComplete: temp.complete }
+      map[temp.trainingCourse] = {
+        ...temp,
+        isComplete: temp.complete,
+        progress: getProgress(temp.trainingCourse, temp.completedMaterials),
+      }
     }
     return map
   } catch (err) {
