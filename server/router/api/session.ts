@@ -260,8 +260,12 @@ export function routeSession(router: Router, io: Server) {
 
   router.get('/sessions/:sessionId/recap', async function(req, res) {
     try {
+      const user = extractUser(req)
       const { sessionId } = req.params
-      const session = await SessionService.getSessionRecap(asUlid(sessionId))
+      const session = await SessionService.getSessionRecap(
+        asUlid(sessionId),
+        user.id
+      )
 
       res.json({ session })
     } catch (err) {
