@@ -824,8 +824,19 @@ export async function getTotalSessionHistory(studentId: Ulid) {
 }
 
 export async function getSessionRecap(
-  sessionId: Ulid
+  sessionId: Ulid,
+  userId: Ulid
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
+  if (
+    !sessionUtils.isSessionParticipant(
+      session.studentId,
+      session.volunteerId,
+      userId
+    )
+  )
+    throw new NotAllowedError(
+      'Only session participants are allowed to view this session'
+    )
   return session
 }
