@@ -933,6 +933,14 @@ WHERE
     AND NOT volunteer_profiles.photo_id_s3_key IS NULL
     AND photo_id_statuses.name = ANY ('{ "submitted", "approved" }')
     AND user_actions.action = ANY ('{ "ADDED PHOTO ID", "COMPLETED BACKGROUND INFO" }')
+    AND (
+        SELECT
+            MAX(user_actions.created_at)
+        FROM
+            user_actions
+        WHERE
+            action = ANY ('{ "ADDED PHOTO ID", "COMPLETED BACKGROUND INFO" }')
+            AND user_id = users.id) > CURRENT_DATE - INTERVAL '3 MONTHS'
 GROUP BY
     users.id
 ORDER BY
