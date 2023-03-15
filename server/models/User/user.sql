@@ -457,7 +457,8 @@ SELECT
     schools.name AS school_name,
     grade_levels.name AS grade_level,
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
-    users_quizzes.total::int AS total_quizzes_passed
+    users_quizzes.total::int AS total_quizzes_passed,
+    users_roles.role_id
 FROM
     users
     LEFT JOIN (
@@ -565,6 +566,7 @@ FROM
             user_id = :userId!) AS users_quizzes ON TRUE
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN users_roles ON users_roles.user_id = users.id
 WHERE
     users.id = :userId!;
 
