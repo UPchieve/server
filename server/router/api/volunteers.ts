@@ -61,19 +61,10 @@ export function routeVolunteers(router: Router): void {
   ) {
     try {
       const volunteerId = asString(req.params.id)
-      const { photoIdStatus, referencesStatusMap } = req.body
-      const referenceIds = Object.keys(referencesStatusMap)
-      // TODO: better type validation
-      const validStatus: any = {}
-      for (const referenceId of referenceIds) {
-        validStatus[referenceId] = referencesStatusMap[
-          referenceId
-        ].toLowerCase()
-      }
+      const { photoIdStatus } = req.body
       await VolunteerService.updatePendingVolunteerStatus(
         volunteerId,
-        asString(photoIdStatus).toLowerCase(),
-        validStatus
+        asString(photoIdStatus).toLowerCase()
       )
       res.sendStatus(200)
     } catch (error) {

@@ -1,9 +1,7 @@
-import { logger } from '@sentry/utils'
 import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
   PHOTO_ID_STATUS,
-  REFERENCE_STATUS,
   STATUS,
 } from '../constants'
 import { Ulid } from '../models/pgUtils'
@@ -143,28 +141,14 @@ export async function getVolunteersToReview(
 
 export function getPendingVolunteerApprovalStatus(
   photoIdStatus: string,
-  referencesStatus: string[],
   hasCompletedBackgroundInfo: boolean
 ) {
-  return (
-    referencesStatus[0] === STATUS.APPROVED &&
-    referencesStatus[1] === STATUS.APPROVED &&
-    photoIdStatus === STATUS.APPROVED &&
-    hasCompletedBackgroundInfo
-  )
-}
-
-interface PendingVolunteerUpdate {
-  isApproved: boolean
-  photoIdStatus?: string
-  'references.0.status'?: string
-  'references.1.status'?: string
+  return photoIdStatus === STATUS.APPROVED && hasCompletedBackgroundInfo
 }
 
 export async function updatePendingVolunteerStatus(
   volunteerId: Ulid,
-  photoIdStatus: string,
-  referencesStatus: { [key: string]: string }
+  photoIdStatus: string
 ): Promise<void> {
   const volunteerBeforeUpdate = await VolunteerRepo.getVolunteerForPendingStatus(
     volunteerId
@@ -178,17 +162,13 @@ export async function updatePendingVolunteerStatus(
       ? true
       : false
   // A volunteer must have the following list items approved before being considered an approved volunteer
-  //  1. two references
-  //  2. photo id
+  // 1. photo id
+  // 2. completed background information
   const isApproved = getPendingVolunteerApprovalStatus(
     photoIdStatus,
-    Object.values(referencesStatus),
     hasCompletedBackgroundInfo
   )
 
-  for (const [referenceId, status] of Object.entries(referencesStatus)) {
-    await VolunteerRepo.updateVolunteerReferenceStatusById(referenceId, status)
-  }
   await VolunteerRepo.updateVolunteerPending(
     volunteerId,
     isApproved,
@@ -221,33 +201,6 @@ export async function updatePendingVolunteerStatus(
   }
   if (isNewlyApproved && !volunteerBeforeUpdate.onboarded)
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
-
-  for (const [referenceId, status] of Object.entries(referencesStatus)) {
-    const reference = volunteerBeforeUpdate.references.find(
-      v => v.id === referenceId
-    )
-    if (!reference) {
-      logger.error(
-        `Recieved status update for reference ${referenceId} which does not belong to volunteer ${volunteerBeforeUpdate.id}`
-      )
-      continue
-    }
-    if (
-      status === REFERENCE_STATUS.REJECTED &&
-      reference.status !== REFERENCE_STATUS.REJECTED
-    ) {
-      await createAccountAction({
-        userId: volunteerId,
-        action: ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE,
-        referenceEmail: reference.email,
-      })
-      AnalyticsService.captureEvent(volunteerId, EVENTS.REFERENCE_REJECTED, {
-        event: EVENTS.REFERENCE_REJECTED,
-        referenceEmail: reference.email,
-      })
-      MailService.sendRejectedReference(reference, volunteerBeforeUpdate)
-    }
-  }
 }
 
 export async function addBackgroundInfo(

@@ -925,17 +925,6 @@ FROM
     users
     JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
-    JOIN (
-        SELECT
-            user_id,
-            count(*) AS total_references
-        FROM
-            volunteer_references
-            JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
-        WHERE
-            volunteer_reference_statuses.name = ANY ('{ "submitted", "approved" }')
-        GROUP BY
-            user_id) AS reference_count ON reference_count.user_id = users.id
     JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id -- user is only ready for review if they submitted background info
     JOIN user_actions ON user_actions.user_id = users.id
 WHERE
@@ -943,8 +932,15 @@ WHERE
     AND NOT volunteer_profiles.country IS NULL
     AND NOT volunteer_profiles.photo_id_s3_key IS NULL
     AND photo_id_statuses.name = ANY ('{ "submitted", "approved" }')
-    AND user_actions.action = ANY ('{ "ADDED PHOTO ID", "SUBMITTED REFERENCE FORM", "COMPLETED BACKGROUND INFO" }')
-    AND reference_count.total_references = 2
+    AND user_actions.action = ANY ('{ "ADDED PHOTO ID", "COMPLETED BACKGROUND INFO" }')
+    AND (
+        SELECT
+            MAX(user_actions.created_at)
+        FROM
+            user_actions
+        WHERE
+            action = ANY ('{ "ADDED PHOTO ID", "COMPLETED BACKGROUND INFO" }')
+            AND user_id = users.id) > CURRENT_DATE - INTERVAL '3 MONTHS'
 GROUP BY
     users.id
 ORDER BY
