@@ -9,7 +9,7 @@ import {
   getDbUlid,
 } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
-import { USER_BAN_REASONS } from '../../constants'
+import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
 
@@ -490,5 +490,21 @@ export async function getTotalSessionsByUserId(userId: Ulid): Promise<number> {
     return 0
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function insertUserRoleByUserId(
+  userId: Ulid,
+  roleName: USER_ROLES_TYPE
+): Promise<void> {
+  try {
+    const result = await pgQueries.insertUserRoleByUserId.run(
+      { userId, roleName },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Insert query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

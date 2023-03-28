@@ -1358,3 +1358,47 @@ const getTotalSessionsByUserIdIR: any = {"name":"getTotalSessionsByUserId","para
 export const getTotalSessionsByUserId = new PreparedQuery<IGetTotalSessionsByUserIdParams,IGetTotalSessionsByUserIdResult>(getTotalSessionsByUserIdIR);
 
 
+/** 'InsertUserRoleByUserId' parameters type */
+export interface IInsertUserRoleByUserIdParams {
+  roleName: string;
+  userId: string;
+}
+
+/** 'InsertUserRoleByUserId' return type */
+export interface IInsertUserRoleByUserIdResult {
+  ok: string;
+}
+
+/** 'InsertUserRoleByUserId' query type */
+export interface IInsertUserRoleByUserIdQuery {
+  params: IInsertUserRoleByUserIdParams;
+  result: IInsertUserRoleByUserIdResult;
+}
+
+const insertUserRoleByUserIdIR: any = {"name":"insertUserRoleByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":20334,"b":20340,"line":679,"col":5}]}},{"name":"roleName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":20458,"b":20466,"line":688,"col":27}]}}],"usedParamSet":{"userId":true,"roleName":true},"statement":{"body":"INSERT INTO users_roles (role_id, user_id, created_at, updated_at)\nSELECT\n    subquery.id,\n    :userId!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        user_roles\n    WHERE\n        user_roles.name = :roleName!) AS subquery\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok","loc":{"a":20238,"b":20534,"line":676,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_roles (role_id, user_id, created_at, updated_at)
+ * SELECT
+ *     subquery.id,
+ *     :userId!,
+ *     NOW(),
+ *     NOW()
+ * FROM (
+ *     SELECT
+ *         id
+ *     FROM
+ *         user_roles
+ *     WHERE
+ *         user_roles.name = :roleName!) AS subquery
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const insertUserRoleByUserId = new PreparedQuery<IInsertUserRoleByUserIdParams,IInsertUserRoleByUserIdResult>(insertUserRoleByUserIdIR);
+
+

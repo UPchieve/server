@@ -143,4 +143,4 @@ export const USER_ROLES = <const>{
   VOLUNTEER: 'volunteer',
   ADMIN: 'admin',
 }
-export type USER_ROLES_TYPE = typeof USER_ROLES[keyof typeof USER_ROLES]
+export type USER_ROLES_TYPE = ExtractValues<typeof USER_ROLES>
