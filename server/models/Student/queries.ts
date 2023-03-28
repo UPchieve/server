@@ -19,6 +19,7 @@ import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
 import { getSessionRating } from '../Survey'
 import { USER_ROLES } from '../../constants'
+import { insertUserRoleByUserId } from '../User'
 
 export type ReportedStudent = {
   id: Ulid
@@ -680,6 +681,7 @@ export async function createStudent(
       const user = makeRequired(userResult[0])
 
       await transactionClient.query('COMMIT')
+      await insertUserRoleByUserId(user.id, USER_ROLES.STUDENT)
       return {
         id: user.id,
         firstname: user.firstName,

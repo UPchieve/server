@@ -14,12 +14,13 @@ import { getAvailabilityForVolunteer } from '../Availability'
 import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
-import { PHOTO_ID_STATUS } from '../../constants'
+import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
 import { PoolClient } from 'pg'
 import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
+import { insertUserRoleByUserId } from '../User'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -1249,6 +1250,7 @@ export async function createVolunteer(
     if (!profileResult.length && makeRequired(profileResult[0]).ok)
       throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
+    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER)
     return {
       ...user,
       volunteerPartnerOrg: volunteerData.volunteerPartnerOrg,
