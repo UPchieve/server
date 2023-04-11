@@ -187,11 +187,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (
-                user.isVolunteer &&
-                !user.approved &&
-                !isEnabled(FEATURE_FLAGS.FAST_TRACKED_USER)
-              )
+              if (user.isVolunteer && !user.approved)
                 throw new Error('Volunteer not approved')
               session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
