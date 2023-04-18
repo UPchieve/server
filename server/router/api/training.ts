@@ -10,18 +10,45 @@ import {
   userHasTakenQuiz,
   createQuizAction,
 } from '../../models/UserAction/queries'
-import { QUIZ_USER_ACTIONS } from '../../constants'
+import { QUIZ_USER_ACTIONS, TRAINING } from '../../constants'
 import { getQuizReviewMaterials } from '../../models/Question/queries'
+import { client as phClient } from '../../posthog'
+import { FEATURE_FLAGS } from '../../constants'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
     try {
-      const questions = await TrainingCtrl.getQuestions(
-        asString(req.body.category)
-      )
+      const category = asString(req.body.category)
+      const user = extractUser(req)
+      const questions = await TrainingCtrl.getQuestions(category)
+
+      const tiny101Questions = [
+        'A student sends you a GoogleDoc link to review her essay. How should you respond?',
+        'Why are questions a great coaching tool?',
+        'Coach Olivia chats to Student Sam: "Great job solving that problem! You persevered using the formula we reviewed.',
+        'You student, Aiko chats in: So you multiply 3(x) and 3(3). So you get 3x + 6',
+        'Ang is working on solving complex equations but is struggling with order of operations, what should you say?',
+        'Lixin is calling you negative names and drawing inappropriate images on the whiteboard. What is the appropriate action you should take?',
+        'Sarah asks you to share your email so she can connect with you to get help later on. How should you respond?',
+        `You've been working with Mateo for 30 minutes on 2 problems and he has 5 problems left. His homework is due in 10 minutes. He asks you if you could please provide answers just this one time. How should you respond?`,
+        `You've just joined a session and John lets you know he's working on a timed exam. How should you respond?`,
+        'Destiny requested help in Algebra 1 but is asking questions about basic multiplication. How should you respond?',
+        'How can negative implicit biases show up in UPchieve tutoring?',
+      ]
+
+      const isTiny101Active =
+        (await phClient.isFeatureEnabled(
+          FEATURE_FLAGS.TINY_UPCHIEVE101,
+          user.id
+        )) && category === TRAINING.UPCHIEVE_101
+
+      const tiny101Quiz = questions.filter(question => {
+        return tiny101Questions.some(q => question.questionText.startsWith(q))
+      })
+
       res.json({
         msg: 'Questions retrieved from database',
-        questions: questions,
+        questions: isTiny101Active ? tiny101Quiz : questions,
       })
     } catch (err) {
       resError(res, err)
