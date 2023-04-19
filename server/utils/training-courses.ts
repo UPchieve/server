@@ -1,6 +1,7 @@
 import { find, chain } from 'lodash'
-import { isEnabled } from 'unleash-client'
+import { client as phClient } from '../posthog'
 import { FEATURE_FLAGS } from '../constants'
+import { Ulid } from '../models/pgUtils'
 
 export interface TrainingCourse {
   name: string
@@ -626,18 +627,96 @@ export const courses: TrainingCourse[] = [
   },
 ]
 
-export const getCourse = (courseKey: string): TrainingCourse => {
-  const course = find(
-    isEnabled(FEATURE_FLAGS.UPCHIEVE101_UPDATES) ? courses : legacyCourses,
-    { courseKey }
+export const tiny101: TrainingCourse[] = [
+  {
+    name: 'UPchieve 101',
+    courseKey: 'upchieve101',
+    description: `UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.`,
+    quizKey: 'upchieve101',
+    quizName: 'UPchieve 101 Quiz',
+    modules: [
+      {
+        name: 'Coaching on UPchieve',
+        materials: [
+          {
+            name: 'Implementing Effective Coaching Strategies',
+            materialKey: '7b6a76',
+            type: MaterialType.VIDEO,
+            isRequired: true,
+            resourceId: '760386859',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/implementing-effective-coaching-strategies-deck.pdf',
+            links: [
+              {
+                displayName: 'Summary',
+                url:
+                  'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'Community Safety & Success',
+        materials: [
+          {
+            name: 'Community Safety & Success',
+            materialKey: 'jsn832',
+            type: MaterialType.VIDEO,
+            isRequired: true,
+            resourceId: '773599358',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/community-safety-&-success-deck.pdf',
+          },
+          {
+            name: 'Review Safety Policy',
+            materialKey: 'ps87f9',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            linkUrl:
+              'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-student-safety-policy.pdf',
+          },
+          {
+            name: 'Review Academic Policy',
+            materialKey: 'jgu55k',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            linkUrl:
+              'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf',
+          },
+          {
+            name: 'Review DEI Policy',
+            materialKey: 'fj8tzq',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            linkUrl:
+              'https://cdn.upchieve.org/training-courses/upchieve101/volunteer-dei-policy-v2.pdf',
+          },
+        ],
+      },
+    ],
+  },
+]
+
+export const getCourse = async (
+  courseKey: string,
+  userId: Ulid
+): Promise<TrainingCourse> => {
+  const isTiny101Active = await phClient.isFeatureEnabled(
+    FEATURE_FLAGS.TINY_UPCHIEVE101,
+    userId
   )
+  const course = find(isTiny101Active ? tiny101 : courses, { courseKey })
   if (!course)
     throw new Error(`Training course does not exist for key ${courseKey}`)
   return course
 }
 
-const getRequiredMaterials = (courseKey: string): string[] => {
-  const course: TrainingCourse = getCourse(courseKey)
+const getRequiredMaterials = async (
+  courseKey: string,
+  userId: Ulid
+): Promise<string[]> => {
+  const course: TrainingCourse = await getCourse(courseKey, userId)
   return chain(course.modules)
     .map('materials')
     .flatten()
@@ -646,11 +725,12 @@ const getRequiredMaterials = (courseKey: string): string[] => {
     .value()
 }
 
-export const getProgress = (
+export const getProgress = async (
   courseKey: string,
-  userCompleted: string[]
-): number => {
-  const requiredMaterials = getRequiredMaterials(courseKey)
+  userCompleted: string[],
+  userId: Ulid
+): Promise<number> => {
+  const requiredMaterials = await getRequiredMaterials(courseKey, userId)
   const completedMaterials = requiredMaterials.filter(mat =>
     userCompleted.includes(mat)
   )
