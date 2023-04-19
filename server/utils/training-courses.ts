@@ -646,6 +646,13 @@ export const tiny101: TrainingCourse[] = [
             resourceId: '760386859',
             videoPDF:
               'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/implementing-effective-coaching-strategies-deck.pdf',
+            links: [
+              {
+                displayName: 'Summary',
+                url:
+                  'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf',
+              },
+            ],
           },
         ],
       },
