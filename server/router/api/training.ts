@@ -47,6 +47,11 @@ export function routeTraining(router: Router): void {
       const tiny101Quiz = questions.filter(question => {
         return tiny101Questions.some(q => question.questionText.startsWith(q))
       })
+      if (isTiny101Active) {
+        captureEvent(user.id, EVENTS.FLAGGED_BY_TINY_101, {
+          event: EVENTS.FLAGGED_BY_TINY_101,
+        })
+      }
 
       const isTinyCertsActive =
         (await phClient.isFeatureEnabled(FEATURE_FLAGS.TINY_CERTS, user.id)) &&
