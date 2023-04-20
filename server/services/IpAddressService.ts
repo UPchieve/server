@@ -10,13 +10,15 @@ import { asString } from '../utils/type-utils'
 import net from 'net'
 import { cleanIpString } from '../utils/clean-ip-string'
 import config from '../config'
+import { isDevEnvironment } from '../utils/environments'
+
+const IPV6_LOCALHOST = ['::1', '0:0:0:0:0:0:0:1']
 
 export async function getIpWhoIs(rawIpString: string) {
   const ipString = cleanIpString(rawIpString)
-  const ipWhoIs =
-    config.NODE_ENV === 'dev'
-      ? `http://free.ipwhois.io/json/${ipString}`
-      : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
+  const ipWhoIs = isDevEnvironment()
+    ? `http://free.ipwhois.io/json/${ipString}`
+    : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
 
   try {
     const { data } = await axios.get(ipWhoIs, {
@@ -51,6 +53,14 @@ export async function checkIpAddress(data: unknown | string) {
   const ip = asString(data)
   if (!isValidIp(ip)) throw new Error('Not a valid IP address')
 
+  // TODO(alex.lindsay): This is temporary while I reach out to IPWHOIS.
+  // IPv6 localhost addresses are being marked as Switzerland.
+  if (isLocalhostDevelopment(ip)) return true
+
   const { country_code: countryCode } = await getIpWhoIs(ip)
   if (countryCode && countryCode !== 'US') throw new NotAllowedError()
+}
+
+function isLocalhostDevelopment(ip: string): boolean {
+  return isDevEnvironment() && IPV6_LOCALHOST.includes(ip)
 }
