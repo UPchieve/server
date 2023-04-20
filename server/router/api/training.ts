@@ -10,10 +10,11 @@ import {
   userHasTakenQuiz,
   createQuizAction,
 } from '../../models/UserAction/queries'
-import { QUIZ_USER_ACTIONS, TRAINING } from '../../constants'
+import { EVENTS, QUIZ_USER_ACTIONS, TRAINING } from '../../constants'
 import { getQuizReviewMaterials } from '../../models/Question/queries'
 import { client as phClient } from '../../posthog'
 import { FEATURE_FLAGS } from '../../constants'
+import { captureEvent } from '../../services/AnalyticsService'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
@@ -45,6 +46,11 @@ export function routeTraining(router: Router): void {
       const tiny101Quiz = questions.filter(question => {
         return tiny101Questions.some(q => question.questionText.startsWith(q))
       })
+      if (isTiny101Active) {
+        captureEvent(user.id, EVENTS.FLAGGED_BY_TINY_101, {
+          event: EVENTS.FLAGGED_BY_TINY_101,
+        })
+      }
 
       res.json({
         msg: 'Questions retrieved from database',
