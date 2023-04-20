@@ -15,6 +15,7 @@ import { getQuizReviewMaterials } from '../../models/Question/queries'
 import { client as phClient } from '../../posthog'
 import { FEATURE_FLAGS } from '../../constants'
 import { captureEvent } from '../../services/AnalyticsService'
+import _ from 'lodash'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
