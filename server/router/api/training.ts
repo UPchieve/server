@@ -15,6 +15,7 @@ import { getQuizReviewMaterials } from '../../models/Question/queries'
 import { client as phClient } from '../../posthog'
 import { FEATURE_FLAGS } from '../../constants'
 import { captureEvent } from '../../services/AnalyticsService'
+import _ from 'lodash'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
@@ -52,9 +53,25 @@ export function routeTraining(router: Router): void {
         })
       }
 
+      const isTinyCertsActive =
+        (await phClient.isFeatureEnabled(FEATURE_FLAGS.TINY_CERTS, user.id)) &&
+        category !== TRAINING.UPCHIEVE_101
+      const randomIndex = _.random(0, questions.length)
+      const singleQuestion = questions[randomIndex]
+      if (isTinyCertsActive) {
+        captureEvent(user.id, EVENTS.FLAGGED_BY_TINY_CERTS, {
+          event: EVENTS.FLAGGED_BY_TINY_CERTS,
+          subject: category,
+        })
+      }
+
       res.json({
         msg: 'Questions retrieved from database',
-        questions: isTiny101Active ? tiny101Quiz : questions,
+        questions: isTiny101Active
+          ? tiny101Quiz
+          : isTinyCertsActive
+          ? [singleQuestion]
+          : questions,
       })
     } catch (err) {
       resError(res, err)
