@@ -1289,29 +1289,15 @@ FROM
         FROM (
             SELECT
                 user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
+                subjects.name AS subject
             FROM
                 users_certifications
                 JOIN certification_subject_unlocks USING (certification_id)
                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                WHERE
-                    users_certifications.user_id = users.id
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
+            WHERE
+                users_certifications.user_id = users.id
+            GROUP BY
+                user_id, subjects.name) AS sub_unlocked) AS subjects_unlocked ON TRUE
     LEFT JOIN (
         SELECT
             passed,
