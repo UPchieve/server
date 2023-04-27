@@ -141,8 +141,10 @@ export async function getQuizScore(
     const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
       user.id
     )
-    const hasSubjects = unlockedSubjects.length > 0 || currentSubjects.length > 0
-    const passedUpchieve101 = userQuizzes.upchieve101?.passed || cert === TRAINING.UPCHIEVE_101
+    const hasSubjects =
+      unlockedSubjects.length > 0 || currentSubjects.length > 0
+    const passedUpchieve101 =
+      userQuizzes.upchieve101?.passed || cert === TRAINING.UPCHIEVE_101
     if (
       volunteerProfile &&
       !volunteerProfile.onboarded &&
