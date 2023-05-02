@@ -46,25 +46,15 @@ import {
   checkNames,
   checkEmail,
 } from '../utils/auth-utils'
-import { asBoolean, asString } from '../utils/type-utils'
+import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
-import { getIpWhoIs } from './IpAddressService'
+import { checkIpAddress } from './IpAddressService'
 import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
 import config from '../config'
-
-async function checkIpAddress(ip: string): Promise<void> {
-  const { country_code: countryCode } = await getIpWhoIs(ip)
-
-  if (countryCode && countryCode !== 'US') {
-    throw new NotAllowedError(
-      'Cannot register from an international IP address'
-    )
-  }
-}
 
 // Handlers
 /**
