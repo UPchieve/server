@@ -13,6 +13,7 @@ import * as EduRouter from './edu'
 import * as MobileRouter from './mobile'
 import * as ReferenceRouter from './reference'
 import * as ReferralRouter from './referral'
+import * as SubjectsRouter from './subjects'
 import * as TwimlRouter from './twiml'
 import { Server } from 'socket.io'
 
@@ -37,6 +38,7 @@ export default function(app: Express, io: Server) {
   MobileRouter.routes(app)
   ReferenceRouter.routes(app)
   ReferralRouter.routes(app)
+  SubjectsRouter.routes(app)
 
   app.get('/healthz', function(req, res) {
     res.status(200).json({ version: config.version })
