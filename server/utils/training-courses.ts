@@ -1,7 +1,4 @@
 import { find, chain } from 'lodash'
-import { client as phClient } from '../posthog'
-import { FEATURE_FLAGS } from '../constants'
-import { Ulid } from '../models/pgUtils'
 
 export interface TrainingCourse {
   name: string
@@ -324,7 +321,15 @@ export const legacyCourses: TrainingCourse[] = [
   },
 ]
 
-export const courses: TrainingCourse[] = [
+/**
+ *
+ * Keeping for historical purposes to be able to tell which
+ * materialKey belongs to a particular training.
+ * This will be useful for when we migrate the training
+ * course materials into the database
+ *
+ */
+export const legacyCoursesv2: TrainingCourse[] = [
   {
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
@@ -627,7 +632,7 @@ export const courses: TrainingCourse[] = [
   },
 ]
 
-export const tiny101: TrainingCourse[] = [
+export const courses: TrainingCourse[] = [
   {
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
@@ -698,25 +703,15 @@ export const tiny101: TrainingCourse[] = [
   },
 ]
 
-export const getCourse = async (
-  courseKey: string,
-  userId: Ulid
-): Promise<TrainingCourse> => {
-  const isTiny101Active = await phClient.isFeatureEnabled(
-    FEATURE_FLAGS.TINY_UPCHIEVE101,
-    userId
-  )
-  const course = find(isTiny101Active ? tiny101 : courses, { courseKey })
+export const getCourse = (courseKey: string): TrainingCourse => {
+  const course = find(courses, { courseKey })
   if (!course)
     throw new Error(`Training course does not exist for key ${courseKey}`)
   return course
 }
 
-const getRequiredMaterials = async (
-  courseKey: string,
-  userId: Ulid
-): Promise<string[]> => {
-  const course: TrainingCourse = await getCourse(courseKey, userId)
+const getRequiredMaterials = (courseKey: string): string[] => {
+  const course: TrainingCourse = getCourse(courseKey)
   return chain(course.modules)
     .map('materials')
     .flatten()
@@ -725,12 +720,11 @@ const getRequiredMaterials = async (
     .value()
 }
 
-export const getProgress = async (
+export const getProgress = (
   courseKey: string,
-  userCompleted: string[],
-  userId: Ulid
-): Promise<number> => {
-  const requiredMaterials = await getRequiredMaterials(courseKey, userId)
+  userCompleted: string[]
+): number => {
+  const requiredMaterials = getRequiredMaterials(courseKey)
   const completedMaterials = requiredMaterials.filter(mat =>
     userCompleted.includes(mat)
   )
