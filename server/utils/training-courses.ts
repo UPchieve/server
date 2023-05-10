@@ -690,7 +690,7 @@ export const courses: TrainingCourse[] = [
               'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf',
           },
           {
-            name: 'Review Diversity, Equity, and Inclusion Policy Policy',
+            name: 'Review Diversity, Equity, and Inclusion Policy',
             materialKey: 'fj8tzq',
             type: MaterialType.DOCUMENT,
             isRequired: true,
