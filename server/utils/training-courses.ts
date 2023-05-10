@@ -682,7 +682,7 @@ export const courses: TrainingCourse[] = [
               'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-student-safety-policy.pdf',
           },
           {
-            name: 'Review Academic Policy',
+            name: 'Review Academic Integrity Policy',
             materialKey: 'jgu55k',
             type: MaterialType.DOCUMENT,
             isRequired: true,
@@ -690,7 +690,7 @@ export const courses: TrainingCourse[] = [
               'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf',
           },
           {
-            name: 'Review DEI Policy',
+            name: 'Review Diversity, Equity, and Inclusion Policy',
             materialKey: 'fj8tzq',
             type: MaterialType.DOCUMENT,
             isRequired: true,
