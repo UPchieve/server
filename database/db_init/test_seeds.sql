@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
--- Dumped by pg_dump version 14.2
+-- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
+-- Dumped by pg_dump version 14.7 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -442,6 +442,8 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 5	12th	2023-01-09 19:27:36.755979+00	2023-01-09 19:27:36.755979+00
 6	College	2023-01-09 19:27:36.757698+00	2023-01-09 19:27:36.757698+00
 7	Other	2023-01-09 19:27:39.576299+00	2023-01-09 19:27:39.576299+00
+10	6th	2023-05-10 20:44:04.698056+00	2023-05-10 20:44:04.698056+00
+11	7th	2023-05-10 20:44:04.698056+00	2023-05-10 20:44:04.698056+00
 \.
 
 
@@ -3702,7 +3704,7 @@ SELECT pg_catalog.setval('upchieve.cities_id_seq', 2, true);
 -- Name: grade_levels_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 7, true);
+SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 11, true);
 
 
 --
