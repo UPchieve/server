@@ -16,14 +16,14 @@ import * as VolunteerRepo from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as VolunteerService from '../../services/VolunteerService'
+import { buildIdAnswerMapHelper } from '../mocks/controllers/TrainingCtrl.mock'
 import {
-  buildIdAnswerMapHelper,
-  buildQuestions,
-  buildQuiz,
-  buildQuizUnlockCert,
   buildSubcategoriesForQuiz,
-  buildVolunteerQuizMap,
-} from '../mocks/controllers/TrainingCtrl.mock'
+  buildQuiz,
+  buildQuestions,
+  buildQuizUnlockCert,
+} from '../mocks/repos/question-repo.mock'
+import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
