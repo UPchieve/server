@@ -153,3 +153,7 @@ export function isPgId(id: string): boolean {
     throw err
   }
 }
+
+export type ExtractValues<
+  T extends { readonly [k: string]: string }
+> = T[keyof T]
