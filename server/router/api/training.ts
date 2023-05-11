@@ -19,9 +19,10 @@ export function routeTraining(router: Router): void {
       const questions = await TrainingCtrl.getQuestions(
         asString(req.body.category)
       )
+
       res.json({
         msg: 'Questions retrieved from database',
-        questions: questions,
+        questions,
       })
     } catch (err) {
       resError(res, err)

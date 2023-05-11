@@ -1,10 +1,5 @@
-import PostHog from 'posthog-node'
-import config from '../config'
+import { client } from '../posthog'
 import { Ulid } from '../models/pgUtils'
-
-const client = new PostHog(config.posthogToken, {
-  host: 'https://app.posthog.com',
-})
 
 export const captureEvent = (
   userId: Ulid,

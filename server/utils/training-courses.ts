@@ -1,6 +1,4 @@
 import { find, chain } from 'lodash'
-import { isEnabled } from 'unleash-client'
-import { FEATURE_FLAGS } from '../constants'
 
 export interface TrainingCourse {
   name: string
@@ -323,7 +321,15 @@ export const legacyCourses: TrainingCourse[] = [
   },
 ]
 
-export const courses: TrainingCourse[] = [
+/**
+ *
+ * Keeping for historical purposes to be able to tell which
+ * materialKey belongs to a particular training.
+ * This will be useful for when we migrate the training
+ * course materials into the database
+ *
+ */
+export const legacyCoursesv2: TrainingCourse[] = [
   {
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
@@ -626,11 +632,79 @@ export const courses: TrainingCourse[] = [
   },
 ]
 
+export const courses: TrainingCourse[] = [
+  {
+    name: 'UPchieve 101',
+    courseKey: 'upchieve101',
+    description: `UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.`,
+    quizKey: 'upchieve101',
+    quizName: 'UPchieve 101 Quiz',
+    modules: [
+      {
+        name: 'Coaching on UPchieve',
+        materials: [
+          {
+            name: 'Implementing Effective Coaching Strategies',
+            materialKey: '7b6a76',
+            type: MaterialType.VIDEO,
+            isRequired: true,
+            resourceId: '760386859',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/implementing-effective-coaching-strategies-deck.pdf',
+            links: [
+              {
+                displayName: 'Summary',
+                url:
+                  'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'Community Safety & Success',
+        materials: [
+          {
+            name: 'Community Safety & Success',
+            materialKey: 'jsn832',
+            type: MaterialType.VIDEO,
+            isRequired: true,
+            resourceId: '773599358',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/community-safety-&-success-deck.pdf',
+          },
+          {
+            name: 'Review Safety Policy',
+            materialKey: 'ps87f9',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            linkUrl:
+              'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-student-safety-policy.pdf',
+          },
+          {
+            name: 'Review Academic Integrity Policy',
+            materialKey: 'jgu55k',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            linkUrl:
+              'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf',
+          },
+          {
+            name: 'Review Diversity, Equity, and Inclusion Policy',
+            materialKey: 'fj8tzq',
+            type: MaterialType.DOCUMENT,
+            isRequired: true,
+            linkUrl:
+              'https://cdn.upchieve.org/training-courses/upchieve101/volunteer-dei-policy-v2.pdf',
+          },
+        ],
+      },
+    ],
+  },
+]
+
 export const getCourse = (courseKey: string): TrainingCourse => {
-  const course = find(
-    isEnabled(FEATURE_FLAGS.UPCHIEVE101_UPDATES) ? courses : legacyCourses,
-    { courseKey }
-  )
+  const course = find(courses, { courseKey })
   if (!course)
     throw new Error(`Training course does not exist for key ${courseKey}`)
   return course
