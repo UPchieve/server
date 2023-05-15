@@ -11,6 +11,7 @@ import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-token
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
+import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
 import chatbot from './chatbot'
 import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailReadyToCoach from './emailReadyToCoach'
@@ -106,6 +107,7 @@ export enum Jobs {
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
   UpsertPostalCodes = 'UpsertPostalCodes',
+  TitlecaseSchoolNames = 'TitlecaseSchoolNames',
 }
 
 // register new job processors here
@@ -323,6 +325,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertPostalCodes,
     processor: upsertPostalCodes,
+  },
+  {
+    name: Jobs.TitlecaseSchoolNames,
+    processor: titlecaseSchoolNames,
   },
 ]
 

@@ -147,3 +147,21 @@ WHERE
     schools.name ILIKE '%' || :query! || '%'
 LIMIT 100;
 
+
+/* @name titlecaseSchoolNames */
+UPDATE
+    schools
+SET
+    name = INITCAP(name)
+WHERE
+    name ~ '^[A-Z\s\d]*$';
+
+
+/* @name titlecaseMetadataSchoolNames */
+UPDATE
+    school_nces_metadata
+SET
+    sch_name = INITCAP(sch_name)
+WHERE
+    sch_name ~ '^[A-Z\s\d]*$';
+

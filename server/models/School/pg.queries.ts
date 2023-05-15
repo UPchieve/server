@@ -420,3 +420,59 @@ const schoolSearchIR: any = {"name":"schoolSearch","params":[{"name":"query","re
 export const schoolSearch = new PreparedQuery<ISchoolSearchParams,ISchoolSearchResult>(schoolSearchIR);
 
 
+/** 'TitlecaseSchoolNames' parameters type */
+export type ITitlecaseSchoolNamesParams = void;
+
+/** 'TitlecaseSchoolNames' return type */
+export type ITitlecaseSchoolNamesResult = void;
+
+/** 'TitlecaseSchoolNames' query type */
+export interface ITitlecaseSchoolNamesQuery {
+  params: ITitlecaseSchoolNamesParams;
+  result: ITitlecaseSchoolNamesResult;
+}
+
+const titlecaseSchoolNamesIR: any = {"name":"titlecaseSchoolNames","params":[],"usedParamSet":{},"statement":{"body":"UPDATE\n    schools\nSET\n    name = INITCAP(name)\nWHERE\n    name ~ '^[A-Z\\s\\d]*$'","loc":{"a":3576,"b":3654,"line":152,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     schools
+ * SET
+ *     name = INITCAP(name)
+ * WHERE
+ *     name ~ '^[A-Z\s\d]*$'
+ * ```
+ */
+export const titlecaseSchoolNames = new PreparedQuery<ITitlecaseSchoolNamesParams,ITitlecaseSchoolNamesResult>(titlecaseSchoolNamesIR);
+
+
+/** 'TitlecaseMetadataSchoolNames' parameters type */
+export type ITitlecaseMetadataSchoolNamesParams = void;
+
+/** 'TitlecaseMetadataSchoolNames' return type */
+export type ITitlecaseMetadataSchoolNamesResult = void;
+
+/** 'TitlecaseMetadataSchoolNames' query type */
+export interface ITitlecaseMetadataSchoolNamesQuery {
+  params: ITitlecaseMetadataSchoolNamesParams;
+  result: ITitlecaseMetadataSchoolNamesResult;
+}
+
+const titlecaseMetadataSchoolNamesIR: any = {"name":"titlecaseMetadataSchoolNames","params":[],"usedParamSet":{},"statement":{"body":"UPDATE\n    school_nces_metadata\nSET\n    sch_name = INITCAP(sch_name)\nWHERE\n    sch_name ~ '^[A-Z\\s\\d]*$'","loc":{"a":3700,"b":3803,"line":161,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     school_nces_metadata
+ * SET
+ *     sch_name = INITCAP(sch_name)
+ * WHERE
+ *     sch_name ~ '^[A-Z\s\d]*$'
+ * ```
+ */
+export const titlecaseMetadataSchoolNames = new PreparedQuery<ITitlecaseMetadataSchoolNamesParams,ITitlecaseMetadataSchoolNamesResult>(titlecaseMetadataSchoolNamesIR);
+
+
