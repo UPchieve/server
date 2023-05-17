@@ -25,12 +25,15 @@ import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
 import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
+import { Ulid } from '../models/pgUtils'
+import { getMediumCertsFlag } from '../services/FeatureFlagService'
 
 const SUBJECT_THRESHOLD = 0.8
 const TRAINING_THRESHOLD = 0.9
 
 export async function getQuestions(
-  category: string
+  category: string,
+  userId: Ulid
 ): Promise<QuestionModel.Question[]> {
   const subcategories = await QuestionModel.getSubcategoriesForQuiz(category)
 
@@ -51,11 +54,22 @@ export async function getQuestions(
     question => question.subcategory
   )
 
-  return _.shuffle(
+  const shuffledQuestions = _.shuffle(
     Object.entries(questionsBySubcategory).flatMap(([, subQuestions]) =>
       _.sampleSize(subQuestions, questionPerCategory)
     )
   )
+
+  const isMediumCertsActive = await getMediumCertsFlag(userId)
+  if (isMediumCertsActive) {
+    captureEvent(userId, EVENTS.FLAGGED_BY_MEDIUM_CERTS, {
+      event: EVENTS.FLAGGED_BY_MEDIUM_CERTS,
+      subject: category,
+    })
+  }
+  return isMediumCertsActive
+    ? shuffledQuestions.slice(0, quiz.totalQuestions)
+    : shuffledQuestions
 }
 
 type AnswerMap = { [k: number]: string }

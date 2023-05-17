@@ -222,7 +222,8 @@ export async function getQuizByName(
 ): Promise<Quiz | undefined> {
   try {
     const results = await pgQueries.getQuizByName.run({ quizName }, getClient())
-    if (results.length) return makeRequired(results[0])
+    if (results.length)
+      return { ...makeRequired(results[0]), totalQuestions: 7 }
   } catch (err) {
     throw new RepoReadError(err)
   }
