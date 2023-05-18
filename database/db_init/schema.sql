@@ -636,7 +636,8 @@ CREATE TABLE upchieve.postal_codes (
     income integer,
     location point,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    qualifying_income integer
 );
 
 
@@ -4656,4 +4657,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221201000842'),
     ('20221201064546'),
     ('20221206021238'),
-    ('20230104192756');
+    ('20230104192756'),
+    ('20230517234506');
