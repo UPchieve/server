@@ -1,6 +1,9 @@
 const { createApp } = require('@unleash/proxy')
 import { initialize } from 'unleash-client'
 import config from '../config'
+import { FEATURE_FLAGS } from '../constants'
+import { client as phClient } from '../posthog'
+import { Ulid } from '../models/pgUtils'
 
 /**
  * This creates a proxy server that the frontend can hit.
@@ -38,4 +41,15 @@ export const initializeUnleash = (): void => {
       instanceId: config.unleashId,
       refreshInterval: 5000,
     })
+}
+
+export async function isFeatureEnabled(
+  featureFlagName: FEATURE_FLAGS,
+  userId: Ulid
+) {
+  return await phClient.isFeatureEnabled(featureFlagName, userId)
+}
+
+export async function getMediumCertsFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.MEDIUM_CERTS, userId)
 }

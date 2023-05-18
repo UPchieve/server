@@ -71,6 +71,7 @@ export const EVENTS = <const>{
   SESSION_REJOINED: 'SESSION_REJOINED',
   SUBJECT_UNLOCKED: 'SUBJECT_UNLOCKED',
   SESSION_REPLIED_YES_TO_TEXT: 'SESSION_REPLIED_YES_TO_TEXT', // @note: currently deprecated
+  FLAGGED_BY_MEDIUM_CERTS: 'FLAGGED_BY_MEDIUM_CERTS',
 }
 export type EVENTS = ExtractValues<typeof EVENTS>
 
@@ -127,6 +128,8 @@ export enum ONBOARDING_STATUS {
 }
 
 export enum GRADES {
+  SIXTH = '6th',
+  SEVENTH = '7th',
   EIGHTH = '8th',
   NINTH = '9th',
   TENTH = '10th',

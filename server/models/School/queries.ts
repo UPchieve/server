@@ -173,3 +173,19 @@ export async function schoolSearch(query: string): Promise<School[]> {
     throw new RepoReadError(err)
   }
 }
+
+export async function titlecaseSchoolNames(): Promise<void> {
+  try {
+    await pgQueries.titlecaseSchoolNames.run(undefined, getClient())
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function titlecaseMetadataSchoolNames(): Promise<void> {
+  try {
+    await pgQueries.titlecaseMetadataSchoolNames.run(undefined, getClient())
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}

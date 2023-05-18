@@ -142,3 +142,10 @@ export async function adminUpdateSchool(data: unknown) {
 
   return SchoolRepo.adminUpdateSchool(schoolData as AdminUpdate)
 }
+
+export async function titlecaseSchoolNames() {
+  return Promise.all([
+    SchoolRepo.titlecaseSchoolNames,
+    SchoolRepo.titlecaseMetadataSchoolNames,
+  ])
+}
