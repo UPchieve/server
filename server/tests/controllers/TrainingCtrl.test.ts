@@ -40,12 +40,14 @@ beforeEach(async () => {
   jest.clearAllMocks()
 })
 
+const volunteer = buildVolunteer()
+
 describe('getQuestions', () => {
   test('Should throw error when no subcategories exist', async () => {
     const subject = MATH_CERTS.ALGEBRA_ONE
     mockedQuestionRepo.getSubcategoriesForQuiz.mockResolvedValueOnce([])
     await expect(async () => {
-      await getQuestions(subject)
+      await getQuestions(subject, volunteer.id)
     }).rejects.toThrow(`No subcategories defined for category: ${subject}`)
   })
 
@@ -57,7 +59,7 @@ describe('getQuestions', () => {
     )
     mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(undefined)
     await expect(async () => {
-      await getQuestions(subject)
+      await getQuestions(subject, volunteer.id)
     }).rejects.toThrow(`No quiz created for category: ${subject}`)
   })
 
@@ -72,7 +74,7 @@ describe('getQuestions', () => {
     mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(quiz)
     mockedQuestionRepo.listQuestions.mockResolvedValueOnce(questions)
 
-    const result = await getQuestions(subject)
+    const result = await getQuestions(subject, volunteer.id)
     expect(result).toHaveLength(2)
   })
 })
