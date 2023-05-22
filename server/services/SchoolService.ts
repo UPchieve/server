@@ -145,7 +145,7 @@ export async function adminUpdateSchool(data: unknown) {
 
 export async function titlecaseSchoolNames() {
   return Promise.all([
-    SchoolRepo.titlecaseSchoolNames,
-    SchoolRepo.titlecaseMetadataSchoolNames,
+    SchoolRepo.titlecaseSchoolNames(),
+    SchoolRepo.titlecaseMetadataSchoolNames(),
   ])
 }
