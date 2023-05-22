@@ -1,400 +1,769 @@
-test.skip('postgres migration', () => 1)
-/*import mongoose from 'mongoose'
+import { mocked } from 'ts-jest/utils'
+import { getQuestions, getQuizScore } from '../../controllers/TrainingCtrl'
+import { buildVolunteer } from '../mocks/generate'
 import {
-  getQuizScore,
-} from '../../controllers/TrainingCtrl'
-import { resetDb, insertVolunteer, getVolunteer } from '../db-utils'
-import { buildCertifications, buildVolunteer } from '../generate'
-import {
-  TRAINING,
   MATH_CERTS,
-  SCIENCE_CERTS,
-  SAT_CERTS,
-  SUBJECTS,
-  MATH_SUBJECTS,
-  SCIENCE_SUBJECTS,
-  SAT_SUBJECTS,
-  USER_ACTION,
+  CERTS,
+  SUBJECT_TYPES,
+  QUIZ_USER_ACTIONS,
+  EVENTS,
+  ACCOUNT_USER_ACTIONS,
 } from '../../constants'
-import algebraQuestions from '../../seeds/questions/algebra.json'
-import { Certifications } from '../../models/Volunteer'
 import * as UserActionRepo from '../../models/UserAction'
+import * as QuestionRepo from '../../models/Question'
+import * as SubjectsRepo from '../../models/Subjects'
+import * as VolunteerRepo from '../../models/Volunteer'
+import * as MailService from '../../services/MailService'
+import * as AnalyticsService from '../../services/AnalyticsService'
 import * as VolunteerService from '../../services/VolunteerService'
+import { buildIdAnswerMapHelper } from '../mocks/controllers/TrainingCtrl.mock'
+import {
+  buildSubcategoriesForQuiz,
+  buildQuiz,
+  buildQuestions,
+  buildQuizUnlockCert,
+} from '../mocks/repos/question-repo.mock'
+import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
+jest.mock('../../services/AnalyticsService')
+jest.mock('../../models/Question')
+jest.mock('../../models/Subjects')
+jest.mock('../../models/Volunteer')
+jest.mock('../../models/UserAction')
 
-const buildCertificationsWithUpchieve101 = (options = {}): Certifications => {
-  return buildCertifications({
-    [TRAINING.UPCHIEVE_101]: { passed: true, tries: 1 },
-    ...options,
-  })
-}
-
-// A helper that returns an answer map with the amount of wrong answers entered
-const generateIdAnswerMapHelper = async (
-  incorrectAnswerAmount = 0
-): Promise<{ [id: string]: string }> => {
-  // Only get 12 questions
-  const questions = await Question.find({})
-    .lean()
-    .limit(12)
-    .exec()
-
-  const idAnswerList = questions.map(question => {
-    const data: any = {}
-    const questionId = question._id
-    data[questionId] = question.correctAnswer
-
-    return data
-  })
-
-  const idAnswerMap: any = {}
-
-  for (let i = 0; i < idAnswerList.length; i++) {
-    const questionId = Object.keys(idAnswerList[i])[0]
-    const correctAnswer = idAnswerList[i][questionId]
-
-    // convert to ASCII and increment then convert back to char to get a wrong answer
-    if (i < incorrectAnswerAmount)
-      idAnswerMap[questionId] = String.fromCharCode(
-        correctAnswer.charCodeAt(0) + 1
-      )
-    else idAnswerMap[questionId] = correctAnswer
-  }
-
-  return idAnswerMap
-}
-
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
+const mockedQuestionRepo = mocked(QuestionRepo)
+const mockedSubjectsRepo = mocked(SubjectsRepo)
+const mockedVolunteerRepo = mocked(VolunteerRepo)
 
 beforeEach(async () => {
-  await resetDb()
+  jest.clearAllMocks()
 })
 
-test.todo('getQuestions tests')
-test.todo('getQuizScore tests')
+const volunteer = buildVolunteer()
+
+describe('getQuestions', () => {
+  test('Should throw error when no subcategories exist', async () => {
+    const subject = MATH_CERTS.ALGEBRA_ONE
+    mockedQuestionRepo.getSubcategoriesForQuiz.mockResolvedValueOnce([])
+    await expect(async () => {
+      await getQuestions(subject, volunteer.id)
+    }).rejects.toThrow(`No subcategories defined for category: ${subject}`)
+  })
+
+  test('Should throw error when no quiz exist', async () => {
+    const subject = MATH_CERTS.ALGEBRA_ONE
+    const subcategories = buildSubcategoriesForQuiz()
+    mockedQuestionRepo.getSubcategoriesForQuiz.mockResolvedValueOnce(
+      subcategories
+    )
+    mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(undefined)
+    await expect(async () => {
+      await getQuestions(subject, volunteer.id)
+    }).rejects.toThrow(`No quiz created for category: ${subject}`)
+  })
+
+  test('Successfully retrieves quiz questions', async () => {
+    const subject = MATH_CERTS.ALGEBRA_ONE
+    const subcategories = buildSubcategoriesForQuiz()
+    const quiz = buildQuiz({ questionsPerSubcategory: 2 })
+    const questions = buildQuestions(2)
+    mockedQuestionRepo.getSubcategoriesForQuiz.mockResolvedValueOnce(
+      subcategories
+    )
+    mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(quiz)
+    mockedQuestionRepo.listQuestions.mockResolvedValueOnce(questions)
+
+    const result = await getQuestions(subject, volunteer.id)
+    expect(result).toHaveLength(2)
+  })
+})
 
 describe('getQuizScore', () => {
-  beforeAll(async () => {
-    await Question.insertMany(algebraQuestions)
+  test('Should throw error when a subject is not found', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const subject = MATH_CERTS.ALGEBRA_ONE
+    const idAnswerMap = await buildIdAnswerMapHelper(questions)
+    const quizScoreInput = {
+      user: volunteer,
+      category: subject,
+      idAnswerMap,
+      ip: '',
+    }
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(undefined)
+
+    await expect(async () => {
+      await getQuizScore(quizScoreInput)
+    }).rejects.toThrow(`No subject type found for subject: ${subject}`)
   })
 
-  test('Should onboard a user after completing a math certification, then UPchieve 101, and then Tutoring Skills', async () => {
-    const volunteer = await insertVolunteer(
-      buildVolunteer({
-        availabilityLastModifiedAt: new Date(),
-        volunteerPartnerOrg: 'example',
-      })
-    )
-
-    // Volunteer completes a quiz in Statistics
-    const idAnswerMap = await generateIdAnswerMapHelper()
+  test('Fails subject quiz', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.ALGEBRA_ONE
+    const idAnswerMap = buildIdAnswerMapHelper(questions, questions.length)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [CERTS.ALGEBRA_ONE])
     // TODO: figure out how to set a type for quizScoreInput
-    let quizScoreInput: any = {
+    const quizScoreInput: any = {
       user: volunteer,
-      category: MATH_CERTS.STATISTICS,
+      category: cert,
       idAnswerMap,
     }
 
-    let result = await getQuizScore(quizScoreInput)
-    let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-    let expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeFalsy()
-    expect(
-      updatedVolunteer.certifications![MATH_CERTS.STATISTICS].passed
-    ).toBeTruthy()
-
-    // Volunteer then completes UPchieve 101
-    quizScoreInput = {
-      user: updatedVolunteer,
-      category: TRAINING.UPCHIEVE_101,
-      idAnswerMap,
-    }
-
-    result = await getQuizScore(quizScoreInput)
-    updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-    expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeTruthy()
-    expect(
-      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
-    ).toBeTruthy()
-    expect(VolunteerService.queueOnboardingEventEmails).toBeCalledTimes(1)
-    expect(VolunteerService.queuePartnerOnboardingEventEmails).toBeCalledTimes(
-      1
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(SUBJECT_TYPES.MATH)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
     )
-
-    // Volunteer then completes required training for math, Tutoring Skills, to become onboarded
-    // @note: Leave commented out until Tutoring Skills course is added
-    // quizScoreInput = {
-    //   user: updatedVolunteer,
-    //   category: TRAINING.TUTORING_SKILLS,
-    //   idAnswerMap
-    // };
-
-    // result = await getQuizScore(quizScoreInput);
-    // updatedVolunteer = await getVolunteer({ _id: volunteer._id });
-    // expectedResult = {
-    //   tries: 1,
-    //   passed: true
-    // };
-
-    // expect(result).toMatchObject(expectedResult);
-    // expect(updatedVolunteer.isOnboarded).toBeTruthy();
-    // expect(
-    //   updatedVolunteer.certifications[TRAINING.TUTORING_SKILLS].passed
-    // ).toBeTruthy();
-  })
-  test('Should onboard a user after completing Tutoring Skills, then a math certification, and then UPchieve 101', async () => {
-    const volunteer = await insertVolunteer(
-      buildVolunteer({ availabilityLastModifiedAt: new Date() })
-    )
-    // Volunteer first completes required training for Math and Science - Tutoring Skills
-    const idAnswerMap = await generateIdAnswerMapHelper()
-
-    let quizScoreInput: any = {
-      user: volunteer,
-      category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap,
-    }
-
-    let result = await getQuizScore(quizScoreInput)
-    let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-    let expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeFalsy()
-    expect(
-      updatedVolunteer.certifications![TRAINING.TUTORING_SKILLS].passed
-    ).toBeTruthy()
-
-    // Volunteer completes a second course
-    quizScoreInput = {
-      user: updatedVolunteer,
-
-      category: SCIENCE_CERTS.PHYSICS_TWO,
-      idAnswerMap,
-    }
-
-    result = await getQuizScore(quizScoreInput)
-    updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-
-    expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeFalsy()
-    expect(
-      updatedVolunteer.certifications![SCIENCE_CERTS.PHYSICS_TWO].passed
-    ).toBeTruthy()
-
-    // Volunteer then completes UPchieve 101
-    quizScoreInput = {
-      user: updatedVolunteer,
-      category: TRAINING.UPCHIEVE_101,
-      idAnswerMap,
-    }
-
-    result = await getQuizScore(quizScoreInput)
-    updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-
-    expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeTruthy()
-    expect(
-      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
-    ).toBeTruthy()
-  })
-  test('Should onboard a user after completing UPchieve 101, then Tutoring Skills, and then a math certification', async () => {
-    const volunteer = await insertVolunteer(
-      buildVolunteer({ availabilityLastModifiedAt: new Date() })
-    )
-
-    // Volunteer completes UPchieve 101
-    const idAnswerMap = await generateIdAnswerMapHelper()
-
-    let quizScoreInput: any = {
-      user: volunteer,
-      category: TRAINING.UPCHIEVE_101,
-      idAnswerMap,
-    }
-
-    let result = await getQuizScore(quizScoreInput)
-    let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-    let expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeFalsy()
-    expect(
-      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
-    ).toBeTruthy()
-
-    // Volunteer completes Tutoring Skills
-    quizScoreInput = {
-      user: updatedVolunteer,
-      category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap,
-    }
-
-    result = await getQuizScore(quizScoreInput)
-    updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-
-    expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeFalsy()
-    expect(
-      updatedVolunteer.certifications![TRAINING.TUTORING_SKILLS].passed
-    ).toBeTruthy()
-
-    // Volunteer completes Precalculus
-    quizScoreInput = {
-      user: updatedVolunteer,
-      category: MATH_CERTS.PRECALCULUS,
-      idAnswerMap,
-    }
-
-    result = await getQuizScore(quizScoreInput)
-    updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-
-    expectedResult = {
-      tries: 1,
-      passed: true,
-    }
-    expect(result).toMatchObject(expectedResult)
-    expect(updatedVolunteer.isOnboarded).toBeTruthy()
-    expect(
-      updatedVolunteer.certifications![MATH_CERTS.PRECALCULUS].passed
-    ).toBeTruthy()
-  })
-
-  test('Should create user actions for unlocking a subject', async () => {
-    const certifications = buildCertificationsWithUpchieve101({
-      [MATH_CERTS.CALCULUS_AB]: { passed: true, tries: 1 },
-    })
-    const volunteer = await insertVolunteer(
-      buildVolunteer({ availabilityLastModifiedAt: new Date(), certifications })
-    )
-
-    const idAnswerMap = await generateIdAnswerMapHelper()
-    const quizScoreInput = {
-      user: volunteer,
-      category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap,
-      ip: '',
-    }
-
-    await getQuizScore(quizScoreInput)
-    const userActions = await UserActionModel.find({
-      action: USER_ACTION.QUIZ.UNLOCKED_SUBJECT,
-    })
-      .select('quizSubcategory -_id')
-      .lean()
-      .exec()
-
-    const expectedUserActions = [
-      { quizSubcategory: SUBJECTS.PRECALCULUS.toUpperCase() },
-      { quizSubcategory: SUBJECTS.TRIGONOMETRY.toUpperCase() },
-      { quizSubcategory: SUBJECTS.ALGEBRA_ONE.toUpperCase() },
-      { quizSubcategory: SUBJECTS.ALGEBRA_TWO.toUpperCase() },
-      { quizSubcategory: SUBJECTS.PREALGREBA.toUpperCase() },
-      { quizSubcategory: SUBJECTS.INTEGRATED_MATH_FOUR.toUpperCase() },
-    ]
-
-    expect(userActions).toEqual(expect.arrayContaining(expectedUserActions))
-  })
-
-  test('Should fail a quiz', async () => {
-    const volunteer = await insertVolunteer(
-      buildVolunteer({ availabilityLastModifiedAt: new Date() })
-    )
-
-    const idAnswerMap = await generateIdAnswerMapHelper(5)
-    const quizScoreInput = {
-      user: volunteer,
-      category: TRAINING.UPCHIEVE_101,
-      idAnswerMap,
-      ip: '',
-    }
 
     const result = await getQuizScore(quizScoreInput)
-    const updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-
+    // TODO: Figure out how to include `idAnswerMap` with correct mapping into expectedResult
     const expectedResult = {
       tries: 1,
       passed: false,
+      score: 0,
+      isTrainingSubject: false,
     }
 
-    expect(result).toMatchObject(expectedResult)
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      false
+    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+    expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
+      action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+      userId: volunteer.id,
+      quizSubcategory: cert,
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.SUBJECT_UNLOCKED,
+      {
+        event: EVENTS.SUBJECT_UNLOCKED,
+        subject: cert,
+      }
+    )
+    expect(VolunteerRepo.addVolunteerCertification).not.toHaveBeenCalledWith(
+      volunteer.id,
+      cert
+    )
+    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+    expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
     expect(
-      updatedVolunteer.certifications![TRAINING.UPCHIEVE_101].passed
-    ).toBeFalsy()
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: '',
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toMatchObject(expectedResult)
   })
 
-  test('Grace period volunteer (an existing volunteer) should have the same subjects when completing required training', async () => {
-    const certifications = buildCertifications({
-      [MATH_CERTS.ALGEBRA_TWO]: { passed: true, tries: 1 },
-    })
-    const subjects = [
-      SUBJECTS.PREALGREBA,
-      SUBJECTS.ALGEBRA_ONE,
-      SUBJECTS.ALGEBRA_TWO,
-    ]
-    const volunteer = await insertVolunteer(
-      buildVolunteer({
-        availabilityLastModifiedAt: new Date(),
-        subjects,
-        certifications,
-        isOnboarded: true,
-      })
+  test(`Passes subject quiz, isn't onboarded and doesn't become onboarded because no availability has been selected`, async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.ALGEBRA_ONE
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
+    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedSubjectNames = unlockedCerts.map(
+      cert => cert.unlockedCertName
+    )
+    const currentSubjects: string[] = []
+    const mockVolunteerForOnboarding = {
+      id: volunteer.id,
+      email: volunteer.email,
+      firstName: volunteer.firstName,
+      onboarded: false,
+      subjects: [],
+      country: 'USA',
+      availabilityLastModifiedAt: undefined,
+      hasCompletedUpchieve101: true,
+    }
+    // TODO: figure out how to set a type for quizScoreInput
+    const quizScoreInput: any = {
+      user: volunteer,
+      category: cert,
+      idAnswerMap,
+    }
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(SUBJECT_TYPES.MATH)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
+    )
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValueOnce(
+      unlockedCerts
+    )
+    mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
+      currentSubjects
+    )
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+      mockVolunteerForOnboarding
     )
 
-    const idAnswerMap = await generateIdAnswerMapHelper()
-
-    let quizScoreInput: any = {
-      user: volunteer,
-      category: TRAINING.TUTORING_SKILLS,
-      idAnswerMap,
+    const result = await getQuizScore(quizScoreInput)
+    const expectedResult = {
+      tries: 1,
+      passed: true,
+      score: 1,
+      idCorrectAnswerMap: idAnswerMap,
+      isTrainingSubject: false,
     }
-    await getQuizScore(quizScoreInput)
-    let updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-    expect(updatedVolunteer.subjects).toEqual(subjects)
-
-    quizScoreInput = {
-      user: updatedVolunteer,
-      category: TRAINING.UPCHIEVE_101,
-      idAnswerMap,
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      true
+    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+    for (const subject of unlockedSubjectNames) {
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
+        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+        userId: volunteer.id,
+        quizSubcategory: subject,
+      })
+      expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+        volunteer.id,
+        EVENTS.SUBJECT_UNLOCKED,
+        {
+          event: EVENTS.SUBJECT_UNLOCKED,
+          subject,
+        }
+      )
+      expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
+        volunteer.id,
+        subject
+      )
     }
-    await getQuizScore(quizScoreInput)
-    updatedVolunteer = await getVolunteer({ _id: volunteer._id })
-    expect(updatedVolunteer.subjects).toEqual(subjects)
+    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+    expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
+    expect(
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: '',
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toEqual(expectedResult)
   })
 
-  test.todo('Allow existing users to have a grace period for required training')
+  test(`Passes subject quiz, isn't onboarded and doesn't become onboarded because hasn't passed 101 training`, async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.ALGEBRA_ONE
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
+    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedSubjectNames = unlockedCerts.map(
+      cert => cert.unlockedCertName
+    )
+    const currentSubjects: string[] = []
+    const mockVolunteerForOnboarding = {
+      id: volunteer.id,
+      email: volunteer.email,
+      firstName: volunteer.firstName,
+      onboarded: false,
+      subjects: [],
+      country: 'USA',
+      availabilityLastModifiedAt: new Date(),
+      hasCompletedUpchieve101: false,
+    }
+    // TODO: figure out how to set a type for quizScoreInput
+    const quizScoreInput: any = {
+      user: volunteer,
+      category: cert,
+      idAnswerMap,
+    }
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(SUBJECT_TYPES.MATH)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
+    )
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValueOnce(
+      unlockedCerts
+    )
+    mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
+      currentSubjects
+    )
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+      mockVolunteerForOnboarding
+    )
+
+    const result = await getQuizScore(quizScoreInput)
+    const expectedResult = {
+      tries: 1,
+      passed: true,
+      score: 1,
+      idCorrectAnswerMap: idAnswerMap,
+      isTrainingSubject: false,
+    }
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      true
+    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+    for (const subject of unlockedSubjectNames) {
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
+        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+        userId: volunteer.id,
+        quizSubcategory: subject,
+      })
+      expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+        volunteer.id,
+        EVENTS.SUBJECT_UNLOCKED,
+        {
+          event: EVENTS.SUBJECT_UNLOCKED,
+          subject,
+        }
+      )
+      expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
+        volunteer.id,
+        subject
+      )
+    }
+    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+    expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
+    expect(
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: '',
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toEqual(expectedResult)
+  })
+
+  test(`Passes training quiz, isn't onboarded and doesn't become onboarded because hasn't passed subject quiz`, async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.UPCHIEVE_101
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
+    // TODO: fix `any` type. Should be an empty array
+    const unlockedCerts: any = []
+    const currentSubjects: string[] = []
+    const mockVolunteerForOnboarding = {
+      id: volunteer.id,
+      email: volunteer.email,
+      firstName: volunteer.firstName,
+      onboarded: false,
+      subjects: [],
+      country: 'USA',
+      availabilityLastModifiedAt: new Date(),
+      hasCompletedUpchieve101: false,
+    }
+    // TODO: figure out how to set a type for quizScoreInput
+    const quizScoreInput: any = {
+      user: volunteer,
+      category: cert,
+      idAnswerMap,
+    }
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(
+      SUBJECT_TYPES.TRAINING
+    )
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
+    )
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValueOnce(
+      unlockedCerts
+    )
+    mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
+      currentSubjects
+    )
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+      mockVolunteerForOnboarding
+    )
+
+    const result = await getQuizScore(quizScoreInput)
+    const expectedResult = {
+      tries: 1,
+      passed: true,
+      score: 1,
+      idCorrectAnswerMap: idAnswerMap,
+      isTrainingSubject: true,
+    }
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      true
+    )
+    expect(MailService.createContact).toHaveBeenCalled()
+    expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
+      action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+      userId: volunteer.id,
+      quizSubcategory: cert,
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.SUBJECT_UNLOCKED,
+      {
+        event: EVENTS.SUBJECT_UNLOCKED,
+        subject: cert,
+      }
+    )
+    expect(VolunteerRepo.addVolunteerCertification).not.toHaveBeenCalledWith(
+      volunteer.id,
+      cert
+    )
+    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
+      volunteer.id
+    )
+    expect(
+      VolunteerService.queueOnboardingEventEmails
+    ).not.toHaveBeenCalledWith(volunteer.id)
+    expect(
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: undefined,
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toEqual(expectedResult)
+  })
+
+  test('Passes subject quiz and becomes onboarded', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.ALGEBRA_ONE
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [
+      CERTS.UPCHIEVE_101,
+    ])
+    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedSubjectNames = unlockedCerts.map(
+      cert => cert.unlockedCertName
+    )
+    const currentSubjects: string[] = []
+    const mockVolunteerForOnboarding = {
+      id: volunteer.id,
+      email: volunteer.email,
+      firstName: volunteer.firstName,
+      onboarded: false,
+      subjects: [],
+      country: 'USA',
+      availabilityLastModifiedAt: new Date(),
+      hasCompletedUpchieve101: true,
+    }
+    // TODO: figure out how to set a type for quizScoreInput
+    const quizScoreInput: any = {
+      user: volunteer,
+      category: cert,
+      idAnswerMap,
+    }
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(SUBJECT_TYPES.MATH)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
+    )
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValueOnce(
+      unlockedCerts
+    )
+    mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
+      currentSubjects
+    )
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+      mockVolunteerForOnboarding
+    )
+
+    const result = await getQuizScore(quizScoreInput)
+    const expectedResult = {
+      tries: 1,
+      passed: true,
+      score: 1,
+      idCorrectAnswerMap: idAnswerMap,
+      isTrainingSubject: false,
+    }
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      true
+    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+
+    for (const subject of unlockedSubjectNames) {
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
+        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+        userId: volunteer.id,
+        quizSubcategory: subject,
+      })
+      expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+        volunteer.id,
+        EVENTS.SUBJECT_UNLOCKED,
+        {
+          event: EVENTS.SUBJECT_UNLOCKED,
+          subject,
+        }
+      )
+      expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
+        volunteer.id,
+        subject
+      )
+    }
+    expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
+      volunteer.id
+    )
+    expect(VolunteerService.queueOnboardingEventEmails).toHaveBeenCalledWith(
+      volunteer.id
+    )
+    expect(
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: undefined,
+    })
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toEqual(expectedResult)
+  })
+
+  test('Passes training quiz and becomes onboarded', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.UPCHIEVE_101
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [CERTS.ALGEBRA_ONE])
+    // TODO: fix type. Should be an empty array
+    const unlockedCerts: any = []
+    const currentSubjects = [CERTS.PREALGREBA, CERTS.ALGEBRA_ONE]
+    const mockVolunteerForOnboarding = {
+      id: volunteer.id,
+      email: volunteer.email,
+      firstName: volunteer.firstName,
+      onboarded: false,
+      subjects: currentSubjects,
+      country: 'USA',
+      availabilityLastModifiedAt: new Date(),
+      hasCompletedUpchieve101: true,
+    }
+    // TODO: figure out how to set a type for quizScoreInput
+    const quizScoreInput: any = {
+      user: volunteer,
+      category: cert,
+      idAnswerMap,
+    }
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(
+      SUBJECT_TYPES.TRAINING
+    )
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
+    )
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValueOnce(
+      unlockedCerts
+    )
+    mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
+      currentSubjects
+    )
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+      mockVolunteerForOnboarding
+    )
+
+    const result = await getQuizScore(quizScoreInput)
+    const expectedResult = {
+      tries: 1,
+      passed: true,
+      score: 1,
+      idCorrectAnswerMap: idAnswerMap,
+      isTrainingSubject: true,
+    }
+
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      true
+    )
+    expect(MailService.createContact).toHaveBeenCalled()
+    expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
+      action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+      userId: volunteer.id,
+      quizSubcategory: cert,
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.SUBJECT_UNLOCKED,
+      {
+        event: EVENTS.SUBJECT_UNLOCKED,
+        subject: cert,
+      }
+    )
+    expect(VolunteerRepo.addVolunteerCertification).not.toHaveBeenCalledWith(
+      volunteer.id,
+      cert
+    )
+    expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
+      volunteer.id
+    )
+    expect(VolunteerService.queueOnboardingEventEmails).toHaveBeenCalledWith(
+      volunteer.id
+    )
+    expect(
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: undefined,
+    })
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toEqual(expectedResult)
+  })
+
+  test('Passes subject quiz and is already onboarded', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions()
+    const cert = CERTS.CALCULUS_AB
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [CERTS.ALGEBRA_ONE])
+    const unlockedCerts = buildQuizUnlockCert(cert)
+    const currentSubjects = [CERTS.PREALGREBA, CERTS.ALGEBRA_ONE]
+    const unlockedSubjectNames = unlockedCerts
+      .map(cert => {
+        // TODO: fix `any` type coercion
+        if (!currentSubjects.includes(cert.unlockedCertName as any))
+          return cert.unlockedCertName
+      })
+      .filter(subject => !!subject)
+    const mockVolunteerForOnboarding = {
+      id: volunteer.id,
+      email: volunteer.email,
+      firstName: volunteer.firstName,
+      onboarded: true,
+      subjects: currentSubjects,
+      country: 'USA',
+      availabilityLastModifiedAt: new Date(),
+      hasCompletedUpchieve101: true,
+    }
+    // TODO: figure out how to set a type for quizScoreInput
+    const quizScoreInput: any = {
+      user: volunteer,
+      category: cert,
+      idAnswerMap,
+    }
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(SUBJECT_TYPES.MATH)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValueOnce(
+      mockQuizMap
+    )
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValueOnce(
+      unlockedCerts
+    )
+    mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
+      currentSubjects
+    )
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+      mockVolunteerForOnboarding
+    )
+
+    const result = await getQuizScore(quizScoreInput)
+    const expectedResult = {
+      tries: 1,
+      passed: true,
+      score: 1,
+      idCorrectAnswerMap: idAnswerMap,
+      isTrainingSubject: false,
+    }
+    expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
+      volunteer.id,
+      cert,
+      true
+    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+
+    for (const subject of unlockedSubjectNames) {
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
+        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+        userId: volunteer.id,
+        quizSubcategory: subject,
+      })
+      expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+        volunteer.id,
+        EVENTS.SUBJECT_UNLOCKED,
+        {
+          event: EVENTS.SUBJECT_UNLOCKED,
+          subject,
+        }
+      )
+      expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
+        volunteer.id,
+        subject
+      )
+    }
+    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
+      volunteer.id
+    )
+    expect(
+      VolunteerService.queueOnboardingEventEmails
+    ).not.toHaveBeenCalledWith(volunteer.id)
+    expect(
+      VolunteerService.queuePartnerOnboardingEventEmails
+    ).not.toHaveBeenCalled()
+    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteer.id,
+      ipAddress: undefined,
+    })
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      volunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+    expect(result).toEqual(expectedResult)
+  })
 })
-*/

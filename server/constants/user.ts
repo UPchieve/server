@@ -1,6 +1,4 @@
-export type ExtractValues<
-  T extends { readonly [k: string]: string }
-> = T[keyof T]
+import { ExtractValues } from '../utils/type-utils'
 
 export const USER_ACTION_TYPES = <const>{
   QUIZ: 'QUIZ',
