@@ -2,16 +2,10 @@ import _ from 'lodash'
 import { captureEvent } from '../services/AnalyticsService'
 import {
   TRAINING,
-  MATH_CERTS,
-  SCIENCE_CERTS,
-  SAT_CERTS,
-  READING_WRITING_CERTS,
   SUBJECT_TYPES,
-  COLLEGE_CERTS,
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   EVENTS,
-  SOCIAL_STUDIES_CERTS,
 } from '../constants'
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
@@ -28,17 +22,14 @@ import { asString } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
 import { getMediumCertsFlag } from '../services/FeatureFlagService'
 
-const SUBJECT_THRESHOLD = 0.8
-const TRAINING_THRESHOLD = 0.9
-
 export async function getQuestions(
   category: string,
   userId: Ulid
 ): Promise<QuestionModel.Question[]> {
   const subcategories = await QuestionModel.getSubcategoriesForQuiz(category)
 
-  if (!subcategories) {
-    throw new Error('No subcategories defined for category: ' + category)
+  if (!subcategories.length) {
+    throw new Error(`No subcategories defined for category: ${category}`)
   }
 
   const quiz = await QuestionModel.getQuizByName(category)
@@ -98,6 +89,8 @@ export async function getQuizScore(
   const objIDs = Object.keys(idAnswerMap)
   const numIDs = objIDs.map(id => Number(id))
   const questions = await QuestionModel.getMultipleQuestionsById(numIDs)
+  const SUBJECT_THRESHOLD = 0.8
+  const TRAINING_THRESHOLD = 0.9
 
   const score = questions.filter(
     question => question.correctAnswer === idAnswerMap[question.id]
@@ -142,7 +135,7 @@ export async function getQuizScore(
         await createQuizAction({
           action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
           userId: user.id,
-          quizSubcategory: options.category as string,
+          quizSubcategory: subject,
         })
         captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
           event: EVENTS.SUBJECT_UNLOCKED,
@@ -155,12 +148,17 @@ export async function getQuizScore(
     const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
       user.id
     )
+    const hasSubjects =
+      unlockedSubjects.length > 0 || currentSubjects.length > 0
+    const passedUpchieve101 =
+      volunteerProfile?.hasCompletedUpchieve101 ||
+      cert === TRAINING.UPCHIEVE_101
     if (
       volunteerProfile &&
       !volunteerProfile.onboarded &&
       volunteerProfile.availabilityLastModifiedAt &&
-      unlockedSubjects.length > 0 &&
-      userQuizzes.upchieve101?.passed
+      hasSubjects &&
+      passedUpchieve101
     ) {
       await VolunteerModel.updateVolunteerOnboarded(user.id)
       await queueOnboardingEventEmails(user.id)

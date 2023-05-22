@@ -3,7 +3,7 @@
  * such as SMS messages, sent by the app when students
  * request help and new sessions are created.
  */
-import { ExtractValues } from '../../constants'
+import { ExtractValues } from '../../utils/type-utils'
 import { Ulid } from '../pgUtils'
 
 export type Notification = {
