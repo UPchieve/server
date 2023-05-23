@@ -637,7 +637,8 @@ CREATE TABLE upchieve.postal_codes (
     location point,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    qualifying_income integer
+    qualifying_income integer,
+    cbsa_code integer
 );
 
 
