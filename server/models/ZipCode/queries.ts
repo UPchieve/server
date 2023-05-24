@@ -8,6 +8,8 @@ import config from '../../config'
 export interface csvPostalCodeRecord {
   zipcode: string
   income: number
+  cbsa_income?: number
+  state_income?: number
   state: string
   longitude: number
   latitude: number
@@ -42,6 +44,8 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
           code: typedRecord.zipcode,
           usStateCode: typedRecord.state,
           income: typedRecord.income,
+          cbsaIncome: typedRecord.cbsa_income,
+          stateIncome: typedRecord.state_income,
           latitude: typedRecord.latitude,
           longitude: typedRecord.longitude,
         },
@@ -54,6 +58,8 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
         code: '00000',
         usStateCode: 'NA',
         income: 0,
+        cbsaIncome: 0,
+        stateIncome: 0,
         latitude: 0,
         longitude: 0,
       },

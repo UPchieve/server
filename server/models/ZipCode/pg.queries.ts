@@ -40,10 +40,12 @@ export const getZipCodeByZipCode = new PreparedQuery<IGetZipCodeByZipCodeParams,
 
 /** 'UpsertZipCode' parameters type */
 export interface IUpsertZipCodeParams {
+  cbsaIncome: number | null | void;
   code: string;
   income: number;
   latitude: number;
   longitude: number;
+  stateIncome: number | null | void;
   usStateCode: string;
 }
 
@@ -58,16 +60,16 @@ export interface IUpsertZipCodeQuery {
   result: IUpsertZipCodeResult;
 }
 
-const upsertZipCodeIR: any = {"name":"upsertZipCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":323,"b":327,"line":14,"col":13},{"a":566,"b":570,"line":19,"col":29}]}},{"name":"usStateCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":331,"b":342,"line":14,"col":21}]}},{"name":"income","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":346,"b":352,"line":14,"col":36},{"a":456,"b":462,"line":17,"col":18}]}},{"name":"latitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":362,"b":370,"line":14,"col":52},{"a":483,"b":491,"line":17,"col":45}]}},{"name":"longitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":374,"b":383,"line":14,"col":64},{"a":495,"b":504,"line":17,"col":57}]}}],"usedParamSet":{"code":true,"usStateCode":true,"income":true,"latitude":true,"longitude":true},"statement":{"body":"INSERT INTO postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT (code)\n    DO UPDATE SET\n        income = :income!, LOCATION = POINT(:latitude!, :longitude!), updated_at = NOW()\n    WHERE\n        postal_codes.code = :code!\n    RETURNING\n        postal_codes.code AS ok","loc":{"a":221,"b":616,"line":13,"col":0}}};
+const upsertZipCodeIR: any = {"name":"upsertZipCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":350,"b":354,"line":14,"col":13},{"a":676,"b":680,"line":19,"col":29}]}},{"name":"usStateCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":358,"b":369,"line":14,"col":21}]}},{"name":"income","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":373,"b":379,"line":14,"col":36},{"a":510,"b":516,"line":17,"col":18}]}},{"name":"cbsaIncome","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":383,"b":392,"line":14,"col":46},{"a":534,"b":543,"line":17,"col":42}]}},{"name":"stateIncome","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":396,"b":406,"line":14,"col":59},{"a":562,"b":572,"line":17,"col":70}]}},{"name":"latitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":416,"b":424,"line":14,"col":79},{"a":593,"b":601,"line":17,"col":101}]}},{"name":"longitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":428,"b":437,"line":14,"col":91},{"a":605,"b":614,"line":17,"col":113}]}}],"usedParamSet":{"code":true,"usStateCode":true,"income":true,"cbsaIncome":true,"stateIncome":true,"latitude":true,"longitude":true},"statement":{"body":"INSERT INTO postal_codes (code, us_state_code, income, cbsa_income, state_income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, :cbsaIncome, :stateIncome, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT (code)\n    DO UPDATE SET\n        income = :income!, cbsa_income = :cbsaIncome, state_income = :stateIncome, LOCATION = POINT(:latitude!, :longitude!), updated_at = NOW()\n    WHERE\n        postal_codes.code = :code!\n    RETURNING\n        postal_codes.code AS ok","loc":{"a":221,"b":726,"line":13,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at)
- *     VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW())
+ * INSERT INTO postal_codes (code, us_state_code, income, cbsa_income, state_income, LOCATION, created_at, updated_at)
+ *     VALUES (:code!, :usStateCode!, :income!, :cbsaIncome, :stateIncome, POINT(:latitude!, :longitude!), NOW(), NOW())
  * ON CONFLICT (code)
  *     DO UPDATE SET
- *         income = :income!, LOCATION = POINT(:latitude!, :longitude!), updated_at = NOW()
+ *         income = :income!, cbsa_income = :cbsaIncome, state_income = :stateIncome, LOCATION = POINT(:latitude!, :longitude!), updated_at = NOW()
  *     WHERE
  *         postal_codes.code = :code!
  *     RETURNING
