@@ -4,7 +4,6 @@ import config from '../config'
 import { FEATURE_FLAGS } from '../constants'
 import { client as phClient } from '../posthog'
 import { Ulid } from '../models/pgUtils'
-import { getDbUlid } from '../../database/seeds/utils'
 
 /**
  * This creates a proxy server that the frontend can hit.
@@ -53,10 +52,4 @@ export async function isFeatureEnabled(
 
 export async function getMediumCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.MEDIUM_CERTS, userId)
-}
-
-export async function getNewZipsEligibilityFlag() {
-  // We aren't signed in at this point, so just generate a new ULID.
-  // This is temporary as we rollout new zip eligibility calculation.
-  return await isFeatureEnabled(FEATURE_FLAGS.NEW_ZIPS_ELIGIBILITY, getDbUlid())
 }
