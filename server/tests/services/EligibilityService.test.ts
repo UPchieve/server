@@ -9,6 +9,7 @@ import * as ZipCodeRepo from '../../models/ZipCode/queries'
 import { getDbUlid } from '../../models/pgUtils'
 import * as UserRepo from '../../models/User/queries'
 import * as EligibilityService from '../../services/EligibilityService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { IneligibleStudent } from '../../models/IneligibleStudent'
 
 jest.mock('../../services/IpAddressService')
@@ -17,12 +18,14 @@ jest.mock('../../models/School/queries')
 jest.mock('../../controllers/UserCtrl')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/ZipCode/queries')
+jest.mock('../../services/FeatureFlagService')
 
 const mockedUserRepo = mocked(UserRepo, true)
 const mockedIneligibleStudentRepo = mocked(IneligibleStudentRepo, true)
 const mockedSchoolRepo = mocked(SchoolRepo, true)
 const mockedUserCtrl = mocked(UserCtrl, true)
 const mockedZipCodeRepo = mocked(ZipCodeRepo, true)
+const mockedFeatureFlagService = mocked(FeatureFlagService, true)
 
 function buildIneligibleStudent(): IneligibleStudent {
   return {
@@ -39,6 +42,9 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     jest.resetAllMocks()
     // always mock db inserts
     mockedIneligibleStudentRepo.insertIneligibleStudent.mockResolvedValueOnce()
+    mockedFeatureFlagService.getNewZipsEligibilityFlag.mockResolvedValueOnce(
+      true
+    )
   })
 
   const ip = getIpAddress()
@@ -67,12 +73,14 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     zipCode: '11201',
     isEligible: true,
     medianIncome: 20000,
+    isEligibleOld: true,
   }
   const unapprovedZipCode = {
     _id: getDbUlid(),
     zipCode: '00000',
     isEligible: false,
     medianIncome: 500000,
+    isEligibleOld: false,
   }
 
   test('Should send true when a fresh high school student signs up', async () => {
