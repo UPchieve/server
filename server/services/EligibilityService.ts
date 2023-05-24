@@ -9,6 +9,7 @@ import { getUserIdByEmail } from '../models/User/queries'
 import { asFactory, asString, asEnum, asOptional } from '../utils/type-utils'
 import { GRADES } from '../constants'
 import { CustomError } from 'ts-custom-error'
+import { getNewZipsEligibilityFlag } from './FeatureFlagService'
 
 type CheckEligibilityPayload = {
   schoolUpchieveId: string
@@ -55,7 +56,10 @@ export async function checkEligibility(
   const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
   const isSchoolApproved = !!school && school.isApproved
-  const isZipCodeEligible = !!zipCode && zipCode.isEligible
+  const useNewZipsEligibility = await getNewZipsEligibilityFlag()
+  const isZipCodeEligible =
+    !!zipCode &&
+    (useNewZipsEligibility ? zipCode.isEligible : zipCode.isEligibleOld)
   const isCollegeStudent = currentGrade === GRADES.COLLEGE ? true : false
   const isStudentEligible =
     (isSchoolApproved || isZipCodeEligible) && !isCollegeStudent
