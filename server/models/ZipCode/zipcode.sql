@@ -4,7 +4,7 @@ SELECT
     income AS median_income,
     cbsa_income,
     state_income,
-    (income <= GREATEST (cbsa_income * 0.8, state_income * 0.8)
+    (income <= GREATEST(COALESCE(cbsa_income, 0) * 0.8, COALESCE(state_income, 0) * 0.8)
         OR income <= :medianIncomeThreshold!) AS is_eligible,
     income <= :medianIncomeThreshold! AS is_eligible_old
 FROM
