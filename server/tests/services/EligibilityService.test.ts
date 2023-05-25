@@ -67,12 +67,14 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     zipCode: '11201',
     isEligible: true,
     medianIncome: 20000,
+    isEligibleOld: true,
   }
   const unapprovedZipCode = {
     _id: getDbUlid(),
     zipCode: '00000',
     isEligible: false,
     medianIncome: 500000,
+    isEligibleOld: false,
   }
 
   test('Should send true when a fresh high school student signs up', async () => {
