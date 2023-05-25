@@ -6,7 +6,13 @@ import {
   insertIneligibleStudent,
 } from '../models/IneligibleStudent/queries'
 import { getUserIdByEmail } from '../models/User/queries'
-import { asFactory, asString, asEnum, asOptional } from '../utils/type-utils'
+import {
+  asBoolean,
+  asFactory,
+  asString,
+  asEnum,
+  asOptional,
+} from '../utils/type-utils'
 import { GRADES } from '../constants'
 import { CustomError } from 'ts-custom-error'
 
@@ -16,6 +22,7 @@ type CheckEligibilityPayload = {
   email: string
   referredByCode?: string
   currentGrade?: GRADES
+  useNewZipsEligibility?: boolean
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   schoolUpchieveId: asString,
@@ -23,6 +30,7 @@ const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   email: asString,
   referredByCode: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
+  useNewZipsEligibility: asOptional(asBoolean),
 })
 
 type CheckEligibilityResponse = {
@@ -43,6 +51,7 @@ export async function checkEligibility(
     email,
     referredByCode,
     currentGrade,
+    useNewZipsEligibility,
   } = asCheckEligibilityPayload(payload)
 
   const existingUser = await getUserIdByEmail(email)
@@ -55,7 +64,9 @@ export async function checkEligibility(
   const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
   const isSchoolApproved = !!school && school.isApproved
-  const isZipCodeEligible = !!zipCode && zipCode.isEligible
+  const isZipCodeEligible =
+    !!zipCode &&
+    (useNewZipsEligibility ? zipCode.isEligible : zipCode.isEligibleOld)
   const isCollegeStudent = currentGrade === GRADES.COLLEGE ? true : false
   const isStudentEligible =
     (isSchoolApproved || isZipCodeEligible) && !isCollegeStudent

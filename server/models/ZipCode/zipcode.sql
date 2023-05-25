@@ -2,7 +2,11 @@
 SELECT
     code AS zip_code,
     income AS median_income,
-    income <= :medianIncomeThreshold! AS is_eligible
+    cbsa_income,
+    state_income,
+    (income <= GREATEST (COALESCE(cbsa_income, 0) * 0.8, COALESCE(state_income, 0) * 0.8)
+        OR income <= :medianIncomeThreshold!) AS is_eligible,
+    income <= :medianIncomeThreshold! AS is_eligible_old
 FROM
     postal_codes
 WHERE
