@@ -106,7 +106,7 @@ export enum Jobs {
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
-  UpsertPostalCodes = 'UpsertPostalCodes',
+  UpsertPostalCodes = 'UpsertPostalCodes2',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
 }
 
