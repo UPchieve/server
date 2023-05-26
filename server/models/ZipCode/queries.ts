@@ -37,18 +37,18 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
   const transactionClient = await getClient().connect()
   try {
     await transactionClient.query('BEGIN')
-    const recordInsertions = zipRecords.map((record: any) => {
+    for (const record of zipRecords) {
       // The parsing library has an open issue where empty values in the csv
       // are given a string value of 'null' instead of just null.
       // See https://github.com/adaltas/node-csv/issues/307.
-      if (record.cbsa_income === 'null') {
+      if (<unknown>record.cbsa_income === 'null') {
         record.cbsa_income = null
       }
-      if (record.state_income === 'null') {
+      if (<unknown>record.state_income === 'null') {
         record.state_income = null
       }
       const typedRecord = record as csvPostalCodeRecord
-      return pgQueries.upsertZipCode.run(
+      await pgQueries.upsertZipCode.run(
         {
           code: typedRecord.zipcode,
           usStateCode: typedRecord.state,
@@ -60,8 +60,7 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
         },
         transactionClient
       )
-    })
-    await Promise.all(recordInsertions)
+    }
     await pgQueries.upsertZipCode.run(
       {
         code: '00000',
