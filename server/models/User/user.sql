@@ -563,7 +563,8 @@ FROM
         FROM
             users_quizzes
         WHERE
-            user_id = :userId!) AS users_quizzes ON TRUE
+            user_id = :userId!
+            AND passed IS TRUE) AS users_quizzes ON TRUE
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
