@@ -40,8 +40,13 @@ export async function getQuestions(
     category,
     subcategory: null,
   })
+  const isMediumCertsActive = await getMediumCertsFlag(userId)
+  const filteredSubcategoryQuestions = filterSubtopicsFromQuestions(
+    category,
+    questions
+  )
   const questionsBySubcategory = _.groupBy(
-    questions,
+    isMediumCertsActive ? filteredSubcategoryQuestions : questions,
     question => question.subcategory
   )
 
@@ -51,10 +56,9 @@ export async function getQuestions(
     )
   )
 
-  const isMediumCertsActive = await getMediumCertsFlag(userId)
   if (isMediumCertsActive) {
-    captureEvent(userId, EVENTS.FLAGGED_BY_MEDIUM_CERTS, {
-      event: EVENTS.FLAGGED_BY_MEDIUM_CERTS,
+    captureEvent(userId, EVENTS.FLAGGED_BY_MEDIUM_CERTS_V2, {
+      event: EVENTS.FLAGGED_BY_MEDIUM_CERTS_V2,
       subject: category,
     })
   }
@@ -188,4 +192,118 @@ export async function getQuizScore(
     idCorrectAnswerMap,
     isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
   }
+}
+
+// TODO: Remove in medium-certs-v2 clean up
+export function filterSubtopicsFromQuestions(
+  subject: string,
+  questions: QuestionModel.Question[]
+): QuestionModel.Question[] {
+  const filterSubtopicsOut: { [subject: string]: string[] } = {
+    '6thGradeMath': [
+      'ratios',
+      'area',
+      'polygons',
+      'exponents',
+      'factoring',
+      'doubleNumberLine',
+      'SEL',
+      'middleSchool',
+    ],
+    '7thGradeMath': [
+      'ratio',
+      'propertiesof',
+      'scalefactor',
+      'areaofcircle',
+      'prisms',
+      'visual3',
+      'SEL',
+    ],
+    '8thGradeMath': [
+      'middleSchool',
+      'SEL',
+      'linearEquations',
+      'functions',
+      'geometryCongruence',
+      'volume',
+      'Exponents',
+      'scatterPlots',
+      'geometryDialations',
+      'pythagoreanTheorem',
+    ],
+    // no subtopics to filter
+    prealgebra: [],
+    // no subtopics to filter
+    algebraOne: [],
+    algebraTwo: [
+      'rounding_and_scientific_notation',
+      'functions_domain',
+      'rational_expressions',
+      'square_root_equations',
+      'arithmetic_and_geometric_sequences',
+    ],
+    // no subtopics to filter
+    geometry: [],
+    trigonometry: ['trig functions', 'pythagorean theorem', 'right triangles'],
+    // no subtopics to filter
+    statistics: [],
+    // no subtopics to filter
+    precalculus: [],
+    // no subtopics to filter
+    calculusAB: [],
+    // no subtopics to filter
+    calculusBC: [],
+    biology: ['the cell'],
+    // no subtopics to filter
+    chemistry: [],
+    // no subtopics to filter
+    physicsOne: [],
+    // no subtopics to filter
+    physicsTwo: [],
+    // no subtopics to filter
+    environmentalScience: [],
+    // no subtopics to filter
+    reading: [],
+    essayPlanning: [
+      // had a space
+      'set expectations',
+      'planning steps',
+      'outlines',
+      'types of essays',
+      'common requests',
+    ],
+    essayFeedback: [
+      'types of essays',
+      'basics',
+      'passage details',
+      'structure',
+      'passage unity',
+      'conclusion',
+      'passage thesis',
+      'punctuation',
+      'wordiness',
+      'nonvarying sentence length',
+      'specificity and coherence',
+      'common requests',
+      'independent and dependent clauses',
+    ],
+    // no subtopics to filter
+    usHistory: [],
+    // no subtopics to filter
+    worldHistory: [],
+    collegePrep: ['timeline'],
+    collegeList: ['research', 'cost'],
+    // no subtopics to filter
+    collegeApps: [],
+    // no subtopics to filter
+    applicationEssays: [],
+    financialAid: ['special', 'source', 'direct', 'FAFSA advanced', 'CSS'],
+    // no subtopics to filter
+    satMath: [],
+    // no subtopics to filter
+    satReading: [],
+  }
+
+  const subtopicsToFilter = filterSubtopicsOut[subject]
+  return questions.filter(q => !subtopicsToFilter.includes(q.subcategory))
 }

@@ -51,5 +51,5 @@ export async function isFeatureEnabled(
 }
 
 export async function getMediumCertsFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.MEDIUM_CERTS, userId)
+  return await isFeatureEnabled(FEATURE_FLAGS.MEDIUM_CERTS_V2, userId)
 }
