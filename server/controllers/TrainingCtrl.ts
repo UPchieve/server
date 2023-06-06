@@ -20,7 +20,7 @@ import * as VolunteerModel from '../models/Volunteer'
 import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
-import { getMediumCertsFlag } from '../services/FeatureFlagService'
+import { getStandardizdCertsFlag } from '../services/FeatureFlagService'
 
 export async function getQuestions(
   category: string,
@@ -40,13 +40,13 @@ export async function getQuestions(
     category,
     subcategory: null,
   })
-  const isMediumCertsActive = await getMediumCertsFlag(userId)
+  const isStandardizedCertsActive = await getStandardizdCertsFlag(userId)
   const filteredSubcategoryQuestions = filterSubtopicsFromQuestions(
     category,
     questions
   )
   const questionsBySubcategory = _.groupBy(
-    isMediumCertsActive ? filteredSubcategoryQuestions : questions,
+    isStandardizedCertsActive ? filteredSubcategoryQuestions : questions,
     question => question.subcategory
   )
 
@@ -56,13 +56,13 @@ export async function getQuestions(
     )
   )
 
-  if (isMediumCertsActive) {
-    captureEvent(userId, EVENTS.FLAGGED_BY_MEDIUM_CERTS_V2, {
-      event: EVENTS.FLAGGED_BY_MEDIUM_CERTS_V2,
+  if (isStandardizedCertsActive) {
+    captureEvent(userId, EVENTS.FLAGGED_BY_STANDARDIZED_CERTS, {
+      event: EVENTS.FLAGGED_BY_STANDARDIZED_CERTS,
       subject: category,
     })
   }
-  return isMediumCertsActive
+  return isStandardizedCertsActive
     ? shuffledQuestions.slice(0, quiz.totalQuestions)
     : shuffledQuestions
 }
