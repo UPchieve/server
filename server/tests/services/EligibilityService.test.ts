@@ -46,20 +46,18 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
   const referredBy = getDbUlid()
   const school = {
     id: getDbUlid(),
-    isApproved: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    nameStored: 'UPchieve highschool',
-    stateStored: 'NY',
+    isAdminApproved: true,
+    name: 'UPchieve highschool',
+    city: 'NYC',
+    state: 'NY',
     isPartner: false,
   }
   const unapprovedSchool = {
     id: getDbUlid(),
-    isApproved: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    nameStored: 'Bad highschool',
-    stateStored: 'NY',
+    isAdminApproved: false,
+    name: 'Bad highschool',
+    city: 'NYC',
+    state: 'NY',
     isPartner: false,
   }
   const approvedZipCode = {
@@ -90,7 +88,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -131,7 +129,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       buildIneligibleStudent()
     ) // email belongs to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -153,9 +151,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(
-      unapprovedSchool
-    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(unapprovedSchool)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -177,7 +173,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
       unapprovedZipCode
     )
@@ -201,9 +197,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(
-      unapprovedSchool
-    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(unapprovedSchool)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
       unapprovedZipCode
     )
@@ -227,7 +221,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 

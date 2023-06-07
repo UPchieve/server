@@ -1,61 +1,47 @@
-/* @name findSchoolByUpchieveId */
+/* @name getSchoolById */
 SELECT
     schools.id,
-    schools.name AS name_stored,
-    cities.us_state_code AS state_stored,
-    approved AS is_approved,
-    partner AS is_partner,
-    schools.created_at,
-    schools.updated_at,
-    cities.name AS city_name_stored,
-    meta.fipst,
+    COALESCE(schools.name, meta.sch_name) AS name,
+    COALESCE(cities.name, meta.lcity) AS city,
+    COALESCE(cities.us_state_code, meta.st) AS state,
+    meta.lzip AS zip,
+    meta.lea_name AS district,
     meta.school_year,
-    meta.sch_name,
-    meta.lea_name,
-    meta.st,
-    meta.st_schid,
-    meta.mcity,
-    meta.mzip,
-    meta.lcity,
-    meta.lzip
-FROM
-    schools
-    LEFT JOIN cities ON schools.city_id = cities.id
-    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-WHERE
-    schools.id = :schoolId!;
-
-
-/* @name getSchool */
-SELECT
-    approved AS is_approved,
+    approved AS is_admin_approved,
     partner AS is_partner,
-    meta.mzip AS zip_code,
-    COALESCE(meta.sch_name, schools.name) AS name,
-    COALESCE(meta.st, cities.us_state_code) AS state,
-    COALESCE(meta.lcity, cities.name) AS city,
-    schools.id,
-    schools.created_at,
-    schools.updated_at
+    meta.is_school_wide_title1,
+    meta.is_title1_eligible,
+    meta.national_school_lunch_program,
+    meta.total_students,
+    meta.nslp_direct_certification,
+    meta.frl_eligible
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
 WHERE
     schools.id = :schoolId!;
+
+
+/* @name getSchoolByNcesId */
+SELECT
+    school_id AS id
+FROM
+    school_nces_metadata
+WHERE
+    school_nces_metadata.ncessch = :ncessch!;
 
 
 /* @name getSchools */
 SELECT
-    approved AS is_approved,
-    partner AS is_partner,
-    meta.mzip AS zip_code,
+    schools.id,
     COALESCE(schools.name, meta.sch_name) AS name,
-    COALESCE(cities.us_state_code, meta.st) AS state,
     COALESCE(cities.name, meta.lcity) AS city,
-    schools.id AS id,
-    schools.created_at,
-    schools.updated_at
+    COALESCE(cities.us_state_code, meta.st) AS state,
+    meta.lzip AS zip,
+    meta.lea_name AS district,
+    approved AS is_admin_approved,
+    partner AS is_partner
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
@@ -73,16 +59,20 @@ AND (:city::text IS NULL
 LIMIT :limit!::int OFFSET :offset!::int;
 
 
-/* @name createSchoolMetaData */
-INSERT INTO school_nces_metadata (mzip, lzip)
-    VALUES (:zipCode!, :zipCode!);
-
-
-/* @name createCity */
-INSERT INTO cities (name, created_at, updated_at)
-    VALUES (:city!, NOW(), NOW())
-ON CONFLICT
-    DO NOTHING;
+/* @name schoolSearch */
+SELECT
+    schools.id,
+    COALESCE(meta.sch_name, schools.name) AS name,
+    COALESCE(meta.st, cities.us_state_code) AS state,
+    COALESCE(meta.lcity, cities.name) AS city,
+    meta.lea_name AS district
+FROM
+    schools
+    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+    LEFT JOIN cities ON schools.city_id = cities.id
+WHERE
+    schools.name ILIKE '%' || :query! || '%'
+LIMIT 100;
 
 
 /* @name updateApproval */
@@ -128,26 +118,6 @@ WHERE
     school_id = :schoolId!;
 
 
-/* @name schoolSearch */
-SELECT
-    schools.id,
-    COALESCE(meta.sch_name, schools.name) AS name_stored,
-    COALESCE(meta.st, cities.us_state_code) AS state_stored,
-    COALESCE(meta.lcity, cities.name) AS city_name_stored,
-    meta.lea_name AS district_name_stored,
-    schools.created_at,
-    schools.updated_at,
-    approved AS is_approved,
-    partner AS is_partner
-FROM
-    schools
-    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
-    LEFT JOIN cities ON schools.city_id = cities.id
-WHERE
-    schools.name ILIKE '%' || :query! || '%'
-LIMIT 100;
-
-
 /* @name titlecaseSchoolNames */
 UPDATE
     schools
@@ -164,4 +134,66 @@ SET
     sch_name = INITCAP(sch_name)
 WHERE
     sch_name ~ '^[A-Z\s\d]*$';
+
+
+/* @name createSchool */
+INSERT INTO schools (id, name, city_id)
+    VALUES (:id!, :name!, :city_id)
+RETURNING
+    id;
+
+
+/* @name createSchoolMetadata */
+INSERT INTO school_nces_metadata (school_id, ncessch, school_year, st, sch_name, lea_name, lcity, lzip, mcity, mstate, mzip, phone, website, sy_status_text, updated_status_text, effective_date, sch_type_text, nogrades, g_pk_offered, g_kg_offered, g_1_offered, g_2_offered, g_3_offered, g_4_offered, g_5_offered, g_6_offered, g_7_offered, g_8_offered, g_9_offered, g_10_offered, g_11_offered, g_12_offered, g_13_offered, g_ug_offered, g_ae_offered, gslo, gshi, level, total_students, is_school_wide_title1, is_title1_eligible, national_school_lunch_program, nslp_direct_certification, frl_eligible)
+    VALUES (:school_id, :ncessch, :school_year, :st, :sch_name, :lea_name, :lcity, :lzip, :mcity, :mstate, :mzip, :phone, :website, :sy_status_text, :updated_status_text, :effective_date, :sch_type_text, :nogrades, :g_pk_offered, :g_kg_offered, :g_1_offered, :g_2_offered, :g_3_offered, :g_4_offered, :g_5_offered, :g_6_offered, :g_7_offered, :g_8_offered, :g_9_offered, :g_10_offered, :g_11_offered, :g_12_offered, :g_13_offered, :g_ug_offered, :g_ae_offered, :gslo, :gshi, :level, :total_students, :is_school_wide_title1, :is_title1_eligible, :national_school_lunch_program, :nslp_direct_certification, :frl_eligible);
+
+
+/* @name updateSchoolMetadata */
+UPDATE
+    school_nces_metadata
+SET
+    school_year = :school_year!,
+    st = :st,
+    sch_name = :sch_name,
+    lea_name = :lea_name,
+    lcity = :lcity,
+    lzip = :lzip,
+    mcity = :mcity,
+    mstate = :mstate,
+    mzip = :mzip,
+    phone = :phone,
+    website = :website,
+    sy_status_text = :sy_status_text,
+    updated_status_text = :updated_status_text,
+    effective_date = :effective_date,
+    sch_type_text = :sch_type_text,
+    nogrades = :nogrades,
+    g_pk_offered = :g_pk_offered,
+    g_kg_offered = :g_kg_offered,
+    g_1_offered = :g_1_offered,
+    g_2_offered = :g_2_offered,
+    g_3_offered = :g_3_offered,
+    g_4_offered = :g_4_offered,
+    g_5_offered = :g_5_offered,
+    g_6_offered = :g_6_offered,
+    g_7_offered = :g_7_offered,
+    g_8_offered = :g_8_offered,
+    g_9_offered = :g_9_offered,
+    g_10_offered = :g_10_offered,
+    g_11_offered = :g_11_offered,
+    g_12_offered = :g_12_offered,
+    g_13_offered = :g_13_offered,
+    g_ug_offered = :g_ug_offered,
+    g_ae_offered = :g_ae_offered,
+    gslo = :gslo,
+    gshi = :gshi,
+    level = :level,
+    total_students = :total_students,
+    is_school_wide_title1 = :is_school_wide_title1,
+    is_title1_eligible = :is_title1_eligible,
+    national_school_lunch_program = :national_school_lunch_program,
+    nslp_direct_certification = :nslp_direct_certification,
+    frl_eligible = :frl_eligible
+WHERE
+    school_nces_metadata.school_id = :school_id!;
 
