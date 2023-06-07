@@ -230,4 +230,257 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     expect(response.isEligible).toBe(false)
     expect(response.isCollegeStudent).toBe(true)
   })
+
+  test('Return true if unapproved zip but school is title1 eligible', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: false,
+      isPartner: false,
+      name: 'Title1 Eligible',
+      city: 'Jacksonville',
+      state: 'FL',
+      isSchoolWideTitle1: false,
+      isTitle1Eligible: true,
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Return true if unapproved zip but school is school wide title1', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: false,
+      isPartner: false,
+      name: 'School Wide Title1',
+      city: 'Jacksonville',
+      state: 'FL',
+      isSchoolWideTitle1: true,
+      isTitle1Eligible: false,
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Return true if unapproved zip but school has applicable school lunch program', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: false,
+      isPartner: false,
+      name: 'School Lunch Program',
+      city: 'Jacksonville',
+      state: 'FL',
+      isTitle1Eligible: false,
+      isSchoolWideTitle1: false,
+      nationalSchoolLunchProgram:
+        'Yes under Community Eligibility Option (CEO)',
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Return true if unapproved zip but school is above threshold for National School Lunch Program direct certification students', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: false,
+      isPartner: false,
+      name: 'FRL',
+      city: 'Jacksonville',
+      state: 'FL',
+      isTitle1Eligible: false,
+      isSchoolWideTitle1: false,
+      nationalSchoolLunchProgram: 'No',
+      totalStudents: 100,
+      nslpDirectCertification: 41,
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Return true if unapproved zip but school is above threshold for frl eligible students', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: false,
+      isPartner: false,
+      name: 'FRL Eligible Students',
+      city: 'Jacksonville',
+      state: 'FL',
+      isTitle1Eligible: false,
+      isSchoolWideTitle1: false,
+      nationalSchoolLunchProgram: 'No',
+      totalStudents: 100,
+      frlEligible: 41,
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
+
+  test('Return false if unapproved zip and school does not meet new criteria', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: false,
+      isPartner: false,
+      name: 'Unapproved',
+      city: 'Jacksonville',
+      state: 'FL',
+      isTitle1Eligible: false,
+      isSchoolWideTitle1: false,
+      nationalSchoolLunchProgram: 'No',
+      totalStudents: 100,
+      nslpDirectCertification: 39,
+      frlEligible: 39,
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(false)
+  })
+
+  test('Return true if unapproved zip and school does not meet new criteria but school was manually approved', async () => {
+    const school = {
+      id: getDbUlid(),
+      isAdminApproved: true,
+      isPartner: false,
+      name: 'Manually Approved',
+      city: 'Jacksonville',
+      state: 'FL',
+      isTitle1Eligible: false,
+      isSchoolWideTitle1: false,
+      nationalSchoolLunchProgram: 'No',
+      totalStudents: 100,
+      nslpDirectCertification: 2,
+    }
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: unapprovedZipCode.zipCode,
+      grade: GRADES.EIGHTH,
+      email: 'email@student.com',
+      useNewSchoolsEligibility: true,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
+      unapprovedZipCode
+    )
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+  })
 })
