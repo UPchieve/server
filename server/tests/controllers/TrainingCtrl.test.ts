@@ -830,6 +830,7 @@ describe('filterSubtopicsFromQuestions', () => {
       { subcategory: '2' },
       { subcategory: '3' },
       { subcategory: 'rounding_and_scientific_notation' },
+      { subcategory: 'functions_domain' },
     ])
 
     const result = await filterSubtopicsFromQuestions(subject, questions)

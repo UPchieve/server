@@ -304,6 +304,6 @@ export function filterSubtopicsFromQuestions(
     satReading: [],
   }
 
-  const subtopicsToFilter = filterSubtopicsOut[subject]
-  return questions.filter(q => !subtopicsToFilter.includes(q.subcategory))
+  const subtopicsToFilter = new Set(filterSubtopicsOut[subject])
+  return questions.filter(q => !subtopicsToFilter.has(q.subcategory))
 }
