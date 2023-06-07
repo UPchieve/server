@@ -15,6 +15,8 @@ import {
 } from '../utils/type-utils'
 import { GRADES } from '../constants'
 import { CustomError } from 'ts-custom-error'
+import { School } from '../models/School'
+import { ZipCode } from '../models/ZipCode'
 
 type CheckEligibilityPayload = {
   schoolUpchieveId: string
@@ -23,6 +25,7 @@ type CheckEligibilityPayload = {
   referredByCode?: string
   currentGrade?: GRADES
   useNewZipsEligibility?: boolean
+  useNewSchoolsEligibility?: boolean
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   schoolUpchieveId: asString,
@@ -31,6 +34,7 @@ const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   referredByCode: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
   useNewZipsEligibility: asOptional(asBoolean),
+  useNewSchoolsEligibility: asOptional(asBoolean),
 })
 
 type CheckEligibilityResponse = {
@@ -52,6 +56,7 @@ export async function checkEligibility(
     referredByCode,
     currentGrade,
     useNewZipsEligibility,
+    useNewSchoolsEligibility,
   } = asCheckEligibilityPayload(payload)
 
   const existingUser = await getUserIdByEmail(email)
@@ -63,13 +68,11 @@ export async function checkEligibility(
   const school = await getSchoolById(schoolUpchieveId)
   const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
-  const isSchoolApproved = !!school && school.isAdminApproved
-  const isZipCodeEligible =
-    !!zipCode &&
-    (useNewZipsEligibility ? zipCode.isEligible : zipCode.isEligibleOld)
-  const isCollegeStudent = currentGrade === GRADES.COLLEGE ? true : false
+  const isEligibleBySchool = isSchoolApproved(school, useNewSchoolsEligibility)
+  const isEligibleByZipCode = isZipCodeEligible(zipCode, useNewZipsEligibility)
+  const isCollegeStudent = currentGrade === GRADES.COLLEGE
   const isStudentEligible =
-    (isSchoolApproved || isZipCodeEligible) && !isCollegeStudent
+    (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
 
   if (!isStudentEligible) {
     const referredBy = await UserCtrl.checkReferral(referredByCode)
@@ -95,4 +98,56 @@ export async function checkZipCode(param: unknown): Promise<boolean> {
   const zipCode = asString(param)
   const foundZip = await getZipCodeByZipCode(zipCode)
   return !!foundZip
+}
+
+function isZipCodeEligible(
+  zipCode?: ZipCode,
+  useNewZipsEligibility: boolean = false
+) {
+  return (
+    !!zipCode &&
+    (useNewZipsEligibility ? zipCode.isEligible : zipCode.isEligibleOld)
+  )
+}
+
+function isSchoolApproved(
+  school?: School,
+  useNewSchoolsEligibility: boolean = false
+) {
+  return (
+    !!school &&
+    (useNewSchoolsEligibility
+      ? school.isAdminApproved || isNewSchoolEligibilityApproved()
+      : school.isAdminApproved)
+  )
+
+  function isNewSchoolEligibilityApproved() {
+    return (
+      isTitle1Eligible() ||
+      hasCEONationalSchoolLunch() ||
+      hasFreeReducedLunchAboveThreshold(0.4)
+    )
+  }
+
+  function isTitle1Eligible() {
+    return school?.isSchoolWideTitle1 || school?.isTitle1Eligible
+  }
+
+  function hasCEONationalSchoolLunch() {
+    return (
+      school?.nationalSchoolLunchProgram ===
+      'Yes under Community Eligibility Option (CEO)'
+    )
+  }
+
+  function hasFreeReducedLunchAboveThreshold(thresholdPercentage: number) {
+    if (!school || !school.totalStudents) {
+      return false
+    }
+    const freeReducedLunchStudents = Math.max(
+      school?.nslpDirectCertification ?? 0,
+      school?.frlEligible ?? 0
+    )
+    return freeReducedLunchStudents / school.totalStudents > thresholdPercentage
+  }
 }
