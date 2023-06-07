@@ -1,5 +1,9 @@
 import { mocked } from 'ts-jest/utils'
-import { getQuestions, getQuizScore } from '../../controllers/TrainingCtrl'
+import {
+  getQuestions,
+  getQuizScore,
+  filterSubtopicsFromQuestions,
+} from '../../controllers/TrainingCtrl'
 import { buildVolunteer } from '../mocks/generate'
 import {
   MATH_CERTS,
@@ -16,6 +20,7 @@ import * as VolunteerRepo from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as VolunteerService from '../../services/VolunteerService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { buildIdAnswerMapHelper } from '../mocks/controllers/TrainingCtrl.mock'
 import {
   buildSubcategoriesForQuiz,
@@ -27,6 +32,7 @@ import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
+jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Question')
 jest.mock('../../models/Subjects')
 jest.mock('../../models/Volunteer')
@@ -35,6 +41,7 @@ jest.mock('../../models/UserAction')
 const mockedQuestionRepo = mocked(QuestionRepo)
 const mockedSubjectsRepo = mocked(SubjectsRepo)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
+const mockedFeatureFlagService = mocked(FeatureFlagService)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -76,6 +83,39 @@ describe('getQuestions', () => {
 
     const result = await getQuestions(subject, volunteer.id)
     expect(result).toHaveLength(2)
+  })
+
+  // TODO: Remove in medium-certs-v2 clean up
+  test('Experiment: Medium certs v2 - quiz length of 10', async () => {
+    const subject = MATH_CERTS.ALGEBRA_TWO
+    const subcategories = buildSubcategoriesForQuiz()
+
+    const quiz = buildQuiz({ questionsPerSubcategory: 2 })
+    // Create enough subcategories to make sure the maximum questions are 10 for a quiz
+    const questions = buildQuestions(14, [
+      { subcategory: '1' },
+      { subcategory: '2' },
+      { subcategory: '3' },
+      { subcategory: '4' },
+      { subcategory: '5' },
+      { subcategory: '6' },
+      { subcategory: '7' },
+      { subcategory: '8' },
+      { subcategory: '9' },
+      { subcategory: '10' },
+      { subcategory: '11' },
+    ])
+    mockedQuestionRepo.getSubcategoriesForQuiz.mockResolvedValueOnce(
+      subcategories
+    )
+    mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(quiz)
+    mockedQuestionRepo.listQuestions.mockResolvedValueOnce(questions)
+    mockedFeatureFlagService.getStandardizedCertsFlag.mockResolvedValueOnce(
+      true
+    )
+
+    const result = await getQuestions(subject, volunteer.id)
+    expect(result).toHaveLength(10)
   })
 })
 
@@ -765,5 +805,35 @@ describe('getQuizScore', () => {
       }
     )
     expect(result).toEqual(expectedResult)
+  })
+})
+
+// TODO: Remove in medium-certs-v2 clean up
+describe('filterSubtopicsFromQuestions', () => {
+  test('Should not filter out subtopics for a quiz that has no subtopics to filter', async () => {
+    const subject = MATH_CERTS.ALGEBRA_ONE
+    const questions = buildQuestions(4, [
+      { subcategory: '1' },
+      { subcategory: '2' },
+      { subcategory: '3' },
+      { subcategory: '4' },
+    ])
+
+    const result = await filterSubtopicsFromQuestions(subject, questions)
+    expect(result).toHaveLength(4)
+  })
+
+  test('Should filter out subtopics for a quiz that has subtopics to filter', async () => {
+    const subject = MATH_CERTS.ALGEBRA_TWO
+    const questions = buildQuestions(4, [
+      { subcategory: '1' },
+      { subcategory: '2' },
+      { subcategory: '3' },
+      { subcategory: 'rounding_and_scientific_notation' },
+      { subcategory: 'functions_domain' },
+    ])
+
+    const result = await filterSubtopicsFromQuestions(subject, questions)
+    expect(result).toHaveLength(3)
   })
 })
