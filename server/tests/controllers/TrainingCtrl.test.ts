@@ -110,7 +110,9 @@ describe('getQuestions', () => {
     )
     mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(quiz)
     mockedQuestionRepo.listQuestions.mockResolvedValueOnce(questions)
-    mockedFeatureFlagService.getStandardizdCertsFlag.mockResolvedValueOnce(true)
+    mockedFeatureFlagService.getStandardizedCertsFlag.mockResolvedValueOnce(
+      true
+    )
 
     const result = await getQuestions(subject, volunteer.id)
     expect(result).toHaveLength(10)

@@ -20,7 +20,7 @@ import * as VolunteerModel from '../models/Volunteer'
 import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
-import { getStandardizdCertsFlag } from '../services/FeatureFlagService'
+import { getStandardizedCertsFlag } from '../services/FeatureFlagService'
 
 export async function getQuestions(
   category: string,
@@ -40,7 +40,7 @@ export async function getQuestions(
     category,
     subcategory: null,
   })
-  const isStandardizedCertsActive = await getStandardizdCertsFlag(userId)
+  const isStandardizedCertsActive = await getStandardizedCertsFlag(userId)
   const filteredSubcategoryQuestions = filterSubtopicsFromQuestions(
     category,
     questions

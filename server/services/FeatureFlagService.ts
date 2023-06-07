@@ -50,6 +50,6 @@ export async function isFeatureEnabled(
   return await phClient.isFeatureEnabled(featureFlagName, userId)
 }
 
-export async function getStandardizdCertsFlag(userId: Ulid) {
+export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }
