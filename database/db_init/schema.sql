@@ -983,7 +983,13 @@ CREATE TABLE upchieve.school_nces_metadata (
     gslo text,
     gshi text,
     level text,
-    igoffered text
+    igoffered text,
+    is_school_wide_title1 boolean DEFAULT false NOT NULL,
+    is_title1_eligible boolean DEFAULT false NOT NULL,
+    national_school_lunch_program text,
+    total_students integer,
+    nslp_direct_certification integer,
+    frl_eligible integer
 );
 
 
@@ -4659,4 +4665,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221201064546'),
     ('20221206021238'),
     ('20230104192756'),
-    ('20230524032337');
+    ('20230524032337'),
+    ('20230601213111');
