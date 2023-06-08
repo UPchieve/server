@@ -1,5 +1,5 @@
 import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
-import { AdminSchool } from '../models/School'
+import { School } from '../models/School'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import { getSchool } from './SchoolService'
@@ -66,7 +66,7 @@ export async function processStudentTrackingPostHog(studentId: Ulid) {
   const student = await StudentRepo.getStudentContactInfoById(studentId)
 
   if (student) {
-    let school: AdminSchool | undefined
+    let school: School | undefined
     if (student.schoolId) school = await getSchool(student.schoolId)
 
     // if student is school partner student

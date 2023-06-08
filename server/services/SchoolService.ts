@@ -37,19 +37,17 @@ export async function search(query: string): Promise<SchoolForFrontend[]> {
       return {
         id: school.id,
         upchieveId: school.id,
-        name: school.nameStored,
-        districtName: school.districtNameStored,
-        city: school.cityNameStored,
-        state: school.stateStored,
+        name: school.name,
+        districtName: school.district,
+        city: school.city,
+        state: school.state,
       }
     })
 }
 
-export async function getSchool(
-  schoolId: Ulid
-): Promise<SchoolRepo.AdminSchool> {
+export async function getSchool(schoolId: Ulid): Promise<SchoolRepo.School> {
   try {
-    const school = await SchoolRepo.getSchool(schoolId)
+    const school = await SchoolRepo.getSchoolById(schoolId)
 
     if (!school) throw new Error(`no school found with id ${schoolId}`)
 
