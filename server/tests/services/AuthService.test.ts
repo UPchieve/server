@@ -187,7 +187,7 @@ describe('Registration tests', () => {
   test('Register valid open student', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(highSchool)
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(highSchool)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
     mockedUserCtrl.createStudent.mockResolvedValue(studentOpen)
 
@@ -201,7 +201,7 @@ describe('Registration tests', () => {
   test('Register valid partner student', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(highSchool)
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(highSchool)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
     mockedStudentPartnerOrgRepo.getStudentPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
       { ...mockedStudentPartnerOrg, sites: [] }
@@ -232,9 +232,9 @@ describe('Registration tests', () => {
   test('Register invalid open student via bad school', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(
       buildSchool({
-        isApproved: false,
+        isAdminApproved: false,
       })
     )
 
@@ -303,7 +303,7 @@ describe('Registration tests', () => {
   test('Register valid open student via working referral', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValue(highSchool)
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(highSchool)
     const referrer = buildStudent()
     const referree = buildStudent({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)

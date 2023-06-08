@@ -11,7 +11,7 @@ import {
 import * as StudentRepo from '../models/Student'
 import * as VolunteerRepo from '../models/Volunteer'
 import { School } from '../models/School'
-import { findSchoolByUpchieveId } from '../models/School/queries'
+import { getSchoolById } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
@@ -46,7 +46,7 @@ import {
   checkNames,
   checkEmail,
 } from '../utils/auth-utils'
-import { asBoolean, asString } from '../utils/type-utils'
+import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
@@ -129,12 +129,11 @@ export async function registerOpenStudent(
 
   const highSchoolProvided = !!highSchoolUpchieveId
   let school: School | undefined
-  if (highSchoolProvided)
-    school = await findSchoolByUpchieveId(highSchoolUpchieveId)
+  if (highSchoolProvided) school = await getSchoolById(highSchoolUpchieveId)
 
   const highSchoolApprovalRequired = !zipCode
   if (highSchoolApprovalRequired) {
-    if (!school || !school.isApproved)
+    if (!school || !school.isAdminApproved)
       throw new RegistrationError(
         `School ${highSchoolUpchieveId} is not approved`
       )
@@ -204,7 +203,7 @@ export async function registerPartnerStudent(
 
   let school: School | undefined
   if (highSchoolUpchieveId) {
-    school = await findSchoolByUpchieveId(highSchoolUpchieveId)
+    school = await getSchoolById(highSchoolUpchieveId)
   } else if (studentPartnerManifest.schoolSignupRequired && !college) {
     throw new RegistrationError(
       'Student partner organization requires school, but none provided'

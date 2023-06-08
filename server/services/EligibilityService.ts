@@ -1,5 +1,5 @@
 import * as UserCtrl from '../controllers/UserCtrl'
-import { findSchoolByUpchieveId } from '../models/School/queries'
+import { getSchoolById } from '../models/School/queries'
 import { getZipCodeByZipCode } from '../models/ZipCode/queries'
 import {
   getIneligibleStudentByEmail,
@@ -60,10 +60,10 @@ export async function checkEligibility(
   const existingIneligible = await getIneligibleStudentByEmail(email)
   if (existingIneligible) return { isEligible: false }
 
-  const school = await findSchoolByUpchieveId(schoolUpchieveId)
+  const school = await getSchoolById(schoolUpchieveId)
   const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
-  const isSchoolApproved = !!school && school.isApproved
+  const isSchoolApproved = !!school && school.isAdminApproved
   const isZipCodeEligible =
     !!zipCode &&
     (useNewZipsEligibility ? zipCode.isEligible : zipCode.isEligibleOld)

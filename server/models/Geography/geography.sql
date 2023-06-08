@@ -1,13 +1,13 @@
 /* @name upsertCity */
 WITH ins AS (
-INSERT INTO cities (name, us_state_code, created_at, updated_at)
-        VALUES (:name!, :state!, NOW(), NOW())
+INSERT INTO cities (name, us_state_code)
+        VALUES (:name!, :state!)
     ON CONFLICT (name, us_state_code)
         DO NOTHING
     RETURNING
         id)
     SELECT
-        *
+        id
     FROM
         ins
     UNION
@@ -16,5 +16,6 @@ INSERT INTO cities (name, us_state_code, created_at, updated_at)
     FROM
         cities
     WHERE
-        name = :name!;
+        name = :name!
+            AND us_state_code = :state;
 
