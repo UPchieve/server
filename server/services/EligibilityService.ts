@@ -17,6 +17,7 @@ import { GRADES } from '../constants'
 import { CustomError } from 'ts-custom-error'
 import { School } from '../models/School'
 import { ZipCode } from '../models/ZipCode'
+import config from '../config'
 
 type CheckEligibilityPayload = {
   schoolUpchieveId: string
@@ -125,7 +126,7 @@ function isSchoolApproved(
     return (
       isTitle1Eligible() ||
       hasCEONationalSchoolLunch() ||
-      hasFreeReducedLunchAboveThreshold(0.4)
+      hasFreeReducedLunchAboveThreshold(config.eligibleFRLThreshold)
     )
   }
 
