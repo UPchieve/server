@@ -5,7 +5,7 @@ import {
   RepoUpdateError,
 } from '../Errors'
 import { School } from './types'
-import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
@@ -20,7 +20,6 @@ import {
 import { asNumber } from '../../utils/type-utils'
 import { toTitleCase } from '../../utils/string-utils'
 import logger from '../../logger'
-import { getDbUlid } from '../../../database/seeds/utils'
 
 export async function getSchoolById(
   schoolId: Ulid
