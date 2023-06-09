@@ -5,7 +5,13 @@ import {
   RepoUpdateError,
 } from '../Errors'
 import { School } from './types'
-import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import {
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
@@ -28,13 +34,13 @@ export async function getSchoolById(
     const result = await pgQueries.getSchoolById.run({ schoolId }, getClient())
 
     if (result.length) {
-      return makeSomeRequired(result[0], [
-        'isSchoolWideTitle1',
-        'isTitle1Eligible',
-        'nationalSchoolLunchProgram',
-        'totalStudents',
-        'nslpDirectCertification',
-        'frlEligible',
+      return makeSomeOptional(result[0], [
+        'id',
+        'name',
+        'city',
+        'state',
+        'isAdminApproved',
+        'isPartner',
       ])
     }
   } catch (err) {
