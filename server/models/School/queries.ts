@@ -6,6 +6,7 @@ import {
 } from '../Errors'
 import { School } from './types'
 import {
+  getDbUlid,
   makeRequired,
   makeSomeOptional,
   makeSomeRequired,
@@ -25,7 +26,6 @@ import {
 import { asNumber } from '../../utils/type-utils'
 import { toTitleCase } from '../../utils/string-utils'
 import logger from '../../logger'
-import { getDbUlid } from '../../../database/seeds/utils'
 
 export async function getSchoolById(
   schoolId: Ulid
