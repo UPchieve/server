@@ -4,5 +4,4 @@ export type ZipCode = {
   cbsaIncome?: number
   stateIncome?: number
   isEligible: boolean
-  isEligibleOld: boolean
 }
