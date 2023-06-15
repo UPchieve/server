@@ -164,3 +164,29 @@ const getIneligibleStudentsPaginatedIR: any = {"name":"getIneligibleStudentsPagi
 export const getIneligibleStudentsPaginated = new PreparedQuery<IGetIneligibleStudentsPaginatedParams,IGetIneligibleStudentsPaginatedResult>(getIneligibleStudentsPaginatedIR);
 
 
+/** 'DeleteIneligibleStudent' parameters type */
+export interface IDeleteIneligibleStudentParams {
+  email: string;
+}
+
+/** 'DeleteIneligibleStudent' return type */
+export type IDeleteIneligibleStudentResult = void;
+
+/** 'DeleteIneligibleStudent' query type */
+export interface IDeleteIneligibleStudentQuery {
+  params: IDeleteIneligibleStudentParams;
+  result: IDeleteIneligibleStudentResult;
+}
+
+const deleteIneligibleStudentIR: any = {"name":"deleteIneligibleStudent","params":[{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2015,"b":2020,"line":72,"col":15}]}}],"usedParamSet":{"email":true},"statement":{"body":"DELETE FROM ineligible_students\nWHERE email = :email!","loc":{"a":1968,"b":2020,"line":71,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM ineligible_students
+ * WHERE email = :email!
+ * ```
+ */
+export const deleteIneligibleStudent = new PreparedQuery<IDeleteIneligibleStudentParams,IDeleteIneligibleStudentResult>(deleteIneligibleStudentIR);
+
+

@@ -66,3 +66,8 @@ ORDER BY
     ineligible_students.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
+
+/* @name deleteIneligibleStudent */
+DELETE FROM ineligible_students
+WHERE email = :email!;
+

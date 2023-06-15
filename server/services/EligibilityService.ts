@@ -2,6 +2,7 @@ import * as UserCtrl from '../controllers/UserCtrl'
 import { getSchoolById } from '../models/School/queries'
 import { getZipCodeByZipCode } from '../models/ZipCode/queries'
 import {
+  deleteIneligibleStudent,
   getIneligibleStudentByEmail,
   insertIneligibleStudent,
 } from '../models/IneligibleStudent/queries'
@@ -75,7 +76,8 @@ export async function checkEligibility(
   const isEligibleBySchool = isSchoolApproved(school, useNewSchoolsEligibility)
   const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isStudentEligible =
-    (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
+    (isEligibleBySchool || (isEligibleByZipCode && !existingIneligible)) &&
+    !isCollegeStudent
 
   if (!isStudentEligible) {
     const referredBy = await UserCtrl.checkReferral(referredByCode)
@@ -87,6 +89,8 @@ export async function checkEligibility(
       referredBy,
       ip
     )
+  } else if (existingIneligible) {
+    await deleteIneligibleStudent(email)
   }
 
   return {
