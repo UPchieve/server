@@ -25,7 +25,6 @@ type CheckEligibilityPayload = {
   email: string
   referredByCode?: string
   currentGrade?: GRADES
-  useNewZipsEligibility?: boolean
   useNewSchoolsEligibility?: boolean
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
@@ -34,7 +33,6 @@ const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   email: asString,
   referredByCode: asOptional(asString),
   currentGrade: asOptional(asEnum(GRADES)),
-  useNewZipsEligibility: asOptional(asBoolean),
   useNewSchoolsEligibility: asOptional(asBoolean),
 })
 
@@ -56,7 +54,6 @@ export async function checkEligibility(
     email,
     referredByCode,
     currentGrade,
-    useNewZipsEligibility,
     useNewSchoolsEligibility,
   } = asCheckEligibilityPayload(payload)
 
@@ -70,7 +67,7 @@ export async function checkEligibility(
   const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
   const isEligibleBySchool = isSchoolApproved(school, useNewSchoolsEligibility)
-  const isEligibleByZipCode = isZipCodeEligible(zipCode, useNewZipsEligibility)
+  const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isCollegeStudent = currentGrade === GRADES.COLLEGE
   const isStudentEligible =
     (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
@@ -101,25 +98,21 @@ export async function checkZipCode(param: unknown): Promise<boolean> {
   return !!foundZip
 }
 
-function isZipCodeEligible(
-  zipCode?: ZipCode,
-  useNewZipsEligibility: boolean = false
-) {
-  return (
-    !!zipCode &&
-    (useNewZipsEligibility ? zipCode.isEligible : zipCode.isEligibleOld)
-  )
+function isZipCodeEligible(zipCode?: ZipCode) {
+  return !!zipCode && zipCode.isEligible
 }
 
-function isSchoolApproved(
+export function isSchoolApproved(
   school?: School,
   useNewSchoolsEligibility: boolean = false
 ) {
   return (
     !!school &&
     (useNewSchoolsEligibility
-      ? school.isAdminApproved || isNewSchoolEligibilityApproved()
-      : school.isAdminApproved)
+      ? school.isAdminApproved ||
+        school.isPartner ||
+        isNewSchoolEligibilityApproved()
+      : school.isAdminApproved || school.isPartner)
   )
 
   function isNewSchoolEligibilityApproved() {

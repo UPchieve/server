@@ -11,6 +11,7 @@ export type School = {
   zip?: string
   district?: string
   isAdminApproved?: boolean
+  isApproved?: boolean
   isPartner?: boolean
   schoolYear?: string
   isSchoolWideTitle1?: boolean
