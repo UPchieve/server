@@ -20,7 +20,7 @@ import { ZipCode } from '../models/ZipCode'
 import config from '../config'
 
 type CheckEligibilityPayload = {
-  schoolUpchieveId: string
+  schoolUpchieveId?: string
   zipCode: string
   email: string
   referredByCode?: string
@@ -28,7 +28,7 @@ type CheckEligibilityPayload = {
   useNewSchoolsEligibility?: boolean
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
-  schoolUpchieveId: asString,
+  schoolUpchieveId: asOptional(asString),
   zipCode: asString,
   email: asString,
   referredByCode: asOptional(asString),
@@ -60,15 +60,20 @@ export async function checkEligibility(
   const existingUser = await getUserIdByEmail(email)
   if (existingUser) throw new ExistingUserError()
 
-  const existingIneligible = await getIneligibleStudentByEmail(email)
-  if (existingIneligible) return { isEligible: false }
+  const isCollegeStudent = currentGrade === GRADES.COLLEGE
 
-  const school = await getSchoolById(schoolUpchieveId)
+  const existingIneligible = await getIneligibleStudentByEmail(email)
+  if (existingIneligible && (existingIneligible.school || !schoolUpchieveId)) {
+    return { isEligible: false, isCollegeStudent }
+  }
+
+  const school = schoolUpchieveId
+    ? await getSchoolById(schoolUpchieveId)
+    : undefined
   const zipCode = await getZipCodeByZipCode(zipCodeInput)
 
   const isEligibleBySchool = isSchoolApproved(school, useNewSchoolsEligibility)
   const isEligibleByZipCode = isZipCodeEligible(zipCode)
-  const isCollegeStudent = currentGrade === GRADES.COLLEGE
   const isStudentEligible =
     (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
 
@@ -84,12 +89,10 @@ export async function checkEligibility(
     )
   }
 
-  if (isCollegeStudent)
-    return {
-      isEligible: isStudentEligible,
-      isCollegeStudent: isCollegeStudent,
-    }
-  else return { isEligible: isStudentEligible }
+  return {
+    isEligible: isStudentEligible,
+    isCollegeStudent,
+  }
 }
 
 export async function checkZipCode(param: unknown): Promise<boolean> {
