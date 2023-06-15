@@ -163,7 +163,10 @@ FROM
     schools
 WHERE
     partner IS TRUE
-    AND name = :schoolName!;
+    AND name = :schoolName!
+ON CONFLICT (name)
+    DO UPDATE SET
+        updated_at = NOW();
 
 
 /* @name deactivateStudentPartnerOrg */

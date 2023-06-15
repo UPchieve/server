@@ -111,8 +111,8 @@ WHERE
 UPDATE
     school_nces_metadata
 SET
-    mzip = :zipCode,
-    lzip = :zipCode,
+    mzip = COALESCE(:zip, school_nces_metadata.mzip),
+    lzip = COALESCE(:zip, school_nces_metadata.lzip),
     updated_at = NOW()
 WHERE
     school_id = :schoolId!;

@@ -26,6 +26,8 @@ import {
 import { asNumber } from '../../utils/type-utils'
 import { toTitleCase } from '../../utils/string-utils'
 import logger from '../../logger'
+import { AdminUpdate } from '../../services/SchoolService'
+import { isSchoolApproved } from '../../services/EligibilityService'
 
 export async function getSchoolById(
   schoolId: Ulid
@@ -71,7 +73,21 @@ export async function getSchools(
       },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['zip']))
+    return result
+      .map(v =>
+        makeSomeOptional(v, [
+          'id',
+          'name',
+          'city',
+          'state',
+          'isAdminApproved',
+          'isPartner',
+        ])
+      )
+      .map((s: School) => {
+        s.isApproved = isSchoolApproved(s)
+        return s
+      })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -122,22 +138,13 @@ export async function updateIsPartner(
   }
 }
 
-export type AdminUpdate = {
-  schoolId: Ulid
-  name: string
-  city: string
-  state: string
-  zipCode: string
-  isApproved: boolean
-}
-
 export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
   const client = await getClient().connect()
   try {
-    const { schoolId, name, city, state, zipCode, isApproved } = data
+    const { schoolId, name, city, state, zip, isApproved } = data
 
     await client.query('BEGIN')
-    await pgQueries.adminUpdateSchoolMetaData.run({ schoolId, zipCode }, client)
+    await pgQueries.adminUpdateSchoolMetaData.run({ schoolId, zip }, client)
 
     // we need to find the city's id, or if it doesn't exist, create it
     let cityId: number | undefined

@@ -111,15 +111,17 @@ function isZipCodeEligible(
   )
 }
 
-function isSchoolApproved(
+export function isSchoolApproved(
   school?: School,
   useNewSchoolsEligibility: boolean = false
 ) {
   return (
     !!school &&
     (useNewSchoolsEligibility
-      ? school.isAdminApproved || isNewSchoolEligibilityApproved()
-      : school.isAdminApproved)
+      ? school.isAdminApproved ||
+        school.isPartner ||
+        isNewSchoolEligibilityApproved()
+      : school.isAdminApproved || school.isPartner)
   )
 
   function isNewSchoolEligibilityApproved() {

@@ -36,6 +36,8 @@ export function asNumber(s: unknown, errMsg?: string): number {
 
 export function asBoolean(s: unknown, errMsg?: string): boolean {
   if (typeof s === 'boolean') return s as boolean
+  if (s === 'true') return true
+  if (s === 'false') return false
   throw new InputError(`${errMsg} : ${s} is not a boolean`)
 }
 
