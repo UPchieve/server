@@ -108,12 +108,12 @@ export function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
   return SchoolRepo.updateIsPartner(schoolId, isPartner)
 }
 
-interface AdminUpdate {
+export interface AdminUpdate {
   schoolId: Ulid
   name: string
   city: string
   state: string
-  zipCode: string
+  zip: string
   isApproved: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
@@ -121,24 +121,22 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   name: asString,
   city: asString,
   state: asString,
-  zipCode: asString,
+  zip: asString,
   isApproved: asBoolean,
 })
 
 export async function adminUpdateSchool(data: unknown) {
-  const { schoolId, name, city, state, zipCode, isApproved } = asAdminUpdate(
-    data
-  )
+  const { schoolId, name, city, state, zip, isApproved } = asAdminUpdate(data)
   const schoolData = {
-    isApproved,
+    schoolId,
     name,
     city,
     state,
-    zipCode,
-    schoolId,
+    zip,
+    isApproved,
   }
 
-  return SchoolRepo.adminUpdateSchool(schoolData as AdminUpdate)
+  return SchoolRepo.adminUpdateSchool(schoolData)
 }
 
 export async function titlecaseSchoolNames() {
