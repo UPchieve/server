@@ -1,5 +1,5 @@
 import { IneligibleStudent } from './types'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
@@ -89,5 +89,18 @@ export async function insertIneligibleStudent(
       throw new Error('Insert did not return new row')
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function deleteIneligibleStudent(email: string): Promise<void> {
+  try {
+    await pgQueries.deleteIneligibleStudent.run(
+      {
+        email,
+      },
+      getClient()
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
