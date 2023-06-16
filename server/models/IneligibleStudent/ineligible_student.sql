@@ -35,8 +35,11 @@ FROM
     TEMP
     LEFT JOIN grade_levels ON grade_levels.name = :gradeLevel
     LEFT JOIN ip_addresses ON ip_addresses.ip = :ip
-RETURNING
-    id AS ok;
+ON CONFLICT (email)
+    DO UPDATE SET
+        school_id = :schoolId
+    RETURNING
+        id AS ok;
 
 
 /* @name getIneligibleStudentsPaginated */
@@ -62,4 +65,9 @@ FROM
 ORDER BY
     ineligible_students.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
+
+/* @name deleteIneligibleStudent */
+DELETE FROM ineligible_students
+WHERE email = :email!;
 
