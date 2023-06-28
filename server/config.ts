@@ -304,6 +304,9 @@ const config: Static<typeof Config> = {
     Number(process.env.SUBWAY_ELIGIBLE_FRL_THRESHOLD) || 0.4,
   customManualStudentPartnerOrg:
     process.env.SUBWAY_CUSTOM_MANUAL_STUDENT_PARTNER_ORG || 'college-mentors',
+
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
 }
 
 module.exports = config
