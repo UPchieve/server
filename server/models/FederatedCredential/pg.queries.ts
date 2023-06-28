@@ -20,13 +20,18 @@ export interface IGetFederatedCredentialQuery {
   result: IGetFederatedCredentialResult;
 }
 
-const getFederatedCredentialIR: any = {"name":"getFederatedCredential","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":83,"b":85,"line":3,"col":12}]}},{"name":"issuer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":101,"b":107,"line":3,"col":30}]}}],"usedParamSet":{"id":true,"issuer":true},"statement":{"body":"SELECT * FROM federated_credentials\nWHERE id = :id! AND issuer = :issuer!","loc":{"a":35,"b":107,"line":2,"col":0}}};
+const getFederatedCredentialIR: any = {"name":"getFederatedCredential","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":95,"b":97,"line":7,"col":10}]}},{"name":"issuer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":117,"b":123,"line":8,"col":18}]}}],"usedParamSet":{"id":true,"issuer":true},"statement":{"body":"SELECT\n    *\nFROM\n    federated_credentials\nWHERE\n    id = :id!\n    AND issuer = :issuer!","loc":{"a":35,"b":123,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM federated_credentials
- * WHERE id = :id! AND issuer = :issuer!
+ * SELECT
+ *     *
+ * FROM
+ *     federated_credentials
+ * WHERE
+ *     id = :id!
+ *     AND issuer = :issuer!
  * ```
  */
 export const getFederatedCredential = new PreparedQuery<IGetFederatedCredentialParams,IGetFederatedCredentialResult>(getFederatedCredentialIR);
@@ -48,13 +53,13 @@ export interface IInsertFederatedCredentialQuery {
   result: IInsertFederatedCredentialResult;
 }
 
-const insertFederatedCredentialIR: any = {"name":"insertFederatedCredential","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":215,"b":217,"line":8,"col":9}]}},{"name":"issuer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":221,"b":227,"line":8,"col":15}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":231,"b":237,"line":8,"col":25}]}}],"usedParamSet":{"id":true,"issuer":true,"userId":true},"statement":{"body":"INSERT INTO federated_credentials (id, issuer, user_id)\nVALUES (:id!, :issuer!, :userId!)","loc":{"a":150,"b":238,"line":7,"col":0}}};
+const insertFederatedCredentialIR: any = {"name":"insertFederatedCredential","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":235,"b":237,"line":13,"col":13}]}},{"name":"issuer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":241,"b":247,"line":13,"col":19}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":251,"b":257,"line":13,"col":29}]}}],"usedParamSet":{"id":true,"issuer":true,"userId":true},"statement":{"body":"INSERT INTO federated_credentials (id, issuer, user_id)\n    VALUES (:id!, :issuer!, :userId!)","loc":{"a":166,"b":258,"line":12,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO federated_credentials (id, issuer, user_id)
- * VALUES (:id!, :issuer!, :userId!)
+ *     VALUES (:id!, :issuer!, :userId!)
  * ```
  */
 export const insertFederatedCredential = new PreparedQuery<IInsertFederatedCredentialParams,IInsertFederatedCredentialResult>(insertFederatedCredentialIR);
