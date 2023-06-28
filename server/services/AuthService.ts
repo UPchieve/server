@@ -10,6 +10,7 @@ import {
 } from '../models/User/queries'
 import * as StudentRepo from '../models/Student'
 import * as VolunteerRepo from '../models/Volunteer'
+import * as FederatedCredentialRepo from '../models/FederatedCredential'
 import { School } from '../models/School'
 import { getSchoolById } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
@@ -488,5 +489,16 @@ export async function deleteAllUserSessions(userId: string) {
     logger.error(
       `Unable to invalidate all user sessions on password reset: ${err}`
     )
+  }
+}
+
+export async function getFederatedCredential(
+  id: string,
+  issuer: string
+): Promise<FederatedCredential | undefined> {
+  try {
+    return FederatedCredentialRepo.getFederatedCredential(id, issuer)
+  } catch (err) {
+    logger.error(`Failed to get federated credential.`)
   }
 }

@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
-import passportLocal from 'passport-local'
+import { Strategy as LocalStrategy } from 'passport-local'
+var GoogleStrategy = require('passport-google-oidc')
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
@@ -261,6 +262,10 @@ function setupPassport() {
             return done(null, false)
           }
 
+          if (!user.password) {
+            return done(null, false)
+          }
+
           const isValidPassword = await verifyPassword(
             passwordGiven,
             user.password
@@ -279,6 +284,42 @@ function setupPassport() {
       }
     )
   )
+
+  passport.use(
+    'google-login',
+    new GoogleStrategy(
+      {
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: '/auth/oauth2/redirect/google/login',
+        scope: ['email'],
+      },
+      async function(
+        issuer: string,
+        profile: passport.Profile,
+        done: Function
+      ) {
+        try {
+          const existingFedCred = await getFederatedCredential(
+            profile.id,
+            issuer
+          )
+          if (!existingFedCred) {
+            return done(
+              null,
+              false,
+              'Unable to authenticate with Google - please link your Google account.'
+            )
+          }
+
+          return done(null, {id: existingFedCred.userId})
+        } catch (error) {
+          return done(error)
+        }
+      }
+    )
+  )
+
 }
 
 // Login Required middleware
