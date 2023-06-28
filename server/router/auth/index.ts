@@ -75,6 +75,20 @@ export function routes(app: Express) {
     })
   )
 
+  router.route('/register/google/student').get(function(req, res) {
+    ;(req.session as any).studentData = req.query
+    ;(req.session as any).studentData.ip = req.ip
+    passport.authenticate('google-register-student')(req, res)
+  })
+
+  router.route('/oauth2/redirect/google/register/student').get(
+    passport.authenticate('google-register-student', {
+      // TODO: figure out what to do for failure redirect.
+      // failureRedirect: GoogleAuthRedirect.loginFailureRedirect,
+      successRedirect: GoogleAuthRedirect.successRedirect,
+    })
+  )
+
   router.route('/register/checkcred').post(async function(req, res) {
     try {
       const checked = await AuthService.checkCredential(req.body as unknown)

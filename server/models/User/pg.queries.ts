@@ -216,7 +216,7 @@ export interface IGetUserForPassportParams {
 export interface IGetUserForPassportResult {
   email: string;
   id: string;
-  password: string;
+  password: string | null;
 }
 
 /** 'GetUserForPassport' query type */

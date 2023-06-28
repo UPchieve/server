@@ -6,6 +6,7 @@ import * as UserRepo from '../models/User'
 import * as StudentRepo from '../models/Student'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UserActionRepo from '../models/UserAction'
+import * as FederatedCredentialRepo from '../models/FederatedCredential'
 import { Certifications } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
@@ -27,13 +28,34 @@ export async function checkReferral(
   }
 }
 
+export async function createStudentWithPassword(
+  studentData: StudentRepo.CreateStudentWithPasswordPayload,
+  ip: string
+) {
+  studentData.password = await hashPassword(studentData.password)
+  return createStudent(studentData, ip)
+}
+
+export async function createStudentWithFederatedCredential(
+  studentData: StudentRepo.CreateStudentWithFedCredPayload,
+  ip: string,
+  profileId: string,
+  issuer: string
+) {
+  const student = await createStudent(studentData, ip)
+  await FederatedCredentialRepo.insertFederatedCredential(
+    profileId,
+    issuer,
+    student.id
+  )
+  return student
+}
+
 // TODO: duck type validation - studentData payload
-export async function createStudent(
+async function createStudent(
   studentData: StudentRepo.CreateStudentPayload,
   ip: string
 ): Promise<StudentRepo.CreatedStudent> {
-  studentData.password = await hashPassword(studentData.password)
-  // replace with createStudent
   const student = await StudentRepo.createStudent(studentData)
 
   // Create a USM object for this new user

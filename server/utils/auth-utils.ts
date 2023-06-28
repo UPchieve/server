@@ -11,7 +11,10 @@ import {
   getUserForPassport,
   getUserIdByPhone,
 } from '../models/User/queries'
-import { checkReferral } from '../controllers/UserCtrl'
+import {
+  checkReferral,
+  createStudentWithFederatedCredential,
+} from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
 
@@ -26,6 +29,9 @@ import {
   asNumber,
 } from './type-utils'
 import validator from 'validator'
+import session from 'express-session'
+import { getFederatedCredential } from '../services/AuthService'
+import { verifyEligibility } from '../services/EligibilityService'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -40,6 +46,16 @@ export const asCredentialData = asFactory<CredentialData>({
   email: asString,
   password: asString,
 })
+
+interface SessionWithStudentData extends session.Session {
+  studentData?: {
+    highSchoolId: string
+    zipCode: string
+    currentGrade: string
+    referredByCode?: string | undefined
+    ip: string
+  }
+}
 
 interface UserRegData {
   ip: string
@@ -194,8 +210,9 @@ export async function checkEmail(email: string) {
 }
 
 export async function getReferredBy(
-  referredByCode: string
+  referredByCode?: string
 ): Promise<Ulid | undefined> {
+  if (!referredByCode) return
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
@@ -232,7 +249,6 @@ export function verifyPassword(
 }
 
 // Passport functions
-const LocalStrategy = passportLocal.Strategy
 function setupPassport() {
   passport.serializeUser(function(user: Express.User, done: Function) {
     done(null, user.id)
@@ -312,7 +328,7 @@ function setupPassport() {
             )
           }
 
-          return done(null, {id: existingFedCred.userId})
+          return done(null, { id: existingFedCred.userId })
         } catch (error) {
           return done(error)
         }
@@ -320,6 +336,79 @@ function setupPassport() {
     )
   )
 
+  passport.use(
+    'google-register-student',
+    new GoogleStrategy(
+      {
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: '/auth/oauth2/redirect/google/register/student',
+        passReqToCallback: true,
+        scope: ['profile', 'email'],
+      },
+      async function(
+        req: Request,
+        issuer: string,
+        profile: passport.Profile,
+        done: Function
+      ) {
+        try {
+          const existingFedCred = await getFederatedCredential(
+            profile.id,
+            issuer
+          )
+          if (existingFedCred) {
+            return done(null, false)
+          }
+
+          const firstName = profile.name?.givenName
+          const lastName = profile.name?.familyName
+          const email = profile.emails?.[0]?.value
+          if (!firstName || !lastName || !email) {
+            return done(null, false)
+          }
+
+          const session = req.session as SessionWithStudentData
+          if (!session.studentData) {
+            return done(null, false)
+          }
+
+          const highSchoolId = session.studentData.highSchoolId
+          const zipCode = session.studentData?.zipCode
+          if (!verifyEligibility(zipCode, highSchoolId)) {
+            return done(null, false)
+          }
+
+          const referredBy = await getReferredBy(
+            session.studentData.referredByCode
+          )
+          const ip = session.studentData.ip
+          const studentData = {
+            firstName,
+            lastName,
+            email,
+            approvedHighschool: highSchoolId,
+            zipCode,
+            currentGrade: session.studentData.currentGrade,
+            referredBy,
+            verified: true,
+            emailVerified: true,
+          }
+          delete session.studentData
+
+          const student = await createStudentWithFederatedCredential(
+            studentData,
+            ip,
+            profile.id,
+            issuer
+          )
+          return done(null, student)
+        } catch (err) {
+          return done(err)
+        }
+      }
+    )
+  )
 }
 
 // Login Required middleware
