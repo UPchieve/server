@@ -423,6 +423,14 @@ COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic,
 
 
 --
+-- Data for Name: federated_credentials; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.federated_credentials (id, issuer, user_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: feedbacks; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
