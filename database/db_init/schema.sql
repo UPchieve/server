@@ -357,6 +357,17 @@ CREATE TABLE upchieve.contact_form_submissions (
 
 
 --
+-- Name: federated_credentials; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.federated_credentials (
+    id text NOT NULL,
+    issuer text NOT NULL,
+    user_id uuid
+);
+
+
+--
 -- Name: feedbacks; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1829,7 +1840,7 @@ CREATE TABLE upchieve.users (
     email_verified boolean DEFAULT false NOT NULL,
     phone_verified boolean DEFAULT false NOT NULL,
     email text NOT NULL,
-    password text NOT NULL,
+    password text,
     password_reset_token text,
     first_name text NOT NULL,
     last_name text NOT NULL,
@@ -2449,6 +2460,14 @@ ALTER TABLE ONLY upchieve.computed_subject_unlocks
 
 ALTER TABLE ONLY upchieve.contact_form_submissions
     ADD CONSTRAINT contact_form_submissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: federated_credentials federated_credentials_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.federated_credentials
+    ADD CONSTRAINT federated_credentials_pkey PRIMARY KEY (id, issuer);
 
 
 --
@@ -3597,6 +3616,14 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
+-- Name: federated_credentials federated_credentials_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.federated_credentials
+    ADD CONSTRAINT federated_credentials_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: feedbacks feedbacks_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4666,4 +4693,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20221206021238'),
     ('20230104192756'),
     ('20230524032337'),
-    ('20230601213111');
+    ('20230601213111'),
+    ('20230621173400'),
+    ('20230626161133');
