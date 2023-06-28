@@ -56,6 +56,8 @@ import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
 import config from '../config'
+import { FederatedCredential } from '../models/FederatedCredential'
+import { verifyEligibility } from './EligibilityService'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
