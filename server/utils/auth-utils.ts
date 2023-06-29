@@ -377,7 +377,7 @@ function setupPassport() {
 
           const highSchoolId = session.studentData.highSchoolId
           const zipCode = session.studentData?.zipCode
-          if (!verifyEligibility(zipCode, highSchoolId)) {
+          if (!(await verifyEligibility(zipCode, highSchoolId))) {
             return done(null, false, 'Not eligible.')
           }
 

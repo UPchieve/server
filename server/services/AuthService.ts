@@ -130,7 +130,7 @@ export async function registerOpenStudent(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  if (!verifyEligibility(zipCode, highSchoolUpchieveId)) {
+  if (!(await verifyEligibility(zipCode, highSchoolUpchieveId))) {
     throw new RegistrationError('Not eligible.')
   }
 
