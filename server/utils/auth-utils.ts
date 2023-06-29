@@ -47,14 +47,16 @@ export const asCredentialData = asFactory<CredentialData>({
   password: asString,
 })
 
-interface SessionWithStudentData extends session.Session {
-  studentData?: {
-    highSchoolId: string
-    zipCode: string
-    currentGrade: string
-    referredByCode?: string | undefined
-    ip: string
-  }
+export interface SessionWithStudentData extends session.Session {
+  studentData?: StudentDataParams
+}
+export interface StudentDataParams {
+  email: string
+  highSchoolId: string
+  zipCode: string
+  currentGrade: string
+  referredByCode?: string | undefined
+  ip: string
 }
 
 interface UserRegData {
@@ -321,11 +323,7 @@ function setupPassport() {
             issuer
           )
           if (!existingFedCred) {
-            return done(
-              null,
-              false,
-              'Unable to authenticate with Google - please link your Google account.'
-            )
+            return done(null, false)
           }
 
           return done(null, { id: existingFedCred.userId })
@@ -358,7 +356,11 @@ function setupPassport() {
             issuer
           )
           if (existingFedCred) {
-            return done(null, false)
+            return done(
+              null,
+              false,
+              'Google account already associated with an account.'
+            )
           }
 
           const firstName = profile.name?.givenName
@@ -376,7 +378,7 @@ function setupPassport() {
           const highSchoolId = session.studentData.highSchoolId
           const zipCode = session.studentData?.zipCode
           if (!verifyEligibility(zipCode, highSchoolId)) {
-            return done(null, false)
+            return done(null, false, 'Not eligible.')
           }
 
           const referredBy = await getReferredBy(
@@ -394,7 +396,6 @@ function setupPassport() {
             verified: true,
             emailVerified: true,
           }
-          delete session.studentData
 
           const student = await createStudentWithFederatedCredential(
             studentData,

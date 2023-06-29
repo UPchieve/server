@@ -2,7 +2,11 @@ import { Express, Router } from 'express'
 import passport from 'passport'
 
 import * as AuthService from '../../services/AuthService'
-import { authPassport } from '../../utils/auth-utils'
+import {
+  authPassport,
+  SessionWithStudentData,
+  StudentDataParams,
+} from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
@@ -33,7 +37,23 @@ class GoogleAuthRedirect {
   }
 
   static get loginFailureRedirect() {
-    return this.getBaseRedirect() + '/login?400=true'
+    return `${this.getBaseRedirect()}/login?400=true`
+  }
+
+  static registerFailureRedirect(
+    studentData: StudentDataParams,
+    errMsg?: string
+  ) {
+    const params = new URLSearchParams({
+      email: studentData.email,
+      highSchoolId: studentData.highSchoolId,
+      zipCode: studentData.zipCode,
+      currentGrade: studentData.currentGrade,
+    })
+    if (errMsg) {
+      params.append('error', errMsg)
+    }
+    return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
   }
 }
 
@@ -81,13 +101,26 @@ export function routes(app: Express) {
     passport.authenticate('google-register-student')(req, res)
   })
 
-  router.route('/oauth2/redirect/google/register/student').get(
-    passport.authenticate('google-register-student', {
-      // TODO: figure out what to do for failure redirect.
-      // failureRedirect: GoogleAuthRedirect.loginFailureRedirect,
-      successRedirect: GoogleAuthRedirect.successRedirect,
+  router
+    .route('/oauth2/redirect/google/register/student')
+    .get(function(req, res) {
+      passport.authenticate('google-register-student', async function(
+        _err,
+        user,
+        info
+      ) {
+        const studentData = (req.session as any).studentData
+        delete (req.session as any).studentData
+        if (user) {
+          res.redirect(GoogleAuthRedirect.successRedirect)
+          await req.asyncLogin(user)
+        } else {
+          res.redirect(
+            GoogleAuthRedirect.registerFailureRedirect(studentData, info)
+          )
+        }
+      })(req, res)
     })
-  )
 
   router.route('/register/checkcred').post(async function(req, res) {
     try {

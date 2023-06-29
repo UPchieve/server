@@ -247,3 +247,5 @@ out/
 
 # env file generated for telepresence
 telepresence.env
+
+.env
