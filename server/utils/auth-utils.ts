@@ -9,6 +9,7 @@ import config from '../config'
 import {
   getUserContactInfoById,
   getUserForPassport,
+  getUserIdByEmail,
   getUserIdByPhone,
 } from '../models/User/queries'
 import {
@@ -368,6 +369,15 @@ function setupPassport() {
           const email = profile.emails?.[0]?.value
           if (!firstName || !lastName || !email) {
             return done(null, false)
+          }
+
+          const existingUser = await getUserIdByEmail(email)
+          if (existingUser) {
+            return done(
+              null,
+              false,
+              'Account with Google email already exists.'
+            )
           }
 
           const session = req.session as SessionWithStudentData
