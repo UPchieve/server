@@ -305,8 +305,10 @@ const config: Static<typeof Config> = {
   customManualStudentPartnerOrg:
     process.env.SUBWAY_CUSTOM_MANUAL_STUDENT_PARTNER_ORG || 'college-mentors',
 
-  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  // To work on localhost, add a .env file in the root dir with
+  // these environment variables.
+  googleClientId: process.env.GOOGLE_CLIENT_ID || 'bogus',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || 'bogus',
 }
 
 module.exports = config
