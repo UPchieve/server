@@ -2,11 +2,7 @@ import { Express, Router } from 'express'
 import passport from 'passport'
 
 import * as AuthService from '../../services/AuthService'
-import {
-  authPassport,
-  SessionWithStudentData,
-  StudentDataParams,
-} from '../../utils/auth-utils'
+import { authPassport, StudentDataParams } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
@@ -22,11 +18,13 @@ class GoogleAuthRedirect {
 
   private static getBaseRedirect() {
     if (!this._baseRedirect) {
+      let protocol
       if (config.NODE_ENV === 'dev') {
-        this._baseRedirect = `http://${config.client.host}`
+        protocol = 'http'
       } else {
-        this._baseRedirect = '/'
+        protocol = 'https'
       }
+      this._baseRedirect = `${protocol}://${config.client.host}`
     }
 
     return this._baseRedirect
