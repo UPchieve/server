@@ -447,6 +447,8 @@ SELECT
     photo_id_statuses.name AS photo_id_status,
     COALESCE(past_sessions.sessions, '{}') AS past_sessions,
     round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
+    COALESCE(past_sessions.time_tutored::float, 0) AS total_time_tutored,
+    COALESCE(array_length(past_sessions.total_tutored_sessions, 1), 0) AS total_tutored_sessions,
     array_cat(total_subjects.subjects, computed_subjects.subjects) AS subjects,
     recent_availability.updated_at AS availability_last_modified_at,
     occupations.occupations AS occupation,
@@ -551,7 +553,8 @@ FROM
     LEFT JOIN (
         SELECT
             array_agg(id) AS sessions,
-            sum(time_tutored)::bigint AS time_tutored
+            sum(time_tutored)::bigint AS time_tutored,
+            array_agg(id) FILTER (WHERE time_tutored > 0) AS total_tutored_sessions
         FROM
             sessions
         WHERE
