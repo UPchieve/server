@@ -194,4 +194,8 @@ export const Config = Record({
   eligibleIncomeThreshold: Number,
   eligibleFRLThreshold: Number,
   customManualStudentPartnerOrg: String,
+
+  // Google
+  googleClientId: String,
+  googleClientSecret: String,
 })

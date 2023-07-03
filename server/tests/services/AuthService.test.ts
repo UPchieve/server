@@ -3,6 +3,7 @@ import { GRADES } from '../../constants'
 
 import * as UserRepo from '../../models/User/queries'
 import * as SchoolRepo from '../../models/School/queries'
+import * as ZipCodeRepo from '../../models/ZipCode/queries'
 import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg/queries'
 import * as VolunteerPartnerOrgRepo from '../../models/VolunteerPartnerOrg/queries'
 import * as MailService from '../../services/MailService'
@@ -39,6 +40,8 @@ jest.mock('../../models/User/queries')
 const mockedUserRepo = mocked(UserRepo, true)
 jest.mock('../../models/School/queries')
 const mockedSchoolRepo = mocked(SchoolRepo, true)
+jest.mock('../../models/ZipCode/queries')
+const mockedZipCodeRepo = mocked(ZipCodeRepo, true)
 jest.mock('../../models/StudentPartnerOrg/queries')
 const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo, true)
 jest.mock('../../models/VolunteerPartnerOrg/queries')
@@ -188,8 +191,9 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedIpAddressService.getIpWhoIs.mockResolvedValue(ip)
     mockedSchoolRepo.getSchoolById.mockResolvedValue(highSchool)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValue(undefined)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
-    mockedUserCtrl.createStudent.mockResolvedValue(studentOpen)
+    mockedUserCtrl.createStudentWithPassword.mockResolvedValue(studentOpen)
 
     const serviceStudent = await AuthService.registerOpenStudent(
       buildStudentRegistrationForm(studentOpenOverrides)
@@ -206,7 +210,7 @@ describe('Registration tests', () => {
     mockedStudentPartnerOrgRepo.getStudentPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
       { ...mockedStudentPartnerOrg, sites: [] }
     )
-    mockedUserCtrl.createStudent.mockResolvedValue(studentPartner)
+    mockedUserCtrl.createStudentWithPassword.mockResolvedValue(studentPartner)
 
     const serviceStudent = await AuthService.registerPartnerStudent(
       buildPartnerStudentRegistrationForm(studentPartnerOverrides)
@@ -245,7 +249,7 @@ describe('Registration tests', () => {
     const t = async <T>(p: T) => await AuthService.registerOpenStudent(p)
 
     await expect(t(payload)).rejects.toThrow(
-      new RegistrationError(`School ${payload.highSchoolId} is not approved`)
+      new RegistrationError(`Not eligible.`)
     )
   })
 
@@ -307,7 +311,7 @@ describe('Registration tests', () => {
     const referrer = buildStudent()
     const referree = buildStudent({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
-    mockedUserCtrl.createStudent.mockResolvedValue(referree)
+    mockedUserCtrl.createStudentWithPassword.mockResolvedValue(referree)
 
     const serviceStudent = await AuthService.registerOpenStudent(
       buildStudentRegistrationForm({

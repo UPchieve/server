@@ -10,6 +10,7 @@ import {
 } from '../models/User/queries'
 import * as StudentRepo from '../models/Student'
 import * as VolunteerRepo from '../models/Volunteer'
+import * as FederatedCredentialRepo from '../models/FederatedCredential'
 import { School } from '../models/School'
 import { getSchoolById } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
@@ -55,6 +56,8 @@ import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
 import config from '../config'
+import { FederatedCredential } from '../models/FederatedCredential'
+import { verifyEligibility } from './EligibilityService'
 
 async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -127,27 +130,18 @@ export async function registerOpenStudent(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  const highSchoolProvided = !!highSchoolUpchieveId
-  let school: School | undefined
-  if (highSchoolProvided) school = await getSchoolById(highSchoolUpchieveId)
-
-  const highSchoolApprovalRequired = !zipCode
-  if (highSchoolApprovalRequired) {
-    if (!school || !school.isAdminApproved)
-      throw new RegistrationError(
-        `School ${highSchoolUpchieveId} is not approved`
-      )
+  if (!(await verifyEligibility(zipCode, highSchoolUpchieveId))) {
+    throw new RegistrationError('Not eligible.')
   }
 
-  let referredBy: Ulid | undefined
-  if (referredByCode) referredBy = await getReferredBy(referredByCode)
+  const referredBy = await getReferredBy(referredByCode)
 
   const studentData = {
     firstName: firstName.trim(),
     lastName: lastName.trim(),
     email,
     zipCode,
-    approvedHighschool: school?.id,
+    approvedHighschool: highSchoolUpchieveId,
     referredBy,
     password,
     currentGrade,
@@ -155,7 +149,7 @@ export async function registerOpenStudent(
     otherSignupSource,
   }
 
-  const student = await UserCtrl.createStudent(studentData, ip)
+  const student = await UserCtrl.createStudentWithPassword(studentData, ip)
   return student
 }
 
@@ -238,7 +232,7 @@ export async function registerPartnerStudent(
         : undefined,
   }
 
-  const student = await UserCtrl.createStudent(studentData, ip)
+  const student = await UserCtrl.createStudentWithPassword(studentData, ip)
   return student
 }
 
@@ -488,5 +482,16 @@ export async function deleteAllUserSessions(userId: string) {
     logger.error(
       `Unable to invalidate all user sessions on password reset: ${err}`
     )
+  }
+}
+
+export async function getFederatedCredential(
+  id: string,
+  issuer: string
+): Promise<FederatedCredential | undefined> {
+  try {
+    return FederatedCredentialRepo.getFederatedCredential(id, issuer)
+  } catch (err) {
+    logger.error(`Failed to get federated credential.`)
   }
 }

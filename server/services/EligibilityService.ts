@@ -55,7 +55,6 @@ export async function checkEligibility(
     email,
     referredByCode,
     currentGrade,
-    useNewSchoolsEligibility,
   } = asCheckEligibilityPayload(payload)
 
   const existingUser = await getUserIdByEmail(email)
@@ -71,9 +70,11 @@ export async function checkEligibility(
   const school = schoolUpchieveId
     ? await getSchoolById(schoolUpchieveId)
     : undefined
-  const zipCode = await getZipCodeByZipCode(zipCodeInput)
+  const zipCode = zipCodeInput
+    ? await getZipCodeByZipCode(zipCodeInput)
+    : undefined
 
-  const isEligibleBySchool = isSchoolApproved(school, useNewSchoolsEligibility)
+  const isEligibleBySchool = isSchoolApproved(school)
   const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isStudentEligible =
     (isEligibleBySchool || (isEligibleByZipCode && !existingIneligible)) &&
@@ -99,6 +100,17 @@ export async function checkEligibility(
   }
 }
 
+export async function verifyEligibility(
+  zipCode?: string,
+  schoolUpchieveId?: string
+) {
+  const school = schoolUpchieveId
+    ? await getSchoolById(schoolUpchieveId)
+    : undefined
+  const zipCodeData = zipCode ? await getZipCodeByZipCode(zipCode) : undefined
+  return isSchoolApproved(school) || isZipCodeEligible(zipCodeData)
+}
+
 export async function checkZipCode(param: unknown): Promise<boolean> {
   const zipCode = asString(param)
   const foundZip = await getZipCodeByZipCode(zipCode)
@@ -109,17 +121,12 @@ function isZipCodeEligible(zipCode?: ZipCode) {
   return !!zipCode && zipCode.isEligible
 }
 
-export function isSchoolApproved(
-  school?: School,
-  useNewSchoolsEligibility: boolean = false
-) {
+export function isSchoolApproved(school?: School) {
   return (
     !!school &&
-    (useNewSchoolsEligibility
-      ? school.isAdminApproved ||
-        school.isPartner ||
-        isNewSchoolEligibilityApproved()
-      : school.isAdminApproved || school.isPartner)
+    (school.isAdminApproved ||
+      school.isPartner ||
+      isNewSchoolEligibilityApproved())
   )
 
   function isNewSchoolEligibilityApproved() {
