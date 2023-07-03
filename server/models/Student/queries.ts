@@ -564,7 +564,7 @@ export async function adminUpdateStudent(
   }
 }
 
-export interface CreateStudentPayload {
+export type CreateStudentPayload = {
   email: string
   firstName: string
   lastName: string
@@ -582,10 +582,10 @@ export interface CreateStudentPayload {
   verified?: boolean
   emailVerified?: boolean
 }
-export interface CreateStudentWithPasswordPayload extends CreateStudentPayload {
+export type CreateStudentWithPasswordPayload = CreateStudentPayload & {
   password: string
 }
-export interface CreateStudentWithFedCredPayload extends CreateStudentPayload {
+export type CreateStudentWithFedCredPayload = CreateStudentPayload & {
   password?: string | undefined
   verified: boolean
   emailVerified: boolean

@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
-var GoogleStrategy = require('passport-google-oidc')
+const GoogleStrategy = require('passport-google-oidc')
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
@@ -31,7 +31,7 @@ import {
 } from './type-utils'
 import validator from 'validator'
 import session from 'express-session'
-import { getFederatedCredential } from '../services/AuthService'
+import { getFederatedCredential } from '../models/FederatedCredential/queries'
 import { verifyEligibility } from '../services/EligibilityService'
 
 // Custom errors
