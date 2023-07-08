@@ -1857,7 +1857,8 @@ CREATE TABLE upchieve.users (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     phone text,
     mongo_id character varying(24),
-    other_signup_source text
+    other_signup_source text,
+    proxy_email text
 );
 
 
@@ -4695,4 +4696,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20230524032337'),
     ('20230601213111'),
     ('20230621173400'),
-    ('20230626161133');
+    ('20230626161133'),
+    ('20230706181722');
