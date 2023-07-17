@@ -568,7 +568,7 @@ export type CreateStudentPayload = {
   email: string
   firstName: string
   lastName: string
-  password: string
+  password?: string | undefined
   referredBy: Ulid | undefined
   studentPartnerOrg?: string | undefined
   zipCode: string | undefined
@@ -579,7 +579,18 @@ export type CreateStudentPayload = {
   college?: string
   signupSourceId?: number
   otherSignupSource?: string
+  verified?: boolean
+  emailVerified?: boolean
 }
+export type CreateStudentWithPasswordPayload = CreateStudentPayload & {
+  password: string
+}
+export type CreateStudentWithFedCredPayload = CreateStudentPayload & {
+  password?: string | undefined
+  verified: boolean
+  emailVerified: boolean
+}
+
 export type CreatedStudent = StudentContactInfo & {
   isDeactivated: boolean
   isTestUser: boolean
@@ -612,6 +623,8 @@ export async function createStudent(
         referredBy: studentData.referredBy,
         signupSourceId: studentData.signupSourceId,
         otherSignupSource: studentData.otherSignupSource,
+        verified: studentData.verified ?? false,
+        emailVerified: studentData.emailVerified ?? false,
       },
       transactionClient
     )

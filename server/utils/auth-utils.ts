@@ -1,16 +1,21 @@
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
-import passportLocal from 'passport-local'
+import { Strategy as LocalStrategy } from 'passport-local'
+const GoogleStrategy = require('passport-google-oidc')
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
 import {
   getUserContactInfoById,
   getUserForPassport,
+  getUserIdByEmail,
   getUserIdByPhone,
 } from '../models/User/queries'
-import { checkReferral } from '../controllers/UserCtrl'
+import {
+  checkReferral,
+  createStudentWithFederatedCredential,
+} from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
 
@@ -25,6 +30,9 @@ import {
   asNumber,
 } from './type-utils'
 import validator from 'validator'
+import session from 'express-session'
+import { getFederatedCredential } from '../models/FederatedCredential/queries'
+import { verifyEligibility } from '../services/EligibilityService'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -39,6 +47,18 @@ export const asCredentialData = asFactory<CredentialData>({
   email: asString,
   password: asString,
 })
+
+export interface SessionWithStudentData extends session.Session {
+  studentData?: StudentDataParams
+}
+export interface StudentDataParams {
+  email: string
+  highSchoolId: string
+  zipCode: string
+  currentGrade: string
+  referredByCode?: string | undefined
+  ip: string
+}
 
 interface UserRegData {
   ip: string
@@ -193,8 +213,9 @@ export async function checkEmail(email: string) {
 }
 
 export async function getReferredBy(
-  referredByCode: string
+  referredByCode?: string
 ): Promise<Ulid | undefined> {
+  if (!referredByCode) return
   const referredBy = await checkReferral(referredByCode)
   if (referredBy) {
     captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
@@ -231,7 +252,6 @@ export function verifyPassword(
 }
 
 // Passport functions
-const LocalStrategy = passportLocal.Strategy
 function setupPassport() {
   passport.serializeUser(function(user: Express.User, done: Function) {
     done(null, user.id)
@@ -261,6 +281,10 @@ function setupPassport() {
             return done(null, false)
           }
 
+          if (!user.password) {
+            return done(null, false)
+          }
+
           const isValidPassword = await verifyPassword(
             passwordGiven,
             user.password
@@ -275,6 +299,123 @@ function setupPassport() {
           }
         } catch (error) {
           return done(error)
+        }
+      }
+    )
+  )
+
+  passport.use(
+    'google-login',
+    new GoogleStrategy(
+      {
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: '/auth/oauth2/redirect/google/login',
+        scope: ['email'],
+      },
+      async function(
+        issuer: string,
+        profile: passport.Profile,
+        done: Function
+      ) {
+        try {
+          const existingFedCred = await getFederatedCredential(
+            profile.id,
+            issuer
+          )
+          if (!existingFedCred) {
+            return done(null, false)
+          }
+
+          return done(null, { id: existingFedCred.userId })
+        } catch (error) {
+          return done(error)
+        }
+      }
+    )
+  )
+
+  passport.use(
+    'google-register-student',
+    new GoogleStrategy(
+      {
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: '/auth/oauth2/redirect/google/register/student',
+        passReqToCallback: true,
+        scope: ['profile', 'email'],
+      },
+      async function(
+        req: Request,
+        issuer: string,
+        profile: passport.Profile,
+        done: Function
+      ) {
+        try {
+          const existingFedCred = await getFederatedCredential(
+            profile.id,
+            issuer
+          )
+          if (existingFedCred) {
+            return done(
+              null,
+              false,
+              'Google account already associated with an account.'
+            )
+          }
+
+          const firstName = profile.name?.givenName
+          const lastName = profile.name?.familyName
+          const email = profile.emails?.[0]?.value
+          if (!firstName || !lastName || !email) {
+            return done(null, false)
+          }
+
+          const existingUser = await getUserIdByEmail(email)
+          if (existingUser) {
+            return done(
+              null,
+              false,
+              'Account with Google email already exists.'
+            )
+          }
+
+          const session = req.session as SessionWithStudentData
+          if (!session.studentData) {
+            return done(null, false)
+          }
+
+          const highSchoolId = session.studentData.highSchoolId
+          const zipCode = session.studentData?.zipCode
+          if (!(await verifyEligibility(zipCode, highSchoolId))) {
+            return done(null, false, 'Not eligible.')
+          }
+
+          const referredBy = await getReferredBy(
+            session.studentData.referredByCode
+          )
+          const ip = session.studentData.ip
+          const studentData = {
+            firstName,
+            lastName,
+            email,
+            approvedHighschool: highSchoolId,
+            zipCode,
+            currentGrade: session.studentData.currentGrade,
+            referredBy,
+            verified: true,
+            emailVerified: true,
+          }
+
+          const student = await createStudentWithFederatedCredential(
+            studentData,
+            ip,
+            profile.id,
+            issuer
+          )
+          return done(null, student)
+        } catch (err) {
+          return done(err)
         }
       }
     )

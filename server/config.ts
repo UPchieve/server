@@ -304,6 +304,11 @@ const config: Static<typeof Config> = {
     Number(process.env.SUBWAY_ELIGIBLE_FRL_THRESHOLD) || 0.4,
   customManualStudentPartnerOrg:
     process.env.SUBWAY_CUSTOM_MANUAL_STUDENT_PARTNER_ORG || 'college-mentors',
+
+  // To work on localhost, add a .env file in the root dir with
+  // these environment variables.
+  googleClientId: process.env.GOOGLE_CLIENT_ID || 'bogus',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || 'bogus',
 }
 
 module.exports = config

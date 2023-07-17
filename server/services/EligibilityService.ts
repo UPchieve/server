@@ -2,6 +2,7 @@ import * as UserCtrl from '../controllers/UserCtrl'
 import { getSchoolById } from '../models/School/queries'
 import { getZipCodeByZipCode } from '../models/ZipCode/queries'
 import {
+  deleteIneligibleStudent,
   getIneligibleStudentByEmail,
   insertIneligibleStudent,
 } from '../models/IneligibleStudent/queries'
@@ -20,7 +21,7 @@ import { ZipCode } from '../models/ZipCode'
 import config from '../config'
 
 type CheckEligibilityPayload = {
-  schoolUpchieveId: string
+  schoolUpchieveId?: string
   zipCode: string
   email: string
   referredByCode?: string
@@ -28,7 +29,7 @@ type CheckEligibilityPayload = {
   useNewSchoolsEligibility?: boolean
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
-  schoolUpchieveId: asString,
+  schoolUpchieveId: asOptional(asString),
   zipCode: asString,
   email: asString,
   referredByCode: asOptional(asString),
@@ -54,23 +55,30 @@ export async function checkEligibility(
     email,
     referredByCode,
     currentGrade,
-    useNewSchoolsEligibility,
   } = asCheckEligibilityPayload(payload)
 
   const existingUser = await getUserIdByEmail(email)
   if (existingUser) throw new ExistingUserError()
 
-  const existingIneligible = await getIneligibleStudentByEmail(email)
-  if (existingIneligible) return { isEligible: false }
-
-  const school = await getSchoolById(schoolUpchieveId)
-  const zipCode = await getZipCodeByZipCode(zipCodeInput)
-
-  const isEligibleBySchool = isSchoolApproved(school, useNewSchoolsEligibility)
-  const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isCollegeStudent = currentGrade === GRADES.COLLEGE
+
+  const existingIneligible = await getIneligibleStudentByEmail(email)
+  if (existingIneligible && (existingIneligible.school || !schoolUpchieveId)) {
+    return { isEligible: false, isCollegeStudent }
+  }
+
+  const school = schoolUpchieveId
+    ? await getSchoolById(schoolUpchieveId)
+    : undefined
+  const zipCode = zipCodeInput
+    ? await getZipCodeByZipCode(zipCodeInput)
+    : undefined
+
+  const isEligibleBySchool = isSchoolApproved(school)
+  const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isStudentEligible =
-    (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
+    (isEligibleBySchool || (isEligibleByZipCode && !existingIneligible)) &&
+    !isCollegeStudent
 
   if (!isStudentEligible) {
     const referredBy = await UserCtrl.checkReferral(referredByCode)
@@ -82,14 +90,25 @@ export async function checkEligibility(
       referredBy,
       ip
     )
+  } else if (existingIneligible) {
+    await deleteIneligibleStudent(email)
   }
 
-  if (isCollegeStudent)
-    return {
-      isEligible: isStudentEligible,
-      isCollegeStudent: isCollegeStudent,
-    }
-  else return { isEligible: isStudentEligible }
+  return {
+    isEligible: isStudentEligible,
+    isCollegeStudent,
+  }
+}
+
+export async function verifyEligibility(
+  zipCode?: string,
+  schoolUpchieveId?: string
+) {
+  const school = schoolUpchieveId
+    ? await getSchoolById(schoolUpchieveId)
+    : undefined
+  const zipCodeData = zipCode ? await getZipCodeByZipCode(zipCode) : undefined
+  return isSchoolApproved(school) || isZipCodeEligible(zipCodeData)
 }
 
 export async function checkZipCode(param: unknown): Promise<boolean> {
@@ -102,17 +121,12 @@ function isZipCodeEligible(zipCode?: ZipCode) {
   return !!zipCode && zipCode.isEligible
 }
 
-export function isSchoolApproved(
-  school?: School,
-  useNewSchoolsEligibility: boolean = false
-) {
+export function isSchoolApproved(school?: School) {
   return (
     !!school &&
-    (useNewSchoolsEligibility
-      ? school.isAdminApproved ||
-        school.isPartner ||
-        isNewSchoolEligibilityApproved()
-      : school.isAdminApproved || school.isPartner)
+    (school.isAdminApproved ||
+      school.isPartner ||
+      isNewSchoolEligibilityApproved())
   )
 
   function isNewSchoolEligibilityApproved() {

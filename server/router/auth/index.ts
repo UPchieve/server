@@ -2,7 +2,7 @@ import { Express, Router } from 'express'
 import passport from 'passport'
 
 import * as AuthService from '../../services/AuthService'
-import { authPassport } from '../../utils/auth-utils'
+import { authPassport, StudentDataParams } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
@@ -12,6 +12,48 @@ import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
 import { extractUser } from '../extract-user'
 import config from '../../config'
+
+class GoogleAuthRedirect {
+  private static _baseRedirect: string
+
+  private static getBaseRedirect() {
+    if (!this._baseRedirect) {
+      let protocol
+      if (config.NODE_ENV === 'dev') {
+        protocol = 'http'
+      } else {
+        protocol = 'https'
+      }
+      this._baseRedirect = `${protocol}://${config.client.host}`
+    }
+
+    return this._baseRedirect
+  }
+
+  static get successRedirect() {
+    return this.getBaseRedirect()
+  }
+
+  static get loginFailureRedirect() {
+    return `${this.getBaseRedirect()}/login?400=true`
+  }
+
+  static registerFailureRedirect(
+    studentData: StudentDataParams,
+    errMsg?: string
+  ) {
+    const params = new URLSearchParams({
+      email: studentData.email,
+      highSchoolId: studentData.highSchoolId,
+      zipCode: studentData.zipCode,
+      currentGrade: studentData.currentGrade,
+    })
+    if (errMsg) {
+      params.append('error', errMsg)
+    }
+    return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
+  }
+}
 
 export function routes(app: Express) {
   const router = Router()
@@ -37,10 +79,46 @@ export function routes(app: Express) {
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     async function(req, res) {
-      const legagacyUser = await getLegacyUserObject(extractUser(req).id)
-      res.json({ user: legagacyUser })
+      const legacyUser = await getLegacyUserObject(extractUser(req).id)
+      res.json({ user: legacyUser })
     }
   )
+
+  router.route('/login/google').get(passport.authenticate('google-login'))
+
+  router.route('/oauth2/redirect/google/login').get(
+    passport.authenticate('google-login', {
+      successRedirect: GoogleAuthRedirect.successRedirect,
+      failureRedirect: GoogleAuthRedirect.loginFailureRedirect,
+    })
+  )
+
+  router.route('/register/google/student').get(function(req, res) {
+    ;(req.session as any).studentData = req.query
+    ;(req.session as any).studentData.ip = req.ip
+    passport.authenticate('google-register-student')(req, res)
+  })
+
+  router
+    .route('/oauth2/redirect/google/register/student')
+    .get(function(req, res) {
+      passport.authenticate('google-register-student', async function(
+        _err,
+        user,
+        info
+      ) {
+        const studentData = (req.session as any).studentData
+        delete (req.session as any).studentData
+        if (user) {
+          res.redirect(GoogleAuthRedirect.successRedirect)
+          await req.asyncLogin(user)
+        } else {
+          res.redirect(
+            GoogleAuthRedirect.registerFailureRedirect(studentData, info)
+          )
+        }
+      })(req, res)
+    })
 
   router.route('/register/checkcred').post(async function(req, res) {
     try {
