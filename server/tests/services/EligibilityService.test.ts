@@ -30,6 +30,8 @@ function buildIneligibleStudent(): IneligibleStudent {
     email: getEmail(),
     createdAt: new Date(),
     updatedAt: new Date(),
+    zipCode: 'some-zip',
+    school: 'some-school-id',
   }
 }
 
@@ -46,20 +48,18 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
   const referredBy = getDbUlid()
   const school = {
     id: getDbUlid(),
-    isApproved: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    nameStored: 'UPchieve highschool',
-    stateStored: 'NY',
+    isAdminApproved: true,
+    name: 'UPchieve highschool',
+    city: 'NYC',
+    state: 'NY',
     isPartner: false,
   }
   const unapprovedSchool = {
     id: getDbUlid(),
-    isApproved: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    nameStored: 'Bad highschool',
-    stateStored: 'NY',
+    isAdminApproved: false,
+    name: 'Bad highschool',
+    city: 'NYC',
+    state: 'NY',
     isPartner: false,
   }
   const approvedZipCode = {
@@ -67,12 +67,14 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     zipCode: '11201',
     isEligible: true,
     medianIncome: 20000,
+    isEligibleOld: true,
   }
   const unapprovedZipCode = {
     _id: getDbUlid(),
     zipCode: '00000',
     isEligible: false,
     medianIncome: 500000,
+    isEligibleOld: false,
   }
 
   test('Should send true when a fresh high school student signs up', async () => {
@@ -88,7 +90,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -129,7 +131,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       buildIneligibleStudent()
     ) // email belongs to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -151,9 +153,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(
-      unapprovedSchool
-    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(unapprovedSchool)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -175,7 +175,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
       unapprovedZipCode
     )
@@ -199,9 +199,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(
-      unapprovedSchool
-    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(unapprovedSchool)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
       unapprovedZipCode
     )
@@ -225,7 +223,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
       undefined
     ) // email doesnt belong to ineligible student
-    mockedSchoolRepo.findSchoolByUpchieveId.mockResolvedValueOnce(school)
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
     mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
 
@@ -233,5 +231,116 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
     expect(response.isEligible).toBe(false)
     expect(response.isCollegeStudent).toBe(true)
+  })
+
+  test('Should send false if is already ineligible with a school', async () => {
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: '00000',
+      email: student.email,
+      currentGrade: GRADES.TENTH,
+      referredBy,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      buildIneligibleStudent()
+    )
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(false)
+    expect(response.isCollegeStudent).toBe(false)
+  })
+
+  test('Should send false if student was previously ineligible through zip but never provided a school, but now has provided an ineligible school', async () => {
+    const payload = {
+      schoolUpchieveId: unapprovedSchool.id,
+      zipCode: '00000',
+      email: student.email,
+      currentGrade: GRADES.TENTH,
+      referredBy,
+    }
+    const ineligibleByZipStudent = {
+      id: getDbUlid(),
+      email: payload.email,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      zipCode: payload.zipCode,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      ineligibleByZipStudent
+    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(unapprovedSchool)
+    mockedIneligibleStudentRepo.insertIneligibleStudent.mockResolvedValue()
+    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(false)
+    expect(response.isCollegeStudent).toBe(false)
+    expect(
+      mockedIneligibleStudentRepo.insertIneligibleStudent
+    ).toHaveBeenCalled()
+  })
+
+  test('Should send true if student was previously ineligible through zip but never provided a school, but now has provided an eligible school', async () => {
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: '00000',
+      email: student.email,
+      currentGrade: GRADES.TENTH,
+      referredBy,
+    }
+    const ineligibleByZipStudent = {
+      id: getDbUlid(),
+      email: payload.email,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      zipCode: payload.zipCode,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      ineligibleByZipStudent
+    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(school)
+    mockedIneligibleStudentRepo.deleteIneligibleStudent.mockResolvedValue()
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(true)
+    expect(response.isCollegeStudent).toBe(false)
+  })
+
+  test('Should send false if student was previously ineligible by zip, and now provides an ineligible school but changed their zip to be eligible', async () => {
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: '00000',
+      email: student.email,
+      currentGrade: GRADES.TENTH,
+      referredBy,
+    }
+    const ineligibleByZipStudent = {
+      id: getDbUlid(),
+      email: payload.email,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      zipCode: payload.zipCode,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      ineligibleByZipStudent
+    )
+    mockedSchoolRepo.getSchoolById.mockResolvedValue(unapprovedSchool)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValue(approvedZipCode)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(false)
+    expect(response.isCollegeStudent).toBe(false)
   })
 })

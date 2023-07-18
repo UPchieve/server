@@ -36,6 +36,8 @@ export function asNumber(s: unknown, errMsg?: string): number {
 
 export function asBoolean(s: unknown, errMsg?: string): boolean {
   if (typeof s === 'boolean') return s as boolean
+  if (s === 'true') return true
+  if (s === 'false') return false
   throw new InputError(`${errMsg} : ${s} is not a boolean`)
 }
 
@@ -153,3 +155,7 @@ export function isPgId(id: string): boolean {
     throw err
   }
 }
+
+export type ExtractValues<
+  T extends { readonly [k: string]: string }
+> = T[keyof T]

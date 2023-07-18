@@ -16,8 +16,10 @@ import { getQuizReviewMaterials } from '../../models/Question/queries'
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function(req, res) {
     try {
+      const user = extractUser(req)
       const questions = await TrainingCtrl.getQuestions(
-        asString(req.body.category)
+        asString(req.body.category),
+        user.id
       )
 
       res.json({

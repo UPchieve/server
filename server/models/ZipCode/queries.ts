@@ -1,6 +1,6 @@
 import { RepoCreateError, RepoReadError, RepoTransactionError } from '../Errors'
 import { ZipCode } from './types'
-import { makeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import config from '../../config'
@@ -8,6 +8,8 @@ import config from '../../config'
 export interface csvPostalCodeRecord {
   zipcode: string
   income: number
+  cbsa_income?: number | null
+  state_income?: number | null
   state: string
   longitude: number
   latitude: number
@@ -24,7 +26,7 @@ export async function getZipCodeByZipCode(
     )
 
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['cbsaIncome', 'stateIncome'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -35,25 +37,37 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
   const transactionClient = await getClient().connect()
   try {
     await transactionClient.query('BEGIN')
-    const recordInsertions = zipRecords.map((record: csvPostalCodeRecord) => {
+    for (const record of zipRecords) {
+      // The parsing library has an open issue where empty values in the csv
+      // are given a string value of 'null' instead of just null.
+      // See https://github.com/adaltas/node-csv/issues/307.
+      if (<unknown>record.cbsa_income === 'null') {
+        record.cbsa_income = null
+      }
+      if (<unknown>record.state_income === 'null') {
+        record.state_income = null
+      }
       const typedRecord = record as csvPostalCodeRecord
-      return pgQueries.upsertZipCode.run(
+      await pgQueries.upsertZipCode.run(
         {
           code: typedRecord.zipcode,
           usStateCode: typedRecord.state,
           income: typedRecord.income,
+          cbsaIncome: typedRecord.cbsa_income,
+          stateIncome: typedRecord.state_income,
           latitude: typedRecord.latitude,
           longitude: typedRecord.longitude,
         },
         transactionClient
       )
-    })
-    await Promise.all(recordInsertions)
+    }
     await pgQueries.upsertZipCode.run(
       {
         code: '00000',
         usStateCode: 'NA',
         income: 0,
+        cbsaIncome: 0,
+        stateIncome: 0,
         latitude: 0,
         longitude: 0,
       },

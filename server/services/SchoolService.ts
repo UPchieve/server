@@ -37,19 +37,17 @@ export async function search(query: string): Promise<SchoolForFrontend[]> {
       return {
         id: school.id,
         upchieveId: school.id,
-        name: school.nameStored,
-        districtName: school.districtNameStored,
-        city: school.cityNameStored,
-        state: school.stateStored,
+        name: school.name,
+        districtName: school.district,
+        city: school.city,
+        state: school.state,
       }
     })
 }
 
-export async function getSchool(
-  schoolId: Ulid
-): Promise<SchoolRepo.AdminSchool> {
+export async function getSchool(schoolId: Ulid): Promise<SchoolRepo.School> {
   try {
-    const school = await SchoolRepo.getSchool(schoolId)
+    const school = await SchoolRepo.getSchoolById(schoolId)
 
     if (!school) throw new Error(`no school found with id ${schoolId}`)
 
@@ -110,12 +108,12 @@ export function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
   return SchoolRepo.updateIsPartner(schoolId, isPartner)
 }
 
-interface AdminUpdate {
+export interface AdminUpdate {
   schoolId: Ulid
   name: string
   city: string
   state: string
-  zipCode: string
+  zip: string
   isApproved: boolean
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
@@ -123,22 +121,27 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   name: asString,
   city: asString,
   state: asString,
-  zipCode: asString,
+  zip: asString,
   isApproved: asBoolean,
 })
 
 export async function adminUpdateSchool(data: unknown) {
-  const { schoolId, name, city, state, zipCode, isApproved } = asAdminUpdate(
-    data
-  )
+  const { schoolId, name, city, state, zip, isApproved } = asAdminUpdate(data)
   const schoolData = {
-    isApproved,
+    schoolId,
     name,
     city,
     state,
-    zipCode,
-    schoolId,
+    zip,
+    isApproved,
   }
 
-  return SchoolRepo.adminUpdateSchool(schoolData as AdminUpdate)
+  return SchoolRepo.adminUpdateSchool(schoolData)
+}
+
+export async function titlecaseSchoolNames() {
+  return Promise.all([
+    SchoolRepo.titlecaseSchoolNames(),
+    SchoolRepo.titlecaseMetadataSchoolNames(),
+  ])
 }

@@ -212,13 +212,11 @@ export function buildStudentPartnerOrg(
 export function buildSchool(overrides: Partial<School> = {}): School {
   return {
     id: getDbUlid(),
-    nameStored: 'Approved School',
-    stateStored: 'NY',
-    isApproved: true,
+    name: 'Approved School',
+    state: 'NY',
+    isAdminApproved: true,
     isPartner: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    cityNameStored: 'Brooklyn',
+    city: 'Brooklyn',
     ...overrides,
   }
 }

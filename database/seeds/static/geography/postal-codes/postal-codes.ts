@@ -2,14 +2,7 @@ import fs from 'fs'
 import parse from 'csv-parse/lib/sync'
 import * as pgQueries from '../pg.queries'
 import { wrapInsert } from '../../../utils'
-
-interface csvPostalCodeRecord {
-  zipcode: string
-  income: number
-  state: string
-  longitude: number
-  latitude: number
-}
+import { csvPostalCodeRecord } from '../../../../../server/models/ZipCode'
 
 export async function postalCodes(numZipCodes: number | undefined) {
   const zipFile = fs.readFileSync(`${__dirname}/aggregated_data.csv`)
@@ -39,6 +32,8 @@ export async function postalCodes(numZipCodes: number | undefined) {
         code: typedRecord.zipcode,
         usStateCode: typedRecord.state,
         income: typedRecord.income,
+        cbsaIncome: typedRecord.cbsa_income,
+        stateIncome: typedRecord.state_income,
         latitude: typedRecord.latitude,
         longitude: typedRecord.longitude,
       })
@@ -48,6 +43,8 @@ export async function postalCodes(numZipCodes: number | undefined) {
     code: '00000',
     usStateCode: 'NA',
     income: 0,
+    cbsaIncome: 0,
+    stateIncome: 0,
     latitude: 0,
     longitude: 0,
   })

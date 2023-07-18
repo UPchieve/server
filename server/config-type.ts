@@ -192,5 +192,10 @@ export const Config = Record({
   ipWhoIsApiKey: String,
   favoriteVolunteerLimit: Number,
   eligibleIncomeThreshold: Number,
+  eligibleFRLThreshold: Number,
   customManualStudentPartnerOrg: String,
+
+  // Google
+  googleClientId: String,
+  googleClientSecret: String,
 })

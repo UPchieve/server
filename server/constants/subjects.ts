@@ -1,3 +1,5 @@
+import { ExtractValues } from '../utils/type-utils'
+
 export const FORMAT_INTEGRATED_MATH = {
   integratedMathOne: 'Integrated Math 1',
   integratedMathTwo: 'Integrated Math 2',
@@ -123,6 +125,8 @@ export const SUBJECTS = {
   ...SOCIAL_STUDIES_SUBJECTS,
 }
 
+export type SUBJECTS = ExtractValues<typeof SUBJECTS>
+
 export const CERTS = {
   ...MATH_CERTS,
   ...SCIENCE_CERTS,
@@ -132,6 +136,8 @@ export const CERTS = {
   ...SOCIAL_STUDIES_CERTS,
   ...TRAINING,
 }
+
+export type CERTS = ExtractValues<typeof CERTS>
 
 export const CERT_UNLOCKING = {
   [MATH_CERTS.CALCULUS_BC]: [

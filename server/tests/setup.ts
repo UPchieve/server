@@ -1,7 +1,9 @@
 jest.mock('ioredis', () => require('ioredis-mock/jest'))
 
 jest.mock('posthog-node')
+jest.mock('@unleash/proxy')
 jest.mock('../services/AnalyticsService')
+jest.mock('../services/FeatureFlagService')
 
 jest.mock('../services/EventsService')
 

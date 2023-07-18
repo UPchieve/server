@@ -41,4 +41,5 @@ export type Quiz = {
   name: string
   active: boolean
   questionsPerSubcategory: number
+  totalQuestions: number
 }

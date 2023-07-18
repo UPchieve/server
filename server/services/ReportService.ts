@@ -99,6 +99,9 @@ export const sessionReport = async (
     sponsorOrg,
   } = validateStudentSessionReportQuery(data)
 
+  if (!highSchoolId && !studentPartnerOrg && !studentPartnerSite && !sponsorOrg)
+    return []
+
   const report = await StudentRepo.getSessionReport({
     highSchoolId,
     studentPartnerOrg,
@@ -146,6 +149,9 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
     studentPartnerSite,
     sponsorOrg,
   } = validateStudentUsageReportQuery(data)
+
+  if (!highSchoolId && !studentPartnerOrg && !studentPartnerSite && !sponsorOrg)
+    return []
 
   const report = await StudentRepo.getUsageReport({
     highSchoolId,
@@ -203,7 +209,10 @@ const asTelecomReportPayload = asFactory<TelecomReportPayload>({
 export async function getTelecomReport(data: unknown) {
   // Only generate the telecom report for a specific partner
   const { partnerOrg, startDate, endDate } = asTelecomReportPayload(data)
-  if (!config.customVolunteerPartnerOrgs.some(org => org === partnerOrg))
+  if (
+    !partnerOrg ||
+    !config.customVolunteerPartnerOrgs.some(org => org === partnerOrg)
+  )
     return []
   try {
     const volunteers = await VolunteerRepo.getVolunteersForTelecomReport(
@@ -328,6 +337,7 @@ export async function getAnalyticsReport(data: unknown) {
     const { partnerOrg, startDate, endDate } = validateVolunteerReportQuery(
       data
     )
+    if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
     const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
       startDate,
