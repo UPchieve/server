@@ -51,13 +51,27 @@ import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import logger from '../logger'
 import * as VolunteerService from './VolunteerService'
-import { checkIpAddress } from './IpAddressService'
+import { getIpWhoIs, isLocalhostDevelopment } from './IpAddressService'
 import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
 import config from '../config'
 import { FederatedCredential } from '../models/FederatedCredential'
 import { verifyEligibility } from './EligibilityService'
+
+async function checkIpAddress(ip: string): Promise<void> {
+  // TODO(alex.lindsay): This is temporary while I reach out to IPWHOIS.
+  // IPv6 localhost addresses are being marked as Switzerland.
+  if (isLocalhostDevelopment(ip)) return
+
+  const { country_code: countryCode } = await getIpWhoIs(ip)
+
+  if (countryCode && countryCode !== 'US') {
+    throw new NotAllowedError(
+      'Cannot register from an international IP address'
+    )
+  }
+}
 
 // Handlers
 /**

@@ -61,6 +61,6 @@ export async function checkIpAddress(data: unknown | string) {
   if (countryCode && countryCode !== 'US') throw new NotAllowedError()
 }
 
-function isLocalhostDevelopment(ip: string): boolean {
+export function isLocalhostDevelopment(ip: string): boolean {
   return isDevEnvironment() && IPV6_LOCALHOST.includes(ip)
 }
