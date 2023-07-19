@@ -3015,6 +3015,14 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
+-- Name: users_surveys survey_id_user_id_session_id_survey_type_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys
+    ADD CONSTRAINT survey_id_user_id_session_id_survey_type_id UNIQUE (survey_id, user_id, session_id, survey_type_id);
+
+
+--
 -- Name: survey_questions survey_questions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4695,4 +4703,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20230524032337'),
     ('20230601213111'),
     ('20230621173400'),
-    ('20230626161133');
+    ('20230626161133'),
+    ('20230719205740');
