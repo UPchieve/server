@@ -285,35 +285,34 @@ RETURNING
 
 /* @name createStudentProfile */
 INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
-SELECT
-    :userId!,
-    :postalCode,
-    topquery.student_partner_org_id,
-    topquery.student_partner_org_site_id,
-    topquery.grade_level_id,
-    :schoolId,
-    :college,
-    NOW(),
-    NOW()
-FROM (
-    SELECT
-        subquery.student_partner_org_id AS student_partner_org_id,
-        student_partner_org_sites.id AS student_partner_org_site_id,
-        grade_levels.id AS grade_level_id
-    FROM
-        users
-    LEFT JOIN (
-        SELECT
-            id AS student_partner_org_id,
-            name
-        FROM
-            student_partner_orgs
-        WHERE
-            student_partner_orgs.key = :partnerOrg) AS subquery ON TRUE
-    LEFT JOIN student_partner_org_sites ON :partnerSite = student_partner_org_sites.name
-    LEFT JOIN grade_levels ON :gradeLevel = grade_levels.name
-WHERE
-    users.id = :userId!) AS topquery
+    VALUES (:userId!, :postalCode, (
+            SELECT
+                id
+            FROM
+                student_partner_orgs
+            WHERE
+                student_partner_orgs.key = :partnerOrg
+            LIMIT 1),
+        (
+            SELECT
+                id
+            FROM
+                student_partner_org_sites
+            WHERE
+                student_partner_org_sites.name = :partnerSite
+            LIMIT 1),
+        (
+            SELECT
+                id
+            FROM
+                grade_levels
+            WHERE
+                grade_levels.name = :gradeLevel
+            LIMIT 1),
+        :schoolId,
+        :college,
+        NOW(),
+        NOW())
 RETURNING
     user_id,
     postal_code,
