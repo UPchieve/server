@@ -55,6 +55,7 @@ export async function deleteUser(userId: Ulid, email: string) {
 export type UserContactInfo = {
   id: Ulid
   email: string
+  proxyEmail: string | undefined
   phone?: string
   firstName: string
   isVolunteer: boolean
@@ -81,6 +82,7 @@ export async function getUserContactInfoById(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'proxyEmail',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -123,7 +125,7 @@ export async function getUserForPassport(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['proxyEmail'])
   } catch (err) {
     throw new RepoReadError(err)
   }

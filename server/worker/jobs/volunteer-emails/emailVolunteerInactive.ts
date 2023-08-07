@@ -29,11 +29,10 @@ async function sendEmailToInactiveVolunteers(
   group: InactiveGroup
 ) {
   for (const volunteer of volunteers) {
-    const { email, firstName, id } = volunteer
+    const { id } = volunteer
     const errors = []
     try {
-      const contactInfo = { email, firstName }
-      await mailHandler(contactInfo)
+      await mailHandler(volunteer)
       if (group === InactiveGroup.inactiveThirtyDays)
         await updateVolunteerSentInactive30DayEmail(id)
       if (group === InactiveGroup.inactiveSixtyDays)

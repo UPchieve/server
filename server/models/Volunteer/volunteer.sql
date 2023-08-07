@@ -5,6 +5,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -24,6 +25,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -45,6 +47,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -66,6 +69,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -86,6 +90,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -115,6 +120,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     sent_hour_summary_intro_email
 FROM
@@ -204,6 +210,7 @@ WITH CTE AS (
 SELECT
     users.id,
     email,
+    proxy_email,
     first_name,
     volunteer_profiles.onboarded,
     COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,
@@ -247,6 +254,7 @@ SELECT
     first_name,
     last_name,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     users.created_at
 FROM
@@ -353,6 +361,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -688,6 +697,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_profiles.approved,
     volunteer_profiles.onboarded,
     volunteer_profiles.country,
@@ -780,6 +790,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -800,6 +811,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -822,6 +834,7 @@ SELECT
     users.last_name,
     users.phone,
     users.email,
+    users.proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users
@@ -1187,6 +1200,7 @@ candidates AS (
         last_name,
         phone,
         email,
+        proxy_email,
         volunteer_partner_orgs.key AS volunteer_partner_org
     FROM
         users
@@ -1319,6 +1333,7 @@ SELECT
     last_name,
     phone,
     email,
+    proxy_email,
     volunteer_partner_orgs.key AS volunteer_partner_org
 FROM
     users

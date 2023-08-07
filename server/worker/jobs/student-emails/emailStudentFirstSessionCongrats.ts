@@ -16,13 +16,12 @@ export default async (
   const student = await getStudentForEmailFirstSession(sessionId)
 
   if (student) {
-    const { id: studentId, firstName, email } = student
     try {
-      await MailService.sendStudentFirstSessionCongrats(email, firstName)
-      log(`Sent ${currentJob} to student ${studentId}`)
+      await MailService.sendStudentFirstSessionCongrats(student)
+      log(`Sent ${currentJob} to student ${student.id}`)
     } catch (error) {
       throw new Error(
-        `Failed to send ${currentJob} to student ${studentId}: ${error}`
+        `Failed to send ${currentJob} to student ${student.id}: ${error}`
       )
     }
   }

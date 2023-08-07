@@ -31,8 +31,6 @@ export default async (): Promise<void> => {
   for (const volunteer of volunteers) {
     const {
       id,
-      firstName,
-      email,
       sentHourSummaryIntroEmail,
       volunteerPartnerOrg,
     } = volunteer
@@ -65,8 +63,7 @@ export default async (): Promise<void> => {
       if (!summaryStats || summaryStats.totalVolunteerHours <= 0.01) continue
 
       await MailService.sendHourSummaryEmail(
-        firstName,
-        email,
+        volunteer,
         sentHourSummaryIntroEmail,
         lastMonday.format('dddd, MMM D'),
         lastSunday.format('dddd, MMM D'),

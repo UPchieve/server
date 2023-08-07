@@ -855,6 +855,7 @@ export type VolunteerForGentleWarning = {
   id: Ulid
   firstName: string
   email: string
+  proxyEmail: string | undefined
   totalNotifications: number
 }
 export async function getVolunteersForGentleWarning(
@@ -869,7 +870,7 @@ export async function getVolunteersForGentleWarning(
       getClient()
     )
     return result.map(v => {
-      const ret = makeRequired(v)
+      const ret = makeSomeRequired(v, ['proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -882,6 +883,7 @@ export type UserForFirstSession = {
   id: Ulid
   firstName: string
   email: string
+  proxyEmail: string | undefined
 }
 export async function getStudentForEmailFirstSession(
   sessionId: Ulid
@@ -895,7 +897,7 @@ export async function getStudentForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    const ret = makeRequired(result[0])
+    const ret = makeSomeRequired(result[0], ['proxyEmail'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -915,7 +917,7 @@ export async function getVolunteerForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    const ret = makeRequired(result[0])
+    const ret = makeSomeRequired(result[0], ['proxyEmail'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {

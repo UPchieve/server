@@ -9,10 +9,7 @@ import {
   USER_BAN_REASONS,
   TRAINING,
 } from '../../constants'
-import {
-  UserEmail,
-  getUserToCreateSendGridContact,
-} from '../../models/User'
+import { UserEmailInfo, getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
@@ -85,7 +82,7 @@ class SendEmail {
   }
 
   static async toUser(
-    user: UserEmail,
+    user: UserEmailInfo,
     fromEmail: string,
     fromName: string,
     templateId: string,
@@ -107,12 +104,12 @@ class SendEmail {
   }
 
   static async toReference(
-      toEmail: string,
-      fromEmail: string,
-      fromName: string,
-      templateId: string,
-      dynamicData: any,
-      overrides: any = {}
+    toEmail: string,
+    fromEmail: string,
+    fromName: string,
+    templateId: string,
+    dynamicData: any,
+    overrides: any = {}
   ): Promise<void> {
     await this.sendEmail(
       toEmail,
@@ -124,32 +121,32 @@ class SendEmail {
     )
   }
 
-    // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
-    //        and preferences and bypassing those unsubscribe groups
-    private static async sendEmail(
-      toEmail: string,
-      fromEmail: string,
-      fromName: string,
-      templateId: string,
-      dynamicData: any,
-      overrides: any = {}
-    ): Promise<void> {
-      const msg = {
-        to: toEmail,
-        from: {
-          email: fromEmail,
-          name: fromName,
-        },
-        reply_to: {
-          email: config.mail.receivers.support,
-        },
-        templateId: templateId,
-        dynamic_template_data: dynamicData,
-        ...overrides,
-      }
-
-      await sgMail.send(msg)
+  // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
+  //        and preferences and bypassing those unsubscribe groups
+  private static async sendEmail(
+    toEmail: string,
+    fromEmail: string,
+    fromName: string,
+    templateId: string,
+    dynamicData: any,
+    overrides: any = {}
+  ): Promise<void> {
+    const msg = {
+      to: toEmail,
+      from: {
+        email: fromEmail,
+        name: fromName,
+      },
+      reply_to: {
+        email: config.mail.receivers.support,
+      },
+      templateId: templateId,
+      dynamic_template_data: dynamicData,
+      ...overrides,
     }
+
+    await sgMail.send(msg)
+  }
 }
 
 // TODO: use this in other MailService methods
@@ -184,7 +181,7 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
     mail_settings: { bypass_list_management: { enable: true } },
   }
 
-  await sendEmail(
+  await SendEmail.toUpchieveStaff(
     config.mail.receivers.contact,
     config.mail.senders.noreply,
     'UPchieve',
@@ -195,7 +192,7 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
 }
 
 export async function sendReset(
-  email: string,
+  user: UserEmailInfo,
   sendToMobile: boolean,
   token: string
 ): Promise<void> {
@@ -209,13 +206,13 @@ export async function sendReset(
     mail_settings: { bypass_list_management: { enable: true } },
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.noreply,
     'UPchieve',
     config.sendgrid.resetTemplate,
     {
-      userEmail: email,
+      userEmail: user.email,
       resetLink: url,
     },
     overrides
@@ -223,44 +220,41 @@ export async function sendReset(
 }
 
 export async function sendOpenVolunteerWelcomeEmail(
-  email: string,
-  volunteerName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     categories: ['volunteer welcome email'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.support,
     'UPchieve',
     config.sendgrid.openVolunteerWelcomeTemplate,
-    { volunteerName },
+    { volunteerName: user.firstName },
     overrides
   )
 }
 
 export async function sendPartnerVolunteerWelcomeEmail(
-  email: string,
-  volunteerName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     categories: ['partner volunteer welcome email'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.support,
     'UPchieve',
     config.sendgrid.partnerVolunteerWelcomeTemplate,
-    { volunteerName },
+    { volunteerName: user.firstName },
     overrides
   )
 }
 
 export async function sendStudentOnboardingWelcomeEmail(
-  email: string,
-  firstName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -268,18 +262,18 @@ export async function sendStudentOnboardingWelcomeEmail(
     },
     categories: ['Student Onboarding Email 1 - Welcome'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.students,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingWelcomeTemplate,
-    { firstName },
+    { firstName: user.firstName },
     overrides
   )
 }
 
 export async function sendStudentOnboardingHowItWorks(
-  user: UserEmail
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -299,8 +293,7 @@ export async function sendStudentOnboardingHowItWorks(
 }
 
 export async function sendMeetOurVolunteers(
-  email: string,
-  firstName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -309,19 +302,18 @@ export async function sendMeetOurVolunteers(
     categories: ['Student Onboarding Email 3 - Meet Our Volunteers'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.students,
     'UPchieve Student Success Team',
     config.sendgrid.meetOurVolunteersTemplate,
-    { firstName },
+    { firstName: user.firstName },
     overrides
   )
 }
 
 export async function sendStudentOnboardingMission(
-  email: string,
-  firstName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -330,19 +322,18 @@ export async function sendStudentOnboardingMission(
     categories: ['Student Onboarding Email 4 - Mission'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.students,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingMissionTemplate,
-    { firstName },
+    { firstName: user.firstName },
     overrides
   )
 }
 
 export async function sendStudentOnboardingSurvey(
-  email: string,
-  firstName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -350,19 +341,18 @@ export async function sendStudentOnboardingSurvey(
     },
     categories: ['Student Onboarding Email 5 - Survey'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.students,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingSurveyTemplate,
-    { firstName },
+    { firstName: user.firstName },
     overrides
   )
 }
 
 export async function sendStudentFirstSessionCongrats(
-  email: string,
-  firstName: string
+  user: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.studentOutreachManager
   const overrides = {
@@ -371,12 +361,12 @@ export async function sendStudentFirstSessionCongrats(
     },
     categories: ['student cultivation email - first session congrats'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     sender,
     `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
     config.sendgrid.studentFirstSessionCongratsTemplate,
-    { firstName },
+    { firstName: user.firstName },
     overrides
   )
 }
@@ -391,7 +381,7 @@ export async function sendReportedSessionAlert(
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
-  await sendEmail(
+  await SendEmail.toUpchieveStaff(
     config.mail.receivers.staff,
     config.mail.senders.noreply,
     'UPchieve',
@@ -420,7 +410,7 @@ export async function sendReferenceForm(
     categories: ['reference form email'],
   }
 
-  await sendEmail(
+  await SendEmail.toReference(
     reference.email,
     config.mail.senders.noreply,
     'UPchieve',
@@ -444,7 +434,7 @@ export async function sendReferenceFormApology(
     categories: ['reference form email'],
   }
 
-  await sendEmail(
+  await SendEmail.toReference(
     reference.email,
     config.mail.senders.noreply,
     'UPchieve',
@@ -461,8 +451,8 @@ export async function sendApprovedNotOnboardedEmail<
     categories: ['approved not onboarded email'],
   }
 
-  await sendEmail(
-    volunteer.email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'UPchieve',
     config.sendgrid.approvedNotOnboardedTemplate,
@@ -485,8 +475,8 @@ export async function sendReadyToCoachEmail<V extends VolunteerContactInfo>(
     categories: ['ready to coach email'],
   }
 
-  await sendEmail(
-    volunteer.email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'UPchieve',
     readyToCoachTemplate,
@@ -505,7 +495,7 @@ export async function sendBannedUserAlert(
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
-  await sendEmail(
+  await SendEmail.toUpchieveStaff(
     config.mail.receivers.staff,
     config.mail.senders.noreply,
     'UPchieve',
@@ -528,8 +518,8 @@ export async function sendRejectedPhotoSubmission<
     categories: ['photo rejected email'],
   }
 
-  await sendEmail(
-    volunteer.email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'The UPchieve Team',
     config.sendgrid.rejectedPhotoSubmissionTemplate,
@@ -538,35 +528,10 @@ export async function sendRejectedPhotoSubmission<
   )
 }
 
-export async function sendRejectedReference<V extends VolunteerContactInfo>(
-  reference: UnsentReference,
-  volunteer: V
-): Promise<void> {
-  const firstName = capitalize(volunteer.firstName)
-  const emailData = {
-    referenceName: `${capitalize(reference.firstName)} ${capitalize(
-      reference.lastName
-    )}`,
-    firstName,
-  }
-  const overrides = {
-    categories: ['reference rejected email'],
-  }
-
-  await sendEmail(
-    volunteer.email,
-    config.mail.senders.support,
-    'The UPchieve Team',
-    config.sendgrid.rejectedReferenceTemplate,
-    emailData,
-    overrides
-  )
-}
-
 // TODO: test this thoroughly
 export async function sendReferenceFollowup(
   reference: UnsentReference,
-  volunteer: VolunteerContactInfo
+  volunteer: Omit<VolunteerContactInfo, 'proxyEmail'>
 ): Promise<void> {
   const volunteerFirstName = capitalize(volunteer.firstName)
   const volunteerLastName = capitalize(volunteer.lastName)
@@ -583,7 +548,7 @@ export async function sendReferenceFollowup(
     categories: ['reference followup email'],
   }
 
-  await sendEmail(
+  await SendEmail.toReference(
     reference.email,
     config.mail.senders.recruitment,
     `${config.mail.people.volunteerManager.firstName} at UPchieve`,
@@ -601,8 +566,8 @@ export async function sendWaitingOnReferences<V extends VolunteerContactInfo>(
     categories: ['waiting on references email'],
   }
 
-  await sendEmail(
-    volunteer.email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'The UPchieve Team',
     config.sendgrid.waitingOnReferencesTemplate,
@@ -624,8 +589,8 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
     categories: ['nice to meet you email'],
   }
 
-  await sendEmail(
-    volunteer.email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.volunteerManager,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.niceToMeetYouTemplate,
@@ -637,8 +602,7 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
 }
 
 export async function sendHourSummaryEmail(
-  firstName: string,
-  email: string,
+  volunteer: UserEmailInfo,
   sentHourSummaryIntroEmail: boolean,
   fromDate: string,
   toDate: string,
@@ -673,13 +637,13 @@ export async function sendHourSummaryEmail(
     ? config.sendgrid.customWeeklyHourSummaryIntroEmailTemplate
     : config.sendgrid.weeklyHourSummaryIntroEmailTemplate
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'UPchieve',
     sentHourSummaryIntroEmail ? weeklyTemplate : introTemplate,
     {
-      firstName: capitalize(firstName),
+      firstName: capitalize(volunteer.firstName),
       fromDate,
       toDate,
       totalCoachingTime: formattedCoachingHours,
@@ -692,8 +656,7 @@ export async function sendHourSummaryEmail(
 }
 
 export async function sendWeeklyHourApologyEmail(
-  firstName: string,
-  email: string,
+  volunteer: UserEmailInfo,
   fromDate: string,
   toDate: string
 ): Promise<void> {
@@ -701,13 +664,13 @@ export async function sendWeeklyHourApologyEmail(
     categories: ['weekly hour summary apology email'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'UPchieve',
     config.sendgrid.weeklyHourSummaryApologyEmailTemplate,
     {
-      firstName: capitalize(firstName),
+      firstName: capitalize(volunteer.firstName),
       fromDate,
       toDate,
     },
@@ -716,8 +679,7 @@ export async function sendWeeklyHourApologyEmail(
 }
 
 export async function sendOnboardingReminderOne(
-  firstName: string,
-  email: string,
+  volunteer: UserEmailInfo,
   hasCompletedBackgroundInfo: boolean,
   hasCompletedUpchieve101: boolean,
   hasUnlockedASubject: boolean,
@@ -727,13 +689,13 @@ export async function sendOnboardingReminderOne(
     categories: ['onboarding reminder one email'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'The UPchieve Team',
     config.sendgrid.onboardingReminderOneTemplate,
     {
-      firstName: capitalize(firstName),
+      firstName: capitalize(volunteer.firstName),
       hasCompletedBackgroundInfo,
       hasCompletedUpchieve101,
       hasUnlockedASubject,
@@ -744,28 +706,26 @@ export async function sendOnboardingReminderOne(
 }
 
 export async function sendOnboardingReminderTwo(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo,
 ): Promise<void> {
   const overrides = {
     categories: ['onboarding reminder two email'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.support,
     'The UPchieve Team',
     config.sendgrid.onboardingReminderTwoTemplate,
     {
-      firstName: capitalize(firstName),
+      firstName: capitalize(volunteer.firstName),
     },
     overrides
   )
 }
 
 export async function sendOnboardingReminderThree(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo,
 ): Promise<void> {
   const teamMemberEmail = config.mail.senders.volunteerManager
   const overrides = {
@@ -775,13 +735,13 @@ export async function sendOnboardingReminderThree(
     categories: ['onboarding reminder three email'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     teamMemberEmail,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.onboardingReminderThreeTemplate,
     {
-      firstName: capitalize(firstName),
+      firstName: capitalize(volunteer.firstName),
     },
     overrides
   )
@@ -789,8 +749,7 @@ export async function sendOnboardingReminderThree(
 
 export async function sendFailedFirstAttemptedQuiz(
   category: string,
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo,
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -804,13 +763,13 @@ export async function sendFailedFirstAttemptedQuiz(
       ? config.sendgrid.failedFirstAttemptedTrainingTemplate
       : config.sendgrid.failedFirstAttemptedQuizTemplate
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     config.mail.senders.noreply,
     'The UPchieve Team',
     templateToSend,
     {
-      firstName: capitalize(firstName),
+      firstName: capitalize(volunteer.firstName),
       category: formatMultiWordSubject(category),
     },
     overrides
@@ -818,8 +777,7 @@ export async function sendFailedFirstAttemptedQuiz(
 }
 
 export async function sendVolunteerQuickTips(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const overrides = {
@@ -828,19 +786,18 @@ export async function sendVolunteerQuickTips(
     },
     categories: ['volunteer - quick tips'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerQuickTipsTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendPartnerVolunteerLowHoursSelected(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.receivers.support
   const overrides = {
@@ -849,19 +806,18 @@ export async function sendPartnerVolunteerLowHoursSelected(
     },
     categories: ['partner volunteer - low hours'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     'The UPchieve Team',
     config.sendgrid.partnerVolunteerLowHoursSelectedTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerFirstSessionCongrats(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const overrides = {
@@ -870,19 +826,18 @@ export async function sendVolunteerFirstSessionCongrats(
     },
     categories: ['volunteer - first session congrats'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerFirstSessionCongratsTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerTenSessionMilestone(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const overrides = {
@@ -891,19 +846,18 @@ export async function sendVolunteerTenSessionMilestone(
     },
     categories: ['volunteer - ten session milestone'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerTenSessionMilestoneTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerGentleWarning(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const overrides = {
@@ -912,19 +866,18 @@ export async function sendVolunteerGentleWarning(
     },
     categories: ['volunteer - gentle warning'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.volunteerGentleWarningTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerInactiveThirtyDays(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const overrides = {
@@ -933,19 +886,18 @@ export async function sendVolunteerInactiveThirtyDays(
     },
     categories: ['volunteer - inactive thirty days'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.volunteerInactiveThirtyDaysTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerInactiveSixtyDays(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.support
   const overrides = {
@@ -954,19 +906,18 @@ export async function sendVolunteerInactiveSixtyDays(
     },
     categories: ['volunteer - inactive sixty days'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     'The UPchieve Team',
     config.sendgrid.volunteerInactiveSixtyDaysTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerInactiveNinetyDays(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.support
   const overrides = {
@@ -975,19 +926,18 @@ export async function sendVolunteerInactiveNinetyDays(
     },
     categories: ['volunteer - inactive ninety days'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     'The UPchieve Team',
     config.sendgrid.volunteerInactiveNinetyDaysTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendVolunteerInactiveBlackoutOver(
-  email: string,
-  firstName: string
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.support
   const overrides = {
@@ -996,19 +946,18 @@ export async function sendVolunteerInactiveBlackoutOver(
     },
     categories: ['volunteer - inactive blackout over'],
   }
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     'The UPchieve Team',
     config.sendgrid.volunteerInactiveBlackoutOverTemplate,
-    { firstName },
+    { firstName: volunteer.firstName },
     overrides
   )
 }
 
 export async function sendStudentReported(
-  email: string,
-  firstName: string,
+  student: UserEmailInfo,
   reportReason: string
 ): Promise<void> {
   let sender
@@ -1032,12 +981,11 @@ export async function sendStudentReported(
     categories: ['student - reported'],
   }
 
-  await sendEmail(email, sender, from, template, { firstName }, overrides)
+  await SendEmail.toUser(student, sender, from, template, { firstName: student.firstName }, overrides)
 }
 
 export async function sendStudentAbsentWarning(
-  email: string,
-  firstName: string
+  student: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const from = config.mail.people.volunteerManager.firstName
@@ -1050,12 +998,11 @@ export async function sendStudentAbsentWarning(
     categories: ['student - absent warning'],
   }
 
-  await sendEmail(email, sender, from, template, { firstName }, overrides)
+  await SendEmail.toUser(student, sender, from, template, { firstName: student.firstName }, overrides)
 }
 
 export async function sendStudentAbsentVolunteerApology(
-  firstName: string,
-  email: string,
+  student: UserEmailInfo,
   volunteerFirstName: string,
   sessionSubject: string,
   sessionDate: string
@@ -1071,13 +1018,13 @@ export async function sendStudentAbsentVolunteerApology(
     categories: ['student - absent volunteer apology'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    student,
     sender,
     from,
     template,
     {
-      firstName,
+      firstName: student.firstName,
       volunteerFirstName,
       sessionSubject,
       sessionDate,
@@ -1087,8 +1034,7 @@ export async function sendStudentAbsentVolunteerApology(
 }
 
 export async function sendStudentUnmatchedApology(
-  firstName: string,
-  email: string,
+  student: UserEmailInfo,
   sessionSubject: string,
   sessionDate: string
 ): Promise<void> {
@@ -1103,19 +1049,18 @@ export async function sendStudentUnmatchedApology(
     categories: ['student - unmatched apology'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    student,
     sender,
     from,
     template,
-    { firstName, sessionSubject, sessionDate },
+    { firstName: student.firstName, sessionSubject, sessionDate },
     overrides
   )
 }
 
 export async function sendVolunteerAbsentWarning(
-  firstName: string,
-  email: string,
+  volunteer: UserEmailInfo,
   studentFirstName: string,
   sessionSubject: string,
   sessionDate: string
@@ -1131,13 +1076,13 @@ export async function sendVolunteerAbsentWarning(
     categories: ['volunteer - absent warning'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     from,
     template,
     {
-      firstName,
+      firstName: volunteer.firstName,
       studentFirstName,
       sessionSubject,
       sessionDate,
@@ -1147,8 +1092,7 @@ export async function sendVolunteerAbsentWarning(
 }
 
 export async function sendVolunteerAbsentStudentApology(
-  firstName: string,
-  email: string,
+  volunteer: UserEmailInfo,
   studentFirstName: string,
   sessionSubject: string,
   sessionDate: string
@@ -1164,13 +1108,13 @@ export async function sendVolunteerAbsentStudentApology(
     categories: ['volunteer - absent student apology'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    volunteer,
     sender,
     from,
     template,
     {
-      firstName,
+      firstName: volunteer,
       studentFirstName,
       sessionSubject,
       sessionDate,
@@ -1180,8 +1124,7 @@ export async function sendVolunteerAbsentStudentApology(
 }
 
 export async function sendOnlyLookingForAnswersWarning(
-  firstName: string,
-  email: string
+  student: UserEmailInfo
 ): Promise<void> {
   const sender = config.mail.senders.volunteerManager
   const from = config.mail.people.volunteerManager.firstName
@@ -1193,7 +1136,7 @@ export async function sendOnlyLookingForAnswersWarning(
     categories: ['student - only looking for answers'],
   }
 
-  await sendEmail(email, sender, from, template, { firstName }, overrides)
+  await SendEmail.toUser(student, sender, from, template, { firstName: student.firstName }, overrides)
 }
 
 export async function createContact(userId: Ulid): Promise<any> {

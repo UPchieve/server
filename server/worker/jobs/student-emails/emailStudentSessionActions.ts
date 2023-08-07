@@ -40,28 +40,24 @@ export default async (
 
   if (student) {
     try {
-      const { firstName: studentFirstName, email } = student
       if (currentJob === Jobs.EmailStudentAbsentWarning)
-        await MailService.sendStudentAbsentWarning(email, studentFirstName)
+        await MailService.sendStudentAbsentWarning(student)
       if (currentJob === Jobs.EmailStudentAbsentVolunteerApology && volunteer)
         await MailService.sendStudentAbsentVolunteerApology(
-          studentFirstName,
-          email,
+          student,
           volunteer?.firstName,
           formatMultiWordSubject(sessionSubtopic),
           moment(sessionDate).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailStudentUnmatchedApology)
         await MailService.sendStudentUnmatchedApology(
-          studentFirstName,
-          email,
+          student,
           formatMultiWordSubject(sessionSubtopic),
           moment(sessionDate).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailStudentOnlyLookingForAnswers)
         await MailService.sendOnlyLookingForAnswersWarning(
-          studentFirstName,
-          email
+          student
         )
 
       log(`Emailed ${currentJob} to student ${studentId}`)

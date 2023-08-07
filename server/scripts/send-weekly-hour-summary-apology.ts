@@ -75,8 +75,6 @@ export default async function sendWeeklyHourSummaryApology(): Promise<void> {
   for (const volunteer of volunteers) {
     const {
       id,
-      firstName,
-      email,
       sentHourSummaryIntroEmail,
       volunteerPartnerOrg,
     } = volunteer
@@ -117,15 +115,13 @@ export default async function sendWeeklyHourSummaryApology(): Promise<void> {
         summaryStats.totalVolunteerHours <= 0.01
       )
         await MailService.sendWeeklyHourApologyEmail(
-          firstName,
-          email,
+          volunteer,
           lastMonday.format('dddd, MMM D'),
           lastSunday.format('dddd, MMM D')
         )
       else
         await MailService.sendHourSummaryEmail(
-          firstName,
-          email,
+          volunteer,
           sentHourSummaryIntroEmail,
           lastMonday.format('dddd, MMM D'),
           lastSunday.format('dddd, MMM D'),

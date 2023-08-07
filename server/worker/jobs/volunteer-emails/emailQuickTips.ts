@@ -16,7 +16,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
   const volunteer = await getVolunteerForQuickTips(volunteerId)
 
   if (volunteer) {
-    const { id, firstName, email, availability } = volunteer
+    const { id, availability } = volunteer
     const textNotifications = await getNotificationsByVolunteerId(id)
 
     if (
@@ -24,7 +24,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
       countAvailabilitySelected(availability)
     ) {
       try {
-        await MailService.sendVolunteerQuickTips(email, firstName)
+        await MailService.sendVolunteerQuickTips(volunteer)
         log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

@@ -21,11 +21,8 @@ import { getSessionRating } from '../Survey'
 import { USER_ROLES } from '../../constants'
 import { insertUserRoleByUserId } from '../User'
 
-export type ReportedStudent = {
-  id: Ulid
-  firstName: string
+export type ReportedStudent = Omit<StudentContactInfo, 'schoolId'> & {
   lastName: string
-  email: string
   createdAt: Date
   isTestUser: boolean
   isBanned: boolean
@@ -45,7 +42,7 @@ export async function getReportedStudent(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], ['studentPartnerOrg'])
+      const ret = makeSomeRequired(result[0], ['studentPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     }

@@ -18,7 +18,6 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
     try {
       let delay = 0
       let nextJob = ''
-      const { firstName, email } = volunteer
       if (currentJob === Jobs.EmailOnboardingReminderOne) {
         const hasUnlockedASubject = volunteer.subjects.length > 0
         const hasSelectedAvailability = !!volunteer.availabilityLastModifiedAt
@@ -26,8 +25,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
 
         // Volunteer has not completed onboarding 7 days after creating  account
         await MailService.sendOnboardingReminderOne(
-          firstName,
-          email,
+          volunteer,
           hasCompletedBackgroundInfo,
           volunteer.hasCompletedUpchieve101,
           hasUnlockedASubject,
@@ -39,14 +37,14 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
 
       if (currentJob === Jobs.EmailOnboardingReminderTwo) {
         // Volunteer has not completed onboarding 7 days after sending onboarding reminder one
-        await MailService.sendOnboardingReminderTwo(email, firstName)
+        await MailService.sendOnboardingReminderTwo(volunteer)
         delay = 1000 * 60 * 60 * 24 * 10
         nextJob = Jobs.EmailOnboardingReminderThree
       }
 
       if (currentJob === Jobs.EmailOnboardingReminderThree) {
         // Volunteer has not completed onboarding 10 days after sending onboarding reminder two
-        await MailService.sendOnboardingReminderThree(email, firstName)
+        await MailService.sendOnboardingReminderThree(volunteer)
       }
       log(`Emailed ${currentJob} to volunteer ${volunteerId}`)
       if (nextJob)

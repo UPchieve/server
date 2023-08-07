@@ -23,7 +23,7 @@ export default async (
     const volunteer = await getVolunteerContactInfoById(volunteerId)
     // Only send email if vounteer is found to be a recipient
     if (volunteer) {
-      await MailService.sendFailedFirstAttemptedQuiz(category, email, firstName)
+      await MailService.sendFailedFirstAttemptedQuiz(category, volunteer)
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     }
   } catch (error) {

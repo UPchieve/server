@@ -13,11 +13,11 @@ import {
 export async function processVolunteer(
   volunteer: VolunteerContactInfo
 ): Promise<string[]> {
-  const { email, firstName, id } = volunteer
+  const { id } = volunteer
 
   const errors: string[] = []
   try {
-    await MailService.sendVolunteerInactiveBlackoutOver(email, firstName)
+    await MailService.sendVolunteerInactiveBlackoutOver(volunteer)
   } catch (error) {
     errors.push(
       `Failed to send blackout over email to volunteer ${id}: ${

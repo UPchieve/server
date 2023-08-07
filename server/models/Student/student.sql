@@ -136,6 +136,7 @@ SELECT
     first_name,
     last_name,
     email,
+    proxy_email,
     users.created_at AS created_at,
     test_user AS is_test_user,
     banned AS is_banned,

@@ -27,9 +27,9 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const errors = []
   for (const volunteer of volunteerWithNotifications) {
     if (volunteer.totalNotifications === 5) {
-      const { firstName, email, id } = volunteer
+      const { id } = volunteer
       try {
-        await MailService.sendVolunteerGentleWarning(email, firstName)
+        await MailService.sendVolunteerGentleWarning(volunteer)
         log(`Sent ${currentJob} to volunteer ${id}`)
       } catch (error) {
         errors.push(`volunteer ${id}: ${error}`)

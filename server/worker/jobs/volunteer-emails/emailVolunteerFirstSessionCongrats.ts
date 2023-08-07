@@ -16,9 +16,9 @@ export default async (
   const volunteer = await getVolunteerForEmailFirstSession(sessionId)
 
   if (volunteer) {
-    const { id: volunteerId, firstName, email } = volunteer
+    const { id: volunteerId } = volunteer
     try {
-      await MailService.sendVolunteerFirstSessionCongrats(email, firstName)
+      await MailService.sendVolunteerFirstSessionCongrats(volunteer)
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(

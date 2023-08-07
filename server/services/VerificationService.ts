@@ -79,21 +79,12 @@ async function sendEmails(userId: Ulid): Promise<void> {
   if (user) {
     if (user.isVolunteer) {
       if (user.volunteerPartnerOrg) {
-        await MailService.sendPartnerVolunteerWelcomeEmail(
-          user.email,
-          user.firstName
-        )
+        await MailService.sendPartnerVolunteerWelcomeEmail(user)
       } else {
-        await MailService.sendOpenVolunteerWelcomeEmail(
-          user.email,
-          user.firstName
-        )
+        await MailService.sendOpenVolunteerWelcomeEmail(user)
       }
     } else {
-      await MailService.sendStudentOnboardingWelcomeEmail(
-        user.email,
-        user.firstName
-      )
+      await MailService.sendStudentOnboardingWelcomeEmail(user)
       await StudentService.queueOnboardingEmails(user.id)
     }
   }

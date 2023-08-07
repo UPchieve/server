@@ -29,8 +29,7 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   if (sessions.length === 10) {
     try {
       await MailService.sendVolunteerTenSessionMilestone(
-        volunteer.email,
-        volunteer.firstName
+        volunteer
       )
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {

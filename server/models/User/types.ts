@@ -26,8 +26,10 @@ export type User = {
   verified: boolean
 }
 
-export type PassportUser = Required<Pick<User, 'id' | 'email' | 'password'>>
+export type PassportUser = Required<
+  Pick<User, 'id' | 'email' | 'firstName' | 'password' | 'proxyEmail'>
+>
 
-export type UserEmail = Required<
+export type UserEmailInfo = Required<
   Pick<User, 'id' | 'firstName' | 'email' | 'proxyEmail'>
 >

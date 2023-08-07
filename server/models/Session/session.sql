@@ -692,6 +692,7 @@ SELECT
     users.id,
     users.email,
     users.first_name,
+    users.proxy_email,
     notification_count.total AS total_notifications
 FROM
     notifications
@@ -726,7 +727,8 @@ GROUP BY
 SELECT
     users.id,
     users.first_name,
-    users.email
+    users.email,
+    users.proxy_email
 FROM
     sessions
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id
@@ -744,7 +746,8 @@ AND users.test_user IS FALSE;
 SELECT
     users.id,
     users.first_name,
-    users.email
+    users.email,
+    users.proxy_email
 FROM
     sessions
     LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id

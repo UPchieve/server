@@ -28,13 +28,13 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
   const volunteer = await getPartnerVolunteerForLowHours(asString(volunteerId))
 
   if (volunteer) {
-    const { id, firstName, email, availability } = volunteer
+    const { id, availability } = volunteer
     const textNotifications = await getNotificationsByVolunteerId(id)
     const totalHoursSelected = countAvailabilitySelected(availability)
 
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
-        await MailService.sendPartnerVolunteerLowHoursSelected(email, firstName)
+        await MailService.sendPartnerVolunteerLowHoursSelected(volunteer)
         log(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(

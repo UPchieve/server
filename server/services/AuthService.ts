@@ -442,7 +442,7 @@ export async function sendReset(
   const token = buffer.toString('hex')
   await updateUserResetTokenById(user.id, token)
 
-  await MailService.sendReset(userEmail, mobile, token)
+  await MailService.sendReset(user, mobile, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {

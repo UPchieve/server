@@ -25,6 +25,7 @@ import { insertUserRoleByUserId } from '../User'
 export type VolunteerContactInfo = {
   id: Ulid
   email: string
+  proxyEmail: string | undefined
   phone: string
   firstName: string
   lastName: string
@@ -40,7 +41,7 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    const ret = makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    const ret = makeSomeRequired(result[0], ['volunteerPartnerOrg', 'proxyEmail'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -70,7 +71,7 @@ export async function getVolunteerContactInfoByIds(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -88,7 +89,7 @@ export async function getVolunteersForBlackoutOver(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -112,7 +113,7 @@ export async function getVolunteerForQuickTips(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeRequired(vResult[0], ['volunteerPartnerOrg'])
+    const volunteer = makeSomeRequired(vResult[0], ['volunteerPartnerOrg', 'proxyEmail'])
     const availability = await getAvailabilityForVolunteer(userId)
     volunteer.email = volunteer.email.toLowerCase()
     return {
@@ -136,7 +137,7 @@ export async function getPartnerVolunteerForLowHours(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeRequired(vResult[0]) // volunteerPartnerOrg must exist
+    const volunteer = makeSomeRequired(vResult[0], ['proxyEmail']) // volunteerPartnerOrg must exist
     volunteer.email = volunteer.email.toLowerCase()
     const availability = await getAvailabilityForVolunteer(userId)
     return {
@@ -258,7 +259,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -335,10 +336,7 @@ export async function getVolunteersForTotalHours(): Promise<
   }
 }
 
-export type VolunteerForOnboarding = Pick<
-  VolunteerContactInfo,
-  'id' | 'email' | 'firstName'
-> & {
+export type VolunteerForOnboarding = Pick<VolunteerContactInfo, 'id' | 'email' | 'firstName' | 'proxyEmail'> & {
   onboarded: boolean
   hasCompletedUpchieve101: boolean
   subjects: string[]
@@ -358,6 +356,7 @@ export async function getVolunteerForOnboardingById(
     )
     if (!result.length) return
     const volunteer = makeSomeRequired(result[0], [
+      'proxyEmail',
       'availabilityLastModifiedAt',
       'country',
     ])
@@ -387,7 +386,7 @@ export async function getVolunteersForTelecomReport(
       { partnerOrg },
       getRoClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -521,21 +520,21 @@ export async function getInactiveVolunteers(
       getClient()
     )
     const thirties = thirtyResult.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg'])
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
     )
     const sixtyResult = await pgQueries.getInactiveVolunteers.run(
       { start: sixtyDaysAgoStartOfDay, end: sixtyDaysAgoEndOfDay },
       getClient()
     )
     const sixties = sixtyResult.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg'])
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
     )
     const ninetyResult = await pgQueries.getInactiveVolunteers.run(
       { start: ninetyDaysAgoStartOfDay, end: ninetyDaysAgoEndOfDay },
       getClient()
     )
     const nineties = ninetyResult.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg'])
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
     )
 
     return {
@@ -1033,6 +1032,7 @@ export async function getVolunteerForPendingStatus(
     )
     if (!result.length) return
     const volunteer = makeSomeRequired(result[0], [
+      'proxyEmail',
       'country',
       'volunteerPartnerOrg',
     ])
@@ -1099,7 +1099,7 @@ export async function getVolunteersForNiceToMeetYou(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1117,7 +1117,7 @@ export async function getVolunteersForReadyToCoach(): Promise<
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1136,7 +1136,7 @@ export async function getVolunteersForWaitingReferences(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1190,7 +1190,7 @@ export type CreateVolunteerPayload = {
   signupSourceId?: number
   otherSignupSource?: string
 }
-export type CreatedVolunteer = VolunteerContactInfo & {
+export type CreatedVolunteer = Omit<VolunteerContactInfo, 'proxyEmail'> & {
   deactivated: boolean
   testUser: boolean
   createdAt: Date
@@ -1607,7 +1607,7 @@ export async function getNextVolunteerToNotify(options: {
       getClient()
     )
     if (!result.length) return
-    return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    return makeSomeRequired(result[0], ['volunteerPartnerOrg', 'proxyEmail'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1656,7 +1656,7 @@ export async function getVolunteersOnDeck(
       { subject, excludedIds },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail']))
   } catch (err) {
     throw new RepoReadError(err)
   }

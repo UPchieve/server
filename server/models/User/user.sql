@@ -23,6 +23,7 @@ SELECT
     users.id,
     first_name,
     email,
+    proxy_email,
     banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -93,6 +94,8 @@ LIMIT 1;
 SELECT
     id,
     email,
+    first_name,
+    proxy_email,
     PASSWORD
 FROM
     users

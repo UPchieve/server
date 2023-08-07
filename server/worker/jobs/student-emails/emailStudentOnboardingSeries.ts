@@ -18,24 +18,23 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
 
   if (student) {
     try {
-      const { firstName, email } = student
       if (
         currentJob === Jobs.EmailStudentOnboardingHowItWorks ||
         currentJob === Jobs.EmailStudentUseCases
       )
         await MailService.sendStudentOnboardingHowItWorks(student)
       if (currentJob === Jobs.EmailMeetOurVolunteers)
-        await MailService.sendMeetOurVolunteers(email, firstName)
+        await MailService.sendMeetOurVolunteers(student)
       if (
         currentJob === Jobs.EmailStudentOnboardingMission ||
         currentJob === Jobs.EmailIndependentLearning
       )
-        await MailService.sendStudentOnboardingMission(email, firstName)
+        await MailService.sendStudentOnboardingMission(student)
       if (
         currentJob === Jobs.EmailStudentOnboardingSurvey ||
         currentJob === Jobs.EmailStudentGoalSetting
       )
-        await MailService.sendStudentOnboardingSurvey(email, firstName)
+        await MailService.sendStudentOnboardingSurvey(student)
 
       log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
