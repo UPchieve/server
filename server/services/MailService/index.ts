@@ -9,7 +9,10 @@ import {
   USER_BAN_REASONS,
   TRAINING,
 } from '../../constants'
-import { UserEmailInfo, getUserToCreateSendGridContact } from '../../models/User'
+import {
+  UserEmailInfo,
+  getUserToCreateSendGridContact,
+} from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
@@ -706,7 +709,7 @@ export async function sendOnboardingReminderOne(
 }
 
 export async function sendOnboardingReminderTwo(
-  volunteer: UserEmailInfo,
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     categories: ['onboarding reminder two email'],
@@ -725,7 +728,7 @@ export async function sendOnboardingReminderTwo(
 }
 
 export async function sendOnboardingReminderThree(
-  volunteer: UserEmailInfo,
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const teamMemberEmail = config.mail.senders.volunteerManager
   const overrides = {
@@ -749,7 +752,7 @@ export async function sendOnboardingReminderThree(
 
 export async function sendFailedFirstAttemptedQuiz(
   category: string,
-  volunteer: UserEmailInfo,
+  volunteer: UserEmailInfo
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -981,7 +984,14 @@ export async function sendStudentReported(
     categories: ['student - reported'],
   }
 
-  await SendEmail.toUser(student, sender, from, template, { firstName: student.firstName }, overrides)
+  await SendEmail.toUser(
+    student,
+    sender,
+    from,
+    template,
+    { firstName: student.firstName },
+    overrides
+  )
 }
 
 export async function sendStudentAbsentWarning(
@@ -998,7 +1008,14 @@ export async function sendStudentAbsentWarning(
     categories: ['student - absent warning'],
   }
 
-  await SendEmail.toUser(student, sender, from, template, { firstName: student.firstName }, overrides)
+  await SendEmail.toUser(
+    student,
+    sender,
+    from,
+    template,
+    { firstName: student.firstName },
+    overrides
+  )
 }
 
 export async function sendStudentAbsentVolunteerApology(
@@ -1136,7 +1153,14 @@ export async function sendOnlyLookingForAnswersWarning(
     categories: ['student - only looking for answers'],
   }
 
-  await SendEmail.toUser(student, sender, from, template, { firstName: student.firstName }, overrides)
+  await SendEmail.toUser(
+    student,
+    sender,
+    from,
+    template,
+    { firstName: student.firstName },
+    overrides
+  )
 }
 
 export async function createContact(userId: Ulid): Promise<any> {

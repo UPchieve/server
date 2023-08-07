@@ -65,10 +65,7 @@ async function emailReportedSession(
       )
 
     const studentEmail = await safeAsync(
-      MailService.sendStudentReported(
-        student,
-        reportReason
-      )
+      MailService.sendStudentReported(student, reportReason)
     )
     if (studentEmail.error)
       errors.push(

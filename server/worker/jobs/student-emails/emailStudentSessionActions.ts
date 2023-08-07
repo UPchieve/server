@@ -56,9 +56,7 @@ export default async (
           moment(sessionDate).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailStudentOnlyLookingForAnswers)
-        await MailService.sendOnlyLookingForAnswersWarning(
-          student
-        )
+        await MailService.sendOnlyLookingForAnswersWarning(student)
 
       log(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {

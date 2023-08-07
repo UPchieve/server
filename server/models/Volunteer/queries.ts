@@ -41,7 +41,10 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    const ret = makeSomeRequired(result[0], ['volunteerPartnerOrg', 'proxyEmail'])
+    const ret = makeSomeRequired(result[0], [
+      'volunteerPartnerOrg',
+      'proxyEmail',
+    ])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -113,7 +116,10 @@ export async function getVolunteerForQuickTips(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeRequired(vResult[0], ['volunteerPartnerOrg', 'proxyEmail'])
+    const volunteer = makeSomeRequired(vResult[0], [
+      'volunteerPartnerOrg',
+      'proxyEmail',
+    ])
     const availability = await getAvailabilityForVolunteer(userId)
     volunteer.email = volunteer.email.toLowerCase()
     return {
@@ -259,7 +265,9 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail']))
+    const rows = result.map(v =>
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
+    )
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -336,7 +344,10 @@ export async function getVolunteersForTotalHours(): Promise<
   }
 }
 
-export type VolunteerForOnboarding = Pick<VolunteerContactInfo, 'id' | 'email' | 'firstName' | 'proxyEmail'> & {
+export type VolunteerForOnboarding = Pick<
+  VolunteerContactInfo,
+  'id' | 'email' | 'firstName' | 'proxyEmail'
+> & {
   onboarded: boolean
   hasCompletedUpchieve101: boolean
   subjects: string[]
@@ -386,7 +397,9 @@ export async function getVolunteersForTelecomReport(
       { partnerOrg },
       getRoClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail']))
+    const rows = result.map(v =>
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
+    )
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -1656,7 +1669,9 @@ export async function getVolunteersOnDeck(
       { subject, excludedIds },
       getClient()
     )
-    return result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail']))
+    return result.map(v =>
+      makeSomeRequired(v, ['volunteerPartnerOrg', 'proxyEmail'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

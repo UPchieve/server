@@ -29,11 +29,7 @@ export default async (): Promise<void> => {
   let totalEmailed = 0
   const errors: string[] = []
   for (const volunteer of volunteers) {
-    const {
-      id,
-      sentHourSummaryIntroEmail,
-      volunteerPartnerOrg,
-    } = volunteer
+    const { id, sentHourSummaryIntroEmail, volunteerPartnerOrg } = volunteer
     try {
       const customCheck = config.customVolunteerPartnerOrgs.some(
         org => org === volunteerPartnerOrg

@@ -42,7 +42,10 @@ export async function getReportedStudent(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], ['studentPartnerOrg', 'proxyEmail'])
+      const ret = makeSomeRequired(result[0], [
+        'studentPartnerOrg',
+        'proxyEmail',
+      ])
       ret.email = ret.email.toLowerCase()
       return ret
     }
@@ -97,7 +100,11 @@ export async function getStudentContactInfoById(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg', 'proxyEmail'])
+      const ret = makeSomeRequired(result[0], [
+        'schoolId',
+        'studentPartnerOrg',
+        'proxyEmail',
+      ])
       ret.email = ret.email.toLowerCase()
       return ret
     }
@@ -589,7 +596,10 @@ export type CreateStudentWithFedCredPayload = CreateStudentPayload & {
   emailVerified: boolean
 }
 
-export type CreatedStudent = Pick<StudentContactInfo, 'id' | 'firstName' | 'email' | 'studentPartnerOrg' | 'schoolId'> & {
+export type CreatedStudent = Pick<
+  StudentContactInfo,
+  'id' | 'firstName' | 'email' | 'studentPartnerOrg' | 'schoolId'
+> & {
   isDeactivated: boolean
   isTestUser: boolean
   createdAt: Date
