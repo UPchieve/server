@@ -4,7 +4,7 @@ import {
   RepoTransactionError,
   RepoUpdateError,
 } from '../Errors'
-import { School } from './types'
+import { PartnerSchool, School } from './types'
 import {
   getDbUlid,
   makeRequired,
@@ -13,7 +13,7 @@ import {
   Ulid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
@@ -331,5 +331,16 @@ export async function upsertSchools(
       default:
         return s.split('th')[0]
     }
+  }
+}
+
+export async function getPartnerSchools(
+  tc: TransactionClient
+): Promise<PartnerSchool[] | undefined> {
+  try {
+    const schools = await pgQueries.getPartnerSchools.run(undefined, tc)
+    return schools.map(s => makeSomeRequired(s, ['partnerKey', 'partnerSites']))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

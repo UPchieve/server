@@ -197,3 +197,21 @@ SET
 WHERE
     school_nces_metadata.school_id = :school_id!;
 
+
+/* @name getPartnerSchools */
+SELECT
+    schools.name AS school_name,
+    schools.id AS school_id,
+    spo.key AS partner_key,
+    ARRAY_REMOVE(ARRAY_AGG(spos.name), NULL) AS partner_sites
+FROM
+    schools
+    LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
+    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+WHERE
+    partner = TRUE
+GROUP BY
+    schools.name,
+    schools.id,
+    spo.key;
+
