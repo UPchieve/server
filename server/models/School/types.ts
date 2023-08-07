@@ -21,3 +21,10 @@ export type School = {
   nslpDirectCertification?: number
   frlEligible?: number
 }
+
+export type PartnerSchool = {
+  schoolName: string
+  partnerKey?: string
+  partnerSites?: string[]
+  schoolId: string
+}
