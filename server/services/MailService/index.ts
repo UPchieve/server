@@ -9,7 +9,10 @@ import {
   USER_BAN_REASONS,
   TRAINING,
 } from '../../constants'
-import { getUserToCreateSendGridContact } from '../../models/User'
+import {
+  UserEmail,
+  getUserToCreateSendGridContact,
+} from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
@@ -62,31 +65,91 @@ const SG_CUSTOM_FIELDS = {
   passedUpchieve101: 'e17_T',
 }
 
-// TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
-//        and preferences and bypassing those unsubscribe groups
-async function sendEmail(
-  toEmail: string,
-  fromEmail: string,
-  fromName: string,
-  templateId: string,
-  dynamicData: any,
-  overrides: any = {}
-): Promise<void> {
-  const msg = {
-    to: toEmail,
-    from: {
-      email: fromEmail,
-      name: fromName,
-    },
-    reply_to: {
-      email: config.mail.receivers.support,
-    },
-    templateId: templateId,
-    dynamic_template_data: dynamicData,
-    ...overrides,
+class SendEmail {
+  static async toUpchieveStaff(
+    toEmail: string,
+    fromEmail: string,
+    fromName: string,
+    templateId: string,
+    dynamicData: any,
+    overrides: any = {}
+  ) {
+    await this.sendEmail(
+      toEmail,
+      fromEmail,
+      fromName,
+      templateId,
+      dynamicData,
+      overrides
+    )
   }
 
-  await sgMail.send(msg)
+  static async toUser(
+    user: UserEmail,
+    fromEmail: string,
+    fromName: string,
+    templateId: string,
+    dynamicData: any,
+    overrides: any = {}
+  ): Promise<void> {
+    const toEmail = user.proxyEmail ?? user.email
+    if (user.proxyEmail) {
+      overrides.cc = user.email
+    }
+    await this.sendEmail(
+      toEmail,
+      fromEmail,
+      fromName,
+      templateId,
+      dynamicData,
+      overrides
+    )
+  }
+
+  static async toReference(
+      toEmail: string,
+      fromEmail: string,
+      fromName: string,
+      templateId: string,
+      dynamicData: any,
+      overrides: any = {}
+  ): Promise<void> {
+    await this.sendEmail(
+      toEmail,
+      fromEmail,
+      fromName,
+      templateId,
+      dynamicData,
+      overrides
+    )
+  }
+
+    // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
+    //        and preferences and bypassing those unsubscribe groups
+    private static async sendEmail(
+      toEmail: string,
+      fromEmail: string,
+      fromName: string,
+      templateId: string,
+      dynamicData: any,
+      overrides: any = {}
+    ): Promise<void> {
+      const msg = {
+        to: toEmail,
+        from: {
+          email: fromEmail,
+          name: fromName,
+        },
+        reply_to: {
+          email: config.mail.receivers.support,
+        },
+        templateId: templateId,
+        dynamic_template_data: dynamicData,
+        ...overrides,
+      }
+
+      await sgMail.send(msg)
+    }
 }
 
 // TODO: use this in other MailService methods
@@ -108,30 +171,6 @@ function getFormattedHourSummaryTime(time: number): string {
   if (hour === 0 && minute === 0) format += '0'
 
   return format
-}
-
-export async function sendVerification(
-  email: string,
-  token: string
-): Promise<void> {
-  const url = 'http://' + config.client.host + '/action/verify/' + token
-
-  const overrides = {
-    categories: ['account verification'],
-    mail_settings: { bypass_list_management: { enable: true } },
-  }
-
-  await sendEmail(
-    email,
-    config.mail.senders.noreply,
-    'UPchieve',
-    config.sendgrid.verifyTemplate,
-    {
-      userEmail: email,
-      verifyLink: url,
-    },
-    overrides
-  )
 }
 
 interface ContactData {
