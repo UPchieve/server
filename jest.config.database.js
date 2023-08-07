@@ -8,6 +8,7 @@ module.exports = {
   ],
   setupFilesAfterEnv: [
     "<rootDir>/server/tests/force-gc.ts",
+    "<rootDir>/server/tests/database/db-mocks-setup.ts",
   ],
   watchPathIgnorePatterns: ["globalConfig"],
   roots: ["<rootDir>/server/tests/database"],
@@ -17,8 +18,5 @@ module.exports = {
   globalTeardown: "<rootDir>/server/tests/database/global-db-teardown.ts",
   testEnvironment: 
     "<rootDir>/server/tests/database/db-test-environment.js",
-  setupFilesAfterEnv: [
-    "<rootDir>/server/tests/database/db-mocks-setup.ts"
-  ],
-  testTimeout: FIVE_MINUTES_IN_MS 
+  testTimeout: FIVE_MINUTES_IN_MS,
 }
