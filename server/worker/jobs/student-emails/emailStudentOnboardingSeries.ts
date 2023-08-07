@@ -23,7 +23,7 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
         currentJob === Jobs.EmailStudentOnboardingHowItWorks ||
         currentJob === Jobs.EmailStudentUseCases
       )
-        await MailService.sendStudentOnboardingHowItWorks(email, firstName)
+        await MailService.sendStudentOnboardingHowItWorks(student)
       if (currentJob === Jobs.EmailMeetOurVolunteers)
         await MailService.sendMeetOurVolunteers(email, firstName)
       if (

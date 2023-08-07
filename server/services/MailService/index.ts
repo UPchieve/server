@@ -279,8 +279,7 @@ export async function sendStudentOnboardingWelcomeEmail(
 }
 
 export async function sendStudentOnboardingHowItWorks(
-  email: string,
-  firstName: string
+  user: UserEmail
 ): Promise<void> {
   const overrides = {
     reply_to: {
@@ -289,12 +288,12 @@ export async function sendStudentOnboardingHowItWorks(
     categories: ['Student Onboarding Email 2 - How It Works'],
   }
 
-  await sendEmail(
-    email,
+  await SendEmail.toUser(
+    user,
     config.mail.senders.students,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingHowItWorksTemplate,
-    { firstName },
+    { firstName: user.firstName },
     overrides
   )
 }

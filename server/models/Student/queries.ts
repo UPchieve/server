@@ -84,6 +84,7 @@ export type StudentContactInfo = {
   id: Ulid
   firstName: string
   email: string
+  proxyEmail: string | undefined
   studentPartnerOrg?: string
   schoolId?: Ulid
 }
@@ -99,7 +100,7 @@ export async function getStudentContactInfoById(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
+      const ret = makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg', 'proxyEmail'])
       ret.email = ret.email.toLowerCase()
       return ret
     }
@@ -591,7 +592,7 @@ export type CreateStudentWithFedCredPayload = CreateStudentPayload & {
   emailVerified: boolean
 }
 
-export type CreatedStudent = StudentContactInfo & {
+export type CreatedStudent = Pick<StudentContactInfo, 'id' | 'firstName' | 'email' | 'studentPartnerOrg' | 'schoolId'> & {
   isDeactivated: boolean
   isTestUser: boolean
   createdAt: Date

@@ -19,6 +19,7 @@ SELECT
     users.id,
     first_name,
     email,
+    proxy_email,
     student_partner_orgs.key AS student_partner_org,
     student_profiles.school_id
 FROM
