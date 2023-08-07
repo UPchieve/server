@@ -105,6 +105,7 @@ export async function getUserContactInfoByReferralCode(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'proxyEmail',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -143,6 +144,7 @@ export async function getUserContactInfoByResetToken(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'proxyEmail',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -469,6 +471,7 @@ export async function getUserToCreateSendGridContact(
       'volunteerPartnerOrgDisplay',
       'passedUpchieve101',
       'lastActivityAt',
+      'proxyEmail',
     ])
   } catch (err) {
     throw new RepoReadError(err)

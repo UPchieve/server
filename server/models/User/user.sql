@@ -58,6 +58,7 @@ SELECT
     users.id,
     first_name,
     email,
+    proxy_email,
     banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -105,6 +106,7 @@ SELECT
     users.id,
     first_name,
     email,
+    proxy_email,
     banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -580,6 +582,7 @@ SELECT
     users.id,
     first_name,
     email,
+    proxy_email,
     banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
