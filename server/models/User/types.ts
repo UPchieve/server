@@ -2,24 +2,32 @@ import { Pgid, Ulid } from '../pgUtils'
 
 export type User = {
   id: Ulid
-  verified: boolean
-  emailVerified: boolean
-  phoneVerified: boolean
-  email: string
-  phone?: string
-  password: string
-  passwordResetToken?: string
-  firstName: string
-  lastName: string
   banned: boolean
-  banReasonId?: Pgid
-  testUser: boolean
-  deactivated: boolean
-  lastActivityAt?: Date
-  referralCode: string
-  referredBy?: Ulid
-  timeTutored?: number
-  signupSourceId?: Pgid
+  banReasonId: Pgid | undefined
   createdAt: Date
+  deactivated: boolean
+  email: string
+  emailVerified: boolean
+  firstName: string
+  lastActivityAt: Date | undefined
+  lastName: string
+  otherSignupSource: string | undefined
+  phone: string | undefined
+  proxyEmail: string | undefined
+  password: string | undefined
+  passwordResetToken: string | undefined
+  phoneVerified: boolean
+  referralCode: string
+  referredBy: Ulid | undefined
+  signupSourceId: Pgid | undefined
+  testUser: boolean
+  timeTutored: number | undefined
   updatedAt: Date
+  verified: boolean
 }
+
+export type PassportUser = Required<Pick<User, 'id' | 'email' | 'password'>>
+
+export type UserEmail = Required<
+  Pick<User, 'id' | 'firstName' | 'email' | 'proxyEmail'>
+>

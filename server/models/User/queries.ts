@@ -12,6 +12,7 @@ import { RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
+import { PassportUser } from './types'
 
 export async function getUserIdByPhone(
   phone: string
@@ -111,12 +112,6 @@ export async function getUserContactInfoByReferralCode(
   } catch (err) {
     throw new RepoReadError(err)
   }
-}
-
-export type PassportUser = {
-  id: Ulid
-  email: string
-  password: string
 }
 
 export async function getUserForPassport(
