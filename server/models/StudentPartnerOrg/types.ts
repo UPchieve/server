@@ -1,3 +1,5 @@
+import { Ulid, Uuid } from 'id128'
+
 export type StudentPartnerOrgForRegistration = {
   key: string
   schoolSignupRequired: boolean
@@ -14,4 +16,19 @@ export type StudentPartnerOrg = {
   sites?: string[]
   isSchool: boolean
   deactivated?: boolean
+}
+
+export type CreateUserStudentPartnerOrgInstancePayload = {
+  userId: string
+  studentPartnerOrgId: string
+  studentPartnerOrgSiteId?: string
+}
+
+export type GetStudentPartnerOrgResult = {
+  partnerId: string
+  partnerKey: string
+  partnerName: string
+  siteId?: string
+  siteName?: string
+  schoolId?: string
 }

@@ -530,12 +530,13 @@ export async function getTotalSessionsByUserId(userId: Ulid): Promise<number> {
 
 export async function insertUserRoleByUserId(
   userId: Ulid,
-  roleName: USER_ROLES_TYPE
+  roleName: USER_ROLES_TYPE,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.insertUserRoleByUserId.run(
       { userId, roleName },
-      getClient()
+      tc ?? getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')

@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
@@ -185,6 +186,11 @@ export function checkPassword(password: string): boolean {
     throw new RegistrationError('Password must contain at least one number')
   }
   return true
+}
+
+export function createResetToken() {
+  const buffer: Buffer = randomBytes(16)
+  return buffer.toString('hex')
 }
 
 export async function checkPhone(phone: string): Promise<boolean> {

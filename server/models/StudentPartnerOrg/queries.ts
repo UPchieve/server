@@ -1,9 +1,14 @@
 import { PoolClient } from 'pg'
-import { getClient } from '../../db'
-import { RepoReadError } from '../Errors'
+import { getClient, TransactionClient } from '../../db'
+import { RepoCreateError, RepoReadError } from '../Errors'
 import { makeRequired, makeSomeRequired } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { StudentPartnerOrg, StudentPartnerOrgForRegistration } from './types'
+import {
+  CreateUserStudentPartnerOrgInstancePayload,
+  GetStudentPartnerOrgResult,
+  StudentPartnerOrg,
+  StudentPartnerOrgForRegistration,
+} from './types'
 
 export async function getStudentPartnerOrgForRegistrationByKey(
   key: string
@@ -16,6 +21,46 @@ export async function getStudentPartnerOrgForRegistrationByKey(
     if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
     return makeSomeRequired(result[0], ['sites'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getStudentPartnerOrgByKey(
+  tc: TransactionClient,
+  partnerKey: string,
+  partnerSite?: string
+): Promise<GetStudentPartnerOrgResult | undefined> {
+  try {
+    const result = await pgQueries.getStudentPartnerOrgByKey.run(
+      {
+        partnerKey,
+        partnerSite,
+      },
+      tc
+    )
+    if (result.length) {
+      return makeSomeRequired(result[0], ['siteId', 'siteName', 'schoolId'])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getStudentPartnerOrgBySchoolId(
+  tc: TransactionClient,
+  schoolId: string
+): Promise<GetStudentPartnerOrgResult | undefined> {
+  try {
+    const result = await pgQueries.getStudentPartnerOrgBySchoolId.run(
+      {
+        schoolId,
+      },
+      tc
+    )
+    if (result.length) {
+      return makeSomeRequired(result[0], ['siteId', 'siteName', 'schoolId'])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -69,6 +114,24 @@ export async function getStudentPartnerOrgKeyByCode(
     return makeRequired(result[0]).key
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function createUserStudentPartnerOrgInstance(
+  uspoData: CreateUserStudentPartnerOrgInstancePayload,
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.createUserStudentPartnerOrgInstance.run(
+      {
+        userId: uspoData.userId,
+        spoId: uspoData.studentPartnerOrgId,
+        sposId: uspoData.studentPartnerOrgSiteId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }
 
