@@ -2,7 +2,6 @@
  * @group database
  */
 
-import { buildTestClient, metaSetup } from '../postgres-test-hook'
 import {
   getAssistmentsDataBySession,
   updateAssistmentsDataSentById,
@@ -20,31 +19,20 @@ import { AssistmentsData } from '../../models/AssistmentsData'
 import { Student } from '../../models/Student'
 import { Session } from '../../models/Session'
 import { RepoCreateError } from '../../models/Errors'
-
-/**
- * All database tests must mark @group database and use the setup/teadown hooks
- * in before/afterAll as shown below. These hooks spin up the pg container,
- * replace the app global pg pool client with one pointed to the test db, and
- * close the client and container on test completion.
- */
-metaSetup()
+import { getClient } from '../../db'
 
 describe('Assistments data queries', () => {
-  let client: Pool
+  const client: Pool = getClient()
   let student: Student
   let session: Session
   let ad: AssistmentsData
   beforeAll(async () => {
-    client = buildTestClient()
     const user = await insertSingleRow('users', buildUserRow(), client)
     student = await insertSingleRow(
       'student_profiles',
       buildStudentProfile({ userId: user.id }),
       client
     )
-  })
-  afterAll(async () => {
-    await client.end()
   })
   beforeEach(async () => {
     await dropTables(['assistments_data', 'sessions'], client)

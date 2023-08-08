@@ -9,6 +9,7 @@ module.exports = {
   ],
   watchPathIgnorePatterns: ["globalConfig"],
   roots: ["<rootDir>/server"],
+  testPathIgnorePatterns: ["<rootDir>/server/tests/database"],
   transform: tsjPreset.transform,
   runner: "groups",
 }
