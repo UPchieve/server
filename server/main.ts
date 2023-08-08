@@ -7,7 +7,7 @@ import { registerListeners } from './services/listeners'
 import { serverSetup } from './server-setup'
 import { registerGracefulShutdownListeners } from './graceful-shutdown'
 import { unleashProxy, initializeUnleash } from './services/FeatureFlagService'
-import { getClient } from './db'
+import { getClient, setupDbConnection } from './db'
 
 async function main() {
   try {
@@ -23,8 +23,7 @@ async function main() {
     )
   })
 
-  const pool = getClient()
-
+  await setupDbConnection()
   registerListeners()
 
   const port = rawConfig.apiPort
@@ -35,7 +34,7 @@ async function main() {
   // avoid conflict with development tools that allow for restarts when a file changes
   if (rawConfig.NODE_ENV !== 'dev') {
     serverSetup(server)
-    registerGracefulShutdownListeners(server, pool, io)
+    registerGracefulShutdownListeners(server, getClient(), io)
   }
 }
 
