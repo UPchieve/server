@@ -489,7 +489,7 @@ describe('Password reset tests', () => {
     await AuthService.sendReset(user.email, false)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
-      user.email,
+      user,
       false,
       expect.anything()
     )
@@ -506,7 +506,7 @@ describe('Password reset tests', () => {
     await AuthService.sendReset(user.email, sendToMobile)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
-      user.email,
+      user,
       sendToMobile,
       expect.anything()
     )

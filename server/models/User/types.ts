@@ -12,11 +12,11 @@ export type User = {
   lastActivityAt: Date | undefined
   lastName: string
   otherSignupSource: string | undefined
-  phone: string | undefined
-  proxyEmail: string | undefined
   password: string | undefined
   passwordResetToken: string | undefined
+  phone: string | undefined
   phoneVerified: boolean
+  proxyEmail: string | undefined
   referralCode: string
   referredBy: Ulid | undefined
   signupSourceId: Pgid | undefined

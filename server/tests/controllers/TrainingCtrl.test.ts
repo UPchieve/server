@@ -224,6 +224,7 @@ describe('getQuizScore', () => {
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,
+      proxyEmail: undefined,
       firstName: volunteer.firstName,
       onboarded: false,
       subjects: [],
@@ -320,6 +321,7 @@ describe('getQuizScore', () => {
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,
+      proxyEmail: undefined,
       firstName: volunteer.firstName,
       onboarded: false,
       subjects: [],
@@ -414,6 +416,7 @@ describe('getQuizScore', () => {
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,
+      proxyEmail: undefined,
       firstName: volunteer.firstName,
       onboarded: false,
       subjects: [],
@@ -516,6 +519,7 @@ describe('getQuizScore', () => {
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,
+      proxyEmail: undefined,
       firstName: volunteer.firstName,
       onboarded: false,
       subjects: [],
@@ -615,6 +619,7 @@ describe('getQuizScore', () => {
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,
+      proxyEmail: undefined,
       firstName: volunteer.firstName,
       onboarded: false,
       subjects: currentSubjects,
@@ -720,6 +725,7 @@ describe('getQuizScore', () => {
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,
+      proxyEmail: undefined,
       firstName: volunteer.firstName,
       onboarded: true,
       subjects: currentSubjects,
