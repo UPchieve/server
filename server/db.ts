@@ -27,23 +27,31 @@ export function buildReadOnlyClient(): Pool {
   })
 }
 
-const client = buildClient()
-const roClient = buildReadOnlyClient()
+let client: Pool | undefined
+let roClient: Pool | undefined
 
-client.on('error', err => console.error(`PG ERROR: ${err}`))
-roClient.on('error', err => console.error(`PG ERROR: ${err}`))
+export async function setupDbConnection() {
+  getClient().on('error', err => console.error(`PG ERROR: ${err}`))
+  getRoClient().on('error', err => console.error(`PG ERROR: ${err}`))
 
-try {
-  client.connect().then(v => v.release())
-  roClient.connect().then(v => v.release())
-} catch (err) {
-  logger.error(`Could not connect to db with error ${err}`)
-  process.exit(1)
+  try {
+    getClient()
+      .connect()
+      .then(v => v.release())
+    getRoClient()
+      .connect()
+      .then(v => v.release())
+  } catch (err) {
+    logger.error(`Could not connect to db with error ${err}`)
+    process.exit(1)
+  }
 }
 
 export async function connect(): Promise<void> {
   try {
-    client.connect().then(v => v.release())
+    getClient()
+      .connect()
+      .then(v => v.release())
   } catch (err) {
     logger.error(`Could not connect to db with error ${err}`)
     process.exit(1)
@@ -51,13 +59,19 @@ export async function connect(): Promise<void> {
 }
 
 export function getClient(): Pool {
+  if (!client) {
+    client = buildClient()
+  }
   return client
 }
 
 export function getRoClient(): Pool {
+  if (!roClient) {
+    roClient = buildReadOnlyClient()
+  }
   return roClient
 }
 
 export async function closeClient(): Promise<void> {
-  await client.end()
+  await client?.end()
 }
