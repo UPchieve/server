@@ -1,5 +1,5 @@
 import { getClient } from '../../db'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import {
   getDbUlid,
   makeRequired,
@@ -378,4 +378,12 @@ export async function getSessionRating(
   )
   const result = ratings.map(rate => rate.score)
   return result.length ? result[0] : undefined
+}
+
+export async function deleteDuplicateUserSurveys(): Promise<void> {
+  try {
+    await pgQueries.deleteDuplicateUserSurveys.run(undefined, getClient())
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
 }

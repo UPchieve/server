@@ -8,6 +8,7 @@ import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunte
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
+import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
@@ -104,6 +105,7 @@ export enum Jobs {
   DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
+  DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
@@ -310,6 +312,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.DeleteDuplicatePushTokens,
     processor: deleteDuplicatePushTokens,
+  },
+  {
+    name: Jobs.DeleteDuplicateUserSurveys,
+    processor: deleteDuplicateUserSurveys,
   },
   {
     name: Jobs.BackfillUpdateElapsedAvailability,
