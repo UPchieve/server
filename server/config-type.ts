@@ -45,6 +45,7 @@ export const Config = Record({
     onboardingReminderTwoTemplate: String,
     onboardingReminderThreeTemplate: String,
     studentOnboardingHowItWorksTemplate: String,
+    rosterStudentSetPasswordTemplate: String,
     meetOurVolunteersTemplate: String,
     studentOnboardingMissionTemplate: String,
     studentOnboardingSurveyTemplate: String,

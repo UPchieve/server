@@ -14,7 +14,6 @@ import {
   SESSION_USER_ACTIONS,
   USER_ACTION_TYPES,
 } from '../../constants'
-import { PoolClient } from 'pg'
 import { getSubjectType } from '../Subjects'
 
 export async function getQuizzesPassedForDateRangeById(

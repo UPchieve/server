@@ -151,6 +151,7 @@ export async function getUserContactInfoByReferralCode(
 export type PassportUser = {
   id: Ulid
   email: string
+  proxyEmail?: string
   password: string
 }
 
@@ -162,7 +163,9 @@ export async function getUserForPassport(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], [
+      'proxyEmail'
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -441,7 +441,8 @@ export async function sendReset(
   const token = createResetToken()
   await updateUserResetTokenById(user.id, token)
 
-  await MailService.sendReset(userEmail, mobile, token)
+  const toEmail = user.proxyEmail ?? user.email
+  await MailService.sendReset(toEmail, mobile, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
