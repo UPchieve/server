@@ -30,7 +30,8 @@ FROM
     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
 WHERE
     spo.key = :partnerKey!
-    AND (spos.name = :partnerSite OR spos.name IS NULL);
+    AND (spos.name = :partnerSite
+        OR spos.name IS NULL);
 
 
 /* @name getStudentPartnerOrgBySchoolId */

@@ -1,7 +1,11 @@
 import faker from 'faker'
 import { Ulid } from 'id128'
 import { getClient } from '../../db'
-import { createUserStudentPartnerOrgInstance, getStudentPartnerOrgByKey, getStudentPartnerOrgBySchoolId } from '../../models/StudentPartnerOrg'
+import {
+  createUserStudentPartnerOrgInstance,
+  getStudentPartnerOrgByKey,
+  getStudentPartnerOrgBySchoolId,
+} from '../../models/StudentPartnerOrg'
 import { CreateUserPayload } from '../../models/User'
 
 const client = getClient()
@@ -9,7 +13,7 @@ const client = getClient()
 test('getStudentPartnerOrgByKey', async () => {
   const actual = await getStudentPartnerOrgByKey(
     client,
-    'approved-partner-school',
+    'approved-partner-school'
   )
 
   expect(actual).toBeTruthy()
@@ -41,7 +45,7 @@ test('getStudentPartnerOrgBySchoolId', async () => {
   const actual = await getStudentPartnerOrgBySchoolId(
     client,
     // "Another Approved Partner School"
-    '01859800-bc76-4e87-f09a-8d9a672ae4df',
+    '01859800-bc76-4e87-f09a-8d9a672ae4df'
   )
 
   expect(actual).toBeTruthy()
@@ -56,18 +60,24 @@ test('getStudentPartnerOrgBySchoolId', async () => {
 test('createUserStudentPartnerOrgInstance creates the instance', async () => {
   const user = await createUser()
 
-  await createUserStudentPartnerOrgInstance({
-    userId: user.id,
-    studentPartnerOrgId: '01859800-bbed-9ed8-acba-e2227bf1212f',
-  }, client)
+  await createUserStudentPartnerOrgInstance(
+    {
+      userId: user.id,
+      studentPartnerOrgId: '01859800-bbed-9ed8-acba-e2227bf1212f',
+    },
+    client
+  )
 
-  const actual = await client.query('SELECT * FROM users_student_partner_orgs_instances WHERE user_id = $1', [
-    user.id,
-  ])
+  const actual = await client.query(
+    'SELECT * FROM users_student_partner_orgs_instances WHERE user_id = $1',
+    [user.id]
+  )
 
   expect(actual.rows.length).toBe(1)
   const spoi = actual.rows[0]
-  expect(spoi.student_partner_org_id).toBe('01859800-bbed-9ed8-acba-e2227bf1212f')
+  expect(spoi.student_partner_org_id).toBe(
+    '01859800-bbed-9ed8-acba-e2227bf1212f'
+  )
   expect(spoi.student_partner_org_site_id).toBeNull()
   expect(spoi.deactivated_on).toBeNull()
   expect(spoi.created_at).toBeTruthy()
@@ -79,20 +89,28 @@ test('createUserStudentPartnerOrgInstance includes site if provided', async () =
 
   const spoId = '01859800-bbed-150a-2f52-f0856c633b63' // "College Mentors"
   const sposId = '01859800-bc55-cf29-d368-a659f5bae025' // "Oakland"
-  await createUserStudentPartnerOrgInstance({
-    userId: user.id,
-    studentPartnerOrgId: spoId,
-    studentPartnerOrgSiteId: sposId,
-  }, client)
+  await createUserStudentPartnerOrgInstance(
+    {
+      userId: user.id,
+      studentPartnerOrgId: spoId,
+      studentPartnerOrgSiteId: sposId,
+    },
+    client
+  )
 
-  const actual = await client.query('SELECT * FROM users_student_partner_orgs_instances WHERE user_id = $1', [
-    user.id,
-  ])
+  const actual = await client.query(
+    'SELECT * FROM users_student_partner_orgs_instances WHERE user_id = $1',
+    [user.id]
+  )
 
   expect(actual.rows.length).toBe(1)
   const spoi = actual.rows[0]
-  expect(spoi.student_partner_org_id).toBe('01859800-bbed-150a-2f52-f0856c633b63')
-  expect(spoi.student_partner_org_site_id).toBe('01859800-bc55-cf29-d368-a659f5bae025')
+  expect(spoi.student_partner_org_id).toBe(
+    '01859800-bbed-150a-2f52-f0856c633b63'
+  )
+  expect(spoi.student_partner_org_site_id).toBe(
+    '01859800-bc55-cf29-d368-a659f5bae025'
+  )
   expect(spoi.deactivated_on).toBeNull()
   expect(spoi.created_at).toBeTruthy()
   expect(spoi.updated_at).toBeTruthy()

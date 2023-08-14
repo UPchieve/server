@@ -163,9 +163,7 @@ export async function getUserForPassport(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], [
-      'proxyEmail'
-    ])
+    if (result.length) return makeSomeRequired(result[0], ['proxyEmail'])
   } catch (err) {
     throw new RepoReadError(err)
   }

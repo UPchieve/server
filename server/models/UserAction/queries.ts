@@ -213,6 +213,7 @@ export async function createAccountAction(
   } catch (err) {
     throw new RepoCreateError(err)
   } finally {
+    // @ts-ignore
     if (!tc && client.release) client.release()
   }
 }

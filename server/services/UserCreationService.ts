@@ -42,7 +42,10 @@ export async function rosterPartnerStudents(
   }[] = []
 
   await runInTransaction(async (tc: TransactionClient) => {
-    const signUpSource = await SignUpSourceRepo.getSignUpSourceByName('Roster', tc)
+    const signUpSource = await SignUpSourceRepo.getSignUpSourceByName(
+      'Roster',
+      tc
+    )
 
     for (const student of students) {
       checkNames(student.firstName, student.lastName)
@@ -53,7 +56,9 @@ export async function rosterPartnerStudents(
         student.password = await hashPassword(student.password)
       }
 
-      const passwordResetToken = !student.password ? createResetToken() : undefined
+      const passwordResetToken = !student.password
+        ? createResetToken()
+        : undefined
       const userData = {
         email: student.email,
         emailVerified: true,

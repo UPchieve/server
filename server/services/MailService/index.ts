@@ -1159,8 +1159,8 @@ export async function sendOnlyLookingForAnswersWarning(
 }
 
 export async function sendRosterStudentSetPasswordEmail(
-  email: string, 
-  studentFirstName: string, 
+  email: string,
+  studentFirstName: string,
   token: string
 ) {
   const overrides = {
