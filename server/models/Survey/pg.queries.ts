@@ -802,3 +802,38 @@ const getVolunteerSessionRatingIR: any = {"name":"getVolunteerSessionRating","pa
 export const getVolunteerSessionRating = new PreparedQuery<IGetVolunteerSessionRatingParams,IGetVolunteerSessionRatingResult>(getVolunteerSessionRatingIR);
 
 
+/** 'DeleteDuplicateUserSurveys' parameters type */
+export type IDeleteDuplicateUserSurveysParams = void;
+
+/** 'DeleteDuplicateUserSurveys' return type */
+export type IDeleteDuplicateUserSurveysResult = void;
+
+/** 'DeleteDuplicateUserSurveys' query type */
+export interface IDeleteDuplicateUserSurveysQuery {
+  params: IDeleteDuplicateUserSurveysParams;
+  result: IDeleteDuplicateUserSurveysResult;
+}
+
+const deleteDuplicateUserSurveysIR: any = {"name":"deleteDuplicateUserSurveys","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM upchieve.users_surveys\nWHERE id IN (\n        SELECT\n            id\n        FROM (\n            SELECT\n                id,\n                ROW_NUMBER() OVER (PARTITION BY user_id, session_id, survey_id, survey_type_id ORDER BY created_at DESC) AS row_num,\n                created_at\n            FROM\n                users_surveys) t\n        WHERE\n            t.row_num > 1)","loc":{"a":16495,"b":16877,"line":436,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM upchieve.users_surveys
+ * WHERE id IN (
+ *         SELECT
+ *             id
+ *         FROM (
+ *             SELECT
+ *                 id,
+ *                 ROW_NUMBER() OVER (PARTITION BY user_id, session_id, survey_id, survey_type_id ORDER BY created_at DESC) AS row_num,
+ *                 created_at
+ *             FROM
+ *                 users_surveys) t
+ *         WHERE
+ *             t.row_num > 1)
+ * ```
+ */
+export const deleteDuplicateUserSurveys = new PreparedQuery<IDeleteDuplicateUserSurveysParams,IDeleteDuplicateUserSurveysResult>(deleteDuplicateUserSurveysIR);
+
+

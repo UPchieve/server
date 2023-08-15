@@ -431,3 +431,19 @@ WHERE
     users_surveys.session_id = :sessionId!
     AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?';
 
+
+/* @name deleteDuplicateUserSurveys */
+DELETE FROM upchieve.users_surveys
+WHERE id IN (
+        SELECT
+            id
+        FROM (
+            SELECT
+                id,
+                ROW_NUMBER() OVER (PARTITION BY user_id, session_id, survey_id, survey_type_id ORDER BY created_at DESC) AS row_num,
+                created_at
+            FROM
+                users_surveys) t
+        WHERE
+            t.row_num > 1);
+
