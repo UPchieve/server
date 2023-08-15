@@ -113,7 +113,7 @@
     "quill-delta": "^4.2.2",
     "redlock": "^4.2.0",
     "runtypes": "^4.2.0",
-    "socket.io": "^4.5.2",
+    "socket.io": "^4.5.4",
     "socket.io-client": "^2.3.0",
     "swagger-ui-express": "^4.1.6",
     "ts-custom-error": "^3.2.0",
