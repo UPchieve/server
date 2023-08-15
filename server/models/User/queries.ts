@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -7,11 +7,46 @@ import {
   Ulid,
   Pgid,
   getDbUlid,
+  generateReferralCode,
 } from '../pgUtils'
-import { RepoReadError, RepoUpdateError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
+import { CreateUserPayload, CreateUserResult } from './types'
+
+export async function createUser(
+  user: CreateUserPayload,
+  tc: TransactionClient
+): Promise<CreateUserResult> {
+  try {
+    const id = getDbUlid()
+    const result = await pgQueries.createUser.run(
+      {
+        id,
+        email: user.email.toLowerCase(),
+        emailVerified: user.emailVerified ?? false,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        otherSignupSource: user.otherSignupSource,
+        password: user.password,
+        passwordResetToken: user.passwordResetToken,
+        phone: user.phone,
+        phoneVerified: user.phoneVerified ?? false,
+        proxyEmail: user.proxyEmail?.toLowerCase(),
+        referralCode: generateReferralCode(id),
+        referredBy: user.referredBy,
+        signupSourceId: user.signupSourceId,
+        verified: user.verified ?? false,
+      },
+      tc
+    )
+    if (!result.length) throw new RepoCreateError('createUser returned 0 rows.')
+    return makeSomeRequired(result[0], ['proxyEmail'])
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
 
 export async function getUserIdByPhone(
   phone: string

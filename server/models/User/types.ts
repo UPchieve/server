@@ -2,24 +2,46 @@ import { Pgid, Ulid } from '../pgUtils'
 
 export type User = {
   id: Ulid
-  verified: boolean
-  emailVerified: boolean
-  phoneVerified: boolean
-  email: string
-  phone?: string
-  password: string
-  passwordResetToken?: string
-  firstName: string
-  lastName: string
   banned: boolean
   banReasonId?: Pgid
-  testUser: boolean
   deactivated: boolean
+  firstName: string
+  email: string
+  emailVerified: boolean
   lastActivityAt?: Date
+  lastName: string
+  password: string
+  passwordResetToken?: string
+  phone?: string
+  phoneVerified: boolean
+  proxyEmail?: string
   referralCode: string
   referredBy?: Ulid
-  timeTutored?: number
   signupSourceId?: Pgid
+  testUser: boolean
+  timeTutored?: number
+  verified: boolean
   createdAt: Date
   updatedAt: Date
 }
+
+export type CreateUserPayload = {
+  email: string
+  emailVerified?: boolean
+  firstName: string
+  lastName: string
+  otherSignupSource?: string
+  password?: string
+  passwordResetToken?: string
+  phone?: string
+  phoneVerified?: boolean
+  proxyEmail?: string
+  referredBy?: Ulid
+  signupSourceId?: number
+  verified?: boolean
+}
+
+export type CreateUserResult = Required<
+  Pick<User, 'id' | 'firstName' | 'email'>
+> &
+  Pick<User, 'proxyEmail'>
