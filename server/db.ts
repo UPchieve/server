@@ -1,5 +1,5 @@
 import { logger } from '@sentry/utils'
-import { Pool } from 'pg'
+import { Pool, PoolClient } from 'pg'
 import config from './config'
 
 // TODO: exponential backoff, reconnect strategy
@@ -74,4 +74,21 @@ export function getRoClient(): Pool {
 
 export async function closeClient(): Promise<void> {
   await client?.end()
+}
+
+export type TransactionClient = Pool | PoolClient
+export async function runInTransaction(
+  cb: (tc: TransactionClient) => Promise<void>
+) {
+  const tc = await getClient().connect()
+  try {
+    await tc.query('BEGIN')
+    await cb(tc)
+    await tc.query('COMMIT')
+  } catch (err) {
+    await tc.query('ROLLBACK')
+    throw err
+  } finally {
+    tc.release()
+  }
 }
