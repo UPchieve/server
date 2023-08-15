@@ -7,6 +7,8 @@ import {
   asOptional,
 } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
+import { PartnerSchool } from '../models/School'
+import { getClient } from '../db'
 
 // helper to escape regex special characters
 function escapeRegex(str: string) {
@@ -144,4 +146,10 @@ export async function titlecaseSchoolNames() {
     SchoolRepo.titlecaseSchoolNames(),
     SchoolRepo.titlecaseMetadataSchoolNames(),
   ])
+}
+
+export async function getPartnerSchools(): Promise<
+  PartnerSchool[] | undefined
+> {
+  return SchoolRepo.getPartnerSchools(getClient())
 }

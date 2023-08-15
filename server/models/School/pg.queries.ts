@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/School/school.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
+export type stringArray = (string)[];
+
 /** 'GetSchoolById' parameters type */
 export interface IGetSchoolByIdParams {
   schoolId: string;
@@ -600,5 +602,47 @@ const updateSchoolMetadataIR: any = {"name":"updateSchoolMetadata","params":[{"n
  * ```
  */
 export const updateSchoolMetadata = new PreparedQuery<IUpdateSchoolMetadataParams,IUpdateSchoolMetadataResult>(updateSchoolMetadataIR);
+
+
+/** 'GetPartnerSchools' parameters type */
+export type IGetPartnerSchoolsParams = void;
+
+/** 'GetPartnerSchools' return type */
+export interface IGetPartnerSchoolsResult {
+  partnerKey: string;
+  partnerSites: stringArray | null;
+  schoolId: string;
+  schoolName: string;
+}
+
+/** 'GetPartnerSchools' query type */
+export interface IGetPartnerSchoolsQuery {
+  params: IGetPartnerSchoolsParams;
+  result: IGetPartnerSchoolsResult;
+}
+
+const getPartnerSchoolsIR: any = {"name":"getPartnerSchools","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    schools.name AS school_name,\n    schools.id AS school_id,\n    spo.key AS partner_key,\n    ARRAY_REMOVE(ARRAY_AGG(spos.name), NULL) AS partner_sites\nFROM\n    schools\n    LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\nWHERE\n    partner = TRUE\nGROUP BY\n    schools.name,\n    schools.id,\n    spo.key","loc":{"a":6045,"b":6453,"line":202,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     schools.name AS school_name,
+ *     schools.id AS school_id,
+ *     spo.key AS partner_key,
+ *     ARRAY_REMOVE(ARRAY_AGG(spos.name), NULL) AS partner_sites
+ * FROM
+ *     schools
+ *     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
+ *     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+ * WHERE
+ *     partner = TRUE
+ * GROUP BY
+ *     schools.name,
+ *     schools.id,
+ *     spo.key
+ * ```
+ */
+export const getPartnerSchools = new PreparedQuery<IGetPartnerSchoolsParams,IGetPartnerSchoolsResult>(getPartnerSchoolsIR);
 
 

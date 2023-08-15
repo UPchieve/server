@@ -21,6 +21,7 @@ import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 import { routeSubjects } from './subjects'
+import { routeAdmin } from './admin'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -41,6 +42,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeProductFlags(router)
   routeStudents(router)
   routeSubjects(router)
+  routeAdmin(app, router)
 
   app.use(addLastActivity)
   app.use(addUserAction)
