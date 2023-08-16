@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg'
-import { getClient, getRoClient } from '../../db'
+import { getClient, getRoClient, TransactionClient } from '../../db'
 import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
@@ -12,6 +12,7 @@ import {
   generateReferralCode,
   getDbUlid,
   makeRequired,
+  makeSomeOptional,
   makeSomeRequired,
   Ulid,
 } from '../pgUtils'
@@ -20,6 +21,12 @@ import * as SchoolRepo from '../School/queries'
 import { getSessionRating } from '../Survey'
 import { USER_ROLES } from '../../constants'
 import { insertUserRoleByUserId } from '../User'
+import {
+  CreatedStudent,
+  CreateStudentPayload,
+  CreateStudentProfilePayload,
+  StudentContactInfo,
+} from './types'
 
 export type ReportedStudent = {
   id: Ulid
@@ -80,13 +87,6 @@ export async function getStudentPartnerInfoById(
   }
 }
 
-export type StudentContactInfo = {
-  id: Ulid
-  firstName: string
-  email: string
-  studentPartnerOrg?: string
-  schoolId?: Ulid
-}
 export async function getStudentContactInfoById(
   studentId: Ulid
 ): Promise<StudentContactInfo | undefined> {
@@ -564,45 +564,29 @@ export async function adminUpdateStudent(
   }
 }
 
-export type CreateStudentPayload = {
-  email: string
-  firstName: string
-  lastName: string
-  password?: string | undefined
-  referredBy: Ulid | undefined
-  studentPartnerOrg?: string | undefined
-  zipCode: string | undefined
-  approvedHighschool: Ulid | undefined
-  currentGrade?: string
-  partnerSite?: string
-  partnerUserId?: string
-  college?: string
-  signupSourceId?: number
-  otherSignupSource?: string
-  verified?: boolean
-  emailVerified?: boolean
-}
-export type CreateStudentWithPasswordPayload = CreateStudentPayload & {
-  password: string
-}
-export type CreateStudentWithFedCredPayload = CreateStudentPayload & {
-  password?: string | undefined
-  verified: boolean
-  emailVerified: boolean
-}
-
-export type CreatedStudent = StudentContactInfo & {
-  isDeactivated: boolean
-  isTestUser: boolean
-  createdAt: Date
-  isVolunteer: boolean
-  isAdmin: boolean
-  isBanned: boolean
-  verified: boolean
-  zipCode?: string
-  currentGrade?: string
-  lastname: string
-  firstname: string
+export async function createStudentProfile(
+  studentData: CreateStudentProfilePayload,
+  tc: TransactionClient
+) {
+  try {
+    const result = await pgQueries.createStudentProfile.run(
+      {
+        userId: studentData.userId,
+        college: studentData.college,
+        schoolId: studentData.schoolId,
+        postalCode: studentData.zipCode,
+        gradeLevel: studentData.gradeLevel,
+        partnerOrg: studentData.studentPartnerOrg,
+        partnerSite: studentData.partnerSite,
+      },
+      tc
+    )
+    if (!result.length)
+      throw new RepoCreateError('createStudentProfile created 0 rows.')
+    return makeSomeOptional(result[0], ['createdAt', 'updatedAt', 'userId'])
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
 }
 
 export async function createStudent(
