@@ -15,8 +15,9 @@ import { createUPFByUserId } from '../models/UserProductFlags'
 import { createAccountAction } from '../models/UserAction'
 import * as SignUpSourceRepo from '../models/SignUpSource'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES_TYPE } from '../constants/user'
-import { STUDENT_EVENTS, USER_ROLES } from '../constants'
+import { STUDENT_EVENTS, USER_EVENTS, USER_ROLES } from '../constants'
 import { emitter } from './EventsService'
+import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
 
 export interface RosterStudentPayload {
   email: string
@@ -85,7 +86,6 @@ export async function rosterPartnerStudents(
   })
 
   for (const user of newUsers) {
-    await createContact(user.id)
     if (user.passwordResetToken) {
       await sendRosterStudentSetPasswordEmail(
         user.proxyEmail ?? user.email,
@@ -102,16 +102,20 @@ async function createUser(
   tc: TransactionClient
 ) {
   const user = await UserRepo.createUser(userData, tc)
-  await UserRepo.insertUserRoleByUserId(user.id, role, tc)
-  await createUSMByUserId(user.id, tc)
-  await createUPFByUserId(user.id, tc)
-  await createAccountAction(
-    {
-      action: ACCOUNT_USER_ACTIONS.CREATED,
-      userId: user.id,
-    },
-    tc
-  )
+  // TODO: Should any of these be moved to the listener?
+  await Promise.all([
+    UserRepo.insertUserRoleByUserId(user.id, role, tc),
+    createUSMByUserId(user.id, tc),
+    createUPFByUserId(user.id, tc),
+    createAccountAction(
+      {
+        action: ACCOUNT_USER_ACTIONS.CREATED,
+        userId: user.id,
+      },
+      tc
+    ),
+  ])
+  emitter.emit(USER_EVENTS.USER_CREATED, user.id)
   return user
 }
 
@@ -119,34 +123,35 @@ async function createStudent(
   studentData: StudentRepo.CreateStudentProfilePayload,
   tc: TransactionClient
 ) {
-  await Promise.all([
-    StudentRepo.createStudentProfile(studentData, tc),
-    addUserStudentPartnerOrgInstance(),
-  ])
+  if (studentData.studentPartnerOrg) {
+    const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
+      tc,
+      studentData.studentPartnerOrg,
+      studentData.partnerSite
+    )
+    await addUserStudentPartnerOrgInstance(spo)
+  }
+
+  if (studentData.schoolId) {
+    const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+      tc,
+      studentData.schoolId
+    )
+    await addUserStudentPartnerOrgInstance(spo)
+  }
+
+  await StudentRepo.createStudentProfile(studentData, tc)
   emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, studentData.userId)
 
-  async function addUserStudentPartnerOrgInstance() {
-    let partnerOrg
-
-    if (studentData.studentPartnerOrg) {
-      partnerOrg = await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
-        tc,
-        studentData.studentPartnerOrg,
-        studentData.partnerSite
-      )
-    } else if (studentData.schoolId) {
-      partnerOrg = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-        tc,
-        studentData.schoolId
-      )
-    }
-
-    if (partnerOrg) {
-      return StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
+  async function addUserStudentPartnerOrgInstance(
+    spo?: GetStudentPartnerOrgResult
+  ) {
+    if (spo) {
+      await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
         {
           userId: studentData.userId,
-          studentPartnerOrgId: partnerOrg.partnerId,
-          studentPartnerOrgSiteId: partnerOrg.siteId,
+          studentPartnerOrgId: spo.partnerId,
+          studentPartnerOrgSiteId: spo.siteId,
         },
         tc
       )
