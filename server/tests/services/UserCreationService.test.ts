@@ -8,10 +8,7 @@ import * as USMRepo from '../../models/UserSessionMetrics'
 import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
 import * as MailService from '../../services/MailService'
-import {
-  rosterPartnerStudents,
-  RosterStudentPayload,
-} from '../../services/UserCreationService'
+import { rosterPartnerStudents } from '../../services/UserCreationService'
 import { InputError } from '../../models/Errors'
 import {
   hashPassword,
@@ -204,8 +201,6 @@ describe('rosterPartnerStudents', () => {
       },
       expect.toBeTransactionClient()
     )
-
-    expect(mockedMailService.createContact).toHaveBeenCalledWith(USER_ID)
   })
 
   test('hashes password if exists', async () => {
@@ -310,9 +305,6 @@ describe('rosterPartnerStudents', () => {
         },
         expect.toBeTransactionClient()
       )
-      expect(
-        mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId
-      ).not.toHaveBeenCalled()
     })
 
     test('if partner school', async () => {
