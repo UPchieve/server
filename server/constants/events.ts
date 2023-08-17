@@ -24,3 +24,7 @@ export enum USM_EVENTS {
 export enum STUDENT_EVENTS {
   STUDENT_CREATED = 'student-created',
 }
+
+export enum USER_EVENTS {
+  USER_CREATED = 'user-created',
+}
