@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeRequired, makeSomeRequired } from '../pgUtils'
 import {
@@ -14,7 +14,6 @@ import {
   SESSION_USER_ACTIONS,
   USER_ACTION_TYPES,
 } from '../../constants'
-import { PoolClient } from 'pg'
 import { getSubjectType } from '../Subjects'
 
 export async function getQuizzesPassedForDateRangeById(
@@ -83,11 +82,10 @@ export async function userHasTakenQuiz(userId: Ulid): Promise<boolean> {
 
 export async function upsertIpAddress(
   ip: string,
-  poolClient?: PoolClient
+  tc: TransactionClient
 ): Promise<Ulid> {
-  const client = poolClient ? poolClient : getClient()
   try {
-    const result = await pgQueries.upsertIpAddress.run({ ip }, client)
+    const result = await pgQueries.upsertIpAddress.run({ ip }, tc)
     if (!result.length) throw new Error('Error upserting IP address')
     return makeRequired(result[0]).id
   } catch (err) {
@@ -187,16 +185,19 @@ interface AccountActionParams {
   banReason?: string
 }
 
-export async function createAccountAction(params: AccountActionParams) {
-  const client = await getClient().connect()
+export async function createAccountAction(
+  params: AccountActionParams,
+  tc?: TransactionClient
+) {
+  const client = tc ?? (await getClient().connect())
   try {
-    let ip = undefined
-    if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
+    let ipId = undefined
+    if (params.ipAddress) ipId = await upsertIpAddress(params.ipAddress, client)
     const result = await pgQueries.createAccountAction.run(
       {
         action: params.action,
         actionType: USER_ACTION_TYPES.ACCOUNT,
-        ipAddressId: ip,
+        ipAddressId: ipId,
         referenceEmail: params.referenceEmail
           ? params.referenceEmail.toLowerCase()
           : null,
@@ -212,7 +213,8 @@ export async function createAccountAction(params: AccountActionParams) {
   } catch (err) {
     throw new RepoCreateError(err)
   } finally {
-    client.release()
+    // @ts-ignore
+    if (!tc && client.release) client.release()
   }
 }
 

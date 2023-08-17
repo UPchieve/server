@@ -17,6 +17,40 @@ WHERE
     spo.key = :key!;
 
 
+/* @name getStudentPartnerOrgByKey */
+SELECT
+    spo.id AS partner_id,
+    spo.key AS partner_key,
+    spo.name AS partner_name,
+    spos.id AS site_id,
+    spos.name AS site_name,
+    spo.school_id AS school_id
+FROM
+    student_partner_orgs spo
+    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+WHERE
+    spo.key = :partnerKey!
+    AND ((:partnerSite)::text IS NULL
+        OR spos.name = :partnerSite);
+
+
+/* @name getStudentPartnerOrgBySchoolId */
+SELECT
+    spo.id AS partner_id,
+    spo.key AS partner_key,
+    spo.name AS partner_name,
+    spos.id AS site_id,
+    spos.name AS site_name,
+    spo.school_id AS school_id
+FROM
+    student_partner_orgs spo
+    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+    LEFT JOIN schools school ON spo.school_id = school.id
+WHERE
+    school.id = :schoolId!
+    AND school.partner = TRUE;
+
+
 /* @name getFullStudentPartnerOrgByKey */
 SELECT
     KEY,
@@ -104,6 +138,11 @@ FROM
     student_partner_orgs
 WHERE
     signup_code = :signupCode!;
+
+
+/* @name createUserStudentPartnerOrgInstance */
+INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id)
+    VALUES (:userId!, :spoId!, :sposId);
 
 
 /* @name migrateExistingStudentPartnerOrgs */

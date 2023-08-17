@@ -15,3 +15,18 @@ export type StudentPartnerOrg = {
   isSchool: boolean
   deactivated?: boolean
 }
+
+export type CreateUserStudentPartnerOrgInstancePayload = {
+  userId: string
+  studentPartnerOrgId: string
+  studentPartnerOrgSiteId?: string
+}
+
+export type GetStudentPartnerOrgResult = {
+  partnerId: string
+  partnerKey: string
+  partnerName: string
+  siteId?: string
+  siteName?: string
+  schoolId?: string
+}

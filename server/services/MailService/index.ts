@@ -1158,6 +1158,30 @@ export async function sendOnlyLookingForAnswersWarning(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
+export async function sendRosterStudentSetPasswordEmail(
+  email: string,
+  studentFirstName: string,
+  token: string
+) {
+  const overrides = {
+    mail_settings: { bypass_list_management: { enable: true } },
+  }
+  const url = `https://${config.client.host}/setpassword?token=${token}`
+
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.rosterStudentSetPasswordTemplate,
+    {
+      firstName: studentFirstName,
+      userEmail: email,
+      resetLink: url,
+    },
+    overrides
+  )
+}
+
 export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
   const customFields = {

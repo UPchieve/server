@@ -71,6 +71,7 @@ const config: Static<typeof Config> = {
     onboardingReminderTwoTemplate: 'd-23681dc2dc0647e0bd7a57a6f328e00b',
     onboardingReminderThreeTemplate: 'd-d7ff9f33620842508de0030c84da9425',
     studentOnboardingHowItWorksTemplate: 'd-53b05a9788d044dab4c3e0f5e8a2250b',
+    rosterStudentSetPasswordTemplate: 'd-27b14fda99e04505b1540e18c58ae09b',
     meetOurVolunteersTemplate: 'd-799e0195f78d4732a5adc36216a488f7',
     studentOnboardingMissionTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentOnboardingSurveyTemplate: 'd-c5671abc76884180b6912729190b7078',

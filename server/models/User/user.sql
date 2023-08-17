@@ -101,6 +101,7 @@ LIMIT 1;
 SELECT
     id,
     email,
+    proxy_email,
     PASSWORD
 FROM
     users

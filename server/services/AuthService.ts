@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto'
 import validator from 'validator'
 
 import {
@@ -46,6 +45,7 @@ import {
   getReferredBy,
   checkNames,
   checkEmail,
+  createResetToken,
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
@@ -438,11 +438,11 @@ export async function sendReset(
   const user = await getUserForPassport(userEmail)
   if (!user) throw new LookupError(`No account with ${userEmail} found`)
 
-  const buffer: Buffer = randomBytes(16)
-  const token = buffer.toString('hex')
+  const token = createResetToken()
   await updateUserResetTokenById(user.id, token)
 
-  await MailService.sendReset(userEmail, mobile, token)
+  const toEmail = user.proxyEmail ?? user.email
+  await MailService.sendReset(toEmail, mobile, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {

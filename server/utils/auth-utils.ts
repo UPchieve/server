@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
 import passport from 'passport'
@@ -187,6 +188,11 @@ export function checkPassword(password: string): boolean {
   return true
 }
 
+export function createResetToken() {
+  const buffer: Buffer = randomBytes(16)
+  return buffer.toString('hex')
+}
+
 export async function checkPhone(phone: string): Promise<boolean> {
   if (!isValidInternationalPhoneNumber(phone))
     throw new RegistrationError('Must supply a valid phone number')
@@ -198,7 +204,7 @@ export async function checkPhone(phone: string): Promise<boolean> {
   return true
 }
 
-export async function checkNames(first: string, last: string) {
+export function checkNames(first: string, last: string) {
   // https://stackoverflow.com/questions/10570286/check-if-string-contains-url-anywhere-in-string-using-javascript
   const internalUrlRegExp = new RegExp(
     '([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?'
@@ -207,7 +213,7 @@ export async function checkNames(first: string, last: string) {
     throw new InputError('Names can only contain letters, spaces and hyphens')
 }
 
-export async function checkEmail(email: string) {
+export function checkEmail(email: string) {
   if (!validator.isEmail(email))
     throw new InputError('Email is not a valid email format')
 }
