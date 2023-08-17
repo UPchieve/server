@@ -1,5 +1,3 @@
-import { Ulid, Uuid } from 'id128'
-
 export type StudentPartnerOrgForRegistration = {
   key: string
   schoolSignupRequired: boolean
