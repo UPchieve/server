@@ -1,18 +1,19 @@
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { UserProductFlags } from './types'
 
 export async function createUPFByUserId(
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<UserProductFlags> {
   try {
     const result = await pgQueries.createUpfByUserId.run(
       {
         userId,
       },
-      getClient()
+      tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0])
     throw new RepoCreateError('Insert did not return new row')

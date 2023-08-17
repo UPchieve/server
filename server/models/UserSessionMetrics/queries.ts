@@ -1,19 +1,20 @@
 import { merge } from 'lodash'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { UserSessionMetrics } from './types'
 
 export async function createUSMByUserId(
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<UserSessionMetrics> {
   try {
     const result = await pgQueries.createUsmByUserId.run(
       {
         userId,
       },
-      getClient()
+      tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0])
     throw new RepoCreateError('Insert did not return new row')
@@ -23,14 +24,15 @@ export async function createUSMByUserId(
 }
 
 export async function getUSMByUserId(
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<UserSessionMetrics | undefined> {
   try {
     const result = await pgQueries.getUsmByUserId.run(
       {
         userId,
       },
-      getClient()
+      tc ?? getClient()
     )
 
     if (result.length) return makeRequired(result[0])

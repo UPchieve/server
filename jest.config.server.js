@@ -6,6 +6,7 @@ module.exports = {
   ],
   setupFilesAfterEnv: [
     "<rootDir>/server/tests/force-gc.ts",
+    "<rootDir>/server/tests/custom-matchers.ts",
   ],
   watchPathIgnorePatterns: ["globalConfig"],
   roots: ["<rootDir>/server"],

@@ -151,6 +151,7 @@ export async function getUserContactInfoByReferralCode(
 export type PassportUser = {
   id: Ulid
   email: string
+  proxyEmail?: string
   password: string
 }
 
@@ -162,7 +163,7 @@ export async function getUserForPassport(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['proxyEmail'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -530,12 +531,13 @@ export async function getTotalSessionsByUserId(userId: Ulid): Promise<number> {
 
 export async function insertUserRoleByUserId(
   userId: Ulid,
-  roleName: USER_ROLES_TYPE
+  roleName: USER_ROLES_TYPE,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.insertUserRoleByUserId.run(
       { userId, roleName },
-      getClient()
+      tc ?? getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')
