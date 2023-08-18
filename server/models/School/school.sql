@@ -62,9 +62,9 @@ LIMIT :limit!::int OFFSET :offset!::int;
 /* @name schoolSearch */
 SELECT
     schools.id,
-    COALESCE(meta.sch_name, schools.name) AS name,
-    COALESCE(meta.st, cities.us_state_code) AS state,
-    COALESCE(meta.lcity, cities.name) AS city,
+    COALESCE(schools.name, meta.sch_name) AS name,
+    COALESCE(cities.us_state_code, meta.st) AS state,
+    COALESCE(cities.name, meta.lcity) AS city,
     meta.lea_name AS district
 FROM
     schools

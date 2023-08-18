@@ -178,16 +178,16 @@ export interface ISchoolSearchQuery {
   result: ISchoolSearchResult;
 }
 
-const schoolSearchIR: any = {"name":"schoolSearch","params":[{"name":"query","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2118,"b":2123,"line":74,"col":31}]}}],"usedParamSet":{"query":true},"statement":{"body":"SELECT\n    schools.id,\n    COALESCE(meta.sch_name, schools.name) AS name,\n    COALESCE(meta.st, cities.us_state_code) AS state,\n    COALESCE(meta.lcity, cities.name) AS city,\n    meta.lea_name AS district\nFROM\n    schools\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN cities ON schools.city_id = cities.id\nWHERE\n    schools.name ILIKE '%' || :query! || '%'\nLIMIT 100","loc":{"a":1736,"b":2140,"line":63,"col":0}}};
+const schoolSearchIR: any = {"name":"schoolSearch","params":[{"name":"query","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2118,"b":2123,"line":74,"col":31}]}}],"usedParamSet":{"query":true},"statement":{"body":"SELECT\n    schools.id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    COALESCE(cities.name, meta.lcity) AS city,\n    meta.lea_name AS district\nFROM\n    schools\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN cities ON schools.city_id = cities.id\nWHERE\n    schools.name ILIKE '%' || :query! || '%'\nLIMIT 100","loc":{"a":1736,"b":2140,"line":63,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     schools.id,
- *     COALESCE(meta.sch_name, schools.name) AS name,
- *     COALESCE(meta.st, cities.us_state_code) AS state,
- *     COALESCE(meta.lcity, cities.name) AS city,
+ *     COALESCE(schools.name, meta.sch_name) AS name,
+ *     COALESCE(cities.us_state_code, meta.st) AS state,
+ *     COALESCE(cities.name, meta.lcity) AS city,
  *     meta.lea_name AS district
  * FROM
  *     schools
