@@ -1,3 +1,4 @@
+import fs from 'fs'
 import parse from 'csv-parse/lib/sync'
 import { InputError } from '../models/Errors'
 
@@ -5,8 +6,20 @@ export function readCsvFromBuffer<T>(
   buffer: Buffer,
   requiredColumns: string[]
 ): T[] {
+  return readCsv<T>(buffer, requiredColumns)
+}
+
+export function readCsvFromFilePath<T>(
+  filePath: string,
+  requiredColumns: string[]
+) {
+  const file = fs.readFileSync(filePath)
+  return readCsv<T>(file, requiredColumns)
+}
+
+function readCsv<T>(input: Buffer | string, requiredColumns: string[]): T[] {
   try {
-    const contents = parse(buffer, {
+    const contents = parse(input, {
       delimiter: ',',
       columns: true,
     })
