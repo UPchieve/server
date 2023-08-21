@@ -48,5 +48,5 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
-  app.use('/admin', authPassport.isAdmin, router)
+  app.use('/api/admin', authPassport.isAdmin, router)
 }
