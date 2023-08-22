@@ -36,13 +36,13 @@ export function routeAdmin(app: Express, router: Router): void {
         req.file.buffer,
         ['firstName', 'lastName', 'email', 'gradeLevel']
       )
-      await rosterPartnerStudents(
+      const failedUsers = await rosterPartnerStudents(
         students,
         req.body.schoolId,
         req.body.partnerKey,
         req.body.partnerSite
       )
-      res.status(200).send()
+      res.json({ failedUsers })
     } catch (error) {
       resError(res, error)
     }

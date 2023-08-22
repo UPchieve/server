@@ -57,11 +57,12 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
       }
 
-      await expect(
-        rosterPartnerStudents([invalidFirstName], '123')
-      ).rejects.toThrow(
-        new InputError('Names can only contain letters, spaces and hyphens')
-      )
+      const failed = await rosterPartnerStudents([invalidFirstName], '123')
+
+      expect(failed.length).toBe(1)
+      expect(failed[0].email).toBe(invalidFirstName.email)
+      expect(failed[0].firstName).toBe(invalidFirstName.firstName)
+      expect(failed[0].lastName).toBe(invalidFirstName.lastName)
     })
 
     test('ensure lastName is valid', async () => {
@@ -72,11 +73,12 @@ describe('rosterPartnerStudents', () => {
         lastName: 'DELETE * FROM upchieve.users;',
       }
 
-      await expect(
-        rosterPartnerStudents([invalidLastName], '123')
-      ).rejects.toThrow(
-        new InputError('Names can only contain letters, spaces and hyphens')
-      )
+      const failed = await rosterPartnerStudents([invalidLastName], '123')
+
+      expect(failed.length).toBe(1)
+      expect(failed[0].email).toBe(invalidLastName.email)
+      expect(failed[0].firstName).toBe(invalidLastName.firstName)
+      expect(failed[0].lastName).toBe(invalidLastName.lastName)
     })
 
     test('ensure email is valid', async () => {
@@ -87,9 +89,12 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
       }
 
-      await expect(
-        rosterPartnerStudents([invalidEmail], '123')
-      ).rejects.toThrow(new InputError('Email is not a valid email format'))
+      const failed = await rosterPartnerStudents([invalidEmail], '123')
+
+      expect(failed.length).toBe(1)
+      expect(failed[0].email).toBe(invalidEmail.email)
+      expect(failed[0].firstName).toBe(invalidEmail.firstName)
+      expect(failed[0].lastName).toBe(invalidEmail.lastName)
     })
 
     test('ensure password is valid', async () => {
@@ -100,9 +105,11 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
         password: '1aA',
       }
-      await expect(rosterPartnerStudents([tooShort], '123')).rejects.toThrow(
-        new RegistrationError('Password must be 8 characters or longer')
-      )
+      const tooShortFailed = await rosterPartnerStudents([tooShort], '123')
+      expect(tooShortFailed.length).toBe(1)
+      expect(tooShortFailed[0].email).toBe(tooShort.email)
+      expect(tooShortFailed[0].firstName).toBe(tooShort.firstName)
+      expect(tooShortFailed[0].lastName).toBe(tooShort.lastName)
 
       const noCapital = {
         firstName: faker.name.firstName(),
@@ -111,11 +118,11 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
         password: 'aaaa1234',
       }
-      await expect(rosterPartnerStudents([noCapital], '123')).rejects.toThrow(
-        new RegistrationError(
-          'Password must contain at least one uppercase letter'
-        )
-      )
+      const noCapitalFailed = await rosterPartnerStudents([noCapital], '123')
+      expect(noCapitalFailed.length).toBe(1)
+      expect(noCapitalFailed[0].email).toBe(noCapital.email)
+      expect(noCapitalFailed[0].firstName).toBe(noCapital.firstName)
+      expect(noCapitalFailed[0].lastName).toBe(noCapital.lastName)
 
       const noLowercase = {
         firstName: faker.name.firstName(),
@@ -124,11 +131,14 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
         password: '1234AAAA',
       }
-      await expect(rosterPartnerStudents([noLowercase], '123')).rejects.toThrow(
-        new RegistrationError(
-          'Password must contain at least one lowercase letter'
-        )
+      const noLowercaseFailed = await rosterPartnerStudents(
+        [noLowercase],
+        '123'
       )
+      expect(noLowercaseFailed.length).toBe(1)
+      expect(noLowercaseFailed[0].email).toBe(noLowercase.email)
+      expect(noLowercaseFailed[0].firstName).toBe(noLowercase.firstName)
+      expect(noLowercaseFailed[0].lastName).toBe(noLowercase.lastName)
 
       const noNumber = {
         firstName: faker.name.firstName(),
@@ -137,9 +147,11 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
         password: 'aaaaAAAA',
       }
-      await expect(rosterPartnerStudents([noNumber], '123')).rejects.toThrow(
-        new RegistrationError('Password must contain at least one number')
-      )
+      const noNumberFailed = await rosterPartnerStudents([noNumber], '123')
+      expect(noNumberFailed.length).toBe(1)
+      expect(noNumberFailed[0].email).toBe(noNumber.email)
+      expect(noNumberFailed[0].firstName).toBe(noNumber.firstName)
+      expect(noNumberFailed[0].lastName).toBe(noNumber.lastName)
     })
   })
 

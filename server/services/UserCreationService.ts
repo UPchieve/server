@@ -1,4 +1,4 @@
-import { runInTransaction, TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import {
   checkEmail,
   checkNames,
@@ -6,7 +6,7 @@ import {
   createResetToken,
   hashPassword,
 } from '../utils/auth-utils'
-import { createContact, sendRosterStudentSetPasswordEmail } from './MailService'
+import { sendRosterStudentSetPasswordEmail } from './MailService'
 import * as UserRepo from '../models/User'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
@@ -41,49 +41,63 @@ export async function rosterPartnerStudents(
     passwordResetToken?: string
     proxyEmail?: string
   }[] = []
+  const failedUsers: {
+    email: string
+    firstName: string
+    lastName: string
+  }[] = []
 
-  await runInTransaction(async (tc: TransactionClient) => {
-    const signUpSource = await SignUpSourceRepo.getSignUpSourceByName(
-      'Roster',
-      tc
-    )
+  const signUpSource = await SignUpSourceRepo.getSignUpSourceByName(
+    'Roster',
+    getClient()
+  )
 
-    for (const student of students) {
-      checkNames(student.firstName, student.lastName)
-      checkEmail(student.email)
-      if (student.proxyEmail) checkEmail(student.proxyEmail)
-      if (student.password) {
-        checkPassword(student.password)
-        student.password = await hashPassword(student.password)
-      }
+  for (const student of students) {
+    try {
+      await runInTransaction(async (tc: TransactionClient) => {
+        checkNames(student.firstName, student.lastName)
+        checkEmail(student.email)
+        if (student.proxyEmail) checkEmail(student.proxyEmail)
+        if (student.password) {
+          checkPassword(student.password)
+          student.password = await hashPassword(student.password)
+        }
 
-      const passwordResetToken = !student.password
-        ? createResetToken()
-        : undefined
-      const userData = {
+        const passwordResetToken = !student.password
+          ? createResetToken()
+          : undefined
+        const userData = {
+          email: student.email,
+          emailVerified: true,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          password: student.password,
+          passwordResetToken,
+          proxyEmail: student.proxyEmail,
+          signupSourceId: signUpSource?.id,
+          verified: true,
+        }
+        const user = await createUser(userData, USER_ROLES.STUDENT, tc)
+
+        const studentData = {
+          userId: user.id,
+          gradeLevel: student.gradeLevel,
+          partnerSite,
+          schoolId,
+          studentPartnerOrg: partnerKey,
+        }
+        await createStudent(studentData, tc)
+
+        newUsers.push({ passwordResetToken, ...user })
+      })
+    } catch {
+      failedUsers.push({
         email: student.email,
-        emailVerified: true,
         firstName: student.firstName,
         lastName: student.lastName,
-        password: student.password,
-        passwordResetToken,
-        proxyEmail: student.proxyEmail,
-        signupSourceId: signUpSource?.id,
-        verified: true,
-      }
-      const user = await createUser(userData, USER_ROLES.STUDENT, tc)
-      newUsers.push({ passwordResetToken, ...user })
-
-      const studentData = {
-        userId: user.id,
-        gradeLevel: student.gradeLevel,
-        partnerSite,
-        schoolId,
-        studentPartnerOrg: partnerKey,
-      }
-      await createStudent(studentData, tc)
+      })
     }
-  })
+  }
 
   for (const user of newUsers) {
     if (user.passwordResetToken) {
@@ -94,6 +108,8 @@ export async function rosterPartnerStudents(
       )
     }
   }
+
+  return failedUsers
 }
 
 async function createUser(
