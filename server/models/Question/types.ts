@@ -27,6 +27,7 @@ export type QuizUnlockCert = {
   quizName: string
   quizDisplayName: string
   quizDisplayOrder: number
+  quizIsActive: boolean
   unlockedCertName: string
   unlockedCertDisplayName: string
   unlockedCertDisplayOrder: number

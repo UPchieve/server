@@ -525,7 +525,7 @@ export interface IGetQuizCertUnlocksByQuizNameQuery {
   result: IGetQuizCertUnlocksByQuizNameResult;
 }
 
-const getQuizCertUnlocksByQuizNameIR: any = {"name":"getQuizCertUnlocksByQuizName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4847,"b":4855,"line":194,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n        AND quizzes.active IS TRUE\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!","loc":{"a":3986,"b":4855,"line":174,"col":0}}};
+const getQuizCertUnlocksByQuizNameIR: any = {"name":"getQuizCertUnlocksByQuizName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4812,"b":4820,"line":193,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!","loc":{"a":3986,"b":4820,"line":174,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -544,7 +544,6 @@ const getQuizCertUnlocksByQuizNameIR: any = {"name":"getQuizCertUnlocksByQuizNam
  * FROM
  *     quiz_certification_grants qcg
  *     JOIN quizzes ON quizzes.id = qcg.quiz_id
- *         AND quizzes.active IS TRUE
  *     JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
  *     JOIN certifications certs ON certs.id = qcg.certification_id
  *     JOIN subjects AS cert_info ON cert_info.name = certs.name
@@ -575,7 +574,7 @@ export interface IGetQuizByNameQuery {
   result: IGetQuizByNameResult;
 }
 
-const getQuizByNameIR: any = {"name":"getQuizByName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4996,"b":5004,"line":206,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    id,\n    name,\n    active,\n    questions_per_subcategory\nFROM\n    quizzes\nWHERE\n    quizzes.name = :quizName!","loc":{"a":4886,"b":5004,"line":198,"col":0}}};
+const getQuizByNameIR: any = {"name":"getQuizByName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4961,"b":4969,"line":205,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    id,\n    name,\n    active,\n    questions_per_subcategory\nFROM\n    quizzes\nWHERE\n    quizzes.name = :quizName!","loc":{"a":4851,"b":4969,"line":197,"col":0}}};
 
 /**
  * Query generated from SQL:
