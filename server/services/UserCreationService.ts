@@ -81,7 +81,7 @@ export async function rosterPartnerStudents(
 
         const studentData = {
           userId: user.id,
-          gradeLevel: student.gradeLevel,
+          gradeLevel: student.gradeLevel + 'th',
           partnerSite,
           schoolId,
           studentPartnerOrg: partnerKey,
