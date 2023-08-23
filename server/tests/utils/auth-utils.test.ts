@@ -1,4 +1,8 @@
-import { checkNames } from '../../utils/auth-utils'
+import {
+  checkNames,
+  checkPassword,
+  RegistrationError,
+} from '../../utils/auth-utils'
 
 describe('name validator', () => {
   test('accepts two valid names', async () => {
@@ -24,5 +28,45 @@ describe('name validator', () => {
     expect(() => {
       checkNames('Congratulations! Visit https://bit.ly!', 'Name')
     }).toThrow()
+  })
+})
+
+describe('password validator', () => {
+  test('password must be at least 8 characters long', async () => {
+    expect(() => {
+      checkPassword('abcDE67')
+    }).toThrow(new RegistrationError('Password must be 8 characters or longer'))
+  })
+
+  test('password must contain a number', async () => {
+    expect(() => {
+      checkPassword('a-B-c-D-')
+    }).toThrow(
+      new RegistrationError('Password must contain at least one number')
+    )
+  })
+
+  test('password must contain a lowercase letter', async () => {
+    expect(() => {
+      checkPassword('ABC--456')
+    }).toThrow(
+      new RegistrationError(
+        'Password must contain at least one lowercase letter'
+      )
+    )
+  })
+
+  test('password must contain an uppercase letter', async () => {
+    expect(() => {
+      checkPassword('abc--456')
+    }).toThrow(
+      new RegistrationError(
+        'Password must contain at least one uppercase letter'
+      )
+    )
+  })
+
+  test('valid password', async () => {
+    expect(checkPassword('abcdABCD1234!@#$')).toBe(true)
   })
 })
