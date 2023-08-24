@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import { Jobs } from '.'
-import moment, { months } from 'moment'
+import moment from 'moment'
 import 'moment-timezone'
 import { log } from '../logger'
 import {
