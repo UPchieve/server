@@ -24,6 +24,7 @@ export type AllSubjectsWithTopics = { [subject: string]: SubjectWithTopic }
 export type TrainingItem = {
   key: string
   displayName: string
+  active?: boolean
 }
 
 export type TrainingItemWithOrder = TrainingItem & {
@@ -56,12 +57,14 @@ export type FormattedTrainingRowMapping = {
   rowListItemName: string
   rowListItemDisplayName: string
   rowListItemDisplayOrder: number
+  rowIsActive?: boolean
 }
 
 export type FormattedTrainingRowMappingToKeyOf<T> = {
   rowName: keyof T
   rowDisplayName: keyof T
   rowDisplayOrder: keyof T
+  rowIsActive?: keyof T
   rowListItemName: keyof T
   rowListItemDisplayName: keyof T
   rowListItemDisplayOrder: keyof T
