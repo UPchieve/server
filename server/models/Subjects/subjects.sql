@@ -63,11 +63,11 @@ SELECT
     topics.name AS topic_name,
     topics.display_name AS topic_display_name,
     topics.dashboard_order AS topic_dashboard_order,
-    topics.training_order AS topic_training_order
+    topics.training_order AS topic_training_order,
+    quizzes.active AS quiz_is_active
 FROM
     quiz_certification_grants qcg
     JOIN quizzes ON quizzes.id = qcg.quiz_id
-        AND quizzes.active IS TRUE
     JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
     JOIN certifications certs ON certs.id = qcg.certification_id
     JOIN subjects AS cert_info ON cert_info.name = certs.name

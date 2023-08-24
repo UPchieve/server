@@ -17,7 +17,7 @@ import {
   TrainingCourses,
 } from './types'
 import _ from 'lodash'
-import { asNumber, asString } from '../../utils/type-utils'
+import { asBoolean, asNumber, asString } from '../../utils/type-utils'
 
 export async function getSubjectAndTopic(
   subject: string,
@@ -75,6 +75,11 @@ export function processTrainingRow<T>(
           data[desiredMapping.rowListItemDisplayOrder]
         ),
       }
+      if (desiredMapping.rowIsActive)
+        trainingMapping.rowIsActive = asBoolean(
+          data[desiredMapping.rowIsActive]
+        )
+
       mappedRow[topicName].push(trainingMapping)
     }
   }
@@ -97,6 +102,8 @@ export function generateTrainingRow(
         order: rows[0].rowDisplayOrder,
         subjectsIncluded: [],
       }
+      if (rows[0].hasOwnProperty('rowIsActive'))
+        item.active = rows[0].rowIsActive
       for (const row of rows) {
         item.subjectsIncluded.push({
           displayName: row.rowListItemDisplayName,
@@ -203,6 +210,7 @@ export async function getQuizCertUnlocks(): Promise<TrainingRowPerTopic> {
       rowListItemName: 'unlockedCertName',
       rowListItemDisplayName: 'unlockedCertDisplayName',
       rowListItemDisplayOrder: 'unlockedCertDisplayOrder',
+      rowIsActive: 'quizIsActive',
     })
     const quizCertificationUnlocks = generateTrainingRow(processedQuizTopics)
 

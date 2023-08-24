@@ -185,7 +185,6 @@ SELECT
 FROM
     quiz_certification_grants qcg
     JOIN quizzes ON quizzes.id = qcg.quiz_id
-        AND quizzes.active IS TRUE
     JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
     JOIN certifications certs ON certs.id = qcg.certification_id
     JOIN subjects AS cert_info ON cert_info.name = certs.name
