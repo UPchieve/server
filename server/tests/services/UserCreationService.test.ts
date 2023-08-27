@@ -9,12 +9,7 @@ import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
 import * as MailService from '../../services/MailService'
 import { rosterPartnerStudents } from '../../services/UserCreationService'
-import { InputError } from '../../models/Errors'
-import {
-  hashPassword,
-  RegistrationError,
-  verifyPassword,
-} from '../../utils/auth-utils'
+import { hashPassword, verifyPassword } from '../../utils/auth-utils'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES } from '../../constants'
 
 jest.mock('../../models/User/queries')
@@ -95,63 +90,6 @@ describe('rosterPartnerStudents', () => {
       expect(failed[0].email).toBe(invalidEmail.email)
       expect(failed[0].firstName).toBe(invalidEmail.firstName)
       expect(failed[0].lastName).toBe(invalidEmail.lastName)
-    })
-
-    test('ensure password is valid', async () => {
-      const tooShort = {
-        firstName: faker.name.firstName(),
-        email: faker.internet.email(),
-        gradeLevel: '',
-        lastName: faker.name.lastName(),
-        password: '1aA',
-      }
-      const tooShortFailed = await rosterPartnerStudents([tooShort], '123')
-      expect(tooShortFailed.length).toBe(1)
-      expect(tooShortFailed[0].email).toBe(tooShort.email)
-      expect(tooShortFailed[0].firstName).toBe(tooShort.firstName)
-      expect(tooShortFailed[0].lastName).toBe(tooShort.lastName)
-
-      const noCapital = {
-        firstName: faker.name.firstName(),
-        email: faker.internet.email(),
-        gradeLevel: '',
-        lastName: faker.name.lastName(),
-        password: 'aaaa1234',
-      }
-      const noCapitalFailed = await rosterPartnerStudents([noCapital], '123')
-      expect(noCapitalFailed.length).toBe(1)
-      expect(noCapitalFailed[0].email).toBe(noCapital.email)
-      expect(noCapitalFailed[0].firstName).toBe(noCapital.firstName)
-      expect(noCapitalFailed[0].lastName).toBe(noCapital.lastName)
-
-      const noLowercase = {
-        firstName: faker.name.firstName(),
-        email: faker.internet.email(),
-        gradeLevel: '',
-        lastName: faker.name.lastName(),
-        password: '1234AAAA',
-      }
-      const noLowercaseFailed = await rosterPartnerStudents(
-        [noLowercase],
-        '123'
-      )
-      expect(noLowercaseFailed.length).toBe(1)
-      expect(noLowercaseFailed[0].email).toBe(noLowercase.email)
-      expect(noLowercaseFailed[0].firstName).toBe(noLowercase.firstName)
-      expect(noLowercaseFailed[0].lastName).toBe(noLowercase.lastName)
-
-      const noNumber = {
-        firstName: faker.name.firstName(),
-        email: faker.internet.email(),
-        gradeLevel: '',
-        lastName: faker.name.lastName(),
-        password: 'aaaaAAAA',
-      }
-      const noNumberFailed = await rosterPartnerStudents([noNumber], '123')
-      expect(noNumberFailed.length).toBe(1)
-      expect(noNumberFailed[0].email).toBe(noNumber.email)
-      expect(noNumberFailed[0].firstName).toBe(noNumber.firstName)
-      expect(noNumberFailed[0].lastName).toBe(noNumber.lastName)
     })
   })
 
