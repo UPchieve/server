@@ -159,32 +159,22 @@ export function checkPassword(password: string): boolean {
     throw new RegistrationError('Password must be 8 characters or longer')
   }
 
-  let numUpper = 0
-  let numLower = 0
-  let numNumber = 0
-  for (let i = 0; i < password.length; i++) {
-    if (!isNaN(Number(password[i]))) {
-      numNumber += 1
-    } else if (password[i].toUpperCase() === password[i]) {
-      numUpper += 1
-    } else if (password[i].toLowerCase() === password[i]) {
-      numLower += 1
-    }
-  }
+  const numberRegex = /[0-9]/
+  if (!password.match(numberRegex))
+    throw new RegistrationError('Password must contain at least one number')
 
-  if (numUpper === 0) {
+  const uppercaseRegex = /[A-Z]/
+  if (!password.match(uppercaseRegex))
     throw new RegistrationError(
       'Password must contain at least one uppercase letter'
     )
-  }
-  if (numLower === 0) {
+
+  const lowercaseRegex = /[a-z]/
+  if (!password.match(lowercaseRegex))
     throw new RegistrationError(
       'Password must contain at least one lowercase letter'
     )
-  }
-  if (numNumber === 0) {
-    throw new RegistrationError('Password must contain at least one number')
-  }
+
   return true
 }
 
