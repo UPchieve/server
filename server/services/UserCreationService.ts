@@ -2,7 +2,6 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import {
   checkEmail,
   checkNames,
-  checkPassword,
   createResetToken,
   hashPassword,
 } from '../utils/auth-utils'
@@ -59,7 +58,6 @@ export async function rosterPartnerStudents(
         checkEmail(student.email)
         if (student.proxyEmail) checkEmail(student.proxyEmail)
         if (student.password) {
-          checkPassword(student.password)
           student.password = await hashPassword(student.password)
         }
 
