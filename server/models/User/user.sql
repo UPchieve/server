@@ -470,7 +470,8 @@ SELECT
     grade_levels.name AS grade_level,
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
-    users_roles.role_id
+    users_roles.role_id,
+    subject_alerts_toggled.muted_subject_alerts
 FROM
     users
     LEFT JOIN (
@@ -581,6 +582,15 @@ FROM
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN (
+        SELECT
+            array_agg(subjects.name) AS muted_subject_alerts
+        FROM
+            users_subject_alerts
+            JOIN subjects ON users_subject_alerts.subject_id = subjects.id
+        WHERE
+            users_subject_alerts.user_id = :userId!
+            AND users_subject_alerts.alerts_on = FALSE) AS subject_alerts_toggled ON TRUE
 WHERE
     users.id = :userId!;
 

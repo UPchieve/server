@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS upchieve.users_subject_alerts (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.users_subject_alerts;
+
