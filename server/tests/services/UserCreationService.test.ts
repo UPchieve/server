@@ -99,7 +99,7 @@ describe('rosterPartnerStudents', () => {
     const rosterStudent = {
       email: faker.internet.email(),
       firstName: faker.name.firstName(),
-      gradeLevel: '8th',
+      gradeLevel: '8.0',
       lastName: faker.name.lastName(),
       password: '123456Aa',
     }
@@ -146,7 +146,7 @@ describe('rosterPartnerStudents', () => {
     expect(mockedStudentRepo.createStudentProfile).toHaveBeenCalledWith(
       {
         userId: USER_ID,
-        gradeLevel: rosterStudent.gradeLevel,
+        gradeLevel: parseInt(rosterStudent.gradeLevel).toFixed(0) + 'th',
         schoolId: SCHOOL_ID,
       },
       expect.toBeTransactionClient()
@@ -159,7 +159,7 @@ describe('rosterPartnerStudents', () => {
     const rosterStudent = {
       email: faker.internet.email(),
       firstName: faker.name.firstName(),
-      gradeLevel: '10th',
+      gradeLevel: '10',
       lastName: faker.name.lastName(),
       password: '123456Aa',
     }
@@ -187,7 +187,7 @@ describe('rosterPartnerStudents', () => {
     const rosterStudent = {
       email: faker.internet.email(),
       firstName: faker.name.firstName(),
-      gradeLevel: '12th',
+      gradeLevel: '12',
       lastName: faker.name.lastName(),
       proxyEmail: faker.internet.email(),
     }
@@ -225,7 +225,7 @@ describe('rosterPartnerStudents', () => {
       const rosterStudent = {
         email: faker.internet.email(),
         firstName: faker.name.firstName(),
-        gradeLevel: '6th',
+        gradeLevel: '6',
         lastName: faker.name.lastName(),
         proxyEmail: faker.internet.email(),
       }
@@ -265,7 +265,7 @@ describe('rosterPartnerStudents', () => {
       const rosterStudent = {
         email: faker.internet.email(),
         firstName: faker.name.firstName(),
-        gradeLevel: '9th',
+        gradeLevel: '9',
         lastName: faker.name.lastName(),
         proxyEmail: faker.internet.email(),
       }
