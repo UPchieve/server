@@ -26,7 +26,7 @@ async function main() {
           const userId = userResult.rows[0].id
           const gradeLevelResult = await tc.query(
             'SELECT id FROM grade_levels WHERE name = $1',
-            [student.gradeLevel]
+            [parseInt(student.gradeLevel).toFixed(0) + 'th']
           )
           const gradeLevelId = gradeLevelResult.rows[0].id
           await tc.query(
