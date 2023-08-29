@@ -24,23 +24,24 @@ const gradeLevelMapping: Record<number, GRADES> = {
   12: GRADES.TWELVETH,
 }
 
+// We're defining a school year as 8/1/year - 7/31/year + 1
 function processNextGradeJump(createdAt: Date) {
   const createdDate = moment(createdAt, 'YYYY-MM-DD HH:mm:ss')
 
   let gradeJumps = 0
   if (
-    createdDate.isAfter('2020-06-01 00:00:00.000000+00') &&
-    createdDate.isBefore('2021-06-01 00:00:00.000000+00')
+    createdDate.isAfter('2020-08-01 00:00:00.000000+00') &&
+    createdDate.isBefore('2021-07-01 00:00:00.000000+00')
   )
     gradeJumps = 3
   else if (
-    createdDate.isAfter('2021-06-01 00:00:00.000000+00') &&
-    createdDate.isBefore('2022-06-01 00:00:00.000000+00')
+    createdDate.isAfter('2021-08-01 00:00:00.000000+00') &&
+    createdDate.isBefore('2022-07-01 00:00:00.000000+00')
   )
     gradeJumps = 2
   else if (
-    createdDate.isAfter('2022-06-01 00:00:00.000000+00') &&
-    createdDate.isBefore('2023-06-01 00:00:00.000000+00')
+    createdDate.isAfter('2022-08-01 00:00:00.000000+00') &&
+    createdDate.isBefore('2023-07-01 00:00:00.000000+00')
   )
     gradeJumps = 1
 

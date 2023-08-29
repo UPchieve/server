@@ -605,7 +605,7 @@ FROM
     JOIN grade_levels gl ON gl.id = sp.grade_level_id
 WHERE
     NOT gl.name = ANY ('{"College", "Other"}')
-    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '5 months'
+    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
 ORDER BY
     sp.created_at ASC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;

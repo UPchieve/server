@@ -1430,7 +1430,7 @@ export interface IGetStudentsForGradeLevelUpdateQuery {
   result: IGetStudentsForGradeLevelUpdateResult;
 }
 
-const getStudentsForGradeLevelUpdateIR: any = {"name":"getStudentsForGradeLevelUpdate","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18823,"b":18828,"line":611,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18845,"b":18851,"line":611,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    sp.user_id,\n    sp.created_at,\n    gl.name AS grade_level\nFROM\n    student_profiles sp\n    JOIN grade_levels gl ON gl.id = sp.grade_level_id\nWHERE\n    NOT gl.name = ANY ('{\"College\", \"Other\"}')\n    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '5 months'\nORDER BY\n    sp.created_at ASC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":18507,"b":18857,"line":599,"col":0}}};
+const getStudentsForGradeLevelUpdateIR: any = {"name":"getStudentsForGradeLevelUpdate","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18823,"b":18828,"line":611,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18845,"b":18851,"line":611,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    sp.user_id,\n    sp.created_at,\n    gl.name AS grade_level\nFROM\n    student_profiles sp\n    JOIN grade_levels gl ON gl.id = sp.grade_level_id\nWHERE\n    NOT gl.name = ANY ('{\"College\", \"Other\"}')\n    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'\nORDER BY\n    sp.created_at ASC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":18507,"b":18857,"line":599,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1444,7 +1444,7 @@ const getStudentsForGradeLevelUpdateIR: any = {"name":"getStudentsForGradeLevelU
  *     JOIN grade_levels gl ON gl.id = sp.grade_level_id
  * WHERE
  *     NOT gl.name = ANY ('{"College", "Other"}')
- *     AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '5 months'
+ *     AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
  * ORDER BY
  *     sp.created_at ASC
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
