@@ -152,7 +152,7 @@ export type PassportUser = {
   id: Ulid
   email: string
   proxyEmail?: string
-  password: string
+  password?: string
 }
 
 export async function getUserForPassport(
@@ -163,7 +163,8 @@ export async function getUserForPassport(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], ['proxyEmail'])
+    if (result.length)
+      return makeSomeRequired(result[0], ['password', 'proxyEmail'])
   } catch (err) {
     throw new RepoReadError(err)
   }
