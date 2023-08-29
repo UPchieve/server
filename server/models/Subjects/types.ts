@@ -83,3 +83,7 @@ export type TrainingCourses = {
   name: string
   displayName: string
 }
+
+export type SubjectNameIdMapping = {
+  [name: string]: number
+}

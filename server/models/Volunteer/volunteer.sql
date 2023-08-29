@@ -586,6 +586,27 @@ RETURNING
     id AS ok;
 
 
+/* @name updateVolunteerProfileSubjectAlertById */
+INSERT INTO users_subject_alerts (user_id, subject_id, alerts_on)
+    VALUES (:userId!, :subjectId, :alertsOn!)
+ON CONFLICT ON CONSTRAINT users_subject_alerts_pkey
+    DO UPDATE SET
+        alerts_on = :alertsOn!, updated_at = NOW()
+    WHERE
+        users_subject_alerts.user_id = :userId!
+        AND users_subject_alerts.subject_id = :subjectId
+    RETURNING
+        user_id AS ok;
+
+
+/* @name getSubjectNameIdMapping */
+SELECT
+    subjects.name,
+    subjects.id
+FROM
+    upchieve.subjects;
+
+
 /* @name getVolunteerUnsentReferences */
 SELECT
     volunteer_references.id,

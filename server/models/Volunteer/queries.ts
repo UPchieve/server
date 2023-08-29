@@ -11,7 +11,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Quizzes, VolunteersForAnalyticsReport } from './types'
+import { Quizzes, SubjectAlerts, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
@@ -21,6 +21,7 @@ import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId } from '../User'
+import { SubjectNameIdMapping } from '../Subjects'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -831,7 +832,8 @@ export async function updateVolunteerSentInactive90DayEmail(
 export async function updateVolunteerProfileById(
   userId: Ulid,
   deactivated?: boolean,
-  phone?: string
+  phone?: string,
+  subjectAlerts?: SubjectAlerts
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerProfileById.run(
@@ -844,6 +846,32 @@ export async function updateVolunteerProfileById(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+    let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
+      undefined,
+      getClient()
+    )
+    if (!subjectNameIdMappingResult.length)
+      throw new RepoUpdateError('Select query did not return ok')
+    let subjectNameIdMapping: SubjectNameIdMapping = {}
+    for (let subjectNameAndId of subjectNameIdMappingResult) {
+      subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
+    }
+    for (const [subjectName, alertsOn] of Object.entries(
+      subjectAlerts as SubjectAlerts
+    )) {
+      let subjectId = subjectNameIdMapping[subjectName]
+      let subjectAlertsResult = await pgQueries.updateVolunteerProfileSubjectAlertById.run(
+        {
+          userId,
+          subjectId,
+          alertsOn,
+        },
+        getClient()
+      )
+      if (!subjectAlertsResult.length) {
+        throw new RepoUpdateError('Upsert query did not return ok')
+      }
+    }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
