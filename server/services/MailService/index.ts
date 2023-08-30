@@ -1194,7 +1194,7 @@ export async function sendReferralProgramEmail(
     config.sendgrid.referralProgramTemplate,
     {
       firstName: studentFirstName,
-      referralLink
+      referralLink,
     }
   )
 }
