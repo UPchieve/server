@@ -594,3 +594,38 @@ WHERE
     uspoi.user_id = :studentId!
     AND deactivated_on IS NOT NULL;
 
+
+/* @name getStudentsForGradeLevelUpdate */
+SELECT
+    sp.user_id,
+    sp.created_at,
+    gl.name AS grade_level
+FROM
+    student_profiles sp
+    JOIN grade_levels gl ON gl.id = sp.grade_level_id
+WHERE
+    NOT gl.name = ANY ('{"College", "Other"}')
+    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
+ORDER BY
+    sp.created_at ASC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
+
+/* @name updateStudentsGradeLevel */
+UPDATE
+    student_profiles
+SET
+    grade_level_id = subquery.id,
+    updated_at = NOW()
+FROM (
+    SELECT
+        grade_levels.id
+    FROM
+        grade_levels
+    WHERE
+        grade_levels.name = :gradeLevel!) AS subquery
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
