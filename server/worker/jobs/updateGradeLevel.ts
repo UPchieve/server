@@ -100,7 +100,7 @@ export default async (job: Job<UpdateGradeLevelData>): Promise<void> => {
     offset = count * limit
   }
 
-  log(`Successfully ${Jobs.UpdateGradeLevel} for ${totalUpdated} volunteers`)
+  log(`Successfully ${Jobs.UpdateGradeLevel} for ${totalUpdated} students`)
 
   if (errors.length) {
     throw new Error(
