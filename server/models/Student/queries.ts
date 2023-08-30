@@ -905,3 +905,43 @@ export async function getActivePartnersForStudent(
     throw new RepoReadError(err)
   }
 }
+
+export type StudentsForGradeLevelUpdate = {
+  userId: Ulid
+  createdAt: Date
+  gradeLevel: string
+}
+
+export async function getStudentsForGradeLevelUpdate(
+  limit: number,
+  offset: number
+): Promise<StudentsForGradeLevelUpdate[] | undefined> {
+  try {
+    const result = await pgQueries.getStudentsForGradeLevelUpdate.run(
+      { limit, offset },
+      getClient()
+    )
+
+    if (result.length) return result.map(row => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function updateStudentsGradeLevel(
+  userId: Ulid,
+  gradeLevel: string
+): Promise<StudentPartnerOrgInstance[] | undefined> {
+  try {
+    const result = await pgQueries.updateStudentsGradeLevel.run(
+      { userId, gradeLevel },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError(
+      `Update query did not update grade level to ${gradeLevel} for ${userId}`
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
