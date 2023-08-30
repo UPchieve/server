@@ -45,6 +45,7 @@ const config: Static<typeof Config> = {
     contactTemplate: 'd-e79546f380874c58965c163f45df2ef4',
     verifyTemplate: 'd-02281875a1cf4575bd3568e674faf147',
     resetTemplate: 'd-5005d2beb2ad49a883a10364f3e14b81',
+    referralProgramTemplate: 'd-7e49e80e04cc4d7fb222f383498840a4',
     openVolunteerWelcomeTemplate: 'd-0e4406696376446da0d580b9c7e9a95a',
     partnerVolunteerWelcomeTemplate: 'd-eac2fdfaa8d740c8965ba8011102986b',
     studentOnboardingWelcomeTemplate: 'd-dba390e0c99545d4b18135d869046f50',

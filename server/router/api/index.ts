@@ -22,6 +22,9 @@ import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 import { routeSubjects } from './subjects'
 import { routeAdmin } from './admin'
+import { sendReferralProgramEmail } from '../../services/MailService'
+import { getUserReferralLink } from '../../models/User'
+import config from '../../config'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -43,6 +46,27 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeStudents(router)
   routeSubjects(router)
   routeAdmin(app, router)
+
+  router.post('/send-referral-email', async function(req, res) {
+    try {
+      if (!req.user) {
+        res.json({ success: false })
+        return
+      }
+      const user = await getUserReferralLink(req.user.id)
+      if (!user) {
+        res.json({ success: false })
+        return
+      }
+
+      const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
+      await sendReferralProgramEmail(user.email, user.firstName, referralLink)
+
+      res.json({ success: true })
+    } catch {
+      res.json({ success: false })
+    }
+  })
 
   app.use(addLastActivity)
   app.use(addUserAction)
