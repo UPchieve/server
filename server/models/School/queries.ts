@@ -8,8 +8,8 @@ import { PartnerSchool, School } from './types'
 import {
   getDbUlid,
   makeRequired,
-  makeSomeOptional,
   makeSomeRequired,
+  makeSomeOptional,
   Ulid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -36,7 +36,7 @@ export async function getSchoolById(
     const result = await pgQueries.getSchoolById.run({ schoolId }, getClient())
 
     if (result.length) {
-      return makeSomeOptional(result[0], [
+      return makeSomeRequired(result[0], [
         'id',
         'name',
         'city',
@@ -75,7 +75,7 @@ export async function getSchools(
     )
     return result
       .map(v =>
-        makeSomeOptional(v, [
+        makeSomeRequired(v, [
           'id',
           'name',
           'city',
@@ -172,7 +172,7 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
 export async function schoolSearch(query: string): Promise<School[]> {
   try {
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    return results.map(v => makeSomeRequired(v, ['district']))
+    return results.map(v => makeSomeOptional(v, ['district']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -339,7 +339,7 @@ export async function getPartnerSchools(
 ): Promise<PartnerSchool[] | undefined> {
   try {
     const schools = await pgQueries.getPartnerSchools.run(undefined, tc)
-    return schools.map(s => makeSomeRequired(s, ['partnerKey', 'partnerSites']))
+    return schools.map(s => makeSomeOptional(s, ['partnerKey', 'partnerSites']))
   } catch (err) {
     throw new RepoReadError(err)
   }

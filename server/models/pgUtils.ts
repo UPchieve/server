@@ -12,7 +12,7 @@ export function generateReferralCode(userId: Ulid): string {
  * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even
  * though it does do so for the return type. As such we must manually convert the
  * keys to camelCase at runtime. This function is invoked at the start of
- * makeRequired and makeSomeRequired which themselves are necessary for parsing
+ * makeRequired and makeSomeOptional which themselves are necessary for parsing
  * incoming postgres data to convert null->undefined and, with the inclusion of
  * this function, convert snake_case keys to camelCase keys.
  *
@@ -63,7 +63,7 @@ export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {
 }
 
 type ObjectLike = { [k: string]: any }
-export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
+export function makeSomeOptional<T extends ObjectLike, U extends keyof T>(
   obj: T,
   optionals: U[]
 ): SetOptional<SetRequired<T, keyof T>, U> {
@@ -80,7 +80,7 @@ export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
   return temp as SetOptional<SetRequired<T, keyof T>, U>
 }
 
-export function makeSomeOptional<T extends ObjectLike, U extends keyof T>(
+export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
   obj: T,
   requireds: U[]
 ): SetRequired<SetOptional<T, keyof T>, U> {

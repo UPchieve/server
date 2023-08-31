@@ -4,7 +4,7 @@ import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   Ulid,
-  makeSomeRequired,
+  makeSomeOptional,
   getDbUlid,
   makeRequired,
   Pgid,
@@ -38,7 +38,7 @@ export async function insertIpByRawString(ip: string): Promise<IpAddress> {
       getClient()
     )
     if (!result.length) throw new Error('Insert did not return new row')
-    return makeSomeRequired(result[0], ['status'])
+    return makeSomeOptional(result[0], ['status'])
   } catch (err) {
     throw new RepoReadError(err)
   }

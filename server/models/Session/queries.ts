@@ -2,10 +2,10 @@ import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
-  makeSomeRequired,
+  makeSomeOptional,
   Ulid,
   getDbUlid,
-  makeSomeOptional,
+  makeSomeRequired,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
@@ -83,7 +83,7 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
       getClient()
     )
 
-    const sessions = result.map(v => makeSomeRequired(v, ['volunteer']))
+    const sessions = result.map(v => makeSomeOptional(v, ['volunteer']))
     const oneMinuteAgo = moment().subtract(1, 'minutes')
 
     const fileteredSessions = sessions.filter(session => {
@@ -115,7 +115,7 @@ export async function getSessionById(sessionId: Ulid): Promise<Session> {
       getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
-    return makeSomeRequired(result[0], [
+    return makeSomeOptional(result[0], [
       'volunteerId',
       'quillDoc',
       'volunteerJoinedAt',
@@ -205,7 +205,7 @@ export async function getSessionToEndById(
       getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
-    const rawSession = makeSomeRequired(result[0], [
+    const rawSession = makeSomeOptional(result[0], [
       'volunteerJoinedAt',
       'endedAt',
       'volunteerEmail',
@@ -274,7 +274,7 @@ export async function getSessionsToReview(
     )
     return Promise.all(
       result.map(async v => {
-        const temp = makeSomeRequired(v, [
+        const temp = makeSomeOptional(v, [
           'volunteer',
           'reviewReasons',
           'studentCounselingFeedback',
@@ -530,7 +530,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       client
     )
     if (!sessionResult.length) throw new Error('Session not found')
-    const session = makeSomeRequired(sessionResult[0], [
+    const session = makeSomeOptional(sessionResult[0], [
       'volunteerJoinedAt',
       'photos',
       'endedAt',
@@ -545,7 +545,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
       client
     )
     const userAgent = userAgentResult.length
-      ? makeSomeOptional(userAgentResult[0], [])
+      ? makeSomeRequired(userAgentResult[0], [])
       : undefined
     const userResult = await pgQueries.getUserForSessionAdminView.run(
       { sessionId },
@@ -633,7 +633,7 @@ export async function getCurrentSessionByUserId(
       client
     )
     if (!result.length) return
-    const session = makeSomeRequired(result[0], [
+    const session = makeSomeOptional(result[0], [
       'volunteerId',
       'endedAt',
       'volunteerJoinedAt',
@@ -673,7 +673,7 @@ export async function getCurrentSessionBySessionId(
       { sessionId },
       client
     )
-    const session = makeSomeRequired(result[0], [
+    const session = makeSomeOptional(result[0], [
       'volunteerJoinedAt',
       'volunteerId',
       'endedAt',
@@ -764,7 +764,7 @@ export async function getSessionForChatbot(
       { sessionId },
       client
     )
-    const session = makeSomeRequired(result[0], [
+    const session = makeSomeOptional(result[0], [
       'endedAt',
       'volunteerJoinedAt',
     ])
@@ -831,7 +831,7 @@ export async function getSessionsVolunteerRating(
     )
     return Promise.all(
       result.map(async row => {
-        const session = makeSomeRequired(row, ['volunteerFeedback'])
+        const session = makeSomeOptional(row, ['volunteerFeedback'])
         const sessionVolunteerRating: SessionVolunteerRating = {
           id: session.id,
         }
@@ -968,7 +968,7 @@ export async function getSessionsForAdminFilter(
       getClient()
     )
     const sessions = sessionResult.map(v =>
-      makeSomeRequired(v, [
+      makeSomeOptional(v, [
         'volunteerEmail',
         'volunteerFirstName',
         'volunteerIsBanned',
@@ -1193,7 +1193,7 @@ export async function getSessionRecap(
     )
     if (!sessionResult.length) throw new RepoReadError('Session not found')
 
-    const session = makeSomeRequired(sessionResult[0], ['quillDoc'])
+    const session = makeSomeOptional(sessionResult[0], ['quillDoc'])
     const messages = await getMessagesForFrontend(sessionId, client)
 
     return { ...session, messages }

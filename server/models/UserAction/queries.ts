@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeRequired, makeSomeRequired } from '../pgUtils'
+import { Ulid, makeRequired, makeSomeOptional } from '../pgUtils'
 import {
   RepoReadError,
   RepoCreateError,
@@ -59,7 +59,7 @@ export async function getSessionRequestedUserAgentFromSessionId(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], [
+      return makeSomeOptional(result[0], [
         'browser',
         'browserVersion',
         'operatingSystemVersion',

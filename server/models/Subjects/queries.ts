@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 import {
   AllSubjectsWithTopics,
@@ -39,7 +39,7 @@ export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
   try {
     const result = await pgQueries.getSubjects.run(undefined, getClient())
     const mappedResult = result.map(row =>
-      makeSomeRequired(row, ['topicIconLink', 'topicColor'])
+      makeSomeOptional(row, ['topicIconLink', 'topicColor'])
     )
     const subjects = {} as AllSubjectsWithTopics
     for (const row of mappedResult) {

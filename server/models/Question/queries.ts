@@ -4,7 +4,7 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeRequired, Pgid } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Pgid } from '../pgUtils'
 import { Question, Quiz, QuizUnlockCert, ReviewMaterial } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
@@ -28,7 +28,7 @@ export async function listQuestions(
   try {
     const questions = await pgQueries.list.run({ ...filters }, getClient())
 
-    const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
+    const result = questions.map(v => makeSomeOptional(v, ['imageSrc']))
     const parsedResult = result.map(res => parseQueryResult(res))
     return parsedResult
   } catch (err) {
@@ -67,7 +67,7 @@ export async function createQuestion(question: Question): Promise<Question> {
       client
     )
     if (result.length) {
-      const newQuestion = makeSomeRequired(result[0], ['imageSrc'])
+      const newQuestion = makeSomeOptional(result[0], ['imageSrc'])
       const toRtn = parseQueryResult({
         ...newQuestion,
         category: question.category,
@@ -176,7 +176,7 @@ export async function getMultipleQuestionsById(
       { ids },
       getClient()
     )
-    const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
+    const result = questions.map(v => makeSomeOptional(v, ['imageSrc']))
     const parsedResult = result.map(res => parseQueryResult(res))
     return parsedResult
   } catch (err) {
@@ -194,7 +194,7 @@ export async function getQuestionsByCategory(
       { category, limit, offset },
       getClient()
     )
-    const result = questions.map(v => makeSomeRequired(v, ['imageSrc']))
+    const result = questions.map(v => makeSomeOptional(v, ['imageSrc']))
     const parsedResult = result.map(res => parseQueryResult(res))
     return parsedResult
   } catch (err) {
