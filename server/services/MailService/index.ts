@@ -60,6 +60,7 @@ const SG_CUSTOM_FIELDS = {
   volunteerPartnerOrg: 'e13_T',
   volunteerPartnerOrgDisplay: 'e14_T',
   passedUpchieve101: 'e17_T',
+  studentGradeLevel: 'w20_T',
 }
 
 // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
@@ -1212,6 +1213,9 @@ export async function createContact(userId: Ulid): Promise<any> {
     }
   } else {
     const student = user
+    if (student.studentGradeLevel)
+      customFields[SG_CUSTOM_FIELDS.studentGradeLevel] =
+        student.studentGradeLevel
     if (student.studentPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
         student.studentPartnerOrg

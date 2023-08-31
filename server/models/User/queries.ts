@@ -494,6 +494,7 @@ export type UserForCreateSendGridContact = UserContactInfo & {
   volunteerPartnerOrg?: string
   studentPartnerOrgDisplay?: string
   volunteerPartnerOrgDisplay?: string
+  studentGradeLevel?: string
 }
 export async function getUserToCreateSendGridContact(
   userId: Ulid
@@ -511,6 +512,7 @@ export async function getUserToCreateSendGridContact(
       'volunteerPartnerOrgDisplay',
       'passedUpchieve101',
       'lastActivityAt',
+      'studentGradeLevel',
     ])
   } catch (err) {
     throw new RepoReadError(err)

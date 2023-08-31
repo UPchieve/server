@@ -617,7 +617,8 @@ SELECT
             TRUE
         END) AS passed_upchieve101,
     users.test_user,
-    users.last_name
+    users.last_name,
+    grade_levels.name AS student_grade_level
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -634,6 +635,7 @@ FROM
         WHERE
             users_training_courses.user_id = users.id
             AND training_courses.name = 'UPchieve 101') AS user_upchieve101 ON TRUE
+    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
     users.id = :userId!
 LIMIT 1;
