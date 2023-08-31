@@ -1,6 +1,4 @@
-import { Job } from 'bull'
 import { Jobs } from '.'
-import moment from 'moment'
 import 'moment-timezone'
 import { log } from '../logger'
 import {
@@ -8,11 +6,7 @@ import {
   updateStudentsGradeLevel,
 } from '../../models/Student'
 import { GRADES } from '../../constants'
-import { asBoolean } from '../../utils/type-utils'
-
-type UpdateGradeLevelData = {
-  isInitialRun: boolean
-}
+import { createContact } from '../../services/MailService'
 
 const gradeLevelMapping: Record<number, GRADES> = {
   6: GRADES.SIXTH,
@@ -24,47 +18,15 @@ const gradeLevelMapping: Record<number, GRADES> = {
   12: GRADES.TWELVETH,
 }
 
-// We're defining a school year as 8/1/year - 7/31/year + 1
-function processNextGradeJump(createdAt: Date) {
-  const createdDate = moment(createdAt, 'YYYY-MM-DD HH:mm:ss')
-
-  let gradeJumps = 0
-  if (
-    createdDate.isAfter('2020-08-01 00:00:00.000000+00') &&
-    createdDate.isBefore('2021-07-01 00:00:00.000000+00')
-  )
-    gradeJumps = 3
-  else if (
-    createdDate.isAfter('2021-08-01 00:00:00.000000+00') &&
-    createdDate.isBefore('2022-07-01 00:00:00.000000+00')
-  )
-    gradeJumps = 2
-  else if (
-    createdDate.isAfter('2022-08-01 00:00:00.000000+00') &&
-    createdDate.isBefore('2023-07-01 00:00:00.000000+00')
-  )
-    gradeJumps = 1
-
-  return gradeJumps
-}
-
-function getNextGradeLevel(
-  isInitialRun: boolean = false,
-  createdAt: Date,
-  currentGrade: string
-): GRADES | undefined {
-  let jump = 1
-  if (isInitialRun) jump = processNextGradeJump(createdAt)
-  if (!jump) return
-
+function getNextGradeLevel(currentGrade: string): GRADES | undefined {
   const grade = parseInt(currentGrade)
   if (!grade) return
-  const nextGrade = grade + jump
+  const nextGrade = grade + 1
   if (nextGrade > 12) return GRADES.COLLEGE
-  return gradeLevelMapping[grade + jump]
+  return gradeLevelMapping[nextGrade]
 }
 
-export default async (job: Job<UpdateGradeLevelData>): Promise<void> => {
+export default async (): Promise<void> => {
   const errors: string[] = []
   let limit = 5000
   let count = 0
@@ -80,13 +42,10 @@ export default async (job: Job<UpdateGradeLevelData>): Promise<void> => {
 
     for (const student of students) {
       try {
-        const newGrade = getNextGradeLevel(
-          asBoolean(job.data.isInitialRun),
-          student.createdAt,
-          student.gradeLevel
-        )
+        const newGrade = getNextGradeLevel(student.gradeLevel)
         if (!newGrade) continue
         await updateStudentsGradeLevel(student.userId, newGrade)
+        await createContact(student.userId)
         totalUpdated++
       } catch (error) {
         errors.push(
