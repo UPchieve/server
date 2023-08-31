@@ -1,6 +1,6 @@
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
+import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
 
 import _ from 'lodash'
 import moment from 'moment'
@@ -173,7 +173,7 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
       { userId, start, end },
       getClient()
     )
-    const rows = result.map(row => makeSomeRequired(row, ['timezone']))
+    const rows = result.map(row => makeSomeOptional(row, ['timezone']))
     const rowsByDate = _.groupBy(rows, 'recordedAt')
     const histories: AvailabilityHistory[] = []
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>

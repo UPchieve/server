@@ -2,7 +2,7 @@ import { AssistmentsData } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { makeSomeRequired, Ulid, getDbUlid } from '../pgUtils'
+import { makeSomeOptional, Ulid, getDbUlid } from '../pgUtils'
 
 // When we big bang to pg this file will replace the existing ./queries
 
@@ -15,7 +15,7 @@ export async function getAssistmentsDataBySession(
       getClient()
     )
     if (result.length) {
-      return makeSomeRequired(result[0], ['sentAt'])
+      return makeSomeOptional(result[0], ['sentAt'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -54,7 +54,7 @@ export async function createAssistmentsDataBySessionId(
       },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], ['sentAt'])
+    if (result.length) return makeSomeOptional(result[0], ['sentAt'])
     throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
     throw new RepoCreateError(err)

@@ -4,10 +4,10 @@ import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   Ulid,
-  makeSomeRequired,
+  makeSomeOptional,
   getDbUlid,
   makeRequired,
-  makeSomeOptional,
+  makeSomeRequired,
 } from '../pgUtils'
 
 export async function getIneligibleStudentByEmail(
@@ -19,7 +19,7 @@ export async function getIneligibleStudentByEmail(
       getClient()
     )
     if (!result.length) return
-    return makeSomeRequired(result[0], [
+    return makeSomeOptional(result[0], [
       'zipCode',
       'ipAddress',
       'school',
@@ -55,7 +55,7 @@ export async function getIneligibleStudentsPaginated(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeOptional(v, ['createdAt', 'email', 'updatedAt'])
+      const ret = makeSomeRequired(v, ['createdAt', 'email', 'updatedAt'])
       ret.email = ret.email.toLowerCase()
       return ret
     })

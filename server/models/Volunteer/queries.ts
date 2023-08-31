@@ -2,11 +2,11 @@ import { getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
-  makeSomeRequired,
+  makeSomeOptional,
   Ulid,
   getDbUlid,
   generateReferralCode,
-  makeSomeOptional,
+  makeSomeRequired,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
@@ -40,7 +40,7 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    const ret = makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    const ret = makeSomeOptional(result[0], ['volunteerPartnerOrg'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -70,7 +70,7 @@ export async function getVolunteerContactInfoByIds(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -88,7 +88,7 @@ export async function getVolunteersForBlackoutOver(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -112,7 +112,7 @@ export async function getVolunteerForQuickTips(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeRequired(vResult[0], ['volunteerPartnerOrg'])
+    const volunteer = makeSomeOptional(vResult[0], ['volunteerPartnerOrg'])
     const availability = await getAvailabilityForVolunteer(userId)
     volunteer.email = volunteer.email.toLowerCase()
     return {
@@ -258,7 +258,7 @@ export async function getVolunteersForWeeklyHourSummary(): Promise<
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    const rows = result.map(v => makeSomeOptional(v, ['volunteerPartnerOrg']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -357,7 +357,7 @@ export async function getVolunteerForOnboardingById(
       getClient()
     )
     if (!result.length) return
-    const volunteer = makeSomeRequired(result[0], [
+    const volunteer = makeSomeOptional(result[0], [
       'availabilityLastModifiedAt',
       'country',
     ])
@@ -387,7 +387,7 @@ export async function getVolunteersForTelecomReport(
       { partnerOrg },
       getRoClient()
     )
-    const rows = result.map(v => makeSomeRequired(v, ['volunteerPartnerOrg']))
+    const rows = result.map(v => makeSomeOptional(v, ['volunteerPartnerOrg']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
     return rows.map(v => ({
       ...v,
@@ -521,21 +521,21 @@ export async function getInactiveVolunteers(
       getClient()
     )
     const thirties = thirtyResult.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg'])
     )
     const sixtyResult = await pgQueries.getInactiveVolunteers.run(
       { start: sixtyDaysAgoStartOfDay, end: sixtyDaysAgoEndOfDay },
       getClient()
     )
     const sixties = sixtyResult.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg'])
     )
     const ninetyResult = await pgQueries.getInactiveVolunteers.run(
       { start: ninetyDaysAgoStartOfDay, end: ninetyDaysAgoEndOfDay },
       getClient()
     )
     const nineties = ninetyResult.map(v =>
-      makeSomeRequired(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg'])
     )
 
     return {
@@ -980,7 +980,7 @@ export async function getReferencesByVolunteerForAdminDetail(
       client
     )
     return result.map(v => {
-      const ret = makeSomeOptional(v, [
+      const ret = makeSomeRequired(v, [
         'id',
         'firstName',
         'lastName',
@@ -1032,7 +1032,7 @@ export async function getVolunteerForPendingStatus(
       getClient()
     )
     if (!result.length) return
-    const volunteer = makeSomeRequired(result[0], [
+    const volunteer = makeSomeOptional(result[0], [
       'country',
       'volunteerPartnerOrg',
     ])
@@ -1099,7 +1099,7 @@ export async function getVolunteersForNiceToMeetYou(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1117,7 +1117,7 @@ export async function getVolunteersForReadyToCoach(): Promise<
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1136,7 +1136,7 @@ export async function getVolunteersForWaitingReferences(
       getClient()
     )
     return result.map(v => {
-      const ret = makeSomeRequired(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1281,7 +1281,7 @@ export async function getVolunteerForTextResponse(
       getClient()
     )
     if (!result.length) return
-    return makeSomeRequired(result[0], ['endedAt'])
+    return makeSomeOptional(result[0], ['endedAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1607,7 +1607,7 @@ export async function getNextVolunteerToNotify(options: {
       getClient()
     )
     if (!result.length) return
-    return makeSomeRequired(result[0], ['volunteerPartnerOrg'])
+    return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1631,7 +1631,7 @@ export async function getVolunteerForScheduleUpdate(
       client
     )
     if (!result.length) throw new RepoReadError('Volunteer not found')
-    const volunteer = makeSomeRequired(result[0], [
+    const volunteer = makeSomeOptional(result[0], [
       'volunteerPartnerOrg',
       'subjects',
     ])
@@ -1719,7 +1719,7 @@ export async function getVolunteersForAnalyticsReport(
       )
 
     return result.map(row => {
-      const temp = makeSomeRequired(row, [
+      const temp = makeSomeOptional(row, [
         'state',
         'dateOnboarded',
         'availabilityLastModifiedAt',

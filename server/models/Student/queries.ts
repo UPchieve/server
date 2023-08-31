@@ -12,8 +12,8 @@ import {
   generateReferralCode,
   getDbUlid,
   makeRequired,
-  makeSomeOptional,
   makeSomeRequired,
+  makeSomeOptional,
   Ulid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -52,7 +52,7 @@ export async function getReportedStudent(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], ['studentPartnerOrg'])
+      const ret = makeSomeOptional(result[0], ['studentPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     }
@@ -78,7 +78,7 @@ export async function getStudentPartnerInfoById(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], [
+      return makeSomeOptional(result[0], [
         'studentPartnerOrg',
         'approvedHighschool',
       ])
@@ -99,7 +99,7 @@ export async function getStudentContactInfoById(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], ['schoolId', 'studentPartnerOrg'])
+      const ret = makeSomeOptional(result[0], ['schoolId', 'studentPartnerOrg'])
       ret.email = ret.email.toLowerCase()
       return ret
     }
@@ -158,7 +158,7 @@ export async function getGatesStudentById(
       { userId },
       getClient()
     )
-    if (result.length) return makeSomeRequired(result[0], ['studentPartnerOrg'])
+    if (result.length) return makeSomeOptional(result[0], ['studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -317,7 +317,7 @@ export async function getPartnerOrgByKey(
       client
     )
     return result.length
-      ? makeSomeRequired(result[0], ['siteId', 'siteName', 'schoolId'])
+      ? makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
       : undefined
   } catch (err) {
     throw new RepoReadError(err)
@@ -377,7 +377,7 @@ async function adminUpdateStudentPartnerOrgInstance(
       client
     )
     const activePartnerOrgInstances = activePartnerOrgInstanceResults.map(v =>
-      makeSomeRequired(v, ['schoolId', 'siteName'])
+      makeSomeOptional(v, ['schoolId', 'siteName'])
     )
 
     // students may be involved with a partner org and go to a partner school
@@ -583,7 +583,7 @@ export async function createStudentProfile(
     )
     if (!result.length)
       throw new RepoCreateError('createStudentProfile created 0 rows.')
-    return makeSomeOptional(result[0], ['createdAt', 'updatedAt', 'userId'])
+    return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -669,7 +669,7 @@ export async function createStudent(
     }
 
     if (userResult.length && profileResult.length) {
-      const profile = makeSomeRequired(profileResult[0], [
+      const profile = makeSomeOptional(profileResult[0], [
         'studentPartnerOrg',
         'partnerSite',
         'college',
@@ -762,7 +762,7 @@ export async function getSessionReport(
 
     if (result.length) {
       for (const row of result) {
-        const session = makeSomeRequired(row, [
+        const session = makeSomeOptional(row, [
           'partnerSite',
           'volunteerJoinedAt',
           'sponsorOrg',
@@ -837,7 +837,7 @@ export async function getUsageReport(
 
     if (result.length) {
       for (const row of result) {
-        const session = makeSomeRequired(row, [
+        const session = makeSomeOptional(row, [
           'partnerSite',
           'studentPartnerOrg',
           'school',
@@ -900,7 +900,7 @@ export async function getActivePartnersForStudent(
     )
 
     if (result.length)
-      return result.map(row => makeSomeRequired(row, ['schoolId', 'siteName']))
+      return result.map(row => makeSomeOptional(row, ['schoolId', 'siteName']))
   } catch (err) {
     throw new RepoReadError(err)
   }

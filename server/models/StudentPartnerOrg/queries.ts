@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg'
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   CreateUserStudentPartnerOrgInstancePayload,
@@ -20,7 +20,7 @@ export async function getStudentPartnerOrgForRegistrationByKey(
     )
     if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
-    return makeSomeRequired(result[0], ['sites'])
+    return makeSomeOptional(result[0], ['sites'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -40,7 +40,7 @@ export async function getStudentPartnerOrgByKey(
       tc
     )
     if (result.length) {
-      return makeSomeRequired(result[0], ['siteId', 'siteName', 'schoolId'])
+      return makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -59,7 +59,7 @@ export async function getStudentPartnerOrgBySchoolId(
       tc
     )
     if (result.length) {
-      return makeSomeRequired(result[0], ['siteId', 'siteName', 'schoolId'])
+      return makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -74,7 +74,7 @@ export async function getFullStudentPartnerOrgByKey(key: string) {
     )
     if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
-    return makeSomeRequired(result[0], ['sites'])
+    return makeSomeOptional(result[0], ['sites'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -87,7 +87,7 @@ export async function getStudentPartnerOrgs() {
       getClient()
     )
     const orgs: StudentPartnerOrg[] = result.map(org => {
-      const temp = makeSomeRequired(org, ['sites'])
+      const temp = makeSomeOptional(org, ['sites'])
       return {
         ...temp,
         displayName: temp.name,

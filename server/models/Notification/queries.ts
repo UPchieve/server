@@ -2,7 +2,7 @@ import { Notification } from './types'
 import { RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeSomeRequired, makeRequired } from '../pgUtils'
+import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
 
 export async function getNotificationsByVolunteerId(
   userId: Ulid
@@ -13,7 +13,7 @@ export async function getNotificationsByVolunteerId(
       getClient()
     )
     return result.map(v =>
-      makeSomeRequired(v, ['sentAt', 'messageId', 'wasSuccessful'])
+      makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful'])
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -37,7 +37,7 @@ export async function getSessionNotificationsWithSessionId(
       getClient()
     )
     return result.map(v => {
-      const row: any = makeSomeRequired(v, [
+      const row: any = makeSomeOptional(v, [
         'sentAt',
         'messageId',
         'wasSuccessful',
