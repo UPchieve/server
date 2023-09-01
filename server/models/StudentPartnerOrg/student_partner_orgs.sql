@@ -87,7 +87,8 @@ FROM
             student_partner_orgs_upchieve_instances
         ORDER BY
             student_partner_org_id,
-            created_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id
+            created_at DESC,
+            updated_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id
 WHERE
     KEY = :key!;
 
