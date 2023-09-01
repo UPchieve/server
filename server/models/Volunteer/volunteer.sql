@@ -1248,8 +1248,8 @@ candidates AS (
                 HAVING
                     COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
         LEFT JOIN subjects ON (subjects.name = :subject!)
-        LEFT JOIN users_subject_alerts ON 
-            (users_subject_alerts.user_id = users.id and users_subject_alerts.subject_id = subjects.id)
+        LEFT JOIN users_subject_alerts ON (users_subject_alerts.user_id = users.id
+                AND users_subject_alerts.subject_id = subjects.id)
     WHERE
         test_user IS FALSE
         AND banned IS FALSE
@@ -1262,7 +1262,7 @@ candidates AS (
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
         AND (:subject! = ANY (subjects_unlocked.subjects)
             OR :subject! = ANY (computed_subjects_unlocked.subjects))
-        AND COALESCE(users_subject_alerts.alerts_on, true) = true
+        AND COALESCE(users_subject_alerts.alerts_on, TRUE) = TRUE
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
