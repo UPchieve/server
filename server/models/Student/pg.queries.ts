@@ -1411,3 +1411,88 @@ const getActivePartnersForStudentIR: any = {"name":"getActivePartnersForStudent"
 export const getActivePartnersForStudent = new PreparedQuery<IGetActivePartnersForStudentParams,IGetActivePartnersForStudentResult>(getActivePartnersForStudentIR);
 
 
+/** 'GetStudentsForGradeLevelUpdate' parameters type */
+export interface IGetStudentsForGradeLevelUpdateParams {
+  limit: number;
+  offset: number;
+}
+
+/** 'GetStudentsForGradeLevelUpdate' return type */
+export interface IGetStudentsForGradeLevelUpdateResult {
+  createdAt: Date;
+  gradeLevel: string;
+  userId: string;
+}
+
+/** 'GetStudentsForGradeLevelUpdate' query type */
+export interface IGetStudentsForGradeLevelUpdateQuery {
+  params: IGetStudentsForGradeLevelUpdateParams;
+  result: IGetStudentsForGradeLevelUpdateResult;
+}
+
+const getStudentsForGradeLevelUpdateIR: any = {"name":"getStudentsForGradeLevelUpdate","params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18823,"b":18828,"line":611,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18845,"b":18851,"line":611,"col":30}]}}],"usedParamSet":{"limit":true,"offset":true},"statement":{"body":"SELECT\n    sp.user_id,\n    sp.created_at,\n    gl.name AS grade_level\nFROM\n    student_profiles sp\n    JOIN grade_levels gl ON gl.id = sp.grade_level_id\nWHERE\n    NOT gl.name = ANY ('{\"College\", \"Other\"}')\n    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'\nORDER BY\n    sp.created_at ASC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":18507,"b":18857,"line":599,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sp.user_id,
+ *     sp.created_at,
+ *     gl.name AS grade_level
+ * FROM
+ *     student_profiles sp
+ *     JOIN grade_levels gl ON gl.id = sp.grade_level_id
+ * WHERE
+ *     NOT gl.name = ANY ('{"College", "Other"}')
+ *     AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
+ * ORDER BY
+ *     sp.created_at ASC
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ * ```
+ */
+export const getStudentsForGradeLevelUpdate = new PreparedQuery<IGetStudentsForGradeLevelUpdateParams,IGetStudentsForGradeLevelUpdateResult>(getStudentsForGradeLevelUpdateIR);
+
+
+/** 'UpdateStudentsGradeLevel' parameters type */
+export interface IUpdateStudentsGradeLevelParams {
+  gradeLevel: string;
+  userId: string;
+}
+
+/** 'UpdateStudentsGradeLevel' return type */
+export interface IUpdateStudentsGradeLevelResult {
+  ok: string;
+}
+
+/** 'UpdateStudentsGradeLevel' query type */
+export interface IUpdateStudentsGradeLevelQuery {
+  params: IUpdateStudentsGradeLevelParams;
+  result: IUpdateStudentsGradeLevelResult;
+}
+
+const updateStudentsGradeLevelIR: any = {"name":"updateStudentsGradeLevel","params":[{"name":"gradeLevel","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19099,"b":19109,"line":626,"col":29}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19145,"b":19151,"line":628,"col":15}]}}],"usedParamSet":{"gradeLevel":true,"userId":true},"statement":{"body":"UPDATE\n    student_profiles\nSET\n    grade_level_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        grade_levels.id\n    FROM\n        grade_levels\n    WHERE\n        grade_levels.name = :gradeLevel!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":18899,"b":19179,"line":615,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     student_profiles
+ * SET
+ *     grade_level_id = subquery.id,
+ *     updated_at = NOW()
+ * FROM (
+ *     SELECT
+ *         grade_levels.id
+ *     FROM
+ *         grade_levels
+ *     WHERE
+ *         grade_levels.name = :gradeLevel!) AS subquery
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const updateStudentsGradeLevel = new PreparedQuery<IUpdateStudentsGradeLevelParams,IUpdateStudentsGradeLevelResult>(updateStudentsGradeLevelIR);
+
+

@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
-import { makeSomeRequired } from '../pgUtils'
+import { makeSomeOptional } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { AssociatedPartner, AssociatedPartnersAndSchools } from './types'
 import * as SponsorOrgRepo from '../SponsorOrg/queries'
@@ -13,7 +13,7 @@ export async function getAssociatedPartners(): Promise<AssociatedPartner[]> {
       getClient()
     )
     const orgs: AssociatedPartner[] = result.map(org =>
-      makeSomeRequired(org, [
+      makeSomeOptional(org, [
         'studentPartnerOrg',
         'studentPartnerOrgId',
         'studentOrgDisplay',
@@ -37,7 +37,7 @@ export async function getAssociatedPartnerByKey(
     )
     if (!result.length)
       throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeRequired(result[0], [
+    return makeSomeOptional(result[0], [
       'studentPartnerOrg',
       'studentPartnerOrgId',
       'studentOrgDisplay',
@@ -59,7 +59,7 @@ export async function getAssociatedPartnerByPartnerOrg(
     )
     if (!result.length)
       throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeRequired(result[0], [
+    return makeSomeOptional(result[0], [
       'studentPartnerOrg',
       'studentPartnerOrgId',
       'studentOrgDisplay',
@@ -81,7 +81,7 @@ export async function getAssociatedPartnerBySponsorOrg(
     )
     if (!result.length)
       throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeRequired(result[0], [
+    return makeSomeOptional(result[0], [
       'studentPartnerOrg',
       'studentPartnerOrgId',
       'studentOrgDisplay',
@@ -102,7 +102,7 @@ export async function getAssociatedPartnerByVolunteerPartnerKey(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], [
+      return makeSomeOptional(result[0], [
         'studentPartnerOrg',
         'studentPartnerOrgId',
         'studentOrgDisplay',

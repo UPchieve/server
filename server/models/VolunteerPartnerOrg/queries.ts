@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg'
 import { getClient } from '../../db'
 import { RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeRequired } from '../pgUtils'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   VolunteerPartnerOrg,
@@ -18,7 +18,7 @@ export async function getVolunteerPartnerOrgForRegistrationByKey(
     )
     if (!(result.length && makeRequired(result[0])))
       throw new Error(`no volunteer partner org found with key ${key}`)
-    return makeSomeRequired(result[0], ['domains'])
+    return makeSomeOptional(result[0], ['domains'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -34,7 +34,7 @@ export async function getFullVolunteerPartnerOrgByKey(
     )
     if (!(result.length && makeRequired(result[0])))
       throw new Error(`no volunteer partner org found with key ${key}`)
-    return makeSomeRequired(result[0], ['domains'])
+    return makeSomeOptional(result[0], ['domains'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -49,7 +49,7 @@ export async function getVolunteerPartnerOrgs(): Promise<
       getClient()
     )
     const orgs: VolunteerPartnerOrg[] = result.map(org => {
-      const temp = makeSomeRequired(org, ['domains'])
+      const temp = makeSomeOptional(org, ['domains'])
       return {
         ...temp,
         // TODO: remove reference to display name in frontend

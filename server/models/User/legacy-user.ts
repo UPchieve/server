@@ -1,4 +1,4 @@
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import { GRADES, USER_BAN_REASONS } from '../../constants'
 import {
   Reference,
@@ -76,7 +76,7 @@ export async function getLegacyUserObject(
     const baseResult = await pgQueries.getLegacyUser.run({ userId }, client)
     if (!baseResult.length)
       throw new RepoReadError('Did not find Legacy User object')
-    const baseUser = makeSomeOptional(baseResult[0], [
+    const baseUser = makeSomeRequired(baseResult[0], [
       'id',
       'firstName',
       'firstname',

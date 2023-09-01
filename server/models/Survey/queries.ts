@@ -3,8 +3,8 @@ import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import {
   getDbUlid,
   makeRequired,
-  makeSomeOptional,
   makeSomeRequired,
+  makeSomeOptional,
   Ulid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -165,7 +165,7 @@ export async function getPresessionSurveyDefinition(
       getClient()
     )
     const resultArr = result.map(v =>
-      makeSomeRequired(v, ['responseDisplayImage'])
+      makeSomeOptional(v, ['responseDisplayImage'])
     )
     return formatSurveyDefinition(resultArr)
   } catch (err) {
@@ -184,7 +184,7 @@ export async function getPostsessionSurveyDefinition(
       getClient()
     )
     const replacementColumnsArr = replacementColumns.map(c =>
-      makeSomeOptional(c, ['id'])
+      makeSomeRequired(c, ['id'])
     )
     const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
       { surveyType, sessionId, userRole },
@@ -192,7 +192,7 @@ export async function getPostsessionSurveyDefinition(
     )
 
     const resultArr = surveyDefinitionExceptReplacementColumns.map(v =>
-      makeSomeRequired(v, ['responseDisplayImage'])
+      makeSomeOptional(v, ['responseDisplayImage'])
     )
     return formatSurveyDefinition(resultArr, replacementColumnsArr)
   } catch (err) {
@@ -299,7 +299,7 @@ export async function getPresessionSurveyResponse(
       getClient()
     )
     if (result.length)
-      return result.map(row => makeSomeRequired(row, ['displayImage']))
+      return result.map(row => makeSomeOptional(row, ['displayImage']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -326,7 +326,7 @@ export async function getPostsessionSurveyResponse(
         getClient()
       )
       if (result.length)
-        return result.map(row => makeSomeRequired(row, ['response']))
+        return result.map(row => makeSomeOptional(row, ['response']))
       return []
     } else {
       const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
@@ -334,7 +334,7 @@ export async function getPostsessionSurveyResponse(
         getClient()
       )
       if (result.length)
-        return result.map(row => makeSomeRequired(row, ['response']))
+        return result.map(row => makeSomeOptional(row, ['response']))
       return []
     }
   } catch (err) {

@@ -2,8 +2,8 @@ import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
-  makeSomeRequired,
   makeSomeOptional,
+  makeSomeRequired,
   Ulid,
   Pgid,
   getDbUlid,
@@ -42,7 +42,7 @@ export async function createUser(
       tc
     )
     if (!result.length) throw new RepoCreateError('createUser returned 0 rows.')
-    return makeSomeRequired(result[0], ['proxyEmail'])
+    return makeSomeOptional(result[0], ['proxyEmail'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -110,7 +110,7 @@ export async function getUserContactInfoById(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], [
+      const ret = makeSomeOptional(result[0], [
         'volunteerPartnerOrg',
         'studentPartnerOrg',
         'approved',
@@ -134,7 +134,7 @@ export async function getUserContactInfoByReferralCode(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], [
+      const ret = makeSomeOptional(result[0], [
         'volunteerPartnerOrg',
         'studentPartnerOrg',
         'approved',
@@ -179,7 +179,7 @@ export async function getUserForPassport(
       getClient()
     )
     if (result.length)
-      return makeSomeRequired(result[0], ['password', 'proxyEmail'])
+      return makeSomeOptional(result[0], ['password', 'proxyEmail'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -195,7 +195,7 @@ export async function getUserContactInfoByResetToken(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeRequired(result[0], [
+      const ret = makeSomeOptional(result[0], [
         'volunteerPartnerOrg',
         'studentPartnerOrg',
         'approved',
@@ -406,7 +406,7 @@ export async function getPastSessionsForAdminDetail(
       client
     )
     return result.map(v => {
-      const temp = makeSomeRequired(v, [
+      const temp = makeSomeOptional(v, [
         'volunteer',
         'volunteerJoinedAt',
         'endedAt',
@@ -436,7 +436,7 @@ export async function getUserForAdminDetail(
       { userId },
       client
     )
-    const user = makeSomeOptional(userResult[0], [
+    const user = makeSomeRequired(userResult[0], [
       'id',
       'createdAt',
       'email',
@@ -509,6 +509,7 @@ export type UserForCreateSendGridContact = UserContactInfo & {
   volunteerPartnerOrg?: string
   studentPartnerOrgDisplay?: string
   volunteerPartnerOrgDisplay?: string
+  studentGradeLevel?: string
 }
 export async function getUserToCreateSendGridContact(
   userId: Ulid
@@ -519,13 +520,14 @@ export async function getUserToCreateSendGridContact(
       getClient()
     )
     if (!result.length) throw new RepoReadError('User not found')
-    return makeSomeRequired(result[0], [
+    return makeSomeOptional(result[0], [
       'studentPartnerOrg',
       'volunteerPartnerOrg',
       'studentPartnerOrgDisplay',
       'volunteerPartnerOrgDisplay',
       'passedUpchieve101',
       'lastActivityAt',
+      'studentGradeLevel',
     ])
   } catch (err) {
     throw new RepoReadError(err)
