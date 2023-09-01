@@ -148,6 +148,21 @@ export async function getUserContactInfoByReferralCode(
   }
 }
 
+export async function getUserReferralLink(
+  id: Ulid
+): Promise<
+  { firstName: string; email: string; referralCode: string } | undefined
+> {
+  try {
+    const result = await pgQueries.getUserReferralLink.run({ id }, getClient())
+    if (result.length) {
+      return makeRequired(result[0])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type PassportUser = {
   id: Ulid
   email: string

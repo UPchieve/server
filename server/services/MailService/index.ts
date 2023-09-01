@@ -1183,6 +1183,23 @@ export async function sendRosterStudentSetPasswordEmail(
   )
 }
 
+export async function sendReferralProgramEmail(
+  email: string,
+  studentFirstName: string,
+  referralLink: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.referralProgramTemplate,
+    {
+      firstName: studentFirstName,
+      referralLink,
+    }
+  )
+}
+
 export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
   const customFields = {

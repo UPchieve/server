@@ -97,6 +97,17 @@ WHERE
 LIMIT 1;
 
 
+/* @name getUserReferralLink */
+SELECT
+    first_name,
+    email,
+    referral_code
+FROM
+    users
+WHERE
+    id = :id!;
+
+
 /* @name getUserForPassport */
 SELECT
     id,
