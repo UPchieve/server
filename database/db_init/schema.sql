@@ -1929,6 +1929,19 @@ CREATE TABLE upchieve.users_student_partner_orgs_instances (
 
 
 --
+-- Name: users_subject_alerts; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_subject_alerts (
+    user_id uuid NOT NULL,
+    subject_id integer NOT NULL,
+    alerts_on boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: volunteer_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3304,6 +3317,14 @@ ALTER TABLE ONLY upchieve.users_roles
 
 
 --
+-- Name: users_subject_alerts users_subject_alerts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_subject_alerts
+    ADD CONSTRAINT users_subject_alerts_pkey PRIMARY KEY (user_id, subject_id);
+
+
+--
 -- Name: users_surveys users_surveys_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4409,6 +4430,22 @@ ALTER TABLE ONLY upchieve.users_student_partner_orgs_instances
 
 
 --
+-- Name: users_subject_alerts users_subject_alerts_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_subject_alerts
+    ADD CONSTRAINT users_subject_alerts_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: users_subject_alerts users_subject_alerts_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_subject_alerts
+    ADD CONSTRAINT users_subject_alerts_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: users_surveys users_surveys_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4706,4 +4743,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20230621173400'),
     ('20230626161133'),
     ('20230706181722'),
-    ('20230719205740');
+    ('20230719205740'),
+    ('20230825155555');

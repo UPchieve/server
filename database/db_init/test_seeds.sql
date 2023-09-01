@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
--- Dumped by pg_dump version 14.7 (Homebrew)
+-- Dumped from database version 14.6 (Debian 14.6-1.pgdg110+1)
+-- Dumped by pg_dump version 14.9 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3596,6 +3596,14 @@ COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org
 01859800-be4b-2870-ad8c-abecfd5c403f	01859800-bbed-150a-2f52-f0856c633b63	\N	\N	2023-01-09 19:27:43.737858+00	2023-01-09 19:27:43.744478+00	\N
 01859800-be4b-1beb-2b3a-3d26cdb90435	01859800-bbed-b3e3-f1db-a8e79e57e498	\N	\N	2023-01-09 19:27:43.740467+00	2023-01-09 19:27:43.744478+00	\N
 01859800-be4b-2870-ad8c-abecfd5c403f	01859800-bc97-8891-3437-c4a01ae9d271	\N	\N	2023-01-09 19:27:43.737858+00	2023-01-09 19:27:43.746675+00	\N
+\.
+
+
+--
+-- Data for Name: users_subject_alerts; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_subject_alerts (user_id, subject_id, alerts_on, created_at, updated_at) FROM stdin;
 \.
 
 
