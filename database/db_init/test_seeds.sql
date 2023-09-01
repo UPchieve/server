@@ -3517,6 +3517,7 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 01859800-bca8-9c76-e3ad-ce3108a3236f	11	2023-01-09 19:27:43.603862+00	2023-01-09 19:27:43.603862+00
 01859800-bca8-9c76-e3ad-ce3108a3236f	19	2023-01-09 19:27:43.608806+00	2023-01-09 19:27:43.608806+00
 01859800-bca8-9c76-e3ad-ce3108a3236f	18	2023-01-09 19:27:43.613271+00	2023-01-09 19:27:43.613271+00
+01859800-bca8-af9e-8f1d-815bf6891cf5	23	2023-09-01 17:23:27.108993+00	2023-09-01 17:23:27.108993+00
 \.
 
 
@@ -3604,6 +3605,8 @@ COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org
 --
 
 COPY upchieve.users_subject_alerts (user_id, subject_id, alerts_on, created_at, updated_at) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	2	f	2023-09-01 17:22:06.804588+00	2023-09-01 17:22:06.804588+00
+01859800-bca8-af9e-8f1d-815bf6891cf5	4	f	2023-09-01 17:22:12.804997+00	2023-09-01 17:22:12.804997+00
 \.
 
 
