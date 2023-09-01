@@ -30,14 +30,20 @@ SELECT
     :surveyTypeId!,
     NOW(),
     NOW()
-RETURNING
-    id,
-    survey_id,
+ON CONFLICT (survey_id,
     user_id,
     session_id,
-    survey_type_id,
-    created_at,
-    updated_at;
+    survey_type_id)
+    DO UPDATE SET
+        updated_at = NOW()
+    RETURNING
+        id,
+        survey_id,
+        user_id,
+        session_id,
+        survey_type_id,
+        created_at,
+        updated_at;
 
 
 /* @name saveUserSurveySubmissions */
