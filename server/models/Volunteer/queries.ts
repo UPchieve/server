@@ -846,31 +846,36 @@ export async function updateVolunteerProfileById(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+    // Get subject name to id mapping
     let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
       undefined,
       getClient()
     )
     if (!subjectNameIdMappingResult.length)
       throw new RepoUpdateError('Select query did not return ok')
+    subjectNameIdMappingResult.map(v => makeRequired(v))
     let subjectNameIdMapping: SubjectNameIdMapping = {}
-    for (let subjectNameAndId of subjectNameIdMappingResult) {
+    for (const subjectNameAndId of subjectNameIdMappingResult) {
       subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
     }
-    for (const [subjectName, alertsOn] of Object.entries(
+    // Upsert subject alerts
+    let subjectAlertsUpsertData = new Array()
+    for (const [subjectName, alerts_on] of Object.entries(
       subjectAlerts as SubjectAlerts
     )) {
-      let subjectId = subjectNameIdMapping[subjectName]
-      let subjectAlertsResult = await pgQueries.updateVolunteerProfileSubjectAlertById.run(
-        {
-          userId,
-          subjectId,
-          alertsOn,
-        },
-        getClient()
-      )
-      if (!subjectAlertsResult.length) {
-        throw new RepoUpdateError('Upsert query did not return ok')
-      }
+      subjectAlertsUpsertData.push({
+        user_id: userId,
+        subject_id: subjectNameIdMapping[subjectName],
+        alerts_on,
+      })
+    }
+    //
+    let subjectAlertsResult = await pgQueries.updateVolunteerProfileSubjectAlerts.run(
+      { subjectAlerts: subjectAlertsUpsertData },
+      getClient()
+    )
+    if (!subjectAlertsResult.length) {
+      throw new RepoUpdateError('Upsert query did not return ok')
     }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
