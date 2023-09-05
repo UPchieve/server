@@ -588,12 +588,12 @@ RETURNING
 
 /* @name updateVolunteerProfileSubjectAlertById */
 INSERT INTO users_subject_alerts (user_id, subject_id, alerts_on)
-    VALUES (:userId!, :subjectId, :alertsOn!)
+    VALUES (:userId!, :subjectId!, :alertsOn!)
 ON CONFLICT ON CONSTRAINT users_subject_alerts_pkey
     DO UPDATE SET
-        alerts_on = :alertsOn!, updated_at = NOW()
+        alerts_on = :alertsOn, updated_at = NOW()
     WHERE
-        users_subject_alerts.user_id = :userId!
+        users_subject_alerts.user_id = :userId
         AND users_subject_alerts.subject_id = :subjectId
     RETURNING
         user_id AS ok;
@@ -1262,7 +1262,9 @@ candidates AS (
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
         AND (:subject! = ANY (subjects_unlocked.subjects)
             OR :subject! = ANY (computed_subjects_unlocked.subjects))
-        AND COALESCE(users_subject_alerts.alerts_on, TRUE) = TRUE
+        -- user has not turned off subject alerts for :subject
+        -- null values should correspond to never-toggled subject alerts, which are on by default
+        AND COALESCE(users_subject_alerts.alerts_on, TRUE) is TRUE
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
