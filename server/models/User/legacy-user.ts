@@ -119,7 +119,7 @@ export async function getLegacyUserObject(
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
-      // We assume each subject alert is on unless present in `mutedSubjectAlerts`
+      // We assume subject alerts are on unless present in `mutedSubjectAlerts`
       let subjectAlerts: SubjectAlerts = {}
       for (let s of baseUser.subjects) {
         if (baseUser.mutedSubjectAlerts.includes(s)) subjectAlerts[s] = false

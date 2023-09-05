@@ -471,7 +471,7 @@ SELECT
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
     users_roles.role_id,
-    subject_alerts_toggled.muted_subject_alerts
+    muted_subject_alerts_t.muted_subject_alerts
 FROM
     users
     LEFT JOIN (
@@ -590,7 +590,7 @@ FROM
             JOIN subjects ON users_subject_alerts.subject_id = subjects.id
         WHERE
             users_subject_alerts.user_id = :userId!
-            AND users_subject_alerts.alerts_on = FALSE) AS subject_alerts_toggled ON TRUE
+            AND users_subject_alerts.alerts_on IS FALSE) AS muted_subject_alerts_t ON TRUE
 WHERE
     users.id = :userId!;
 
