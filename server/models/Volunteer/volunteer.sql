@@ -1264,7 +1264,7 @@ candidates AS (
             OR :subject! = ANY (computed_subjects_unlocked.subjects))
         -- user has not turned off subject alerts for :subject
         -- null values should correspond to never-toggled subject alerts, which are on by default
-        AND COALESCE(users_subject_alerts.alerts_on, TRUE) is TRUE
+        AND COALESCE(users_subject_alerts.alerts_on, TRUE) IS TRUE
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
