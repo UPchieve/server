@@ -16,7 +16,7 @@ services:
             - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/c.sql
             - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/d.sql
         healthcheck:
-            test: ["pg_isready", "-h", "postgres"]
+            test: ["CMD", "pg_isready", "-h", "postgres"]
             interval: 1m30s
             timeout: 30s
             retries: 5

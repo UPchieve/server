@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
--- Dumped by pg_dump version 14.7 (Homebrew)
+-- Dumped by pg_dump version 14.9 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -88,9 +88,9 @@ COPY upchieve.topics (id, name, icon_link, color, dashboard_order, display_name,
 1	math	https://cdn.upchieve.org/site-images/topic-icons/math.svg	#E398E4	1	Math	2023-01-09 19:27:36.783036+00	2023-01-09 19:27:39.66001+00	1
 2	science	https://cdn.upchieve.org/site-images/topic-icons/science.svg	#9675CE	3	Science	2023-01-09 19:27:36.785129+00	2023-01-09 19:27:39.66001+00	2
 3	college	https://cdn.upchieve.org/site-images/topic-icons/college.svg	#F1C026	5	College Counseling	2023-01-09 19:27:36.787033+00	2023-01-09 19:27:39.66001+00	5
-4	sat	https://cdn.upchieve.org/site-images/topic-icons/sat.svg	#54DEFD	6	Standardized Testing	2023-01-09 19:27:36.788917+00	2023-01-09 19:27:39.66001+00	6
 5	readingWriting	https://cdn.upchieve.org/site-images/topic-icons/english.svg	#1855D1	2	English	2023-01-09 19:27:36.79074+00	2023-01-09 19:27:39.66001+00	3
 6	socialStudies	https://cdn.upchieve.org/site-images/topic-icons/social-studies.svg	#593C33	4	Social Studies	2023-01-09 19:27:39.310328+00	2023-01-09 19:27:39.66001+00	4
+4	sat	https://cdn.upchieve.org/site-images/topic-icons/sat.svg	#54DEFD	6	SAT & ACT Prep	2023-01-09 19:27:36.788917+00	2023-01-09 19:27:39.66001+00	6
 \.
 
 
