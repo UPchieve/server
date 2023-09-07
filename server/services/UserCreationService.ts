@@ -16,7 +16,11 @@ import * as SignUpSourceRepo from '../models/SignUpSource'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES_TYPE } from '../constants/user'
 import { STUDENT_EVENTS, USER_EVENTS, USER_ROLES } from '../constants'
 import { emitter } from './EventsService'
-import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
+import {
+  getStudentPartnerOrgByKey,
+  GetStudentPartnerOrgResult,
+} from '../models/StudentPartnerOrg'
+import { insertFederatedCredential } from '../models/FederatedCredential'
 
 export interface RosterStudentPayload {
   email: string
@@ -25,6 +29,16 @@ export interface RosterStudentPayload {
   lastName: string
   password?: string
   proxyEmail?: string
+}
+export interface CreateStudentFedCredPayload {
+  email: string
+  firstName: string
+  gradeLevel?: string
+  lastName: string
+  schoolId?: string
+  studentPartnerOrg?: string
+  profileId: string
+  issuer: string
 }
 
 export async function rosterPartnerStudents(
@@ -108,6 +122,36 @@ export async function rosterPartnerStudents(
   }
 
   return failedUsers
+}
+
+export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
+  await runInTransaction(async (tc: TransactionClient) => {
+    const hasFederatedCredential = !!data.profileId && !!data.issuer
+
+    const userData = {
+      email: data.email,
+      emailVerified: hasFederatedCredential,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      verified: hasFederatedCredential,
+    }
+    const user = await createUser(userData, USER_ROLES.STUDENT, tc)
+
+    if (!data.studentPartnerOrg) {
+      throw new Error('Student Partner Org key unexpectedly null.')
+    }
+    const spo = await getStudentPartnerOrgByKey(tc, data.studentPartnerOrg)
+    const studentData = {
+      userId: user.id,
+      studentPartnerOrg: data.studentPartnerOrg,
+      schoolId: spo?.schoolId,
+    }
+    await createStudent(studentData, tc)
+
+    if (hasFederatedCredential) {
+      await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
+    }
+  })
 }
 
 async function createUser(

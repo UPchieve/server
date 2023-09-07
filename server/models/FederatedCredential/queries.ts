@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { makeRequired, Ulid } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
@@ -21,12 +21,13 @@ export async function getFederatedCredential(id: string, issuer: string) {
 export async function insertFederatedCredential(
   id: string,
   issuer: string,
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ) {
   try {
     await pgQueries.insertFederatedCredential.run(
       { id, issuer, userId },
-      getClient()
+      tc ?? getClient()
     )
   } catch (err) {
     throw new RepoUpdateError(err)
