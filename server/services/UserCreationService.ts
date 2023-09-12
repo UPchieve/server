@@ -125,6 +125,7 @@ export async function rosterPartnerStudents(
 }
 
 export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
+  let user
   await runInTransaction(async (tc: TransactionClient) => {
     if (!data.studentPartnerOrg) {
       throw new Error('Student Partner Org key unexpectedly null.')
@@ -139,7 +140,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
       lastName: data.lastName,
       verified: hasFederatedCredential,
     }
-    const user = await createUser(userData, USER_ROLES.STUDENT, tc)
+    user = await createUser(userData, USER_ROLES.STUDENT, tc)
 
     const spo = await getStudentPartnerOrgByKey(tc, data.studentPartnerOrg)
     const studentData = {
@@ -153,6 +154,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
       await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
     }
   })
+  return user
 }
 
 async function createUser(
