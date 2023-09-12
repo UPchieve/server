@@ -938,6 +938,7 @@ FROM
 WHERE
     sessions.created_at >= :start!
     AND sessions.created_at <= :end!
+    AND sessions.ended_at IS NOT NULL
     AND sessions.volunteer_id = :volunteerId!
     AND users.test_user = FALSE;
 
