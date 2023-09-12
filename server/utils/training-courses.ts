@@ -644,6 +644,15 @@ export const courses: TrainingCourse[] = [
         name: 'Coaching on UPchieve',
         materials: [
           {
+            name: 'Using Our Platform',
+            materialKey: '212h45',
+            type: MaterialType.VIDEO,
+            isRequired: true,
+            resourceId: '797113791',
+            videoPDF:
+              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/using-our-platform-deck-v2.pdf',
+          },
+          {
             name: 'Implementing Effective Coaching Strategies',
             materialKey: '7b6a76',
             type: MaterialType.VIDEO,
