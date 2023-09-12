@@ -43,15 +43,34 @@ class GoogleAuthRedirect {
     errMsg?: string
   ) {
     const params = new URLSearchParams({
-      email: studentData.email,
-      highSchoolId: studentData.highSchoolId,
-      zipCode: studentData.zipCode,
-      currentGrade: studentData.currentGrade,
+      error: errMsg ?? '',
     })
-    if (errMsg) {
-      params.append('error', errMsg)
+    if (studentData.email) {
+      params.append('email', studentData.email)
+    }
+    if (studentData.highSchoolId) {
+      params.append('highSchoolId', studentData.highSchoolId)
+    }
+    if (studentData.zipCode) {
+      params.append('zipCode', studentData.zipCode)
+    }
+    if (studentData.currentGrade) {
+      params.append('currentGrade', studentData.currentGrade)
     }
     return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
+  }
+
+  static registerPartnerStudentFailureRedirect(
+    studentData: StudentDataParams,
+    errMsg?: string
+  ) {
+    const params = new URLSearchParams({
+      sso: 'google',
+      error: errMsg ?? '',
+    })
+    return `${this.getBaseRedirect()}/signup/student/${
+      studentData.studentPartnerOrg
+    }?${params.toString()}`
   }
 }
 
@@ -98,7 +117,6 @@ export function routes(app: Express) {
     ;(req.session as any).studentData.ip = req.ip
     passport.authenticate('google-register-student')(req, res)
   })
-
   router
     .route('/oauth2/redirect/google/register/student')
     .get(function(req, res) {
@@ -115,6 +133,34 @@ export function routes(app: Express) {
         } else {
           res.redirect(
             GoogleAuthRedirect.registerFailureRedirect(studentData, info)
+          )
+        }
+      })(req, res)
+    })
+
+  router.route('/register/google/partner-student').get(function(req, res) {
+    ;(req.session as any).studentData = req.query
+    passport.authenticate('google-register-partner-student')(req, res)
+  })
+  router
+    .route('/oauth2/redirect/google/register/partner-student')
+    .get(function(req, res) {
+      passport.authenticate('google-register-partner-student', async function(
+        _err,
+        user,
+        info
+      ) {
+        const studentData = (req.session as any).studentData
+        delete (req.session as any).studentData
+        if (user) {
+          res.redirect(GoogleAuthRedirect.successRedirect)
+          await req.asyncLogin(user)
+        } else {
+          res.redirect(
+            GoogleAuthRedirect.registerPartnerStudentFailureRedirect(
+              studentData,
+              info
+            )
           )
         }
       })(req, res)
