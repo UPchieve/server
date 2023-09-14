@@ -1443,6 +1443,14 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: muted_users_subject_alerts; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.muted_users_subject_alerts (user_id, subject_id, created_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: notification_methods; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
