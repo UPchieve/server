@@ -3601,14 +3601,6 @@ COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org
 
 
 --
--- Data for Name: users_subject_alerts; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.users_subject_alerts (user_id, subject_id, alerts_on, created_at, updated_at) FROM stdin;
-\.
-
-
---
 -- Data for Name: users_surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
