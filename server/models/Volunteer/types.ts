@@ -75,7 +75,3 @@ export type VolunteersForAnalyticsReport = {
   totalSessions: number
   totalSessionsWithinRange: number
 } & UniqueStudentsHelped
-
-export type SubjectAlerts = {
-  [subject: string]: boolean
-}

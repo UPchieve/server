@@ -482,7 +482,7 @@ SELECT
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
     users_roles.role_id,
-    muted_subject_alerts_t.muted_subject_alerts
+    muted_users_subject_alerts_agg.muted_subject_alerts
 FROM
     users
     LEFT JOIN (
@@ -597,11 +597,10 @@ FROM
         SELECT
             array_agg(subjects.name) AS muted_subject_alerts
         FROM
-            users_subject_alerts
-            JOIN subjects ON users_subject_alerts.subject_id = subjects.id
+            muted_users_subject_alerts
+            JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
         WHERE
-            users_subject_alerts.user_id = :userId!
-            AND users_subject_alerts.alerts_on IS FALSE) AS muted_subject_alerts_t ON TRUE
+            muted_users_subject_alerts.user_id = :userId!) AS muted_users_subject_alerts_agg ON TRUE
 WHERE
     users.id = :userId!;
 

@@ -11,7 +11,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Quizzes, SubjectAlerts, VolunteersForAnalyticsReport } from './types'
+import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
@@ -21,7 +21,6 @@ import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId } from '../User'
-import { SubjectNameIdMapping } from '../Subjects'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -833,7 +832,7 @@ export async function updateVolunteerProfileById(
   userId: Ulid,
   deactivated?: boolean,
   phone?: string,
-  subjectAlerts?: SubjectAlerts
+  mutedSubjectAlerts?: string[]
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerProfileById.run(
@@ -846,36 +845,46 @@ export async function updateVolunteerProfileById(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
-    // Get subject name to id mapping
-    let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
-      undefined,
-      getClient()
-    )
-    if (!subjectNameIdMappingResult.length)
-      throw new RepoUpdateError('Select query did not return ok')
-    subjectNameIdMappingResult.map(v => makeRequired(v))
-    let subjectNameIdMapping: SubjectNameIdMapping = {}
-    for (const subjectNameAndId of subjectNameIdMappingResult) {
-      subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
-    }
-    // Upsert subject alerts
-    let subjectAlertsUpsertData = new Array()
-    for (const [subjectName, alerts_on] of Object.entries(
-      subjectAlerts as SubjectAlerts
-    )) {
-      subjectAlertsUpsertData.push({
-        user_id: userId,
-        subject_id: subjectNameIdMapping[subjectName],
-        alerts_on,
-      })
-    }
-    //
-    let subjectAlertsResult = await pgQueries.updateVolunteerProfileSubjectAlerts.run(
-      { subjectAlerts: subjectAlertsUpsertData },
-      getClient()
-    )
-    if (!subjectAlertsResult.length) {
-      throw new RepoUpdateError('Upsert query did not return ok')
+
+    if (mutedSubjectAlerts) {
+      if (mutedSubjectAlerts.length == 0) {
+        await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
+      } else {
+        // Create subject name to id mapping
+        let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
+          undefined,
+          getClient()
+        )
+        if (!subjectNameIdMappingResult.length)
+          throw new RepoUpdateError(
+            'Select query did not return ok (subjectNameIdMappingResult)'
+          )
+        subjectNameIdMappingResult.map(v => makeRequired(v))
+        let subjectNameIdMapping: { [name: string]: number } = {}
+        for (const subjectNameAndId of subjectNameIdMappingResult) {
+          subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
+        }
+        // Update muted subject alerts
+        let mutedSubjectAlertIds = new Array()
+        for (const subjectName of mutedSubjectAlerts) {
+          mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
+        }
+        let mutedSubjectAlertIdsWithUserId: {
+          userId: Ulid
+          subjectId: number
+        }[] = []
+        mutedSubjectAlertIds.forEach(subjectId =>
+          mutedSubjectAlertIdsWithUserId.push({ userId, subjectId })
+        )
+        await pgQueries.insertMutedUserSubjectAlerts.run(
+          { mutedSubjectAlertIdsWithUserId },
+          getClient()
+        )
+        await pgQueries.deleteUnmutedUserSubjectAlerts.run(
+          { userId, mutedSubjectAlertIds },
+          getClient()
+        )
+      }
     }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err

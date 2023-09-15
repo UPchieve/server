@@ -587,17 +587,36 @@ RETURNING
 
 
 /* 
- @name updateVolunteerProfileSubjectAlerts 
- @param subjectAlerts -> ((user_id, subject_id, alerts_on)...)
+ @name insertMutedUserSubjectAlerts
+ @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
  */
-INSERT INTO users_subject_alerts (user_id, subject_id, alerts_on)
+INSERT INTO muted_users_subject_alerts (user_id, subject_id)
     VALUES
-        :subjectAlerts
+        :mutedSubjectAlertIdsWithUserId
     ON CONFLICT (user_id, subject_id)
-        DO UPDATE SET
-            alerts_on = excluded.alerts_on, updated_at = NOW()
-        RETURNING
-            user_id AS ok;
+        DO NOTHING
+    RETURNING
+        user_id AS ok;
+
+
+/* 
+ @name deleteUnmutedUserSubjectAlerts
+ @param mutedSubjectAlertIds -> (...)
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+    AND subject_id NOT IN :mutedSubjectAlertIds
+RETURNING
+    user_id AS ok;
+
+
+/* 
+ @name deleteAllUserSubjectAlerts
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+RETURNING
+    user_id AS ok;
 
 
 /* @name getSubjectNameIdMapping */
@@ -1249,8 +1268,8 @@ candidates AS (
                 HAVING
                     COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
         LEFT JOIN subjects ON (subjects.name = :subject!)
-        LEFT JOIN users_subject_alerts ON (users_subject_alerts.user_id = users.id
-                AND users_subject_alerts.subject_id = subjects.id)
+        LEFT JOIN muted_users_subject_alerts ON (muted_users_subject_alerts.user_id = users.id
+                AND muted_users_subject_alerts.subject_id = subjects.id)
     WHERE
         test_user IS FALSE
         AND banned IS FALSE
@@ -1263,9 +1282,8 @@ candidates AS (
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
         AND (:subject! = ANY (subjects_unlocked.subjects)
             OR :subject! = ANY (computed_subjects_unlocked.subjects))
-        -- user has not turned off subject alerts for :subject
-        -- null values should correspond to never-toggled subject alerts, which are on by default
-        AND COALESCE(users_subject_alerts.alerts_on, TRUE) IS TRUE
+        -- user has not muted :subject alerts
+        AND muted_users_subject_alerts.subject_id IS NULL
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)

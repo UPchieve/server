@@ -3,7 +3,6 @@ import { GRADES, USER_BAN_REASONS } from '../../constants'
 import {
   Certifications,
   Reference,
-  SubjectAlerts,
   TrainingCourses,
   getVolunteerTrainingCourses,
   getActiveQuizzesForVolunteers,
@@ -52,7 +51,6 @@ export type LegacyUserModel = {
   subjects?: string[]
   activeSubjects?: string[]
   mutedSubjectAlerts?: string[]
-  subjectAlerts?: SubjectAlerts
   totalActiveCertifications: number
   availability?: Availability
   certifications?: Certifications
@@ -119,14 +117,6 @@ export async function getLegacyUserObject(
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
-      // We assume subject alerts are on unless present in `mutedSubjectAlerts`
-      let subjectAlerts: SubjectAlerts = {}
-      for (let s of baseUser.subjects) {
-        if (baseUser.mutedSubjectAlerts.includes(s)) subjectAlerts[s] = false
-        else subjectAlerts[s] = true
-      }
-      volunteerUser.subjectAlerts = subjectAlerts
-      delete baseUser.mutedSubjectAlerts
       volunteerUser.availability = await getAvailabilityForVolunteer(
         userId,
         client
