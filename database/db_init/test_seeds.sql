@@ -3441,16 +3441,16 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	f	f	f	f	f	f	2023-01-09 19:27:43.302035+00	2023-01-09 19:27:43.302035+00	f
-01859800-bca8-f256-6fe1-596e028d34b1	f	f	f	f	f	f	2023-01-09 19:27:43.311133+00	2023-01-09 19:27:43.311133+00	f
-01859800-bca8-9c76-e3ad-ce3108a3236f	f	f	f	f	f	f	2023-01-09 19:27:43.319934+00	2023-01-09 19:27:43.319934+00	f
-01859800-bca8-2755-4f95-dde7cc391a3c	f	f	f	f	f	f	2023-01-09 19:27:43.332937+00	2023-01-09 19:27:43.332937+00	f
-01859800-bca8-2d88-e7b0-6d9beae2fec0	f	f	f	f	f	f	2023-01-09 19:27:43.343098+00	2023-01-09 19:27:43.343098+00	f
-01859800-bca8-de0f-c4cb-cfc0d5298eb7	f	f	f	f	f	f	2023-01-09 19:27:43.354017+00	2023-01-09 19:27:43.354017+00	f
-01859800-be4b-685f-4130-8709193d461c	f	f	f	f	f	f	2023-01-09 19:27:43.718253+00	2023-01-09 19:27:43.718253+00	f
-01859800-be4b-2870-ad8c-abecfd5c403f	f	f	f	f	f	f	2023-01-09 19:27:43.726659+00	2023-01-09 19:27:43.726659+00	f
-01859800-be4b-1beb-2b3a-3d26cdb90435	f	f	f	f	f	f	2023-01-09 19:27:43.733209+00	2023-01-09 19:27:43.733209+00	f
+COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	f	f	f	f	f	f	2023-01-09 19:27:43.302035+00	2023-01-09 19:27:43.302035+00	f	f
+01859800-bca8-f256-6fe1-596e028d34b1	f	f	f	f	f	f	2023-01-09 19:27:43.311133+00	2023-01-09 19:27:43.311133+00	f	f
+01859800-bca8-9c76-e3ad-ce3108a3236f	f	f	f	f	f	f	2023-01-09 19:27:43.319934+00	2023-01-09 19:27:43.319934+00	f	f
+01859800-bca8-2755-4f95-dde7cc391a3c	f	f	f	f	f	f	2023-01-09 19:27:43.332937+00	2023-01-09 19:27:43.332937+00	f	f
+01859800-bca8-2d88-e7b0-6d9beae2fec0	f	f	f	f	f	f	2023-01-09 19:27:43.343098+00	2023-01-09 19:27:43.343098+00	f	f
+01859800-bca8-de0f-c4cb-cfc0d5298eb7	f	f	f	f	f	f	2023-01-09 19:27:43.354017+00	2023-01-09 19:27:43.354017+00	f	f
+01859800-be4b-685f-4130-8709193d461c	f	f	f	f	f	f	2023-01-09 19:27:43.718253+00	2023-01-09 19:27:43.718253+00	f	f
+01859800-be4b-2870-ad8c-abecfd5c403f	f	f	f	f	f	f	2023-01-09 19:27:43.726659+00	2023-01-09 19:27:43.726659+00	f	f
+01859800-be4b-1beb-2b3a-3d26cdb90435	f	f	f	f	f	f	2023-01-09 19:27:43.733209+00	2023-01-09 19:27:43.733209+00	f	f
 \.
 
 
