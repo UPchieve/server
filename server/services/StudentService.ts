@@ -154,7 +154,7 @@ export const queueProcrastinationTextReminder = async (
     Jobs.StudentProcrastinationTextReminder,
     { userId: studentId },
     {
-      delay: diffInMilliseconds,
+      delay: 1000,
       removeOnComplete: true,
       removeOnFail: true,
     }
