@@ -5,7 +5,7 @@ import { captureEvent } from '../../services/AnalyticsService'
 import * as TwilioService from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 
-type ProcrastinationTextReminderJob = {
+export type ProcrastinationTextReminderJob = {
   userId: string
 }
 
@@ -32,7 +32,7 @@ export default async (
       )
   } catch (error) {
     throw new Error(
-      `Failed to send reminder text to student: ${user.id}. Error: ${error}`
+      `Failed to send procrastination reminder text to student: ${user.id}. Error: ${error}`
     )
   }
 }
