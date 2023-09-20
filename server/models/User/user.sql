@@ -49,7 +49,8 @@ SELECT
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
     deactivated,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    users.phone
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -84,7 +85,8 @@ SELECT
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
     deactivated,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    users.phone
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -143,7 +145,8 @@ SELECT
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
     deactivated,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    users.phone
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -246,6 +249,18 @@ SET
     phone = :phone!,
     phone_verified = TRUE,
     verified = TRUE,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name updateUserPhoneNumberByUserId */
+UPDATE
+    users
+SET
+    phone = :phone!,
     updated_at = NOW()
 WHERE
     id = :userId!
