@@ -159,4 +159,11 @@ export const queueProcrastinationTextReminder = async (
       removeOnFail: true,
     }
   )
+  AnalyticsService.captureEvent(
+    studentId,
+    EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_QUEUED,
+    {
+      event: EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_QUEUED,
+    }
+  )
 }

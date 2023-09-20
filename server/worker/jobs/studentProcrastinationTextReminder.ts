@@ -1,5 +1,7 @@
 import { Job } from 'bull'
+import { EVENTS } from '../../constants'
 import { getUserContactInfoById } from '../../models/User'
+import { captureEvent } from '../../services/AnalyticsService'
 import * as TwilioService from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 
@@ -15,11 +17,19 @@ export default async (
   if (!user || !user.phone) return
 
   try {
-    await TwilioService.sendProcrastinationTextReminder(
+    const messageId = await TwilioService.sendProcrastinationTextReminder(
       user.id,
       user.firstName,
       user.phone
     )
+    if (messageId)
+      captureEvent(
+        user.id,
+        EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_SENT,
+        {
+          event: EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_SENT,
+        }
+      )
   } catch (error) {
     throw new Error(
       `Failed to send reminder text to student: ${user.id}. Error: ${error}`
