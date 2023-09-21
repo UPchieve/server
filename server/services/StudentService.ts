@@ -13,6 +13,8 @@ import {
   StudentPartnerOrgInstance,
   StudentSignupSources,
 } from '../models/Student/queries'
+import moment from 'moment'
+import { updateUserPhoneNumberByUserId } from '../models/User'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -136,4 +138,32 @@ export async function adminGetActivePartnersForStudent(
   studentId: Ulid
 ): Promise<StudentPartnerOrgInstance[] | undefined> {
   return await StudentRepo.getActivePartnersForStudent(studentId)
+}
+
+export const queueProcrastinationTextReminder = async (
+  studentId: Ulid,
+  phoneNumber: string,
+  reminderDate: string
+): Promise<void> => {
+  await updateUserPhoneNumberByUserId(studentId, phoneNumber)
+
+  const utcReminderDate = moment(reminderDate, 'MM-DD-YYYY HH:mm a').tz('GMT')
+  const diffInMilliseconds = utcReminderDate.diff(moment().utc())
+
+  await QueueService.add(
+    Jobs.StudentProcrastinationTextReminder,
+    { userId: studentId },
+    {
+      delay: diffInMilliseconds,
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
+  )
+  AnalyticsService.captureEvent(
+    studentId,
+    EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_QUEUED,
+    {
+      event: EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_QUEUED,
+    }
+  )
 }

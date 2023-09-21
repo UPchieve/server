@@ -115,6 +115,7 @@ export async function getUserContactInfoById(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'phone',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -139,6 +140,7 @@ export async function getUserContactInfoByReferralCode(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'phone',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -200,6 +202,7 @@ export async function getUserContactInfoByResetToken(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'phone',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -555,6 +558,23 @@ export async function insertUserRoleByUserId(
   try {
     const result = await pgQueries.insertUserRoleByUserId.run(
       { userId, roleName },
+      tc ?? getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Insert query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserPhoneNumberByUserId(
+  userId: Ulid,
+  phone: string,
+  tc?: TransactionClient
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserPhoneNumberByUserId.run(
+      { userId, phone },
       tc ?? getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))

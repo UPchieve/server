@@ -104,4 +104,20 @@ export function routeStudents(router: Router): void {
       resError(res, err)
     }
   })
+
+  router.post('/students/reminders/text', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const phone = req.body.phone
+      const reminderDate = req.body.reminderDate
+      await StudentService.queueProcrastinationTextReminder(
+        user.id,
+        asString(phone),
+        asString(reminderDate)
+      )
+      res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
