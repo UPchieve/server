@@ -50,6 +50,24 @@ export async function isFeatureEnabled(
   return await phClient.isFeatureEnabled(featureFlagName, userId)
 }
 
+export async function getFeatureFlagPayload(
+  featureFlagName: FEATURE_FLAGS,
+  userId: Ulid
+) {
+  return await phClient.isFeatureEnabled(featureFlagName, userId)
+}
+
 export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
+}
+
+// The implicit return type expects a JSON shape, but this feature flag only
+// has a string payload. We're making an explicit coercion from JSON to string
+export async function getProcrastinationTextReminderCopy(
+  userId: Ulid
+): Promise<string | undefined> {
+  return (await phClient.getFeatureFlagPayload(
+    FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
+    userId
+  )) as string
 }

@@ -1,26 +1,24 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
-import { getFirstName, getObjectId } from '../generate'
+import { mocked } from 'ts-jest/utils'
+import { getFirstName } from '../mocks/generate'
 import * as StudentRepo from '../../models/Student/queries'
+import * as UserRepo from '../../models/User/queries'
 import { getDbUlid } from '../../models/pgUtils'
 import * as StudentService from '../../services/StudentService'
 import config from '../../config'
 import { FavoriteLimitReachedError } from '../../services/Errors'
-import * as UserActionCtrl from '../../controllers/UserActionCtrl'
-import { UserActionDocument } from '../../models/UserAction'
+import * as UserActionRepo from '../../models/UserAction/queries'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import QueueService from '../../services/QueueService'
+import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/Student/queries')
-
-// TODO: figure out how to use jest.mock() on UserActionCtrl
-const mockVolunteerFavorited = jest
-  .spyOn(UserActionCtrl.AccountActionCreator.prototype, 'volunteerFavorited')
-  .mockResolvedValue({} as UserActionDocument)
-
-const mockVolunteerUnfavorited = jest
-  .spyOn(UserActionCtrl.AccountActionCreator.prototype, 'volunteerUnfavorited')
-  .mockResolvedValue({} as UserActionDocument)
+jest.mock('../../models/User/queries')
+jest.mock('../../models/UserAction/queries')
+jest.mock('../../services/QueueService')
 
 const mockedStudentRepo = mocked(StudentRepo, true)
+const mockedUserRepo = mocked(UserRepo, true)
+const mockedUserActionRepo = mocked(UserActionRepo, true)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -49,7 +47,9 @@ describe('getFavoriteVolunteersPaginated', () => {
       ],
       isLastPage: true,
     }
-    mockedStudentRepo.getFavoriteVolunteers.mockResolvedValueOnce(expected)
+    mockedStudentRepo.getFavoriteVolunteersPaginated.mockResolvedValueOnce(
+      expected
+    )
 
     const result = await StudentService.getFavoriteVolunteersPaginated(
       getDbUlid(),
@@ -62,8 +62,8 @@ describe('getFavoriteVolunteersPaginated', () => {
 
 describe('checkAndUpdateVolunteerFavoriting', () => {
   test('Should return true when volunteer is added to student_favorite_volunteers table', async () => {
-    const volunteerId = getObjectId()
-    const studentId = getObjectId()
+    const volunteerId = getDbUlid()
+    const studentId = getDbUlid()
     const totalFavorited = 5
     const expected = {
       volunteerId: volunteerId,
@@ -82,12 +82,17 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
 
     expect(result.isFavorite).toEqual(expectedIsFavorite)
-    expect(mockVolunteerFavorited).toHaveBeenCalledTimes(1)
+    expect(mockedUserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      userId: studentId,
+      volunteerId: volunteerId,
+      sessionId: undefined,
+      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED,
+    })
   })
 
   test('Should throw error when favorite volunteer limit has been reached', async () => {
-    const volunteerId = getObjectId()
-    const studentId = getObjectId()
+    const volunteerId = getDbUlid()
+    const studentId = getDbUlid()
     const totalFavorited = config.favoriteVolunteerLimit
     const expected = {
       volunteerId: volunteerId,
@@ -110,13 +115,12 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
       expect((error! as FavoriteLimitReachedError).message).toBe(
         'Favorite volunteer limit reached.'
       )
-      expect(mockVolunteerFavorited).toHaveBeenCalledTimes(0)
     }
   })
 
   test('Should return the false when volunteer is deleted from student_favorite_volunteers table', async () => {
-    const volunteerId = getObjectId()
-    const studentId = getObjectId()
+    const volunteerId = getDbUlid()
+    const studentId = getDbUlid()
     const expected = {
       volunteerId: volunteerId,
       studentId: studentId,
@@ -131,13 +135,18 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
 
     expect(result.isFavorite).toEqual(expectedIsFavorite)
-    expect(mockVolunteerUnfavorited).toHaveBeenCalledTimes(1)
+    expect(mockedUserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      userId: studentId,
+      volunteerId: volunteerId,
+      sessionId: undefined,
+      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_UNFAVORITED,
+    })
   })
 
   test('Should return true when volunteer is added to student_favorite_volunteers table with sessionId in the payload', async () => {
-    const volunteerId = getObjectId()
-    const studentId = getObjectId()
-    const sessionId = getObjectId()
+    const volunteerId = getDbUlid()
+    const studentId = getDbUlid()
+    const sessionId = getDbUlid()
     const totalFavorited = 5
     const expected = {
       volunteerId: volunteerId,
@@ -157,7 +166,39 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     )
 
     expect(result.isFavorite).toEqual(expectedIsFavorite)
-    expect(mockVolunteerFavorited).toHaveBeenCalledTimes(1)
+    expect(mockedUserActionRepo.createAccountAction).toHaveBeenCalledWith({
+      userId: studentId,
+      volunteerId: volunteerId,
+      sessionId,
+      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED,
+    })
   })
 })
-*/
+
+describe('queueProcrastinationTextReminder', () => {
+  test('Should update and queue text reminder', async () => {
+    const studentId = getDbUlid()
+    const phoneNumber = '+12345678900'
+    const reminderDate = '09-21-2023 08:00'
+
+    mockedUserRepo.updateUserPhoneNumberByUserId.mockResolvedValueOnce()
+
+    await StudentService.queueProcrastinationTextReminder(
+      studentId,
+      phoneNumber,
+      reminderDate
+    )
+
+    expect(mockedUserRepo.updateUserPhoneNumberByUserId).toHaveBeenCalledTimes(
+      1
+    )
+    expect(QueueService.add).toHaveBeenCalledWith(
+      Jobs.StudentProcrastinationTextReminder,
+      {
+        userId: studentId,
+      },
+      // The delay is dynamic, based on current time
+      expect.anything()
+    )
+  })
+})

@@ -14,7 +14,6 @@ import {
 import QueueService from './QueueService'
 import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
-import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import Case from 'case'
 import logger from '../logger'
 import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
@@ -28,6 +27,7 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
+import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -101,6 +101,43 @@ export async function sendTextMessage(
   }
   throw new Error(
     `Failed to send text message ${messageText} to ${phoneNumber}`
+  )
+}
+
+export async function sendProcrastinationTextReminder(
+  userId: Ulid,
+  firstName: string,
+  phoneNumber: string
+): Promise<string | undefined> {
+  let messageCopy = await getProcrastinationTextReminderCopy(userId)
+  // Use a default message if no message is found from the flag payload
+  if (!messageCopy)
+    messageCopy =
+      "Hi {{firstName}}! UPchieve here. We're reminding you to stay ahead and avoid that last-minute panic. Tackle procrastination with a study session now: https://app.upchieve.org?s=tr"
+
+  // Feature flag payload will have variables that we want to interpolate
+  const messageText = messageCopy.replace('{{firstName}}', firstName)
+  logger.info(
+    `Sending reminder text ${userId} - "${messageText}" to ${phoneNumber}`
+  )
+
+  if (!twilioClient) {
+    logger.warn('Twilio client not loaded.')
+    return
+  }
+  const message = await twilioClient.messages.create({
+    to: phoneNumber,
+    from: config.sendingNumber,
+    body: messageText,
+  })
+  if (message.sid) {
+    logger.info(
+      `Message sent to user ${userId} at ${phoneNumber} with message id \n ${message.sid}`
+    )
+    return message.sid
+  }
+  throw new Error(
+    `Failed to send text message to user ${userId} - ${messageText} to ${phoneNumber}`
   )
 }
 
