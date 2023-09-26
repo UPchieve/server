@@ -256,6 +256,7 @@ export type SessionsToReview = {
   type: string
   subTopic: string
   studentFirstName: string
+  studentLastName: string
   isReported: boolean
   flags: string[]
   reviewReasons?: string[]
@@ -265,11 +266,14 @@ export type SessionsToReview = {
 
 export async function getSessionsToReview(
   limit: number,
-  offset: number
+  offset: number,
+  filterBy: {
+    studentFirstName?: string
+  } = {}
 ): Promise<SessionsToReview[]> {
   try {
     const result = await pgQueries.getSessionsToReview.run(
-      { limit, offset },
+      { limit, offset, withStudentFirstName: filterBy.studentFirstName },
       getClient()
     )
     return Promise.all(
