@@ -1540,3 +1540,40 @@ const insertUserRoleByUserIdIR: any = {"name":"insertUserRoleByUserId","params":
 export const insertUserRoleByUserId = new PreparedQuery<IInsertUserRoleByUserIdParams,IInsertUserRoleByUserIdResult>(insertUserRoleByUserIdIR);
 
 
+/** 'UpdateUserProfileById' parameters type */
+export interface IUpdateUserProfileByIdParams {
+  deactivated: boolean | null | void;
+  phone: string | null | void;
+  userId: string;
+}
+
+/** 'UpdateUserProfileById' return type */
+export interface IUpdateUserProfileByIdResult {
+  ok: string;
+}
+
+/** 'UpdateUserProfileById' query type */
+export interface IUpdateUserProfileByIdQuery {
+  params: IUpdateUserProfileByIdParams;
+  result: IUpdateUserProfileByIdResult;
+}
+
+const updateUserProfileByIdIR: any = {"name":"updateUserProfileById","params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21946,"b":21956,"line":741,"col":28}]}},{"name":"phone","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21995,"b":21999,"line":742,"col":22}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22025,"b":22031,"line":744,"col":10}]}}],"usedParamSet":{"deactivated":true,"phone":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":21897,"b":22054,"line":738,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     deactivated = COALESCE(:deactivated, deactivated),
+ *     phone = COALESCE(:phone, phone)
+ * WHERE
+ *     id = :userId!
+ * RETURNING
+ *     id AS ok
+ * ```
+ */
+export const updateUserProfileById = new PreparedQuery<IUpdateUserProfileByIdParams,IUpdateUserProfileByIdResult>(updateUserProfileByIdIR);
+
+

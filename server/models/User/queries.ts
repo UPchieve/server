@@ -583,3 +583,25 @@ export async function updateUserPhoneNumberByUserId(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function updateUserProfileById(
+  userId: Ulid,
+  deactivated?: boolean,
+  phone?: string
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserProfileById.run(
+      {
+        userId,
+        deactivated,
+        phone,
+      },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}

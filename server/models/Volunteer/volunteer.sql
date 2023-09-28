@@ -574,18 +574,6 @@ RETURNING
     user_id AS ok;
 
 
-/* @name updateVolunteerProfileById */
-UPDATE
-    users
-SET
-    deactivated = COALESCE(:deactivated, deactivated),
-    phone = COALESCE(:phone, phone)
-WHERE
-    id = :userId!
-RETURNING
-    id AS ok;
-
-
 /* @name getVolunteerUnsentReferences */
 SELECT
     volunteer_references.id,
