@@ -13,7 +13,7 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
-import { CreateUserPayload, CreateUserResult } from './types'
+import { CreateUserPayload, CreateUserResult, User } from './types'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -580,6 +580,27 @@ export async function updateUserPhoneNumberByUserId(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')
   } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserProfileById(
+  userId: Ulid,
+  data: Partial<User>
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserProfileById.run(
+      {
+        userId,
+        deactivated: data.deactivated,
+        phone: data.phone,
+      },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }

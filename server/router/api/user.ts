@@ -2,7 +2,7 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import { updateVolunteerProfileById } from '../../models/Volunteer/'
+import { updateUserProfileById } from '../../models/User'
 import {
   countUsersReferredByOtherId,
   getUserForAdminDetail,
@@ -34,7 +34,10 @@ export function routeUser(router: Router): void {
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 
-      await updateVolunteerProfileById(user.id, isDeactivated, phone)
+      await updateUserProfileById(user.id, {
+        phone,
+        deactivated: isDeactivated,
+      })
       if (isDeactivated !== user.deactivated) {
         await MailService.createContact(user.id)
 

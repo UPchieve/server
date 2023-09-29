@@ -733,3 +733,15 @@ ON CONFLICT
 RETURNING
     user_id AS ok;
 
+
+/* @name updateUserProfileById */
+UPDATE
+    users
+SET
+    deactivated = COALESCE(:deactivated, deactivated),
+    phone = COALESCE(:phone, phone)
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
