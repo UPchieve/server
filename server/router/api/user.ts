@@ -34,7 +34,10 @@ export function routeUser(router: Router): void {
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 
-      await updateUserProfileById(user.id, isDeactivated, phone)
+      await updateUserProfileById(user.id, {
+        phone,
+        deactivated: isDeactivated,
+      })
       if (isDeactivated !== user.deactivated) {
         await MailService.createContact(user.id)
 

@@ -13,7 +13,7 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
-import { CreateUserPayload, CreateUserResult } from './types'
+import { CreateUserPayload, CreateUserResult, User } from './types'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -586,15 +586,14 @@ export async function updateUserPhoneNumberByUserId(
 
 export async function updateUserProfileById(
   userId: Ulid,
-  deactivated?: boolean,
-  phone?: string
+  data: Partial<User>
 ): Promise<void> {
   try {
     const result = await pgQueries.updateUserProfileById.run(
       {
         userId,
-        deactivated,
-        phone,
+        deactivated: data.deactivated,
+        phone: data.phone,
       },
       getClient()
     )
