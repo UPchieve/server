@@ -828,28 +828,6 @@ export async function updateVolunteerSentInactive90DayEmail(
   }
 }
 
-export async function updateVolunteerProfileById(
-  userId: Ulid,
-  deactivated?: boolean,
-  phone?: string
-): Promise<void> {
-  try {
-    const result = await pgQueries.updateVolunteerProfileById.run(
-      {
-        userId,
-        deactivated,
-        phone,
-      },
-      getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
 export type UnsentReference = {
   id: Ulid
   firstName: string
