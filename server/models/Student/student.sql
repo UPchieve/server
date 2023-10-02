@@ -606,9 +606,10 @@ FROM
 WHERE
     NOT gl.name = ANY ('{"College", "Other"}')
     AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
+    AND sp.created_at >= to_timestamp(:fromDate!, 'YYYY-MM-DD HH24:MI:SS')
+    AND sp.created_at < to_timestamp(:toDate!, 'YYYY-MM-DD HH24:MI:SS')
 ORDER BY
-    sp.created_at ASC
-LIMIT (:limit!)::int OFFSET (:offset!)::int;
+    sp.created_at DESC;
 
 
 /* @name updateStudentsGradeLevel */
