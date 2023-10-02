@@ -820,7 +820,7 @@ export interface IDeleteDuplicateUserSurveysQuery {
   result: IDeleteDuplicateUserSurveysResult;
 }
 
-const deleteDuplicateUserSurveysIR: any = {"name":"deleteDuplicateUserSurveys","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM upchieve.users_surveys\nWHERE id IN (\n        SELECT\n            id\n        FROM (\n            SELECT\n                id,\n                ROW_NUMBER() OVER (PARTITION BY user_id, session_id, survey_id, survey_type_id ORDER BY created_at DESC) AS row_num,\n                created_at\n            FROM\n                users_surveys) t\n        WHERE\n            t.row_num > 1)","loc":{"a":16495,"b":16877,"line":436,"col":0}}};
+const deleteDuplicateUserSurveysIR: any = {"name":"deleteDuplicateUserSurveys","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM upchieve.users_surveys\nWHERE id IN (\n        SELECT\n            id\n        FROM (\n            SELECT\n                id,\n                ROW_NUMBER() OVER (PARTITION BY user_id, session_id, survey_id, survey_type_id ORDER BY created_at DESC) AS row_num,\n                created_at\n            FROM\n                users_surveys) t\n        WHERE\n            t.row_num > 1)","loc":{"a":16645,"b":17027,"line":442,"col":0}}};
 
 /**
  * Query generated from SQL:
