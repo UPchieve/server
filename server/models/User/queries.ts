@@ -90,6 +90,7 @@ export type UserContactInfo = {
   id: Ulid
   email: string
   phone?: string
+  smsConsent: boolean
   firstName: string
   isVolunteer: boolean
   isAdmin: boolean

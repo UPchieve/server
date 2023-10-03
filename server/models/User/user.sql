@@ -50,7 +50,8 @@ SELECT
     users.last_activity_at,
     deactivated,
     volunteer_profiles.approved,
-    users.phone
+    users.phone,
+    users.sms_consent
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -86,7 +87,8 @@ SELECT
     users.last_activity_at,
     deactivated,
     volunteer_profiles.approved,
-    users.phone
+    users.phone,
+    users.sms_consent
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -146,7 +148,8 @@ SELECT
     users.last_activity_at,
     deactivated,
     volunteer_profiles.approved,
-    users.phone
+    users.phone,
+    users.sms_consent
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -262,6 +265,17 @@ UPDATE
 SET
     phone = :phone!,
     updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name updateUserSmsConsentByUserId */
+UPDATE
+    users
+SET
+    sms_consent = :smsConsent!
 WHERE
     id = :userId!
 RETURNING
@@ -448,6 +462,7 @@ SELECT
     users.verified,
     users.first_name AS firstname,
     users.phone,
+    users.sms_consent,
     volunteer_profiles.college,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
