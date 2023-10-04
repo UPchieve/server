@@ -595,6 +595,7 @@ export async function updateUserProfileById(
         userId,
         deactivated: data.deactivated,
         phone: data.phone,
+        smsConsent: data.smsConsent,
       },
       getClient()
     )

@@ -754,7 +754,8 @@ UPDATE
     users
 SET
     deactivated = COALESCE(:deactivated, deactivated),
-    phone = COALESCE(:phone, phone)
+    phone = COALESCE(:phone, phone),
+    sms_consent = COALESCE(:smsConsent, sms_consent)
 WHERE
     id = :userId!
 RETURNING

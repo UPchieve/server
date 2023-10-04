@@ -1587,6 +1587,7 @@ export const insertUserRoleByUserId = new PreparedQuery<IInsertUserRoleByUserIdP
 export interface IUpdateUserProfileByIdParams {
   deactivated: boolean | null | void;
   phone: string | null | void;
+  smsConsent: boolean | null | void;
   userId: string;
 }
 
@@ -1601,7 +1602,7 @@ export interface IUpdateUserProfileByIdQuery {
   result: IUpdateUserProfileByIdResult;
 }
 
-const updateUserProfileByIdIR: any = {"name":"updateUserProfileById","params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22181,"b":22191,"line":756,"col":28}]}},{"name":"phone","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22230,"b":22234,"line":757,"col":22}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22260,"b":22266,"line":759,"col":10}]}}],"usedParamSet":{"deactivated":true,"phone":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":22132,"b":22289,"line":753,"col":0}}};
+const updateUserProfileByIdIR: any = {"name":"updateUserProfileById","params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22181,"b":22191,"line":756,"col":28}]}},{"name":"phone","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22230,"b":22234,"line":757,"col":22}]}},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22273,"b":22282,"line":758,"col":28}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22314,"b":22320,"line":760,"col":10}]}}],"usedParamSet":{"deactivated":true,"phone":true,"smsConsent":true,"userId":true},"statement":{"body":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone),\n    sms_consent = COALESCE(:smsConsent, sms_consent)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok","loc":{"a":22132,"b":22343,"line":753,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1610,7 +1611,8 @@ const updateUserProfileByIdIR: any = {"name":"updateUserProfileById","params":[{
  *     users
  * SET
  *     deactivated = COALESCE(:deactivated, deactivated),
- *     phone = COALESCE(:phone, phone)
+ *     phone = COALESCE(:phone, phone),
+ *     sms_consent = COALESCE(:smsConsent, sms_consent)
  * WHERE
  *     id = :userId!
  * RETURNING

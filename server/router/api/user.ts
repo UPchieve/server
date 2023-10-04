@@ -25,19 +25,27 @@ export function routeUser(router: Router): void {
     return res.json({ user: parsedUser })
   })
 
-  // @note: Currently, only volunteers are able to update their profile
+  // Note: Both students and volunteers can edit parts of their profile,
+  // but only volunteeres can deactivate their accounts.
   router.put('/user', async (req, res) => {
     try {
       const { ip } = req
       const user = extractUser(req)
       let { phone, isDeactivated } = req.body
+
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 
-      await updateUserProfileById(user.id, {
+      let updateReq: { [k: string]: any } = {
         phone,
         deactivated: isDeactivated,
-      })
+      }
+
+      if ('smsConsent' in req.body) {
+        updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
+      }
+
+      await updateUserProfileById(user.id, updateReq)
       if (isDeactivated !== user.deactivated) {
         await MailService.createContact(user.id)
 
