@@ -209,6 +209,7 @@ SELECT
     topics.name AS TYPE,
     subjects.name AS sub_topic,
     students.first_name AS student_first_name,
+    students.last_name AS student_last_name,
     session_reported_count.total <> 0 AS is_reported,
     flags.flags,
     messages.total AS total_messages,
@@ -257,6 +258,7 @@ FROM
 WHERE
     sessions.to_review IS TRUE
     AND sessions.reviewed IS FALSE
+    AND LOWER(students.first_name) = LOWER(COALESCE(NULLIF (:withStudentFirstName, ''), students.first_name))
 ORDER BY
     (sessions.created_at) DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;

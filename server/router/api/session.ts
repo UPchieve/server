@@ -105,7 +105,8 @@ export function routeSession(router: Router, io: Server) {
   router.get('/session/review', authPassport.isAdmin, async function(req, res) {
     try {
       const { sessions, isLastPage } = await SessionService.sessionsToReview(
-        req.query.page as unknown
+        req.query.page as unknown,
+        { studentFirstName: req.query.studentFirstName as string }
       )
       res.json({ sessions, isLastPage })
     } catch (error) {
