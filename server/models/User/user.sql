@@ -89,6 +89,7 @@ SELECT
     deactivated,
     volunteer_profiles.approved,
     users.phone,
+    users.phoneVerified,
     users.sms_consent
 FROM
     users
@@ -150,6 +151,7 @@ SELECT
     deactivated,
     volunteer_profiles.approved,
     users.phone,
+    users.phoneVerified,
     users.sms_consent
 FROM
     users
