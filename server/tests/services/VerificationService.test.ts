@@ -1,4 +1,3 @@
-test.skip('postgres migration', () => 1)
 /*import { mocked } from 'ts-jest/utils'
 import { Types } from 'mongoose'
 
@@ -225,3 +224,43 @@ describe('confirmVerification', () => {
   })
 })
 */
+
+import { updateVerificationByMethod } from '../../services/VerificationService'
+import { buildStudent } from '../mocks/generate'
+import * as UserRepo from '../../models/User/queries'
+import { getDbUlid } from '../../models/pgUtils'
+import { mocked } from 'ts-jest/utils'
+
+jest.mock('../../models/User/queries')
+
+const mockedUserRepo = mocked(UserRepo, true)
+
+describe('VerificationService', () => {
+  beforeEach(async () => {
+    jest.resetAllMocks()
+  })
+
+  describe('updateVerificationByMethod', () => {
+    it('Should update both emailVerified and phoneVerified when both are provided', async () => {
+      const userId = getDbUlid()
+      const req = {
+        userId: userId,
+        emailVerified: true,
+        phoneVerified: true,
+      }
+
+      await updateVerificationByMethod(req)
+      expect(
+        mockedUserRepo.updateUserVerificationMethodByUserId
+      ).toHaveBeenCalledTimes(1)
+      expect(mockedUserRepo).toHaveBeenCalledWith(req.userId, {
+        emailVerified: req.emailVerified,
+        phoneVerified: req.phoneVerified,
+      })
+    })
+
+    it('Should update only the verification methods provided', async () => {})
+
+    it('Should update only the non-undefined verification methods provided', async () => {})
+  })
+})

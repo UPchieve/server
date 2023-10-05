@@ -90,6 +90,7 @@ export type UserContactInfo = {
   id: Ulid
   email: string
   phone?: string
+  phoneVerified: boolean
   smsConsent: boolean
   firstName: string
   isVolunteer: boolean
@@ -599,6 +600,31 @@ export async function updateUserProfileById(
       },
       getClient()
     )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserVerificationMethodByUserId(
+  userId: Ulid,
+  verificationData: {
+    emailVerified: boolean | undefined
+    phoneVerified: boolean | undefined
+  }
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserVerificationMethodByUserId.run(
+      {
+        userId,
+        emailVerified: verificationData.emailVerified,
+        phoneVerified: verificationData.phoneVerified,
+      },
+      getClient()
+    )
+
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {

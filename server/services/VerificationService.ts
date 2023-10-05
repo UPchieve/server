@@ -1,8 +1,13 @@
 import { Ulid } from '../models/pgUtils'
 import { VERIFICATION_METHOD } from '../constants'
-import { asFactory, asString, asEnum } from '../utils/type-utils'
+import {
+  asFactory,
+  asString,
+  asEnum,
+  asOptional,
+  asBoolean,
+} from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
-import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
@@ -12,6 +17,7 @@ import {
   getUserContactInfoById,
   getUserIdByPhone,
   getUserIdByEmail,
+  updateUserVerificationMethodByUserId,
 } from '../models/User/queries'
 
 export interface InitiateVerificationData {
@@ -40,6 +46,20 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
+})
+
+export interface UpdateVerificationByMethodData {
+  userId: Ulid
+  phoneVerified?: boolean
+  emailVerified?: boolean
+}
+
+const asUpdateVerificationByMethodData = asFactory<
+  UpdateVerificationByMethodData
+>({
+  userId: asString,
+  phoneVerified: asOptional(asBoolean),
+  emailVerified: asOptional(asBoolean),
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -129,4 +149,20 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   } catch (error) {
     throw error
   }
+}
+
+/**
+ * Updates user.email_verified and/or user.phone_verified
+ */
+export async function updateVerificationByMethod(data: unknown): Promise<void> {
+  const {
+    userId,
+    phoneVerified,
+    emailVerified,
+  } = asUpdateVerificationByMethodData(data)
+
+  await updateUserVerificationMethodByUserId(userId, {
+    phoneVerified,
+    emailVerified,
+  })
 }

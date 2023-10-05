@@ -16,6 +16,10 @@ app.use('/api', router)
 const agent = request.agent(app)
 
 describe('PUT /user', () => {
+  beforeEach(async () => {
+    jest.resetAllMocks()
+  })
+
   const sendPut = async (payload: any): Promise<Test> => {
     return agent
       .put('/api/user')

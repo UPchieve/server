@@ -51,6 +51,7 @@ SELECT
     deactivated,
     volunteer_profiles.approved,
     users.phone,
+    users.phone_verified,
     users.sms_consent
 FROM
     users
@@ -253,6 +254,18 @@ SET
     phone_verified = TRUE,
     verified = TRUE,
     updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name updateUserVerificationMethodByUserId */
+UPDATE
+    users
+SET
+    phone_verified = COALESCE(:phoneVerified, phone_verified),
+    email_verified = COALESCE(:emailVerified, email_verified)
 WHERE
     id = :userId!
 RETURNING
@@ -462,6 +475,7 @@ SELECT
     users.verified,
     users.first_name AS firstname,
     users.phone,
+    users.phone_verified,
     users.sms_consent,
     volunteer_profiles.college,
     (
