@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+// test.skip('postgres migration', () => 1)
 /*import request, { Test } from 'supertest'
 import { mocked } from 'ts-jest/utils'
 
@@ -177,3 +177,62 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
   })
 })
 */
+
+import { routeVerify } from '../../router/api/verify'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { mocked } from 'ts-jest/utils'
+import request, { Test } from 'supertest'
+import * as UserRepo from '../../models/User/queries'
+import { buildStudent } from '../mocks/generate'
+
+jest.mock('../../models/User/queries')
+const mockedUserRepo = mocked(UserRepo, true)
+const router = mockRouter()
+routeVerify(router)
+const app = mockApp()
+const mockGetUser = () => buildStudent()
+app.use(mockPassportMiddleware(mockGetUser))
+app.use('/api', router)
+const agent = request.agent(app)
+
+describe('PUT /verify', () => {
+  beforeEach(async () => {
+    jest.resetAllMocks()
+  })
+
+  const sendPut = async (payload: any): Promise<Test> => {
+    return agent
+      .put('/api/verify')
+      .set('Accept', 'application/json')
+      .send(payload)
+  }
+
+  it.each([
+    { phoneVerified: true },
+    {
+      phoneVerified: true,
+      emailVerified: true,
+    },
+  ])('Should update the verification method info', async req => {
+    const res = await sendPut({
+      userId: 'abc123',
+      ...req,
+    })
+
+    expect(res.status).toEqual(200)
+    expect(
+      mockedUserRepo.updateUserVerificationMethodByUserId
+    ).toHaveBeenCalledWith(expect.anything(), req)
+  })
+
+  const baseRequest = {
+    userId: 'abc123',
+  }
+  it.each([
+    { ...baseRequest, emailVerified: 5 },
+    { ...baseRequest, phoneVerified: 'abc' },
+  ])('Should throw an error if bad request', async req => {
+    const res = await sendPut(req)
+    expect(res.status).toEqual(422)
+  })
+})

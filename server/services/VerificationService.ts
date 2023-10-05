@@ -120,12 +120,17 @@ async function sendEmails(userId: Ulid): Promise<void> {
 }
 
 export async function confirmVerification(data: unknown): Promise<boolean> {
+  let errMsg
   const {
     userId,
     sendTo,
     verificationMethod,
     verificationCode,
-  } = asConfirmVerificationData(data)
+  } = asConfirmVerificationData(data, errMsg)
+
+  if (errMsg) {
+    throw new InputError('Invalid request')
+  }
 
   const VERIFICATION_CODE_LENGTH = 6
   if (
