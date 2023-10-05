@@ -49,6 +49,7 @@ export function buildUserContactInfo(
     id: getDbUlid(),
     email: getEmail(),
     phone: getPhoneNumber(),
+    phoneVerified: false,
     smsConsent: false,
     firstName: getFirstName(),
     isVolunteer: false,
