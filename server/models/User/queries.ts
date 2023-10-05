@@ -13,7 +13,7 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
-import { CreateUserPayload, CreateUserResult } from './types'
+import { CreateUserPayload, CreateUserResult, User } from './types'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -115,6 +115,7 @@ export async function getUserContactInfoById(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'phone',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -139,6 +140,7 @@ export async function getUserContactInfoByReferralCode(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'phone',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -200,6 +202,7 @@ export async function getUserContactInfoByResetToken(
         'studentPartnerOrg',
         'approved',
         'lastActivityAt',
+        'phone',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -560,6 +563,86 @@ export async function insertUserRoleByUserId(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Insert query did not return ok')
   } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserPhoneNumberByUserId(
+  userId: Ulid,
+  phone: string,
+  tc?: TransactionClient
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserPhoneNumberByUserId.run(
+      { userId, phone },
+      tc ?? getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Insert query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateUserProfileById(
+  userId: Ulid,
+  data: Partial<User>
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserProfileById.run(
+      {
+        userId,
+        deactivated: data.deactivated,
+        phone: data.phone,
+      },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+    // Update muted subject alerts for volunteers
+    if (data.mutedSubjectAlerts !== undefined) {
+      let mutedSubjectAlerts = data.mutedSubjectAlerts
+      if (mutedSubjectAlerts.length == 0) {
+        await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
+      } else {
+        // Create subject name to id mapping
+        let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
+          undefined,
+          getClient()
+        )
+        if (!subjectNameIdMappingResult.length)
+          throw new RepoUpdateError(
+            'Select query did not return ok (subjectNameIdMappingResult)'
+          )
+        subjectNameIdMappingResult.map(v => makeRequired(v))
+        let subjectNameIdMapping: { [name: string]: number } = {}
+        for (const subjectNameAndId of subjectNameIdMappingResult) {
+          subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
+        }
+        // Update muted subject alerts
+        let mutedSubjectAlertIds = new Array()
+        for (const subjectName of mutedSubjectAlerts) {
+          mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
+        }
+        let mutedSubjectAlertIdsWithUserId: {
+          userId: Ulid
+          subjectId: number
+        }[] = []
+        mutedSubjectAlertIds.forEach(subjectId =>
+          mutedSubjectAlertIdsWithUserId.push({ userId, subjectId })
+        )
+        await pgQueries.insertMutedUserSubjectAlerts.run(
+          { mutedSubjectAlertIdsWithUserId },
+          getClient()
+        )
+        await pgQueries.deleteUnmutedUserSubjectAlerts.run(
+          { userId, mutedSubjectAlertIds },
+          getClient()
+        )
+      }
+    }
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
   }
 }

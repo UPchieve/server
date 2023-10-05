@@ -1,14 +1,14 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
+import { mocked } from 'ts-jest/utils'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { buildStudent, getObjectId } from '../generate'
 import { routeStudents } from '../../router/api/students'
 import * as StudentRepo from '../../models/Student/queries'
 import * as StudentService from '../../services/StudentService'
 import config from '../../config'
 import { getDbUlid } from '../../models/pgUtils'
 import { FavoriteLimitReachedError } from '../../services/Errors'
+import { buildStudent } from '../mocks/generate'
+import { RepoUpdateError } from '../../models/Errors'
 
 jest.mock('../../models/Student/queries')
 jest.mock('../../services/StudentService')
@@ -85,7 +85,7 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be able to favorite volunteer', async () => {
-    const volunteerId = getObjectId()
+    const volunteerId = getDbUlid()
     const expectedIsFavorite = true
     const payload = { isFavorite: expectedIsFavorite }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
@@ -104,9 +104,9 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be able to favorite volunteer with sessionId in the payload', async () => {
-    const volunteerId = getObjectId()
+    const volunteerId = getDbUlid()
     const expectedIsFavorite = true
-    const payload = { isFavorite: expectedIsFavorite, sessionId: getObjectId() }
+    const payload = { isFavorite: expectedIsFavorite, sessionId: getDbUlid() }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
       { isFavorite: true }
     )
@@ -123,7 +123,7 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be able to unfavorite volunteer', async () => {
-    const volunteerId = getObjectId()
+    const volunteerId = getDbUlid()
     const expectedIsFavorite = false
     const payload = { isFavorite: expectedIsFavorite }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
@@ -142,7 +142,7 @@ describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
   })
 
   test('Students should be not be able to favorite more than max volunteers', async () => {
-    const volunteerId = getObjectId()
+    const volunteerId = getDbUlid()
     const expectedIsFavorite = true
     const payload = { isFavorite: expectedIsFavorite }
     mockedStudentService.checkAndUpdateVolunteerFavoriting.mockImplementationOnce(
@@ -201,4 +201,29 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
     expect(response.status).toBe(422)
   })
 })
-*/
+
+const REMINDERS_TEXT_PATH = '/students/reminders/text'
+describe(REMINDERS_TEXT_PATH, () => {
+  const payload = {
+    phone: '+12345678900',
+    reminderDate: '09-21-2023 08:00',
+  }
+
+  test('Update phone number and queue procrasination reminder text', async () => {
+    mockedStudentService.queueProcrastinationTextReminder.mockResolvedValueOnce()
+    const response = await sendPost(REMINDERS_TEXT_PATH, payload)
+
+    expect(response.status).toBe(200)
+  })
+
+  test('Handle error thrown during queueing procrastination text reminder', async () => {
+    mockedStudentService.queueProcrastinationTextReminder.mockImplementationOnce(
+      async () => {
+        throw new RepoUpdateError('Insert query did not return ok')
+      }
+    )
+    const response = await sendPost(REMINDERS_TEXT_PATH, payload)
+
+    expect(response.status).toBe(500)
+  })
+})

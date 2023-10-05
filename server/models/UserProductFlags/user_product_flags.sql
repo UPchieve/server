@@ -20,6 +20,7 @@ RETURNING
     sent_inactive_sixty_day_email,
     sent_inactive_ninety_day_email,
     gates_qualified,
+    fall_incentive_program,
     created_at,
     updated_at;
 
@@ -33,6 +34,7 @@ SELECT
     sent_inactive_sixty_day_email,
     sent_inactive_ninety_day_email,
     gates_qualified,
+    fall_incentive_program,
     created_at,
     updated_at
 FROM
@@ -44,7 +46,8 @@ WHERE
 /* @name getPublicUpfByUserId */
 SELECT
     user_id,
-    gates_qualified
+    gates_qualified,
+    fall_incentive_program
 FROM
     user_product_flags
 WHERE

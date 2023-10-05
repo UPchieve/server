@@ -8,6 +8,7 @@ export type UserProductFlags = {
   sentInactiveSixtyDayEmail: boolean
   sentInactiveNinetyDayEmail: boolean
   gatesQualified: boolean
+  fallIncentiveProgram: boolean
   createdAt: Date
   updatedAt: Date
 }

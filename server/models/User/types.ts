@@ -19,10 +19,12 @@ export type User = {
   referredBy?: Ulid
   signupSourceId?: Pgid
   testUser: boolean
-  timeTutored?: number
   verified: boolean
   createdAt: Date
   updatedAt: Date
+  // Volunteer-only
+  timeTutored?: number
+  mutedSubjectAlerts?: string[]
 }
 
 export type CreateUserPayload = {

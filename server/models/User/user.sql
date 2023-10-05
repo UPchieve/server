@@ -49,7 +49,8 @@ SELECT
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
     deactivated,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    users.phone
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -84,7 +85,8 @@ SELECT
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
     deactivated,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    users.phone
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -143,7 +145,8 @@ SELECT
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
     deactivated,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    users.phone
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -246,6 +249,18 @@ SET
     phone = :phone!,
     phone_verified = TRUE,
     verified = TRUE,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* @name updateUserPhoneNumberByUserId */
+UPDATE
+    users
+SET
+    phone = :phone!,
     updated_at = NOW()
 WHERE
     id = :userId!
@@ -726,4 +741,57 @@ ON CONFLICT
     DO NOTHING
 RETURNING
     user_id AS ok;
+
+
+/* @name updateUserProfileById */
+UPDATE
+    users
+SET
+    deactivated = COALESCE(:deactivated, deactivated),
+    phone = COALESCE(:phone, phone)
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
+/* 
+ @name insertMutedUserSubjectAlerts
+ @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
+ */
+INSERT INTO muted_users_subject_alerts (user_id, subject_id)
+    VALUES
+        :mutedSubjectAlertIdsWithUserId
+    ON CONFLICT (user_id, subject_id)
+        DO NOTHING
+    RETURNING
+        user_id AS ok;
+
+
+/* 
+ @name deleteUnmutedUserSubjectAlerts
+ @param mutedSubjectAlertIds -> (...)
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+    AND subject_id NOT IN :mutedSubjectAlertIds
+RETURNING
+    user_id AS ok;
+
+
+/* 
+ @name deleteAllUserSubjectAlerts
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+RETURNING
+    user_id AS ok;
+
+
+/* @name getSubjectNameIdMapping */
+SELECT
+    subjects.name,
+    subjects.id
+FROM
+    upchieve.subjects;
 

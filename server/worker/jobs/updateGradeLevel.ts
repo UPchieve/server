@@ -7,6 +7,7 @@ import {
 } from '../../models/Student'
 import { GRADES } from '../../constants'
 import { createContact } from '../../services/MailService'
+import moment from 'moment'
 
 const gradeLevelMapping: Record<number, GRADES> = {
   6: GRADES.SIXTH,
@@ -28,17 +29,28 @@ function getNextGradeLevel(currentGrade: string): GRADES | undefined {
 
 export default async (): Promise<void> => {
   const errors: string[] = []
-  let limit = 5000
-  let count = 0
-  let offset = 0
+  const oldestDate = '2017-01-01T00:00:00.000+00:00'
+  let monthsAgo = 0
+  let toDate = moment()
+    .utc()
+    .endOf('month')
+    .format('YYYY-MM-DD HH:mm:ss')
   let totalUpdated = 0
 
-  while (true) {
-    const students = await getStudentsForGradeLevelUpdate(limit, offset)
-    if (!students || !students.length) break
-    log(
-      `Executed ${Jobs.UpdateGradeLevel} on LIMIT ${limit} and OFFSET ${offset}`
-    )
+  while (toDate >= oldestDate) {
+    const fromDate = moment()
+      .utc()
+      .subtract(monthsAgo, 'months')
+      .startOf('month')
+      .format('YYYY-MM-DD HH:mm:ss')
+    toDate = moment()
+      .utc()
+      .subtract(monthsAgo, 'months')
+      .endOf('month')
+      .format('YYYY-MM-DD HH:mm:ss')
+
+    const students = await getStudentsForGradeLevelUpdate(fromDate, toDate)
+    log(`Executed ${Jobs.UpdateGradeLevel} on ${fromDate} - ${toDate}`)
 
     for (const student of students) {
       try {
@@ -55,8 +67,7 @@ export default async (): Promise<void> => {
       }
     }
 
-    count++
-    offset = count * limit
+    monthsAgo++
   }
 
   log(`Successfully ${Jobs.UpdateGradeLevel} for ${totalUpdated} students`)

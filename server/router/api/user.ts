@@ -2,7 +2,7 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import { updateVolunteerProfileById } from '../../models/Volunteer/'
+import { updateUserProfileById } from '../../models/User'
 import {
   countUsersReferredByOtherId,
   getUserForAdminDetail,
@@ -30,16 +30,21 @@ export function routeUser(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
-      let { phone, isDeactivated, mutedSubjectAlerts } = req.body
+      if ('mutedSubjectAlerts' in req.body) {
+        // Volunteer-only
+        var { phone, isDeactivated, mutedSubjectAlerts } = req.body
+        mutedSubjectAlerts = mutedSubjectAlerts as string[]
+      } else {
+        var { phone, isDeactivated } = req.body
+        var mutedSubjectAlerts = undefined
+      }
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
-      mutedSubjectAlerts = mutedSubjectAlerts as string[]
-      await updateVolunteerProfileById(
-        user.id,
-        isDeactivated,
+      await updateUserProfileById(user.id, {
         phone,
-        mutedSubjectAlerts
-      )
+        deactivated: isDeactivated,
+        mutedSubjectAlerts,
+      })
       if (isDeactivated !== user.deactivated) {
         await MailService.createContact(user.id)
 

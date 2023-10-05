@@ -82,7 +82,7 @@ export SUBWAY_REDIS_HOST=localhost
 export SUBWAY_DB_HOST=localhost
 ```
 3. (optional) If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
-4. (optional) Run `npm run worker:dev` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `npm run add-cron-jobs` to add all repeatable jobs to the job queue.
+4. (optional) Run `npm run dev:worker` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `npm run add-cron-jobs` to add all repeatable jobs to the job queue.
 
 ### Run the app
 

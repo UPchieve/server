@@ -66,13 +66,21 @@ export async function reviewSession(data: unknown) {
   )
 }
 
-export async function sessionsToReview(data: unknown) {
+// TODO: Use cursor pagination.
+export async function sessionsToReview(
+  data: unknown,
+  filterBy: { studentFirstName?: string }
+) {
   const page = asString(data)
   const pageNum = parseInt(page) || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
 
-  const sessions = await SessionRepo.getSessionsToReview(PER_PAGE, skip)
+  const sessions = await SessionRepo.getSessionsToReview(
+    PER_PAGE,
+    skip,
+    filterBy
+  )
   const isLastPage = sessions.length < PER_PAGE
   return { sessions, isLastPage }
 }

@@ -574,59 +574,6 @@ RETURNING
     user_id AS ok;
 
 
-/* @name updateVolunteerProfileById */
-UPDATE
-    users
-SET
-    deactivated = COALESCE(:deactivated, deactivated),
-    phone = COALESCE(:phone, phone)
-WHERE
-    id = :userId!
-RETURNING
-    id AS ok;
-
-
-/* 
- @name insertMutedUserSubjectAlerts
- @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
- */
-INSERT INTO muted_users_subject_alerts (user_id, subject_id)
-    VALUES
-        :mutedSubjectAlertIdsWithUserId
-    ON CONFLICT (user_id, subject_id)
-        DO NOTHING
-    RETURNING
-        user_id AS ok;
-
-
-/* 
- @name deleteUnmutedUserSubjectAlerts
- @param mutedSubjectAlertIds -> (...)
- */
-DELETE FROM muted_users_subject_alerts
-WHERE user_id = :userId
-    AND subject_id NOT IN :mutedSubjectAlertIds
-RETURNING
-    user_id AS ok;
-
-
-/* 
- @name deleteAllUserSubjectAlerts
- */
-DELETE FROM muted_users_subject_alerts
-WHERE user_id = :userId
-RETURNING
-    user_id AS ok;
-
-
-/* @name getSubjectNameIdMapping */
-SELECT
-    subjects.name,
-    subjects.id
-FROM
-    upchieve.subjects;
-
-
 /* @name getVolunteerUnsentReferences */
 SELECT
     volunteer_references.id,

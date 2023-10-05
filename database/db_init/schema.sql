@@ -1778,7 +1778,8 @@ CREATE TABLE upchieve.user_product_flags (
     gates_qualified boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    in_gates_study boolean DEFAULT false NOT NULL
+    in_gates_study boolean DEFAULT false NOT NULL,
+    fall_incentive_program boolean DEFAULT false NOT NULL
 );
 
 
@@ -4742,4 +4743,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20230626161133'),
     ('20230706181722'),
     ('20230719205740'),
-    ('20230914134853');
+    ('20230914134853'),
+    ('20230918173353');

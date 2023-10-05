@@ -38,9 +38,9 @@ export async function createStudentWithPassword(
 
 export async function createStudentWithFederatedCredential(
   studentData: StudentRepo.CreateStudentWithFedCredPayload,
-  ip: string,
   profileId: string,
-  issuer: string
+  issuer: string,
+  ip?: string
 ) {
   const student = await createStudent(studentData, ip)
   await FederatedCredentialRepo.insertFederatedCredential(
@@ -54,7 +54,7 @@ export async function createStudentWithFederatedCredential(
 // TODO: duck type validation - studentData payload
 async function createStudent(
   studentData: StudentRepo.CreateStudentPayload,
-  ip: string
+  ip?: string
 ): Promise<StudentRepo.CreatedStudent> {
   const student = await StudentRepo.createStudent(studentData)
 
