@@ -284,17 +284,6 @@ RETURNING
     id AS ok;
 
 
-/* @name updateUserSmsConsentByUserId */
-UPDATE
-    users
-SET
-    sms_consent = :smsConsent!
-WHERE
-    id = :userId!
-RETURNING
-    id AS ok;
-
-
 /* @name updateUserLastActivityById */
 UPDATE
     users

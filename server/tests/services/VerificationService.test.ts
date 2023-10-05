@@ -226,7 +226,6 @@ describe('confirmVerification', () => {
 */
 
 import { updateVerificationByMethod } from '../../services/VerificationService'
-import { buildStudent } from '../mocks/generate'
 import * as UserRepo from '../../models/User/queries'
 import { getDbUlid } from '../../models/pgUtils'
 import { mocked } from 'ts-jest/utils'
@@ -253,14 +252,50 @@ describe('VerificationService', () => {
       expect(
         mockedUserRepo.updateUserVerificationMethodByUserId
       ).toHaveBeenCalledTimes(1)
-      expect(mockedUserRepo).toHaveBeenCalledWith(req.userId, {
+      expect(
+        mockedUserRepo.updateUserVerificationMethodByUserId
+      ).toHaveBeenCalledWith(req.userId, {
         emailVerified: req.emailVerified,
         phoneVerified: req.phoneVerified,
       })
     })
 
-    it('Should update only the verification methods provided', async () => {})
+    it('Should update only the verification methods provided', async () => {
+      const userId = getDbUlid()
+      const req = {
+        userId: userId,
+        emailVerified: true,
+      }
 
-    it('Should update only the non-undefined verification methods provided', async () => {})
+      await updateVerificationByMethod(req)
+      expect(
+        mockedUserRepo.updateUserVerificationMethodByUserId
+      ).toHaveBeenCalledTimes(1)
+      expect(
+        mockedUserRepo.updateUserVerificationMethodByUserId
+      ).toHaveBeenCalledWith(req.userId, {
+        emailVerified: req.emailVerified,
+        phoneVerified: undefined,
+      })
+    })
+
+    it('Should update only the non-undefined verification methods provided', async () => {
+      const userId = getDbUlid()
+      const req = {
+        userId: userId,
+        emailVerified: true,
+        phoneVerified: undefined,
+      }
+
+      await updateVerificationByMethod(req)
+      expect(
+        mockedUserRepo.updateUserVerificationMethodByUserId
+      ).toHaveBeenCalledTimes(1)
+      expect(
+        mockedUserRepo.updateUserVerificationMethodByUserId
+      ).toHaveBeenCalledWith(req.userId, {
+        emailVerified: req.emailVerified,
+      })
+    })
   })
 })
