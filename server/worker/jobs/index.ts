@@ -46,6 +46,7 @@ import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVoluntee
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import updateGradeLevel from './updateGradeLevel'
 import studentProcrastinationTextReminder from './studentProcrastinationTextReminder'
+import sendDelayedEvent from './sendDelayedEvent'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -92,6 +93,7 @@ export enum Jobs {
   Chatbot = 'Chatbot',
   UpdateGradeLevel = 'UpdateGradeLevel',
   StudentProcrastinationTextReminder = 'StudentProcrastinationTextReminder',
+  SendDelayedEvent = 'SendDelayedEvent',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -336,6 +338,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.DeleteSelfFavoritedVolunteers,
     processor: deleteSelfFavoritedVolunteers,
+  },
+  {
+    name: Jobs.SendDelayedEvent,
+    processor: sendDelayedEvent,
   },
   // TODO: uncomment this processor when ready to migrate
   //{

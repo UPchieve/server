@@ -11,11 +11,13 @@ import {
 import { authPassport } from '../../utils/auth-utils'
 import { Router } from 'express'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid, asNumber } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { NotAllowedError } from '../../models/Errors'
+import QueueService from '../../services/QueueService'
+import { Jobs } from '../../worker/jobs'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -234,6 +236,25 @@ export function routeUser(router: Router): void {
         payload as unknown
       )
       res.json({ users, isLastPage })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/users/track/delayed-event', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      await QueueService.add(
+        Jobs.SendDelayedEvent,
+        {
+          userId: user.id,
+          event: asString(req.body.event),
+        },
+        {
+          delay: asNumber(req.body.delay),
+        }
+      )
+      res.sendStatus(200)
     } catch (err) {
       resError(res, err)
     }

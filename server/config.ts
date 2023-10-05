@@ -311,6 +311,8 @@ const config: Static<typeof Config> = {
   // these environment variables.
   googleClientId: process.env.GOOGLE_CLIENT_ID || 'bogus',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || 'bogus',
+
+  laudspeakerApiKey: process.env.SUBWAY_LAUDSPEAKER_API_KEY || 'bogus',
 }
 
 module.exports = config
