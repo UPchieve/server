@@ -601,10 +601,10 @@ export async function updateUserProfileById(
       throw new RepoUpdateError('Update query did not return ok')
     // Update muted subject alerts for volunteers
     if (data.mutedSubjectAlerts !== undefined) {
-      let mutedSubjectAlerts = data.mutedSubjectAlerts
-      if (mutedSubjectAlerts.length == 0) {
+      if (data.mutedSubjectAlerts.length == 0) {
         await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
-      } else {
+      } 
+      else {
         // Create subject name to id mapping
         let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
           undefined,
@@ -621,7 +621,7 @@ export async function updateUserProfileById(
         }
         // Update muted subject alerts
         let mutedSubjectAlertIds = new Array()
-        for (const subjectName of mutedSubjectAlerts) {
+        for (const subjectName of data.mutedSubjectAlerts) {
           mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
         }
         let mutedSubjectAlertIdsWithUserId: {
