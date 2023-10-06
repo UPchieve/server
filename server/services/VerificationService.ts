@@ -15,9 +15,7 @@ import * as TwilioService from './TwilioService'
 import {
   updateUserVerifiedInfoById,
   getUserContactInfoById,
-  getUserIdByPhone,
   getUserIdByEmail,
-  updateUserVerificationMethodByUserId,
 } from '../models/User/queries'
 
 export interface InitiateVerificationData {
@@ -69,11 +67,6 @@ export async function initiateVerification(data: unknown): Promise<void> {
     verificationMethod,
     firstName,
   } = asInitiateVerificationData(data)
-
-  const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-  if (isPhoneVerification) {
-    throw new InputError('SMS verification not supported')
-  }
 
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
@@ -149,20 +142,4 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   } catch (error) {
     throw error
   }
-}
-
-/**
- * Updates user.email_verified and/or user.phone_verified
- */
-export async function updateVerificationByMethod(data: unknown): Promise<void> {
-  const {
-    userId,
-    phoneVerified,
-    emailVerified,
-  } = asUpdateVerificationByMethodData(data)
-
-  await updateUserVerificationMethodByUserId(userId, {
-    phoneVerified,
-    emailVerified,
-  })
 }

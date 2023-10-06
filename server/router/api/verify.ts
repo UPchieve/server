@@ -68,19 +68,4 @@ export function routeVerify(router: Router) {
       resError(res, err)
     }
   })
-
-  router.route('/verify').put(async function(req, res) {
-    const user = extractUser(req)
-    const payload = {
-      userId: user.id,
-      ...req.body,
-    }
-
-    try {
-      await VerificationService.updateVerificationByMethod(payload)
-      res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }

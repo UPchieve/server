@@ -262,18 +262,6 @@ RETURNING
     id AS ok;
 
 
-/* @name updateUserVerificationMethodByUserId */
-UPDATE
-    users
-SET
-    phone_verified = COALESCE(:phoneVerified, phone_verified),
-    email_verified = COALESCE(:emailVerified, email_verified)
-WHERE
-    id = :userId!
-RETURNING
-    id AS ok;
-
-
 /* @name updateUserPhoneNumberByUserId */
 UPDATE
     users

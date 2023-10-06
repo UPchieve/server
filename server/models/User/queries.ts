@@ -607,27 +607,3 @@ export async function updateUserProfileById(
     throw new RepoUpdateError(err)
   }
 }
-
-export async function updateUserVerificationMethodByUserId(
-  userId: Ulid,
-  verificationData: {
-    emailVerified: boolean | undefined
-    phoneVerified: boolean | undefined
-  }
-): Promise<void> {
-  try {
-    const result = await pgQueries.updateUserVerificationMethodByUserId.run(
-      {
-        userId,
-        emailVerified: verificationData.emailVerified,
-        phoneVerified: verificationData.phoneVerified,
-      },
-      getClient()
-    )
-
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
