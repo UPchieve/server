@@ -1570,7 +1570,7 @@ export async function updateVolunteerBackgroundInfo(
   }
 }
 
-export async function getNextVolunteerToNotify(options: {
+export async function getNextVolunteersToNotify(options: {
   subject: string
   lastNotified: Date
   isPartner: boolean | undefined
@@ -1578,15 +1578,29 @@ export async function getNextVolunteerToNotify(options: {
   disqualifiedVolunteers: Ulid[] | undefined
   specificPartner: string | undefined
   favoriteVolunteers: Ulid[] | undefined
-  isMutedSubjectAlertsFlag: boolean
-}): Promise<VolunteerContactInfo | undefined> {
+  maxCandidateVolunteers: number
+}): Promise<VolunteerContactInfo[] | undefined> {
   try {
-    const result = await pgQueries.getNextVolunteerToNotify.run(
+    const result = await pgQueries.getNextVolunteersToNotify.run(
       options,
       getClient()
     )
     if (!result.length) return
-    return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
+    return result.map(v => { return makeSomeOptional(v, ['volunteerPartnerOrg']) })
+    // if (result) return result
+    
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function checkIfVolunteerMutedSubject(userId: Ulid, subjectId: number): Promise<boolean | undefined> {
+  try {
+    const result = await pgQueries.checkIfVolunteerMutedSubject.run(
+      { userId, subjectId },
+      getClient()
+    )
+    return result.length ? true : false
   } catch (err) {
     throw new RepoReadError(err)
   }

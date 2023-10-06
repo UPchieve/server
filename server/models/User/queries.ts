@@ -12,6 +12,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
+import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
 import { CreateUserPayload, CreateUserResult, User } from './types'
 
@@ -605,21 +606,7 @@ export async function updateUserProfileById(
         await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
       } 
       else {
-        // Create subject name to id mapping
-        let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
-          undefined,
-          getClient()
-        )
-        if (!subjectNameIdMappingResult.length)
-          throw new RepoUpdateError(
-            'Select query did not return ok (subjectNameIdMappingResult)'
-          )
-        subjectNameIdMappingResult.map(v => makeRequired(v))
-        let subjectNameIdMapping: { [name: string]: number } = {}
-        for (const subjectNameAndId of subjectNameIdMappingResult) {
-          subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
-        }
-        // Update muted subject alerts
+        let subjectNameIdMapping: { [name: string]: number } = await getSubjectNameIdMapping()
         let mutedSubjectAlertIds = new Array()
         for (const subjectName of data.mutedSubjectAlerts) {
           mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])

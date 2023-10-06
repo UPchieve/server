@@ -345,3 +345,33 @@ const getSubjectTypeIR: any = {"name":"getSubjectType","params":[{"name":"subjec
 export const getSubjectType = new PreparedQuery<IGetSubjectTypeParams,IGetSubjectTypeResult>(getSubjectTypeIR);
 
 
+/** 'GetSubjectNameIdMapping' parameters type */
+export type IGetSubjectNameIdMappingParams = void;
+
+/** 'GetSubjectNameIdMapping' return type */
+export interface IGetSubjectNameIdMappingResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetSubjectNameIdMapping' query type */
+export interface IGetSubjectNameIdMappingQuery {
+  params: IGetSubjectNameIdMappingParams;
+  result: IGetSubjectNameIdMappingResult;
+}
+
+const getSubjectNameIdMappingIR: any = {"name":"getSubjectNameIdMapping","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    subjects.name,\n    subjects.id\nFROM\n    upchieve.subjects","loc":{"a":3893,"b":3960,"line":130,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name,
+ *     subjects.id
+ * FROM
+ *     upchieve.subjects
+ * ```
+ */
+export const getSubjectNameIdMapping = new PreparedQuery<IGetSubjectNameIdMappingParams,IGetSubjectNameIdMappingResult>(getSubjectNameIdMappingIR);
+
+

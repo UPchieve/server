@@ -1147,7 +1147,7 @@ FROM (
         COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked;
 
 
-/* @name getNextVolunteerToNotify */
+/* @name getNextVolunteersToNotify */
 WITH subject_totals AS (
     SELECT
         subjects.name,
@@ -1215,8 +1215,6 @@ candidates AS (
                 HAVING
                     COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
         LEFT JOIN subjects ON (subjects.name = :subject!)
-        LEFT JOIN muted_users_subject_alerts ON (muted_users_subject_alerts.user_id = users.id
-                AND muted_users_subject_alerts.subject_id = subjects.id)
     WHERE
         test_user IS FALSE
         AND banned IS FALSE
@@ -1229,8 +1227,6 @@ candidates AS (
         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
         AND (:subject! = ANY (subjects_unlocked.subjects)
             OR :subject! = ANY (computed_subjects_unlocked.subjects))
-        -- user has not muted :subject alerts
-        AND (:isMutedSubjectAlertsFlag is TRUE AND muted_users_subject_alerts.subject_id IS NULL)
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
@@ -1262,7 +1258,16 @@ FROM
     candidates
 ORDER BY
     RANDOM()
-LIMIT 1;
+LIMIT (:maxCandidateVolunteers!)::int;
+
+/* @name checkIfVolunteerMutedSubject */
+SELECT
+    user_id
+FROM
+    muted_users_subject_alerts
+WHERE
+    muted_users_subject_alerts.user_id = :userId
+    AND muted_users_subject_alerts.subject_id = :subjectId;
 
 
 /* @name getVolunteerForScheduleUpdate */
