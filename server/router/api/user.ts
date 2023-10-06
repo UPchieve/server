@@ -2,7 +2,6 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import { updateUserProfileById } from '../../models/User'
 import {
   countUsersReferredByOtherId,
   getUserForAdminDetail,
@@ -45,7 +44,8 @@ export function routeUser(router: Router): void {
         updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
       }
 
-      await updateUserProfileById(user.id, updateReq)
+      await UserService.updateUserProfile(user.id, updateReq)
+
       if (isDeactivated !== user.deactivated) {
         await MailService.createContact(user.id)
 
