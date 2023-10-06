@@ -1578,6 +1578,7 @@ export async function getNextVolunteerToNotify(options: {
   disqualifiedVolunteers: Ulid[] | undefined
   specificPartner: string | undefined
   favoriteVolunteers: Ulid[] | undefined
+  isMutedSubjectAlertsFlag: boolean
 }): Promise<VolunteerContactInfo | undefined> {
   try {
     const result = await pgQueries.getNextVolunteerToNotify.run(

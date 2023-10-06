@@ -1230,7 +1230,7 @@ candidates AS (
         AND (:subject! = ANY (subjects_unlocked.subjects)
             OR :subject! = ANY (computed_subjects_unlocked.subjects))
         -- user has not muted :subject alerts
-        AND muted_users_subject_alerts.subject_id IS NULL
+        AND (:isMutedSubjectAlertsFlag is TRUE AND muted_users_subject_alerts.subject_id IS NULL)
         AND ( -- user does not have high level subjects if provided
             (:highLevelSubjects)::text[] IS NULL
             OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)

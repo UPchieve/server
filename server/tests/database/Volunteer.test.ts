@@ -9,6 +9,7 @@ test('Make a connection', async () => {
     disqualifiedVolunteers: undefined,
     specificPartner: undefined,
     favoriteVolunteers: undefined,
+    isMutedSubjectAlertsFlag: false
   })
   expect(result).toBeUndefined()
 })

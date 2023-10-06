@@ -27,7 +27,7 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
+import { getProcrastinationTextReminderCopy, getMutedSubjectAlertsFlag } from './FeatureFlagService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -285,6 +285,7 @@ export async function notifyVolunteer(
   if (!student) return
 
   const favoriteVolunteers = await getFavoriteVolunteersByStudentId(student.id)
+  const isMutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(student.id) || false
 
   const associatedPartner = student.studentPartnerOrg
     ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
@@ -332,6 +333,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -349,6 +351,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -365,6 +368,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -382,6 +386,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -398,6 +403,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -413,6 +419,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -428,6 +435,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
     {
@@ -443,6 +451,7 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers: undefined,
+          isMutedSubjectAlertsFlag,
         }),
     },
   ]
