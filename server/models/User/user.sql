@@ -637,7 +637,8 @@ SELECT
     first_name,
     email,
     sms_consent,
-    phone_verified banned,
+    phone_verified,
+    banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
