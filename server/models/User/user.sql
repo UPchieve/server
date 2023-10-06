@@ -245,7 +245,7 @@ SET
 WHERE
     id = :userId!
 RETURNING
-    id AS ok;
+    email AS ok;
 
 
 /* @name updateUserVerifiedPhoneById */
@@ -259,7 +259,7 @@ SET
 WHERE
     id = :userId!
 RETURNING
-    id AS ok;
+    phone AS ok;
 
 
 /* @name updateUserPhoneNumberByUserId */
