@@ -40,6 +40,7 @@ export interface ConfirmVerificationData {
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
+  forSignup?: boolean
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
@@ -47,6 +48,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
+  forSignup: asOptional(asBoolean),
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -121,7 +123,10 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     sendTo,
     verificationMethod,
     verificationCode,
+    forSignup,
   } = asConfirmVerificationData(data)
+
+  const shouldSendOnboardingEmails = forSignup ?? true
 
   const VERIFICATION_CODE_LENGTH = 6
   if (
@@ -137,7 +142,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       verificationCode
     )
     if (isVerified) {
-      const { phone } = await updateUserVerifiedInfoById(
+      const result = await updateUserVerifiedInfoById(
         userId,
         sendTo,
         isPhoneVerification
@@ -145,11 +150,13 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       if (isPhoneVerification) {
         // Update the user's phone number if the verified number is different
         // from what we previously had for them.
-        if (phone && sendTo !== phone) {
+        if (result.contact && sendTo !== result.contact) {
           UserService.updateUserProfile(userId, { phone: sendTo })
         }
       }
-      await sendEmails(userId) // @TODO only do this on sign-up
+      if (shouldSendOnboardingEmails) {
+        await sendEmails(userId)
+      }
     }
 
     return isVerified

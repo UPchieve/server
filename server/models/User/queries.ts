@@ -284,7 +284,7 @@ export async function updateUserVerifiedInfoById(
   userId: Ulid,
   sendTo: string,
   isPhoneVerification: boolean
-): Promise<{ phone: string | null }> {
+): Promise<{ contact: string | null }> {
   const update = isPhoneVerification
     ? pgQueries.updateUserVerifiedPhoneById.run(
         { userId, phone: sendTo },
@@ -300,7 +300,7 @@ export async function updateUserVerifiedInfoById(
       throw new RepoUpdateError('Update query did not return ok')
 
     return {
-      phone: result[0].ok,
+      contact: result[0].ok,
     }
   } catch (err) {
     throw new RepoUpdateError(err)

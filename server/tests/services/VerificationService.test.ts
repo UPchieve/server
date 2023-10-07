@@ -230,13 +230,18 @@ import { mocked } from 'ts-jest/utils'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
-import { InputError, LookupError } from '../../models/Errors'
+import * as MailService from '../../services/MailService'
+import { LookupError } from '../../models/Errors'
+import { buildUserContactInfo } from '../mocks/generate'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/TwilioService')
+jest.mock('../../services/MailService')
+jest.mock('../../services/StudentService')
 
 const mockedTwilioService = mocked(TwilioService, true)
 const mockedUserRepo = mocked(UserRepo)
+const mockedMailService = mocked(MailService, true)
 
 describe('VerificationService', () => {
   beforeEach(async () => {
@@ -337,7 +342,7 @@ describe('VerificationService', () => {
       }
       const oldNumber = '+14137779999'
       mockedUserRepo.updateUserVerifiedInfoById.mockResolvedValue({
-        phone: oldNumber,
+        contact: oldNumber,
       })
 
       await VerificationService.confirmVerification(req)
@@ -357,11 +362,62 @@ describe('VerificationService', () => {
         verificationCode: '123456',
       }
       mockedUserRepo.updateUserVerifiedInfoById.mockResolvedValue({
-        phone: req.sendTo,
+        contact: req.sendTo,
       })
 
       await VerificationService.confirmVerification(req)
       expect(mockedUserRepo.updateUserProfileById).not.toHaveBeenCalled()
+    })
+
+    describe('Sending emails at the end of verification', () => {
+      beforeEach(async () => {
+        mockedUserRepo.getUserContactInfoById.mockResolvedValue(
+          buildUserContactInfo({
+            isVolunteer: false,
+          })
+        )
+      })
+
+      it('Should send emails if forSignup = true', async () => {
+        const req = {
+          userId: '123',
+          sendTo: 'tinabelcher@bobsburgers.com',
+          verificationMethod: VERIFICATION_METHOD.EMAIL,
+          verificationCode: '123456',
+          forSignup: true,
+        }
+        await VerificationService.confirmVerification(req)
+        expect(
+          mockedMailService.sendStudentOnboardingWelcomeEmail
+        ).toHaveBeenCalled()
+      })
+
+      it('Should send emails by default is forSignup is not present in the request', async () => {
+        const req = {
+          userId: '123',
+          sendTo: 'tinabelcher@bobsburgers.com',
+          verificationMethod: VERIFICATION_METHOD.EMAIL,
+          verificationCode: '123456',
+        }
+        await VerificationService.confirmVerification(req)
+        expect(
+          mockedMailService.sendStudentOnboardingWelcomeEmail
+        ).toHaveBeenCalled()
+      })
+
+      it('Should NOT send emails when forSignup = false', async () => {
+        const req = {
+          userId: '123',
+          sendTo: 'tinabelcher@bobsburgers.com',
+          verificationMethod: VERIFICATION_METHOD.EMAIL,
+          verificationCode: '123456',
+          forSignup: false,
+        }
+        await VerificationService.confirmVerification(req)
+        expect(
+          mockedMailService.sendStudentOnboardingWelcomeEmail
+        ).not.toHaveBeenCalled()
+      })
     })
   })
 })
