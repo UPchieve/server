@@ -472,7 +472,7 @@ export async function notifyVolunteer(
     if (candidateVolunteers) {
       for (let cv of candidateVolunteers) {
         let mutedSubjectAlertsFlag =
-          (await getMutedSubjectAlertsFlag(cv.id)) || true // DEBUG TO DO: should be set to `false` before commiting
+          (await getMutedSubjectAlertsFlag(cv.id)) || false
         if (mutedSubjectAlertsFlag) {
           let volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
             cv.id,
