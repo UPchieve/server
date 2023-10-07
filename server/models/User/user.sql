@@ -787,11 +787,3 @@ WHERE user_id = :userId
 RETURNING
     user_id AS ok;
 
-
-/* @name getSubjectNameIdMapping */
-SELECT
-    subjects.name,
-    subjects.id
-FROM
-    upchieve.subjects;
-
