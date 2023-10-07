@@ -304,7 +304,9 @@ export async function getSubjectType(
   }
 }
 
-export async function getSubjectNameIdMapping(): Promise<{ [subjectName: string]: number }> {
+export async function getSubjectNameIdMapping(): Promise<{
+  [subjectName: string]: number
+}> {
   try {
     let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
       undefined,
@@ -320,8 +322,7 @@ export async function getSubjectNameIdMapping(): Promise<{ [subjectName: string]
       subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
     }
     return subjectNameIdMapping
-  } 
-  catch (err) {
+  } catch (err) {
     if (err instanceof RepoReadError) throw err
     throw new RepoReadError(err)
   }

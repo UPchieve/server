@@ -9,7 +9,7 @@ test('Make a connection', async () => {
     disqualifiedVolunteers: undefined,
     specificPartner: undefined,
     favoriteVolunteers: undefined,
-    maxCandidateVolunteers: 5
+    maxCandidateVolunteers: 5,
   })
   expect(result).toBeUndefined()
 })

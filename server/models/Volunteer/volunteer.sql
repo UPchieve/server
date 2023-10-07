@@ -1260,6 +1260,7 @@ ORDER BY
     RANDOM()
 LIMIT (:maxCandidateVolunteers!)::int;
 
+
 /* @name checkIfVolunteerMutedSubject */
 SELECT
     user_id

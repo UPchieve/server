@@ -7,9 +7,7 @@ import {
   getStudentContactInfoById,
   getTestStudentExistsById,
 } from '../models/Student'
-import {
-  getSubjectNameIdMapping
-} from '../models/Subjects'
+import { getSubjectNameIdMapping } from '../models/Subjects'
 import {
   VolunteerContactInfo,
   getVolunteersNotifiedBySessionId,
@@ -30,7 +28,10 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getProcrastinationTextReminderCopy, getMutedSubjectAlertsFlag } from './FeatureFlagService'
+import {
+  getProcrastinationTextReminderCopy,
+  getMutedSubjectAlertsFlag,
+} from './FeatureFlagService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -470,9 +471,13 @@ export async function notifyVolunteer(
     candidateVolunteers = await priorityFilter.query()
     if (candidateVolunteers) {
       for (let cv of candidateVolunteers) {
-        let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(cv.id) || true  // DEBUG TO DO: should be set to `false` before commiting
+        let mutedSubjectAlertsFlag =
+          (await getMutedSubjectAlertsFlag(cv.id)) || true // DEBUG TO DO: should be set to `false` before commiting
         if (mutedSubjectAlertsFlag) {
-          let volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(cv.id, subjectId)
+          let volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
+            cv.id,
+            subjectId
+          )
           if (volunteerMutedSubject) continue
         }
         volunteer = cv

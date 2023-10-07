@@ -1586,15 +1586,19 @@ export async function getNextVolunteersToNotify(options: {
       getClient()
     )
     if (!result.length) return
-    return result.map(v => { return makeSomeOptional(v, ['volunteerPartnerOrg']) })
+    return result.map(v => {
+      return makeSomeOptional(v, ['volunteerPartnerOrg'])
+    })
     // if (result) return result
-    
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function checkIfVolunteerMutedSubject(userId: Ulid, subjectId: number): Promise<boolean | undefined> {
+export async function checkIfVolunteerMutedSubject(
+  userId: Ulid,
+  subjectId: number
+): Promise<boolean | undefined> {
   try {
     const result = await pgQueries.checkIfVolunteerMutedSubject.run(
       { userId, subjectId },

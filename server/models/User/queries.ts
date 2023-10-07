@@ -604,9 +604,10 @@ export async function updateUserProfileById(
     if (data.mutedSubjectAlerts !== undefined) {
       if (data.mutedSubjectAlerts.length == 0) {
         await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
-      } 
-      else {
-        let subjectNameIdMapping: { [name: string]: number } = await getSubjectNameIdMapping()
+      } else {
+        let subjectNameIdMapping: {
+          [name: string]: number
+        } = await getSubjectNameIdMapping()
         let mutedSubjectAlertIds = new Array()
         for (const subjectName of data.mutedSubjectAlerts) {
           mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
