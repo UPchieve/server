@@ -12,7 +12,6 @@ import { InputError, LookupError } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
-import * as UserService from './UserService'
 import {
   updateUserVerifiedInfoById,
   getUserContactInfoById,

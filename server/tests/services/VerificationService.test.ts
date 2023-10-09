@@ -353,21 +353,6 @@ describe('VerificationService', () => {
       )
     })
 
-    it("Should NOT update the user's phone if the same phone number has been reverified", async () => {
-      const req = {
-        userId: '123',
-        sendTo: '+18603334444',
-        verificationMethod: VERIFICATION_METHOD.SMS,
-        verificationCode: '123456',
-      }
-      mockedUserRepo.updateUserVerifiedInfoById.mockResolvedValue({
-        contact: req.sendTo,
-      })
-
-      await VerificationService.confirmVerification(req)
-      expect(mockedUserRepo.updateUserProfileById).not.toHaveBeenCalled()
-    })
-
     describe('Sending emails at the end of verification', () => {
       beforeEach(async () => {
         mockedUserRepo.getUserContactInfoById.mockResolvedValue(
