@@ -4,6 +4,7 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../mocks/generate'
 import { routeUser } from '../../router/api/user'
 import * as UserService from '../../services/UserService'
+import { InputError } from '../../models/Errors'
 
 jest.mock('../../services/UserService')
 
@@ -65,4 +66,18 @@ describe('PUT /user', () => {
       }
     )
   })
+
+  it.each(['', undefined, false, null])(
+    'Should throw an error when phone is invalid (phone = %s)',
+    async phone => {
+      const request = {
+        userId: '123',
+        phone,
+        isDeactivated: false,
+      }
+      const res = await sendPut(request)
+      expect(res.status).toEqual(422)
+      expect(mockedUserService.updateUserProfile).not.toHaveBeenCalled()
+    }
+  )
 })

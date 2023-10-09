@@ -14,7 +14,7 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import { NotAllowedError } from '../../models/Errors'
+import { InputError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -34,6 +34,10 @@ export function routeUser(router: Router): void {
 
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
+
+      if (phone.length === 0) {
+        throw new InputError('Phone number must be provided')
+      }
 
       let updateReq: { [k: string]: any } = {
         phone,
