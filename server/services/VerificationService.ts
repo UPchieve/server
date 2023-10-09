@@ -141,11 +141,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       verificationCode
     )
     if (isVerified) {
-      const result = await updateUserVerifiedInfoById(
-        userId,
-        sendTo,
-        isPhoneVerification
-      )
+      await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
       if (shouldSendOnboardingEmails) {
         await sendEmails(userId)
       }
