@@ -346,11 +346,10 @@ describe('VerificationService', () => {
       })
 
       await VerificationService.confirmVerification(req)
-      expect(mockedUserRepo.updateUserProfileById).toHaveBeenCalledWith(
+      expect(mockedUserRepo.updateUserVerifiedInfoById).toHaveBeenCalledWith(
         req.userId,
-        {
-          phone: req.sendTo,
-        }
+        req.sendTo,
+        true
       )
     })
 

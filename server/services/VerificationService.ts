@@ -147,13 +147,6 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
         sendTo,
         isPhoneVerification
       )
-      if (isPhoneVerification) {
-        // Update the user's phone number if the verified number is different
-        // from what we previously had for them.
-        if (result.contact && sendTo !== result.contact) {
-          UserService.updateUserProfile(userId, { phone: sendTo })
-        }
-      }
       if (shouldSendOnboardingEmails) {
         await sendEmails(userId)
       }
