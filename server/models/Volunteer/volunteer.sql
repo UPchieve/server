@@ -1214,7 +1214,6 @@ candidates AS (
                     user_id, subjects.name, computed_subject_totals.total
                 HAVING
                     COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
-        LEFT JOIN subjects ON (subjects.name = :subject!)
     WHERE
         test_user IS FALSE
         AND banned IS FALSE

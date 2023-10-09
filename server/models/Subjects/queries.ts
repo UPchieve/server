@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 
 import {

@@ -1589,7 +1589,6 @@ export async function getNextVolunteersToNotify(options: {
     return result.map(v => {
       return makeSomeOptional(v, ['volunteerPartnerOrg'])
     })
-    // if (result) return result
   } catch (err) {
     throw new RepoReadError(err)
   }

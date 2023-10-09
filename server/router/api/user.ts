@@ -32,12 +32,12 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       if ('mutedSubjectAlerts' in req.body) {
         // Volunteer-only
-        var { phone, isDeactivated, mutedSubjectAlerts } = req.body
+        var { mutedSubjectAlerts } = req.body
         mutedSubjectAlerts = mutedSubjectAlerts as string[]
       } else {
-        var { phone, isDeactivated } = req.body
         var mutedSubjectAlerts = undefined
       }
+      let { phone, isDeactivated } = req.body
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
       await updateUserProfileById(user.id, {
