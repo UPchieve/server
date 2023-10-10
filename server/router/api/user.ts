@@ -2,7 +2,6 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import { updateUserProfileById } from '../../models/User'
 import {
   countUsersReferredByOtherId,
   getUserForAdminDetail,
@@ -15,7 +14,7 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import { NotAllowedError } from '../../models/Errors'
+import { InputError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -25,19 +24,32 @@ export function routeUser(router: Router): void {
     return res.json({ user: parsedUser })
   })
 
-  // @note: Currently, only volunteers are able to update their profile
+  // Note: Both students and volunteers can edit parts of their profile,
+  // but only volunteeres can deactivate their accounts.
   router.put('/user', async (req, res) => {
     try {
       const { ip } = req
       const user = extractUser(req)
       let { phone, isDeactivated } = req.body
+
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 
-      await updateUserProfileById(user.id, {
+      if (phone.length === 0) {
+        throw new InputError('Phone number must be provided')
+      }
+
+      let updateReq: { [k: string]: any } = {
         phone,
         deactivated: isDeactivated,
-      })
+      }
+
+      if ('smsConsent' in req.body) {
+        updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
+      }
+
+      await UserService.updateUserProfile(user.id, updateReq)
+
       if (isDeactivated !== user.deactivated) {
         await MailService.createContact(user.id)
 

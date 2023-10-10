@@ -14,6 +14,7 @@ import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { PoolClient } from 'pg'
 import { CreateUserPayload, CreateUserResult, User } from './types'
+import { IUpdateUserVerifiedPhoneByIdResult } from './pg.queries'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -90,6 +91,8 @@ export type UserContactInfo = {
   id: Ulid
   email: string
   phone?: string
+  phoneVerified: boolean
+  smsConsent: boolean
   firstName: string
   isVolunteer: boolean
   isAdmin: boolean
@@ -281,7 +284,7 @@ export async function updateUserVerifiedInfoById(
   userId: Ulid,
   sendTo: string,
   isPhoneVerification: boolean
-): Promise<void> {
+): Promise<{ contact: string | null }> {
   const update = isPhoneVerification
     ? pgQueries.updateUserVerifiedPhoneById.run(
         { userId, phone: sendTo },
@@ -295,6 +298,10 @@ export async function updateUserVerifiedInfoById(
     const result = await update
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+
+    return {
+      contact: result[0].ok,
+    }
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -594,6 +601,7 @@ export async function updateUserProfileById(
         userId,
         deactivated: data.deactivated,
         phone: data.phone,
+        smsConsent: data.smsConsent,
       },
       getClient()
     )

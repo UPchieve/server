@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+// test.skip('postgres migration', () => 1)
 /*import request, { Test } from 'supertest'
 import { mocked } from 'ts-jest/utils'
 
@@ -177,3 +177,53 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
   })
 })
 */
+import request, { Test } from 'supertest'
+import { mocked } from 'ts-jest/utils'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { buildStudent } from '../mocks/generate'
+import { routeVerify } from '../../router/api/verify'
+import * as VerificationService from '../../services/VerificationService'
+import { VERIFICATION_METHOD } from '../../constants'
+
+const mockedVerificationService = mocked(VerificationService, true)
+const mockGetUser = () => buildStudent()
+const router = mockRouter()
+routeVerify(router)
+const app = mockApp()
+app.use(mockPassportMiddleware(mockGetUser))
+app.use('/api', router)
+const agent = request.agent(app)
+
+jest.mock('../../services/VerificationService')
+
+describe('verify', () => {
+  const sendPost = async (payload: any, path = ''): Promise<Test> => {
+    return agent
+      .post(`/api/verify${path}`)
+      .set('Accept', 'application/json')
+      .send(payload)
+  }
+
+  describe('confirmVerification', () => {
+    beforeEach(async () => {
+      jest.resetAllMocks()
+    })
+
+    it.each([false, true, undefined])(
+      'Should correctly handle optional field forSignup',
+      async forSignup => {
+        const req = {
+          userId: '123',
+          sendTo: 'hellothere@gmail.com',
+          verificationMethod: VERIFICATION_METHOD.EMAIL,
+          verificationCode: '123456',
+          forSignup,
+        }
+        await sendPost(req, '/confirm')
+        expect(
+          mockedVerificationService.confirmVerification
+        ).toHaveBeenCalledWith(req)
+      }
+    )
+  })
+})

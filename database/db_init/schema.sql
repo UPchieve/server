@@ -1857,6 +1857,7 @@ CREATE TABLE upchieve.users (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     phone text,
+    sms_consent boolean NOT NULL DEFAULT false,
     mongo_id character varying(24),
     other_signup_source text,
     proxy_email text

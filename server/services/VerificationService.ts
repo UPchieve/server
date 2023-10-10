@@ -8,7 +8,6 @@ import {
   asBoolean,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
-import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
@@ -16,9 +15,10 @@ import * as TwilioService from './TwilioService'
 import {
   updateUserVerifiedInfoById,
   getUserContactInfoById,
-  getUserIdByPhone,
   getUserIdByEmail,
+  getUserIdByPhone,
 } from '../models/User/queries'
+import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -59,24 +59,33 @@ export async function initiateVerification(data: unknown): Promise<void> {
   } = asInitiateVerificationData(data)
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-  if (isPhoneVerification) {
-    throw new InputError('SMS verification not supported')
-  }
-
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
 
-  existingUserErrorMessage = 'The email address you entered is already in use'
-  if (!isValidEmail(sendTo))
-    throw new InputError('Must supply a valid email address')
-  existingUserId = await getUserIdByEmail(sendTo)
+  if (isPhoneVerification) {
+    if (!isValidInternationalPhoneNumber(sendTo))
+      throw new InputError('Must supply a valid phone number')
 
+    existingUserErrorMessage = 'The phone number you entered is already in use'
+    existingUserId = await getUserIdByPhone(sendTo)
+  } else {
+    // email verification
+    if (!isValidEmail(sendTo))
+      throw new InputError('Must supply a valid email address')
+
+    existingUserErrorMessage = 'The email address you entered is already in use'
+    existingUserId = await getUserIdByEmail(sendTo)
+
+    if (!existingUserId) {
+      throw new LookupError(
+        'The email address you entered does not match your account email address'
+      )
+    }
+  }
+
+  // Make sure the user from DB matches the one in the request
   if (existingUserId && !(userId === existingUserId))
     throw new LookupError(existingUserErrorMessage)
-  if (verificationMethod === VERIFICATION_METHOD.EMAIL && !existingUserId)
-    throw new LookupError(
-      'The email address you entered does not match your account email address'
-    )
 
   await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }
