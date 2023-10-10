@@ -1577,3 +1577,39 @@ const updateUserProfileByIdIR: any = {"name":"updateUserProfileById","params":[{
 export const updateUserProfileById = new PreparedQuery<IUpdateUserProfileByIdParams,IUpdateUserProfileByIdResult>(updateUserProfileByIdIR);
 
 
+/** 'GetUserVerificationInfoById' parameters type */
+export interface IGetUserVerificationInfoByIdParams {
+  userId: string;
+}
+
+/** 'GetUserVerificationInfoById' return type */
+export interface IGetUserVerificationInfoByIdResult {
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  verified: boolean;
+}
+
+/** 'GetUserVerificationInfoById' query type */
+export interface IGetUserVerificationInfoByIdQuery {
+  params: IGetUserVerificationInfoByIdParams;
+  result: IGetUserVerificationInfoByIdResult;
+}
+
+const getUserVerificationInfoByIdIR: any = {"name":"getUserVerificationInfoById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22190,"b":22196,"line":757,"col":10}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    verified,\n    email_verified,\n    phone_verified\nFROM\n    users\nWHERE\n    id = :userId!","loc":{"a":22099,"b":22196,"line":750,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     verified,
+ *     email_verified,
+ *     phone_verified
+ * FROM
+ *     users
+ * WHERE
+ *     id = :userId!
+ * ```
+ */
+export const getUserVerificationInfoById = new PreparedQuery<IGetUserVerificationInfoByIdParams,IGetUserVerificationInfoByIdResult>(getUserVerificationInfoByIdIR);
+
+

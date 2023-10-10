@@ -1,6 +1,12 @@
 import { Ulid } from '../models/pgUtils'
 import { VERIFICATION_METHOD } from '../constants'
-import { asFactory, asString, asEnum } from '../utils/type-utils'
+import {
+  asFactory,
+  asString,
+  asEnum,
+  asOptional,
+  asBoolean,
+} from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
@@ -33,6 +39,7 @@ export interface ConfirmVerificationData {
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
+  forSignup?: boolean
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
@@ -40,6 +47,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
+  forSignup: asOptional(asBoolean),
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -105,7 +113,10 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     sendTo,
     verificationMethod,
     verificationCode,
+    forSignup,
   } = asConfirmVerificationData(data)
+
+  const shouldSendOnboardingEmails = forSignup ?? true
 
   const VERIFICATION_CODE_LENGTH = 6
   if (
@@ -122,7 +133,9 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     )
     if (isVerified) {
       await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
-      await sendEmails(userId)
+      if (shouldSendOnboardingEmails) {
+        await sendEmails(userId)
+      }
     }
 
     return isVerified
