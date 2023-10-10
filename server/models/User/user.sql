@@ -745,3 +745,14 @@ WHERE
 RETURNING
     id AS ok;
 
+
+/* @name getUserVerificationInfoById */
+SELECT
+    verified,
+    email_verified,
+    phone_verified
+FROM
+    users
+WHERE
+    id = :userId!;
+

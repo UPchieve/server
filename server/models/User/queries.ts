@@ -604,3 +604,23 @@ export async function updateUserProfileById(
     throw new RepoUpdateError(err)
   }
 }
+
+export type UserVerificationInfo = {
+  verified: boolean
+  emailVerified: boolean
+  phoneVerified: boolean
+}
+
+export async function getUserVerificationInfoById(
+  userId: Ulid
+): Promise<UserVerificationInfo | undefined> {
+  try {
+    const result = await pgQueries.getUserVerificationInfoById.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
