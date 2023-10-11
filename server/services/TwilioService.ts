@@ -490,13 +490,14 @@ export async function notifyVolunteer(
 export async function sendVerification(
   sendTo: string,
   verificationMethod: VERIFICATION_METHOD,
-  firstName: string
+  firstName: string,
+  forceSmsVerification: boolean = false
 ): Promise<void> {
   if (!twilioClient) {
     logger.warn('Twilio client not loaded.')
     return
   }
-  if (verificationMethod === VERIFICATION_METHOD.SMS) {
+  if (verificationMethod === VERIFICATION_METHOD.SMS && !forceSmsVerification) {
     logger.warn('SMS verification not supported')
     return
   }

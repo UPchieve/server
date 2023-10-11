@@ -41,7 +41,7 @@ export async function getUPFByUserId(
 
 export type PublicUserProductFlags = Pick<
   UserProductFlags,
-  'userId' | 'gatesQualified'
+  'userId' | 'gatesQualified' | 'fallIncentiveProgram'
 >
 
 export async function getPublicUPFByUserId(
@@ -102,6 +102,23 @@ export async function updateSentInactiveNinetyDayEmail(
   try {
     const result = await pgQueries.updateSentInactiveNinetyDayEmail.run(
       { userId, sentInactiveNinetyDayEmail },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateFallIncentiveProgram(
+  userId: Ulid,
+  status: boolean
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateFallIncentiveProgram.run(
+      { userId, status },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return
