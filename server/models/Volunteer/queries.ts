@@ -717,7 +717,11 @@ export async function getVolunteerTrainingCourses(
       map[temp.trainingCourse] = {
         ...temp,
         isComplete: temp.complete,
-        progress: getProgress(temp.trainingCourse, temp.completedMaterials),
+        progress: await getProgress(
+          temp.trainingCourse,
+          temp.completedMaterials,
+          userId
+        ),
       }
     }
     return map

@@ -61,6 +61,10 @@ export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }
 
+export async function getUsingOurPlatformFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
+}
+
 // The implicit return type expects a JSON shape, but this feature flag only
 // has a string payload. We're making an explicit coercion from JSON to string
 export async function getProcrastinationTextReminderCopy(

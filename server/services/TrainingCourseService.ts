@@ -23,7 +23,10 @@ export async function getCourse(
     progress: 0,
   }
 
-  const course = Object.assign({}, TrainingUtils.getCourse(courseKey))
+  const course = Object.assign(
+    {},
+    await TrainingUtils.getCourse(courseKey, volunteer.id)
+  )
   course.modules.forEach((mod: any) => {
     mod.materials.forEach((mat: any) => {
       mat.isCompleted = volunteerCourse.completedMaterials.includes(
@@ -63,7 +66,11 @@ export async function recordProgress(
   const completedMaterials = [...volunteerCourse.completedMaterials]
   completedMaterials.push(materialKey)
 
-  const progress = TrainingUtils.getProgress(courseKey, completedMaterials)
+  const progress = await TrainingUtils.getProgress(
+    courseKey,
+    completedMaterials,
+    volunteer.id
+  )
   const isComplete = progress === 100
 
   await updateVolunteerTrainingById(
