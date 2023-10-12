@@ -812,12 +812,12 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
   }
 }
 
-export async function getSessionHistory(studentId: Ulid, page: string) {
+export async function getSessionHistory(userId: Ulid, page: string) {
   const pageNum = parseInt(page)
   const PER_PAGE = 5
   const skip = (pageNum - 1) * PER_PAGE
   const pastSessions = await SessionRepo.getSessionHistory(
-    studentId,
+    userId,
     PER_PAGE,
     skip
   )
@@ -826,9 +826,8 @@ export async function getSessionHistory(studentId: Ulid, page: string) {
   return { pastSessions, page: pageNum, isLastPage }
 }
 
-export async function getTotalSessionHistory(studentId: Ulid) {
-  const minSessionLength = 60000
-  return SessionRepo.getTotalSessionHistory(studentId, minSessionLength)
+export async function getTotalSessionHistory(userId: Ulid) {
+  return SessionRepo.getTotalSessionHistory(userId)
 }
 
 export async function getSessionRecap(
