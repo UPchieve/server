@@ -32,6 +32,7 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
 
       let { phone, isDeactivated } = req.body
+
       phone = asString(phone)
       isDeactivated = asBoolean(isDeactivated)
 

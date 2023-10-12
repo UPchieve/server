@@ -15,6 +15,7 @@ import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
 import { CreateUserPayload, CreateUserResult, User } from './types'
+import { IUpdateUserVerifiedPhoneByIdResult } from './pg.queries'
 
 export async function createUser(
   user: CreateUserPayload,
