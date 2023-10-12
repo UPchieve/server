@@ -13,6 +13,7 @@ export type User = {
   password: string
   passwordResetToken?: string
   phone?: string
+  smsConsent: boolean
   phoneVerified: boolean
   proxyEmail?: string
   referralCode: string

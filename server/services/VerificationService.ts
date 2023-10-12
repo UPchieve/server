@@ -1,8 +1,13 @@
 import { Ulid } from '../models/pgUtils'
 import { VERIFICATION_METHOD } from '../constants'
-import { asFactory, asString, asEnum } from '../utils/type-utils'
+import {
+  asFactory,
+  asString,
+  asEnum,
+  asOptional,
+  asBoolean,
+} from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
-import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { InputError, LookupError } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
@@ -10,9 +15,10 @@ import * as TwilioService from './TwilioService'
 import {
   updateUserVerifiedInfoById,
   getUserContactInfoById,
-  getUserIdByPhone,
   getUserIdByEmail,
+  getUserIdByPhone,
 } from '../models/User/queries'
+import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -33,6 +39,7 @@ export interface ConfirmVerificationData {
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
+  forSignup?: boolean
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
@@ -40,6 +47,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
+  forSignup: asOptional(asBoolean),
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -51,24 +59,33 @@ export async function initiateVerification(data: unknown): Promise<void> {
   } = asInitiateVerificationData(data)
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-  if (isPhoneVerification) {
-    throw new InputError('SMS verification not supported')
-  }
-
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
 
-  existingUserErrorMessage = 'The email address you entered is already in use'
-  if (!isValidEmail(sendTo))
-    throw new InputError('Must supply a valid email address')
-  existingUserId = await getUserIdByEmail(sendTo)
+  if (isPhoneVerification) {
+    if (!isValidInternationalPhoneNumber(sendTo))
+      throw new InputError('Must supply a valid phone number')
 
+    existingUserErrorMessage = 'The phone number you entered is already in use'
+    existingUserId = await getUserIdByPhone(sendTo)
+  } else {
+    // email verification
+    if (!isValidEmail(sendTo))
+      throw new InputError('Must supply a valid email address')
+
+    existingUserErrorMessage = 'The email address you entered is already in use'
+    existingUserId = await getUserIdByEmail(sendTo)
+
+    if (!existingUserId) {
+      throw new LookupError(
+        'The email address you entered does not match your account email address'
+      )
+    }
+  }
+
+  // Make sure the user from DB matches the one in the request
   if (existingUserId && !(userId === existingUserId))
     throw new LookupError(existingUserErrorMessage)
-  if (verificationMethod === VERIFICATION_METHOD.EMAIL && !existingUserId)
-    throw new LookupError(
-      'The email address you entered does not match your account email address'
-    )
 
   await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
 }
@@ -105,7 +122,10 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     sendTo,
     verificationMethod,
     verificationCode,
+    forSignup,
   } = asConfirmVerificationData(data)
+
+  const shouldSendOnboardingEmails = forSignup ?? true
 
   const VERIFICATION_CODE_LENGTH = 6
   if (
@@ -122,7 +142,9 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     )
     if (isVerified) {
       await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
-      await sendEmails(userId)
+      if (shouldSendOnboardingEmails) {
+        await sendEmails(userId)
+      }
     }
 
     return isVerified

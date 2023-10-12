@@ -91,6 +91,8 @@ export type UserContactInfo = {
   id: Ulid
   email: string
   phone?: string
+  phoneVerified: boolean
+  smsConsent: boolean
   firstName: string
   isVolunteer: boolean
   isAdmin: boolean
@@ -282,7 +284,7 @@ export async function updateUserVerifiedInfoById(
   userId: Ulid,
   sendTo: string,
   isPhoneVerification: boolean
-): Promise<void> {
+): Promise<{ contact: string | null }> {
   const update = isPhoneVerification
     ? pgQueries.updateUserVerifiedPhoneById.run(
         { userId, phone: sendTo },
@@ -296,6 +298,10 @@ export async function updateUserVerifiedInfoById(
     const result = await update
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+
+    return {
+      contact: result[0].ok,
+    }
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -595,13 +601,14 @@ export async function updateUserProfileById(
         userId,
         deactivated: data.deactivated,
         phone: data.phone,
+        smsConsent: data.smsConsent,
       },
       getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
     // Update muted subject alerts for volunteers
-    if (data.mutedSubjectAlerts !== undefined) {
+    if (data.mutedSubjectAlerts) {
       if (data.mutedSubjectAlerts.length == 0) {
         await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
       } else {
@@ -632,5 +639,25 @@ export async function updateUserProfileById(
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
+  }
+}
+
+export type UserVerificationInfo = {
+  verified: boolean
+  emailVerified: boolean
+  phoneVerified: boolean
+}
+
+export async function getUserVerificationInfoById(
+  userId: Ulid
+): Promise<UserVerificationInfo | undefined> {
+  try {
+    const result = await pgQueries.getUserVerificationInfoById.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
