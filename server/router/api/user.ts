@@ -30,22 +30,22 @@ export function routeUser(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
-      let { phone, isDeactivated } = req.body
 
-      phone = asString(phone)
-      isDeactivated = asBoolean(isDeactivated)
-
-      if (phone.length === 0) {
-        throw new InputError('Phone number must be provided')
-      }
-
+      const isDeactivated = asBoolean(req.body.isDeactivated)
+      // Form request object
       let updateReq: { [k: string]: any } = {
-        phone,
         deactivated: isDeactivated,
       }
-
+      // optional fields
       if ('smsConsent' in req.body) {
         updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
+      }
+      if ('phone' in req.body) {
+        const phone = asString(req.body.phone)
+        if (phone.length === 0) {
+          throw new InputError('Phone number must be provided')
+        }
+        updateReq['phone'] = phone
       }
 
       await UserService.updateUserProfile(user.id, updateReq)
