@@ -47,6 +47,24 @@ describe('PUT /user', () => {
     )
   })
 
+  it('Should update required fields successfully when optional field phone is not present', async () => {
+    const request = {
+      userId: '123',
+      isDeactivated: false,
+      smsConsent: false,
+    }
+    const response = await sendPut(request)
+
+    expect(response.status).toEqual(200)
+    expect(mockedUserService.updateUserProfile).toHaveBeenCalledWith(
+      expect.anything(), // user id is randomly generated
+      {
+        deactivated: request.isDeactivated,
+        smsConsent: request.smsConsent,
+      }
+    )
+  })
+
   it('Should update fields when all fields are provided', async () => {
     const request = {
       userId: '123',
@@ -67,7 +85,7 @@ describe('PUT /user', () => {
     )
   })
 
-  it.each(['', undefined, false, null])(
+  it.each(['', false, null])(
     'Should throw an error when phone is invalid (phone = %s)',
     async phone => {
       const request = {
