@@ -30,14 +30,12 @@ export function routeUser(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
-      let { isDeactivated } = req.body
 
-      isDeactivated = asBoolean(isDeactivated)
-
+      const isDeactivated = asBoolean(req.body.isDeactivated)
+      // Form request object
       let updateReq: { [k: string]: any } = {
         deactivated: isDeactivated,
       }
-
       // optional fields
       if ('smsConsent' in req.body) {
         updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
