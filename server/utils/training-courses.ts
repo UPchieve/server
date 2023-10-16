@@ -1,4 +1,6 @@
-import { find, chain } from 'lodash'
+import { find, chain, cloneDeep } from 'lodash'
+import { Ulid } from '../models/pgUtils'
+import { getUsingOurPlatformFlag } from '../services/FeatureFlagService'
 
 export interface TrainingCourse {
   name: string
@@ -644,15 +646,6 @@ export const courses: TrainingCourse[] = [
         name: 'Coaching on UPchieve',
         materials: [
           {
-            name: 'Using Our Platform',
-            materialKey: '212h45',
-            type: MaterialType.VIDEO,
-            isRequired: true,
-            resourceId: '797113791',
-            videoPDF:
-              'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/using-our-platform-deck-v2.pdf',
-          },
-          {
             name: 'Implementing Effective Coaching Strategies',
             materialKey: '7b6a76',
             type: MaterialType.VIDEO,
@@ -712,15 +705,42 @@ export const courses: TrainingCourse[] = [
   },
 ]
 
-export const getCourse = (courseKey: string): TrainingCourse => {
+function addUsingOurPlatformTo101(course: TrainingCourse) {
+  const updatedCourse = cloneDeep(course)
+  const material = {
+    name: 'Using Our Platform',
+    materialKey: '212h45',
+    type: MaterialType.VIDEO,
+    isRequired: true,
+    resourceId: '797113791',
+    videoPDF:
+      'https://cdn.upchieve.org/training-courses/upchieve101/video-decks/using-our-platform-deck-v2.pdf',
+  }
+
+  const coachingModule = updatedCourse.modules.find(
+    module => module.name === 'Coaching on UPchieve'
+  )
+  if (coachingModule) coachingModule.materials.unshift(material)
+  return updatedCourse
+}
+
+export const getCourse = async (
+  courseKey: string,
+  userId: Ulid
+): Promise<TrainingCourse> => {
   const course = find(courses, { courseKey })
   if (!course)
     throw new Error(`Training course does not exist for key ${courseKey}`)
-  return course
+
+  const isShowPlatformActive = await getUsingOurPlatformFlag(userId)
+  return isShowPlatformActive ? addUsingOurPlatformTo101(course) : course
 }
 
-const getRequiredMaterials = (courseKey: string): string[] => {
-  const course: TrainingCourse = getCourse(courseKey)
+const getRequiredMaterials = async (
+  courseKey: string,
+  userId: Ulid
+): Promise<string[]> => {
+  const course: TrainingCourse = await getCourse(courseKey, userId)
   return chain(course.modules)
     .map('materials')
     .flatten()
@@ -729,11 +749,12 @@ const getRequiredMaterials = (courseKey: string): string[] => {
     .value()
 }
 
-export const getProgress = (
+export const getProgress = async (
   courseKey: string,
-  userCompleted: string[]
-): number => {
-  const requiredMaterials = getRequiredMaterials(courseKey)
+  userCompleted: string[],
+  userId: Ulid
+): Promise<number> => {
+  const requiredMaterials = await getRequiredMaterials(courseKey, userId)
   const completedMaterials = requiredMaterials.filter(mat =>
     userCompleted.includes(mat)
   )
