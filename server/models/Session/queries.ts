@@ -28,6 +28,7 @@ import {
   StudentPresessionSurveyResponse,
   getSessionRating,
 } from '../Survey'
+import config from '../../config'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -1122,6 +1123,7 @@ export async function getSessionsForVolunteerHourSummary(
 export type SessionForSessionHistory = {
   id: Ulid
   topic: string
+  topicIconLink: string
   subject: string
   createdAt: Date
   timeTutored: number
@@ -1133,14 +1135,18 @@ export type SessionForSessionHistory = {
 }
 
 export async function getSessionHistory(
-  studentId: Ulid,
+  userId: Ulid,
   limit: number,
   offset: number
 ): Promise<SessionForSessionHistory[]> {
   try {
-    const minSessionLength = 60000
     const result = await pgQueries.getSessionHistory.run(
-      { studentId, minSessionLength, limit, offset },
+      {
+        userId,
+        minSessionLength: config.sessionHistoryMinSessionLength,
+        limit,
+        offset,
+      },
       getClient()
     )
 
@@ -1151,13 +1157,10 @@ export async function getSessionHistory(
   }
 }
 
-export async function getTotalSessionHistory(
-  studentId: Ulid,
-  minSessionLength: number
-): Promise<number> {
+export async function getTotalSessionHistory(userId: Ulid): Promise<number> {
   try {
     const result = await pgQueries.getTotalSessionHistory.run(
-      { studentId, minSessionLength },
+      { userId, minSessionLength: config.sessionHistoryMinSessionLength },
       getClient()
     )
 
@@ -1171,6 +1174,7 @@ export async function getTotalSessionHistory(
 export type SessionForSessionRecap = {
   id: Ulid
   topic: string
+  topicIconLink: string
   subject: string
   subjectKey: string
   createdAt: Date
