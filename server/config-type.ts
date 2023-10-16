@@ -200,4 +200,6 @@ export const Config = Record({
   // Google
   googleClientId: String,
   googleClientSecret: String,
+
+  sessionHistoryMinSessionLength: Number,
 })
