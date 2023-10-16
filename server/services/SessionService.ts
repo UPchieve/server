@@ -812,6 +812,7 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
   }
 }
 
+// TODO: implement these with cursor pagination
 export async function getSessionHistory(userId: Ulid, page: string) {
   const pageNum = parseInt(page)
   const PER_PAGE = 5
