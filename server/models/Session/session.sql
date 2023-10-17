@@ -952,6 +952,7 @@ SELECT
     sessions.time_tutored::int AS time_tutored,
     subjects.display_name AS subject,
     topics.name AS topic,
+    topics.icon_link AS topic_icon_link,
     volunteers.first_name AS volunteer_first_name,
     volunteers.id AS volunteer_id,
     students.id AS student_id,
@@ -971,7 +972,8 @@ FROM
     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
         AND volunteers.id = favorited.volunteer_id
 WHERE
-    students.id = :studentId!
+    students.id = :userId!
+    OR volunteers.id = :userId!
     AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
     AND NOW()
     AND sessions.time_tutored IS NOT NULL
@@ -991,7 +993,8 @@ FROM
     LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
     LEFT JOIN users students ON sessions.student_id = students.id
 WHERE
-    students.id = :studentId!
+    students.id = :userId!
+    OR volunteers.id = :userId!
     AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
     AND NOW()
     AND sessions.time_tutored IS NOT NULL
@@ -1008,6 +1011,7 @@ SELECT
     subjects.display_name AS subject,
     subjects.name AS subject_key,
     topics.name AS topic,
+    topics.icon_link AS topic_icon_link,
     volunteers.first_name AS volunteer_first_name,
     volunteers.id AS volunteer_id,
     students.id AS student_id,

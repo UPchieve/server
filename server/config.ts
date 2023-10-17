@@ -311,6 +311,9 @@ const config: Static<typeof Config> = {
   // these environment variables.
   googleClientId: process.env.GOOGLE_CLIENT_ID || 'bogus',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || 'bogus',
+
+  sessionHistoryMinSessionLength:
+    Number(process.env.SUBWAY_SESSION_HISTORY_MIN_SESSION_LENGTH) || 60000,
 }
 
 module.exports = config
