@@ -946,7 +946,7 @@ WHERE
 
 
 /* @name getSessionHistory */
-SELECT
+SELECT DISTINCT
     sessions.id,
     sessions.created_at AS created_at,
     sessions.time_tutored::int AS time_tutored,
