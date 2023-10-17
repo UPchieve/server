@@ -971,15 +971,14 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
         AND volunteers.id = favorited.volunteer_id
-WHERE
-    students.id = :userId!
-    OR volunteers.id = :userId!
-    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-    AND NOW()
-    AND sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength!::int
-    AND sessions.volunteer_id IS NOT NULL
-    AND sessions.ended_at IS NOT NULL
+WHERE (students.id = :userId!
+    OR volunteers.id = :userId!)
+AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+AND NOW()
+AND sessions.time_tutored IS NOT NULL
+AND sessions.time_tutored > :minSessionLength!::int
+AND sessions.volunteer_id IS NOT NULL
+AND sessions.ended_at IS NOT NULL
 ORDER BY
     sessions.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
@@ -992,14 +991,13 @@ FROM
     sessions
     LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
     LEFT JOIN users students ON sessions.student_id = students.id
-WHERE
-    students.id = :userId!
-    OR volunteers.id = :userId!
-    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-    AND NOW()
-    AND sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength!::int
-    AND sessions.volunteer_id IS NOT NULL;
+WHERE (students.id = :userId!
+    OR volunteers.id = :userId!)
+AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+AND NOW()
+AND sessions.time_tutored IS NOT NULL
+AND sessions.time_tutored > :minSessionLength!::int
+AND sessions.volunteer_id IS NOT NULL;
 
 
 /* @name getSessionRecap */
