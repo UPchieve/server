@@ -946,7 +946,7 @@ WHERE
 
 
 /* @name getSessionHistory */
-SELECT
+SELECT DISTINCT ON (sessions.id)
     sessions.id,
     sessions.created_at AS created_at,
     sessions.time_tutored::int AS time_tutored,
@@ -980,6 +980,7 @@ AND sessions.time_tutored > :minSessionLength!::int
 AND sessions.volunteer_id IS NOT NULL
 AND sessions.ended_at IS NOT NULL
 ORDER BY
+    sessions.id,
     sessions.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
