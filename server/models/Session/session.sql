@@ -981,16 +981,15 @@ WITH results AS (
     AND sessions.volunteer_id IS NOT NULL
     AND sessions.ended_at IS NOT NULL
 ORDER BY
-    sessions.id,
-    sessions.created_at DESC
-LIMIT (:limit!)::int OFFSET (:offset!)::int
+    sessions.id
 )
 SELECT
     *
 FROM
     results
 ORDER BY
-    created_at DESC;
+    created_at DESC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name getTotalSessionHistory */
