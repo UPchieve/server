@@ -95,7 +95,11 @@ export async function initiateVerification(data: unknown): Promise<void> {
   try {
     await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
   } catch (err) {
-    throw new TwilioError(err.message, err.status, err)
+    const error = err as {
+      message: string
+      status: number
+    }
+    throw new TwilioError(error.message, error.status, error)
   }
 }
 

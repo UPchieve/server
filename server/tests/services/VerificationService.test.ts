@@ -231,7 +231,7 @@ import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
-import { LookupError } from '../../models/Errors'
+import { AlreadyInUseError, LookupError } from '../../models/Errors'
 import { buildUserContactInfo } from '../mocks/generate'
 
 jest.mock('../../models/User/queries')
@@ -303,7 +303,7 @@ describe('VerificationService', () => {
     }
   )
 
-  it('Should throw a LookupError if the user ID from in DB does not match the one in the request', async () => {
+  it('Should throw a TwilioError if the user ID from in DB does not match the one in the request', async () => {
     const req = {
       userId: '456',
       firstName: 'Louise',
@@ -312,7 +312,7 @@ describe('VerificationService', () => {
     }
     expect(async () =>
       VerificationService.initiateVerification(req)
-    ).rejects.toThrow(LookupError)
+    ).rejects.toThrow(AlreadyInUseError)
   })
 
   it('Should throw a LookupError if the sendTo email does not match the email in DB', async () => {
