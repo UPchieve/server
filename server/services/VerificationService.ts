@@ -95,7 +95,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
   try {
     await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
   } catch (err) {
-    throw new TwilioError(err.message, err.status) // @TODO add cause here to retain some info from original error?
+    throw new TwilioError(err.message, err.status, err)
   }
 }
 

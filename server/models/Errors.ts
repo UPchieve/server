@@ -82,10 +82,13 @@ export class NotAuthenticatedError extends CustomError {
 export class AlreadyInUseError extends CustomError {}
 export class TwilioError extends CustomError {
   message: string
-  status: number // @TODO add cause
+  status: number
+  cause?: any
 
-  constructor(message: string, status: number) {
-    super(message)
+  constructor(message: string, status: number, cause: any = undefined) {
+    super()
+    this.message = message
     this.status = status
+    this.cause = cause
   }
 }
