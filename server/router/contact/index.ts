@@ -2,6 +2,7 @@ import { Express, Request, Response, Router } from 'express'
 import nr from 'newrelic'
 import { saveContactFormSubmission } from '../../services/ContactFormService'
 import { RepoCreateError } from '../../models/Errors'
+import { authPassport } from '../../utils/auth-utils'
 import logger from '../../logger'
 
 async function submissionHandler(req: Request, res: Response) {
@@ -38,5 +39,5 @@ export function routes(app: Express) {
 
   router.route('/send').post(submissionHandler)
 
-  app.use('/api-public/contact', router)
+  app.use('/api-public/contact', authPassport.checkRecaptcha, router)
 }

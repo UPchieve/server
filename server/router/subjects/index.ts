@@ -1,6 +1,7 @@
 import { resError } from '../res-error'
 import express, { Express, Router } from 'express'
 import { getSubjectsWithTopic } from '../../models/Subjects'
+import { authPassport } from '../../utils/auth-utils'
 
 export function routes(app: Express): void {
   const router: Router = express.Router()
@@ -16,5 +17,5 @@ export function routes(app: Express): void {
     }
   })
 
-  app.use('/api-public', router)
+  app.use('/api-public', authPassport.checkRecaptcha, router)
 }
