@@ -8,7 +8,7 @@ import {
   asBoolean,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
-import { InputError, LookupError } from '../models/Errors'
+import { InputError, LookupError, TwilioError } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
@@ -87,7 +87,11 @@ export async function initiateVerification(data: unknown): Promise<void> {
   if (existingUserId && !(userId === existingUserId))
     throw new LookupError(existingUserErrorMessage)
 
-  await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
+  try {
+    await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
+  } catch (err) {
+    throw new TwilioError(err.message, err.status) // @TODO add cause here to retain some info from original error?
+  }
 }
 
 async function sendEmails(userId: Ulid): Promise<void> {

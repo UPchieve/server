@@ -79,3 +79,13 @@ export class NotAuthenticatedError extends CustomError {
     super('Request is not authenticated')
   }
 }
+
+export class TwilioError extends CustomError {
+  message: string
+  status: number // @TODO add cause
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
