@@ -79,7 +79,7 @@ export class NotAuthenticatedError extends CustomError {
     super('Request is not authenticated')
   }
 }
-
+export class AlreadyInUseError extends CustomError {}
 export class TwilioError extends CustomError {
   message: string
   status: number // @TODO add cause

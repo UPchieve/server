@@ -6,6 +6,7 @@ import {
   InputError,
   LookupError,
   NotAuthenticatedError,
+  AlreadyInUseError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -36,6 +37,7 @@ export function resError(
     else if (err instanceof ReportNoDataFoundError) status = 422
     // bad input
     else if (err instanceof InputError) status = 422
+    else if (err instanceof AlreadyInUseError) status = 409
     // unknown error
     else status = 500
 
