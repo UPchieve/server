@@ -95,7 +95,7 @@ export function routes(app: Express) {
 
   router.route('/login').post(
     // Delegate auth logic to passport middleware
-    [authPassport.checkRecaptcha, passport.authenticate('local')],
+    passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     async function(req: Request, res: Response) {
       const legacyUser = await getLegacyUserObject(extractUser(req).id)
@@ -353,5 +353,5 @@ export function routes(app: Express) {
     }
   })
 
-  app.use('/auth', router)
+  app.use('/auth', authPassport.checkRecaptcha, router)
 }
