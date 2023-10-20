@@ -231,7 +231,12 @@ import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
-import { LookupError } from '../../models/Errors'
+import {
+  AlreadyInUseError,
+  InputError,
+  LookupError,
+  TwilioError,
+} from '../../models/Errors'
 import { buildUserContactInfo } from '../mocks/generate'
 
 jest.mock('../../models/User/queries')
@@ -251,7 +256,7 @@ describe('VerificationService', () => {
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(userId)
   })
 
-  describe('initiateVerification', () => {
+  describe('sendVerification', () => {
     it.each([
       {
         sendTo: '+18608885555',
@@ -299,11 +304,11 @@ describe('VerificationService', () => {
 
       expect(async () =>
         VerificationService.initiateVerification(req)
-      ).rejects.toThrow(expectedErrorMsg)
+      ).rejects.toThrow(new InputError(expectedErrorMsg))
     }
   )
 
-  it('Should throw a LookupError if the user ID from in DB does not match the one in the request', async () => {
+  it('Should throw an AlreadyInUseError if the user ID from in DB does not match the one in the request', async () => {
     const req = {
       userId: '456',
       firstName: 'Louise',
@@ -312,7 +317,7 @@ describe('VerificationService', () => {
     }
     expect(async () =>
       VerificationService.initiateVerification(req)
-    ).rejects.toThrow(LookupError)
+    ).rejects.toThrow(AlreadyInUseError)
   })
 
   it('Should throw a LookupError if the sendTo email does not match the email in DB', async () => {
@@ -323,9 +328,23 @@ describe('VerificationService', () => {
       verificationMethod: VERIFICATION_METHOD.EMAIL,
       sendTo: 'tinabelcher@bobsburgers.com',
     }
-    expect(async () =>
+    await expect(async () =>
       VerificationService.initiateVerification(req)
     ).rejects.toThrow(LookupError)
+  })
+
+  it('Should throw a TwilioError if one is thrown by the TwilioService', async () => {
+    const expectedErr = new TwilioError('Too many requests', 429)
+    mockedTwilioService.sendVerification.mockRejectedValue(expectedErr)
+    const req = {
+      userId: '123',
+      firstName: 'Louise',
+      verificationMethod: VERIFICATION_METHOD.SMS,
+      sendTo: '+18187764450',
+    }
+    await expect(() =>
+      VerificationService.initiateVerification(req)
+    ).rejects.toThrow(expectedErr)
   })
 
   describe('confirmVerification', () => {
