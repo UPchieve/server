@@ -83,12 +83,9 @@ export class AlreadyInUseError extends CustomError {}
 export class TwilioError extends CustomError {
   message: string
   status: number
-  cause?: any
-
-  constructor(message: string, status: number, cause: any = undefined) {
+  constructor(message: string, status: number) {
     super()
     this.message = message
     this.status = status
-    this.cause = cause
   }
 }

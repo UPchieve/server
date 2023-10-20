@@ -44,7 +44,6 @@ export function routeVerify(router: Router) {
           { 'error.name': 'twilio verification', error: err },
           (err as TwilioError).message
         )
-        err.cause = undefined // so the twilio error is not exposed to the client
       }
 
       resError(res, err, status)

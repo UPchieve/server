@@ -99,7 +99,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
       message: string
       status: number
     }
-    throw new TwilioError(error.message, error.status, error)
+    throw new TwilioError(error.message, error.status)
   }
 }
 
