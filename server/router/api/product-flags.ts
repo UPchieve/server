@@ -5,8 +5,10 @@ import * as UserProductFlagsService from '../../services/UserProductFlagsService
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
-import { TwilioError } from './verify'
-
+export interface TwilioError extends Error {
+  message: string
+  status: number
+}
 export function routeProductFlags(router: Router) {
   router.route('/product-flags').get(async function(req, res) {
     try {

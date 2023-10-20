@@ -8,7 +8,12 @@ import {
   asBoolean,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
-import { InputError, LookupError } from '../models/Errors'
+import {
+  AlreadyInUseError,
+  InputError,
+  LookupError,
+  TwilioError,
+} from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
@@ -85,9 +90,17 @@ export async function initiateVerification(data: unknown): Promise<void> {
 
   // Make sure the user from DB matches the one in the request
   if (existingUserId && !(userId === existingUserId))
-    throw new LookupError(existingUserErrorMessage)
+    throw new AlreadyInUseError(existingUserErrorMessage)
 
-  await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
+  try {
+    await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
+  } catch (err) {
+    const error = err as {
+      message: string
+      status: number
+    }
+    throw new TwilioError(error.message, error.status)
+  }
 }
 
 async function sendEmails(userId: Ulid): Promise<void> {
