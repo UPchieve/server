@@ -471,8 +471,7 @@ export async function notifyVolunteer(
     candidateVolunteers = await priorityFilter.query()
     if (candidateVolunteers) {
       for (let cv of candidateVolunteers) {
-        let mutedSubjectAlertsFlag =
-          (await getMutedSubjectAlertsFlag(cv.id)) || false
+        let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(cv.id)
         if (mutedSubjectAlertsFlag) {
           let volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
             cv.id,
