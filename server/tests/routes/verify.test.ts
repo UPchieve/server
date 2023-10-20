@@ -184,6 +184,7 @@ import { buildStudent } from '../mocks/generate'
 import { routeVerify } from '../../router/api/verify'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
+import { TwilioError } from '../../models/Errors'
 
 const mockedVerificationService = mocked(VerificationService, true)
 const mockGetUser = () => buildStudent()
@@ -204,7 +205,62 @@ describe('verify', () => {
       .send(payload)
   }
 
-  describe('confirmVerification', () => {
+  describe('POST /verify/send', () => {
+    describe('Twilio errors', () => {
+      it('Should return status 429 when too many requests are made', async () => {
+        // @TODO rewrite this test.
+        const expectedErr = new TwilioError('Too many requests', 429)
+        mockedVerificationService.initiateVerification.mockRejectedValue(
+          expectedErr
+        )
+        const req = {
+          userId: '123',
+          sendTo: '+18189988876',
+          firstName: 'Louise',
+          verificationMethod: VERIFICATION_METHOD.SMS,
+        }
+
+        const response = await sendPost(req, '/send')
+        expect(response).toMatchObject({
+          status: 429,
+          body: {
+            err:
+              "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one.",
+          },
+        })
+      })
+
+      it.each([400, 404, 500])(
+        'Should return 500 when Twilio throws a %s',
+        async twilioStatusCode => {
+          const expectedErr = new TwilioError(
+            'Some error message',
+            twilioStatusCode
+          )
+          mockedVerificationService.initiateVerification.mockRejectedValue(
+            expectedErr
+          )
+          const req = {
+            userId: '123',
+            sendTo: '+18189988876',
+            firstName: 'Louise',
+            verificationMethod: VERIFICATION_METHOD.SMS,
+          }
+
+          const response = await sendPost(req, '/send')
+          expect(response).toMatchObject({
+            status: 500,
+            body: {
+              err:
+                'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.',
+            },
+          })
+        }
+      )
+    })
+  })
+
+  describe('POST /verify/confirm', () => {
     beforeEach(async () => {
       jest.resetAllMocks()
     })

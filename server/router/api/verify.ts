@@ -21,6 +21,8 @@ export function routeVerify(router: Router) {
     } catch (err) {
       let message: string
       let status: number | undefined
+      const defaultErrorMessage =
+        'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
 
       if (err instanceof TwilioError) {
         status = err.status
@@ -29,10 +31,11 @@ export function routeVerify(router: Router) {
             "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
         } else if (status === 404) {
           // Twilio verification resource was not found
-          message =
-            'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
+          message = defaultErrorMessage
+          status = 500
         } else {
-          message = (err as TwilioError).message
+          message = defaultErrorMessage
+          status = 500
         }
         err.message = message
 
@@ -41,7 +44,9 @@ export function routeVerify(router: Router) {
           { 'error.name': 'twilio verification', error: err },
           (err as TwilioError).message
         )
+        err.cause = undefined // so the twilio error is not exposed to the client
       }
+
       resError(res, err, status)
     }
   })
