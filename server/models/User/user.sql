@@ -767,3 +767,33 @@ FROM
 WHERE
     id = :userId!;
 
+
+/* @name getReportedUser */
+SELECT
+    users.id AS id,
+    first_name,
+    last_name,
+    email,
+    users.created_at AS created_at,
+    test_user AS is_test_user,
+    banned AS is_banned,
+    deactivated AS is_deactivated,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_volunteer,
+    student_partner_orgs.key AS student_partner_org,
+    volunteer_partner_orgs.key AS volunteer_partner_org
+FROM
+    users
+    LEFT JOIN student_profiles ON users.id = student_profiles.user_id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+WHERE
+    deactivated IS FALSE
+    AND test_user IS FALSE
+    AND users.id = :userId!;
+

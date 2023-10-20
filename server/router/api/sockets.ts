@@ -7,11 +7,12 @@ import { PGStore } from 'connect-pg-simple'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
 import config from '../../config'
-import { Session } from '../../models/Session'
+import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
+import QueueService from '../../services/QueueService'
 import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
 import logger from '../../logger'
@@ -23,6 +24,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { LockError } from 'redlock'
 import { Ulid } from '../../models/pgUtils'
 import session from 'express-session'
+import { Jobs } from '../../worker/jobs'
 
 export type SocketUser = Socket & { request: { user?: UserContactInfo } }
 
@@ -63,6 +65,18 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     return io.in(socketId).socketsJoin(room)
   }
 
+  async function joinUserToSessionHistoryRooms(userId: Ulid) {
+    const sessionHistory = await getSessionHistoryIdsByUserId(userId)
+    for (const session of sessionHistory) {
+      const sessionRoom = getSessionRoom(session.id)
+      const socketIds = await getSocketIdsFromRoom(userId)
+      // Have all of the user's socket connections join session history rooms
+      for (const id of socketIds) {
+        await remoteJoinRoom(id, sessionRoom)
+      }
+    }
+  }
+
   let chatbot: Ulid | undefined
 
   // Authentication middleware for sockets
@@ -100,6 +114,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
+      await joinUserToSessionHistoryRooms(user.id)
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -261,7 +276,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            const { user, sessionId, message } = data
+            const { user, sessionId, message, source } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
 
@@ -273,7 +288,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               // TODO: correctly type user from payload
-              await SessionService.saveMessage(
+              const messageId = await SessionService.saveMessage(
                 user,
                 createdAt,
                 {
@@ -292,6 +307,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 user: user._id,
               }
 
+              // If the message is coming from the recap page, queue the message to send a notification
+              if (source === 'recap')
+                await QueueService.add(
+                  Jobs.SendSessionRecapMessageNotification,
+                  { messageId },
+                  { removeOnComplete: true, removeOnFail: true }
+                )
               const socketRoom = getSessionRoom(data.sessionId)
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()

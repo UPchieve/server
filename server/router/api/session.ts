@@ -83,6 +83,25 @@ export function routeSession(router: Router, io: Server) {
     }
   })
 
+  router.route('/session/recap-dms').post(async function(req, res) {
+    try {
+      const sessionId = asString(req.body.sessionId)
+      const currentSession = await SessionService.getRecapSessionForDms(
+        sessionId
+      )
+      if (!currentSession) {
+        resError(res, new LookupError('No current session'), 404)
+      } else {
+        res.json({
+          sessionId: currentSession._id,
+          data: currentSession,
+        })
+      }
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
   router.route('/session/latest').post(async function(req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
@@ -259,6 +278,23 @@ export function routeSession(router: Router, io: Server) {
     }
   })
 
+  router.post('/sessions/history/:sessionId/eligible', async function(
+    req,
+    res
+  ) {
+    try {
+      const { sessionId } = req.params
+      const { studentId } = req.body
+      const isEligible = await SessionService.isEligibleForSessionRecap(
+        sessionId,
+        asString(studentId)
+      )
+      res.json({ isEligible })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.get('/sessions/:sessionId/recap', async function(req, res) {
     try {
       const user = extractUser(req)
@@ -267,8 +303,47 @@ export function routeSession(router: Router, io: Server) {
         asUlid(sessionId),
         user.id
       )
+      // Students are only allowed to send messages to tutors who have the feature flag as true
+      // TODO: double check my logic here.....
+      // TODO: but it has to be for that particular session,no?
 
-      res.json({ session })
+      /**
+       *
+       * Scenario:
+       * Tutor has the feature flag as true
+       * Tutor doesn't send any messages to student
+       * Student sees that they can messagae coach
+       *
+       *
+       * Solution:
+       * - Check if any messages were sent after the session ended from the volunteer?
+       * - Assume that they are leaving resources, then allow the student to then
+       *   send messagaes for this particular session
+       *
+       * TODO: Document this behavior --- Edge case?
+       * - We're going to assume that a message sent after the tutor who has the feature flag as true
+       *   as being a resource, which means we will allow students to message a coach.
+       *   Example: A coach may be saying "bye" after they get the chatbot message. A student will get
+       *   notified of that
+       *
+       * - Volunteers can still go back to the session in session history and respond to a tutor if they want.. document this behavior:
+       *  Basically, if a volunteer has the flag as true, they can go to session history (if they didn't respond to the student) and then send them a message, this will open teh dialogue for student and coach
+       * A student will see that they cannot chat, but a tutor will see that they can type a message to the student, initiating the conversation still. or do we ONLY want to lock it out during the session chat?
+       *
+       *
+       *
+       *
+       *
+       *
+       *
+       *
+       */
+      const isRecapDmsAvailabile = await SessionService.isRecapDmsAvailabile(
+        session.id,
+        session.studentId,
+        session.volunteerId
+      )
+      res.json({ session, isRecapDmsAvailabile })
     } catch (err) {
       resError(res, err)
     }
