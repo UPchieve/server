@@ -78,7 +78,6 @@ async function emailReportedSession(
           `Failed to send student ${user.id} email for report: ${studentEmail.error.message}`
         )
     } else {
-      console.log('where are here brooo')
       const volunteerEmail = await safeAsync(
         MailService.sendCoachReported(user.email, user.firstName)
       )
