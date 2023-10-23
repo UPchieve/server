@@ -887,14 +887,17 @@ export async function isEligibleForSessionRecap(
  *
  * - Banned users should not be able to send DMs in the recap page
  * - Coaches cannot send DMs to partner students
- * - Coaches can only send DMs if they sent one after the session ended and
- *   they have the session-recap-dms flag as `true`
+ * - Coaches can send DMs once session ended and they have the session-recap-dms flag as `true`.
+ * - Students are not able to initiate the conversation. A coach must send the first message.
+ *   We determine this by looking to see if a coach had sent a message after the
+ *   session ended.
  *
  */
 export async function isRecapDmsAvailabile(
   sessionId: Ulid,
   studentId: Ulid,
-  volunteerId: Ulid
+  volunteerId: Ulid,
+  isVolunteer: boolean
 ): Promise<boolean> {
   const hasBannedParticipant = await SessionRepo.sessionHasBannedParticipant(
     sessionId
@@ -906,5 +909,8 @@ export async function isRecapDmsAvailabile(
 
   const flag = await getSessionRecapDmsFlag(volunteerId)
   if (!flag) return false
-  return await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
+  const sentMessages = await SessionRepo.volunteerSentMessageAfterSessionEnded(
+    sessionId
+  )
+  return sentMessages || isVolunteer
 }

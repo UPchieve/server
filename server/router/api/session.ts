@@ -307,7 +307,8 @@ export function routeSession(router: Router, io: Server) {
       const isRecapDmsAvailabile = await SessionService.isRecapDmsAvailabile(
         session.id,
         session.studentId,
-        session.volunteerId
+        session.volunteerId,
+        user.isVolunteer
       )
       res.json({ session, isRecapDmsAvailabile })
     } catch (err) {
