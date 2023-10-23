@@ -58,7 +58,7 @@ import * as WhiteboardService from './WhiteboardService'
 import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
-import { getSessionRecapDmsFlag } from './FeatureFlagService'
+import { getSessionRecapDmsFeatureFlag } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 
 export async function reviewSession(data: unknown) {
@@ -893,7 +893,7 @@ export async function isEligibleForSessionRecap(
  *   session ended.
  *
  */
-export async function isRecapDmsAvailabile(
+export async function isRecapDmsAvailable(
   sessionId: Ulid,
   studentId: Ulid,
   volunteerId: Ulid,
@@ -907,7 +907,7 @@ export async function isRecapDmsAvailabile(
   const student = await getStudentPartnerInfoById(studentId)
   if (student?.studentPartnerOrg) return false
 
-  const flag = await getSessionRecapDmsFlag(volunteerId)
+  const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
   if (!flag) return false
   const sentMessages = await SessionRepo.volunteerSentMessageAfterSessionEnded(
     sessionId

@@ -304,13 +304,13 @@ export function routeSession(router: Router, io: Server) {
         user.id
       )
 
-      const isRecapDmsAvailabile = await SessionService.isRecapDmsAvailabile(
+      const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
         session.id,
         session.studentId,
         session.volunteerId,
         user.isVolunteer
       )
-      res.json({ session, isRecapDmsAvailabile })
+      res.json({ session, isRecapDmsAvailable })
     } catch (err) {
       resError(res, err)
     }
