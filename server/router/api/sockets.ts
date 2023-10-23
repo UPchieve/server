@@ -58,8 +58,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
 
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
-    const allSockets = await io.in(room).allSockets()
-    return Array.from(allSockets)
+    const sockets = await io.in(room).fetchSockets()
+    const ids = []
+    for (const socket of sockets) {
+      ids.push(socket.id)
+    }
+    return ids
   }
 
   function remoteJoinRoom(socketId: string, room: string) {
@@ -262,13 +266,17 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     socket.on('typing', data => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
-        socket.to(getSessionRoom(data.sessionId)).emit('is-typing')
+        socket
+          .to(getSessionRoom(data.sessionId))
+          .emit('is-typing', { sessionId: data.sessionId })
       })
     })
 
     socket.on('notTyping', data => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
-        socket.to(getSessionRoom(data.sessionId)).emit('not-typing')
+        socket
+          .to(getSessionRoom(data.sessionId))
+          .emit('not-typing', { sessionId: data.sessionId })
       })
     })
 
@@ -308,6 +316,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 createdAt: createdAt,
                 isVolunteer: user.isVolunteer,
                 user: user._id,
+                sessionId,
               }
 
               // If the message is coming from the recap page, queue the message to send a notification
@@ -328,7 +337,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()
             } catch (error) {
-              socket.emit('messageError')
+              socket.emit('messageError', { sessionId: data.session })
               reject(error)
             }
           })
