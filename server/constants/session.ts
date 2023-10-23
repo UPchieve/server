@@ -26,7 +26,7 @@ export const SESSION_REPORT_REASON = {
   STUDENT_RUDE: 'This student was extremely rude or inappropriate',
   STUDENT_SAFETY: 'I am worried for the immediate safety of this student',
   COACH_DM_TO_STUDENT_CONNECT_OFFLINE:
-    'Coach asked me to connect off of UPchieve (examples: they shared social media, or asked to zoom)',
+    'Coach asked me to connect off of UPchieve',
   COACH_DM_TO_STUDENT_FELT_UNCOMFORTABLE:
     'Coach made me feel uncomfortable or unsafe',
   COACH_DM_TO_STUDENT_INAPPROPRIATE_LANGUAGE:
