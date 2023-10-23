@@ -8,7 +8,7 @@ import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
 import config from '../../config'
 import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
-import { UserContactInfo } from '../../models/User'
+import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
@@ -290,7 +290,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
-            if (source === 'recap' && user.isBanned) return resolve()
+            const dbUser = await getUserContactInfoById(user.id)
+            if (source === 'recap' && dbUser?.banned) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {
@@ -308,14 +309,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 },
                 chatbot
               )
-              if (chatbot && !(chatbot === user._id))
+              if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
               const messageData = {
                 contents: message,
                 createdAt: createdAt,
                 isVolunteer: user.isVolunteer,
-                user: user._id,
+                user: user.id,
                 sessionId,
               }
 
