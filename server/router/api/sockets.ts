@@ -17,7 +17,7 @@ import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
 import logger from '../../logger'
 import * as cache from '../../cache'
-import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
+import { EVENTS, FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
 import { v4 as uuidv4 } from 'uuid'
@@ -25,6 +25,7 @@ import { LockError } from 'redlock'
 import { Ulid } from '../../models/pgUtils'
 import session from 'express-session'
 import { Jobs } from '../../worker/jobs'
+import { captureEvent } from '../../services/AnalyticsService'
 
 export type SocketUser = Socket & { request: { user?: UserContactInfo } }
 
@@ -280,12 +281,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             newrelic.addCustomAttribute('sessionId', sessionId)
 
+            // Do not allow banned users to send DMs
+            if (source === 'recap' && user.isBanned) return resolve()
+
             // TODO: handle this differently?
             if (!sessionId) {
               return resolve()
             }
             const createdAt = new Date()
-
             try {
               // TODO: correctly type user from payload
               const messageId = await SessionService.saveMessage(
@@ -308,12 +311,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
 
               // If the message is coming from the recap page, queue the message to send a notification
-              if (source === 'recap')
+              if (source === 'recap') {
                 await QueueService.add(
                   Jobs.SendSessionRecapMessageNotification,
                   { messageId },
                   { removeOnComplete: true, removeOnFail: true }
                 )
+                captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
+                  sessionId: sessionId,
+                  message,
+                  isVolunteer: user.isVolunteer,
+                })
+              }
+
               const socketRoom = getSessionRoom(data.sessionId)
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()
