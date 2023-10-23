@@ -65,7 +65,15 @@ async function emailReportedSession(
         `Failed to send report alert email: ${reportAlert.error.message}`
       )
 
-    if (!user.isVolunteer) {
+    if (user.isVolunteer) {
+      const volunteerEmail = await safeAsync(
+        MailService.sendCoachReported(user.email, user.firstName)
+      )
+      if (volunteerEmail.error)
+        errors.push(
+          `Failed to send volunteer ${user.id} email for report: ${volunteerEmail.error.message}`
+        )
+    } else {
       const studentEmail = await safeAsync(
         MailService.sendStudentReported(
           user.email,
@@ -76,14 +84,6 @@ async function emailReportedSession(
       if (studentEmail.error)
         errors.push(
           `Failed to send student ${user.id} email for report: ${studentEmail.error.message}`
-        )
-    } else {
-      const volunteerEmail = await safeAsync(
-        MailService.sendCoachReported(user.email, user.firstName)
-      )
-      if (volunteerEmail.error)
-        errors.push(
-          `Failed to send volunteer ${user.id} email for report: ${volunteerEmail.error.message}`
         )
     }
     let errMsg = ''
