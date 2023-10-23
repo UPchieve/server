@@ -2535,10 +2535,10 @@ COPY upchieve.report_reasons (id, reason, created_at, updated_at) FROM stdin;
 3	LEGACY: Student was unresponsive	2023-01-09 19:27:39.00005+00	2023-01-09 19:27:39.00005+00
 4	LEGACY: Technical issue	2023-01-09 19:27:39.002724+00	2023-01-09 19:27:39.002724+00
 5	LEGACY: Other	2023-01-09 19:27:39.004625+00	2023-01-09 19:27:39.004625+00
-6	Coach asked me to connect off of UPchieve (examples: they shared social media, or asked to zoom)	2023-10-20 13:34:22.365858+00	2023-10-20 13:34:22.365858+00
-7	Coach made me feel uncomfortable or unsafe	2023-10-20 13:34:22.365858+00	2023-10-20 13:34:22.365858+00
-8	Coach used inappropriate language	2023-10-20 13:34:22.365858+00	2023-10-20 13:34:22.365858+00
-9	Coach talked about inappropriate and offensive topics	2023-10-20 13:34:22.365858+00	2023-10-20 13:34:22.365858+00
+6	Coach asked me to connect off of UPchieve	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+7	Coach made me feel uncomfortable or unsafe	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+8	Coach used inappropriate language	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+9	Coach talked about inappropriate and offensive topics	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
 \.
 
 
@@ -2608,8 +2608,8 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 14	Graded assignment	2023-01-09 19:27:39.496799+00	2023-01-09 19:27:39.496799+00
 15	Coach uncomfortable	2023-01-09 19:27:39.496799+00	2023-01-09 19:27:39.496799+00
 16	Student in distress	2023-01-09 19:27:39.496799+00	2023-01-09 19:27:39.496799+00
-17	Coach reported student DM	2023-10-20 13:34:22.365858+00	2023-10-20 13:34:22.365858+00
-18	Student reported coach DM	2023-10-20 13:34:22.365858+00	2023-10-20 13:34:22.365858+00
+17	Coach reported student DM	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+18	Student reported coach DM	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
 \.
 
 
