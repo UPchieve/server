@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
--- Dumped by pg_dump version 14.9 (Homebrew)
+-- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
+-- Dumped by pg_dump version 14.8 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -48,16 +48,16 @@ COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.users (id, verified, email_verified, phone_verified, email, password, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, mongo_id, other_signup_source, proxy_email) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2023-01-09 19:27:43.295393+00	2023-01-09 19:27:43.295393+00	+12125551212	\N	\N	\N
-01859800-bca8-f256-6fe1-596e028d34b1	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2023-01-09 19:27:43.305311+00	2023-01-09 19:27:43.305311+00	+12125551213	\N	\N	\N
-01859800-bca8-9c76-e3ad-ce3108a3236f	t	f	f	volunteer3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Open Sign Up	UPchieve	f	\N	D	\N	f	f	\N	25200000	\N	2023-01-09 19:27:43.313729+00	2023-01-09 19:27:43.313729+00	+12125551214	\N	\N	\N
-01859800-bca8-2755-4f95-dde7cc391a3c	t	f	f	volunteer4@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Onboarding	UPchieve	f	\N	E	\N	f	f	\N	0	\N	2023-01-09 19:27:43.323289+00	2023-01-09 19:27:43.323289+00	+12125551215	\N	\N	\N
-01859800-bca8-2d88-e7b0-6d9beae2fec0	t	f	f	volunteer5@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Approval	UPchieve	f	\N	Z	\N	f	f	\N	0	\N	2023-01-09 19:27:43.335489+00	2023-01-09 19:27:43.335489+00	+12125551216	\N	\N	\N
-01859800-bca8-de0f-c4cb-cfc0d5298eb7	t	f	f	volunteer6@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Admin	UPchieve	f	\N	Y	\N	f	f	\N	0	\N	2023-01-09 19:27:43.345884+00	2023-01-09 19:27:43.345884+00	+12125551217	\N	\N	\N
-01859800-be4b-685f-4130-8709193d461c	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2023-01-09 19:27:43.714542+00	2023-01-09 19:27:43.714542+00	\N	\N	\N	\N
-01859800-be4b-2870-ad8c-abecfd5c403f	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2023-01-09 19:27:43.721668+00	2023-01-09 19:27:43.721668+00	\N	\N	\N	\N
-01859800-be4b-1beb-2b3a-3d26cdb90435	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2023-01-09 19:27:43.729444+00	2023-01-09 19:27:43.729444+00	\N	\N	\N	\N
+COPY upchieve.users (id, verified, email_verified, phone_verified, email, password, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, sms_consent, mongo_id, other_signup_source, proxy_email) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2023-01-09 19:27:43.295393+00	2023-01-09 19:27:43.295393+00	+12125551212	f	\N	\N	\N
+01859800-bca8-f256-6fe1-596e028d34b1	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2023-01-09 19:27:43.305311+00	2023-01-09 19:27:43.305311+00	+12125551213	f	\N	\N	\N
+01859800-bca8-9c76-e3ad-ce3108a3236f	t	f	f	volunteer3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Open Sign Up	UPchieve	f	\N	D	\N	f	f	\N	25200000	\N	2023-01-09 19:27:43.313729+00	2023-01-09 19:27:43.313729+00	+12125551214	f	\N	\N	\N
+01859800-bca8-2755-4f95-dde7cc391a3c	t	f	f	volunteer4@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Onboarding	UPchieve	f	\N	E	\N	f	f	\N	0	\N	2023-01-09 19:27:43.323289+00	2023-01-09 19:27:43.323289+00	+12125551215	f	\N	\N	\N
+01859800-bca8-2d88-e7b0-6d9beae2fec0	t	f	f	volunteer5@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Approval	UPchieve	f	\N	Z	\N	f	f	\N	0	\N	2023-01-09 19:27:43.335489+00	2023-01-09 19:27:43.335489+00	+12125551216	f	\N	\N	\N
+01859800-bca8-de0f-c4cb-cfc0d5298eb7	t	f	f	volunteer6@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Admin	UPchieve	f	\N	Y	\N	f	f	\N	0	\N	2023-01-09 19:27:43.345884+00	2023-01-09 19:27:43.345884+00	+12125551217	f	\N	\N	\N
+01859800-be4b-685f-4130-8709193d461c	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2023-01-09 19:27:43.714542+00	2023-01-09 19:27:43.714542+00	\N	f	\N	\N	\N
+01859800-be4b-2870-ad8c-abecfd5c403f	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2023-01-09 19:27:43.721668+00	2023-01-09 19:27:43.721668+00	\N	f	\N	\N	\N
+01859800-be4b-1beb-2b3a-3d26cdb90435	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2023-01-09 19:27:43.729444+00	2023-01-09 19:27:43.729444+00	\N	f	\N	\N	\N
 \.
 
 
@@ -2535,6 +2535,10 @@ COPY upchieve.report_reasons (id, reason, created_at, updated_at) FROM stdin;
 3	LEGACY: Student was unresponsive	2023-01-09 19:27:39.00005+00	2023-01-09 19:27:39.00005+00
 4	LEGACY: Technical issue	2023-01-09 19:27:39.002724+00	2023-01-09 19:27:39.002724+00
 5	LEGACY: Other	2023-01-09 19:27:39.004625+00	2023-01-09 19:27:39.004625+00
+6	Coach asked me to connect off of UPchieve	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+7	Coach made me feel uncomfortable or unsafe	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+8	Coach used inappropriate language	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+9	Coach talked about inappropriate and offensive topics	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
 \.
 
 
@@ -2604,6 +2608,8 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 14	Graded assignment	2023-01-09 19:27:39.496799+00	2023-01-09 19:27:39.496799+00
 15	Coach uncomfortable	2023-01-09 19:27:39.496799+00	2023-01-09 19:27:39.496799+00
 16	Student in distress	2023-01-09 19:27:39.496799+00	2023-01-09 19:27:39.496799+00
+17	Coach reported student DM	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
+18	Student reported coach DM	2023-10-23 19:48:28.34084+00	2023-10-23 19:48:28.34084+00
 \.
 
 
@@ -3796,14 +3802,14 @@ SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 32, true);
 -- Name: report_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 
 
 --
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 16, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 18, true);
 
 
 --

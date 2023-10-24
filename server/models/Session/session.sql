@@ -128,7 +128,8 @@ ON CONFLICT (session_id,
 UPDATE
     sessions
 SET
-    to_review = TRUE
+    to_review = TRUE,
+    reviewed = COALESCE(:reviewed, reviewed)
 WHERE
     id = :sessionId!
 RETURNING
@@ -432,7 +433,17 @@ FROM
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
-    LEFT JOIN session_reports ON session_reports.session_id = sessions.id
+    LEFT JOIN (
+        SELECT
+            report_reason_id,
+            report_message
+        FROM
+            session_reports
+        WHERE
+            session_id = :sessionId!
+        ORDER BY
+            created_at DESC
+        LIMIT 1) AS session_reports ON TRUE
     LEFT JOIN report_reasons ON report_reasons.id = session_reports.report_reason_id
     LEFT JOIN LATERAL (
         SELECT
@@ -556,6 +567,56 @@ WHERE (sessions.student_id = :userId!
 AND sessions.ended_at IS NULL;
 
 
+/* @name getRecapSessionForDmsBySessionId */
+SELECT
+    sessions.id,
+    subjects.name AS sub_topic,
+    topics.name AS TYPE,
+    sessions.created_at,
+    sessions.volunteer_joined_at,
+    sessions.volunteer_id,
+    sessions.student_id,
+    sessions.ended_at,
+    tool_types.name AS tool_type
+FROM
+    sessions
+    JOIN users ON sessions.student_id = users.id
+    LEFT JOIN subjects ON sessions.subject_id = subjects.id
+    LEFT JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
+WHERE
+    sessions.id = :sessionId!
+    AND sessions.ended_at IS NOT NULL;
+
+
+/* @name getMessageInfoByMessageId */
+SELECT
+    sessions.id AS session_id,
+    sessions.ended_at AS session_ended_at,
+    students.id AS student_user_id,
+    students.first_name AS student_first_name,
+    students.email AS student_email,
+    volunteers.id AS volunteer_user_id,
+    volunteers.first_name AS volunteer_first_name,
+    volunteers.email AS volunteer_email,
+    session_messages.contents,
+    session_messages.created_at,
+    session_messages.sender_id,
+    CASE WHEN session_messages.created_at > sessions.ended_at THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS sent_after_session
+FROM
+    session_messages
+    JOIN sessions ON session_messages.session_id = sessions.id
+    JOIN users students ON students.id = sessions.student_id
+    JOIN users volunteers ON volunteers.id = sessions.volunteer_id
+WHERE
+    session_messages.id = :messageId!
+    AND sessions.ended_at IS NOT NULL;
+
+
 /* @name getCurrentSessionBySessionId */
 SELECT
     sessions.id,
@@ -581,6 +642,7 @@ WHERE
 SELECT
     users.id,
     users.first_name AS firstname,
+    users.first_name AS first_name,
     (
         CASE WHEN volunteer_profiles.user_id IS NULL THEN
             FALSE
@@ -647,7 +709,7 @@ WHERE
 INSERT INTO session_messages (id, sender_id, contents, session_id, created_at, updated_at)
     VALUES (:id!, :senderId!, :contents!, :sessionId!, NOW(), NOW())
 RETURNING
-    id AS ok;
+    id;
 
 
 /* @name getSessionsWithAvgWaitTimePerDayAndHour */
@@ -992,6 +1054,44 @@ ORDER BY
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
+/* @name isEligibleForSessionRecap */
+SELECT
+    CASE WHEN sessions.id IS NOT NULL THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS is_eligible
+FROM
+    sessions
+WHERE
+    sessions.id = :sessionId!
+    AND sessions.time_tutored IS NOT NULL
+    AND sessions.time_tutored > :minSessionLength!::int
+    AND sessions.volunteer_id IS NOT NULL
+    AND sessions.ended_at IS NOT NULL;
+
+
+/* @name getSessionHistoryIdsByUserId */
+SELECT
+    sessions.id
+FROM
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+    LEFT JOIN users students ON sessions.student_id = students.id
+WHERE (students.id = :userId!
+    OR volunteers.id = :userId!)
+AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+AND NOW()
+AND sessions.time_tutored IS NOT NULL
+AND sessions.time_tutored > :minSessionLength!::int
+AND sessions.volunteer_id IS NOT NULL
+AND sessions.ended_at IS NOT NULL
+ORDER BY
+    sessions.created_at DESC;
+
+
 /* @name getTotalSessionHistory */
 SELECT
     count(*)::int AS total
@@ -1040,4 +1140,33 @@ FROM
         AND volunteers.id = favorited.volunteer_id
 WHERE
     sessions.id = :sessionId!;
+
+
+/* @name volunteerSentMessageAfterSessionEnded */
+SELECT
+    session_messages.id
+FROM
+    sessions
+    JOIN session_messages ON sessions.id = session_messages.session_id
+WHERE
+    sessions.id = :sessionId
+    AND session_messages.sender_id = sessions.volunteer_id
+    AND session_messages.created_at > sessions.ended_at
+LIMIT 1;
+
+
+/* @name sessionHasBannedParticipant */
+SELECT
+    sessions.id
+FROM
+    sessions
+    JOIN student_profiles ON student_profiles.user_id = sessions.student_id
+    JOIN users students ON student_profiles.user_id = students.id
+    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
+    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
+WHERE
+    sessions.id = :sessionId!
+    AND students.banned IS TRUE
+    OR volunteers.banned IS TRUE
+LIMIT 1;
 

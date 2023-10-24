@@ -7,22 +7,25 @@ import { PGStore } from 'connect-pg-simple'
 import newrelic from 'newrelic'
 import { Server, Socket } from 'socket.io'
 import config from '../../config'
-import { Session } from '../../models/Session'
-import { UserContactInfo } from '../../models/User'
+import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
+import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
+import QueueService from '../../services/QueueService'
 import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
 import logger from '../../logger'
 import * as cache from '../../cache'
-import { FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
+import { EVENTS, FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
 import { v4 as uuidv4 } from 'uuid'
 import { LockError } from 'redlock'
 import { Ulid } from '../../models/pgUtils'
 import session from 'express-session'
+import { Jobs } from '../../worker/jobs'
+import { captureEvent } from '../../services/AnalyticsService'
 
 export type SocketUser = Socket & { request: { user?: UserContactInfo } }
 
@@ -55,12 +58,28 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
 
   async function getSocketIdsFromRoom(room: string): Promise<string[]> {
-    const allSockets = await io.in(room).allSockets()
-    return Array.from(allSockets)
+    const sockets = await io.in(room).fetchSockets()
+    const ids = []
+    for (const socket of sockets) {
+      ids.push(socket.id)
+    }
+    return ids
   }
 
   function remoteJoinRoom(socketId: string, room: string) {
     return io.in(socketId).socketsJoin(room)
+  }
+
+  async function joinUserToSessionHistoryRooms(userId: Ulid) {
+    const sessionHistory = await getSessionHistoryIdsByUserId(userId)
+    for (const session of sessionHistory) {
+      const sessionRoom = getSessionRoom(session.id)
+      const socketIds = await getSocketIdsFromRoom(userId)
+      // Have all of the user's socket connections join session history rooms
+      for (const id of socketIds) {
+        await remoteJoinRoom(id, sessionRoom)
+      }
+    }
   }
 
   let chatbot: Ulid | undefined
@@ -100,6 +119,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
+      await joinUserToSessionHistoryRooms(user.id)
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -246,13 +266,17 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     socket.on('typing', data => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
-        socket.to(getSessionRoom(data.sessionId)).emit('is-typing')
+        socket
+          .to(getSessionRoom(data.sessionId))
+          .emit('is-typing', { sessionId: data.sessionId })
       })
     })
 
     socket.on('notTyping', data => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
-        socket.to(getSessionRoom(data.sessionId)).emit('not-typing')
+        socket
+          .to(getSessionRoom(data.sessionId))
+          .emit('not-typing', { sessionId: data.sessionId })
       })
     })
 
@@ -261,19 +285,22 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            const { user, sessionId, message } = data
+            const { user, sessionId, message, source } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
+
+            // Do not allow banned users to send DMs
+            const dbUser = await getUserContactInfoById(user.id)
+            if (source === 'recap' && dbUser?.banned) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {
               return resolve()
             }
             const createdAt = new Date()
-
             try {
               // TODO: correctly type user from payload
-              await SessionService.saveMessage(
+              const messageId = await SessionService.saveMessage(
                 user,
                 createdAt,
                 {
@@ -282,21 +309,36 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 },
                 chatbot
               )
-              if (chatbot && !(chatbot === user._id))
+              if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
               const messageData = {
                 contents: message,
                 createdAt: createdAt,
                 isVolunteer: user.isVolunteer,
-                user: user._id,
+                user: user.id,
+                sessionId,
+              }
+
+              // If the message is coming from the recap page, queue the message to send a notification
+              if (source === 'recap') {
+                await QueueService.add(
+                  Jobs.SendSessionRecapMessageNotification,
+                  { messageId },
+                  { removeOnComplete: true, removeOnFail: true }
+                )
+                captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
+                  sessionId: sessionId,
+                  message,
+                  isVolunteer: user.isVolunteer,
+                })
               }
 
               const socketRoom = getSessionRoom(data.sessionId)
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()
             } catch (error) {
-              socket.emit('messageError')
+              socket.emit('messageError', { sessionId: data.session })
               reject(error)
             }
           })

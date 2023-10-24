@@ -3,4 +3,5 @@ export enum FEATURE_FLAGS {
   STANDARDIZED_CERTS = 'standardized-certs',
   PROCRASTINATION_TEXT_REMINDER = 'procrastination-text-reminder',
   USING_OUR_PLATFORM = 'using-our-platform',
+  SESSION_RECAP_DMS = 'session-recap-dms',
 }

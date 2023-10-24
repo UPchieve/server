@@ -632,3 +632,40 @@ export async function getUserVerificationInfoById(
     throw new RepoReadError(err)
   }
 }
+
+export type ReportedUser = {
+  id: Ulid
+  firstName: string
+  lastName: string
+  email: string
+  createdAt: Date
+  isTestUser: boolean
+  isBanned: boolean
+  isDeactivated: boolean
+  isVolunteer: boolean
+  studentPartnerOrg?: string
+  volunteerPartnerOrg?: string
+}
+
+export async function getReportedUser(
+  userId: Ulid
+): Promise<ReportedUser | undefined> {
+  try {
+    const result = await pgQueries.getReportedUser.run(
+      {
+        userId,
+      },
+      getClient()
+    )
+    if (result.length) {
+      const ret = makeSomeOptional(result[0], [
+        'studentPartnerOrg',
+        'volunteerPartnerOrg',
+      ])
+      ret.email = ret.email.toLowerCase()
+      return ret
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

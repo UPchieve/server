@@ -28,39 +28,6 @@ import {
   StudentContactInfo,
 } from './types'
 
-export type ReportedStudent = {
-  id: Ulid
-  firstName: string
-  lastName: string
-  email: string
-  createdAt: Date
-  isTestUser: boolean
-  isBanned: boolean
-  isDeactivated: boolean
-  isVolunteer: boolean
-  studentPartnerOrg?: string
-}
-
-export async function getReportedStudent(
-  studentId: Ulid
-): Promise<ReportedStudent | undefined> {
-  try {
-    const result = await pgQueries.getReportedStudent.run(
-      {
-        userId: studentId,
-      },
-      getClient()
-    )
-    if (result.length) {
-      const ret = makeSomeOptional(result[0], ['studentPartnerOrg'])
-      ret.email = ret.email.toLowerCase()
-      return ret
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type StudentPartnerInfo = {
   id: Ulid
   studentPartnerOrg?: string

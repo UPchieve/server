@@ -4,14 +4,7 @@ import { Ulid } from '../models/pgUtils'
 export const captureEvent = (
   userId: Ulid,
   eventName: string,
-  properties: {
-    event: string
-    sessionId?: string
-    subject?: string
-    referenceEmail?: string
-    banReason?: string
-    joinedFrom?: string
-  }
+  properties: { [key: string]: any }
 ): void => {
   client.capture({
     distinctId: userId.toString(),
