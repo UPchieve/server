@@ -41,6 +41,9 @@ export abstract class CounterMetricProcessor implements MetricProcessor {
   ): number => {
     if (!usm) return 0
     const key = getEnumKeyByEnumValue(USER_SESSION_METRICS, this.key)
+    // Do nothing if one of these keys shows
+    if (key === 'coachReportedStudentDm' || key === 'studentReportedCoachDm')
+      return 0
     if (key) return usm[key] + value
     throw new Error(`Counter metric processor key ${this.key} is invalid`)
   }

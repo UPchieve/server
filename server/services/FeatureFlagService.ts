@@ -75,3 +75,7 @@ export async function getProcrastinationTextReminderCopy(
     userId
   )) as string
 }
+
+export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
+}

@@ -614,7 +614,9 @@ export async function createSession(
 
 export type CurrentSessionUser = {
   _id: Ulid
+  // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
   firstname: string
+  firstName: string
   isVolunteer: boolean
 }
 export type CurrentSession = {
@@ -628,21 +630,24 @@ export type CurrentSession = {
   endedAt?: Date
   toolType: string
 }
-export async function getCurrentSessionByUserId(
-  userId: Ulid
-): Promise<CurrentSession | undefined> {
-  const client = await getClient().connect()
+
+export type SessionInfoForUser = {
+  createdAt: Date
+  endedAt?: Date
+  id: string
+  studentId: string
+  subTopic: string
+  toolType: string
+  type: string
+  volunteerId?: string
+  volunteerJoinedAt?: Date
+}
+
+export async function handleSessionParsingForUser(
+  session: SessionInfoForUser,
+  client: PoolClient
+): Promise<CurrentSession> {
   try {
-    const result = await pgQueries.getCurrentSessionByUserId.run(
-      { userId },
-      client
-    )
-    if (!result.length) return
-    const session = makeSomeOptional(result[0], [
-      'volunteerId',
-      'endedAt',
-      'volunteerJoinedAt',
-    ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
       { sessionId: session.id },
@@ -662,6 +667,100 @@ export async function getCurrentSessionByUserId(
       _id: session.id,
       messages,
     }
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+export async function getCurrentSessionByUserId(
+  userId: Ulid
+): Promise<CurrentSession | undefined> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.getCurrentSessionByUserId.run(
+      { userId },
+      client
+    )
+    if (!result.length) return
+    else {
+      const session = makeSomeOptional(result[0], [
+        'volunteerId',
+        'endedAt',
+        'volunteerJoinedAt',
+      ])
+      return handleSessionParsingForUser(session, client)
+    }
+  } catch (error) {
+    throw new RepoReadError(error)
+  } finally {
+    client.release()
+  }
+}
+
+export async function getRecapSessionForDmsBySessionId(
+  sessionId: Ulid
+): Promise<CurrentSession | undefined> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.getRecapSessionForDmsBySessionId.run(
+      { sessionId },
+      client
+    )
+    if (!result.length) return
+    else {
+      const session = makeRequired(result[0])
+      return handleSessionParsingForUser(session, client)
+    }
+  } catch (error) {
+    throw new RepoReadError(error)
+  } finally {
+    client.release()
+  }
+}
+
+export async function getSessionHistoryIdsByUserId(
+  userId: Ulid
+): Promise<{ id: Ulid }[]> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.getSessionHistoryIdsByUserId.run(
+      { userId, minSessionLength: config.sessionHistoryMinSessionLength },
+      client
+    )
+    if (!result.length) return []
+    else return result.map(v => makeRequired(v))
+  } catch (error) {
+    throw new RepoReadError(error)
+  } finally {
+    client.release()
+  }
+}
+
+export type MessageInfoByMessageId = {
+  contents: string
+  createdAt: Date
+  senderId: string
+  sentAfterSession: boolean
+  sessionEndedAt: Date
+  sessionId: string
+  studentEmail: string
+  studentFirstName: string
+  studentUserId: string
+  volunteerEmail: string
+  volunteerFirstName: string
+  volunteerUserId: string
+}
+
+export async function getMessageInfoByMessageId(
+  messageId: Ulid
+): Promise<MessageInfoByMessageId | undefined> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.getMessageInfoByMessageId.run(
+      { messageId },
+      client
+    )
+    if (result.length) return makeRequired(result[0])
   } catch (error) {
     throw new RepoReadError(error)
   } finally {
@@ -789,14 +888,14 @@ export async function addMessageToSessionById(
   sessionId: Ulid,
   senderId: Ulid,
   contents: string
-): Promise<void> {
+): Promise<string> {
   try {
     const result = await pgQueries.insertNewMessage.run(
       { id: getDbUlid(), sessionId, senderId, contents },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoCreateError('Insert did not return ok')
+    if (!result.length) throw new RepoCreateError('Insert did not return ok')
+    return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1033,7 +1132,9 @@ export async function getSessionsForAdminFilter(
 
 export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
-  reviewReasons: USER_SESSION_METRICS[]
+  reviewReasons: USER_SESSION_METRICS[],
+  // Use this property to override the reviewed status of a session
+  reviewed?: boolean
 ): Promise<void> {
   const client = await getClient().connect()
   try {
@@ -1047,7 +1148,7 @@ export async function updateSessionReviewReasonsById(
         throw new Error('Insert did not return ok')
     }
     const result = await pgQueries.updateSessionToReview.run(
-      { sessionId },
+      { sessionId, reviewed },
       client
     )
     if (!result.length && makeRequired(result[0]).ok)
@@ -1205,6 +1306,58 @@ export async function getSessionRecap(
     const messages = await getMessagesForFrontend(sessionId, client)
 
     return { ...session, messages }
+  } catch (err) {
+    throw new RepoReadError(err)
+  } finally {
+    client.release()
+  }
+}
+
+export async function isEligibleForSessionRecap(
+  sessionId: Ulid
+): Promise<boolean> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.isEligibleForSessionRecap.run(
+      { sessionId, minSessionLength: config.sessionHistoryMinSessionLength },
+      client
+    )
+    if (!result.length) return false
+    else return makeRequired(result[0]).isEligible
+  } catch (err) {
+    throw new RepoReadError(err)
+  } finally {
+    client.release()
+  }
+}
+
+export async function volunteerSentMessageAfterSessionEnded(
+  sessionId: Ulid
+): Promise<boolean> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.volunteerSentMessageAfterSessionEnded.run(
+      { sessionId },
+      client
+    )
+    return !!result.length
+  } catch (err) {
+    throw new RepoReadError(err)
+  } finally {
+    client.release()
+  }
+}
+
+export async function sessionHasBannedParticipant(
+  sessionId: Ulid
+): Promise<boolean> {
+  const client = await getClient().connect()
+  try {
+    const result = await pgQueries.sessionHasBannedParticipant.run(
+      { sessionId },
+      client
+    )
+    return !!result.length
   } catch (err) {
     throw new RepoReadError(err)
   } finally {
