@@ -113,7 +113,7 @@ export async function sendProcrastinationTextReminder(
   // Use a default message if no message is found from the flag payload
   if (!messageCopy)
     messageCopy =
-      "Hi {{firstName}}! UPchieve here. We're reminding you to stay ahead and avoid that last-minute panic. Tackle procrastination with a study session now: https://app.upchieve.org?s=tr"
+      "Hi {{firstName}}! UPchieve here. The first step to stay on track to achieve your goals is to create a plan. Create one with a coach now! https://bit.ly/UPgoals"
 
   // Feature flag payload will have variables that we want to interpolate
   const messageText = messageCopy.replace('{{firstName}}', firstName)
