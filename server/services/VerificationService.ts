@@ -57,7 +57,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
 
 export async function initiateVerification(
   data: unknown,
-  endUserIpAddress: string
+  endUserIpAddress?: string
 ): Promise<void> {
   const {
     userId,

@@ -491,14 +491,14 @@ export async function sendVerification(
   sendTo: string,
   verificationMethod: VERIFICATION_METHOD,
   firstName: string,
-  endUserIpAddress: string
+  endUserIpAddress?: string
 ): Promise<void> {
   if (!twilioClient) {
     logger.warn('Twilio client not loaded.')
     return
   }
 
-  if (!endUserIpAddress.length) {
+  if (!endUserIpAddress || (endUserIpAddress && !endUserIpAddress.length)) {
     // Needed for rate limiting policy.
     // Not ideal to not have this, but we can continue and just rate limit
     // on phone number.
