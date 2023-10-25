@@ -9,6 +9,7 @@ import { TwilioError } from '../../models/Errors'
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
     const user = extractUser(req)
+    console.log(`User IP`, req.ip ?? 'IP NOT FOUND')
     const payload = {
       userId: user.id,
       firstName: user.firstName,
@@ -16,7 +17,7 @@ export function routeVerify(router: Router) {
     }
 
     try {
-      await VerificationService.initiateVerification(payload as unknown)
+      await VerificationService.initiateVerification(payload as unknown, req.ip)
       res.sendStatus(200)
     } catch (err) {
       let message: string

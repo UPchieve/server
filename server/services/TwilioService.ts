@@ -490,11 +490,27 @@ export async function notifyVolunteer(
 export async function sendVerification(
   sendTo: string,
   verificationMethod: VERIFICATION_METHOD,
-  firstName: string
+  firstName: string,
+  endUserIpAddress: string
 ): Promise<void> {
   if (!twilioClient) {
     logger.warn('Twilio client not loaded.')
     return
+  }
+
+  if (!endUserIpAddress.length) {
+    // Needed for rate limiting policy.
+    // Not ideal to not have this, but we can continue and just rate limit
+    // on phone number.
+    logger.warn(`Could not find end user IP address`)
+  }
+
+  if (
+    !config.twilioVerificationRateLimitSid ||
+    !config.twilioVerificationRateLimitUniqueName ||
+    !config.twilioVerificationRateLimitBucketSid
+  ) {
+    throw new Error(`Missing config values for verification rate limits`)
   }
 
   await twilioClient.verify
@@ -508,6 +524,10 @@ export async function sendVerification(
         substitutions: {
           firstName,
         },
+      },
+      rateLimits: {
+        // Rate limit based on sendTo and IP address
+        [config.twilioVerificationRateLimitUniqueName]: `${sendTo}-${endUserIpAddress}`,
       },
     })
 }
