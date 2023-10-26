@@ -1,33 +1,33 @@
 import twilio from 'twilio'
-import { getCurrentNewYorkTime } from '../utils/get-times'
-import config from '../config'
+import { getCurrentNewYorkTime } from '../../utils/get-times'
+import config from '../../config'
 import moment from 'moment'
 import {
   getFavoriteVolunteersByStudentId,
   getStudentContactInfoById,
   getTestStudentExistsById,
-} from '../models/Student'
+} from '../../models/Student'
 import {
   VolunteerContactInfo,
   getVolunteersNotifiedBySessionId,
-} from '../models/Volunteer'
-import QueueService from './QueueService'
-import * as SessionRepo from '../models/Session'
-import * as VolunteerRepo from '../models/Volunteer'
+} from '../../models/Volunteer'
+import QueueService from '../QueueService'
+import * as SessionRepo from '../../models/Session'
+import * as VolunteerRepo from '../../models/Volunteer'
 import Case from 'case'
-import logger from '../logger'
-import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
-import startsWithVowel from '../utils/starts-with-vowel'
-import { Ulid } from '../models/pgUtils'
-import { getSessionById, NotificationData } from '../models/Session'
+import logger from '../../logger'
+import { VERIFICATION_METHOD, SUBJECTS } from '../../constants'
+import startsWithVowel from '../../utils/starts-with-vowel'
+import { Ulid } from '../../models/pgUtils'
+import { getSessionById, NotificationData } from '../../models/Session'
 import {
   AssociatedPartner,
   getAssociatedPartnerBySponsorOrg,
   getAssociatedPartnerByPartnerOrg,
-} from '../models/AssociatedPartner'
-import { getSponsorOrgs } from '../models/SponsorOrg'
-import { Jobs } from '../worker/jobs'
-import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
+} from '../../models/AssociatedPartner'
+import { getSponsorOrgs } from '../../models/SponsorOrg'
+import { Jobs } from '../../worker/jobs'
+import { getProcrastinationTextReminderCopy } from '../FeatureFlagService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =

@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { EVENTS } from '../../constants'
 import { getUserContactInfoById } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
-import * as TwilioService from '../../services/TwilioService'
+import * as TwilioService from '../../services/TwilioService/TwilioService'
 import { asString } from '../../utils/type-utils'
 
 export type ProcrastinationTextReminderJob = {

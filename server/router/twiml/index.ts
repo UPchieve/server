@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 import config from '../../config'
 import logger from '../../logger'
-import * as twilioService from '../../services/TwilioService'
+import * as twilioService from '../../services/TwilioService/TwilioService'
 import { resError } from '../res-error'
 import { createSessionAction } from '../../models/UserAction'
 import { SESSION_USER_ACTIONS } from '../../constants'

@@ -5,7 +5,7 @@ import {
   updateFallIncentiveProgram,
   getPublicUPFByUserId,
 } from '../models/UserProductFlags'
-import * as TwilioService from './TwilioService'
+import * as TwilioService from './TwilioService/TwilioService'
 
 export async function checkIfInIncentiveProgram(userId: Ulid) {
   const flags = await getPublicUPFByUserId(userId)

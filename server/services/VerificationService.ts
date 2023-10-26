@@ -16,7 +16,7 @@ import {
 } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
-import * as TwilioService from './TwilioService'
+import * as TwilioService from './TwilioService/TwilioService'
 import {
   updateUserVerifiedInfoById,
   getUserContactInfoById,
