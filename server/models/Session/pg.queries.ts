@@ -2503,7 +2503,7 @@ export interface ISessionHasBannedParticipantQuery {
   result: ISessionHasBannedParticipantResult;
 }
 
-const sessionHasBannedParticipantIR: any = {"name":"sessionHasBannedParticipant","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":32749,"b":32758,"line":1168,"col":19}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sessions.id\nFROM\n    sessions\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    JOIN users students ON student_profiles.user_id = students.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\n    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id\nWHERE\n    sessions.id = :sessionId!\n    AND students.banned IS TRUE\n    OR volunteers.banned IS TRUE\nLIMIT 1","loc":{"a":32382,"b":32831,"line":1159,"col":0}}};
+const sessionHasBannedParticipantIR: any = {"name":"sessionHasBannedParticipant","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":32749,"b":32758,"line":1168,"col":19}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    sessions.id\nFROM\n    sessions\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    JOIN users students ON student_profiles.user_id = students.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\n    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id\nWHERE\n    sessions.id = :sessionId!\n    AND (students.banned IS TRUE\n        OR volunteers.banned IS TRUE)\nLIMIT 1","loc":{"a":32382,"b":32837,"line":1159,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2518,8 +2518,8 @@ const sessionHasBannedParticipantIR: any = {"name":"sessionHasBannedParticipant"
  *     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
  * WHERE
  *     sessions.id = :sessionId!
- *     AND students.banned IS TRUE
- *     OR volunteers.banned IS TRUE
+ *     AND (students.banned IS TRUE
+ *         OR volunteers.banned IS TRUE)
  * LIMIT 1
  * ```
  */
