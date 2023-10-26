@@ -505,14 +505,6 @@ export async function sendVerification(
     logger.warn(`Could not find end user IP address`)
   }
 
-  if (
-    !config.twilioVerificationRateLimitSid ||
-    !config.twilioVerificationRateLimitUniqueName ||
-    !config.twilioVerificationRateLimitBucketSid
-  ) {
-    throw new Error(`Missing config values for verification rate limits`)
-  }
-
   await twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
     .verifications.create({
