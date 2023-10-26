@@ -5,7 +5,7 @@ import * as AnalyticsService from '../../services/AnalyticsService'
 import studentProcrastinationTextReminder from '../../worker/jobs/studentProcrastinationTextReminder'
 import { buildUserContactInfo } from '../mocks/generate'
 import { EVENTS } from '../../constants'
-jest.mock('../../services/TwilioService')
+jest.mock('../../services/TwilioService/TwilioService.ts')
 jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/User/queries')
 jest.mock('../../worker/logger')
