@@ -510,7 +510,6 @@ export async function sendVerification(
         },
       },
       rateLimits: {
-        // Rate limit based on sendTo and IP address
         [config.twilioVerificationRateLimitUniqueName]: sendTo,
       },
     })
