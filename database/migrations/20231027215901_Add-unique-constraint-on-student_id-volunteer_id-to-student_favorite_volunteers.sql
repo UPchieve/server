@@ -8,7 +8,7 @@ FROM
 BEGIN TRANSACTION;
 -- Select the row with max updated_at for each unique (student_id, volunteer_id) combination from student_favorite_coaches.
 -- Then store these in a new table, unique_favorites.
-WITH uf AS (
+WITH favorites_partition AS (
     SELECT
         student_id,
         volunteer_id,
@@ -23,11 +23,12 @@ SELECT
     student_id,
     volunteer_id,
     updated_at,
-    created_at INTO TEMPORARY UniqueFavoritesTemp -- The # denotes a local temporary table
+    created_at INTO TEMPORARY UniqueFavoritesTemp
 FROM
-    uf
+    favorites_partition
 WHERE
     rn = 1;
+-- Grab only the row that has the most recent updated_at for each (student_id, volunteer_id) combination
 -- Now dump the contents of the old table and repopulate it with the contents of the temp table.
 DELETE FROM upchieve.student_favorite_volunteers;
 INSERT INTO upchieve.student_favorite_volunteers
@@ -35,10 +36,9 @@ SELECT
     *
 FROM
     UniqueFavoritesTemp;
--- Now add the unique constraint
+-- Now that duplicates have been removed, add the UNIQUE constraint
 ALTER TABLE IF EXISTS upchieve.student_favorite_volunteers
     ADD CONSTRAINT unique_student_id_volunteer_id UNIQUE (student_id, volunteer_id);
-DROP TABLE IF EXISTS UniqueFavoritesTemp;
 -- Only delete once everything else has run successfully.
 DROP TABLE IF EXISTS student_favorite_volunteers_backup;
 COMMIT;
@@ -58,4 +58,6 @@ NOT IN (
         *
     FROM
         upchieve.student_favorite_volunteers);
+
+DROP TABLE student_favorite_volunteers_backup;
 
