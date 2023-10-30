@@ -608,3 +608,53 @@ WHERE
 RETURNING
     user_id AS ok;
 
+
+/* @name countDuplicateStudentVolunteerFavorites */
+WITH favorites_partition AS (
+    SELECT
+        student_id,
+        volunteer_id,
+        updated_at,
+        created_at,
+        row_number() OVER (PARTITION BY student_id,
+            volunteer_id ORDER BY updated_at DESC) AS rn
+    FROM
+        upchieve.student_favorite_volunteers
+)
+SELECT
+    count(*) AS duplicates_count
+FROM
+    favorites_partition
+WHERE
+    rn <> 1;
+
+
+/* @name deleteDuplicateStudentVolunteerFavorites */
+WITH favorites_partition AS (
+    SELECT
+        student_id,
+        volunteer_id,
+        updated_at,
+        created_at,
+        row_number() OVER (PARTITION BY student_id,
+            volunteer_id ORDER BY updated_at DESC) AS rn
+    FROM
+        upchieve.student_favorite_volunteers
+),
+duplicate_favorites AS (
+    SELECT
+        student_id,
+        volunteer_id,
+        updated_at,
+        created_at
+    FROM
+        favorites_partition
+    WHERE
+        rn <> 1)
+DELETE FROM upchieve.student_favorite_volunteers
+WHERE (student_id, volunteer_id, updated_at, created_at) IN (
+        SELECT
+            *
+        FROM
+            duplicate_favorites);
+
