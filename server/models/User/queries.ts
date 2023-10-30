@@ -92,7 +92,6 @@ export type UserContactInfo = {
   email: string
   phone?: string
   phoneVerified: boolean
-  smsConsent: boolean
   firstName: string
   isVolunteer: boolean
   isAdmin: boolean
@@ -601,7 +600,6 @@ export async function updateUserProfileById(
         userId,
         deactivated: data.deactivated,
         phone: data.phone,
-        smsConsent: data.smsConsent,
       },
       getClient()
     )
