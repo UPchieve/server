@@ -1,4 +1,5 @@
 -- migrate:up
+-- A permanent table with our backup data which will get dropped in either the UP or DOWN script.
 CREATE TABLE IF NOT EXISTS student_favorite_volunteers_backup AS
 SELECT
     *
@@ -28,19 +29,19 @@ FROM
     favorites_partition
 WHERE
     rn = 1;
--- Grab only the row that has the most recent updated_at for each (student_id, volunteer_id) combination
--- Now dump the contents of the old table and repopulate it with the contents of the temp table.
+-- Dump the contents of the table so we can add a unique constraint safely
 DELETE FROM upchieve.student_favorite_volunteers;
+ALTER TABLE IF EXISTS upchieve.student_favorite_volunteers
+    ADD CONSTRAINT unique_student_id_volunteer_id UNIQUE (student_id, volunteer_id);
+-- Repopulate the table with the unique rows
 INSERT INTO upchieve.student_favorite_volunteers
 SELECT
     *
 FROM
     unique_favorites_temp;
--- Now that duplicates have been removed, add the UNIQUE constraint
-ALTER TABLE IF EXISTS upchieve.student_favorite_volunteers
-    ADD CONSTRAINT unique_student_id_volunteer_id UNIQUE (student_id, volunteer_id);
-DROP TABLE IF EXISTS student_favorite_volunteers_backup;
 COMMIT;
+
+DROP TABLE IF EXISTS student_favorite_volunteers_backup;
 
 -- migrate:down
 ALTER TABLE IF EXISTS upchieve.student_favorite_volunteers
