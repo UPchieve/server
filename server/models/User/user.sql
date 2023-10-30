@@ -51,8 +51,7 @@ SELECT
     deactivated,
     volunteer_profiles.approved,
     users.phone,
-    users.phone_verified,
-    users.sms_consent
+    users.phone_verified
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -89,8 +88,7 @@ SELECT
     deactivated,
     volunteer_profiles.approved,
     users.phone,
-    users.phone_verified,
-    users.sms_consent
+    users.phone_verified
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -151,8 +149,7 @@ SELECT
     deactivated,
     volunteer_profiles.approved,
     users.phone,
-    users.phone_verified,
-    users.sms_consent
+    users.phone_verified
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -455,7 +452,6 @@ SELECT
     users.first_name AS firstname,
     users.phone,
     users.phone_verified,
-    users.sms_consent,
     volunteer_profiles.college,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -624,7 +620,6 @@ SELECT
     users.id,
     first_name,
     email,
-    sms_consent,
     phone_verified,
     banned,
     (
@@ -749,8 +744,7 @@ UPDATE
     users
 SET
     deactivated = COALESCE(:deactivated, deactivated),
-    phone = COALESCE(:phone, phone),
-    sms_consent = COALESCE(:smsConsent, sms_consent)
+    phone = COALESCE(:phone, phone)
 WHERE
     id = :userId!
 RETURNING
