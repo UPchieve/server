@@ -6,8 +6,8 @@ rate limit following these [instructions](https://www.twilio.com/docs/verify/api
 - Create a RateLimitBucket resource, associated to the RateLimit, which establishes the rate limiting interval and number of allowed retries
 - Pass the RateLimit SID to the Create Verification request, keying each request according to how you set up your RateLimit
 
-### How can I see the config?
-The easiest way to view or change the latest rate limit configuration is to use the Twilio CLI. You can learn how to do that on [Twilio's website](https://www.twilio.com/docs/verify/api/service-rate-limits).
+### How can I view and update the current config?
+You can do this with the Twilio CLI, cURL, etc to call the Twilio APIs. Twilio explains it well [here](https://www.twilio.com/docs/verify/api/service-rate-limits).
 
 ### Rate limit error codes
 Find them [here](https://www.twilio.com/docs/api/errors#6-anchor).

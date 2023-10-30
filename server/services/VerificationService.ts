@@ -55,10 +55,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   forSignup: asOptional(asBoolean),
 })
 
-export async function initiateVerification(
-  data: unknown,
-  endUserIpAddress?: string
-): Promise<void> {
+export async function initiateVerification(data: unknown): Promise<void> {
   const {
     userId,
     sendTo,
@@ -96,12 +93,7 @@ export async function initiateVerification(
     throw new AlreadyInUseError(existingUserErrorMessage)
 
   try {
-    await TwilioService.sendVerification(
-      sendTo,
-      verificationMethod,
-      firstName,
-      endUserIpAddress
-    )
+    await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
   } catch (err) {
     const error = err as {
       message: string

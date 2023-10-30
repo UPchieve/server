@@ -16,7 +16,7 @@ export function routeVerify(router: Router) {
     }
 
     try {
-      await VerificationService.initiateVerification(payload as unknown, req.ip)
+      await VerificationService.initiateVerification(payload as unknown)
       res.sendStatus(200)
     } catch (err) {
       let message: string
