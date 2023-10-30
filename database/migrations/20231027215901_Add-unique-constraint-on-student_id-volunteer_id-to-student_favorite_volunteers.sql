@@ -1,5 +1,5 @@
 -- migrate:up
-CREATE TABLE student_favorite_volunteers_backup AS
+CREATE TABLE IF NOT EXISTS student_favorite_volunteers_backup AS
 SELECT
     *
 FROM
@@ -58,5 +58,5 @@ NOT IN (
     FROM
         upchieve.student_favorite_volunteers);
 
-DROP TABLE student_favorite_volunteers_backup;
+DROP TABLE IF EXISTS student_favorite_volunteers_backup;
 
