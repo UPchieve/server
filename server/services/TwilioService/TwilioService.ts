@@ -28,6 +28,8 @@ import {
 import { getSponsorOrgs } from '../../models/SponsorOrg'
 import { Jobs } from '../../worker/jobs'
 import { getProcrastinationTextReminderCopy } from '../FeatureFlagService'
+import { TwilioError } from '../../models/Errors'
+import { RateLimitInstance } from 'twilio/lib/rest/verify/v2/service/rateLimit'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -545,4 +547,84 @@ export async function beginRegularNotifications(
     { sessionId, notificationSchedule },
     { delay, removeOnComplete: true, removeOnFail: true }
   )
+}
+
+/**
+ * Verifies that the Twilio RateLimit resource with the desired name exists,
+ * and creates it if not.
+ */
+export async function fetchOrCreateRateLimit() {
+  if (!twilioClient) {
+    logger.warn('Twilio client not loaded')
+    return
+  }
+
+  // Fetch RateLimits and see if the one we want exists.
+  await twilioClient.verify
+    .services(config.twilioAccountVerificationServiceSid)
+    .rateLimits.list(async (err, rateLimits) => {
+      if (err) {
+        throw err
+      }
+      const targetRateLimit = rateLimits.find(
+        rateLimit =>
+          rateLimit.uniqueName === config.twilioVerificationRateLimitUniqueName
+      )
+      if (targetRateLimit) {
+        logger.info(`Found desired Twilio rate limit resource`)
+      } else {
+        logger.warn(
+          `Did not find Twilio rate limit resource with name ${config.twilioVerificationRateLimitUniqueName}. Will create one now.`
+        )
+        await createRateLimit(config.twilioVerificationRateLimitUniqueName)
+      }
+    })
+    .catch(error => {
+      logger.warn(
+        `Could not fetch Twilio rate limits`,
+        (error as TwilioError).message
+      )
+      // @TODO What to do here?
+    })
+}
+
+async function createRateLimit(uniqueName: string) {
+  try {
+    // Create RateLimit
+    const rateLimit = await twilioClient?.verify
+      .services(config.twilioAccountVerificationServiceSid)
+      .rateLimits.create({
+        uniqueName,
+        description: `Rate limit on ${uniqueName}`,
+      })
+    if (!rateLimit) {
+      throw new Error('Failed to create RateLimit')
+    }
+
+    logger.info(`Created RateLimit in Twilio with uniqueName=${uniqueName}`)
+    const rateLimitSid = (await Promise.resolve(rateLimit)).sid
+
+    // Create RateLimitBucket
+    const rateLimitBucket = await twilioClient?.verify
+      .services(config.twilioAccountVerificationServiceSid)
+      .rateLimits(rateLimitSid)
+      .buckets.create({
+        // 4 retries allowed per min
+        max: 4,
+        interval: 60,
+      })
+
+    if (!rateLimitBucket) {
+      throw new Error('Failed to create RateLimitBucket')
+    }
+
+    logger.info(`Created RateLimitBucket in Twilio`)
+  } catch (error) {
+    logger.error(
+      `Error occurred while creating RateLimit or RateLimitBucket, error=${JSON.stringify(
+        error
+      )}`
+    )
+    // @TODO Fail or continue and hope to retry later?
+  }
 }

@@ -29,6 +29,7 @@ import {
   styleSrc,
   upgradeInsecureRequests,
 } from './securitySettings'
+import { fetchOrCreateRateLimit } from './services/TwilioService/TwilioService'
 const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
@@ -183,5 +184,9 @@ app.use(
 )
 
 app.use(haltOnTimedout)
+
+fetchOrCreateRateLimit().then(() => {
+  logger.info('Successfully loaded Twilio rate limit')
+})
 
 export default app
