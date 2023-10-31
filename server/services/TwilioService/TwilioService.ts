@@ -501,20 +501,39 @@ export async function sendVerification(
 
   await twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
-    .verifications.create({
-      to: sendTo,
-      channel: verificationMethod,
-      channelConfiguration: {
-        from: config.mail.senders.noreply,
-        from_name: 'UPchieve',
-        substitutions: {
-          firstName,
+    .verifications.create(
+      {
+        to: sendTo,
+        channel: verificationMethod,
+        channelConfiguration: {
+          from: config.mail.senders.noreply,
+          from_name: 'UPchieve',
+          substitutions: {
+            firstName,
+          },
+        },
+        rateLimits: {
+          // [config.twilioVerificationRateLimitUniqueName]: sendTo, // @TODO uncomment me
+          testing: sendTo,
         },
       },
-      rateLimits: {
-        [config.twilioVerificationRateLimitUniqueName]: sendTo,
-      },
-    })
+      async (error, verificationInstance) => {
+        // @TODO unit test me
+        if (error) {
+          const twilioError = error as TwilioError
+          if ('code' in twilioError && twilioError['code'] === 60200) {
+            // Rate Limit with given name does not exist
+            // This should have been created during application startup.
+            logger.warn(
+              `Could not find Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName}`
+            )
+            await fetchOrCreateRateLimit()
+          } else {
+            throw error
+          }
+        }
+      }
+    )
 }
 
 export async function confirmVerification(
@@ -559,33 +578,35 @@ export async function fetchOrCreateRateLimit() {
     return
   }
 
+  logger.info(
+    `Attempting to fetch or create Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName}`
+  )
+
   // Fetch RateLimits and see if the one we want exists.
-  await twilioClient.verify
+  const rateLimits = await twilioClient.verify
     .services(config.twilioAccountVerificationServiceSid)
-    .rateLimits.list(async (err, rateLimits) => {
-      if (err) {
-        throw err
-      }
-      const targetRateLimit = rateLimits.find(
-        rateLimit =>
-          rateLimit.uniqueName === config.twilioVerificationRateLimitUniqueName
-      )
-      if (targetRateLimit) {
-        logger.info(`Found desired Twilio rate limit resource`)
-      } else {
-        logger.warn(
-          `Did not find Twilio rate limit resource with name ${config.twilioVerificationRateLimitUniqueName}. Will create one now.`
-        )
-        await createRateLimit(config.twilioVerificationRateLimitUniqueName)
-      }
-    })
-    .catch(error => {
-      logger.warn(
-        `Could not fetch Twilio rate limits`,
-        (error as TwilioError).message
-      )
-      // @TODO What to do here?
-    })
+    .rateLimits.list()
+
+  try {
+    const targetRateLimit = rateLimits.find(
+      rateLimit =>
+        rateLimit.uniqueName === config.twilioVerificationRateLimitUniqueName
+    )
+    if (targetRateLimit) {
+      logger.info(`Found desired Twilio rate limit resource`)
+      return
+    }
+
+    logger.warn(
+      `Did not find Twilio rate limit resource with name ${config.twilioVerificationRateLimitUniqueName}. Will create one now.`
+    )
+    await createRateLimit(config.twilioVerificationRateLimitUniqueName)
+  } catch (error) {
+    logger.warn(
+      `Error occurred while attempting to fetch or create Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName}`,
+      (error as TwilioError).message
+    )
+  }
 }
 
 async function createRateLimit(uniqueName: string) {
