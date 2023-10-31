@@ -240,7 +240,7 @@ import {
 import { buildUserContactInfo } from '../mocks/generate'
 
 jest.mock('../../models/User/queries')
-jest.mock('../../services/TwilioService/TwilioService.ts')
+jest.mock('../../services/TwilioService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
 
@@ -279,7 +279,8 @@ describe('VerificationService', () => {
         expect(mockedTwilioService.sendVerification).toHaveBeenCalledWith(
           data.sendTo,
           data.verificationMethod,
-          req.firstName
+          req.firstName,
+          req.userId
         )
       }
     )

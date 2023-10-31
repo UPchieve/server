@@ -93,13 +93,21 @@ export async function initiateVerification(data: unknown): Promise<void> {
     throw new AlreadyInUseError(existingUserErrorMessage)
 
   try {
-    await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
+    await TwilioService.sendVerification(
+      sendTo,
+      verificationMethod,
+      firstName,
+      userId
+    )
   } catch (err) {
     const error = err as {
       message: string
       status: number
     }
-    throw new TwilioError(error.message, error.status)
+    throw new TwilioError(
+      error.message ?? 'Could not send verification',
+      error.status
+    )
   }
 }
 
