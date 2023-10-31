@@ -20,43 +20,6 @@ export function routeProductFlags(router: Router) {
     }
   })
 
-  // Basically a copy of the `verify/send` route. We will use `verify/send` on the client
-  // for this feature once it supports SMS verification, which is currently underway
-  router
-    .route('/product-flags/fall-incentive-enrollment/initiate')
-    .post(async function(req, res) {
-      const user = extractUser(req)
-      const phone = asString(req.body.phone)
-
-      try {
-        await UserProductFlagsService.incentiveProgramEnrollmentVerify(
-          user.id,
-          user.firstName,
-          phone
-        )
-        res.sendStatus(200)
-      } catch (err) {
-        const status = (err as TwilioError).status
-        let message: string
-        if (status === 429) {
-          message =
-            "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
-        } else if (status === 404) {
-          // Twilio verification resoure was not found
-          message =
-            'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
-        } else {
-          message = (err as TwilioError).message
-        }
-        // custom logging for NR alerts
-        logger.error(
-          { 'error.name': 'twilio verification', error: err },
-          (err as TwilioError).message
-        )
-        resError(res, new Error(message), status)
-      }
-    })
-
   router
     .route('/product-flags/fall-incentive-enrollment/enroll')
     .post(async function(req, res) {

@@ -44,7 +44,7 @@ build:
         --creation-time now \
         --builder heroku/buildpacks:20 \
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
-        --buildpack heroku/nodejs \
+        --buildpack heroku/nodejs@1.1.7 \
         --buildpack heroku/procfile@0.6.2 \
         --publish
   rules:
