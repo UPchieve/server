@@ -1,6 +1,6 @@
 import { mocked } from 'ts-jest/utils'
 import * as UserRepo from '../../models/User/queries'
-import * as TwilioService from '../../services/TwilioService/TwilioService'
+import * as TwilioService from '../../services/TwilioService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import studentProcrastinationTextReminder from '../../worker/jobs/studentProcrastinationTextReminder'
 import { buildUserContactInfo } from '../mocks/generate'

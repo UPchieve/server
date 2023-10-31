@@ -1,34 +1,34 @@
 import twilio from 'twilio'
-import { getCurrentNewYorkTime } from '../../utils/get-times'
-import config from '../../config'
+import { getCurrentNewYorkTime } from '../utils/get-times'
+import config from '../config'
 import moment from 'moment'
 import {
   getFavoriteVolunteersByStudentId,
   getStudentContactInfoById,
   getTestStudentExistsById,
-} from '../../models/Student'
+} from '../models/Student'
 import {
   VolunteerContactInfo,
   getVolunteersNotifiedBySessionId,
-} from '../../models/Volunteer'
-import QueueService from '../QueueService'
-import * as SessionRepo from '../../models/Session'
-import * as VolunteerRepo from '../../models/Volunteer'
+} from '../models/Volunteer'
+import QueueService from './QueueService'
+import * as SessionRepo from '../models/Session'
+import * as VolunteerRepo from '../models/Volunteer'
 import Case from 'case'
-import logger from '../../logger'
-import { VERIFICATION_METHOD, SUBJECTS } from '../../constants'
-import startsWithVowel from '../../utils/starts-with-vowel'
-import { Ulid } from '../../models/pgUtils'
-import { getSessionById, NotificationData } from '../../models/Session'
+import logger from '../logger'
+import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
+import startsWithVowel from '../utils/starts-with-vowel'
+import { Ulid } from '../models/pgUtils'
+import { getSessionById, NotificationData } from '../models/Session'
 import {
   AssociatedPartner,
   getAssociatedPartnerBySponsorOrg,
   getAssociatedPartnerByPartnerOrg,
-} from '../../models/AssociatedPartner'
-import { getSponsorOrgs } from '../../models/SponsorOrg'
-import { Jobs } from '../../worker/jobs'
-import { getProcrastinationTextReminderCopy } from '../FeatureFlagService'
-import { TwilioError } from '../../models/Errors'
+} from '../models/AssociatedPartner'
+import { getSponsorOrgs } from '../models/SponsorOrg'
+import { Jobs } from '../worker/jobs'
+import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
+import { TwilioError } from '../models/Errors'
 import { RateLimitInstance } from 'twilio/lib/rest/verify/v2/service/rateLimit'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
@@ -569,8 +569,16 @@ export async function beginRegularNotifications(
 }
 
 /**
- * Verifies that the Twilio RateLimit resource with the desired name exists,
- * and creates it if not.
+ * Verifies that the Twilio RateLimit resource with the desired uniqueName exists,
+ * or creates it if not.
+ *
+ * The RateLimit is identified by its uniqueName attribute when you
+ * make a createVerification request.
+ *
+ * Each RateLimit has 1 or more associated RateLimitBucket resources which
+ * is where we configure the actual time interval and number of retries.
+ *
+ * Learn more here: https://www.twilio.com/docs/verify/api/programmable-rate-limits
  */
 export async function fetchOrCreateRateLimit() {
   if (!twilioClient) {

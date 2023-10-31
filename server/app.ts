@@ -29,7 +29,7 @@ import {
   styleSrc,
   upgradeInsecureRequests,
 } from './securitySettings'
-import { fetchOrCreateRateLimit } from './services/TwilioService/TwilioService'
+import { fetchOrCreateRateLimit } from './services/TwilioService'
 const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {

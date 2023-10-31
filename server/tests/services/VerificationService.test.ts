@@ -229,7 +229,7 @@ import * as UserRepo from '../../models/User/queries'
 import { mocked } from 'ts-jest/utils'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
-import * as TwilioService from '../../services/TwilioService/TwilioService'
+import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
 import {
   AlreadyInUseError,
