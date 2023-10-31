@@ -33,3 +33,17 @@ export async function insertFederatedCredential(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function deleteFederatedCredentialsForUser(
+  userId: Ulid,
+  tc?: TransactionClient
+) {
+  try {
+    await pgQueries.deleteFederatedCredentialsForUser.run(
+      { userId },
+      tc ?? getClient()
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
