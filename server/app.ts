@@ -30,6 +30,7 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
+import { TwilioError } from './models/Errors'
 const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
@@ -185,8 +186,15 @@ app.use(
 
 app.use(haltOnTimedout)
 
-fetchOrCreateRateLimit().then(() => {
-  logger.info('Successfully loaded Twilio rate limit')
-})
+fetchOrCreateRateLimit()
+  .then(() => {
+    logger.info('Successfully loaded Twilio rate limit')
+  })
+  .catch(error => {
+    logger.warn(
+      `Error occurred while attempting to fetch or create Twilio rate limit`,
+      error.message
+    )
+  })
 
 export default app
