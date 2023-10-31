@@ -518,7 +518,6 @@ export async function sendVerification(
         },
       },
       async (error, verificationInstance) => {
-        // @TODO unit test me
         if (error) {
           if ('code' in error && error['code'] === 60200) {
             // Rate Limit with given name does not exist
@@ -614,7 +613,7 @@ export async function fetchOrCreateRateLimit() {
   }
 }
 
-async function createRateLimit(uniqueName: string) {
+async function createRateLimit(uniqueName: string): Promise<void> {
   try {
     // Create RateLimit
     const rateLimit = await twilioClient?.verify
@@ -624,7 +623,8 @@ async function createRateLimit(uniqueName: string) {
         description: `Rate limit on ${uniqueName}`,
       })
     if (!rateLimit) {
-      throw new Error('Failed to create RateLimit')
+      logger.error(`Could not create rate limit`)
+      return
     }
 
     logger.info(`Created RateLimit in Twilio with uniqueName=${uniqueName}`)
@@ -641,7 +641,8 @@ async function createRateLimit(uniqueName: string) {
       })
 
     if (!rateLimitBucket) {
-      throw new Error('Failed to create RateLimitBucket')
+      logger.error('Could not create rate limit bucket')
+      return
     }
 
     logger.info(`Created RateLimitBucket in Twilio`)
@@ -651,6 +652,5 @@ async function createRateLimit(uniqueName: string) {
         error
       )}`
     )
-    // @TODO Fail or continue and hope to retry later?
   }
 }
