@@ -26,7 +26,8 @@ export async function incentiveProgramEnrollmentVerify(
     await TwilioService.sendVerification(
       phone,
       VERIFICATION_METHOD.SMS,
-      firstName
+      firstName,
+      userId
     )
   } catch (error) {
     throw error
