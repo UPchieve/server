@@ -622,7 +622,7 @@ WITH favorites_partition AS (
         upchieve.student_favorite_volunteers
 )
 SELECT
-    count(*) AS duplicates_count
+    count(*)::int AS duplicates_count
 FROM
     favorites_partition
 WHERE

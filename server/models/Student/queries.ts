@@ -913,3 +913,43 @@ export async function updateStudentsGradeLevel(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function countDuplicateStudentVolunteerFavorites(): Promise<
+  number
+> {
+  try {
+    const result = await pgQueries.countDuplicateStudentVolunteerFavorites.run(
+      undefined,
+      getClient()
+    )
+    if (
+      result.length &&
+      result[0].duplicatesCount &&
+      makeRequired(result[0].duplicatesCount)
+    ) {
+      return result[0].duplicatesCount!
+    }
+    throw new RepoReadError(
+      'Could not count duplicates in student_favorite_volunteer'
+    )
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+export async function deleteDuplicateStudentVolunteerFavorites(): Promise<
+  number
+> {
+  try {
+    const result = await pgQueries.deleteDuplicateStudentVolunteerFavorites.run(
+      undefined,
+      getClient()
+    )
+    if (result.length && makeRequired(result[0])) return
+    throw new RepoUpdateError(
+      'Could not delete duplicates in student_favorite_volunteers'
+    )
+  } catch (error) {
+    throw new RepoUpdateError(error)
+  }
+}

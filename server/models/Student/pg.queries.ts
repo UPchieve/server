@@ -1448,7 +1448,7 @@ export type ICountDuplicateStudentVolunteerFavoritesParams = void;
 
 /** 'CountDuplicateStudentVolunteerFavorites' return type */
 export interface ICountDuplicateStudentVolunteerFavoritesResult {
-  duplicatesCount: string | null;
+  duplicatesCount: number | null;
 }
 
 /** 'CountDuplicateStudentVolunteerFavorites' query type */
@@ -1457,7 +1457,7 @@ export interface ICountDuplicateStudentVolunteerFavoritesQuery {
   result: ICountDuplicateStudentVolunteerFavoritesResult;
 }
 
-const countDuplicateStudentVolunteerFavoritesIR: any = {"name":"countDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n)\nSELECT\n    count(*) AS duplicates_count\nFROM\n    favorites_partition\nWHERE\n    rn <> 1","loc":{"a":18761,"b":19134,"line":613,"col":0}}};
+const countDuplicateStudentVolunteerFavoritesIR: any = {"name":"countDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n)\nSELECT\n    count(*)::int AS duplicates_count\nFROM\n    favorites_partition\nWHERE\n    rn <> 1","loc":{"a":18761,"b":19139,"line":613,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1474,7 +1474,7 @@ const countDuplicateStudentVolunteerFavoritesIR: any = {"name":"countDuplicateSt
  *         upchieve.student_favorite_volunteers
  * )
  * SELECT
- *     count(*) AS duplicates_count
+ *     count(*)::int AS duplicates_count
  * FROM
  *     favorites_partition
  * WHERE
@@ -1496,7 +1496,7 @@ export interface IDeleteDuplicateStudentVolunteerFavoritesQuery {
   result: IDeleteDuplicateStudentVolunteerFavoritesResult;
 }
 
-const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n),\nduplicate_favorites AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at\n    FROM\n        favorites_partition\n    WHERE\n        rn <> 1)\nDELETE FROM upchieve.student_favorite_volunteers\nWHERE (student_id, volunteer_id, updated_at, created_at) IN (\n        SELECT\n            *\n        FROM\n            duplicate_favorites)","loc":{"a":19192,"b":19846,"line":633,"col":0}}};
+const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n),\nduplicate_favorites AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at\n    FROM\n        favorites_partition\n    WHERE\n        rn <> 1)\nDELETE FROM upchieve.student_favorite_volunteers\nWHERE (student_id, volunteer_id, updated_at, created_at) IN (\n        SELECT\n            *\n        FROM\n            duplicate_favorites)","loc":{"a":19197,"b":19851,"line":633,"col":0}}};
 
 /**
  * Query generated from SQL:
