@@ -28,8 +28,6 @@ import {
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
 import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
-import { TwilioError } from '../models/Errors'
-import { RateLimitInstance } from 'twilio/lib/rest/verify/v2/service/rateLimit'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -41,6 +39,11 @@ const twilioClient =
   config.accountSid && config.authToken
     ? twilio(config.accountSid, config.authToken)
     : null
+
+// See Twilio Verify error codes here: https://www.twilio.com/docs/api/errors#6-anchor
+enum TwilioErrorCodes {
+  INVALID_PARAMETER = 60200,
+}
 
 // get the availability field to query for the current time
 export function getCurrentAvailabilityPath(): string {
@@ -519,8 +522,11 @@ export async function sendVerification(
       },
       async (error, verificationInstance) => {
         if (error) {
-          if ('code' in error && error['code'] === 60200) {
-            // Rate Limit with given name does not exist
+          if (
+            'code' in error &&
+            error['code'] === TwilioErrorCodes.INVALID_PARAMETER
+          ) {
+            // Rate limit with that unique name does not exist.
             // This should have been created during application startup.
             logger.warn(
               `Could not find Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName} while attempting to send a verification code. Will attempt to create it now.`
