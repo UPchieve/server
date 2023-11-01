@@ -622,7 +622,7 @@ WITH favorites_partition AS (
         upchieve.student_favorite_volunteers
 )
 SELECT
-    count(*)::int AS duplicates_count
+    count(*)::int AS duplicates
 FROM
     favorites_partition
 WHERE
@@ -666,7 +666,7 @@ deleted_rows AS (
             *
 )
 SELECT
-    COUNT(*)::int AS num_deleted
+    COUNT(*)::int AS deleted
 FROM
     deleted_rows;
 

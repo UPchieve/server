@@ -924,10 +924,10 @@ export async function countDuplicateStudentVolunteerFavorites(): Promise<
     )
     if (
       result.length &&
-      result[0].duplicatesCount !== null &&
-      makeRequired(result[0].duplicatesCount)
+      result[0].duplicates !== null &&
+      makeRequired(result[0].duplicates)
     ) {
-      return result[0]['duplicates_count']
+      return result[0].duplicates!
     }
     throw new RepoReadError(
       'Could not count duplicates in student_favorite_volunteer'
@@ -947,10 +947,10 @@ export async function deleteDuplicateStudentVolunteerFavorites(
     )
     if (
       result.length &&
-      result[0].numDeleted !== null &&
+      result[0].deleted !== null &&
       makeRequired(result[0])
     ) {
-      return result[0]['num_deleted']
+      return result[0].deleted!
     }
 
     throw new RepoUpdateError(
