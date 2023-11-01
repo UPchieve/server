@@ -650,11 +650,23 @@ duplicate_favorites AS (
     FROM
         favorites_partition
     WHERE
-        rn <> 1)
-DELETE FROM upchieve.student_favorite_volunteers
-WHERE (student_id, volunteer_id, updated_at, created_at) IN (
-        SELECT
+        rn <> 1
+),
+deleted_rows AS (
+    DELETE FROM upchieve.student_favorite_volunteers
+    WHERE (student_id,
+            volunteer_id,
+            updated_at,
+            created_at) IN (
+            SELECT
+                *
+            FROM
+                duplicate_favorites)
+        RETURNING
             *
-        FROM
-            duplicate_favorites);
+)
+SELECT
+    COUNT(*)::int AS num_deleted
+FROM
+    deleted_rows;
 

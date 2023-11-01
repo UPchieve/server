@@ -1488,7 +1488,9 @@ export const countDuplicateStudentVolunteerFavorites = new PreparedQuery<ICountD
 export type IDeleteDuplicateStudentVolunteerFavoritesParams = void;
 
 /** 'DeleteDuplicateStudentVolunteerFavorites' return type */
-export type IDeleteDuplicateStudentVolunteerFavoritesResult = void;
+export interface IDeleteDuplicateStudentVolunteerFavoritesResult {
+  numDeleted: number | null;
+}
 
 /** 'DeleteDuplicateStudentVolunteerFavorites' query type */
 export interface IDeleteDuplicateStudentVolunteerFavoritesQuery {
@@ -1496,7 +1498,7 @@ export interface IDeleteDuplicateStudentVolunteerFavoritesQuery {
   result: IDeleteDuplicateStudentVolunteerFavoritesResult;
 }
 
-const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n),\nduplicate_favorites AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at\n    FROM\n        favorites_partition\n    WHERE\n        rn <> 1)\nDELETE FROM upchieve.student_favorite_volunteers\nWHERE (student_id, volunteer_id, updated_at, created_at) IN (\n        SELECT\n            *\n        FROM\n            duplicate_favorites)","loc":{"a":19197,"b":19851,"line":633,"col":0}}};
+const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n),\nduplicate_favorites AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at\n    FROM\n        favorites_partition\n    WHERE\n        rn <> 1\n),\ndeleted_rows AS (\n    DELETE FROM upchieve.student_favorite_volunteers\n    WHERE (student_id,\n            volunteer_id,\n            updated_at,\n            created_at) IN (\n            SELECT\n                *\n            FROM\n                duplicate_favorites)\n        RETURNING\n            *\n)\nSELECT\n    COUNT(*)::int AS num_deleted\nFROM\n    deleted_rows","loc":{"a":19197,"b":20027,"line":633,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1521,13 +1523,25 @@ const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicate
  *     FROM
  *         favorites_partition
  *     WHERE
- *         rn <> 1)
- * DELETE FROM upchieve.student_favorite_volunteers
- * WHERE (student_id, volunteer_id, updated_at, created_at) IN (
- *         SELECT
+ *         rn <> 1
+ * ),
+ * deleted_rows AS (
+ *     DELETE FROM upchieve.student_favorite_volunteers
+ *     WHERE (student_id,
+ *             volunteer_id,
+ *             updated_at,
+ *             created_at) IN (
+ *             SELECT
+ *                 *
+ *             FROM
+ *                 duplicate_favorites)
+ *         RETURNING
  *             *
- *         FROM
- *             duplicate_favorites)
+ * )
+ * SELECT
+ *     COUNT(*)::int AS num_deleted
+ * FROM
+ *     deleted_rows
  * ```
  */
 export const deleteDuplicateStudentVolunteerFavorites = new PreparedQuery<IDeleteDuplicateStudentVolunteerFavoritesParams,IDeleteDuplicateStudentVolunteerFavoritesResult>(deleteDuplicateStudentVolunteerFavoritesIR);

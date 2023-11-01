@@ -945,7 +945,9 @@ export async function deleteDuplicateStudentVolunteerFavorites(): Promise<
       undefined,
       getClient()
     )
-    if (result.length && makeRequired(result[0])) return
+    if (result.length && result[0].numDeleted && makeRequired(result[0])) {
+      return result[0].numDeleted!
+    }
     throw new RepoUpdateError(
       'Could not delete duplicates in student_favorite_volunteers'
     )
