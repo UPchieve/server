@@ -7,16 +7,19 @@ export const deleteDuplicateStudentFavoriteVolunteers = async (): Promise<void> 
     log('Found 0 duplicates in student_favorite_volunteers. Returning')
     return
   }
+  log(`Found ${numDuplicates} duplicates in student_favorite_volunteers`)
 
   await runInTransaction(async (tc: TransactionClient) => {
     const numDeleted = await StudentRepo.deleteDuplicateStudentVolunteerFavorites(
       tc
     )
-    log(`Deleted ${numDeleted} duplicates from student_favorite_volunteers`)
+
     if (numDeleted !== numDuplicates) {
-      log(
-        `Expected to delete ${numDuplicates} duplicates from student_favorite_volunteers, but actually deleted ${numDeleted}`
+      throw new Error(
+        `Expected to delete ${numDuplicates} duplicates from student_favorite_volunteers, but actually deleted ${numDeleted}. Will rollback.`
       )
     }
+
+    log(`Deleted ${numDeleted} duplicates from student_favorite_volunteers`)
   })
 }
