@@ -150,6 +150,7 @@ export const Config = Record({
   authToken: String,
   sendingNumber: String,
   twilioAccountVerificationServiceSid: String,
+  twilioVerificationRateLimitUniqueName: String,
 
   notificationSchedule: Array(Number),
   // voice to use to render speech
