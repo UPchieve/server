@@ -937,17 +937,18 @@ export async function countDuplicateStudentVolunteerFavorites(): Promise<
   }
 }
 
-export async function deleteDuplicateStudentVolunteerFavorites(): Promise<
-  number
-> {
+export async function deleteDuplicateStudentVolunteerFavorites(
+  tc: TransactionClient
+): Promise<number> {
   try {
     const result = await pgQueries.deleteDuplicateStudentVolunteerFavorites.run(
       undefined,
-      getClient()
+      tc
     )
     if (result.length && result[0].numDeleted && makeRequired(result[0])) {
       return result[0].numDeleted!
     }
+
     throw new RepoUpdateError(
       'Could not delete duplicates in student_favorite_volunteers'
     )
