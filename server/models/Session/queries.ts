@@ -621,6 +621,7 @@ export type CurrentSessionUser = {
 }
 export type CurrentSession = {
   _id: Ulid
+  id: Ulid
   subTopic: string
   type: string
   student: CurrentSessionUser
