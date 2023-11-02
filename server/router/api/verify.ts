@@ -5,6 +5,7 @@ import logger from '../../logger'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
 import { TwilioError } from '../../models/Errors'
+import { getMaxRateLimitBucketInterval } from '../../services/TwilioService'
 
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
@@ -27,8 +28,10 @@ export function routeVerify(router: Router) {
       if (err instanceof TwilioError) {
         status = err.status
         if (status === 429) {
-          message =
-            "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
+          const minutesToWait = getMaxRateLimitBucketInterval() / 60
+          message = `You've made too many attempts for a verification code. Please wait ${minutesToWait} ${
+            minutesToWait === 1 ? 'minute' : 'minutes'
+          } before requesting a new one.`
         } else if (status === 404) {
           // Twilio verification resource was not found
           message = defaultErrorMessage

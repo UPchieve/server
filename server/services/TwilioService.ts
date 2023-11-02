@@ -28,6 +28,8 @@ import {
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
 import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
+import { RateLimitInstance } from 'twilio/lib/rest/verify/v2/service/rateLimit'
+import _, { sortBy } from 'lodash'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -44,6 +46,8 @@ const twilioClient =
 enum TwilioErrorCodes {
   INVALID_PARAMETER = 60200,
 }
+
+var maxRateLimitInterval: number = 0
 
 // get the availability field to query for the current time
 export function getCurrentAvailabilityPath(): string {
@@ -602,6 +606,7 @@ export async function fetchOrCreateRateLimit() {
       rateLimit.uniqueName === config.twilioVerificationRateLimitUniqueName
   )
   if (targetRateLimit) {
+    await setMaxRateLimitBucketInterval(targetRateLimit)
     return
   }
   logger.warn(
@@ -640,5 +645,31 @@ async function createRateLimit(uniqueName: string): Promise<void> {
     // It should throw an error in this case, but just to be safe
     throw new Error('Could not create rate limit bucket')
   }
+  await setMaxRateLimitBucketInterval(await Promise.resolve(rateLimit))
+
   logger.info(`Created RateLimitBucket in Twilio`)
+}
+
+/**
+ * Each RateLimit can have multiple RateLimitBuckets, each one uniquely identified by its
+ * interval.
+ *
+ * We are interested in the bucket with the max interval because this indicates the longest
+ * amount of time a rate limited user may have to wait before retrying.
+ */
+const setMaxRateLimitBucketInterval = async (
+  rateLimit: RateLimitInstance
+): Promise<void> => {
+  const buckets = await rateLimit.buckets().list()
+  if (buckets.length === 0) {
+    throw new Error(
+      `Could not find any RateLimitBucket for rateLimit with name ${rateLimit.uniqueName}`
+    )
+  }
+
+  maxRateLimitInterval = _.sortBy(buckets, b => b.interval).pop()!.interval
+}
+
+export const getMaxRateLimitBucketInterval = (): number => {
+  return maxRateLimitInterval
 }
