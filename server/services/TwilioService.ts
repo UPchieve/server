@@ -47,7 +47,7 @@ enum TwilioErrorCodes {
   INVALID_PARAMETER = 60200,
 }
 
-var maxRateLimitInterval: number = 0
+var maxRateLimitInterval: number | undefined
 
 // get the availability field to query for the current time
 export function getCurrentAvailabilityPath(): string {
@@ -660,16 +660,21 @@ async function createRateLimit(uniqueName: string): Promise<void> {
 const setMaxRateLimitBucketInterval = async (
   rateLimit: RateLimitInstance
 ): Promise<void> => {
-  const buckets = await rateLimit.buckets().list()
-  if (buckets.length === 0) {
-    throw new Error(
-      `Could not find any RateLimitBucket for rateLimit with name ${rateLimit.uniqueName}`
+  try {
+    const buckets = await rateLimit.buckets().list()
+    if (buckets.length === 0) {
+      throw new Error(
+        `Could not find any RateLimitBucket for rateLimit with name ${rateLimit.uniqueName}`
+      )
+    }
+    maxRateLimitInterval = _.sortBy(buckets, b => b.interval).pop()!.interval
+  } catch (error) {
+    logger.warn(
+      `Could not retrieve maximum Twilio rate limit interval for rate limit with name ${rateLimit.uniqueName}`
     )
   }
-
-  maxRateLimitInterval = _.sortBy(buckets, b => b.interval).pop()!.interval
 }
 
-export const getMaxRateLimitBucketInterval = (): number => {
+export const getMaxRateLimitBucketInterval = (): number | undefined => {
   return maxRateLimitInterval
 }

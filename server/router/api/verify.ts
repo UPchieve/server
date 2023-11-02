@@ -28,10 +28,15 @@ export function routeVerify(router: Router) {
       if (err instanceof TwilioError) {
         status = err.status
         if (status === 429) {
-          const minutesToWait = getMaxRateLimitBucketInterval() / 60
-          message = `You've made too many attempts for a verification code. Please wait ${minutesToWait} ${
-            minutesToWait === 1 ? 'minute' : 'minutes'
-          } before requesting a new one.`
+          const maxWaitSeconds = getMaxRateLimitBucketInterval()
+          if (maxWaitSeconds) {
+            const minutesToWait = getMaxRateLimitBucketInterval() / 60
+            message = `You've made too many requests for a verification code. Please wait ${minutesToWait} ${
+              minutesToWait === 1 ? 'minute' : 'minutes'
+            } before requesting a new one.`
+          } else {
+            message = `You've made too many requests for a verification code. Please wait a while before trying again`
+          }
         } else if (status === 404) {
           // Twilio verification resource was not found
           message = defaultErrorMessage
