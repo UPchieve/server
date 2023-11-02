@@ -35,7 +35,7 @@ export function routeVerify(router: Router) {
               minutesToWait === 1 ? 'minute' : 'minutes'
             } before requesting a new one.`
           } else {
-            message = `You've made too many requests for a verification code. Please wait a while before trying again`
+            message = `You've made too many requests for a verification code. Please wait a while before trying again.`
           }
         } else if (status === 404) {
           // Twilio verification resource was not found
