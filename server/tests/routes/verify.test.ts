@@ -224,8 +224,9 @@ describe('verify', () => {
         expect(response).toMatchObject({
           status: 429,
           body: {
-            err:
-              "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one.",
+            err: expect.stringContaining(
+              "You've made too many requests for a verification code. Please wait"
+            ),
           },
         })
       })

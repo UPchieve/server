@@ -30,7 +30,7 @@ export function routeVerify(router: Router) {
         if (status === 429) {
           const maxWaitSeconds = getMaxRateLimitBucketInterval()
           if (maxWaitSeconds) {
-            const minutesToWait = getMaxRateLimitBucketInterval() / 60
+            const minutesToWait = getMaxRateLimitBucketInterval()! / 60
             message = `You've made too many requests for a verification code. Please wait ${minutesToWait} ${
               minutesToWait === 1 ? 'minute' : 'minutes'
             } before requesting a new one.`
