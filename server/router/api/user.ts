@@ -15,7 +15,6 @@ import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
-import { NotAllowedError } from '../../models/Errors'
 import QueueService from '../../services/QueueService'
 import { Jobs } from '../../worker/jobs'
 
