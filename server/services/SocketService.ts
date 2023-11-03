@@ -43,11 +43,15 @@ class SocketService {
       endedAt?: Date
       volunteer?: Ulid
       student: Ulid
+      sessionId: Ulid
+      userId: Ulid
     },
     err: Error
   ): void {
-    logger.error('Could not join session')
-    logger.error(err)
+    logger.error(
+      `User ${data.userId} could not join session ${data.sessionId}: `,
+      err
+    )
     socket.emit('bump', data, err.toString())
   }
 }

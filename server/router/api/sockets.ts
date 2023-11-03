@@ -1,33 +1,34 @@
 /**
  * Processes incoming socket messages
  */
-import passport from 'passport'
 import Sentry from '@sentry/node'
 import { PGStore } from 'connect-pg-simple'
+import session from 'express-session'
 import newrelic from 'newrelic'
+import passport from 'passport'
+import { LockError } from 'redlock'
 import { Server, Socket } from 'socket.io'
-import config from '../../config'
-import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
-import { getUserContactInfoById, UserContactInfo } from '../../models/User'
-import * as SessionRepo from '../../models/Session/queries'
-import * as QuillDocService from '../../services/QuillDocService'
-import * as SessionService from '../../services/SessionService'
-import QueueService from '../../services/QueueService'
-import SocketService from '../../services/SocketService'
-import getSessionRoom from '../../utils/get-session-room'
-import logger from '../../logger'
-import * as cache from '../../cache'
-import { EVENTS, FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
-import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import { isEnabled } from 'unleash-client'
 import { v4 as uuidv4 } from 'uuid'
-import { LockError } from 'redlock'
+import * as cache from '../../cache'
+import config from '../../config'
+import { EVENTS, FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
+import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
-import session from 'express-session'
-import { Jobs } from '../../worker/jobs'
+import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
+import * as SessionRepo from '../../models/Session/queries'
+import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
-
-export type SocketUser = Socket & { request: { user?: UserContactInfo } }
+import { getRecapSocketUpdatesFeatureFlag } from '../../services/FeatureFlagService'
+import QueueService from '../../services/QueueService'
+import * as QuillDocService from '../../services/QuillDocService'
+import * as SessionService from '../../services/SessionService'
+import SocketService from '../../services/SocketService'
+import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
+import getSessionRoom from '../../utils/get-session-room'
+import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
+import { Jobs } from '../../worker/jobs'
+import { extractSocketUser, SocketUser } from '../extract-user'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -44,10 +45,9 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 
   const latestSession = await SessionService.currentSession(user.id)
 
-  // @note: students don't join the room by default until they are in the session view
   // Join user to their latest session if it has not ended
   if (latestSession && !latestSession.endedAt) {
-    socket.join(getSessionRoom(latestSession._id))
+    socket.join(getSessionRoom(latestSession.id))
     socket.emit('session-change', latestSession)
   }
 
@@ -56,31 +56,6 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = new SocketService(io)
-
-  async function getSocketIdsFromRoom(room: string): Promise<string[]> {
-    const sockets = await io.in(room).fetchSockets()
-    const ids = []
-    for (const socket of sockets) {
-      ids.push(socket.id)
-    }
-    return ids
-  }
-
-  function remoteJoinRoom(socketId: string, room: string) {
-    return io.in(socketId).socketsJoin(room)
-  }
-
-  async function joinUserToSessionHistoryRooms(userId: Ulid) {
-    const sessionHistory = await getSessionHistoryIdsByUserId(userId)
-    for (const session of sessionHistory) {
-      const sessionRoom = getSessionRoom(session.id)
-      const socketIds = await getSocketIdsFromRoom(userId)
-      // Have all of the user's socket connections join session history rooms
-      for (const id of socketIds) {
-        await remoteJoinRoom(id, sessionRoom)
-      }
-    }
-  }
 
   let chatbot: Ulid | undefined
 
@@ -97,6 +72,18 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       maxAge: config.sessionCookieMaxAge,
     },
   })
+
+  async function joinUserToSessionHistoryRooms(io: Server, userId: Ulid) {
+    const sessionHistory = await getSessionHistoryIdsByUserId(userId)
+    for (const session of sessionHistory) {
+      const sessionRoom = getSessionRoom(session.id)
+      const socketIds = await getSocketIdsFromRoom(io, userId)
+      // Have all of the user's socket connections join session history rooms
+      for (const id of socketIds) {
+        await remoteJoinRoom(io, id, sessionRoom)
+      }
+    }
+  }
 
   io.use(wrap(sessionMiddleware))
   io.use(wrap(passport.initialize()))
@@ -118,8 +105,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     } = socket
 
     if (user) {
+      const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
+        user.id
+      )
       await handleUser(socket, user)
-      await joinUserToSessionHistoryRooms(user.id)
+      if (!isRecapSocketUpdatesActive)
+        await joinUserToSessionHistoryRooms(io, user.id)
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -197,12 +188,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId, joinedFrom } = data
-            const {
-              request: { user: socketUser },
-            } = socket
+            const user = extractSocketUser(socket)
             let session: Session
-
-            const user = socketUser as UserContactInfo
 
             try {
               // TODO: have middleware handle the auth
@@ -224,10 +211,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               })
 
               const sessionRoom = getSessionRoom(sessionId)
-              const socketIds = await getSocketIdsFromRoom(user.id)
+              const socketIds = await getSocketIdsFromRoom(io, user.id)
               // Have all of the user's socket connections join the tutoring session room
               for (const id of socketIds) {
-                await remoteJoinRoom(id, sessionRoom)
+                await remoteJoinRoom(io, id, sessionRoom)
               }
 
               await socketService.emitSessionChange(sessionId)
@@ -239,9 +226,51 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                   endedAt: session.endedAt,
                   volunteer: session.volunteerId,
                   student: session.studentId,
+                  sessionId: session.id,
+                  userId: user.id,
                 },
                 error as Error
               )
+              resolve()
+            }
+          })
+      )
+    })
+
+    socket.on('sessions/recap:join', async function(data) {
+      newrelic.startWebTransaction(
+        '/socket-io/sessions/recap:join',
+        () =>
+          new Promise<void>(async (resolve, reject) => {
+            if (!data || !data.sessionId) {
+              socket.emit('redirect')
+              resolve()
+              return
+            }
+
+            const { sessionId } = data
+            const user = extractSocketUser(socket)
+
+            try {
+              const session = await SessionRepo.getSessionById(sessionId)
+              if (
+                user.id !== session.studentId &&
+                user.id !== session.volunteerId
+              )
+                throw new Error('Not a session participant')
+            } catch (error) {
+              socket.emit('redirect', error)
+              resolve()
+              return
+            }
+
+            try {
+              const sessionRoom = getSessionRoom(sessionId)
+              await remoteJoinRoom(io, socket.id, sessionRoom)
+              socket.emit('sessions/recap:joined')
+            } catch (error) {
+              socket.emit('sessions/recap:join-failed', error)
+            } finally {
               resolve()
             }
           })
@@ -417,6 +446,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/resetWhiteboard', () => {
         socket.to(getSessionRoom(sessionId)).emit('resetWhiteboard')
       })
+    })
+
+    socket.on('disconnect', reason => {
+      logger.info(`Socket disconnected for reason: ${reason}`)
     })
   })
 }
