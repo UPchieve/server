@@ -15,10 +15,11 @@ import config from '../../config'
 import { EVENTS, FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
-import { Session } from '../../models/Session'
+import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
 import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
+import { getRecapSocketUpdatesFeatureFlag } from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
@@ -72,6 +73,18 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     },
   })
 
+  async function joinUserToSessionHistoryRooms(io: Server, userId: Ulid) {
+    const sessionHistory = await getSessionHistoryIdsByUserId(userId)
+    for (const session of sessionHistory) {
+      const sessionRoom = getSessionRoom(session.id)
+      const socketIds = await getSocketIdsFromRoom(io, userId)
+      // Have all of the user's socket connections join session history rooms
+      for (const id of socketIds) {
+        await remoteJoinRoom(io, id, sessionRoom)
+      }
+    }
+  }
+
   io.use(wrap(sessionMiddleware))
   io.use(wrap(passport.initialize()))
   io.use(wrap(passport.session()))
@@ -92,7 +105,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     } = socket
 
     if (user) {
+      const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
+        user.id
+      )
       await handleUser(socket, user)
+      if (!isRecapSocketUpdatesActive)
+        await joinUserToSessionHistoryRooms(io, user.id)
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
