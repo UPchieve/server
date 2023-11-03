@@ -611,14 +611,6 @@ export async function sendHourSummaryEmail(
   )
 
   const overrides = {
-    asm: {
-      group_id: config.sendgrid.unsubscribeGroup.volunteerSummary,
-      groups_to_display: [
-        config.sendgrid.unsubscribeGroup.newsletter,
-        // TODO: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
-        config.sendgrid.unsubscribeGroup.volunteerSummary,
-      ],
-    },
     categories: ['weekly hour summary email'],
   }
 
