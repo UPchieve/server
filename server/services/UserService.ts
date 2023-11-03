@@ -15,8 +15,8 @@ import {
   UserContactInfo,
   getUserContactInfoById,
   getUsersForAdminSearch,
-  getUserForAdminDetail,
   deleteUser,
+  updateUserProfileById,
 } from '../models/User'
 import {
   UnsentReference,
@@ -398,4 +398,15 @@ export async function getUsers(data: unknown) {
   } catch (error) {
     throw new Error((error as Error).message)
   }
+}
+
+export async function updateUserProfile(
+  userId: Ulid,
+  opts: {
+    deactivated?: boolean
+    phone?: string
+    smsConsent?: boolean
+  }
+) {
+  await updateUserProfileById(userId, opts)
 }

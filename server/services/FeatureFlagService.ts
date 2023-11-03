@@ -61,6 +61,10 @@ export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }
 
+export async function getUsingOurPlatformFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
+}
+
 // The implicit return type expects a JSON shape, but this feature flag only
 // has a string payload. We're making an explicit coercion from JSON to string
 export async function getProcrastinationTextReminderCopy(
@@ -70,4 +74,12 @@ export async function getProcrastinationTextReminderCopy(
     FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
     userId
   )) as string
+}
+
+export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
+}
+
+export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
 }

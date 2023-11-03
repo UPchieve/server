@@ -254,3 +254,39 @@ const updateSentInactiveNinetyDayEmailIR: any = {"name":"updateSentInactiveNinet
 export const updateSentInactiveNinetyDayEmail = new PreparedQuery<IUpdateSentInactiveNinetyDayEmailParams,IUpdateSentInactiveNinetyDayEmailResult>(updateSentInactiveNinetyDayEmailIR);
 
 
+/** 'UpdateFallIncentiveProgram' parameters type */
+export interface IUpdateFallIncentiveProgramParams {
+  status: boolean;
+  userId: string;
+}
+
+/** 'UpdateFallIncentiveProgram' return type */
+export interface IUpdateFallIncentiveProgramResult {
+  ok: string;
+}
+
+/** 'UpdateFallIncentiveProgram' query type */
+export interface IUpdateFallIncentiveProgramQuery {
+  params: IUpdateFallIncentiveProgramParams;
+  result: IUpdateFallIncentiveProgramResult;
+}
+
+const updateFallIncentiveProgramIR: any = {"name":"updateFallIncentiveProgram","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1866,"b":1872,"line":97,"col":30}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1919,"b":1925,"line":100,"col":15}]}}],"usedParamSet":{"status":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    fall_incentive_program = :status!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1802,"b":1953,"line":94,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     user_product_flags
+ * SET
+ *     fall_incentive_program = :status!,
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const updateFallIncentiveProgram = new PreparedQuery<IUpdateFallIncentiveProgramParams,IUpdateFallIncentiveProgramResult>(updateFallIncentiveProgramIR);
+
+

@@ -50,7 +50,9 @@ SELECT
     users.last_activity_at,
     deactivated,
     volunteer_profiles.approved,
-    users.phone
+    users.phone,
+    users.phone_verified,
+    users.sms_consent
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -86,7 +88,9 @@ SELECT
     users.last_activity_at,
     deactivated,
     volunteer_profiles.approved,
-    users.phone
+    users.phone,
+    users.phone_verified,
+    users.sms_consent
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -146,7 +150,9 @@ SELECT
     users.last_activity_at,
     deactivated,
     volunteer_profiles.approved,
-    users.phone
+    users.phone,
+    users.phone_verified,
+    users.sms_consent
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -239,7 +245,7 @@ SET
 WHERE
     id = :userId!
 RETURNING
-    id AS ok;
+    email AS ok;
 
 
 /* @name updateUserVerifiedPhoneById */
@@ -253,7 +259,7 @@ SET
 WHERE
     id = :userId!
 RETURNING
-    id AS ok;
+    phone AS ok;
 
 
 /* @name updateUserPhoneNumberByUserId */
@@ -448,6 +454,8 @@ SELECT
     users.verified,
     users.first_name AS firstname,
     users.phone,
+    users.phone_verified,
+    users.sms_consent,
     volunteer_profiles.college,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -616,6 +624,8 @@ SELECT
     users.id,
     first_name,
     email,
+    sms_consent,
+    phone_verified,
     banned,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -739,9 +749,51 @@ UPDATE
     users
 SET
     deactivated = COALESCE(:deactivated, deactivated),
-    phone = COALESCE(:phone, phone)
+    phone = COALESCE(:phone, phone),
+    sms_consent = COALESCE(:smsConsent, sms_consent)
 WHERE
     id = :userId!
 RETURNING
     id AS ok;
+
+
+/* @name getUserVerificationInfoById */
+SELECT
+    verified,
+    email_verified,
+    phone_verified
+FROM
+    users
+WHERE
+    id = :userId!;
+
+
+/* @name getReportedUser */
+SELECT
+    users.id AS id,
+    first_name,
+    last_name,
+    email,
+    users.created_at AS created_at,
+    test_user AS is_test_user,
+    banned AS is_banned,
+    deactivated AS is_deactivated,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_volunteer,
+    student_partner_orgs.key AS student_partner_org,
+    volunteer_partner_orgs.key AS volunteer_partner_org
+FROM
+    users
+    LEFT JOIN student_profiles ON users.id = student_profiles.user_id
+    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
+    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+WHERE
+    deactivated IS FALSE
+    AND test_user IS FALSE
+    AND users.id = :userId!;
 

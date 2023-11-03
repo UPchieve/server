@@ -44,9 +44,12 @@
     "db:schema-up": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" up",
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
     "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up",
-    "db:seeds-down": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" down"
+    "db:seeds-down": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" down",
+    "scan:diff": "git diff --staged --name-only -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files package-lock.json",
+    "scan:audit": "detect-secrets audit .secrets.baseline"
   },
   "pre-commit": [
+    "scan:diff",
     "pgtyped:check",
     "lint:backend:dry",
     "lint:database:dry",

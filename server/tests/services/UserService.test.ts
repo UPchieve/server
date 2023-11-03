@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+// test.skip('postgres migration', () => 1)
 /*import mongoose from 'mongoose'
 import * as UserService from '../../services/UserService'
 import * as VolunteerService from '../../services/VolunteerService'
@@ -410,3 +410,42 @@ describe('Volunteer tests', () => {
   })
 })
 */
+import { mocked } from 'ts-jest/utils'
+import request from 'supertest'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import * as UserRepo from '../../models/User/queries'
+import { buildStudent } from '../mocks/generate'
+import * as UserService from '../../services/UserService'
+
+jest.mock('../../models/User/queries')
+
+const mockUserRepo = mocked(UserRepo, true)
+const mockGetUser = () => buildStudent()
+const app = mockApp()
+app.use(mockPassportMiddleware(mockGetUser))
+const agent = request.agent(app)
+describe('UserService', () => {
+  describe('updateUserProfile', () => {
+    beforeEach(async () => {
+      jest.resetAllMocks()
+    })
+
+    it.each([
+      {
+        deactivated: false,
+        smsConsent: true,
+      },
+      {
+        deactivated: false,
+        smsConsent: true,
+        phone: '+8608880001',
+      },
+    ])('Should call the user repo with the correct data', async req => {
+      await UserService.updateUserProfile('123', req)
+      expect(mockUserRepo.updateUserProfileById).toHaveBeenCalledWith(
+        '123',
+        req
+      )
+    })
+  })
+})

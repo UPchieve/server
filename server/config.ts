@@ -97,6 +97,8 @@ const config: Static<typeof Config> = {
     volunteerAbsentStudentApologyTemplate: 'd-e45797aba9d04bb29a9745988a52fc1f',
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
     failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
+    emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
+    studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -215,6 +217,7 @@ const config: Static<typeof Config> = {
   sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER || '',
   twilioAccountVerificationServiceSid:
     process.env.SUBWAY_TWILIO_ACCOUNT_VERIFICATION_SERVICE_SID || '',
+  twilioVerificationRateLimitUniqueName: 'userId',
 
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
@@ -312,7 +315,9 @@ const config: Static<typeof Config> = {
   googleClientId: process.env.GOOGLE_CLIENT_ID || 'bogus',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || 'bogus',
 
-  laudspeakerApiKey: process.env.SUBWAY_LAUDSPEAKER_API_KEY || 'bogus',
+  sessionHistoryMinSessionLength:
+    Number(process.env.SUBWAY_SESSION_HISTORY_MIN_SESSION_LENGTH) || 60000,
+  laudspeakerApiKey: process.env.SUBWAY_LAUDSPEAKER_API_KEY || 'bogus',    
 }
 
 module.exports = config

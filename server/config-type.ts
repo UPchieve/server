@@ -70,6 +70,8 @@ export const Config = Record({
     volunteerAbsentStudentApologyTemplate: String,
     failedFirstAttemptedQuizTemplate: String,
     failedFirstAttemptedTrainingTemplate: String,
+    emailSessionRecapMessage: String,
+    studentReportedCoachDmTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
@@ -148,6 +150,7 @@ export const Config = Record({
   authToken: String,
   sendingNumber: String,
   twilioAccountVerificationServiceSid: String,
+  twilioVerificationRateLimitUniqueName: String,
 
   notificationSchedule: Array(Number),
   // voice to use to render speech
@@ -201,5 +204,6 @@ export const Config = Record({
   googleClientId: String,
   googleClientSecret: String,
 
+  sessionHistoryMinSessionLength: Number,
   laudspeakerApiKey: String,
 })

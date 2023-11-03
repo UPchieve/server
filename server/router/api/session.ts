@@ -83,6 +83,25 @@ export function routeSession(router: Router, io: Server) {
     }
   })
 
+  router.route('/session/recap-dms').post(async function(req, res) {
+    try {
+      const sessionId = asString(req.body.sessionId)
+      const currentSession = await SessionService.getRecapSessionForDms(
+        sessionId
+      )
+      if (!currentSession) {
+        resError(res, new LookupError('No current session'), 404)
+      } else {
+        res.json({
+          sessionId: currentSession._id,
+          data: currentSession,
+        })
+      }
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
   router.route('/session/latest').post(async function(req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
@@ -259,6 +278,23 @@ export function routeSession(router: Router, io: Server) {
     }
   })
 
+  router.post('/sessions/history/:sessionId/eligible', async function(
+    req,
+    res
+  ) {
+    try {
+      const { sessionId } = req.params
+      const { studentId } = req.body
+      const isEligible = await SessionService.isEligibleForSessionRecap(
+        sessionId,
+        asString(studentId)
+      )
+      res.json({ isEligible })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.get('/sessions/:sessionId/recap', async function(req, res) {
     try {
       const user = extractUser(req)
@@ -268,7 +304,13 @@ export function routeSession(router: Router, io: Server) {
         user.id
       )
 
-      res.json({ session })
+      const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
+        session.id,
+        session.studentId,
+        session.volunteerId,
+        user.isVolunteer
+      )
+      res.json({ session, isRecapDmsAvailable })
     } catch (err) {
       resError(res, err)
     }

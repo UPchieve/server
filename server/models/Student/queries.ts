@@ -28,39 +28,6 @@ import {
   StudentContactInfo,
 } from './types'
 
-export type ReportedStudent = {
-  id: Ulid
-  firstName: string
-  lastName: string
-  email: string
-  createdAt: Date
-  isTestUser: boolean
-  isBanned: boolean
-  isDeactivated: boolean
-  isVolunteer: boolean
-  studentPartnerOrg?: string
-}
-
-export async function getReportedStudent(
-  studentId: Ulid
-): Promise<ReportedStudent | undefined> {
-  try {
-    const result = await pgQueries.getReportedStudent.run(
-      {
-        userId: studentId,
-      },
-      getClient()
-    )
-    if (result.length) {
-      const ret = makeSomeOptional(result[0], ['studentPartnerOrg'])
-      ret.email = ret.email.toLowerCase()
-      return ret
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type StudentPartnerInfo = {
   id: Ulid
   studentPartnerOrg?: string
@@ -944,5 +911,52 @@ export async function updateStudentsGradeLevel(
     )
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function countDuplicateStudentVolunteerFavorites(): Promise<
+  number
+> {
+  try {
+    const result = await pgQueries.countDuplicateStudentVolunteerFavorites.run(
+      undefined,
+      getClient()
+    )
+    if (
+      result.length &&
+      result[0].duplicates !== null &&
+      makeRequired(result[0].duplicates)
+    ) {
+      return result[0].duplicates!
+    }
+    throw new RepoReadError(
+      'Could not count duplicates in student_favorite_volunteer'
+    )
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+export async function deleteDuplicateStudentVolunteerFavorites(
+  tc: TransactionClient
+): Promise<number> {
+  try {
+    const result = await pgQueries.deleteDuplicateStudentVolunteerFavorites.run(
+      undefined,
+      tc
+    )
+    if (
+      result.length &&
+      result[0].deleted !== null &&
+      makeRequired(result[0])
+    ) {
+      return result[0].deleted!
+    }
+
+    throw new RepoUpdateError(
+      'Could not delete duplicates in student_favorite_volunteers'
+    )
+  } catch (error) {
+    throw new RepoUpdateError(error)
   }
 }
