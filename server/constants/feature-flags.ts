@@ -4,4 +4,7 @@ export enum FEATURE_FLAGS {
   PROCRASTINATION_TEXT_REMINDER = 'procrastination-text-reminder',
   MUTED_SUBJECT_ALERTS = 'muted-subject-alerts',
   USING_OUR_PLATFORM = 'using-our-platform',
+  SESSION_RECAP_DMS = 'session-recap-dms',
+  WEEKLY_SUMMARY_ALL_HOURS = 'weekly-summary-all-hours',
+  RECAP_SOCKET_UPDATES = 'recap-socket-updates',
 }

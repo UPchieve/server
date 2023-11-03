@@ -208,11 +208,13 @@ export interface ReportSessionData {
   sessionId: Ulid
   reportReason: string
   reportMessage: string
+  source?: string
 }
 export const asReportSessionData = asFactory<ReportSessionData>({
   sessionId: asString,
   reportReason: asString,
   reportMessage: asString,
+  source: asOptional(asString),
 })
 
 export interface SessionTimedOutData {

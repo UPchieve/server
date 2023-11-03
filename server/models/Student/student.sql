@@ -129,28 +129,6 @@ INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, u
             AND volunteer_id = :volunteerId!;
 
 
-/* @name getReportedStudent */
-SELECT
-    users.id AS id,
-    first_name,
-    last_name,
-    email,
-    users.created_at AS created_at,
-    test_user AS is_test_user,
-    banned AS is_banned,
-    deactivated AS is_deactivated,
-    FALSE AS is_volunteer,
-    student_partner_orgs.key AS student_partner_org
-FROM
-    users
-    JOIN student_profiles ON users.id = student_profiles.user_id
-    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
-WHERE
-    deactivated IS FALSE
-    AND test_user IS FALSE
-    AND users.id = :userId!;
-
-
 /* @name getStudentPartnerInfoById */
 SELECT
     student_profiles.user_id AS id,
@@ -629,4 +607,66 @@ WHERE
     user_id = :userId!
 RETURNING
     user_id AS ok;
+
+
+/* @name countDuplicateStudentVolunteerFavorites */
+WITH favorites_partition AS (
+    SELECT
+        student_id,
+        volunteer_id,
+        updated_at,
+        created_at,
+        row_number() OVER (PARTITION BY student_id,
+            volunteer_id ORDER BY updated_at DESC) AS rn
+    FROM
+        upchieve.student_favorite_volunteers
+)
+SELECT
+    count(*)::int AS duplicates
+FROM
+    favorites_partition
+WHERE
+    rn <> 1;
+
+
+/* @name deleteDuplicateStudentVolunteerFavorites */
+WITH favorites_partition AS (
+    SELECT
+        student_id,
+        volunteer_id,
+        updated_at,
+        created_at,
+        row_number() OVER (PARTITION BY student_id,
+            volunteer_id ORDER BY updated_at DESC) AS rn
+    FROM
+        upchieve.student_favorite_volunteers
+),
+duplicate_favorites AS (
+    SELECT
+        student_id,
+        volunteer_id,
+        updated_at,
+        created_at
+    FROM
+        favorites_partition
+    WHERE
+        rn <> 1
+),
+deleted_rows AS (
+    DELETE FROM upchieve.student_favorite_volunteers
+    WHERE (student_id,
+            volunteer_id,
+            updated_at,
+            created_at) IN (
+            SELECT
+                *
+            FROM
+                duplicate_favorites)
+        RETURNING
+            *
+)
+SELECT
+    COUNT(*)::int AS deleted
+FROM
+    deleted_rows;
 
