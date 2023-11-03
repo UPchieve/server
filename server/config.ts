@@ -217,6 +217,7 @@ const config: Static<typeof Config> = {
   sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER || '',
   twilioAccountVerificationServiceSid:
     process.env.SUBWAY_TWILIO_ACCOUNT_VERIFICATION_SERVICE_SID || '',
+  twilioVerificationRateLimitUniqueName: 'userId',
 
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)

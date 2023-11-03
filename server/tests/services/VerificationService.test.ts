@@ -279,7 +279,8 @@ describe('VerificationService', () => {
         expect(mockedTwilioService.sendVerification).toHaveBeenCalledWith(
           data.sendTo,
           data.verificationMethod,
-          req.firstName
+          req.firstName,
+          req.userId
         )
       }
     )
