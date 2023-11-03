@@ -80,6 +80,10 @@ export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
 }
 
+export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
+}
+
 export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.RECAP_SOCKET_UPDATES, userId)
 }
