@@ -218,7 +218,12 @@ const config: Static<typeof Config> = {
   twilioAccountVerificationServiceSid:
     process.env.SUBWAY_TWILIO_ACCOUNT_VERIFICATION_SERVICE_SID || '',
   twilioVerificationRateLimitUniqueName: 'userId',
-
+  twilioVerificationRateLimitMaxRetries: Number(
+    process.env.SUBWAY_TWILIO_VERIFICATION_RATELIMIT_MAX_RETRIES
+  ),
+  twilioVerificationRateLimitIntervalSeconds: Number(
+    process.env.SUBWAY_TWILIO_VERIFICATION_RATELIMIT_INTERVAL_SECONDS
+  ),
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
     1 * 60 * 1000,
