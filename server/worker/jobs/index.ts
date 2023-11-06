@@ -10,6 +10,7 @@ import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-ela
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
+import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
@@ -112,6 +113,7 @@ export enum Jobs {
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
+  DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
@@ -359,6 +361,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertSchools,
     processor: upsertSchools,
+  },
+  {
+    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
+    processor: deleteDuplicateStudentFavoriteVolunteers,
   },
 ]
 

@@ -23,3 +23,5 @@ export const deleteDuplicateStudentFavoriteVolunteers = async (): Promise<void> 
     log(`Deleted ${numDeleted} duplicates from student_favorite_volunteers`)
   })
 }
+
+export default deleteDuplicateStudentFavoriteVolunteers
