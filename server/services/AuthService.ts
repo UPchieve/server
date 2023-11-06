@@ -59,7 +59,7 @@ import config from '../config'
 import { FederatedCredential } from '../models/FederatedCredential'
 import { verifyEligibility } from './EligibilityService'
 
-async function checkIpAddress(ip: string): Promise<void> {
+export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
 
   if (countryCode && countryCode !== 'US') {
@@ -90,14 +90,17 @@ export async function checkCredential(data: unknown): Promise<boolean> {
   if (!validator.isEmail(email))
     throw new RegistrationError('Must supply a valid email address')
 
-  if (checkPassword(password)) {
-    const user = await getUserIdByEmail(email)
-    if (user) {
-      throw new LookupError('The email address you entered is already in use')
-    }
-  }
+  checkPassword(password)
+  await checkUser(email)
 
   return true
+}
+
+export async function checkUser(email: string) {
+  const user = await getUserIdByEmail(email)
+  if (user) {
+    throw new LookupError('The email address you entered is already in use')
+  }
 }
 
 // Handles /register/student/open route
