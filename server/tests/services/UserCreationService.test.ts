@@ -7,8 +7,13 @@ import * as SignUpSourceRepo from '../../models/SignUpSource'
 import * as USMRepo from '../../models/UserSessionMetrics'
 import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
+import * as FedCredRepo from '../../models/FederatedCredential'
 import * as MailService from '../../services/MailService'
-import { rosterPartnerStudents } from '../../services/UserCreationService'
+import * as EligibilityService from '../../services/EligibilityService'
+import {
+  registerStudent,
+  rosterPartnerStudents,
+} from '../../services/UserCreationService'
 import { hashPassword, verifyPassword } from '../../utils/auth-utils'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES } from '../../constants'
 
@@ -19,6 +24,7 @@ jest.mock('../../models/SignUpSource/queries')
 jest.mock('../../models/UserSessionMetrics/queries')
 jest.mock('../../models/UserProductFlags/queries')
 jest.mock('../../models/UserAction/queries')
+jest.mock('../../models/FederatedCredential/queries')
 jest.mock('../../services/MailService')
 
 const mockedUserRepo = mocked(UserRepo, true)
@@ -28,7 +34,9 @@ const mockedSignUpSourceRepo = mocked(SignUpSourceRepo, true)
 const mockedUSMRepo = mocked(USMRepo, true)
 const mockedUPFRepo = mocked(UPFRepo, true)
 const mockedUserActionRepo = mocked(UserActionRepo, true)
+const mockedFedCredRepo = mocked(FedCredRepo, true)
 const mockedMailService = mocked(MailService, true)
+jest.spyOn(EligibilityService, 'verifyEligibility').mockResolvedValue(true)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7
 
@@ -298,5 +306,310 @@ describe('rosterPartnerStudents', () => {
         mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey
       ).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('registerStudent', () => {
+  beforeEach(async () => {
+    jest.clearAllMocks()
+  })
+
+  test('adds user, student_profile, and other user-related rows', async () => {
+    const USER_ID = 'registerStudentAll'
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      gradeLevel: '10th',
+      lastName: faker.name.lastName(),
+      password: 's0me-rAndom-paS$word',
+      schoolId: '01859800-bc76-3420-c3c5-2c46ccf409c4', // 'Approved School' Id
+      zipCode: '00501',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+
+    await registerStudent(student)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: student.email,
+        emailVerified: false,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        password: expect.any(String),
+        verified: false,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUserRepo.insertUserRoleByUserId).toHaveBeenCalledWith(
+      USER_ID,
+      USER_ROLES.STUDENT,
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUSMRepo.createUSMByUserId).toHaveBeenCalledWith(
+      USER_ID,
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUPFRepo.createUPFByUserId).toHaveBeenCalledWith(
+      USER_ID,
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUserActionRepo.createAccountAction).toHaveBeenCalledWith(
+      {
+        action: ACCOUNT_USER_ACTIONS.CREATED,
+        userId: USER_ID,
+        ipAddress: undefined,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedStudentRepo.createStudentProfile).toHaveBeenCalledWith(
+      {
+        userId: USER_ID,
+        gradeLevel: student.gradeLevel,
+        schoolId: student.schoolId,
+        zipCode: student.zipCode,
+      },
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('creates user with fed cred', async () => {
+    const USER_ID = 'registerStudentWithFedCred'
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      profileId: 'profile-id',
+      issuer: 'google',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+
+    await registerStudent(student)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: student.email,
+        emailVerified: true,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        verified: true,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedFedCredRepo.insertFederatedCredential).toHaveBeenCalledWith(
+      student.profileId,
+      student.issuer,
+      USER_ID,
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('creates user with referral', async () => {
+    const USER_ID = 'registerStudentWithPassword'
+    const REFERRAL_USER = {
+      id: '01859800-be4b-685f-4130-8709193d461c',
+      banned: false,
+      code: 'A',
+      deactivated: false,
+      email: faker.internet.email(),
+      isVolunteer: false,
+      isAdmin: false,
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      phoneVerified: false,
+      smsConsent: false,
+    }
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'Password123!',
+      referredByCode: REFERRAL_USER.code,
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+    mockedUserRepo.getUserContactInfoByReferralCode.mockResolvedValue(
+      REFERRAL_USER
+    )
+
+    await registerStudent(student)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: student.email,
+        emailVerified: false,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        password: expect.any(String),
+        referredBy: REFERRAL_USER.id,
+        verified: false,
+      },
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('creates user with password', async () => {
+    const USER_ID = 'registerStudentWithPassword'
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'sUper-$ecuRe-p@s$w0rd',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+
+    await registerStudent(student)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: student.email,
+        emailVerified: false,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        password: expect.any(String),
+        verified: false,
+      },
+      expect.toBeTransactionClient()
+    )
+
+    const firstArg = mockedUserRepo.createUser.mock.calls[0][0]
+    const isSame = await verifyPassword(student.password, firstArg.password!)
+    expect(isSame).toBe(true)
+  })
+
+  test('creates non-school partner org instance', async () => {
+    const USER_ID = 'registerStudentWithPartnerOrg'
+    const PARTNER_ORG = {
+      id: 'partnerOrgId',
+      key: 'partnerOrgKey',
+      name: 'Partner Org Name',
+    }
+    mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+      partnerId: PARTNER_ORG.id,
+      partnerKey: PARTNER_ORG.key,
+      partnerName: PARTNER_ORG.name,
+    })
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'Password123!',
+      studentPartnerOrg: PARTNER_ORG.key,
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+
+    await registerStudent(student)
+
+    expect(
+      mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+    ).toHaveBeenCalledWith(
+      {
+        userId: USER_ID,
+        studentPartnerOrgId: PARTNER_ORG.id,
+      },
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('creates school partner org instance', async () => {
+    const USER_ID = 'registerStudentWithPartnerSchool'
+    const PARTNER_ORG = {
+      id: 'schoolPartnerOrgId',
+      key: 'schoolPartnerOrgKey',
+      name: 'School Partner Org Name',
+    }
+    mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+      partnerId: PARTNER_ORG.id,
+      partnerKey: PARTNER_ORG.key,
+      partnerName: PARTNER_ORG.name,
+    })
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'Password123!',
+      studentPartnerOrg: PARTNER_ORG.key,
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+
+    await registerStudent(student)
+
+    expect(
+      mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+    ).toHaveBeenCalledWith(
+      {
+        userId: USER_ID,
+        studentPartnerOrgId: PARTNER_ORG.id,
+      },
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('uses the partner org school id if no school id provided', async () => {
+    const USER_ID = 'registerStudentMissingSchoolId'
+    const PARTNER_ORG = {
+      id: 'schoolPartnerOrgId',
+      key: 'schoolPartnerOrgKey',
+      name: 'School Partner Org Name',
+      schoolId: 'schoolId',
+    }
+    mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+      partnerId: PARTNER_ORG.id,
+      partnerKey: PARTNER_ORG.key,
+      partnerName: PARTNER_ORG.name,
+      schoolId: PARTNER_ORG.schoolId,
+    })
+    const student = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'Password123!',
+      studentPartnerOrg: PARTNER_ORG.key,
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+
+    await registerStudent(student)
+
+    expect(mockedStudentRepo.createStudentProfile).toHaveBeenCalledWith(
+      {
+        college: undefined,
+        gradeLevel: undefined,
+        partnerSite: undefined,
+        schoolId: PARTNER_ORG.schoolId,
+        studentPartnerOrg: PARTNER_ORG.key,
+        userId: USER_ID,
+        zipCode: undefined,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(
+      mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+    ).toHaveBeenCalledTimes(1)
   })
 })

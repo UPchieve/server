@@ -77,14 +77,15 @@ export async function closeClient(): Promise<void> {
 }
 
 export type TransactionClient = Pool | PoolClient
-export async function runInTransaction(
-  cb: (tc: TransactionClient) => Promise<void>
+export async function runInTransaction<T>(
+  cb: (tc: TransactionClient) => Promise<T>
 ) {
   const tc = await getClient().connect()
   try {
     await tc.query('BEGIN')
-    await cb(tc)
+    const result = await cb(tc)
     await tc.query('COMMIT')
+    return result
   } catch (err) {
     await tc.query('ROLLBACK')
     throw err

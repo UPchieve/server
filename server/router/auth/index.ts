@@ -2,7 +2,12 @@ import { Express, Router } from 'express'
 import passport from 'passport'
 
 import * as AuthService from '../../services/AuthService'
-import { authPassport, StudentDataParams } from '../../utils/auth-utils'
+import * as UserCreationService from '../../services/UserCreationService'
+import {
+  authPassport,
+  registerStudentWithPasswordValidator,
+  StudentDataParams,
+} from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
@@ -56,6 +61,9 @@ class GoogleAuthRedirect {
     }
     if (studentData.currentGrade) {
       params.append('currentGrade', studentData.currentGrade)
+    }
+    if (studentData.studentPartnerOrg) {
+      params.append('partner', studentData.studentPartnerOrg)
     }
     return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
   }
@@ -172,6 +180,20 @@ export function routes(app: Express) {
       return res.json({ checked })
     } catch (err) {
       resError(res, err)
+    }
+  })
+
+  router.route('/register/student').post(async function(req, res) {
+    try {
+      const data = registerStudentWithPasswordValidator({
+        ...req.body,
+        ip: req.ip,
+      })
+      const student = await UserCreationService.registerStudent(data)
+      await req.asyncLogin(student)
+      return res.json({ user: student })
+    } catch (e) {
+      resError(res, e)
     }
   })
 
