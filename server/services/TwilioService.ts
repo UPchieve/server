@@ -631,7 +631,6 @@ async function createRateLimit(uniqueName: string): Promise<void> {
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits(rateLimitSid)
     .buckets.create({
-      // 4 retries allowed per min
       max: config.twilioVerificationRateLimitMaxRetries,
       interval: config.twilioVerificationRateLimitIntervalSeconds,
     })
