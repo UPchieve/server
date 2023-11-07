@@ -151,6 +151,8 @@ export const Config = Record({
   sendingNumber: String,
   twilioAccountVerificationServiceSid: String,
   twilioVerificationRateLimitUniqueName: String,
+  twilioVerificationRateLimitMaxRetries: Number,
+  twilioVerificationRateLimitIntervalSeconds: Number,
 
   notificationSchedule: Array(Number),
   // voice to use to render speech
