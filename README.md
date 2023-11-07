@@ -202,7 +202,17 @@ See all current endpoints in the [Swagger UI](./server/swagger/swagger.yaml) doc
 If you have the local backend dev running you can go [here](https://localhost:3000/docs) for a local version.
 
 ## Worker
-A [Bull](https://github.com/OptimalBits/bull) worker reading from a local [Redis](https://redis.io/) database. Job definitions live in `worker/jobs` and are registered in `worker/jobs/index.ts`. A script `scripts/add-cron-jobs.ts` will insert all repeatable jobs into the local Redis database.
+Our application runs several asynchronous jobs. These jobs are put into a queue, managed by [BullMQ](https://github.com/OptimalBits/bull), that lives in a Redis instance.
+These jobs might be triggered programmatically, on a schedule, or manually using BullMQ's UI called TaskForce.sh.
+
+- Job definitions live in `worker/jobs`
+- Jobs need to be registered in the jobProcessors list in `worker/jobs/index.ts`
+
+There are three ways to enqueue jobs:
+- Schedule them in `scripts/add-cron-jobs.ts`, which will insert them into the local Redis database. Do this for jobs that need to repeat regularly.
+- Programmatically (example: search code base for `QueueService.add(...)`)
+- Manually using the TaskForce.sh UI (Ask a teammate to add you!)
+  - Go to TaskForce -> Dashboard -> Production queue -> "Add a new job"
 
 ### Worker Jobs
 - [Update Elapsed Availability](worker/jobs/updateElapsedAvailability.ts): updates all volunteers' elapsed availabilities every day at 4 am.
