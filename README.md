@@ -214,5 +214,10 @@ There are three ways to enqueue jobs:
 - Manually using the TaskForce.sh UI (Ask a teammate to add you!)
   - Go to TaskForce -> Dashboard -> Production queue -> "Add a new job"
 
-### Worker Jobs
-- [Update Elapsed Availability](worker/jobs/updateElapsedAvailability.ts): updates all volunteers' elapsed availabilities every day at 4 am.
+### Testing locally
+
+You can run the worker queue locally as well as enqueue specific jobs:
+- To run the queue, do `npm run dev:worker`
+- To enqueue jobs locally, we use the script `server/scripts/testing-jobs.ts`
+  - Simply edit the value of `jobToQueue` with the job you want
+- Then, in another terminal, run the script to enqueue the job: `npx ts-node server/scripts/testing-jobs.ts`
