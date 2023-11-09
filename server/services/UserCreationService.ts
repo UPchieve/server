@@ -185,6 +185,10 @@ export async function registerStudent(
 
     return user
   })
+
+  emitter.emit(USER_EVENTS.USER_CREATED, newStudent.id)
+  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, newStudent.id)
+
   return {
     ...newStudent,
     isAdmin: false,
@@ -246,7 +250,6 @@ async function createUser(
       tc
     ),
   ])
-  emitter.emit(USER_EVENTS.USER_CREATED, user.id)
   return user
 }
 
@@ -276,7 +279,6 @@ async function createStudent(
   }
 
   await StudentRepo.createStudentProfile(studentData, tc)
-  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, studentData.userId)
 
   async function addUserStudentPartnerOrgInstance(
     spo?: GetStudentPartnerOrgResult
