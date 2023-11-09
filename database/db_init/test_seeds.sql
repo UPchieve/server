@@ -1508,6 +1508,36 @@ COPY upchieve.parents_guardians (id, email, created_at, updated_at) FROM stdin;
 
 
 --
+-- Data for Name: student_partner_org_sites; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.student_partner_org_sites (id, name, student_partner_org_id, created_at, updated_at) FROM stdin;
+01859800-bc55-58ea-c1c8-0d8f14d3a1a6	Brooklyn	01859800-bbed-150a-2f52-f0856c633b63	2023-01-09 19:27:43.212588+00	2023-01-09 19:27:43.212588+00
+01859800-bc55-365f-1735-c9d446c9adcc	Denver	01859800-bbed-150a-2f52-f0856c633b63	2023-01-09 19:27:43.216873+00	2023-01-09 19:27:43.216873+00
+01859800-bc55-cf29-d368-a659f5bae025	Oakland	01859800-bbed-150a-2f52-f0856c633b63	2023-01-09 19:27:43.220921+00	2023-01-09 19:27:43.220921+00
+\.
+
+
+--
+-- Data for Name: student_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.student_profiles (user_id, college, school_id, postal_code, grade_level_id, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at) FROM stdin;
+01859800-be4b-685f-4130-8709193d461c	\N	01859800-bc76-3420-c3c5-2c46ccf409c4	\N	\N	\N	\N	\N	2023-01-09 19:27:43.734983+00	2023-01-09 19:27:43.734983+00
+01859800-be4b-2870-ad8c-abecfd5c403f	\N	01859800-bc76-2674-709e-b08a177869f9	\N	\N	\N	01859800-bbed-150a-2f52-f0856c633b63	\N	2023-01-09 19:27:43.737858+00	2023-01-09 19:27:43.737858+00
+01859800-be4b-1beb-2b3a-3d26cdb90435	\N	\N	\N	\N	\N	01859800-bbed-b3e3-f1db-a8e79e57e498	\N	2023-01-09 19:27:43.740467+00	2023-01-09 19:27:43.740467+00
+\.
+
+
+--
+-- Data for Name: parents_guardians_students; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.parents_guardians_students (parents_guardians_id, students_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: photo_id_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2690,17 +2720,6 @@ COPY upchieve.student_favorite_volunteers (student_id, volunteer_id, created_at,
 
 
 --
--- Data for Name: student_partner_org_sites; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.student_partner_org_sites (id, name, student_partner_org_id, created_at, updated_at) FROM stdin;
-01859800-bc55-58ea-c1c8-0d8f14d3a1a6	Brooklyn	01859800-bbed-150a-2f52-f0856c633b63	2023-01-09 19:27:43.212588+00	2023-01-09 19:27:43.212588+00
-01859800-bc55-365f-1735-c9d446c9adcc	Denver	01859800-bbed-150a-2f52-f0856c633b63	2023-01-09 19:27:43.216873+00	2023-01-09 19:27:43.216873+00
-01859800-bc55-cf29-d368-a659f5bae025	Oakland	01859800-bbed-150a-2f52-f0856c633b63	2023-01-09 19:27:43.220921+00	2023-01-09 19:27:43.220921+00
-\.
-
-
---
 -- Data for Name: student_partner_orgs_sponsor_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2741,17 +2760,6 @@ COPY upchieve.student_partner_orgs_upchieve_instances (id, student_partner_org_i
 
 COPY upchieve.student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 01859800-bbed-150a-2f52-f0856c633b63	01859800-bc61-cd2d-b754-af08b7137d15	\N	2023-01-09 19:27:43.292014+00	2023-01-09 19:27:43.76047+00
-\.
-
-
---
--- Data for Name: student_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.student_profiles (user_id, college, school_id, postal_code, grade_level_id, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at) FROM stdin;
-01859800-be4b-685f-4130-8709193d461c	\N	01859800-bc76-3420-c3c5-2c46ccf409c4	\N	\N	\N	\N	\N	2023-01-09 19:27:43.734983+00	2023-01-09 19:27:43.734983+00
-01859800-be4b-2870-ad8c-abecfd5c403f	\N	01859800-bc76-2674-709e-b08a177869f9	\N	\N	\N	01859800-bbed-150a-2f52-f0856c633b63	\N	2023-01-09 19:27:43.737858+00	2023-01-09 19:27:43.737858+00
-01859800-be4b-1beb-2b3a-3d26cdb90435	\N	\N	\N	\N	\N	01859800-bbed-b3e3-f1db-a8e79e57e498	\N	2023-01-09 19:27:43.740467+00	2023-01-09 19:27:43.740467+00
 \.
 
 
