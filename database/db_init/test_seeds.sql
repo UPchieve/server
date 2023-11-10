@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.2 (Debian 14.2-1.pgdg110+1)
--- Dumped by pg_dump version 14.8 (Homebrew)
+-- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
+-- Dumped by pg_dump version 14.9 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1496,6 +1496,14 @@ COPY upchieve.notification_types (id, type, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, message_carrier_id, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: parents_guardians; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.parents_guardians (id, email, created_at, updated_at) FROM stdin;
 \.
 
 
