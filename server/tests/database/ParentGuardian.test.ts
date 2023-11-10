@@ -10,7 +10,7 @@ const client = getClient()
 
 describe('createParentGuardian', () => {
   test('creates the parent/guardian', async () => {
-    const email = 'pg@email.com'
+    const email = faker.internet.email()
     await createParentGuardian(email, client)
 
     const actual = await client.query(
