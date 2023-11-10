@@ -2646,6 +2646,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: parents_guardians parents_guardians_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.parents_guardians
+    ADD CONSTRAINT parents_guardians_email_key UNIQUE (email);
+
+
+--
 -- Name: parents_guardians parents_guardians_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
