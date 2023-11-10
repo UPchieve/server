@@ -62,6 +62,21 @@ describe('linkParentGuardianToStudent', () => {
     expect(actual.rows.length).toBe(1)
   })
 
+  test('can create multiple student to a single parent/guardian', async () => {
+    const STUDENT_1_ID = '01859800-be4b-685f-4130-8709193d461c'
+    const STUDENT_2_ID = '01859800-be4b-2870-ad8c-abecfd5c403f'
+    const parentGuardian = await createTestParentGuardian()
+
+    await linkParentGuardianToStudent(parentGuardian.id, STUDENT_1_ID, client)
+    await linkParentGuardianToStudent(parentGuardian.id, STUDENT_2_ID, client)
+
+    const actual = await client.query(
+      'SELECT * FROM parents_guardians_students WHERE parents_guardians_id = $1',
+      [parentGuardian.id]
+    )
+    expect(actual.rows.length).toBe(2)
+  })
+
   test('can create multiple parent/guardian to a single student link', async () => {
     const STUDENT_3_ID = '01859800-be4b-1beb-2b3a-3d26cdb90435'
     const parentGuardian1 = await createTestParentGuardian()
