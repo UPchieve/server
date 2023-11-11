@@ -69,9 +69,8 @@ export function routeSession(router: Router, io: Server) {
     try {
       const user = extractUser(req)
       const currentSession = await SessionService.currentSession(user.id)
-      // TODO: should not return an error is session is missing
       if (!currentSession) {
-        resError(res, new LookupError('No current session'), 404)
+        res.json(null)
       } else {
         res.json({
           sessionId: currentSession._id,
@@ -104,18 +103,17 @@ export function routeSession(router: Router, io: Server) {
 
   router.route('/session/latest').post(async function(req, res) {
     try {
-      if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
-        throw new InputError('Missing userId body string')
-      const latestSession = await SessionService.studentLatestSession(
-        req.body.userId as unknown
-      )
+      const user = extractUser(req)
+      const latestSession = await SessionService.studentLatestSession(user.id)
 
-      if (!latestSession) throw new Error('could not find latest session')
-
-      res.json({
-        sessionId: latestSession._id,
-        data: latestSession,
-      })
+      if (!latestSession) {
+        res.json(null)
+      } else {
+        res.json({
+          sessionId: latestSession._id,
+          data: latestSession,
+        })
+      }
     } catch (error) {
       resError(res, error)
     }
