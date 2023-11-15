@@ -146,8 +146,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     forSignup,
   } = asConfirmVerificationData(data)
 
-  const shouldSendOnboardingEmails = forSignup ?? true
-
+  // Validate code
   const VERIFICATION_CODE_LENGTH = 6
   if (
     verificationCode.length !== VERIFICATION_CODE_LENGTH ||
@@ -155,21 +154,32 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   )
     throw new InputError('Must enter a valid 6-digit validation code')
 
+  const shouldSendOnboardingEmails = forSignup ?? true
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
+
+  let isVerified: boolean = false
   try {
-    const isVerified = await TwilioService.confirmVerification(
+    isVerified = await TwilioService.confirmVerification(
       sendTo,
       verificationCode
     )
-    if (isVerified) {
-      await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
-      if (shouldSendOnboardingEmails) {
-        await sendEmails(userId)
-      }
+  } catch (err) {
+    const error = err as {
+      message: string
+      status: number
     }
-
-    return isVerified
-  } catch (error) {
-    throw error
+    throw new TwilioError(
+      error.message ?? 'Could not confirm verification code',
+      error.status ?? 500
+    )
   }
+
+  if (isVerified) {
+    await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
+    if (shouldSendOnboardingEmails) {
+      await sendEmails(userId)
+    }
+  }
+
+  return isVerified
 }
