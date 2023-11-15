@@ -1,6 +1,6 @@
 -- General App Role.
 -- This role has read/write privileges to both the auth and upchieve schemas.
-CREATE ROLE subway WITH LOGIN PASSWORD 'Password123';
+CREATE ROLE subway;
 GRANT ALL privileges ON ALL tables IN SCHEMA upchieve TO subway;
 GRANT ALL privileges ON ALL sequences IN SCHEMA upchieve TO subway;
 GRANT usage ON SCHEMA upchieve TO subway;
@@ -12,7 +12,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT ALL PRIVILEGES ON tables TO su
 
 -- Staff Read-Only Role.
 -- This role has read privileges to both the auth and upchieve schemas.
-CREATE ROLE staff_ro with LOGIN PASSWORD 'Password123';
+CREATE ROLE staff_ro;
 GRANT SELECT ON ALL tables IN SCHEMA upchieve to staff_ro;
 GRANT SELECT ON ALL sequences IN SCHEMA upchieve to staff_ro;
 GRANT usage ON SCHEMA upchieve to staff_ro;
@@ -24,7 +24,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT SELECT ON tables TO staff_ro;
 
 -- Retool Role.
 -- Same as subway role above.
-CREATE ROLE retool WITH LOGIN PASSWORD 'Password123';
+CREATE ROLE retool;
 GRANT ALL privileges ON ALL tables IN SCHEMA upchieve TO retool;
 GRANT ALL privileges ON ALL sequences IN SCHEMA upchieve TO retool;
 GRANT usage ON SCHEMA upchieve TO retool;
