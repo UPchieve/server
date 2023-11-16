@@ -156,11 +156,8 @@ export async function sendReset(
   token: string
 ): Promise<void> {
   let url: string
-  if (sendToMobile) {
-    url = `com.upchieve.app://setpassword/${token}`
-  } else {
-    url = `https://${config.client.host}/setpassword?token=${token}`
-  }
+  url = `https://${config.client.host}/setpassword?token=${token}`
+
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
