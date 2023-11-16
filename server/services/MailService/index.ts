@@ -155,8 +155,7 @@ export async function sendReset(
   sendToMobile: boolean,
   token: string
 ): Promise<void> {
-  let url: string
-  url = `https://${config.client.host}/setpassword?token=${token}`
+  const url = `https://${config.client.host}/setpassword?token=${token}`
 
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
