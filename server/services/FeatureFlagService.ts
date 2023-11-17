@@ -94,3 +94,13 @@ export async function isNotifyMoreCollegeVolunteersEnabled(
   if (!userId) return false
   return isFeatureEnabled(FEATURE_FLAGS.NOTIFY_MORE_COLLEGE_VOLUNTEERS, userId)
 }
+
+export async function isIndefiniteCollegeNotificationsEnabled(
+  userId?: Ulid
+): Promise<boolean | undefined> {
+  if (!userId) return false
+  return isFeatureEnabled(
+    FEATURE_FLAGS.INDEFINITE_COLLEGE_NOTIFICATIONS,
+    userId
+  )
+}

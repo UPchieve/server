@@ -7,6 +7,7 @@ import * as TwilioService from '../../services/TwilioService'
 import { log, logError } from '../logger'
 import { Jobs } from '.'
 import { asString } from '../../utils/type-utils'
+import { isIndefiniteCollegeNotificationsEnabled } from '../../services/FeatureFlagService'
 
 interface NotifyTutorsJobData {
   sessionId: string
@@ -35,7 +36,12 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }
   const delay = notificationSchedule.shift()
-  if (delay)
+  if (
+    delay ||
+    (session.topic === 'college' &&
+      (await isIndefiniteCollegeNotificationsEnabled(session.studentId)))
+  ) {
+    const TWELVE_SECONDS_IN_MS = 12 * 1000
     await QueueService.add(
       Jobs.NotifyTutors,
       {
@@ -43,8 +49,13 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         notificationSchedule,
         currentNotificationRound: currentNotificationRound + 1,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      {
+        delay: delay ?? TWELVE_SECONDS_IN_MS,
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
     )
+  }
 
   try {
     const volunteerNotified = await TwilioService.notifyVolunteer(session)
