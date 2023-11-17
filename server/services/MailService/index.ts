@@ -165,6 +165,8 @@ export async function sendReset(
     mail_settings: { bypass_list_management: { enable: true } },
   }
 
+  console.log('test')
+
   await sendEmail(
     email,
     config.mail.senders.noreply,
