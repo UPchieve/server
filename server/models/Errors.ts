@@ -89,3 +89,5 @@ export class TwilioError extends CustomError {
     this.status = status
   }
 }
+
+export class SmsVerificationDisabledError extends CustomError {}

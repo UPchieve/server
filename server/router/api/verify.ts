@@ -4,7 +4,10 @@ import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
-import { TwilioError } from '../../models/Errors'
+import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
+
+const SMS_VERIFICATION_DISABLED_ERROR_MESSAGE =
+  'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.'
 
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
@@ -19,34 +22,32 @@ export function routeVerify(router: Router) {
       await VerificationService.initiateVerification(payload as unknown)
       res.sendStatus(200)
     } catch (err) {
-      let message: string
-      let status: number | undefined
       const defaultErrorMessage =
         'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
+      let message = defaultErrorMessage
+      let status = 500
 
       if (err instanceof TwilioError) {
-        status = err.status
-        if (status === 429) {
+        // custom logging for NR alerts
+        logger.error(
+          { 'error.name': 'twilio verification', error: err },
+          (err as Error).message
+        )
+
+        if (err.status === 429) {
+          status = 429
           message =
             "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
-        } else if (status === 404) {
-          // Twilio verification resource was not found
-          message = defaultErrorMessage
-          status = 500
         } else {
           message = defaultErrorMessage
           status = 500
         }
-        err.message = message
-
-        // custom logging for NR alerts
-        logger.error(
-          { 'error.name': 'twilio verification', error: err },
-          (err as TwilioError).message
-        )
+      } else if (err instanceof SmsVerificationDisabledError) {
+        status = 403
+        message = SMS_VERIFICATION_DISABLED_ERROR_MESSAGE
       }
 
-      resError(res, err, status)
+      resError(res, new Error(message), status)
     }
   })
 
@@ -72,18 +73,20 @@ export function routeVerify(router: Router) {
         (err as Error).message
       )
 
-      let defaultStatus = 500
-      let defaultErrorMessage =
+      let status = 500
+      let message =
         'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.'
 
       if (err instanceof TwilioError && err.status === 404) {
-        err.status = 400
-        err.message =
+        status = 400
+        message =
           'The code has expired. Please request a new verification code and try again.'
-        resError(res, err, err.status)
-      } else {
-        resError(res, new Error(defaultErrorMessage), defaultStatus)
+      } else if (err instanceof SmsVerificationDisabledError) {
+        status = 403
+        message = SMS_VERIFICATION_DISABLED_ERROR_MESSAGE
       }
+
+      resError(res, new Error(message), status)
     }
   })
 }

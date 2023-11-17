@@ -231,6 +231,7 @@ import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import {
   AlreadyInUseError,
   InputError,
@@ -243,10 +244,12 @@ jest.mock('../../models/User/queries')
 jest.mock('../../services/TwilioService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
+jest.mock('../../services/FeatureFlagService')
 
 const mockedTwilioService = mocked(TwilioService, true)
 const mockedUserRepo = mocked(UserRepo)
 const mockedMailService = mocked(MailService, true)
+const mockFeatureFlagService = mocked(FeatureFlagService, true)
 
 describe('VerificationService', () => {
   beforeEach(async () => {
@@ -254,6 +257,7 @@ describe('VerificationService', () => {
     const userId = '123'
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(userId)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(userId)
+    mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(true)
   })
 
   describe('sendVerification', () => {
