@@ -150,11 +150,7 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
   )
 }
 
-export async function sendReset(
-  email: string,
-  sendToMobile: boolean,
-  token: string
-): Promise<void> {
+export async function sendReset(email: string, token: string): Promise<void> {
   const url = `https://${config.client.host}/setpassword?token=${token}`
 
   const overrides = {

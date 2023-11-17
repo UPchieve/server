@@ -433,10 +433,7 @@ export async function lookupSponsorOrgs(): Promise<SponsorOrg[]> {
 
 // Password reset handlers
 // Handles /reset/send route
-export async function sendReset(
-  email: unknown,
-  mobile: boolean
-): Promise<void> {
+export async function sendReset(email: unknown): Promise<void> {
   const userEmail = asString(email)
   const user = await getUserForPassport(userEmail)
   if (!user) throw new LookupError(`No account with ${userEmail} found`)
@@ -445,7 +442,7 @@ export async function sendReset(
   await updateUserResetTokenById(user.id, token)
 
   const toEmail = user.proxyEmail ?? user.email
-  await MailService.sendReset(toEmail, mobile, token)
+  await MailService.sendReset(toEmail, token)
 }
 
 export async function confirmReset(data: unknown): Promise<void> {
