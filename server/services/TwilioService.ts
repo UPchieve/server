@@ -27,7 +27,10 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
+import {
+  getProcrastinationTextReminderCopy,
+  isNotifyMoreCollegeVolunteersEnabled,
+} from './FeatureFlagService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -452,7 +455,8 @@ export async function notifyVolunteer(
     },
   ]
 
-  let volunteer: VolunteerContactInfo | undefined, priorityGroup: any
+  let volunteer: VolunteerContactInfo | undefined
+  let priorityGroup: string
 
   for (const priorityFilter of volunteerPriority) {
     volunteer = await priorityFilter.query()
@@ -461,6 +465,25 @@ export async function notifyVolunteer(
       priorityGroup = priorityFilter.groupName
       break
     }
+  }
+
+  // For BigFuture launch, try one additional group for college topics.
+  if (!volunteer && session.topic === 'college') {
+    const candidate = await VolunteerRepo.getNextVolunteerToNotify({
+      subject: session.subject,
+      lastNotified: moment()
+        .subtract(5, 'minutes')
+        .toDate(),
+      isPartner: undefined,
+      highLevelSubjects: undefined,
+      disqualifiedVolunteers,
+      specificPartner: undefined,
+      favoriteVolunteers: undefined,
+    })
+    volunteer = (await isNotifyMoreCollegeVolunteersEnabled(candidate?.id))
+      ? candidate
+      : undefined
+    priorityGroup = 'All volunteers - not notified in the last 5 mins'
   }
 
   if (!volunteer) return

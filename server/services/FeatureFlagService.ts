@@ -87,3 +87,10 @@ export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
 export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.RECAP_SOCKET_UPDATES, userId)
 }
+
+export async function isNotifyMoreCollegeVolunteersEnabled(
+  userId?: Ulid
+): Promise<boolean | undefined> {
+  if (!userId) return false
+  return isFeatureEnabled(FEATURE_FLAGS.NOTIFY_MORE_COLLEGE_VOLUNTEERS, userId)
+}
