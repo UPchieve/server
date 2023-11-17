@@ -87,3 +87,7 @@ export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
 export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.RECAP_SOCKET_UPDATES, userId)
 }
+
+export async function getSmsVerificationFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.SMS_VERIFICATION, userId)
+}

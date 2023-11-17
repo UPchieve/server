@@ -6,4 +6,5 @@ export enum FEATURE_FLAGS {
   SESSION_RECAP_DMS = 'session-recap-dms',
   WEEKLY_SUMMARY_ALL_HOURS = 'weekly-summary-all-hours',
   RECAP_SOCKET_UPDATES = 'recap-socket-updates',
+  SMS_VERIFICATION = 'sms-verification',
 }
