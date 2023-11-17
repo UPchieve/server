@@ -456,7 +456,7 @@ export async function notifyVolunteer(
   ]
 
   let volunteer: VolunteerContactInfo | undefined
-  let priorityGroup: string
+  let priorityGroup: string = ''
 
   for (const priorityFilter of volunteerPriority) {
     volunteer = await priorityFilter.query()
