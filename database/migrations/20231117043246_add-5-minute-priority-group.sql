@@ -1,6 +1,6 @@
 -- migrate:up
 INSERT INTO upchieve.notification_priority_groups (name, priority)
-    VALUES ('All volunteers - not notified in the last 5 mins', 5);
+    VALUES ('All volunteers - not notified in the last 5 mins', 105);
 
 -- migrate:down
 DELETE FROM upchieve.notification_priority_groups
