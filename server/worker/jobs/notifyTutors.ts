@@ -4,20 +4,22 @@ import { getSessionById } from '../../models/Session/queries'
 import * as sessionUtils from '../../utils/session-utils'
 import QueueService from '../../services/QueueService'
 import * as TwilioService from '../../services/TwilioService'
-import { log } from '../logger'
+import { log, logError } from '../logger'
 import { Jobs } from '.'
 import { asString } from '../../utils/type-utils'
 
 interface NotifyTutorsJobData {
   sessionId: string
   notificationSchedule: number[]
+  currentNotificationRound: number
 }
 
 export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   const sessionId = asString(job.data.sessionId)
   const notificationSchedule = job.data.notificationSchedule
+  const currentNotificationRound = job.data.currentNotificationRound
+
   const session = await getSessionById(sessionId)
-  if (!session) return
   const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
     await QueueService.add(
@@ -36,7 +38,11 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   if (delay)
     await QueueService.add(
       Jobs.NotifyTutors,
-      { sessionId: sessionId.toString(), notificationSchedule },
+      {
+        sessionId: sessionId.toString(),
+        notificationSchedule,
+        currentNotificationRound: currentNotificationRound + 1,
+      },
       { delay, removeOnComplete: true, removeOnFail: true }
     )
 
@@ -56,10 +62,11 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         },
         { delay: 1000 * 60 * 5, removeOnComplete: true, removeOnFail: true }
       )
-    } else
+    } else {
       log(
-        `Unable to send notification for session ${session.id}: no volunteers available`
+        `No volunteers available for session in ${session.subject}, on notification round ${currentNotificationRound} (session ID ${session.id})`
       )
+    }
   } catch (error) {
     throw new Error(
       `Failed to send notification for session ${session.id}: ${error}`

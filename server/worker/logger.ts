@@ -1,4 +1,17 @@
+import newrelic from 'newrelic'
+import config from '../config'
+
 // TODO: use pino
-export const log = (message: string): void => {
-  console.log(`${new Date()} ${message}`)
+export function log(message: string): void {
+  newrelic.recordLogEvent({
+    message,
+    level: config.logLevel,
+  })
+}
+
+export function logError(
+  error: Error,
+  customAttributes?: { [key: string]: string | number | boolean }
+): void {
+  newrelic.noticeError(error, customAttributes)
 }
