@@ -603,6 +603,9 @@ export async function sendHourSummaryEmail(
   )
 
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.volunteerSummary,
+    },
     categories: ['weekly hour summary email'],
   }
 
