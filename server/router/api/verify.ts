@@ -22,9 +22,8 @@ export function routeVerify(router: Router) {
       await VerificationService.initiateVerification(payload as unknown)
       res.sendStatus(200)
     } catch (err) {
-      const defaultErrorMessage =
+      let message =
         'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
-      let message = defaultErrorMessage
       let status = 500
 
       if (err instanceof TwilioError) {
@@ -38,9 +37,6 @@ export function routeVerify(router: Router) {
           status = 429
           message =
             "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
-        } else {
-          message = defaultErrorMessage
-          status = 500
         }
       } else if (err instanceof SmsVerificationDisabledError) {
         status = 403
