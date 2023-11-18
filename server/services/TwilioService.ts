@@ -477,6 +477,10 @@ export async function notifyVolunteer(
           priorityGroup = priorityFilter.groupName
           break
         }
+      } else {
+        volunteer = candidateVolunteer
+        priorityGroup = priorityFilter.groupName
+        break
       }
     }
   }
