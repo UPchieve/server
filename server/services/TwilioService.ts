@@ -315,9 +315,6 @@ export async function notifyVolunteer(
     SUBJECTS.STATISTICS,
   ]
 
-  // Select the max number of candidates a getNextVolunteersToNotify query should return each time
-  const maxCandidateVolunteers = 5
-
   /**
    * 1. Favorite volunteers - not notified in the last 15 mins
    * 2. Partner volunteers - not notified in the last 3 days AND they don’t have "high level subjects"
@@ -333,7 +330,7 @@ export async function notifyVolunteer(
     {
       groupName: `Favorite volunteers - not notified in the last 15 mins`,
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(15, 'minutes')
@@ -343,7 +340,6 @@ export async function notifyVolunteer(
           disqualifiedVolunteers,
           specificPartner: undefined,
           favoriteVolunteers,
-          maxCandidateVolunteers,
         }),
     },
     {
@@ -351,7 +347,7 @@ export async function notifyVolunteer(
         associatedPartner ? 'Associated partner' : 'Partner'
       } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(3, 'days')
@@ -360,15 +356,14 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(3, 'days')
@@ -377,8 +372,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
     {
@@ -386,7 +380,7 @@ export async function notifyVolunteer(
         associatedPartner ? 'Associated partner' : 'Partner'
       } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(1, 'day')
@@ -395,15 +389,14 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
     {
       groupName:
         'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(1, 'day')
@@ -412,14 +405,13 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
     {
       groupName: 'All volunteers - not notified in the last 24 hours',
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(1, 'day')
@@ -428,14 +420,13 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
     {
       groupName: 'All volunteers - not notified in the last 60 mins',
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(1, 'hour')
@@ -444,14 +435,13 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
     {
       groupName: 'All volunteers - not notified in the last 15 mins',
       query: () =>
-        VolunteerRepo.getNextVolunteersToNotify({
+        VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
           lastNotified: moment()
             .subtract(15, 'minutes')
@@ -460,30 +450,32 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined,
-          maxCandidateVolunteers,
+          favoriteVolunteers: undefined
         }),
     },
   ]
 
-  let volunteer: VolunteerContactInfo | undefined, priorityGroup: any
-  let candidateVolunteers: VolunteerContactInfo[] | undefined
+  let volunteer: VolunteerContactInfo | undefined = undefined
+  let candidateVolunteer: VolunteerContactInfo | undefined
+  let priorityGroup: any
 
-  priorityFilterLoop: for (const priorityFilter of volunteerPriority) {
-    candidateVolunteers = await priorityFilter.query()
-    if (candidateVolunteers) {
-      for (let cv of candidateVolunteers) {
-        let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(cv.id)
-        if (mutedSubjectAlertsFlag) {
-          let volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
-            cv.id,
-            session.subject
-          )
-          if (volunteerMutedSubject) continue
+  for (const priorityFilter of volunteerPriority) {
+    candidateVolunteer = await priorityFilter.query()
+    if (candidateVolunteer) {
+      let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(candidateVolunteer.id)
+      if (mutedSubjectAlertsFlag) {
+        let candidateVolunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
+          candidateVolunteer.id,
+          session.subject
+        )
+        if (candidateVolunteerMutedSubject) {
+          continue
         }
-        volunteer = cv
-        priorityGroup = priorityFilter.groupName
-        break priorityFilterLoop
+        else {
+          volunteer = candidateVolunteer
+          priorityGroup = priorityFilter.groupName
+          break
+        }
       }
     }
   }

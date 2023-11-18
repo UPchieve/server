@@ -1147,7 +1147,7 @@ FROM (
         COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked;
 
 
-/* @name getNextVolunteersToNotify */
+/* @name getNextVolunteerToNotify */
 WITH subject_totals AS (
     SELECT
         subjects.name,
@@ -1257,7 +1257,7 @@ FROM
     candidates
 ORDER BY
     RANDOM()
-LIMIT (:maxCandidateVolunteers!)::int;
+LIMIT 1;
 
 
 /* @name checkIfVolunteerMutedSubject */

@@ -1574,7 +1574,7 @@ export async function updateVolunteerBackgroundInfo(
   }
 }
 
-export async function getNextVolunteersToNotify(options: {
+export async function getNextVolunteerToNotify(options: {
   subject: string
   lastNotified: Date
   isPartner: boolean | undefined
@@ -1582,17 +1582,14 @@ export async function getNextVolunteersToNotify(options: {
   disqualifiedVolunteers: Ulid[] | undefined
   specificPartner: string | undefined
   favoriteVolunteers: Ulid[] | undefined
-  maxCandidateVolunteers: number
-}): Promise<VolunteerContactInfo[] | undefined> {
+}): Promise<VolunteerContactInfo | undefined> {
   try {
-    const result = await pgQueries.getNextVolunteersToNotify.run(
+    const result = await pgQueries.getNextVolunteerToNotify.run(
       options,
       getClient()
     )
     if (!result.length) return
-    return result.map(v => {
-      return makeSomeOptional(v, ['volunteerPartnerOrg'])
-    })
+    return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
