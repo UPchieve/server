@@ -616,7 +616,7 @@ export async function updateUserProfileById(
         let subjectNameIdMapping: {
           [name: string]: number
         } = await getSubjectNameIdMapping()
-        let mutedSubjectAlertIds = new Array()
+        let mutedSubjectAlertIds = []
         for (const subjectName of data.mutedSubjectAlerts) {
           mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
         }
