@@ -356,7 +356,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -372,7 +372,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -389,7 +389,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: associatedPartner?.volunteerPartnerOrg,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -405,7 +405,7 @@ export async function notifyVolunteer(
           highLevelSubjects,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -420,7 +420,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -435,7 +435,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
     {
@@ -450,7 +450,7 @@ export async function notifyVolunteer(
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
           specificPartner: undefined,
-          favoriteVolunteers: undefined
+          favoriteVolunteers: undefined,
         }),
     },
   ]
@@ -462,7 +462,9 @@ export async function notifyVolunteer(
   for (const priorityFilter of volunteerPriority) {
     candidateVolunteer = await priorityFilter.query()
     if (candidateVolunteer) {
-      let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(candidateVolunteer.id)
+      let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
+        candidateVolunteer.id
+      )
       if (mutedSubjectAlertsFlag) {
         let candidateVolunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
           candidateVolunteer.id,
@@ -470,8 +472,7 @@ export async function notifyVolunteer(
         )
         if (candidateVolunteerMutedSubject) {
           continue
-        }
-        else {
+        } else {
           volunteer = candidateVolunteer
           priorityGroup = priorityFilter.groupName
           break
