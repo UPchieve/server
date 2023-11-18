@@ -1265,9 +1265,10 @@ SELECT
     user_id
 FROM
     muted_users_subject_alerts
+    JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
 WHERE
     muted_users_subject_alerts.user_id = :userId
-    AND muted_users_subject_alerts.subject_id = :subjectId;
+    AND subjects.name = :subjectName;
 
 
 /* @name getVolunteerForScheduleUpdate */

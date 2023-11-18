@@ -7,7 +7,6 @@ import {
   getStudentContactInfoById,
   getTestStudentExistsById,
 } from '../models/Student'
-import { getSubjectNameIdMapping } from '../models/Subjects'
 import {
   VolunteerContactInfo,
   getVolunteersNotifiedBySessionId,
@@ -469,8 +468,6 @@ export async function notifyVolunteer(
 
   let volunteer: VolunteerContactInfo | undefined, priorityGroup: any
   let candidateVolunteers: VolunteerContactInfo[] | undefined
-  const subjectNameIdMapping = await getSubjectNameIdMapping()
-  const subjectId = subjectNameIdMapping[session.subject]
 
   priorityFilterLoop: for (const priorityFilter of volunteerPriority) {
     candidateVolunteers = await priorityFilter.query()
@@ -480,7 +477,7 @@ export async function notifyVolunteer(
         if (mutedSubjectAlertsFlag) {
           let volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
             cv.id,
-            subjectId
+            session.subject
           )
           if (volunteerMutedSubject) continue
         }

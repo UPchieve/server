@@ -1600,11 +1600,11 @@ export async function getNextVolunteersToNotify(options: {
 
 export async function checkIfVolunteerMutedSubject(
   userId: Ulid,
-  subjectId: number
+  subjectName: string
 ): Promise<boolean | undefined> {
   try {
     const result = await pgQueries.checkIfVolunteerMutedSubject.run(
-      { userId, subjectId },
+      { userId, subjectName },
       getClient()
     )
     return result.length ? true : false
