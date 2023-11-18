@@ -1,7 +1,7 @@
-import { getNextVolunteersToNotify } from '../../models/Volunteer'
+import { getNextVolunteerToNotify } from '../../models/Volunteer'
 
 test('Make a connection', async () => {
-  const result = await getNextVolunteersToNotify({
+  const result = await getNextVolunteerToNotify({
     subject: 'algebraOne',
     lastNotified: new Date(),
     isPartner: false,
@@ -9,7 +9,6 @@ test('Make a connection', async () => {
     disqualifiedVolunteers: undefined,
     specificPartner: undefined,
     favoriteVolunteers: undefined,
-    maxCandidateVolunteers: 5,
   })
   expect(result).toBeUndefined()
 })
