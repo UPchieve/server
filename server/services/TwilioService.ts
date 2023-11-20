@@ -456,11 +456,13 @@ export async function notifyVolunteer(
   ]
 
   let volunteer: VolunteerContactInfo | undefined = undefined
-  let candidateVolunteer: VolunteerContactInfo | undefined
   let priorityGroup: any
 
   for (const priorityFilter of volunteerPriority) {
-    candidateVolunteer = await priorityFilter.query()
+    let candidateVolunteer:
+      | VolunteerContactInfo
+      | undefined = await priorityFilter.query()
+    let volunteerSelected: boolean = false
     if (candidateVolunteer) {
       let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
         candidateVolunteer.id
@@ -470,18 +472,17 @@ export async function notifyVolunteer(
           candidateVolunteer.id,
           session.subject
         )
-        if (candidateVolunteerMutedSubject) {
-          continue
-        } else {
-          volunteer = candidateVolunteer
-          priorityGroup = priorityFilter.groupName
-          break
+        if (!candidateVolunteerMutedSubject) {
+          volunteerSelected = true
         }
       } else {
-        volunteer = candidateVolunteer
-        priorityGroup = priorityFilter.groupName
-        break
+        volunteerSelected = true
       }
+    }
+    if (volunteerSelected) {
+      volunteer = candidateVolunteer
+      priorityGroup = priorityFilter.groupName
+      break
     }
   }
 
