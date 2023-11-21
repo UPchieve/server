@@ -79,3 +79,21 @@ export class NotAuthenticatedError extends CustomError {
     super('Request is not authenticated')
   }
 }
+export class AlreadyInUseError extends CustomError {}
+export class TwilioError extends CustomError {
+  message: string
+  status: number
+  constructor(message: string, status: number) {
+    super()
+    this.message = message
+    this.status = status
+  }
+}
+
+export class SmsVerificationDisabledError extends CustomError {
+  constructor() {
+    super(
+      'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.'
+    )
+  }
+}

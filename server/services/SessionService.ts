@@ -27,7 +27,11 @@ import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
-import { Session } from '../models/Session'
+import {
+  Session,
+  updateSessionFlagsById,
+  updateSessionReviewReasonsById,
+} from '../models/Session'
 import * as SessionRepo from '../models/Session'
 import { User, UserContactInfo } from '../models/User'
 import * as UserRepo from '../models/User'
@@ -54,6 +58,8 @@ import * as WhiteboardService from './WhiteboardService'
 import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
+import { getSessionRecapDmsFeatureFlag } from './FeatureFlagService'
+import { getStudentPartnerInfoById } from '../models/Student'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -97,14 +103,24 @@ export async function getTimeTutoredForDateRange(
   )
 }
 
+export async function handleDmReporting(
+  sessionId: Ulid,
+  sessionFlags: USER_SESSION_METRICS[]
+): Promise<void> {
+  await updateSessionFlagsById(sessionId, sessionFlags)
+  await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
+}
+
 export async function reportSession(user: UserContactInfo, data: unknown) {
   const {
     sessionId,
     reportReason,
     reportMessage,
+    source,
   } = sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
-  if (!session.volunteerId || !(user.id === session.volunteerId))
+  // Only matched sessions can be reported
+  if (!session.volunteerId)
     throw new sessionUtils.ReportSessionError('Unable to report this session')
 
   const reportedBy = user
@@ -114,34 +130,39 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     reportMessage
   )
 
-  const isBanReason = reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
-  if (isBanReason && reportedBy.isVolunteer) {
-    await UserRepo.banUserById(
-      session.studentId,
-      USER_BAN_REASONS.SESSION_REPORTED
-    )
+  // Autoban users if a session is reported from the recap page
+  const isBanReason =
+    reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
+  const reportedUser = reportedBy.isVolunteer
+    ? session.studentId
+    : session.volunteerId
+  if (isBanReason) {
+    await UserRepo.banUserById(reportedUser, USER_BAN_REASONS.SESSION_REPORTED)
     await createAccountAction({
-      userId: session.studentId,
+      userId: reportedUser,
       action: ACCOUNT_USER_ACTIONS.BANNED,
       sessionId: session.id,
       banReason: reportReason,
     })
-    AnalyticsService.captureEvent(
-      session.studentId as Ulid,
-      EVENTS.ACCOUNT_BANNED,
-      {
-        event: EVENTS.ACCOUNT_BANNED,
-        sessionId: session.id,
-        banReason: USER_BAN_REASONS.SESSION_REPORTED,
-      }
-    )
+    AnalyticsService.captureEvent(reportedUser, EVENTS.ACCOUNT_BANNED, {
+      event: EVENTS.ACCOUNT_BANNED,
+      sessionId: session.id,
+      banReason: USER_BAN_REASONS.SESSION_REPORTED,
+    })
+
+    if (source === 'recap') {
+      const sessionFlags = reportedBy.isVolunteer
+        ? [USER_SESSION_METRICS.coachReportedStudentDm]
+        : [USER_SESSION_METRICS.studentReportedCoachDm]
+      handleDmReporting(sessionId, sessionFlags)
+    }
   }
 
   emitter.emit(SESSION_EVENTS.SESSION_REPORTED, session.id)
 
   // Queue up job to send reporting alert emails
   const emailData = {
-    studentId: session.studentId,
+    userId: reportedUser,
     reportedBy: user.email,
     reportReason,
     reportMessage,
@@ -571,6 +592,10 @@ export async function currentSession(userId: Ulid) {
   return await SessionRepo.getCurrentSessionByUserId(userId)
 }
 
+export async function getRecapSessionForDms(userId: Ulid) {
+  return await SessionRepo.getRecapSessionForDmsBySessionId(userId)
+}
+
 export async function studentLatestSession(data: unknown) {
   const userId = asString(data)
   return await SessionRepo.getLatestSessionByStudentId(userId)
@@ -689,7 +714,7 @@ export async function saveMessage(
   createdAt: Date,
   data: unknown,
   chatbot: Ulid | undefined
-): Promise<void> {
+): Promise<string> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   if (
@@ -702,7 +727,7 @@ export async function saveMessage(
   )
     throw new Error('Only session participants are allowed to send messages')
 
-  await SessionRepo.addMessageToSessionById(sessionId, user._id, message)
+  return await SessionRepo.addMessageToSessionById(sessionId, user._id, message)
 }
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
@@ -847,4 +872,45 @@ export async function getSessionRecap(
       'Only session participants are allowed to view this session'
     )
   return session
+}
+
+export async function isEligibleForSessionRecap(
+  sessionId: Ulid,
+  studentId: Ulid
+): Promise<boolean> {
+  const student = await getStudentPartnerInfoById(studentId)
+  if (student?.studentPartnerOrg) return false
+  return await SessionRepo.isEligibleForSessionRecap(sessionId)
+}
+
+/**
+ *
+ * - Banned users should not be able to send DMs in the recap page
+ * - Coaches cannot send DMs to partner students
+ * - Coaches can send DMs once session ended and they have the session-recap-dms flag as `true`.
+ * - Students are not able to initiate the conversation. A coach must send the first message.
+ *   We determine this by looking to see if a coach had sent a message after the
+ *   session ended.
+ *
+ */
+export async function isRecapDmsAvailable(
+  sessionId: Ulid,
+  studentId: Ulid,
+  volunteerId: Ulid,
+  isVolunteer: boolean
+): Promise<boolean> {
+  const hasBannedParticipant = await SessionRepo.sessionHasBannedParticipant(
+    sessionId
+  )
+  if (hasBannedParticipant) return false
+
+  const student = await getStudentPartnerInfoById(studentId)
+  if (student?.studentPartnerOrg) return false
+
+  const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
+  if (!flag) return false
+  const sentMessages = await SessionRepo.volunteerSentMessageAfterSessionEnded(
+    sessionId
+  )
+  return sentMessages || isVolunteer
 }

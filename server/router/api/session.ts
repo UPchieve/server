@@ -69,7 +69,25 @@ export function routeSession(router: Router, io: Server) {
     try {
       const user = extractUser(req)
       const currentSession = await SessionService.currentSession(user.id)
-      // TODO: should not return an error is session is missing
+      if (!currentSession) {
+        res.json(null)
+      } else {
+        res.json({
+          sessionId: currentSession._id,
+          data: currentSession,
+        })
+      }
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.route('/session/recap-dms').post(async function(req, res) {
+    try {
+      const sessionId = asString(req.body.sessionId)
+      const currentSession = await SessionService.getRecapSessionForDms(
+        sessionId
+      )
       if (!currentSession) {
         resError(res, new LookupError('No current session'), 404)
       } else {
@@ -85,18 +103,17 @@ export function routeSession(router: Router, io: Server) {
 
   router.route('/session/latest').post(async function(req, res) {
     try {
-      if (!Object.prototype.hasOwnProperty.call(req.body, 'userId'))
-        throw new InputError('Missing userId body string')
-      const latestSession = await SessionService.studentLatestSession(
-        req.body.userId as unknown
-      )
+      const user = extractUser(req)
+      const latestSession = await SessionService.studentLatestSession(user.id)
 
-      if (!latestSession) throw new Error('could not find latest session')
-
-      res.json({
-        sessionId: latestSession._id,
-        data: latestSession,
-      })
+      if (!latestSession) {
+        res.json(null)
+      } else {
+        res.json({
+          sessionId: latestSession._id,
+          data: latestSession,
+        })
+      }
     } catch (error) {
       resError(res, error)
     }
@@ -259,6 +276,23 @@ export function routeSession(router: Router, io: Server) {
     }
   })
 
+  router.post('/sessions/history/:sessionId/eligible', async function(
+    req,
+    res
+  ) {
+    try {
+      const { sessionId } = req.params
+      const { studentId } = req.body
+      const isEligible = await SessionService.isEligibleForSessionRecap(
+        sessionId,
+        asString(studentId)
+      )
+      res.json({ isEligible })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.get('/sessions/:sessionId/recap', async function(req, res) {
     try {
       const user = extractUser(req)
@@ -268,7 +302,13 @@ export function routeSession(router: Router, io: Server) {
         user.id
       )
 
-      res.json({ session })
+      const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
+        session.id,
+        session.studentId,
+        session.volunteerId,
+        user.isVolunteer
+      )
+      res.json({ session, isRecapDmsAvailable })
     } catch (err) {
       resError(res, err)
     }

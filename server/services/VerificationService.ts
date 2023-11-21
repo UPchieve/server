@@ -1,24 +1,31 @@
 import { Ulid } from '../models/pgUtils'
 import { VERIFICATION_METHOD } from '../constants'
 import {
-  asFactory,
-  asString,
-  asEnum,
-  asOptional,
   asBoolean,
+  asEnum,
+  asFactory,
+  asOptional,
+  asString,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
-import { InputError, LookupError } from '../models/Errors'
+import {
+  AlreadyInUseError,
+  InputError,
+  LookupError,
+  SmsVerificationDisabledError,
+  TwilioError,
+} from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
 import {
-  updateUserVerifiedInfoById,
   getUserContactInfoById,
   getUserIdByEmail,
   getUserIdByPhone,
+  updateUserVerifiedInfoById,
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
+import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -58,6 +65,13 @@ export async function initiateVerification(data: unknown): Promise<void> {
     firstName,
   } = asInitiateVerificationData(data)
 
+  if (
+    verificationMethod === VERIFICATION_METHOD.SMS &&
+    !(await getSmsVerificationFeatureFlag(userId))
+  ) {
+    throw new SmsVerificationDisabledError()
+  }
+
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
@@ -85,9 +99,25 @@ export async function initiateVerification(data: unknown): Promise<void> {
 
   // Make sure the user from DB matches the one in the request
   if (existingUserId && !(userId === existingUserId))
-    throw new LookupError(existingUserErrorMessage)
+    throw new AlreadyInUseError(existingUserErrorMessage)
 
-  await TwilioService.sendVerification(sendTo, verificationMethod, firstName)
+  try {
+    await TwilioService.sendVerification(
+      sendTo,
+      verificationMethod,
+      firstName,
+      userId
+    )
+  } catch (err) {
+    const error = err as {
+      message: string
+      status: number
+    }
+    throw new TwilioError(
+      error.message ?? 'Could not send verification',
+      error.status
+    )
+  }
 }
 
 async function sendEmails(userId: Ulid): Promise<void> {
@@ -125,8 +155,14 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     forSignup,
   } = asConfirmVerificationData(data)
 
-  const shouldSendOnboardingEmails = forSignup ?? true
+  if (
+    verificationMethod === VERIFICATION_METHOD.SMS &&
+    !(await getSmsVerificationFeatureFlag(userId))
+  ) {
+    throw new SmsVerificationDisabledError()
+  }
 
+  // Validate code
   const VERIFICATION_CODE_LENGTH = 6
   if (
     verificationCode.length !== VERIFICATION_CODE_LENGTH ||
@@ -134,21 +170,32 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   )
     throw new InputError('Must enter a valid 6-digit validation code')
 
+  const shouldSendOnboardingEmails = forSignup ?? true
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
+
+  let isVerified: boolean = false
   try {
-    const isVerified = await TwilioService.confirmVerification(
+    isVerified = await TwilioService.confirmVerification(
       sendTo,
       verificationCode
     )
-    if (isVerified) {
-      await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
-      if (shouldSendOnboardingEmails) {
-        await sendEmails(userId)
-      }
+  } catch (err) {
+    const error = err as {
+      message: string
+      status: number
     }
-
-    return isVerified
-  } catch (error) {
-    throw error
+    throw new TwilioError(
+      error.message ?? 'Could not confirm verification code',
+      error.status ?? 500
+    )
   }
+
+  if (isVerified) {
+    await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
+    if (shouldSendOnboardingEmails) {
+      await sendEmails(userId)
+    }
+  }
+
+  return isVerified
 }

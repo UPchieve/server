@@ -2,8 +2,12 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import {
   checkEmail,
   checkNames,
+  checkPassword,
   createResetToken,
+  getReferredBy,
   hashPassword,
+  RegisterStudentWithFedCredPayload,
+  RegisterStudentWithPasswordPayload,
 } from '../utils/auth-utils'
 import { sendRosterStudentSetPasswordEmail } from './MailService'
 import * as UserRepo from '../models/User'
@@ -21,6 +25,8 @@ import {
   GetStudentPartnerOrgResult,
 } from '../models/StudentPartnerOrg'
 import { insertFederatedCredential } from '../models/FederatedCredential'
+import { checkIpAddress, checkUser } from './AuthService'
+import { verifyEligibility } from './EligibilityService'
 
 export interface RosterStudentPayload {
   email: string
@@ -89,7 +95,12 @@ export async function rosterPartnerStudents(
           signupSourceId: signUpSource?.id,
           verified: true,
         }
-        const user = await createUser(userData, USER_ROLES.STUDENT, tc)
+        const user = await createUser(
+          userData,
+          undefined,
+          USER_ROLES.STUDENT,
+          tc
+        )
 
         const studentData = {
           userId: user.id,
@@ -124,6 +135,67 @@ export async function rosterPartnerStudents(
   return failedUsers
 }
 
+export async function verifyStudentData(
+  data: RegisterStudentWithPasswordPayload | RegisterStudentWithFedCredPayload
+) {
+  checkEmail(data.email)
+  checkNames(data.firstName, data.lastName)
+  await checkUser(data.email)
+  if (usePassword(data)) {
+    checkPassword(data.password)
+  }
+  await verifyEligibility(data.zipCode, data.schoolId)
+  if (data.ip) {
+    await checkIpAddress(data.ip)
+  }
+}
+
+export async function registerStudent(
+  data: RegisterStudentWithPasswordPayload | RegisterStudentWithFedCredPayload
+) {
+  await verifyStudentData(data)
+  const newStudent = await runInTransaction(async (tc: TransactionClient) => {
+    const userData = {
+      email: data.email,
+      emailVerified: useFedCred(data),
+      firstName: data.firstName,
+      lastName: data.lastName,
+      password: usePassword(data)
+        ? await hashPassword(data.password)
+        : undefined,
+      referredBy: await getReferredBy(data.referredByCode),
+      verified: useFedCred(data),
+    }
+    const user = await createUser(userData, data.ip, USER_ROLES.STUDENT, tc)
+
+    const studentData = {
+      college: data.college,
+      userId: user.id,
+      gradeLevel: data.gradeLevel,
+      partnerSite: data.studentPartnerSite,
+      schoolId: data.schoolId,
+      studentPartnerOrg: data.studentPartnerOrg,
+      zipCode: data.zipCode,
+    }
+    await createStudent(studentData, tc)
+
+    if (useFedCred(data)) {
+      await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
+    }
+
+    return user
+  })
+
+  emitter.emit(USER_EVENTS.USER_CREATED, newStudent.id)
+  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, newStudent.id)
+
+  return {
+    ...newStudent,
+    isAdmin: false,
+    isVolunteer: false,
+  }
+}
+
 export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
   let user
   await runInTransaction(async (tc: TransactionClient) => {
@@ -140,7 +212,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
       lastName: data.lastName,
       verified: hasFederatedCredential,
     }
-    user = await createUser(userData, USER_ROLES.STUDENT, tc)
+    user = await createUser(userData, undefined, USER_ROLES.STUDENT, tc)
 
     const spo = await getStudentPartnerOrgByKey(tc, data.studentPartnerOrg)
     const studentData = {
@@ -159,6 +231,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
 
 async function createUser(
   userData: UserRepo.CreateUserPayload,
+  ip: string | undefined,
   role: USER_ROLES_TYPE,
   tc: TransactionClient
 ) {
@@ -172,11 +245,11 @@ async function createUser(
       {
         action: ACCOUNT_USER_ACTIONS.CREATED,
         userId: user.id,
+        ipAddress: ip,
       },
       tc
     ),
   ])
-  emitter.emit(USER_EVENTS.USER_CREATED, user.id)
   return user
 }
 
@@ -184,15 +257,6 @@ async function createStudent(
   studentData: StudentRepo.CreateStudentProfilePayload,
   tc: TransactionClient
 ) {
-  if (studentData.studentPartnerOrg) {
-    const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
-      tc,
-      studentData.studentPartnerOrg,
-      studentData.partnerSite
-    )
-    await addUserStudentPartnerOrgInstance(spo)
-  }
-
   if (studentData.schoolId) {
     const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
       tc,
@@ -201,8 +265,20 @@ async function createStudent(
     await addUserStudentPartnerOrgInstance(spo)
   }
 
+  if (studentData.studentPartnerOrg) {
+    const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
+      tc,
+      studentData.studentPartnerOrg,
+      studentData.partnerSite
+    )
+    await addUserStudentPartnerOrgInstance(spo)
+
+    if (spo?.schoolId && !studentData.schoolId) {
+      studentData.schoolId = spo.schoolId
+    }
+  }
+
   await StudentRepo.createStudentProfile(studentData, tc)
-  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, studentData.userId)
 
   async function addUserStudentPartnerOrgInstance(
     spo?: GetStudentPartnerOrgResult
@@ -218,4 +294,14 @@ async function createStudent(
       )
     }
   }
+}
+
+function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
+  return 'profileId' in object && 'issuer' in object
+}
+
+function usePassword(
+  object: any
+): object is RegisterStudentWithPasswordPayload {
+  return 'password' in object
 }

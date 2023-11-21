@@ -10,6 +10,7 @@ import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-ela
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
+import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
@@ -29,7 +30,7 @@ import notifyTutors from './notifyTutors'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import sendAssistmentsData from './sendAssistmentsData'
 import sendFollowupText from './sendFollowupText'
-import emailSessionReported from './student-emails/emailSessionReported'
+import emailSessionReported from './user-emails/emailSessionReported'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
 import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
@@ -46,6 +47,7 @@ import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVoluntee
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import updateGradeLevel from './updateGradeLevel'
 import studentProcrastinationTextReminder from './studentProcrastinationTextReminder'
+import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -92,6 +94,7 @@ export enum Jobs {
   Chatbot = 'Chatbot',
   UpdateGradeLevel = 'UpdateGradeLevel',
   StudentProcrastinationTextReminder = 'StudentProcrastinationTextReminder',
+  SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -110,6 +113,7 @@ export enum Jobs {
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
+  DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
@@ -289,6 +293,10 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.StudentProcrastinationTextReminder,
     processor: studentProcrastinationTextReminder,
   },
+  {
+    name: Jobs.SendSessionRecapMessageNotification,
+    processor: sendSessionRecapMessageNotification,
+  },
 
   // TODO: remove the following deprecated job names
   {
@@ -353,6 +361,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertSchools,
     processor: upsertSchools,
+  },
+  {
+    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
+    processor: deleteDuplicateStudentFavoriteVolunteers,
   },
 ]
 

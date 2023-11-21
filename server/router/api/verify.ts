@@ -4,11 +4,7 @@ import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
-
-export interface TwilioError extends Error {
-  message: string
-  status: number
-}
+import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
 
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
@@ -23,23 +19,27 @@ export function routeVerify(router: Router) {
       await VerificationService.initiateVerification(payload as unknown)
       res.sendStatus(200)
     } catch (err) {
-      const status = (err as TwilioError).status
-      let message: string
-      if (status === 429) {
-        message =
-          "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
-      } else if (status === 404) {
-        // Twilio verification resoure was not found
-        message =
-          'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
-      } else {
-        message = (err as TwilioError).message
+      let message =
+        'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.'
+      let status = 500
+
+      if (err instanceof TwilioError) {
+        // custom logging for NR alerts
+        logger.error(
+          { 'error.name': 'twilio verification', error: err },
+          (err as Error).message
+        )
+
+        if (err.status === 429) {
+          status = 429
+          message =
+            "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
+        }
+      } else if (err instanceof SmsVerificationDisabledError) {
+        status = 403
+        message = err.message
       }
-      // custom logging for NR alerts
-      logger.error(
-        { 'error.name': 'twilio verification', error: err },
-        (err as TwilioError).message
-      )
+
       resError(res, new Error(message), status)
     }
   })
@@ -65,7 +65,21 @@ export function routeVerify(router: Router) {
         { 'error.name': 'twilio verification', error: err },
         (err as Error).message
       )
-      resError(res, err)
+
+      let status = 500
+      let message =
+        'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.'
+
+      if (err instanceof TwilioError && err.status === 404) {
+        status = 400
+        message =
+          'The code has expired. Please request a new verification code and try again.'
+      } else if (err instanceof SmsVerificationDisabledError) {
+        status = 403
+        message = err.message
+      }
+
+      resError(res, new Error(message), status)
     }
   })
 }

@@ -13,6 +13,7 @@ import { getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
+import { buildAppLink } from '../../utils/link-builders'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -90,13 +91,6 @@ async function sendEmail(
   await sgMail.send(msg)
 }
 
-// TODO: use this in other MailService methods
-function buildLink(path: string): string {
-  const { host } = config.client
-  const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-  return `${protocol}://${host}/${path}`
-}
-
 function getFormattedHourSummaryTime(time: number): string {
   const hour = Math.floor(Math.abs(time))
   const minute = Math.floor((Math.abs(time) * 60) % 60)
@@ -156,17 +150,9 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
   )
 }
 
-export async function sendReset(
-  email: string,
-  sendToMobile: boolean,
-  token: string
-): Promise<void> {
-  let url: string
-  if (sendToMobile) {
-    url = `com.upchieve.app://setpassword/${token}`
-  } else {
-    url = `https://${config.client.host}/setpassword?token=${token}`
-  }
+export async function sendReset(email: string, token: string): Promise<void> {
+  const url = `https://${config.client.host}/setpassword?token=${token}`
+
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -350,7 +336,7 @@ export async function sendReportedSessionAlert(
   reportReason: string,
   reportMessage: string
 ): Promise<void> {
-  const sessionAdminLink = buildLink(`admin/sessions/${sessionId}`)
+  const sessionAdminLink = buildAppLink(`admin/sessions/${sessionId}`)
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -375,7 +361,7 @@ export async function sendReferenceForm(
   volunteer: VolunteerContactInfo
 ): Promise<void> {
   const emailData = {
-    referenceUrl: buildLink(`reference-form/${reference.id}`),
+    referenceUrl: buildAppLink(`reference-form/${reference.id}`),
     referenceName: reference.firstName,
     volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
   }
@@ -399,7 +385,7 @@ export async function sendReferenceFormApology(
   volunteer: VolunteerContactInfo
 ): Promise<void> {
   const emailData = {
-    referenceUrl: buildLink(`reference-form/${reference.id}`),
+    referenceUrl: buildAppLink(`reference-form/${reference.id}`),
     referenceName: reference.firstName,
     volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
   }
@@ -463,8 +449,8 @@ export async function sendBannedUserAlert(
   banReason: USER_BAN_REASONS,
   sessionId?: Ulid
 ): Promise<void> {
-  const userAdminLink = buildLink(`admin/users/${userId}`)
-  const sessionAdminLink = buildLink(`admin/sessions/${sessionId}`)
+  const userAdminLink = buildAppLink(`admin/users/${userId}`)
+  const sessionAdminLink = buildAppLink(`admin/sessions/${sessionId}`)
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -534,7 +520,7 @@ export async function sendReferenceFollowup(
   const volunteerFirstName = capitalize(volunteer.firstName)
   const volunteerLastName = capitalize(volunteer.lastName)
   const emailData = {
-    referenceUrl: buildLink(`reference-form/${reference.id}`),
+    referenceUrl: buildAppLink(`reference-form/${reference.id}`),
     referenceName: reference.firstName,
     volunteerName: `${volunteerFirstName} ${volunteerLastName}`,
     volunteerFirstName,
@@ -619,11 +605,6 @@ export async function sendHourSummaryEmail(
   const overrides = {
     asm: {
       group_id: config.sendgrid.unsubscribeGroup.volunteerSummary,
-      groups_to_display: [
-        config.sendgrid.unsubscribeGroup.newsletter,
-        // TODO: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
-        config.sendgrid.unsubscribeGroup.volunteerSummary,
-      ],
     },
     categories: ['weekly hour summary email'],
   }
@@ -998,6 +979,23 @@ export async function sendStudentReported(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
+export async function sendCoachReported(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.support
+  const from = 'The UPchieve Team'
+  const template = config.sendgrid.studentReportedCoachDmTemplate
+  const overrides = {
+    reply_to: {
+      email: sender,
+    },
+    categories: ['coach - reported'],
+  }
+
+  await sendEmail(email, sender, from, template, { firstName }, overrides)
+}
+
 export async function sendStudentAbsentWarning(
   email: string,
   firstName: string
@@ -1196,6 +1194,27 @@ export async function sendReferralProgramEmail(
     {
       firstName: studentFirstName,
       referralLink,
+    }
+  )
+}
+
+export async function sendSessionRecapMessage(
+  email: string,
+  receiverFirstName: string,
+  senderFirstName: string,
+  sessionRecapLink: string,
+  message: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.emailSessionRecapMessage,
+    {
+      receiverFirstName,
+      senderFirstName,
+      sessionRecapLink,
+      message,
     }
   )
 }

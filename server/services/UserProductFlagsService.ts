@@ -27,7 +27,7 @@ export async function incentiveProgramEnrollmentVerify(
       phone,
       VERIFICATION_METHOD.SMS,
       firstName,
-      true
+      userId
     )
   } catch (error) {
     throw error
