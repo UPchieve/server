@@ -462,7 +462,6 @@ export async function notifyVolunteer(
     let candidateVolunteer:
       | VolunteerContactInfo
       | undefined = await priorityFilter.query()
-    let volunteerSelected: boolean = false
     if (candidateVolunteer) {
       const mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
         candidateVolunteer.id
@@ -472,14 +471,8 @@ export async function notifyVolunteer(
           candidateVolunteer.id,
           session.subject
         )
-        if (!candidateVolunteerMutedSubject) {
-          volunteerSelected = true
-        }
-      } else {
-        volunteerSelected = true
+        if (candidateVolunteerMutedSubject) continue
       }
-    }
-    if (volunteerSelected) {
       volunteer = candidateVolunteer
       priorityGroup = priorityFilter.groupName
       break
