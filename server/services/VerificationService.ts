@@ -1,29 +1,31 @@
 import { Ulid } from '../models/pgUtils'
 import { VERIFICATION_METHOD } from '../constants'
 import {
-  asFactory,
-  asString,
-  asEnum,
-  asOptional,
   asBoolean,
+  asEnum,
+  asFactory,
+  asOptional,
+  asString,
 } from '../utils/type-utils'
 import isValidEmail from '../utils/is-valid-email'
 import {
   AlreadyInUseError,
   InputError,
   LookupError,
+  SmsVerificationDisabledError,
   TwilioError,
 } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
 import {
-  updateUserVerifiedInfoById,
   getUserContactInfoById,
   getUserIdByEmail,
   getUserIdByPhone,
+  updateUserVerifiedInfoById,
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
+import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -62,6 +64,13 @@ export async function initiateVerification(data: unknown): Promise<void> {
     verificationMethod,
     firstName,
   } = asInitiateVerificationData(data)
+
+  if (
+    verificationMethod === VERIFICATION_METHOD.SMS &&
+    !(await getSmsVerificationFeatureFlag(userId))
+  ) {
+    throw new SmsVerificationDisabledError()
+  }
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   let existingUserErrorMessage: string
@@ -145,6 +154,13 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     verificationCode,
     forSignup,
   } = asConfirmVerificationData(data)
+
+  if (
+    verificationMethod === VERIFICATION_METHOD.SMS &&
+    !(await getSmsVerificationFeatureFlag(userId))
+  ) {
+    throw new SmsVerificationDisabledError()
+  }
 
   // Validate code
   const VERIFICATION_CODE_LENGTH = 6

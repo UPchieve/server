@@ -231,10 +231,12 @@ import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import {
   AlreadyInUseError,
   InputError,
   LookupError,
+  SmsVerificationDisabledError,
   TwilioError,
 } from '../../models/Errors'
 import { buildUserContactInfo } from '../mocks/generate'
@@ -243,10 +245,12 @@ jest.mock('../../models/User/queries')
 jest.mock('../../services/TwilioService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
+jest.mock('../../services/FeatureFlagService')
 
 const mockedTwilioService = mocked(TwilioService, true)
 const mockedUserRepo = mocked(UserRepo)
 const mockedMailService = mocked(MailService, true)
+const mockFeatureFlagService = mocked(FeatureFlagService, true)
 
 describe('VerificationService', () => {
   beforeEach(async () => {
@@ -254,6 +258,7 @@ describe('VerificationService', () => {
     const userId = '123'
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(userId)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(userId)
+    mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(true)
   })
 
   describe('sendVerification', () => {
@@ -284,68 +289,97 @@ describe('VerificationService', () => {
         )
       }
     )
-  })
 
-  it.each([
-    '8608885555', // no country code
-    '1860888555', // no +
-    '123', // not enough digits
-    'abc', // not numbers
-    '123123123123123', // too long
-  ])(
-    'Should throw an InputError when given an invalid phone number',
-    async phoneNumber => {
-      const expectedErrorMsg = 'Must supply a valid phone number'
+    it.each([
+      '8608885555', // no country code
+      '1860888555', // no +
+      '123', // not enough digits
+      'abc', // not numbers
+      '123123123123123', // too long
+    ])(
+      'Should throw an InputError when given an invalid phone number',
+      async phoneNumber => {
+        const expectedErrorMsg = 'Must supply a valid phone number'
+        const req = {
+          userId: '123',
+          firstName: 'Louise',
+          verificationMethod: VERIFICATION_METHOD.SMS,
+          sendTo: phoneNumber,
+        }
+
+        await expect(async () =>
+          VerificationService.initiateVerification(req)
+        ).rejects.toThrow(new InputError(expectedErrorMsg))
+      }
+    )
+
+    it('Should throw an AlreadyInUseError if the user ID from in DB does not match the one in the request', async () => {
+      const req = {
+        userId: '456',
+        firstName: 'Louise',
+        verificationMethod: VERIFICATION_METHOD.EMAIL,
+        sendTo: 'louisebelcher@bobsburgers.com',
+      }
+      await expect(async () =>
+        VerificationService.initiateVerification(req)
+      ).rejects.toThrow(AlreadyInUseError)
+    })
+
+    it('Should throw a LookupError if the sendTo email does not match the email in DB', async () => {
+      mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
+      const req = {
+        userId: '123',
+        firstName: 'Louise',
+        verificationMethod: VERIFICATION_METHOD.EMAIL,
+        sendTo: 'tinabelcher@bobsburgers.com',
+      }
+      await expect(async () =>
+        VerificationService.initiateVerification(req)
+      ).rejects.toThrow(LookupError)
+    })
+
+    it('Should throw a TwilioError if one is thrown by the TwilioService', async () => {
+      const expectedErr = new TwilioError('Too many requests', 429)
+      mockedTwilioService.sendVerification.mockRejectedValue(expectedErr)
       const req = {
         userId: '123',
         firstName: 'Louise',
         verificationMethod: VERIFICATION_METHOD.SMS,
-        sendTo: phoneNumber,
+        sendTo: '+18187764450',
       }
-
-      expect(async () =>
+      await expect(() =>
         VerificationService.initiateVerification(req)
-      ).rejects.toThrow(new InputError(expectedErrorMsg))
-    }
-  )
+      ).rejects.toThrow(expectedErr)
+    })
 
-  it('Should throw an AlreadyInUseError if the user ID from in DB does not match the one in the request', async () => {
-    const req = {
-      userId: '456',
-      firstName: 'Louise',
-      verificationMethod: VERIFICATION_METHOD.EMAIL,
-      sendTo: 'louisebelcher@bobsburgers.com',
-    }
-    expect(async () =>
-      VerificationService.initiateVerification(req)
-    ).rejects.toThrow(AlreadyInUseError)
-  })
+    describe('SMS Verification flag', () => {
+      let req: any
+      beforeEach(() => {
+        req = {
+          userId: '123',
+          firstName: 'Gene',
+          verificationMethod: VERIFICATION_METHOD.SMS,
+          sendTo: '+18187764450',
+        }
+        mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(
+          false
+        )
+      })
 
-  it('Should throw a LookupError if the sendTo email does not match the email in DB', async () => {
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
-    const req = {
-      userId: '123',
-      firstName: 'Louise',
-      verificationMethod: VERIFICATION_METHOD.EMAIL,
-      sendTo: 'tinabelcher@bobsburgers.com',
-    }
-    await expect(async () =>
-      VerificationService.initiateVerification(req)
-    ).rejects.toThrow(LookupError)
-  })
+      it('Should throw an error when the verification method is SMS but SMS verification is disabled', async () => {
+        await expect(() =>
+          VerificationService.initiateVerification(req)
+        ).rejects.toThrow(SmsVerificationDisabledError)
+      })
 
-  it('Should throw a TwilioError if one is thrown by the TwilioService', async () => {
-    const expectedErr = new TwilioError('Too many requests', 429)
-    mockedTwilioService.sendVerification.mockRejectedValue(expectedErr)
-    const req = {
-      userId: '123',
-      firstName: 'Louise',
-      verificationMethod: VERIFICATION_METHOD.SMS,
-      sendTo: '+18187764450',
-    }
-    await expect(() =>
-      VerificationService.initiateVerification(req)
-    ).rejects.toThrow(expectedErr)
+      it('Should succeed an email verification request when the SMS verification flag is off', async () => {
+        req.verificationMethod = VERIFICATION_METHOD.EMAIL
+        req.sendTo = 'bobsburgers@burger.com'
+        await expect(
+          VerificationService.initiateVerification(req)
+        ).resolves.not.toThrowError()
+      })
+    })
   })
 
   describe('confirmVerification', () => {
@@ -421,6 +455,35 @@ describe('VerificationService', () => {
         expect(
           mockedMailService.sendStudentOnboardingWelcomeEmail
         ).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('SMS Verification flag', () => {
+      let req: any
+      beforeEach(() => {
+        req = {
+          userId: '123',
+          sendTo: '+18603334444',
+          verificationMethod: VERIFICATION_METHOD.SMS,
+          verificationCode: '123456',
+        }
+        mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(
+          false
+        )
+      })
+
+      it('Should throw an error when the verification method is SMS but SMS verification is disabled', async () => {
+        await expect(() =>
+          VerificationService.confirmVerification(req)
+        ).rejects.toThrow(SmsVerificationDisabledError)
+      })
+
+      it('Should succeed an email verification request when the SMS verification flag is off', async () => {
+        req.verificationMethod = VERIFICATION_METHOD.EMAIL
+        req.sendTo = 'genesmusicshoppe@gene.org'
+        await expect(
+          VerificationService.confirmVerification(req)
+        ).resolves.not.toThrow()
       })
     })
   })
