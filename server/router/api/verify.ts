@@ -6,9 +6,6 @@ import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
 import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
 
-const SMS_VERIFICATION_DISABLED_ERROR_MESSAGE =
-  'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.'
-
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function(req, res) {
     const user = extractUser(req)
@@ -40,7 +37,7 @@ export function routeVerify(router: Router) {
         }
       } else if (err instanceof SmsVerificationDisabledError) {
         status = 403
-        message = SMS_VERIFICATION_DISABLED_ERROR_MESSAGE
+        message = err.message
       }
 
       resError(res, new Error(message), status)
@@ -79,7 +76,7 @@ export function routeVerify(router: Router) {
           'The code has expired. Please request a new verification code and try again.'
       } else if (err instanceof SmsVerificationDisabledError) {
         status = 403
-        message = SMS_VERIFICATION_DISABLED_ERROR_MESSAGE
+        message = err.message
       }
 
       resError(res, new Error(message), status)
