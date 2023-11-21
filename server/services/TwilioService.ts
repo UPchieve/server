@@ -588,7 +588,7 @@ export async function beginRegularNotifications(
   const delay = notificationSchedule.shift()
   await QueueService.add(
     Jobs.NotifyTutors,
-    { sessionId, notificationSchedule },
+    { sessionId, notificationSchedule, currentNotificationRound: 1 },
     { delay, removeOnComplete: true, removeOnFail: true }
   )
 }
@@ -654,9 +654,8 @@ async function createRateLimit(uniqueName: string): Promise<void> {
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits(rateLimitSid)
     .buckets.create({
-      // 4 retries allowed per min
-      max: 4,
-      interval: 60,
+      max: config.twilioVerificationRateLimitMaxRetries,
+      interval: config.twilioVerificationRateLimitIntervalSeconds,
     })
 
   if (!rateLimitBucket) {

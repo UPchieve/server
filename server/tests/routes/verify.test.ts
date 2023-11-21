@@ -208,7 +208,6 @@ describe('verify', () => {
   describe('POST /verify/send', () => {
     describe('Twilio errors', () => {
       it('Should return status 429 when too many requests are made', async () => {
-        // @TODO rewrite this test.
         const expectedErr = new TwilioError('Too many requests', 429)
         mockedVerificationService.initiateVerification.mockRejectedValue(
           expectedErr
@@ -281,5 +280,74 @@ describe('verify', () => {
         ).toHaveBeenCalledWith(req)
       }
     )
+
+    it('Should return status=400 to the user with the correct error message when receiving a 404 Twilio error', async () => {
+      const req = {
+        userId: '123',
+        sendTo: '+18187779999',
+        verificationMethod: VERIFICATION_METHOD.SMS,
+        verificationCode: '123456',
+        forSignup: false,
+      }
+
+      const testErr = new TwilioError(
+        'VerificationCheck resource not found',
+        404
+      )
+      mockedVerificationService.confirmVerification.mockRejectedValue(testErr)
+
+      const res = await sendPost(req, '/confirm')
+      expect(res).toMatchObject({
+        status: 400,
+        body: {
+          err:
+            'The code has expired. Please request a new verification code and try again.',
+        },
+      })
+    })
+
+    it('Should return status=500 to the user with the default message when receiving a non-404 Twilio error status', async () => {
+      const req = {
+        userId: '123',
+        sendTo: '+18187779999',
+        verificationMethod: VERIFICATION_METHOD.SMS,
+        verificationCode: '123456',
+        forSignup: false,
+      }
+
+      const testErr = new TwilioError('Some Twilio Error', 400)
+      mockedVerificationService.confirmVerification.mockRejectedValue(testErr)
+
+      const res = await sendPost(req, '/confirm')
+      expect(res).toMatchObject({
+        status: 500,
+        body: {
+          err:
+            'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
+        },
+      })
+    })
+
+    it('Should return status=500 with the default error message when some non-Twilio error is thrown', async () => {
+      const req = {
+        userId: '123',
+        sendTo: '+18187779999',
+        verificationMethod: VERIFICATION_METHOD.SMS,
+        verificationCode: '123456',
+        forSignup: false,
+      }
+
+      const testErr = new Error('Some non-Twilio error')
+      mockedVerificationService.confirmVerification.mockRejectedValue(testErr)
+
+      const res = await sendPost(req, '/confirm')
+      expect(res).toMatchObject({
+        status: 500,
+        body: {
+          err:
+            'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
+        },
+      })
+    })
   })
 })

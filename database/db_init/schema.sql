@@ -624,6 +624,28 @@ CREATE TABLE upchieve.notifications (
 
 
 --
+-- Name: parents_guardians; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.parents_guardians (
+    id uuid NOT NULL,
+    email text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: parents_guardians_students; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.parents_guardians_students (
+    parents_guardians_id uuid NOT NULL,
+    students_id uuid NOT NULL
+);
+
+
+--
 -- Name: photo_id_statuses; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2660,6 +2682,30 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: parents_guardians parents_guardians_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.parents_guardians
+    ADD CONSTRAINT parents_guardians_email_key UNIQUE (email);
+
+
+--
+-- Name: parents_guardians parents_guardians_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.parents_guardians
+    ADD CONSTRAINT parents_guardians_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: parents_guardians_students parents_guardians_students_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.parents_guardians_students
+    ADD CONSTRAINT parents_guardians_students_pkey PRIMARY KEY (parents_guardians_id, students_id);
+
+
+--
 -- Name: photo_id_statuses photo_id_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -2953,6 +2999,14 @@ ALTER TABLE ONLY upchieve.sponsor_orgs
 
 ALTER TABLE ONLY upchieve.sponsor_orgs_upchieve_instances
     ADD CONSTRAINT sponsor_orgs_upchieve_instances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: student_favorite_volunteers student_favorite_volunteers_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_favorite_volunteers
+    ADD CONSTRAINT student_favorite_volunteers_pkey PRIMARY KEY (student_id, volunteer_id);
 
 
 --
@@ -3794,6 +3848,22 @@ ALTER TABLE ONLY upchieve.notifications
 
 ALTER TABLE ONLY upchieve.notifications
     ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: parents_guardians_students parents_guardians_students_parents_guardians_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.parents_guardians_students
+    ADD CONSTRAINT parents_guardians_students_parents_guardians_id_fkey FOREIGN KEY (parents_guardians_id) REFERENCES upchieve.parents_guardians(id);
+
+
+--
+-- Name: parents_guardians_students parents_guardians_students_students_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.parents_guardians_students
+    ADD CONSTRAINT parents_guardians_students_students_id_fkey FOREIGN KEY (students_id) REFERENCES upchieve.student_profiles(user_id);
 
 
 --
@@ -4753,4 +4823,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20230719205740'),
     ('20230914134853'),
     ('20230918173353'),
-    ('20231011185712');
+    ('20231002232836'),
+    ('20231011185712'),
+    ('20231101180420'),
+    ('20231109144205'),
+    ('20231109145812');

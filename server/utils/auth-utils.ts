@@ -13,10 +13,7 @@ import {
   getUserIdByEmail,
   getUserIdByPhone,
 } from '../models/User/queries'
-import {
-  checkReferral,
-  createStudentWithFederatedCredential,
-} from '../controllers/UserCtrl'
+import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
 
@@ -33,8 +30,10 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { getFederatedCredential } from '../models/FederatedCredential/queries'
-import { verifyEligibility } from '../services/EligibilityService'
-import { createPartnerStudent } from '../services/UserCreationService'
+import {
+  registerStudent,
+  createPartnerStudent,
+} from '../services/UserCreationService'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -62,6 +61,62 @@ export interface StudentDataParams {
   ip?: string
   studentPartnerOrg?: string
 }
+
+interface RegisterStudentPayload {
+  college?: string
+  email: string
+  firstName: string
+  gradeLevel?: string
+  ip?: string
+  lastName: string
+  referredByCode?: string
+  schoolId?: string
+  studentPartnerOrg?: string
+  studentPartnerSite?: string
+  zipCode?: string
+}
+export interface RegisterStudentWithPasswordPayload
+  extends RegisterStudentPayload {
+  password: string
+}
+export const registerStudentWithPasswordValidator = asFactory<
+  RegisterStudentWithPasswordPayload
+>({
+  college: asOptional(asString),
+  email: asString,
+  firstName: asString,
+  gradeLevel: asOptional(asEnum(GRADES)),
+  ip: asOptional(asString),
+  lastName: asString,
+  password: asString,
+  referredByCode: asOptional(asString),
+  schoolId: asOptional(asString),
+  studentPartnerOrg: asOptional(asString),
+  studentPartnerSite: asOptional(asString),
+  zipCode: asOptional(asString),
+})
+export interface RegisterStudentWithFedCredPayload
+  extends RegisterStudentPayload {
+  issuer: string
+  profileId: string
+}
+export const registerStudentWithFedCredValidator = asFactory<
+  RegisterStudentWithFedCredPayload
+>({
+  college: asOptional(asString),
+  email: asString,
+  firstName: asString,
+  gradeLevel: asOptional(asEnum(GRADES)),
+  ip: asOptional(asString),
+  issuer: asString,
+  lastName: asString,
+  profileId: asString,
+  referredByCode: asOptional(asString),
+  schoolId: asOptional(asString),
+  studentPartnerOrg: asOptional(asString),
+  studentPartnerSite: asOptional(asString),
+  zipCode: asOptional(asString),
+})
 
 interface UserRegData {
   ip: string
@@ -383,34 +438,22 @@ function setupPassport() {
             return done(null, false)
           }
 
-          const highSchoolId = session.studentData.highSchoolId
-          const zipCode = session.studentData?.zipCode
-          if (!(await verifyEligibility(zipCode, highSchoolId))) {
-            return done(null, false, 'Not eligible.')
-          }
-
-          const referredBy = await getReferredBy(
-            session.studentData.referredByCode
-          )
-          const ip = session.studentData.ip
-          const studentData = {
-            firstName,
-            lastName,
+          const data = {
             email,
-            approvedHighschool: highSchoolId,
-            zipCode,
-            currentGrade: session.studentData.currentGrade,
-            referredBy,
-            verified: true,
             emailVerified: true,
-          }
-
-          const student = await createStudentWithFederatedCredential(
-            studentData,
-            profile.id,
+            firstName,
+            gradeLevel: session.studentData.currentGrade,
+            ip: session.studentData.ip,
             issuer,
-            ip
-          )
+            lastName,
+            profileId: profile.id,
+            schoolId: session.studentData.highSchoolId,
+            studentPartnerOrg: session.studentData.studentPartnerOrg,
+            referredByCode: session.studentData.referredByCode,
+            verified: true,
+            zipCode: session.studentData.zipCode,
+          }
+          const student = await registerStudent(data)
           return done(null, student)
         } catch (err) {
           return done(err)

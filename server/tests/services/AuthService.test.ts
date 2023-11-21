@@ -486,28 +486,10 @@ describe('Password reset tests', () => {
   test('Initiate valid reset for email', async () => {
     mockedUserRepo.getUserForPassport.mockResolvedValue(user)
 
-    await AuthService.sendReset(user.email, false)
+    await AuthService.sendReset(user.email)
 
     expect(MailService.sendReset).toHaveBeenCalledWith(
       user.email,
-      false,
-      expect.anything()
-    )
-    expect(UserRepo.updateUserResetTokenById).toHaveBeenCalledWith(
-      user.id,
-      expect.anything()
-    )
-  })
-
-  test('Initiate valid reset for mobile', async () => {
-    mockedUserRepo.getUserForPassport.mockResolvedValue(user)
-    const sendToMobile = true
-
-    await AuthService.sendReset(user.email, sendToMobile)
-
-    expect(MailService.sendReset).toHaveBeenCalledWith(
-      user.email,
-      sendToMobile,
       expect.anything()
     )
     expect(UserRepo.updateUserResetTokenById).toHaveBeenCalledWith(
@@ -544,7 +526,7 @@ describe('Password reset tests', () => {
     mockedUserRepo.getUserForPassport.mockResolvedValue(undefined)
 
     const badEmail = 'email@baddomain.bad'
-    const t = async <T>(p: T) => await AuthService.sendReset(p, false)
+    const t = async <T>(p: T) => await AuthService.sendReset(p)
 
     await expect(t(badEmail)).rejects.toThrow(
       new LookupError(`No account with ${badEmail} found`)
@@ -557,7 +539,7 @@ describe('Password reset tests', () => {
     mockedUserRepo.getUserForPassport.mockResolvedValue(undefined)
 
     const badEmail = ['victim@email.com', 'attacker@blackhat.bad']
-    const t = async <T>(p: T) => await AuthService.sendReset(p, false)
+    const t = async <T>(p: T) => await AuthService.sendReset(p)
 
     await expect(t(badEmail)).rejects.toThrow(InputError)
   })

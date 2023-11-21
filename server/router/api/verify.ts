@@ -71,7 +71,19 @@ export function routeVerify(router: Router) {
         { 'error.name': 'twilio verification', error: err },
         (err as Error).message
       )
-      resError(res, err)
+
+      let defaultStatus = 500
+      let defaultErrorMessage =
+        'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.'
+
+      if (err instanceof TwilioError && err.status === 404) {
+        err.status = 400
+        err.message =
+          'The code has expired. Please request a new verification code and try again.'
+        resError(res, err, err.status)
+      } else {
+        resError(res, new Error(defaultErrorMessage), defaultStatus)
+      }
     }
   })
 }
