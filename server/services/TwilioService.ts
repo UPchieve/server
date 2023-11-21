@@ -455,25 +455,22 @@ export async function notifyVolunteer(
     },
   ]
 
-  let volunteer: VolunteerContactInfo | undefined = undefined
+  let volunteer: VolunteerContactInfo | undefined
   let priorityGroup: any
 
   for (const priorityFilter of volunteerPriority) {
-    let candidateVolunteer:
-      | VolunteerContactInfo
-      | undefined = await priorityFilter.query()
-    if (candidateVolunteer) {
+    volunteer = await priorityFilter.query()
+    if (volunteer) {
       const mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
-        candidateVolunteer.id
+        volunteer.id
       )
       if (mutedSubjectAlertsFlag) {
-        const candidateVolunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
-          candidateVolunteer.id,
+        const volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
+          volunteer.id,
           session.subject
         )
-        if (candidateVolunteerMutedSubject) continue
+        if (volunteerMutedSubject) continue
       }
-      volunteer = candidateVolunteer
       priorityGroup = priorityFilter.groupName
       break
     }
