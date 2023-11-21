@@ -464,11 +464,11 @@ export async function notifyVolunteer(
       | undefined = await priorityFilter.query()
     let volunteerSelected: boolean = false
     if (candidateVolunteer) {
-      let mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
+      const mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
         candidateVolunteer.id
       )
       if (mutedSubjectAlertsFlag) {
-        let candidateVolunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
+        const candidateVolunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
           candidateVolunteer.id,
           session.subject
         )
