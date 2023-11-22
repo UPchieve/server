@@ -184,5 +184,5 @@ export function routes(app: Express) {
     }
   })
 
-  app.use('/api-public/eligibility', authPassport.checkRecaptcha, router)
+  app.use('/api-public/eligibility', router)
 }

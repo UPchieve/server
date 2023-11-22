@@ -376,5 +376,5 @@ export function routes(app: Express) {
     }
   })
 
-  app.use('/auth', authPassport.checkRecaptcha, router)
+  app.use('/auth', router)
 }

@@ -1,7 +1,6 @@
 import express from 'express'
 import { getUserContactInfoByReferralCode } from '../../models/User'
 import { asString } from '../../utils/type-utils'
-import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 
 export function routes(app: express.Express): void {
@@ -23,5 +22,5 @@ export function routes(app: express.Express): void {
     }
   })
 
-  app.use('/api-public/referral', authPassport.checkRecaptcha, router)
+  app.use('/api-public/referral', router)
 }
