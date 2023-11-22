@@ -91,3 +91,10 @@ export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
 export async function getSmsVerificationFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.SMS_VERIFICATION, userId)
 }
+
+export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS,
+    userId
+  )
+}

@@ -58,7 +58,10 @@ import * as WhiteboardService from './WhiteboardService'
 import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
-import { getSessionRecapDmsFeatureFlag } from './FeatureFlagService'
+import {
+  getAllowDmsToPartnerStudentsFeatureFlag,
+  getSessionRecapDmsFeatureFlag,
+} from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 
 export async function reviewSession(data: unknown) {
@@ -878,8 +881,13 @@ export async function isEligibleForSessionRecap(
   sessionId: Ulid,
   studentId: Ulid
 ): Promise<boolean> {
-  const student = await getStudentPartnerInfoById(studentId)
-  if (student?.studentPartnerOrg) return false
+  const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
+    studentId
+  )
+  if (!isAllowDmsToPartnerStudentsActive) {
+    const student = await getStudentPartnerInfoById(studentId)
+    if (student?.studentPartnerOrg) return false
+  }
   return await SessionRepo.isEligibleForSessionRecap(sessionId)
 }
 
@@ -904,8 +912,13 @@ export async function isRecapDmsAvailable(
   )
   if (hasBannedParticipant) return false
 
-  const student = await getStudentPartnerInfoById(studentId)
-  if (student?.studentPartnerOrg) return false
+  const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
+    studentId
+  )
+  if (!isAllowDmsToPartnerStudentsActive) {
+    const student = await getStudentPartnerInfoById(studentId)
+    if (student?.studentPartnerOrg) return false
+  }
 
   const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
   if (!flag) return false
