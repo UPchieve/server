@@ -570,26 +570,20 @@ function isAdminRedirect(
   return res.redirect('/')
 }
 
-async function checkRecaptcha(
-  req: Request,
-  _res: Response,
-  next: NextFunction
-) {
-  if (req.isAuthenticated()) {
-    return next()
-  }
-
-  // TODO: Turn this on.
-  // For now, just proceed as usual until we get a good sense of the scores.
+async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
   const token = req.headers['g-recaptcha-response']
   if (!token) {
-    // TODO: Fail here if we were expecting a token.
-    return next()
+    return res.redirect('/')
   }
   const result = await axios.post(
     `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
   )
-  logger.info(result.data, 'grecaptcha result')
+  if (!result.data || !result.data.success) {
+    return res.redirect('/')
+  }
+  logger.info(
+    `grecaptcha result ${result.data.score} for ${result.data.action}`
+  )
   // TODO: Check the score and reject if likely bot.
   return next()
 }

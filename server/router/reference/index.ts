@@ -2,7 +2,6 @@ import { Express, Router } from 'express'
 import * as UserService from '../../services/UserService'
 import { getVolunteerByReference } from '../../models/Volunteer/queries'
 import { asUlid } from '../../utils/type-utils'
-import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 
 export function routes(app: Express): void {
@@ -40,5 +39,5 @@ export function routes(app: Express): void {
     }
   })
 
-  app.use('/api-public/reference', authPassport.checkRecaptcha, router)
+  app.use('/api-public/reference', router)
 }
