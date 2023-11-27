@@ -894,7 +894,7 @@ export async function isEligibleForSessionRecap(
 /**
  *
  * - Banned users should not be able to send DMs in the recap page
- * - Coaches cannot send DMs to partner students
+ * - Coaches cannot send DMs to partner students unless the flag allow-dms-to-partner-students is on
  * - Coaches can send DMs once session ended and they have the session-recap-dms flag as `true`.
  * - Students are not able to initiate the conversation. A coach must send the first message.
  *   We determine this by looking to see if a coach had sent a message after the
