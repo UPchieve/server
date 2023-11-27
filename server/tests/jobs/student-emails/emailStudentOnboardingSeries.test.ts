@@ -33,10 +33,7 @@ describe('Student onboarding email series', () => {
   ]
 
   const oldStudentWelcomeSeriesJobs = [
-    Jobs.EmailStudentUseCases,
     Jobs.EmailMeetOurVolunteers,
-    Jobs.EmailIndependentLearning,
-    Jobs.EmailStudentGoalSetting,
   ]
 
   beforeEach(async () => {

@@ -95,11 +95,6 @@ export enum Jobs {
   StudentProcrastinationTextReminder = 'StudentProcrastinationTextReminder',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
 
-  // TODO: remove the following deprecated job names
-  EmailStudentUseCases = 'EmailStudentUseCases',
-  EmailIndependentLearning = 'EmailIndependentLearning',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
-
   // Backfill scripts
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
@@ -294,20 +289,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendSessionRecapMessageNotification,
     processor: sendSessionRecapMessageNotification,
-  },
-
-  // TODO: remove the following deprecated job names
-  {
-    name: Jobs.EmailStudentUseCases,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailIndependentLearning,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentGoalSetting,
-    processor: emailStudentOnboardingSeries,
   },
 
   // Backfill scripts
