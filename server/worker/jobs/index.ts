@@ -11,7 +11,6 @@ import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-token
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
-import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
 import upsertSchools from '../../scripts/upsert-schools'
@@ -105,7 +104,6 @@ export enum Jobs {
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
-  SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
 
   // Delete scripts
@@ -324,10 +322,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentPosthog,
     processor: backfillStudentPosthog,
-  },
-  {
-    name: Jobs.SendWeeklyHourSummaryApology,
-    processor: sendWeeklyHourSummaryApology,
   },
   {
     name: Jobs.DeleteDuplicatePushTokens,
