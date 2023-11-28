@@ -573,12 +573,14 @@ function isAdminRedirect(
 async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
   const token = req.headers['g-recaptcha-response']
   if (!token) {
+    logger.info(`unable to check grecaptcha: no token in request headers`)
     return res.redirect('/')
   }
   const result = await axios.post(
     `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
   )
   if (!result.data || !result.data.success) {
+    logger.info(`grecaptcha result failed: ${result.data}`)
     return res.redirect('/')
   }
   logger.info(
