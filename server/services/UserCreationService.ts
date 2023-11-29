@@ -146,7 +146,7 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
   checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await checkUser(data.email)
-  if (usePassword(data) && !useParentGuardianEmail(data)) {
+  if (usePassword(data)) {
     checkPassword(data.password)
   }
   if (!data.studentPartnerOrg) {
@@ -324,15 +324,15 @@ function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
 function usePassword(
   object: any
 ): object is RegisterStudentWithPasswordPayload {
-  return 'password' in object
+  return 'password' in object && object.password
 }
 
 function useResetToken(object: any): object is RegisterStudentWithPGPayload {
-  return 'parentGuardianEmail' in object
+  return 'parentGuardianEmail' in object && object.parentGuardianEmail
 }
 
 function useParentGuardianEmail(
   object: any
 ): object is RegisterStudentWithPGPayload {
-  return 'parentGuardianEmail' in object
+  return 'parentGuardianEmail' in object && object.parentGuardianEmail
 }
