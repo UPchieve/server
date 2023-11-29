@@ -21,6 +21,9 @@ jest.mock('../../utils/auth-utils', () => ({
     isAdmin: jest.fn((req, res, next) => {
       return next()
     }),
+    checkRecaptcha: jest.fn((req, res, next) => {
+      return next()
+    }),
   },
 }))
 

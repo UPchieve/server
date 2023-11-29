@@ -205,6 +205,7 @@ export const Config = Record({
   // Google
   googleClientId: String,
   googleClientSecret: String,
+  googleRecaptchaSecret: String,
 
   sessionHistoryMinSessionLength: Number,
 })
