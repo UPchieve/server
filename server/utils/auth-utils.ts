@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
@@ -7,6 +8,7 @@ const GoogleStrategy = require('passport-google-oidc')
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
+import logger from '../logger'
 import {
   getUserContactInfoById,
   getUserForPassport,
@@ -568,10 +570,31 @@ function isAdminRedirect(
   return res.redirect('/')
 }
 
+async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
+  const token = req.headers['g-recaptcha-response']
+  if (!token) {
+    logger.info(`unable to check grecaptcha: no token in request headers`)
+    return res.redirect('/')
+  }
+  const result = await axios.post(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
+  )
+  if (!result.data || !result.data.success) {
+    logger.info(`grecaptcha result failed: ${result.data}`)
+    return res.redirect('/')
+  }
+  logger.info(
+    `grecaptcha result ${result.data.score} for ${result.data.action}`
+  )
+  // TODO: Check the score and reject if likely bot.
+  return next()
+}
+
 export const authPassport = {
   setupPassport,
   isAuthenticated,
   isAdmin,
   isAuthenticatedRedirect,
   isAdminRedirect,
+  checkRecaptcha,
 }
