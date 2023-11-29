@@ -2,9 +2,10 @@
 INSERT INTO parents_guardians (id, email)
     VALUES (:id!, :email!)
 ON CONFLICT (email)
-    DO NOTHING
-RETURNING
-    id;
+    DO UPDATE SET
+        email = :email!
+    RETURNING
+        id;
 
 
 /* @name linkParentGuardianToStudent */
