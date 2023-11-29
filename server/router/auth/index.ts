@@ -1,4 +1,4 @@
-import { Express, Router } from 'express'
+import { Express, Router, Request, Response } from 'express'
 import passport from 'passport'
 
 import * as AuthService from '../../services/AuthService'
@@ -105,7 +105,7 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    async function(req, res) {
+    async function(req: Request, res: Response) {
       const legacyUser = await getLegacyUserObject(extractUser(req).id)
       res.json({ user: legacyUser })
     }
@@ -364,7 +364,10 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/reset/confirm').post(async function(req, res) {
+  router.post('/reset/confirm', authPassport.checkRecaptcha, async function(
+    req,
+    res
+  ) {
     try {
       await AuthService.confirmReset(req.body as unknown)
       res.sendStatus(200)
