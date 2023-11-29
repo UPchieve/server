@@ -204,7 +204,6 @@ jest.mock('../../utils/auth-utils', () => {
   }
 })
 describe('verify', () => {
-  beforeEach(() => {})
   const sendPost = async (payload: any, path = ''): Promise<Test> => {
     return agent
       .post(`/api/verify${path}`)
