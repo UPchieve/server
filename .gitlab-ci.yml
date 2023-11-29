@@ -109,8 +109,6 @@ lint:
 lint_sql:
   stage: test
   image: node:16.16.0-bullseye
-  tags:
-    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
