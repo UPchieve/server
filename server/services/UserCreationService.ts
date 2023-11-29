@@ -146,7 +146,7 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
   checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await checkUser(data.email)
-  if (usePassword(data)) {
+  if (usePassword(data) && !useParentGuardianEmail(data)) {
     checkPassword(data.password)
   }
   if (!data.studentPartnerOrg) {
