@@ -64,61 +64,56 @@ export interface StudentDataParams {
   studentPartnerOrg?: string
 }
 
-interface RegisterStudentPayload {
+export interface RegisterStudentPayload {
   college?: string
   email: string
   firstName: string
   gradeLevel?: string
   ip?: string
+  issuer?: string
   lastName: string
+  password?: string
+  parentGuardianEmail?: string
+  profileId?: string
   referredByCode?: string
   schoolId?: string
   studentPartnerOrg?: string
   studentPartnerSite?: string
   zipCode?: string
 }
-export interface RegisterStudentWithPasswordPayload
-  extends RegisterStudentPayload {
-  password: string
-}
-export const registerStudentWithPasswordValidator = asFactory<
-  RegisterStudentWithPasswordPayload
->({
+export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   college: asOptional(asString),
   email: asString,
   firstName: asString,
   gradeLevel: asOptional(asEnum(GRADES)),
   ip: asOptional(asString),
+  issuer: asOptional(asString),
   lastName: asString,
-  password: asString,
+  password: asOptional(asString),
+  parentGuardianEmail: asOptional(asString),
+  profileId: asOptional(asString),
   referredByCode: asOptional(asString),
   schoolId: asOptional(asString),
   studentPartnerOrg: asOptional(asString),
   studentPartnerSite: asOptional(asString),
   zipCode: asOptional(asString),
 })
+export interface RegisterStudentWithPasswordPayload
+  extends Omit<
+    RegisterStudentPayload,
+    'parentGuardianEmail' | 'issuer' | 'profileId'
+  > {
+  password: string
+}
+export interface RegisterStudentWithPGPayload
+  extends Omit<RegisterStudentPayload, 'password' | 'issuer' | 'profileId'> {
+  parentGuardianEmail: string
+}
 export interface RegisterStudentWithFedCredPayload
-  extends RegisterStudentPayload {
+  extends Omit<RegisterStudentPayload, 'password' | 'parentGuardianEmail'> {
   issuer: string
   profileId: string
 }
-export const registerStudentWithFedCredValidator = asFactory<
-  RegisterStudentWithFedCredPayload
->({
-  college: asOptional(asString),
-  email: asString,
-  firstName: asString,
-  gradeLevel: asOptional(asEnum(GRADES)),
-  ip: asOptional(asString),
-  issuer: asString,
-  lastName: asString,
-  profileId: asString,
-  referredByCode: asOptional(asString),
-  schoolId: asOptional(asString),
-  studentPartnerOrg: asOptional(asString),
-  studentPartnerSite: asOptional(asString),
-  zipCode: asOptional(asString),
-})
 
 interface UserRegData {
   ip: string

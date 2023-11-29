@@ -5,7 +5,7 @@ import * as AuthService from '../../services/AuthService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   authPassport,
-  registerStudentWithPasswordValidator,
+  registerStudentValidator,
   StudentDataParams,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
@@ -185,12 +185,14 @@ export function routes(app: Express) {
 
   router.route('/register/student').post(async function(req, res) {
     try {
-      const data = registerStudentWithPasswordValidator({
+      const data = registerStudentValidator({
         ...req.body,
         ip: req.ip,
       })
       const student = await UserCreationService.registerStudent(data)
-      await req.asyncLogin(student)
+      if (data.password) {
+        await req.asyncLogin(student)
+      }
       return res.json({ user: student })
     } catch (e) {
       resError(res, e)
