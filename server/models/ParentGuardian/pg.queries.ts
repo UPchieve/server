@@ -8,7 +8,9 @@ export interface ICreateParentGuardianParams {
 }
 
 /** 'CreateParentGuardian' return type */
-export type ICreateParentGuardianResult = void;
+export interface ICreateParentGuardianResult {
+  id: string;
+}
 
 /** 'CreateParentGuardian' query type */
 export interface ICreateParentGuardianQuery {
@@ -16,7 +18,7 @@ export interface ICreateParentGuardianQuery {
   result: ICreateParentGuardianResult;
 }
 
-const createParentGuardianIR: any = {"name":"createParentGuardian","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":88,"b":90,"line":3,"col":13}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":94,"b":99,"line":3,"col":19}]}}],"usedParamSet":{"id":true,"email":true},"statement":{"body":"INSERT INTO parents_guardians (id, email)\n    VALUES (:id!, :email!)\nON CONFLICT (email)\n    DO NOTHING","loc":{"a":33,"b":135,"line":2,"col":0}}};
+const createParentGuardianIR: any = {"name":"createParentGuardian","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":88,"b":90,"line":3,"col":13}]}},{"name":"email","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":94,"b":99,"line":3,"col":19},{"a":157,"b":162,"line":6,"col":17}]}}],"usedParamSet":{"id":true,"email":true},"statement":{"body":"INSERT INTO parents_guardians (id, email)\n    VALUES (:id!, :email!)\nON CONFLICT (email)\n    DO UPDATE SET\n        email = :email!\n    RETURNING\n        id","loc":{"a":33,"b":187,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -24,7 +26,10 @@ const createParentGuardianIR: any = {"name":"createParentGuardian","params":[{"n
  * INSERT INTO parents_guardians (id, email)
  *     VALUES (:id!, :email!)
  * ON CONFLICT (email)
- *     DO NOTHING
+ *     DO UPDATE SET
+ *         email = :email!
+ *     RETURNING
+ *         id
  * ```
  */
 export const createParentGuardian = new PreparedQuery<ICreateParentGuardianParams,ICreateParentGuardianResult>(createParentGuardianIR);
@@ -45,7 +50,7 @@ export interface ILinkParentGuardianToStudentQuery {
   result: ILinkParentGuardianToStudentResult;
 }
 
-const linkParentGuardianToStudentIR: any = {"name":"linkParentGuardianToStudent","params":[{"name":"parent_guardian_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":268,"b":286,"line":10,"col":13}]}},{"name":"student_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":290,"b":300,"line":10,"col":35}]}}],"usedParamSet":{"parent_guardian_id":true,"student_id":true},"statement":{"body":"INSERT INTO parents_guardians_students (parents_guardians_id, students_id)\n    VALUES (:parent_guardian_id!, :student_id!)\nON CONFLICT (parents_guardians_id, students_id)\n    DO NOTHING","loc":{"a":180,"b":364,"line":9,"col":0}}};
+const linkParentGuardianToStudentIR: any = {"name":"linkParentGuardianToStudent","params":[{"name":"parent_guardian_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":320,"b":338,"line":13,"col":13}]}},{"name":"student_id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":342,"b":352,"line":13,"col":35}]}}],"usedParamSet":{"parent_guardian_id":true,"student_id":true},"statement":{"body":"INSERT INTO parents_guardians_students (parents_guardians_id, students_id)\n    VALUES (:parent_guardian_id!, :student_id!)\nON CONFLICT (parents_guardians_id, students_id)\n    DO NOTHING","loc":{"a":232,"b":416,"line":12,"col":0}}};
 
 /**
  * Query generated from SQL:

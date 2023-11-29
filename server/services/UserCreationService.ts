@@ -6,10 +6,12 @@ import {
   createResetToken,
   getReferredBy,
   hashPassword,
+  RegisterStudentPayload,
   RegisterStudentWithFedCredPayload,
   RegisterStudentWithPasswordPayload,
+  RegisterStudentWithPGPayload,
 } from '../utils/auth-utils'
-import { sendRosterStudentSetPasswordEmail } from './MailService'
+import { sendReset, sendRosterStudentSetPasswordEmail } from './MailService'
 import * as UserRepo from '../models/User'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
@@ -27,6 +29,11 @@ import {
 import { insertFederatedCredential } from '../models/FederatedCredential'
 import { checkIpAddress, checkUser } from './AuthService'
 import { verifyEligibility } from './EligibilityService'
+import {
+  createParentGuardian,
+  linkParentGuardianToStudent,
+} from '../models/ParentGuardian'
+import { InputError } from '../models/Errors'
 
 export interface RosterStudentPayload {
   email: string
@@ -135,26 +142,30 @@ export async function rosterPartnerStudents(
   return failedUsers
 }
 
-export async function verifyStudentData(
-  data: RegisterStudentWithPasswordPayload | RegisterStudentWithFedCredPayload
-) {
+export async function verifyStudentData(data: RegisterStudentPayload) {
   checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await checkUser(data.email)
   if (usePassword(data)) {
     checkPassword(data.password)
   }
-  await verifyEligibility(data.zipCode, data.schoolId)
+  if (!data.studentPartnerOrg) {
+    await verifyEligibility(data.zipCode, data.schoolId)
+  }
   if (data.ip) {
     await checkIpAddress(data.ip)
   }
+  if (!usePassword(data) && !useResetToken(data) && !useFedCred(data)) {
+    throw new InputError('No authentication method provided.')
+  }
 }
 
-export async function registerStudent(
-  data: RegisterStudentWithPasswordPayload | RegisterStudentWithFedCredPayload
-) {
+export async function registerStudent(data: RegisterStudentPayload) {
   await verifyStudentData(data)
   const newStudent = await runInTransaction(async (tc: TransactionClient) => {
+    const passwordResetToken = useResetToken(data)
+      ? createResetToken()
+      : undefined
     const userData = {
       email: data.email,
       emailVerified: useFedCred(data),
@@ -163,6 +174,7 @@ export async function registerStudent(
       password: usePassword(data)
         ? await hashPassword(data.password)
         : undefined,
+      passwordResetToken,
       referredBy: await getReferredBy(data.referredByCode),
       verified: useFedCred(data),
     }
@@ -181,6 +193,15 @@ export async function registerStudent(
 
     if (useFedCred(data)) {
       await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
+    }
+
+    if (useParentGuardianEmail(data) && passwordResetToken) {
+      const parentGuardian = await createParentGuardian(
+        data.parentGuardianEmail,
+        tc
+      )
+      await linkParentGuardianToStudent(parentGuardian.id, user.id, tc)
+      await sendReset(data.email, passwordResetToken)
     }
 
     return user
@@ -303,5 +324,15 @@ function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
 function usePassword(
   object: any
 ): object is RegisterStudentWithPasswordPayload {
-  return 'password' in object
+  return 'password' in object && object.password
+}
+
+function useResetToken(object: any): object is RegisterStudentWithPGPayload {
+  return 'parentGuardianEmail' in object && object.parentGuardianEmail
+}
+
+function useParentGuardianEmail(
+  object: any
+): object is RegisterStudentWithPGPayload {
+  return 'parentGuardianEmail' in object && object.parentGuardianEmail
 }
