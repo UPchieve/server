@@ -592,15 +592,16 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
     `grecaptcha result ${result.data.score} for ${result.data.action}`
   )
 
-  if (result.data.score < config.googleRecaptchaThreshold) {
-    next(
+  if (Number(result.data.score) < config.googleRecaptchaThreshold) {
+    return next(
       new LowRecaptchaScoreError(
         'Something went wrong. Please refresh the page and try again.',
-        0.1,
+        result.data.score,
         result.data.action
       )
     )
   }
+  next()
 }
 
 export const authPassport = {
