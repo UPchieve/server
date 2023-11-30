@@ -196,7 +196,13 @@ app.use('/api', router)
 const agent = request.agent(app)
 
 jest.mock('../../services/VerificationService')
-
+jest.mock('../../utils/auth-utils', () => {
+  return {
+    authPassport: {
+      checkRecaptcha: jest.fn().mockImplementation((req, res, next) => next()),
+    },
+  }
+})
 describe('verify', () => {
   const sendPost = async (payload: any, path = ''): Promise<Test> => {
     return agent
