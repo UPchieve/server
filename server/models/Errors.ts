@@ -97,3 +97,13 @@ export class SmsVerificationDisabledError extends CustomError {
     )
   }
 }
+
+export class LowRecaptchaScoreError extends CustomError {
+  score: number
+  action: string
+  constructor(message: string, score: number, action: string) {
+    super(message)
+    this.score = score
+    this.action = action
+  }
+}

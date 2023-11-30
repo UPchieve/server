@@ -19,7 +19,11 @@ import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
 
-import { InputError, LookupError } from '../models/Errors'
+import {
+  InputError,
+  LookupError,
+  LowRecaptchaScoreError,
+} from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -581,7 +585,16 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
   logger.info(
     `grecaptcha result ${result.data.score} for ${result.data.action}`
   )
-  // TODO: Check the score and reject if likely bot.
+
+  if (result.data.score < config.googleRecaptchaThreshold) {
+    return next(
+      new LowRecaptchaScoreError(
+        'Something went wrong. Please refresh the page and try again.',
+        result.data.score,
+        result.data.action
+      )
+    )
+  }
   return next()
 }
 
