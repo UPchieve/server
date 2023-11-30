@@ -4,7 +4,11 @@ import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
-import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
+import {
+  LowRecaptchaScoreError,
+  SmsVerificationDisabledError,
+  TwilioError,
+} from '../../models/Errors'
 import { authPassport } from '../../utils/auth-utils'
 
 export function routeVerify(router: Router) {
