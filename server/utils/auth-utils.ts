@@ -588,11 +588,7 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
 
   if (result.data.score < config.googleRecaptchaThreshold) {
     return next(
-      new LowRecaptchaScoreError(
-        'Something went wrong. Please refresh the page and try again.',
-        result.data.score,
-        result.data.action
-      )
+      new LowRecaptchaScoreError(result.data.score, result.data.action)
     )
   }
   return next()

@@ -101,8 +101,8 @@ export class SmsVerificationDisabledError extends CustomError {
 export class LowRecaptchaScoreError extends CustomError {
   score: number
   action: string
-  constructor(message: string, score: number, action: string) {
-    super(message)
+  constructor(score: number, action: string) {
+    super('Something went wrong. Please refresh the page and try again.')
     this.score = score
     this.action = action
   }
