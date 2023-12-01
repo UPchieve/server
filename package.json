@@ -96,6 +96,7 @@
     "newrelic": "^10.6.2",
     "nodemailer": "^6.6.0",
     "nodemailer-express-handlebars": "^4.0.0",
+    "openai": "^4.20.0",
     "passport": "^0.4.1",
     "passport-google-oidc": "^0.1.0",
     "passport-local": "^1.0.0",

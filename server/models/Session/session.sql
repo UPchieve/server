@@ -1170,3 +1170,34 @@ WHERE
         OR volunteers.banned IS TRUE)
 LIMIT 1;
 
+
+/* @name getUserSessionsByUserId */
+SELECT
+    sessions.id,
+    sessions.created_at,
+    subjects.name AS subject_name,
+    topics.name AS topic_name,
+    quill_doc,
+    sessions.student_id,
+    sessions.volunteer_id
+FROM
+    sessions
+    JOIN student_profiles ON student_profiles.user_id = sessions.student_id
+    JOIN users students ON student_profiles.user_id = students.id
+    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
+    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+WHERE (sessions.student_id = :userId!
+    OR sessions.volunteer_id = :userId!)
+AND ((:start)::date IS NULL
+    OR sessions.created_at >= (:start)::date)
+AND ((:end)::date IS NULL
+    OR sessions.created_at <= (:end)::date)
+AND ((:subject)::text IS NULL
+    OR subjects.name = (:subject)::text)
+AND ((:topic)::text IS NULL
+    OR topics.name = (:topic)::text)
+ORDER BY
+    sessions.created_at DESC;
+

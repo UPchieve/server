@@ -207,4 +207,6 @@ export const Config = Record({
   googleClientSecret: String,
 
   sessionHistoryMinSessionLength: Number,
+
+  openAIApiKey: String,
 })

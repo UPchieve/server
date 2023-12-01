@@ -1365,3 +1365,50 @@ export async function sessionHasBannedParticipant(
     client.release()
   }
 }
+
+export type UserSessionsFilter = {
+  start?: Date
+  end?: Date
+  subject?: string
+  topic?: string
+}
+
+export type UserSessions = {
+  id: Ulid
+  createdAt: Date
+  subjectName: string
+  topicName: string
+  quillDoc?: string
+  studentId: string
+  volunteerId: string
+}
+
+export type UserSessionsWithMessages = UserSessions & {
+  messages: MessageForFrontend[]
+}
+
+export async function getUserSessionsByUserId(
+  userId: Ulid,
+  filter: UserSessionsFilter = {
+    start: undefined,
+    end: undefined,
+    subject: undefined,
+    topic: undefined,
+  }
+): Promise<UserSessions[]> {
+  try {
+    const result = await pgQueries.getUserSessionsByUserId.run(
+      {
+        userId,
+        start: filter.start,
+        end: filter.end,
+        subject: filter.subject,
+        topic: filter.topic,
+      },
+      getClient()
+    )
+    return result.map(v => makeSomeOptional(v, ['quillDoc']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

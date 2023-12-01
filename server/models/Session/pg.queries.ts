@@ -2526,3 +2526,67 @@ const sessionHasBannedParticipantIR: any = {"name":"sessionHasBannedParticipant"
 export const sessionHasBannedParticipant = new PreparedQuery<ISessionHasBannedParticipantParams,ISessionHasBannedParticipantResult>(sessionHasBannedParticipantIR);
 
 
+/** 'GetUserSessionsByUserId' parameters type */
+export interface IGetUserSessionsByUserIdParams {
+  end: Date | null | void;
+  start: Date | null | void;
+  subject: string | null | void;
+  topic: string | null | void;
+  userId: string;
+}
+
+/** 'GetUserSessionsByUserId' return type */
+export interface IGetUserSessionsByUserIdResult {
+  createdAt: Date;
+  id: string;
+  quillDoc: string | null;
+  studentId: string;
+  subjectName: string;
+  topicName: string;
+  volunteerId: string | null;
+}
+
+/** 'GetUserSessionsByUserId' query type */
+export interface IGetUserSessionsByUserIdQuery {
+  params: IGetUserSessionsByUserIdParams;
+  result: IGetUserSessionsByUserIdResult;
+}
+
+const getUserSessionsByUserIdIR: any = {"name":"getUserSessionsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33512,"b":33518,"line":1191,"col":30},{"a":33552,"b":33558,"line":1192,"col":32}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33568,"b":33572,"line":1193,"col":7},{"a":33621,"b":33625,"line":1194,"col":32}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33642,"b":33644,"line":1195,"col":7},{"a":33693,"b":33695,"line":1196,"col":32}]}},{"name":"subject","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33712,"b":33718,"line":1197,"col":7},{"a":33760,"b":33766,"line":1198,"col":25}]}},{"name":"topic","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33783,"b":33787,"line":1199,"col":7},{"a":33827,"b":33831,"line":1200,"col":23}]}}],"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"topic":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    JOIN users students ON student_profiles.user_id = students.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\n    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::date IS NULL\n    OR sessions.created_at >= (:start)::date)\nAND ((:end)::date IS NULL\n    OR sessions.created_at <= (:end)::date)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject)::text)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC","loc":{"a":32878,"b":33877,"line":1175,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at,
+ *     subjects.name AS subject_name,
+ *     topics.name AS topic_name,
+ *     quill_doc,
+ *     sessions.student_id,
+ *     sessions.volunteer_id
+ * FROM
+ *     sessions
+ *     JOIN student_profiles ON student_profiles.user_id = sessions.student_id
+ *     JOIN users students ON student_profiles.user_id = students.id
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
+ *     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ * WHERE (sessions.student_id = :userId!
+ *     OR sessions.volunteer_id = :userId!)
+ * AND ((:start)::date IS NULL
+ *     OR sessions.created_at >= (:start)::date)
+ * AND ((:end)::date IS NULL
+ *     OR sessions.created_at <= (:end)::date)
+ * AND ((:subject)::text IS NULL
+ *     OR subjects.name = (:subject)::text)
+ * AND ((:topic)::text IS NULL
+ *     OR topics.name = (:topic)::text)
+ * ORDER BY
+ *     sessions.created_at DESC
+ * ```
+ */
+export const getUserSessionsByUserId = new PreparedQuery<IGetUserSessionsByUserIdParams,IGetUserSessionsByUserIdResult>(getUserSessionsByUserIdIR);
+
+
