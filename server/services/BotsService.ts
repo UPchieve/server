@@ -8,7 +8,7 @@ import {
 import config from '../config'
 import { captureEvent } from './AnalyticsService'
 import { EVENTS } from '../constants'
-import { logError } from '../logger'
+import logger, { logError } from '../logger'
 import { formatScorecasterSessionsToBotPrompt } from '../utils/bots-utils'
 
 export const openai = new OpenAI({
@@ -125,5 +125,8 @@ export async function generateScorecasterAnalysis(
     response,
     debug: completion,
   })
+  logger.info(
+    `User: ${userId} received Scorecaster completion ${completion} with response ${response}`
+  )
   return response ? JSON.parse(response) : { summary: {}, topics: [] }
 }
