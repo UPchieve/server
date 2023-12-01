@@ -18,6 +18,7 @@ import {
   getQuizzesForVolunteers,
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
+import { getUserSessionStats, UserSessionStats } from '../Session'
 
 export type LegacyUserModel = {
   // pg
@@ -44,6 +45,7 @@ export type LegacyUserModel = {
   referredBy?: Ulid
   type: string
   roleId: number
+  sessionStats: UserSessionStats
   // volunteer
   isOnboarded?: boolean
   isApproved?: boolean
@@ -111,6 +113,7 @@ export async function getLegacyUserObject(
         },
       }
     }, {})
+    const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
@@ -152,7 +155,9 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
+    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser, {
+      sessionStats,
+    })
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)

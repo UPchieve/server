@@ -9,7 +9,7 @@ import {
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
-import { Session } from './types'
+import { Session, UserSessionStats } from './types'
 import 'moment-timezone'
 import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -1408,6 +1408,32 @@ export async function getUserSessionsByUserId(
       getClient()
     )
     return result.map(v => makeSomeOptional(v, ['quillDoc']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getUserSessionStats(
+  userId: Ulid
+): Promise<UserSessionStats> {
+  try {
+    const result = await pgQueries.getUserSessionStats.run(
+      {
+        userId,
+        minSessionLength: config.sessionHistoryMinSessionLength,
+      },
+      getClient()
+    )
+    const userSessionStats: UserSessionStats = {}
+    for (const subject of result.map(v => makeRequired(v))) {
+      const { subjectName, topicName, totalRequested, totalHelped } = subject
+      userSessionStats[subjectName] = {
+        totalRequested,
+        totalHelped,
+        topicName,
+      }
+    }
+    return userSessionStats
   } catch (err) {
     throw new RepoReadError(err)
   }

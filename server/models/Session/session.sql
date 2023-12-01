@@ -1201,3 +1201,27 @@ AND ((:topic)::text IS NULL
 ORDER BY
     sessions.created_at DESC;
 
+
+/* @name getUserSessionStats */
+SELECT
+    subjects.name AS subject_name,
+    topics.name AS topic_name,
+    COUNT(sessions.id)::int AS total_requested,
+    SUM(
+        CASE WHEN sessions.time_tutored >= :minSessionLength!::int THEN
+            1
+        ELSE
+            0
+        END)::int AS total_helped
+FROM
+    subjects
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN sessions ON subjects.id = sessions.subject_id
+        AND (sessions.student_id = :userId!
+            OR sessions.volunteer_id = :userId!)
+WHERE
+    subjects.active IS TRUE
+GROUP BY
+    subjects.name,
+    topics.name;
+

@@ -2590,3 +2590,54 @@ const getUserSessionsByUserIdIR: any = {"name":"getUserSessionsByUserId","params
 export const getUserSessionsByUserId = new PreparedQuery<IGetUserSessionsByUserIdParams,IGetUserSessionsByUserIdResult>(getUserSessionsByUserIdIR);
 
 
+/** 'GetUserSessionStats' parameters type */
+export interface IGetUserSessionStatsParams {
+  minSessionLength: number;
+  userId: string;
+}
+
+/** 'GetUserSessionStats' return type */
+export interface IGetUserSessionStatsResult {
+  subjectName: string;
+  topicName: string;
+  totalHelped: number | null;
+  totalRequested: number | null;
+}
+
+/** 'GetUserSessionStats' query type */
+export interface IGetUserSessionStatsQuery {
+  params: IGetUserSessionStatsParams;
+  result: IGetUserSessionStatsResult;
+}
+
+const getUserSessionStatsIR: any = {"name":"getUserSessionStats","params":[{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":34088,"b":34104,"line":1211,"col":44}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":34354,"b":34360,"line":1220,"col":36},{"a":34402,"b":34408,"line":1221,"col":40}]}}],"usedParamSet":{"minSessionLength":true,"userId":true},"statement":{"body":"SELECT\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    COUNT(sessions.id)::int AS total_requested,\n    SUM(\n        CASE WHEN sessions.time_tutored >= :minSessionLength!::int THEN\n            1\n        ELSE\n            0\n        END)::int AS total_helped\nFROM\n    subjects\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN sessions ON subjects.id = sessions.subject_id\n        AND (sessions.student_id = :userId!\n            OR sessions.volunteer_id = :userId!)\nWHERE\n    subjects.active IS TRUE\nGROUP BY\n    subjects.name,\n    topics.name","loc":{"a":33914,"b":34487,"line":1206,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name AS subject_name,
+ *     topics.name AS topic_name,
+ *     COUNT(sessions.id)::int AS total_requested,
+ *     SUM(
+ *         CASE WHEN sessions.time_tutored >= :minSessionLength!::int THEN
+ *             1
+ *         ELSE
+ *             0
+ *         END)::int AS total_helped
+ * FROM
+ *     subjects
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN sessions ON subjects.id = sessions.subject_id
+ *         AND (sessions.student_id = :userId!
+ *             OR sessions.volunteer_id = :userId!)
+ * WHERE
+ *     subjects.active IS TRUE
+ * GROUP BY
+ *     subjects.name,
+ *     topics.name
+ * ```
+ */
+export const getUserSessionStats = new PreparedQuery<IGetUserSessionStatsParams,IGetUserSessionStatsResult>(getUserSessionStatsIR);
+
+
