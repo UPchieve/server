@@ -198,7 +198,6 @@ const agent = request.agent(app)
 
 jest.mock('../../services/VerificationService')
 jest.mock('../../utils/auth-utils', () => ({
-  ...(jest.requireActual('../../utils/auth-utils') as any),
   authPassport: {
     checkRecaptcha: () =>
       jest.fn((req, res, next) => {
