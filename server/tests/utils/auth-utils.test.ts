@@ -91,12 +91,9 @@ describe('password validator', () => {
 })
 
 describe('authPassport', () => {
-  let mockScore = jest.fn()
-
   beforeEach(() => {
     jest.resetAllMocks()
-    mockedRecaptchaService.Score = mockScore
-    mockScore.mockResolvedValue({
+    mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
       data: {
         success: true,
         score: 1.0,
@@ -112,7 +109,12 @@ describe('authPassport', () => {
       res: any,
       next: any
     ) => {
-      await authPassport.checkRecaptcha(req, res, next, strict)
+      const handler: (
+        req: any,
+        res: any,
+        next: any
+      ) => Promise<void> = authPassport.checkRecaptcha(strict)
+      await handler(req, res, next)
       return { req, res, next }
     }
 
@@ -145,7 +147,7 @@ describe('authPassport', () => {
     it.each([false, true])(
       'Should fail if the token is present but the scoring request failed, regardless of param strict (%s)',
       async strict => {
-        mockScore.mockResolvedValue({
+        mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
           data: {
             success: false,
             score: 0.0,
@@ -175,7 +177,7 @@ describe('authPassport', () => {
     )
 
     it('Should fail if the score is below threshold for requests with strict=true', async () => {
-      mockScore.mockResolvedValue({
+      mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
         data: {
           success: true,
           score: 0.1,
@@ -197,7 +199,7 @@ describe('authPassport', () => {
     })
 
     it('Should NOT fail if the score is below threshold for requests with strict=false', async () => {
-      mockScore.mockResolvedValue({
+      mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
         data: {
           success: true,
           score: 0.1,
