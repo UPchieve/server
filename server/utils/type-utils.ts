@@ -116,7 +116,7 @@ export function asFactory<T extends object>(keyValidators: KeyValidators<T>) {
     if (typeof data === 'object' && data !== null) {
       const maybeT = data as T
       for (const key of Object.keys(keyValidators) as Array<keyof T>) {
-        keyValidators[key](maybeT[key], errMsg + key + ':')
+        keyValidators[key](maybeT[key], errMsg + (key as string) + ':')
       }
       return maybeT
     }
