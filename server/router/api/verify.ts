@@ -6,8 +6,12 @@ import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
 import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
 import { authPassport } from '../../utils/auth-utils'
+import { Request, Response } from 'express'
 
-const sendVerificationCommon = async (req: any, res: any): Promise<void> => {
+const sendVerificationCommon = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const user = extractUser(req)
   const payload = {
     userId: user.id,
@@ -46,13 +50,19 @@ const sendVerificationCommon = async (req: any, res: any): Promise<void> => {
 export function routeVerify(router: Router) {
   router
     .route('/verify/send')
-    .post(authPassport.checkRecaptcha, async function(req, res) {
+    .post(authPassport.checkRecaptcha(false), async function(
+      req: Request,
+      res: Response
+    ) {
       await sendVerificationCommon(req, res)
     })
 
   router
     .route('/verify/v2/send')
-    .post(authPassport.checkRecaptcha(true), async function(req, res, next) {
+    .post(authPassport.checkRecaptcha(true), async function(
+      req: Request,
+      res: Response
+    ) {
       await sendVerificationCommon(req, res)
     })
 
