@@ -4,8 +4,6 @@ import {
   RegistrationError,
   authPassport,
 } from '../../utils/auth-utils'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { buildStudent } from '../mocks/generate'
 import {
   LowRecaptchaScoreError,
   MissingRecaptchaTokenError,
@@ -16,12 +14,6 @@ import { mocked } from 'ts-jest/utils'
 import logger from '../../logger'
 
 const mockedRecaptchaService = mocked(RecaptchaService, true)
-
-const app = mockApp()
-const mockGetUser = () => buildStudent() // @TODO do I need this and the next line?
-app.use(mockPassportMiddleware(mockGetUser))
-const router = mockRouter() // @TODO do I need this and the next line?
-app.use('/api', router)
 
 describe('name validator', () => {
   test('accepts two valid names', async () => {
