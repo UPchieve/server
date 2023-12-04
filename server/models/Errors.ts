@@ -107,3 +107,11 @@ export class LowRecaptchaScoreError extends CustomError {
     this.action = action
   }
 }
+
+export class MissingRecaptchaTokenError extends CustomError {
+  constructor() {
+    super(
+      'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
+    )
+  }
+}

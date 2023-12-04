@@ -23,6 +23,7 @@ import {
   InputError,
   LookupError,
   LowRecaptchaScoreError,
+  MissingRecaptchaTokenError,
 } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
@@ -569,24 +570,54 @@ function isAdminRedirect(
   return res.redirect('/')
 }
 
-async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
+/**
+ * Validates the recaptcha score
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @param strict - When true, the request will fail if the recaptcha token is not present or if the score is too low
+ */
+async function checkRecaptcha(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  strict: boolean = false
+) {
   const token = req.headers['g-recaptcha-response']
   if (!token) {
-    logger.info(`unable to check grecaptcha: no token in request headers`)
-    return res.redirect('/')
+    const logMsg = `unable to check grecaptcha: no token in request headers`
+    if (strict) {
+      logger.error(logMsg)
+      return next(new MissingRecaptchaTokenError())
+    } else {
+      logger.info(logMsg)
+      return res.redirect('/')
+    }
   }
+
   const result = await axios.post(
     `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
   )
   if (!result.data || !result.data.success) {
-    logger.info(`grecaptcha result failed: ${result.data}`)
-    return res.redirect('/')
+    const logMsg = `grecaptcha result failed: ${result.data}`
+    if (strict) {
+      logger.error(logMsg)
+      return next(
+        new Error(
+          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
+        )
+      )
+    } else {
+      logger.info(logMsg)
+      return res.redirect('/')
+    }
   }
   logger.info(
     `grecaptcha result ${result.data.score} for ${result.data.action}`
   )
 
-  if (result.data.score < config.googleRecaptchaThreshold) {
+  if (strict && result.data.score < config.googleRecaptchaThreshold) {
     return next(
       new LowRecaptchaScoreError(result.data.score, result.data.action)
     )
