@@ -18,6 +18,7 @@ import {
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
+import * as RecaptchaService from '../services/RecaptchaService'
 
 import {
   InputError,
@@ -596,9 +597,7 @@ async function checkRecaptcha(
     }
   }
 
-  const result = await axios.post(
-    `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
-  )
+  const result = await RecaptchaService.Score(token as string)
   if (!result.data || !result.data.success) {
     const logMsg = `grecaptcha result failed: ${result.data}`
     if (strict) {
