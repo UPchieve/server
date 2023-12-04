@@ -573,47 +573,40 @@ function isAdminRedirect(
 
 /**
  * Validates the recaptcha score
- *
- * @param req
- * @param res
- * @param next
  * @param strict - When true, the request will fail if the recaptcha token is not present or if the score is too low
  */
-async function checkRecaptcha(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-  strict: boolean = false
-) {
-  const token = req.headers['g-recaptcha-response']
-  if (!token) {
-    if (strict) {
-      logger.error(`unable to check grecaptcha: no token in request headers`)
-      return next(new MissingRecaptchaTokenError())
-    } else {
-      return next()
+function checkRecaptcha(strict: boolean = false) {
+  return async function(req: Request, res: Response, next: NextFunction) {
+    const token = req.headers['g-recaptcha-response']
+    if (!token) {
+      if (strict) {
+        logger.error(`unable to check grecaptcha: no token in request headers`)
+        return next(new MissingRecaptchaTokenError())
+      } else {
+        return next()
+      }
     }
-  }
 
-  const result = await RecaptchaService.Score(token as string)
-  if (!result.data || !result.data.success) {
-    logger.error(`grecaptcha result failed: ${result.data}`)
-    return next(
-      new Error(
-        'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
+    const result = await RecaptchaService.Score(token as string)
+    if (!result.data || !result.data.success) {
+      logger.error(`grecaptcha result failed: ${result.data}`)
+      return next(
+        new Error(
+          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
+        )
       )
+    }
+    logger.info(
+      `grecaptcha result ${result.data.score} for ${result.data.action}`
     )
-  }
-  logger.info(
-    `grecaptcha result ${result.data.score} for ${result.data.action}`
-  )
 
-  if (strict && result.data.score < config.googleRecaptchaThreshold) {
-    return next(
-      new LowRecaptchaScoreError(result.data.score, result.data.action)
-    )
+    if (strict && result.data.score < config.googleRecaptchaThreshold) {
+      return next(
+        new LowRecaptchaScoreError(result.data.score, result.data.action)
+      )
+    }
+    return next()
   }
-  return next()
 }
 
 export const authPassport = {

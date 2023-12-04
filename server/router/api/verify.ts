@@ -50,10 +50,11 @@ export function routeVerify(router: Router) {
       await sendVerificationCommon(req, res)
     })
 
-  router.route('/verify/v2/send').post(async function(req, res, next) {
-    await authPassport.checkRecaptcha(req, res, next, true)
-    await sendVerificationCommon(req, res)
-  })
+  router
+    .route('/verify/v2/send')
+    .post(authPassport.checkRecaptcha(true), async function(req, res, next) {
+      await sendVerificationCommon(req, res)
+    })
 
   router.route('/verify/confirm').post(async function(req, res) {
     const user = extractUser(req)
