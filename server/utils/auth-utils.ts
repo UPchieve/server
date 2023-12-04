@@ -587,30 +587,22 @@ async function checkRecaptcha(
 ) {
   const token = req.headers['g-recaptcha-response']
   if (!token) {
-    const logMsg = `unable to check grecaptcha: no token in request headers`
     if (strict) {
-      logger.error(logMsg)
+      logger.error(`unable to check grecaptcha: no token in request headers`)
       return next(new MissingRecaptchaTokenError())
     } else {
-      logger.info(logMsg)
-      return res.redirect('/')
+      return next()
     }
   }
 
   const result = await RecaptchaService.Score(token as string)
   if (!result.data || !result.data.success) {
-    const logMsg = `grecaptcha result failed: ${result.data}`
-    if (strict) {
-      logger.error(logMsg)
-      return next(
-        new Error(
-          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
-        )
+    logger.error(`grecaptcha result failed: ${result.data}`)
+    return next(
+      new Error(
+        'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
       )
-    } else {
-      logger.info(logMsg)
-      return res.redirect('/')
-    }
+    )
   }
   logger.info(
     `grecaptcha result ${result.data.score} for ${result.data.action}`

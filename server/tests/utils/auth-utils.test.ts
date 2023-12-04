@@ -2,7 +2,26 @@ import {
   checkNames,
   checkPassword,
   RegistrationError,
+  authPassport,
 } from '../../utils/auth-utils'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { buildStudent } from '../mocks/generate'
+import {
+  LowRecaptchaScoreError,
+  MissingRecaptchaTokenError,
+} from '../../models/Errors'
+import * as RecaptchaService from '../../services/RecaptchaService'
+import { RecaptchaScoreResponse } from '../../services/RecaptchaService'
+import { mocked } from 'ts-jest/utils'
+import logger from '../../logger'
+
+const mockedRecaptchaService = mocked(RecaptchaService, true)
+
+const app = mockApp()
+const mockGetUser = () => buildStudent() // @TODO do I need this and the next line?
+app.use(mockPassportMiddleware(mockGetUser))
+const router = mockRouter() // @TODO do I need this and the next line?
+app.use('/api', router)
 
 describe('name validator', () => {
   test('accepts two valid names', async () => {
@@ -68,5 +87,133 @@ describe('password validator', () => {
 
   test('valid password', async () => {
     expect(checkPassword('abcdABCD1234!@#$')).toBe(true)
+  })
+})
+
+describe('authPassport', () => {
+  let mockScore = jest.fn()
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+    mockedRecaptchaService.Score = mockScore
+    mockScore.mockResolvedValue({
+      data: {
+        success: true,
+        score: 1.0,
+        action: 'sendVerification',
+      },
+    } as RecaptchaScoreResponse)
+  })
+
+  describe('checkRecaptcha', () => {
+    const testMiddleware = async (
+      strict: boolean,
+      req: any,
+      res: any,
+      next: any
+    ) => {
+      await authPassport.checkRecaptcha(req, res, next, strict)
+      return { req, res, next }
+    }
+
+    it('Should fail if the token is not present while strict=true', async () => {
+      const results = await testMiddleware(
+        true,
+        { headers: [] },
+        jest.fn(),
+        jest.fn()
+      )
+      expect(logger.error).toHaveBeenCalledWith(
+        'unable to check grecaptcha: no token in request headers'
+      )
+      expect(results.next).toHaveBeenCalledWith(
+        new MissingRecaptchaTokenError()
+      )
+    })
+
+    it('Should NOT fail if the token is not present while strict=false', async () => {
+      const results = await testMiddleware(
+        false,
+        { headers: [] },
+        jest.fn(),
+        jest.fn()
+      )
+      expect(logger.error).not.toHaveBeenCalled()
+      expect(results.next).toHaveBeenCalledWith()
+    })
+
+    it.each([false, true])(
+      'Should fail if the token is present but the scoring request failed, regardless of param strict (%s)',
+      async strict => {
+        mockScore.mockResolvedValue({
+          data: {
+            success: false,
+            score: 0.0,
+            action: 'sendVerification',
+          },
+        } as RecaptchaScoreResponse)
+        const results = await testMiddleware(
+          strict,
+          {
+            headers: {
+              'g-recaptcha-response': 'testToken',
+            },
+          },
+          jest.fn(),
+          jest.fn()
+        )
+        expect(logger.error).toHaveBeenCalledWith(
+          expect.stringContaining('grecaptcha result failed')
+        )
+        expect(results.next).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message:
+              'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+          })
+        )
+      }
+    )
+
+    it('Should fail if the score is below threshold for requests with strict=true', async () => {
+      mockScore.mockResolvedValue({
+        data: {
+          success: true,
+          score: 0.1,
+          action: 'sendVerification',
+        },
+      } as RecaptchaScoreResponse)
+      const results = await testMiddleware(
+        true,
+        { headers: { 'g-recaptcha-response': 'testToken' } },
+        jest.fn(),
+        jest.fn()
+      )
+      expect(logger.info).toHaveBeenCalledWith(
+        'grecaptcha result 0.1 for sendVerification'
+      )
+      expect(results.next).toHaveBeenCalledWith(
+        new LowRecaptchaScoreError(0.1, 'sendVerification')
+      )
+    })
+
+    it('Should NOT fail if the score is below threshold for requests with strict=false', async () => {
+      mockScore.mockResolvedValue({
+        data: {
+          success: true,
+          score: 0.1,
+          action: 'sendVerification',
+        },
+      } as RecaptchaScoreResponse)
+      const results = await testMiddleware(
+        false,
+        { headers: { 'g-recaptcha-response': 'testToken' } },
+        jest.fn(),
+        jest.fn()
+      )
+      expect(logger.info).toHaveBeenCalledWith(
+        'grecaptcha result 0.1 for sendVerification'
+      )
+      expect(results.next).toHaveBeenCalledWith()
+    })
   })
 })

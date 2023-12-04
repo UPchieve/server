@@ -7,7 +7,7 @@ import { extractUser } from '../extract-user'
 import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
 import { authPassport } from '../../utils/auth-utils'
 
-const sendVerificationCommon = async (req, res): Promise<void> => {
+const sendVerificationCommon = async (req: any, res: any): Promise<void> => {
   const user = extractUser(req)
   const payload = {
     userId: user.id,
