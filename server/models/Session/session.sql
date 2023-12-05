@@ -1182,10 +1182,6 @@ SELECT
     sessions.volunteer_id
 FROM
     sessions
-    JOIN student_profiles ON student_profiles.user_id = sessions.student_id
-    JOIN users students ON student_profiles.user_id = students.id
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
-    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
     JOIN subjects ON subjects.id = sessions.subject_id
     JOIN topics ON topics.id = subjects.topic_id
 WHERE (sessions.student_id = :userId!
