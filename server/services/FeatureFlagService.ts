@@ -61,6 +61,10 @@ export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }
 
+export async function getMutedSubjectAlertsFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.MUTED_SUBJECT_ALERTS, userId)
+}
+
 export async function getUsingOurPlatformFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }

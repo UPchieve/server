@@ -17,6 +17,13 @@ CREATE SCHEMA auth;
 
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -485,6 +492,17 @@ CREATE TABLE upchieve.legacy_availability_histories (
     legacy_availability jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: muted_users_subject_alerts; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.muted_users_subject_alerts (
+    user_id uuid NOT NULL,
+    subject_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -2584,6 +2602,14 @@ ALTER TABLE ONLY upchieve.legacy_availability_histories
 
 
 --
+-- Name: muted_users_subject_alerts muted_users_subject_alerts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.muted_users_subject_alerts
+    ADD CONSTRAINT muted_users_subject_alerts_pkey PRIMARY KEY (user_id, subject_id);
+
+
+--
 -- Name: quiz_subcategories name_quiz_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3769,6 +3795,22 @@ ALTER TABLE ONLY upchieve.legacy_availability_histories
 
 
 --
+-- Name: muted_users_subject_alerts muted_users_subject_alerts_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.muted_users_subject_alerts
+    ADD CONSTRAINT muted_users_subject_alerts_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
+-- Name: muted_users_subject_alerts muted_users_subject_alerts_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.muted_users_subject_alerts
+    ADD CONSTRAINT muted_users_subject_alerts_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: notifications notifications_method_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4779,6 +4821,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20230626161133'),
     ('20230706181722'),
     ('20230719205740'),
+    ('20230914134853'),
     ('20230918173353'),
     ('20231002232836'),
     ('20231011185712'),

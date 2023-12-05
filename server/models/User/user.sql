@@ -504,7 +504,8 @@ SELECT
     grade_levels.name AS grade_level,
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
-    users_roles.role_id
+    users_roles.role_id,
+    muted_users_subject_alerts_agg.muted_subject_alerts
 FROM
     users
     LEFT JOIN (
@@ -615,6 +616,14 @@ FROM
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN (
+        SELECT
+            array_agg(subjects.name) AS muted_subject_alerts
+        FROM
+            muted_users_subject_alerts
+            JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
+        WHERE
+            muted_users_subject_alerts.user_id = :userId!) AS muted_users_subject_alerts_agg ON TRUE
 WHERE
     users.id = :userId!;
 
@@ -755,6 +764,39 @@ WHERE
     id = :userId!
 RETURNING
     id AS ok;
+
+
+/* 
+ @name insertMutedUserSubjectAlerts
+ @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
+ */
+INSERT INTO muted_users_subject_alerts (user_id, subject_id)
+    VALUES
+        :mutedSubjectAlertIdsWithUserId
+    ON CONFLICT (user_id, subject_id)
+        DO NOTHING
+    RETURNING
+        user_id AS ok;
+
+
+/* 
+ @name deleteUnmutedUserSubjectAlerts
+ @param mutedSubjectAlertIds -> (...)
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+    AND subject_id NOT IN :mutedSubjectAlertIds
+RETURNING
+    user_id AS ok;
+
+
+/* 
+ @name deleteAllUserSubjectAlerts
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+RETURNING
+    user_id AS ok;
 
 
 /* @name getUserVerificationInfoById */
