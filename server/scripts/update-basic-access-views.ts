@@ -3,7 +3,7 @@ import * as db from '../db'
 
 const REMOVED_COL_ERR = 'cannot drop columns from view'
 
-async function main() {
+export default async function updateBasicAccessViews() {
   try {
     const tables = JSON.parse(
       fs.readFileSync(
@@ -45,5 +45,3 @@ function getCreateQuery(table: string, cols: string[]) {
 function getDropQuery(table: string) {
   return `DROP VIEW basic_access.${table};`
 }
-
-main()
