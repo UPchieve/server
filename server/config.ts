@@ -322,6 +322,8 @@ const config: Static<typeof Config> = {
 
   sessionHistoryMinSessionLength:
     Number(process.env.SUBWAY_SESSION_HISTORY_MIN_SESSION_LENGTH) || 60000,
+
+  openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
 }
 
 module.exports = config

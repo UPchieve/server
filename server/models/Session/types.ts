@@ -23,3 +23,13 @@ export type Session = {
   subjectDisplayName: string
   toolType: string
 }
+
+export type UserSessionStat = {
+  totalRequested: number
+  totalHelped: number
+  topicName: string
+}
+
+export type UserSessionStats = {
+  [subjectName: string]: UserSessionStat
+}

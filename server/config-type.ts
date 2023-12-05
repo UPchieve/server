@@ -208,4 +208,6 @@ export const Config = Record({
   googleRecaptchaSecret: String,
 
   sessionHistoryMinSessionLength: Number,
+
+  openAIApiKey: String,
 })
