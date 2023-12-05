@@ -17,9 +17,6 @@ build:
   stage: build
   image: "docker:20.10.6"
   cache: {}
-  tags:
-    - upchieve
-    - containerbuild
   variables:
     DOCKER_TLS_CERTDIR: ""
   services:
@@ -53,8 +50,6 @@ build:
 testbackend:
   stage: test
   image: node:16.16.0-bullseye
-  tags:
-    - upchieve
   variables:
     NODE_OPTIONS: --max_old_space_size=5120
   services:
@@ -101,8 +96,6 @@ testbackend:
 lint:
   stage: test
   image: node:16.16.0-bullseye
-  tags:
-    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -116,8 +109,6 @@ lint:
 lint_sql:
   stage: test
   image: node:16.16.0-bullseye
-  tags:
-    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -131,8 +122,6 @@ lint_sql:
 lint_database:
   stage: test
   image: node:16.16.0-bullseye
-  tags:
-    - upchieve
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:

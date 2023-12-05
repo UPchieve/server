@@ -125,3 +125,11 @@ FROM
 WHERE
     quizzes.name = :subject!;
 
+
+/* @name getSubjectNameIdMapping */
+SELECT
+    subjects.name,
+    subjects.id
+FROM
+    upchieve.subjects;
+

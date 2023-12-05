@@ -12,6 +12,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
+import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
 import { CreateUserPayload, CreateUserResult, User } from './types'
 import { IUpdateUserVerifiedPhoneByIdResult } from './pg.queries'
@@ -607,6 +608,35 @@ export async function updateUserProfileById(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+    // Update muted subject alerts for volunteers
+    if (data.mutedSubjectAlerts) {
+      if (data.mutedSubjectAlerts.length == 0) {
+        await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
+      } else {
+        let subjectNameIdMapping: {
+          [name: string]: number
+        } = await getSubjectNameIdMapping()
+        let mutedSubjectAlertIds = []
+        for (const subjectName of data.mutedSubjectAlerts) {
+          mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
+        }
+        let mutedSubjectAlertIdsWithUserId: {
+          userId: Ulid
+          subjectId: number
+        }[] = []
+        mutedSubjectAlertIds.forEach(subjectId =>
+          mutedSubjectAlertIdsWithUserId.push({ userId, subjectId })
+        )
+        await pgQueries.insertMutedUserSubjectAlerts.run(
+          { mutedSubjectAlertIdsWithUserId },
+          getClient()
+        )
+        await pgQueries.deleteUnmutedUserSubjectAlerts.run(
+          { userId, mutedSubjectAlertIds },
+          getClient()
+        )
+      }
+    }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
