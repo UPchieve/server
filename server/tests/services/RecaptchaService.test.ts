@@ -8,15 +8,15 @@ import axios from 'axios'
 jest.mock('axios')
 describe('RecaptchaService', () => {
   beforeEach(() => {
-    jest
-      .resetAllMocks()(axios.post as jest.Mock)
-      .mockResolvedValue({
-        data: {
-          score: 1.0,
-          success: true,
-          action: 'testAction',
-        },
-      })
+    jest.resetAllMocks()
+    const axiosPostMock = axios.post as jest.Mock
+    axiosPostMock.mockResolvedValue({
+      data: {
+        score: 1.0,
+        success: true,
+        action: 'testAction',
+      },
+    })
   })
 
   it('Successfully passes validations', async () => {
@@ -34,7 +34,8 @@ describe('RecaptchaService', () => {
   })
 
   it('Should throw an error if the score cannot be retrieved', async () => {
-    ;(axios.post as jest.Mock).mockResolvedValue({
+    const axiosPostMock = axios.post as jest.Mock
+    axiosPostMock.mockResolvedValue({
       data: {
         success: false,
       },
@@ -49,7 +50,8 @@ describe('RecaptchaService', () => {
   })
 
   it('Should throw a LowRecaptchaScoreError if the score is below threshold', async () => {
-    ;(axios.post as jest.Mock).mockResolvedValue({
+    const axiosPostMock = axios.post as jest.Mock
+    axiosPostMock.mockResolvedValue({
       data: {
         score: 0.0,
         action: 'testAction',
