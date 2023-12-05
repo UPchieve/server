@@ -1,8 +1,8 @@
 import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import { GRADES, USER_BAN_REASONS } from '../../constants'
 import {
-  Reference,
   Certifications,
+  Reference,
   TrainingCourses,
   getVolunteerTrainingCourses,
   getActiveQuizzesForVolunteers,
@@ -52,6 +52,7 @@ export type LegacyUserModel = {
   volunteerPartnerOrg?: string
   subjects?: string[]
   activeSubjects?: string[]
+  mutedSubjectAlerts?: string[]
   totalActiveCertifications: number
   availability?: Availability
   certifications?: Certifications
@@ -118,6 +119,7 @@ export async function getLegacyUserObject(
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
+      if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
       volunteerUser.availability = await getAvailabilityForVolunteer(
         userId,
         client

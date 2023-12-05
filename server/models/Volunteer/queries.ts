@@ -1595,6 +1595,21 @@ export async function getNextVolunteerToNotify(options: {
   }
 }
 
+export async function checkIfVolunteerMutedSubject(
+  userId: Ulid,
+  subjectName: string
+): Promise<boolean | undefined> {
+  try {
+    const result = await pgQueries.checkIfVolunteerMutedSubject.run(
+      { userId, subjectName },
+      getClient()
+    )
+    return result.length ? true : false
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type VolunteerForScheduleUpdate = {
   id: Ulid
   volunteerPartnerOrg?: string

@@ -25,20 +25,26 @@ export function routeUser(router: Router): void {
   })
 
   // Note: Both students and volunteers can edit parts of their profile,
-  // but only volunteeres can deactivate their accounts.
+  // but only volunteers can deactivate their accounts.
   router.put('/user', async (req, res) => {
     try {
       const { ip } = req
       const user = extractUser(req)
 
       const isDeactivated = asBoolean(req.body.isDeactivated)
+
       // Form request object
-      let updateReq: { [k: string]: any } = {
+      let updateReq: { [k: string]: boolean | string | string[] } = {
         deactivated: isDeactivated,
       }
+
       // optional fields
       if ('smsConsent' in req.body) {
         updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
+      }
+      if ('mutedSubjectAlerts' in req.body) {
+        updateReq['mutedSubjectAlerts'] = req.body
+          .mutedSubjectAlerts as string[]
       }
       if ('phone' in req.body) {
         const phone = asString(req.body.phone)
