@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
@@ -8,7 +7,6 @@ const GoogleStrategy = require('passport-google-oidc')
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
-import logger from '../logger'
 import {
   getUserContactInfoById,
   getUserForPassport,
@@ -18,7 +16,6 @@ import {
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
-import * as RecaptchaService from '../services/RecaptchaService'
 
 import {
   InputError,
@@ -42,6 +39,7 @@ import {
   registerStudent,
   createPartnerStudent,
 } from '../services/UserCreationService'
+import { validateRequestRecaptcha } from '../services/RecaptchaService'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -571,39 +569,24 @@ function isAdminRedirect(
   return res.redirect('/')
 }
 
-/**
- * Validates the recaptcha score
- * @param strict - When true, the request will fail if the recaptcha token is not present or if the score is too low
- */
-function checkRecaptcha(strict: boolean = false) {
-  return async function(req: Request, res: Response, next: NextFunction) {
-    const token = req.headers['g-recaptcha-response']
-    if (!token) {
-      if (strict) {
-        logger.error(`unable to check grecaptcha: no token in request headers`)
-        return next(new MissingRecaptchaTokenError())
-      } else {
-        return next()
-      }
-    }
-
-    const result = await RecaptchaService.scoreAction(token as string)
-    if (!result.data || !result.data.success) {
-      logger.error(`grecaptcha result failed: ${result.data}`)
-      return next(
-        new Error(
-          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
-        )
-      )
-    }
-    logger.info(
-      `grecaptcha result ${result.data.score} for ${result.data.action}`
-    )
-
-    if (strict && result.data.score < config.googleRecaptchaThreshold) {
-      return next(new LowRecaptchaScoreError())
-    }
+async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
+  try {
+    await validateRequestRecaptcha(req)
     return next()
+  } catch (err) {
+    if (
+      err instanceof MissingRecaptchaTokenError ||
+      err instanceof LowRecaptchaScoreError
+    ) {
+      res.status(500).json({
+        err: err.message,
+      })
+    } else {
+      res.status(500).json({
+        err:
+          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+      })
+    }
   }
 }
 

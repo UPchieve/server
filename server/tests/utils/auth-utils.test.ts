@@ -9,12 +9,8 @@ import {
   MissingRecaptchaTokenError,
 } from '../../models/Errors'
 import * as RecaptchaService from '../../services/RecaptchaService'
-import { RecaptchaScoreResponse } from '../../services/RecaptchaService'
-import { mocked } from 'ts-jest/utils'
-import logger from '../../logger'
 
-const mockedRecaptchaService = mocked(RecaptchaService, true)
-
+jest.mock('../../services/RecaptchaService')
 describe('name validator', () => {
   test('accepts two valid names', async () => {
     expect(checkNames('Somebodys', 'Name')).toBeUndefined()
@@ -85,127 +81,46 @@ describe('password validator', () => {
 describe('authPassport', () => {
   beforeEach(() => {
     jest.resetAllMocks()
-    mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
-      data: {
-        success: true,
-        score: 1.0,
-        action: 'sendVerification',
-      },
-    } as RecaptchaScoreResponse)
   })
 
   describe('checkRecaptcha', () => {
-    const testMiddleware = async (
-      strict: boolean,
-      req: any,
-      res: any,
-      next: any
-    ) => {
-      const handler: (
-        req: any,
-        res: any,
-        next: any
-      ) => Promise<void> = authPassport.checkRecaptcha(strict)
-      await handler(req, res, next)
-      return { req, res, next }
-    }
+    it('Should call next() if the request passes recaptcha validations', async () => {
+      const req = {
+        headers: {
+          'g-recaptcha-response': 'testToken',
+        },
+      } as any
+      const res = {} as any
+      const nextMock = jest.fn()
 
-    it('Should fail if the token is not present while strict=true', async () => {
-      const results = await testMiddleware(
-        true,
-        { headers: [] },
-        jest.fn(),
-        jest.fn()
-      )
-      expect(logger.error).toHaveBeenCalledWith(
-        'unable to check grecaptcha: no token in request headers'
-      )
-      expect(results.next).toHaveBeenCalledWith(
-        new MissingRecaptchaTokenError()
-      )
+      await authPassport.checkRecaptcha(req, res, nextMock)
+      expect(nextMock).toHaveBeenCalled()
     })
 
-    it('Should NOT fail if the token is not present while strict=false', async () => {
-      const results = await testMiddleware(
-        false,
-        { headers: [] },
-        jest.fn(),
-        jest.fn()
-      )
-      expect(logger.error).not.toHaveBeenCalled()
-      expect(results.next).toHaveBeenCalledWith()
-    })
-
-    it.each([false, true])(
-      'Should fail if the token is present but the scoring request failed, regardless of param strict (%s)',
-      async strict => {
-        mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
-          data: {
-            success: false,
-            score: 0.0,
-            action: 'sendVerification',
+    it.each([
+      new LowRecaptchaScoreError(),
+      new MissingRecaptchaTokenError(),
+      new Error('Test'),
+    ])(
+      'Should not call next() if the request fails recaptcha validations due to %s',
+      async err => {
+        ;(RecaptchaService.validateRequestRecaptcha as jest.Mock).mockRejectedValue(
+          err
+        )
+        const req = {
+          headers: {
+            'g-recaptcha-response': 'testToken',
           },
-        } as RecaptchaScoreResponse)
-        const results = await testMiddleware(
-          strict,
-          {
-            headers: {
-              'g-recaptcha-response': 'testToken',
-            },
-          },
-          jest.fn(),
-          jest.fn()
-        )
-        expect(logger.error).toHaveBeenCalledWith(
-          expect.stringContaining('grecaptcha result failed')
-        )
-        expect(results.next).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message:
-              'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
-          })
-        )
+        } as any
+        const mockRes = {
+          status: jest.fn().mockReturnThis(),
+          json: jest.fn(),
+        }
+        const nextMock = jest.fn()
+        await authPassport.checkRecaptcha(req, mockRes as any, nextMock)
+        expect(nextMock).not.toHaveBeenCalled()
+        expect(mockRes.status).toHaveBeenCalledWith(500)
       }
     )
-
-    it('Should fail if the score is below threshold for requests with strict=true', async () => {
-      mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
-        data: {
-          success: true,
-          score: 0.1,
-          action: 'sendVerification',
-        },
-      } as RecaptchaScoreResponse)
-      const results = await testMiddleware(
-        true,
-        { headers: { 'g-recaptcha-response': 'testToken' } },
-        jest.fn(),
-        jest.fn()
-      )
-      expect(logger.info).toHaveBeenCalledWith(
-        'grecaptcha result 0.1 for sendVerification'
-      )
-      expect(results.next).toHaveBeenCalledWith(new LowRecaptchaScoreError())
-    })
-
-    it('Should NOT fail if the score is below threshold for requests with strict=false', async () => {
-      mockedRecaptchaService.Score = jest.fn().mockResolvedValue({
-        data: {
-          success: true,
-          score: 0.1,
-          action: 'sendVerification',
-        },
-      } as RecaptchaScoreResponse)
-      const results = await testMiddleware(
-        false,
-        { headers: { 'g-recaptcha-response': 'testToken' } },
-        jest.fn(),
-        jest.fn()
-      )
-      expect(logger.info).toHaveBeenCalledWith(
-        'grecaptcha result 0.1 for sendVerification'
-      )
-      expect(results.next).toHaveBeenCalledWith()
-    })
   })
 })
