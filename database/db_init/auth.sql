@@ -66,7 +66,7 @@ GRANT SELECT ON ALL tables IN SCHEMA basic_access TO basic_access;
 GRANT usage ON SCHEMA basic_access TO basic_access;
 ALTER ROLE basic_access SET search_path = basic_access;
 ALTER DEFAULT PRIVILEGES IN SCHEMA basic_access GRANT SELECT ON tables TO basic_access;
--- Give subway role the privileges to create the views and give access to basic_access role to select them.
+-- Give subway role the privileges to create the views and the ability to give basic_access role select privileges.
 GRANT CREATE ON SCHEMA basic_access TO subway;
 GRANT usage on SCHEMA basic_access to subway;
 ALTER DEFAULT PRIVILEGES FOR ROLE subway IN SCHEMA basic_access GRANT SELECT ON TABLES TO basic_access;
