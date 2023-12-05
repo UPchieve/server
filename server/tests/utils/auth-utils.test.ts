@@ -185,9 +185,7 @@ describe('authPassport', () => {
       expect(logger.info).toHaveBeenCalledWith(
         'grecaptcha result 0.1 for sendVerification'
       )
-      expect(results.next).toHaveBeenCalledWith(
-        new LowRecaptchaScoreError(0.1, 'sendVerification')
-      )
+      expect(results.next).toHaveBeenCalledWith(new LowRecaptchaScoreError())
     })
 
     it('Should NOT fail if the score is below threshold for requests with strict=false', async () => {

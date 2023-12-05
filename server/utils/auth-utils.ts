@@ -587,7 +587,7 @@ function checkRecaptcha(strict: boolean = false) {
       }
     }
 
-    const result = await RecaptchaService.Score(token as string)
+    const result = await RecaptchaService.scoreAction(token as string)
     if (!result.data || !result.data.success) {
       logger.error(`grecaptcha result failed: ${result.data}`)
       return next(
@@ -601,9 +601,7 @@ function checkRecaptcha(strict: boolean = false) {
     )
 
     if (strict && result.data.score < config.googleRecaptchaThreshold) {
-      return next(
-        new LowRecaptchaScoreError(result.data.score, result.data.action)
-      )
+      return next(new LowRecaptchaScoreError())
     }
     return next()
   }
