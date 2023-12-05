@@ -469,7 +469,10 @@ export async function notifyVolunteer(
           volunteer.id,
           session.subject
         )
-        if (volunteerMutedSubject) continue
+        if (volunteerMutedSubject) {
+          volunteer = undefined
+          continue
+        }
       }
       priorityGroup = priorityFilter.groupName
       break
