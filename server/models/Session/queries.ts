@@ -9,7 +9,7 @@ import {
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
-import { Session } from './types'
+import { Session, UserSessionStats } from './types'
 import 'moment-timezone'
 import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -1363,5 +1363,78 @@ export async function sessionHasBannedParticipant(
     throw new RepoReadError(err)
   } finally {
     client.release()
+  }
+}
+
+export type UserSessionsFilter = {
+  start?: Date
+  end?: Date
+  subject?: string
+  topic?: string
+}
+
+export type UserSessions = {
+  id: Ulid
+  createdAt: Date
+  subjectName: string
+  topicName: string
+  quillDoc?: string
+  studentId: string
+  volunteerId: string
+}
+
+export type UserSessionsWithMessages = UserSessions & {
+  messages: MessageForFrontend[]
+}
+
+export async function getUserSessionsByUserId(
+  userId: Ulid,
+  filter: UserSessionsFilter = {
+    start: undefined,
+    end: undefined,
+    subject: undefined,
+    topic: undefined,
+  }
+): Promise<UserSessions[]> {
+  try {
+    const result = await pgQueries.getUserSessionsByUserId.run(
+      {
+        userId,
+        start: filter.start,
+        end: filter.end,
+        subject: filter.subject,
+        topic: filter.topic,
+      },
+      getClient()
+    )
+    return result.map(v => makeSomeOptional(v, ['quillDoc']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getUserSessionStats(
+  userId: Ulid
+): Promise<UserSessionStats> {
+  try {
+    const result = await pgQueries.getUserSessionStats.run(
+      {
+        userId,
+        minSessionLength: config.sessionHistoryMinSessionLength,
+      },
+      getClient()
+    )
+    const userSessionStats: UserSessionStats = {}
+    for (const subject of result.map(v => makeRequired(v))) {
+      const { subjectName, topicName, totalRequested, totalHelped } = subject
+      userSessionStats[subjectName] = {
+        totalRequested,
+        totalHelped,
+        topicName,
+      }
+    }
+    return userSessionStats
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

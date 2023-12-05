@@ -36,7 +36,7 @@ export function camelCaseKeys<T extends { [k: string]: any }>(
   return newObj as CamelCasedProperties<T>
 }
 
-export async function insertSingleRow<T>(
+export async function insertSingleRow<T extends { [key: string]: any }>(
   table: string,
   object: T,
   client: Pool
