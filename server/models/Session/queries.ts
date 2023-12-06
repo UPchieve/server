@@ -1380,7 +1380,7 @@ export type UserSessions = {
   topicName: string
   quillDoc?: string
   studentId: string
-  volunteerId: string
+  volunteerId?: string
 }
 
 export type UserSessionsWithMessages = UserSessions & {
@@ -1407,7 +1407,7 @@ export async function getUserSessionsByUserId(
       },
       getClient()
     )
-    return result.map(v => makeSomeOptional(v, ['quillDoc']))
+    return result.map(v => makeSomeOptional(v, ['volunteerId', 'quillDoc']))
   } catch (err) {
     throw new RepoReadError(err)
   }
