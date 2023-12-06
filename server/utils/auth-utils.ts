@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import { CustomError } from 'ts-custom-error'
@@ -8,7 +7,6 @@ const GoogleStrategy = require('passport-google-oidc')
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
-import logger from '../logger'
 import {
   getUserContactInfoById,
   getUserForPassport,
@@ -19,7 +17,12 @@ import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
 
-import { InputError, LookupError } from '../models/Errors'
+import {
+  InputError,
+  LookupError,
+  LowRecaptchaScoreError,
+  MissingRecaptchaTokenError,
+} from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -36,6 +39,7 @@ import {
   registerStudent,
   createPartnerStudent,
 } from '../services/UserCreationService'
+import { validateRequestRecaptcha } from '../services/RecaptchaService'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -566,23 +570,24 @@ function isAdminRedirect(
 }
 
 async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers['g-recaptcha-response']
-  if (!token) {
-    logger.info(`unable to check grecaptcha: no token in request headers`)
-    return res.redirect('/')
+  try {
+    await validateRequestRecaptcha(req)
+    return next()
+  } catch (err) {
+    if (
+      err instanceof MissingRecaptchaTokenError ||
+      err instanceof LowRecaptchaScoreError
+    ) {
+      res.status(500).json({
+        err: err.message,
+      })
+    } else {
+      res.status(500).json({
+        err:
+          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+      })
+    }
   }
-  const result = await axios.post(
-    `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
-  )
-  if (!result.data || !result.data.success) {
-    logger.info(`grecaptcha result failed: ${result.data}`)
-    return res.redirect('/')
-  }
-  logger.info(
-    `grecaptcha result ${result.data.score} for ${result.data.action}`
-  )
-  // TODO: Check the score and reject if likely bot.
-  return next()
 }
 
 export const authPassport = {
