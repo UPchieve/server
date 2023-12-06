@@ -207,9 +207,6 @@ export async function registerStudent(data: RegisterStudentPayload) {
     return user
   })
 
-  emitter.emit(USER_EVENTS.USER_CREATED, newStudent.id)
-  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, newStudent.id)
-
   return {
     ...newStudent,
     isAdmin: false,
@@ -315,6 +312,9 @@ async function createStudent(
       )
     }
   }
+
+  emitter.emit(USER_EVENTS.USER_CREATED, studentData.userId)
+  emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, studentData.userId)
 }
 
 function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
