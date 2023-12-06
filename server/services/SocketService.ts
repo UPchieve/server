@@ -13,6 +13,7 @@ class SocketService {
     this.io = io
   }
 
+  // Allow singleton use of SocketService
   static createInstance(io: socketio.Server): void {
     if (!SocketService.instance) {
       SocketService.instance = new SocketService(io)
