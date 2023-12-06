@@ -257,7 +257,6 @@ export type SessionsToReview = {
   type: string
   subTopic: string
   studentFirstName: string
-  studentLastName: string
   isReported: boolean
   flags: string[]
   reviewReasons?: string[]
