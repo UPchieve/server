@@ -8,6 +8,7 @@ import config from './config'
 import logger from './logger'
 import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
 import { Express } from 'express'
+import SocketService from './services/SocketService'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = (app: Express) => {
@@ -42,5 +43,6 @@ export default function(app: Express) {
   if (process.env.NODE_ENV === 'test') return io
 
   io.adapter(createAdapter(socketIoPubClient, socketIoSubClient))
+  SocketService.createInstance(io)
   return io
 }
