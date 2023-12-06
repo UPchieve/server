@@ -11,7 +11,7 @@ jest.mock('../worker/logger')
 // Custom mock to avoid "TypeError: (0 , socket_io_client_1.io) is not a function" errors
 jest.mock('socket.io-client', () => ({
   io: () => ({
-    on: () => undefined
+    on: () => undefined,
   }),
 }))
 
