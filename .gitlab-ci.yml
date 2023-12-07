@@ -31,19 +31,9 @@ build:
         export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_TAG}
       fi
     - export image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-    - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
-    - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - apk add --update curl tar
-    - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
-    - |
-      pack build "$image_tagged" \
-        --creation-time now \
-        --builder heroku/buildpacks:20 \
-        --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
-        --buildpack heroku/nodejs@1.1.7 \
-        --buildpack heroku/procfile@0.6.2 \
-        --publish
+    - docker build --tag "$image_tagged" .
+    - docker push "$image_tagged"
   rules:
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
