@@ -44,7 +44,7 @@ export async function validateRequestRecaptcha(req: Request): Promise<void> {
 
   const result = await getScore(token as string)
   if (!result.data || !result.data?.success) {
-    logger.error(`grecaptcha result failed: ${result.data}`)
+    logger.error(`grecaptcha result failed: ${JSON.stringify(result.data)}`)
     throw new Error('Could not get recaptcha score for request')
   }
   logger.info(
