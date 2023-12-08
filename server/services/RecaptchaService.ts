@@ -52,9 +52,14 @@ export async function validateRequestRecaptcha(req: Request): Promise<void> {
   )
 
   if (result.data.score < config.googleRecaptchaThreshold) {
-    logger.warn(
-      `grecaptcha score ${result.data.score} for ${result.data.action} is below threshold`
-    )
+    logger.warn({
+      message: `grecaptcha score is below threshold`,
+      score: result.data.score,
+      action: result.data.action,
+      threshold: config.googleRecaptchaThreshold,
+      userId: req.user?.id,
+      verificationMethod: req.body?.data?.verificationMethod,
+    })
     throw new LowRecaptchaScoreError()
   }
 }
