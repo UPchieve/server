@@ -55,7 +55,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
-  const socketService = new SocketService(io)
+  const socketService = SocketService.getInstance(io)
 
   let chatbot: Ulid | undefined
 

@@ -12,7 +12,7 @@ import { asString, asUlid } from '../../utils/type-utils'
 // TODO: figure out a better way to expose SocketService
 export function routeSession(router: Router, io: Server) {
   // io is now passed to this module so that API events can trigger socket events as needed
-  const socketService = new SocketService(io)
+  const socketService = SocketService.getInstance(io)
 
   router.route('/session/new').post(async function(req, res) {
     try {
