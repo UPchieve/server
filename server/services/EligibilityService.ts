@@ -62,9 +62,11 @@ export async function checkEligibility(
 
   const isCollegeStudent = currentGrade === GRADES.COLLEGE
 
-  const existingIneligible = await getIneligibleStudentByEmail(email)
-  if (existingIneligible && (existingIneligible.school || !schoolUpchieveId)) {
-    return { isEligible: false, isCollegeStudent }
+  if (email) {
+    const existingIneligible = await getIneligibleStudentByEmail(email)
+    if (existingIneligible) {
+      return { isEligible: false, isCollegeStudent }
+    }
   }
 
   const school = schoolUpchieveId
@@ -77,21 +79,20 @@ export async function checkEligibility(
   const isEligibleBySchool = isSchoolApproved(school)
   const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isStudentEligible =
-    (isEligibleBySchool || (isEligibleByZipCode && !existingIneligible)) &&
-    !isCollegeStudent
+    (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
 
   if (!isStudentEligible) {
     const referredBy = await UserCtrl.checkReferral(referredByCode)
-    await insertIneligibleStudent(
-      email,
-      school?.id,
-      zipCodeInput,
-      currentGrade,
-      referredBy,
-      ip
-    )
-  } else if (existingIneligible) {
-    await deleteIneligibleStudent(email)
+    if (email) {
+      await insertIneligibleStudent(
+        email,
+        school?.id,
+        zipCodeInput,
+        currentGrade,
+        referredBy,
+        ip
+      )
+    }
   }
 
   return {
