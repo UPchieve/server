@@ -17,18 +17,29 @@ export const openai = new OpenAI({
 
 export type ScorecasterTopics = {
   topic: string
+  description: string
   grade: number
-  reasoning: string[]
+  type: 'strength' | 'practiceArea'
+  reasons: string[]
   recommendations: string[]
 }
 
 export type ScorecasterSummary = {
   summary: string
+  recommendations: string
+  strengths: string
+  strengthsGrade: number
+  practiceAreas: string
+  practiceAreasGrade: number
+}
+
+export type ScorecasterOverview = {
+  summary: ScorecasterSummary
   grade: number
 }
 
 export type ScorecasterResponse = {
-  summary: ScorecasterSummary
+  overview: ScorecasterOverview
   topics: ScorecasterTopics[]
 }
 
@@ -90,28 +101,48 @@ export async function generateScorecasterAnalysis(
           Respond in a JSON format in the shape of ScorecasterResponse from the TypeScript types below
 
 
-          export type ScorecasterTopics = {
+          type ScorecasterTopics = {
+            // The name of the topic to assess
             topic: string
+            // Brief and short description of the topic
+            description: string
+            // Grade should be their grade for the topic from 65-100
             grade: number
-            reasoning: string[]
+            // If the topic is a strength or a practiceArea for the student
+            type: 'strength' | 'practiceArea'
+            // Reasons for why it's a strength or practice area
+            reasons: string[]
+            // Recommendations to the student on the topic
             recommendations: string[]
           }
 
-          export type ScorecasterSummary = {
+          type ScorecasterSummary = {
+            // A summary of all the topics
             summary: string
+            // A summary of the recommendations to the student from the topics
+            recommendations: string
+            // A summary of the student's strengths
+            strengths: string
+            // Overall grade level you give them based off the topics between 65-100
+            strengthsGrade: number
+            // A summary of the student's practice Areas
+            practiceAreas: string
+            // Overall grade level you give them based off the topics between 65-100
+            practiceAreasGrade: number
+          }
+
+          type ScorecasterOverview = {
+            summary: ScorecasterSummary
+            // Overall grade level you give them for the subject
             grade: number
           }
 
-          export type ScorecasterResponse = {
-            summary: ScorecasterSummary
+          type ScorecasterResponse = {
+            overview: ScorecasterOverview
             topics: ScorecasterTopics[]
           }
 
-          Where "category" is essentially the topic to assess, "grade" should be their grade for the topic from 50-100, 
-          reasoning that supports why you gave that grade, 
-          and your recommendations. We expect an array of the topics that you identified in "topics". 
-          Provide a summary of all the topics into the "summary" key and an overall grade level you'd give them. 
-          The summary should be written as if you're talking to the student and within 2 to 3 sentences. 
+          The comments denoted by "//" highlight what should be filled into the property below.
           If you have nothing to analyze, respond with an empty array for categories and an empty string for the summary.`,
       },
       {
