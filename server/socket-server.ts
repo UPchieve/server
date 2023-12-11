@@ -43,6 +43,6 @@ export default function(app: Express) {
   if (process.env.NODE_ENV === 'test') return io
 
   io.adapter(createAdapter(socketIoPubClient, socketIoSubClient))
-  SocketService.createInstance(io)
+  SocketService.getInstance(io)
   return io
 }
