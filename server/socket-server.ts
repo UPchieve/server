@@ -43,6 +43,7 @@ export default function(app: Express) {
   if (process.env.NODE_ENV === 'test') return io
 
   io.adapter(createAdapter(socketIoPubClient, socketIoSubClient))
+  // Instantiate the SocketService singleton
   SocketService.getInstance(io)
   return io
 }
