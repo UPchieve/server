@@ -451,6 +451,7 @@ SELECT
     users.first_name,
     users.created_at,
     users.email,
+    users.email_verified,
     users.verified,
     users.first_name AS firstname,
     users.phone,
@@ -766,7 +767,7 @@ RETURNING
     id AS ok;
 
 
-/* 
+/*
  @name insertMutedUserSubjectAlerts
  @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
  */
@@ -779,7 +780,7 @@ INSERT INTO muted_users_subject_alerts (user_id, subject_id)
         user_id AS ok;
 
 
-/* 
+/*
  @name deleteUnmutedUserSubjectAlerts
  @param mutedSubjectAlertIds -> (...)
  */
@@ -790,7 +791,7 @@ RETURNING
     user_id AS ok;
 
 
-/* 
+/*
  @name deleteAllUserSubjectAlerts
  */
 DELETE FROM muted_users_subject_alerts
