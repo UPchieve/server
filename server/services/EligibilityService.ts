@@ -57,8 +57,10 @@ export async function checkEligibility(
     currentGrade,
   } = asCheckEligibilityPayload(payload)
 
-  const existingUser = await getUserIdByEmail(email)
-  if (existingUser) throw new ExistingUserError()
+  if (email) {
+    const existingUser = await getUserIdByEmail(email)
+    if (existingUser) throw new ExistingUserError()
+  }
 
   const isCollegeStudent = currentGrade === GRADES.COLLEGE
 
