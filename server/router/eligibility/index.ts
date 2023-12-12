@@ -9,7 +9,6 @@ import * as IpAddressService from '../../services/IpAddressService'
 import { asString, asUlid, asBoolean } from '../../utils/type-utils'
 import {
   checkEligibility,
-  ExistingUserError,
   checkZipCode,
 } from '../../services/EligibilityService'
 import { getStudentSignupSources } from '../../services/StudentService'
@@ -23,8 +22,6 @@ export function routes(app: Express) {
       const result = await checkEligibility(req.ip, req.body as unknown)
       return res.json(result)
     } catch (err) {
-      if (err instanceof ExistingUserError)
-        return res.status(422).json({ message: 'Email already in use' })
       resError(res, err)
     }
   })
