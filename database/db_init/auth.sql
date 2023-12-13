@@ -60,7 +60,7 @@ ALTER MATERIALIZED VIEW upchieve.users_subjects_mview OWNER TO mat_view_owners;
 -- Basic Access Schema and Role.
 -- The schema contains views for every table of the upchieve schema without the columns containing PII.
 -- The basic_access role has read access to the basic_access schema, and the subway role has create access.
-CREATE ROLE basic_access; -- Separately, run `ALTER ROLE basic_access WITH LOGIN PASSWORD '<password>';`
+CREATE ROLE basic_access;
 CREATE SCHEMA IF NOT EXISTS basic_access;
 GRANT SELECT ON ALL tables IN SCHEMA basic_access TO basic_access;
 GRANT usage ON SCHEMA basic_access TO basic_access;
