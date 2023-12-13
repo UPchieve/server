@@ -152,7 +152,6 @@
   ],
   "parents_guardians": [
     "id",
-    "email",
     "created_at",
     "updated_at"
   ],
@@ -794,9 +793,6 @@
   "volunteer_references": [
     "id",
     "user_id",
-    "first_name",
-    "last_name",
-    "email",
     "status_id",
     "sent_at",
     "affiliation",
