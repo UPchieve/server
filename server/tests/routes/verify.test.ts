@@ -185,6 +185,7 @@ import { routeVerify } from '../../router/api/verify'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
+import { NextFunction, Request, Response } from 'express'
 
 const mockedVerificationService = mocked(VerificationService, true)
 const mockGetUser = () => buildStudent()
@@ -196,13 +197,14 @@ app.use('/api', router)
 const agent = request.agent(app)
 
 jest.mock('../../services/VerificationService')
-jest.mock('../../utils/auth-utils', () => {
-  return {
-    authPassport: {
-      checkRecaptcha: jest.fn().mockImplementation((req, res, next) => next()),
-    },
-  }
-})
+jest.mock('../../utils/auth-utils', () => ({
+  authPassport: {
+    checkRecaptcha: () =>
+      jest.fn((req, res, next) => {
+        return next()
+      }),
+  },
+}))
 describe('verify', () => {
   const sendPost = async (payload: any, path = ''): Promise<Test> => {
     return agent

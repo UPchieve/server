@@ -367,8 +367,8 @@ export function routes(app: Express) {
   })
 
   router.post('/reset/confirm', authPassport.checkRecaptcha, async function(
-    req,
-    res
+    req: Request,
+    res: Response
   ) {
     try {
       await AuthService.confirmReset(req.body as unknown)

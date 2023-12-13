@@ -61,6 +61,10 @@ export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }
 
+export async function getMutedSubjectAlertsFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.MUTED_SUBJECT_ALERTS, userId)
+}
+
 export async function getUsingOurPlatformFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
@@ -90,4 +94,11 @@ export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
 
 export async function getSmsVerificationFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.SMS_VERIFICATION, userId)
+}
+
+export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS,
+    userId
+  )
 }

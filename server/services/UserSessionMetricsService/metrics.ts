@@ -51,7 +51,7 @@ class AbsentStudent extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentAbsentWarning,
           {
-            sessionSubtopic: pd.session.subject,
+            sessionSubtopic: pd.session.subjectDisplayName,
             sessionDate: pd.session.createdAt,
             studentId: pd.session.studentId,
             volunteerId: pd.session.volunteerId,
@@ -72,7 +72,7 @@ class AbsentStudent extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailVolunteerAbsentStudentApology,
           {
-            sessionSubtopic: pd.session.subject,
+            sessionSubtopic: pd.session.subjectDisplayName,
             sessionDate: pd.session.createdAt,
             studentId: pd.session.studentId,
             volunteerId: pd.session.volunteerId,
@@ -133,7 +133,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailVolunteerAbsentWarning,
           {
-            sessionSubtopic: pd.session.subject,
+            sessionSubtopic: pd.session.subjectDisplayName,
             sessionDate: pd.session.createdAt,
             studentId: pd.session.studentId,
             volunteerId: pd.session.volunteerId,
@@ -151,7 +151,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentAbsentVolunteerApology,
           {
-            sessionSubtopic: pd.session.subject,
+            sessionSubtopic: pd.session.subjectDisplayName,
             sessionDate: pd.session.createdAt,
             studentId: pd.session.studentId,
             volunteerId: pd.session.volunteerId,
@@ -285,7 +285,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentOnlyLookingForAnswers,
           {
-            sessionSubtopic: pd.session.subject,
+            sessionSubtopic: pd.session.subjectDisplayName,
             sessionDate: pd.session.createdAt,
             studentId: pd.session.studentId,
             volunteerId: pd.session.volunteerId,
@@ -355,7 +355,7 @@ class HasBeenUnmatched extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentUnmatchedApology,
           {
-            sessionSubtopic: pd.session.subject,
+            sessionSubtopic: pd.session.subjectDisplayName,
             sessionDate: pd.session.createdAt,
             studentId: pd.session.studentId,
             volunteerId: pd.session.volunteerId,
