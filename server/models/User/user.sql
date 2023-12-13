@@ -512,6 +512,7 @@ SELECT
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
+    schools.partner AS is_school_partner,
     grade_levels.name AS grade_level,
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
