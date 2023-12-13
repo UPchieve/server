@@ -349,10 +349,7 @@ type AdminUser = {
   id: Ulid
   _id: Ulid
   firstName: string
-  // TODO: remove old firstnames from frontend
-  firstname: string
-  lastname: string
-  lastName: string
+  lastName?: string
   email: string
   isVolunteer: boolean
   createdAt: Date
@@ -378,11 +375,9 @@ export async function getUsersForAdminSearch(
       getClient()
     )
     return result.map(v => {
-      const user = makeRequired(v)
+      const user = makeSomeOptional(v, ['lastName'])
       return {
         _id: user.id,
-        firstname: user.firstName,
-        lastname: user.lastName,
         ...user,
       }
     })
@@ -451,8 +446,7 @@ export async function getUserForAdminDetail(
       'id',
       'createdAt',
       'email',
-      'firstname',
-      'lastname',
+      'firstName',
       'isAdmin',
       'isDeactivated',
       'isTestUser',
