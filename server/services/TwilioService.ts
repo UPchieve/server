@@ -27,7 +27,10 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getProcrastinationTextReminderCopy } from './FeatureFlagService'
+import {
+  getProcrastinationTextReminderCopy,
+  getMutedSubjectAlertsFlag,
+} from './FeatureFlagService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -452,12 +455,25 @@ export async function notifyVolunteer(
     },
   ]
 
-  let volunteer: VolunteerContactInfo | undefined, priorityGroup: any
+  let volunteer: VolunteerContactInfo | undefined
+  let priorityGroup: any
 
   for (const priorityFilter of volunteerPriority) {
     volunteer = await priorityFilter.query()
-
     if (volunteer) {
+      const mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
+        volunteer.id
+      )
+      if (mutedSubjectAlertsFlag) {
+        const volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
+          volunteer.id,
+          session.subject
+        )
+        if (volunteerMutedSubject) {
+          volunteer = undefined
+          continue
+        }
+      }
       priorityGroup = priorityFilter.groupName
       break
     }

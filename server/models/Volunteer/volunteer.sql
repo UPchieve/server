@@ -1260,6 +1260,17 @@ ORDER BY
 LIMIT 1;
 
 
+/* @name checkIfVolunteerMutedSubject */
+SELECT
+    user_id
+FROM
+    muted_users_subject_alerts
+    JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
+WHERE
+    muted_users_subject_alerts.user_id = :userId
+    AND subjects.name = :subjectName;
+
+
 /* @name getVolunteerForScheduleUpdate */
 SELECT
     users.id,

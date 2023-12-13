@@ -406,6 +406,7 @@ export async function updateUserProfile(
     deactivated?: boolean
     phone?: string
     smsConsent?: boolean
+    mutedSubjectAlerts?: string[]
   }
 ) {
   await updateUserProfileById(userId, opts)

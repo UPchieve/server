@@ -48,6 +48,7 @@ import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessi
 import updateGradeLevel from './updateGradeLevel'
 import studentProcrastinationTextReminder from './studentProcrastinationTextReminder'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
+import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -120,6 +121,9 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpsertSchools = 'UpsertSchools',
+
+  // Eng Tooling Scripts
+  UpdateBasicAccessViews = 'UpdateBasicAccessViews',
 }
 
 // register new job processors here
@@ -365,6 +369,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
     processor: deleteDuplicateStudentFavoriteVolunteers,
+  },
+  {
+    name: Jobs.UpdateBasicAccessViews,
+    processor: updateBasicAccessViews,
   },
 ]
 

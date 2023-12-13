@@ -2526,3 +2526,114 @@ const sessionHasBannedParticipantIR: any = {"name":"sessionHasBannedParticipant"
 export const sessionHasBannedParticipant = new PreparedQuery<ISessionHasBannedParticipantParams,ISessionHasBannedParticipantResult>(sessionHasBannedParticipantIR);
 
 
+/** 'GetUserSessionsByUserId' parameters type */
+export interface IGetUserSessionsByUserIdParams {
+  end: Date | null | void;
+  start: Date | null | void;
+  subject: string | null | void;
+  topic: string | null | void;
+  userId: string;
+}
+
+/** 'GetUserSessionsByUserId' return type */
+export interface IGetUserSessionsByUserIdResult {
+  createdAt: Date;
+  id: string;
+  quillDoc: string | null;
+  studentId: string;
+  subjectName: string;
+  topicName: string;
+  volunteerId: string | null;
+}
+
+/** 'GetUserSessionsByUserId' query type */
+export interface IGetUserSessionsByUserIdQuery {
+  params: IGetUserSessionsByUserIdParams;
+  result: IGetUserSessionsByUserIdResult;
+}
+
+const getUserSessionsByUserIdIR: any = {"name":"getUserSessionsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33211,"b":33217,"line":1187,"col":30},{"a":33251,"b":33257,"line":1188,"col":32}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33267,"b":33271,"line":1189,"col":7},{"a":33320,"b":33324,"line":1190,"col":32}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33341,"b":33343,"line":1191,"col":7},{"a":33392,"b":33394,"line":1192,"col":32}]}},{"name":"subject","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33411,"b":33417,"line":1193,"col":7},{"a":33459,"b":33465,"line":1194,"col":25}]}},{"name":"topic","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33482,"b":33486,"line":1195,"col":7},{"a":33526,"b":33530,"line":1196,"col":23}]}}],"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"topic":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::date IS NULL\n    OR sessions.created_at >= (:start)::date)\nAND ((:end)::date IS NULL\n    OR sessions.created_at <= (:end)::date)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject)::text)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC","loc":{"a":32878,"b":33576,"line":1175,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at,
+ *     subjects.name AS subject_name,
+ *     topics.name AS topic_name,
+ *     quill_doc,
+ *     sessions.student_id,
+ *     sessions.volunteer_id
+ * FROM
+ *     sessions
+ *     JOIN subjects ON subjects.id = sessions.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ * WHERE (sessions.student_id = :userId!
+ *     OR sessions.volunteer_id = :userId!)
+ * AND ((:start)::date IS NULL
+ *     OR sessions.created_at >= (:start)::date)
+ * AND ((:end)::date IS NULL
+ *     OR sessions.created_at <= (:end)::date)
+ * AND ((:subject)::text IS NULL
+ *     OR subjects.name = (:subject)::text)
+ * AND ((:topic)::text IS NULL
+ *     OR topics.name = (:topic)::text)
+ * ORDER BY
+ *     sessions.created_at DESC
+ * ```
+ */
+export const getUserSessionsByUserId = new PreparedQuery<IGetUserSessionsByUserIdParams,IGetUserSessionsByUserIdResult>(getUserSessionsByUserIdIR);
+
+
+/** 'GetUserSessionStats' parameters type */
+export interface IGetUserSessionStatsParams {
+  minSessionLength: number;
+  userId: string;
+}
+
+/** 'GetUserSessionStats' return type */
+export interface IGetUserSessionStatsResult {
+  subjectName: string;
+  topicName: string;
+  totalHelped: number | null;
+  totalRequested: number | null;
+}
+
+/** 'GetUserSessionStats' query type */
+export interface IGetUserSessionStatsQuery {
+  params: IGetUserSessionStatsParams;
+  result: IGetUserSessionStatsResult;
+}
+
+const getUserSessionStatsIR: any = {"name":"getUserSessionStats","params":[{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":33787,"b":33803,"line":1207,"col":44}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":34053,"b":34059,"line":1216,"col":36},{"a":34101,"b":34107,"line":1217,"col":40}]}}],"usedParamSet":{"minSessionLength":true,"userId":true},"statement":{"body":"SELECT\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    COUNT(sessions.id)::int AS total_requested,\n    SUM(\n        CASE WHEN sessions.time_tutored >= :minSessionLength!::int THEN\n            1\n        ELSE\n            0\n        END)::int AS total_helped\nFROM\n    subjects\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN sessions ON subjects.id = sessions.subject_id\n        AND (sessions.student_id = :userId!\n            OR sessions.volunteer_id = :userId!)\nWHERE\n    subjects.active IS TRUE\nGROUP BY\n    subjects.name,\n    topics.name","loc":{"a":33613,"b":34186,"line":1202,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name AS subject_name,
+ *     topics.name AS topic_name,
+ *     COUNT(sessions.id)::int AS total_requested,
+ *     SUM(
+ *         CASE WHEN sessions.time_tutored >= :minSessionLength!::int THEN
+ *             1
+ *         ELSE
+ *             0
+ *         END)::int AS total_helped
+ * FROM
+ *     subjects
+ *     JOIN topics ON topics.id = subjects.topic_id
+ *     LEFT JOIN sessions ON subjects.id = sessions.subject_id
+ *         AND (sessions.student_id = :userId!
+ *             OR sessions.volunteer_id = :userId!)
+ * WHERE
+ *     subjects.active IS TRUE
+ * GROUP BY
+ *     subjects.name,
+ *     topics.name
+ * ```
+ */
+export const getUserSessionStats = new PreparedQuery<IGetUserSessionStatsParams,IGetUserSessionStatsResult>(getUserSessionStatsIR);
+
+

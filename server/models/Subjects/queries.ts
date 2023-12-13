@@ -2,6 +2,7 @@ import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import { makeRequired, makeSomeOptional } from '../pgUtils'
 import { RepoReadError } from '../Errors'
+
 import {
   AllSubjectsWithTopics,
   TrainingItemWithOrder,
@@ -299,6 +300,30 @@ export async function getSubjectType(
     const result = await pgQueries.getSubjectType.run({ subject }, getClient())
     if (result.length) return makeRequired(result[0]).subjectType
   } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSubjectNameIdMapping(): Promise<{
+  [subjectName: string]: number
+}> {
+  try {
+    let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
+      undefined,
+      getClient()
+    )
+    if (!subjectNameIdMappingResult.length)
+      throw new RepoReadError(
+        'Select query did not return ok (subjectNameIdMappingResult)'
+      )
+    subjectNameIdMappingResult.map(v => makeRequired(v))
+    let subjectNameIdMapping: { [name: string]: number } = {}
+    for (const subjectNameAndId of subjectNameIdMappingResult) {
+      subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
+    }
+    return subjectNameIdMapping
+  } catch (err) {
+    if (err instanceof RepoReadError) throw err
     throw new RepoReadError(err)
   }
 }

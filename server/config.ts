@@ -319,9 +319,16 @@ const config: Static<typeof Config> = {
   googleClientId: process.env.GOOGLE_CLIENT_ID || 'bogus',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || 'bogus',
   googleRecaptchaSecret: process.env.GOOGLE_RECAPTCHA_SECRET || 'bogus',
+  googleRecaptchaThreshold: isNaN(
+    Number(process.env.GOOGLE_RECAPTCHA_THRESHOLD)
+  )
+    ? 0.5
+    : Number(process.env.GOOGLE_RECAPTCHA_THRESHOLD),
 
   sessionHistoryMinSessionLength:
     Number(process.env.SUBWAY_SESSION_HISTORY_MIN_SESSION_LENGTH) || 60000,
+
+  openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
 }
 
 module.exports = config

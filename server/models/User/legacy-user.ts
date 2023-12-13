@@ -1,8 +1,8 @@
 import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import { GRADES, USER_BAN_REASONS } from '../../constants'
 import {
-  Reference,
   Certifications,
+  Reference,
   TrainingCourses,
   getVolunteerTrainingCourses,
   getActiveQuizzesForVolunteers,
@@ -18,6 +18,7 @@ import {
   getQuizzesForVolunteers,
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
+import { getUserSessionStats, UserSessionStats } from '../Session'
 
 export type LegacyUserModel = {
   // pg
@@ -44,12 +45,14 @@ export type LegacyUserModel = {
   referredBy?: Ulid
   type: string
   roleId: number
+  sessionStats: UserSessionStats
   // volunteer
   isOnboarded?: boolean
   isApproved?: boolean
   volunteerPartnerOrg?: string
   subjects?: string[]
   activeSubjects?: string[]
+  mutedSubjectAlerts?: string[]
   totalActiveCertifications: number
   availability?: Availability
   certifications?: Certifications
@@ -111,10 +114,12 @@ export async function getLegacyUserObject(
         },
       }
     }, {})
+    const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
+      if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
       volunteerUser.availability = await getAvailabilityForVolunteer(
         userId,
         client
@@ -152,7 +157,9 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser)
+    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser, {
+      sessionStats,
+    })
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)
