@@ -334,7 +334,12 @@ SELECT
     users.id,
     users.email,
     users.first_name,
-    users.last_name,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            users.last_name
+        ELSE
+            NULL
+        END) AS last_name,
     users.created_at,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -370,8 +375,13 @@ LIMIT (:limit!)::int OFFSET (:offset!)::int;
 /* @name getUserForAdminDetail */
 SELECT
     users.id,
-    users.first_name AS firstname,
-    users.last_name AS lastname,
+    users.first_name AS first_name,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            users.last_name
+        ELSE
+            NULL
+        END) AS last_name,
     users.email,
     users.created_at,
     (
