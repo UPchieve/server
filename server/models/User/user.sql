@@ -334,7 +334,12 @@ SELECT
     users.id,
     users.email,
     users.first_name,
-    users.last_name,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            users.last_name
+        ELSE
+            NULL
+        END) AS last_name,
     users.created_at,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -370,8 +375,13 @@ LIMIT (:limit!)::int OFFSET (:offset!)::int;
 /* @name getUserForAdminDetail */
 SELECT
     users.id,
-    users.first_name AS firstname,
-    users.last_name AS lastname,
+    users.first_name AS first_name,
+    (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            users.last_name
+        ELSE
+            NULL
+        END) AS last_name,
     users.email,
     users.created_at,
     (
@@ -451,6 +461,7 @@ SELECT
     users.first_name,
     users.created_at,
     users.email,
+    users.email_verified,
     users.verified,
     users.first_name AS firstname,
     users.phone,
@@ -501,6 +512,7 @@ SELECT
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
+    schools.partner AS is_school_partner,
     grade_levels.name AS grade_level,
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
@@ -766,7 +778,7 @@ RETURNING
     id AS ok;
 
 
-/* 
+/*
  @name insertMutedUserSubjectAlerts
  @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
  */
@@ -779,7 +791,7 @@ INSERT INTO muted_users_subject_alerts (user_id, subject_id)
         user_id AS ok;
 
 
-/* 
+/*
  @name deleteUnmutedUserSubjectAlerts
  @param mutedSubjectAlertIds -> (...)
  */
@@ -790,7 +802,7 @@ RETURNING
     user_id AS ok;
 
 
-/* 
+/*
  @name deleteAllUserSubjectAlerts
  */
 DELETE FROM muted_users_subject_alerts

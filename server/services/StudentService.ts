@@ -61,28 +61,7 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
 
 // registered as listener on student-created
 export async function processStudentTrackingPostHog(studentId: Ulid) {
-  const userProperties: AnalyticsService.IdentifyProperties = {
-    userType: 'student',
-  }
-  // replace with getStudentPartnerInfoById from Student Repo
-  const student = await StudentRepo.getStudentContactInfoById(studentId)
-
-  if (student) {
-    let school: School | undefined
-    if (student.schoolId) school = await getSchool(student.schoolId)
-
-    // if student is school partner student
-    if (school && school.isPartner) userProperties.schoolPartner = school.name
-
-    // if student is partner student but not a school partner student
-    if (student.studentPartnerOrg)
-      userProperties.partner = student.studentPartnerOrg
-
-    AnalyticsService.captureEvent(student.id, EVENTS.ACCOUNT_CREATED, {
-      event: EVENTS.ACCOUNT_CREATED,
-    })
-    AnalyticsService.identify(student.id, userProperties)
-  }
+  AnalyticsService.captureEvent(studentId, EVENTS.ACCOUNT_CREATED)
 }
 
 export async function checkAndUpdateVolunteerFavoriting(

@@ -210,7 +210,6 @@ SELECT
     topics.name AS TYPE,
     subjects.name AS sub_topic,
     students.first_name AS student_first_name,
-    students.last_name AS student_last_name,
     session_reported_count.total <> 0 AS is_reported,
     flags.flags,
     messages.total AS total_messages,

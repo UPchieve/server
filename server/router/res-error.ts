@@ -13,12 +13,15 @@ import config from '../config'
 import { StartSessionError } from '../utils/session-utils'
 import logger from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
+import { ExistingUserError } from '../services/EligibilityService'
 
 export function resError(
   res: Response,
   err: unknown | Error | CustomError,
   status?: number
 ): void {
+  let message = ''
+
   if (err instanceof Error || err instanceof CustomError) {
     logger.error(err as any)
     if (status) {
@@ -35,6 +38,10 @@ export function resError(
     else if (err instanceof ResetError) status = 422
     else if (err instanceof StartSessionError) status = 422
     else if (err instanceof ReportNoDataFoundError) status = 422
+    else if (err instanceof ExistingUserError) {
+      status = 422
+      message = 'Email already in use'
+    }
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
@@ -45,7 +52,7 @@ export function resError(
       Sentry.captureException(err)
 
     res.status(status).json({
-      err: err.message,
+      err: message || err.message,
     })
   } else {
     logger.error(`Unexpected non-error type thrown: ${err as any}`)
