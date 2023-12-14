@@ -296,8 +296,8 @@ export async function getPartnerOrgByKey(
 // if gates study isnt provided then dont touch it
 // all other fields override
 export type AdminUpdateStudent = {
-  firstName: string
-  lastName: string
+  firstName: string | undefined
+  lastName: string | undefined
   email: string
   studentPartnerOrg: string | undefined
   partnerSite: string | undefined

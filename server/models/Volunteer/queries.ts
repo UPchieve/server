@@ -1313,8 +1313,8 @@ export async function getPartnerOrgByKey(
 // if partnerOrg isnt provided then remove partnerOrg entirely
 // all other fields override
 export type AdminUpdateVolunteer = {
-  firstName: string
-  lastName: string
+  firstName: string | undefined
+  lastName: string | undefined
   email: string
   volunteerPartnerOrg: string | undefined
   isVerified: boolean

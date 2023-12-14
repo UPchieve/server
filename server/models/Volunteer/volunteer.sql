@@ -1008,8 +1008,8 @@ WHERE
 UPDATE
     users
 SET
-    first_name = :firstName!,
-    last_name = :lastName!,
+    first_name = COALESCE(:firstName, first_name),
+    last_name = COALESCE(:lastName, last_name),
     email = :email!,
     verified = :isVerified!,
     banned = :isBanned!,
