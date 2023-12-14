@@ -366,6 +366,7 @@ function setupPassport() {
         clientSecret: config.googleClientSecret,
         callbackURL: '/auth/oauth2/redirect/google/login',
         scope: ['email'],
+        prompt: 'select_account',
       },
       async function(
         issuer: string,
@@ -398,6 +399,7 @@ function setupPassport() {
         callbackURL: '/auth/oauth2/redirect/google/register/student',
         passReqToCallback: true,
         scope: ['profile', 'email'],
+        prompt: 'select_account',
       },
       async function(
         req: Request,
@@ -472,6 +474,7 @@ function setupPassport() {
         callbackURL: '/auth/oauth2/redirect/google/register/partner-student',
         passReqToCallback: true,
         scope: ['profile', 'email'],
+        prompt: 'select_account',
       },
       async function(
         req: Request,
