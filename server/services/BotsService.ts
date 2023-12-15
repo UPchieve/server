@@ -1,77 +1,18 @@
+import 'openai/shims/node'
 import OpenAI from 'openai'
-import { Ulid } from '../models/pgUtils'
-import {
-  getMessagesForFrontend,
-  getUserSessionsByUserId,
-  UserSessionsWithMessages,
-} from '../models/Session'
 import config from '../config'
-import { captureEvent } from './AnalyticsService'
-import { EVENTS } from '../constants'
-import logger, { logError } from '../logger'
-import { formatScorecasterSessionsToBotPrompt } from '../utils/bots-utils'
+import { ProgressReport } from '../models/ProgressReports'
+import { Ulid } from '../models/pgUtils'
+import logger from '../logger'
 
 export const openai = new OpenAI({
   apiKey: config.openAIApiKey,
 })
 
-export type ScorecasterTopics = {
-  topic: string
-  description: string
-  grade: number
-  type: 'strength' | 'practiceArea'
-  reasons: string[]
-  recommendations: string[]
-}
-
-export type ScorecasterSummary = {
-  summary: string
-  recommendations: string
-  strengths: string
-  strengthsGrade: number
-  practiceAreas: string
-  practiceAreasGrade: number
-}
-
-export type ScorecasterOverview = {
-  summary: ScorecasterSummary
-  grade: number
-}
-
-export type ScorecasterResponse = {
-  overview: ScorecasterOverview
-  topics: ScorecasterTopics[]
-}
-
-// Scorecaster will only look at all of a user's past reading sessions for the moment
-export async function getScorecasterSessions(
-  userId: Ulid
-): Promise<UserSessionsWithMessages[]> {
-  try {
-    const sessions = await getUserSessionsByUserId(userId, {
-      subject: 'reading',
-    })
-    const sessionsWithMessages: UserSessionsWithMessages[] = []
-    for (const session of sessions) {
-      try {
-        const messages = await getMessagesForFrontend(session.id)
-        sessionsWithMessages.push({ ...session, messages })
-      } catch (error) {
-        logError(error as Error)
-      }
-    }
-    return sessionsWithMessages
-  } catch (error) {
-    logError(error as Error)
-    throw error
-  }
-}
-
-export async function generateScorecasterAnalysis(
-  userId: Ulid
-): Promise<ScorecasterResponse> {
-  const sessionsToFormat = await getScorecasterSessions(userId)
-  const botPrompt = await formatScorecasterSessionsToBotPrompt(sessionsToFormat)
+export async function generateProgressReport(
+  userId: Ulid,
+  botPrompt: string
+): Promise<ProgressReport> {
   const completion = await openai.chat.completions.create({
     model: 'gpt-4-1106-preview',
     response_format: { type: 'json_object' },
@@ -98,52 +39,52 @@ export async function generateScorecasterAnalysis(
           tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; 
           and students may make additional edits to respond to the tutor's feedback. 
           
-          Respond in a JSON format in the shape of ScorecasterResponse from the TypeScript types below
+          Respond in a JSON format in the shape of ProgressReportBotResponse from the TypeScript types below
 
+          // Types of assessment for a report, currently 'strength' and 'practiceArea', but designed to include more types in the future
+          type ProgressReportEvaluationTypes = 'strength' | 'practiceArea'
 
-          type ScorecasterTopics = {
-            // The name of the topic to assess
-            topic: string
-            // Brief and short description of the topic
-            description: string
-            // Grade should be their grade for the topic from 65-100
-            grade: number
-            // If the topic is a strength or a practiceArea for the student
-            type: 'strength' | 'practiceArea'
-            // Reasons for why it's a strength or practice area
-            reasons: string[]
-            // Recommendations to the student on the topic
-            recommendations: string[]
+          // Types of details for an assessment for a report, currently 'recommendation' and 'reason', scalable for additional types like 'prediction', etc.
+          type ProgressReportEvaluationDetailTypes = 'recommendation' | 'reason'
+
+          type ProgressReportDetail = {
+            // Content elaborating on the reportEvaluationType and reportEvaluationDetailType for a topic, specific to the student's performance or needs
+            content: string
+            // Determines if the associated topic is categorized as a 'strength' or 'practiceArea', with flexibility for future assessment types
+            reportEvaluationType: ProgressReportEvaluationTypes
+            // Specifies the nature of the assessment detail, such as a 'recommendation' for improvement or a 'reason' explaining the assessment
+            // If a 'practiceArea' is given, provide a recommendation for improvement
+            reportEvaluationDetailType: ProgressReportEvaluationDetailTypes
           }
 
-          type ScorecasterSummary = {
-            // A summary of all the topics
+          type ProgressReportSummary = {
+            // Consolidated summary reflecting the overarching findings or conclusions from the assessment of all topics
             summary: string
-            // A summary of the recommendations to the student from the topics
-            recommendations: string
-            // A summary of the student's strengths
-            strengths: string
-            // Overall grade level you give them based off the topics between 65-100
-            strengthsGrade: number
-            // A summary of the student's practice Areas
-            practiceAreas: string
-            // Overall grade level you give them based off the topics between 65-100
-            practiceAreasGrade: number
+            // Aggregated grade representing the overall performance level in the subject, on a scale of 65-100
+            overallGrade: number
+            // Compiled list of detailed assessments, each correlating to specific aspects of the topics assessed
+            details: ProgressReportDetail[]
           }
 
-          type ScorecasterOverview = {
-            summary: ScorecasterSummary
-            // Overall grade level you give them for the subject
+          type ProgressReportTopic = {
+            // Identifier for the specific topic under assessment
+            name: string
+            // Concise description of the topic, providing context or background relevant to the assessment
+            description: string
+            // Numerical grade assigned to the topic, indicative of the student's performance or understanding, on a scale of 65-100
             grade: number
+            // Collection of detailed assessments for the topic, encompassing various types and aspects of assessment
+            details: ProgressReportDetail[]
           }
 
-          type ScorecasterResponse = {
-            overview: ScorecasterOverview
-            topics: ScorecasterTopics[]
+          type ProgressReportBotResponse = {
+            // The summary section encapsulating an overall assessment and grade for the subject; an empty object indicates a summary couldn't be produced
+            summary: ProgressReportSummary
+            // Array of topics, each with detailed assessments; an empty array indicates no topics to analyze
+            topics: ProgressReportTopic[]
           }
 
-          The comments denoted by "//" highlight what should be filled into the property below.
-          If you have nothing to analyze, respond with an empty array for categories and an empty string for the summary.`,
+          The comments denoted by "//" provide guidance on what should be filled into each property.`,
       },
       {
         role: 'user',
@@ -152,12 +93,8 @@ export async function generateScorecasterAnalysis(
     ],
   })
   const response = completion.choices[0].message.content
-  captureEvent(userId, EVENTS.SCORECASTER_ANALYSIS_COMPLETED, {
-    response,
-    debug: completion,
-  })
   logger.info(
-    `User: ${userId} received Scorecaster completion ${completion} with response ${response}`
+    `User: ${userId} received ProgressReport completion ${completion} with response ${response}`
   )
   return response ? JSON.parse(response) : { summary: {}, topics: [] }
 }

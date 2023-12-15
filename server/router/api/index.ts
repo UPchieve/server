@@ -22,6 +22,7 @@ import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 import { routeSubjects } from './subjects'
 import { routeScorecaster } from './scorecaster'
+import { routeProgressReports } from './progress-reports'
 import { routeAdmin } from './admin'
 import { sendReferralProgramEmail } from '../../services/MailService'
 import { getUserReferralLink } from '../../models/User'
@@ -47,6 +48,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeStudents(router)
   routeSubjects(router)
   routeScorecaster(router)
+  routeProgressReports(router)
   routeAdmin(app, router)
 
   router.post('/send-referral-email', async function(req, res) {
