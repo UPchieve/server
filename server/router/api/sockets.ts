@@ -55,7 +55,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
-  const socketService = new SocketService(io)
+  const socketService = SocketService.getInstance(io)
 
   let chatbot: Ulid | undefined
 
@@ -89,18 +89,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   io.use(wrap(passport.initialize()))
   io.use(wrap(passport.session()))
   io.use((socket: SocketUser, next) => {
-    if (socket.request.user) {
+    if (socket.request.user || socket.handshake.query.key) {
       next()
     } else {
       next(new Error('unauthorized'))
     }
   })
 
+  // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function(socket: SocketUser) {
     const {
       request: { user },
       handshake: {
-        auth: { key: socketApiKey },
+        query: { key: socketApiKey },
       },
     } = socket
 
@@ -115,8 +116,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       if (!socketApiKey) {
         socket.emit('redirect')
         throw new Error('User not authenticated')
-      } else {
-        await handleChatBot(socket, socketApiKey)
       }
     }
 
