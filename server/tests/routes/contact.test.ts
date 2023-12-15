@@ -1,7 +1,7 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import mongoose from 'mongoose'
 import request from 'supertest'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock';
 import {
   DocCreationError,
   InputError,

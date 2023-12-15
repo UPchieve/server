@@ -1,6 +1,6 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock';
 import { Jobs } from '../../../worker/jobs'
 import * as VolunteerRepo from '../../../models/Volunteer'
 import * as MailService from '../../../services/MailService'

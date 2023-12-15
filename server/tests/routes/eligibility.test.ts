@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 
 import * as IpAddressService from '../../services/IpAddressService'
@@ -7,7 +7,7 @@ import { NotAllowedError } from '../../models/Errors'
 import { mockApp } from '../mock-app'
 
 jest.mock('../../services/IpAddressService')
-const mockedIpAddressService = mocked(IpAddressService, true)
+const mockedIpAddressService = mocked(IpAddressService)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api-public/eligibility'

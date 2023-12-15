@@ -1,5 +1,5 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
+test.todo('postgres migration')
+/*import { mocked } from 'jest-mock';
 import mongoose from 'mongoose'
 import { resetDb, insertVolunteer, insertNotification } from '../../db-utils'
 import emailQuickTips from '../../../worker/jobs/volunteer-emails/emailQuickTips'

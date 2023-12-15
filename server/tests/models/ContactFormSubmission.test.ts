@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import mongoose from 'mongoose'
 import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission/queries'
 import UserModel, { User } from '../../models/User'

@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import mongoose from 'mongoose'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
@@ -66,7 +66,7 @@ describe('Calendar routes', () => {
 
   // TODO: update calendar ctrl to follow new service pattern with proper typeguards
   test.todo('Volunteer should see error when availability misses required keys')
-  test.skip('postgres migration', () => 1)
+  test.todo('postgres migration')
 /*  async () => {
     const availability = buildAvailability()
     availability.Saturday = undefined

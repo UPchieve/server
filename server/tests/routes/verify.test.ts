@@ -1,6 +1,6 @@
-// test.skip('postgres migration', () => 1)
+// test.todo('postgres migration')
 /*import request, { Test } from 'supertest'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock';
 
 import { routeVerify, TwilioError } from '../../router/api/verify'
 import { VERIFICATION_METHOD } from '../../constants'
@@ -178,7 +178,7 @@ describe(CONFIRM_STUDENT_ROUTE, () => {
 })
 */
 import request, { Test } from 'supertest'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../mocks/generate'
 import { routeVerify } from '../../router/api/verify'
@@ -187,7 +187,7 @@ import { VERIFICATION_METHOD } from '../../constants'
 import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
 import { NextFunction, Request, Response } from 'express'
 
-const mockedVerificationService = mocked(VerificationService, true)
+const mockedVerificationService = mocked(VerificationService)
 const mockGetUser = () => buildStudent()
 const router = mockRouter()
 routeVerify(router)

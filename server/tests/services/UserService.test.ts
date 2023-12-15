@@ -1,4 +1,4 @@
-// test.skip('postgres migration', () => 1)
+// test.todo('postgres migration')
 /*import mongoose from 'mongoose'
 import * as UserService from '../../services/UserService'
 import * as VolunteerService from '../../services/VolunteerService'
@@ -410,7 +410,7 @@ describe('Volunteer tests', () => {
   })
 })
 */
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import request from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import * as UserRepo from '../../models/User/queries'
@@ -419,7 +419,7 @@ import * as UserService from '../../services/UserService'
 
 jest.mock('../../models/User/queries')
 
-const mockUserRepo = mocked(UserRepo, true)
+const mockUserRepo = mocked(UserRepo)
 const mockGetUser = () => buildStudent()
 const app = mockApp()
 app.use(mockPassportMiddleware(mockGetUser))

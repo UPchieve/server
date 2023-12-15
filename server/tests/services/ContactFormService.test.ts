@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import * as ContactFormSubmissionRepo from '../../models/ContactFormSubmission/queries'
 import { ContactFormSubmission } from '../../models/ContactFormSubmission'
 import * as ContactFormService from '../../services/ContactFormService'
@@ -9,8 +9,8 @@ import faker from 'faker'
 jest.mock('../../models/ContactFormSubmission/queries')
 jest.mock('../../services/MailService')
 
-const mockedContactFormSubmissionRepo = mocked(ContactFormSubmissionRepo, true)
-const mockedMailService = mocked(MailService, true)
+const mockedContactFormSubmissionRepo = mocked(ContactFormSubmissionRepo)
+const mockedMailService = mocked(MailService)
 
 function hugeText() {
   return faker.lorem.words(300)

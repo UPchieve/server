@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import mongoose, { Aggregate } from 'mongoose'
 import emailReferences from '../../worker/jobs/emailReferences'
 import { insertVolunteer, resetDb } from '../db-utils'
