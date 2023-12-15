@@ -1,9 +1,9 @@
-import { mocked } from 'ts-jest/utils'
-import axios from 'axios'
+import { mocked } from 'jest-mock'
+import axios, { AxiosResponse } from 'axios'
 import * as IpAddressService from '../../services/IpAddressService'
 import { NotAllowedError, InputError } from '../../models/Errors'
 jest.mock('axios')
-const mockedAxios = mocked(axios, true)
+const mockedAxios = mocked(axios)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -11,11 +11,15 @@ beforeEach(async () => {
 })
 
 describe('checkIpAddress', () => {
-  function mockIpWhoIsReturnValue(countryCode: string) {
+  function mockIpWhoIsReturnValue(countryCode: string): AxiosResponse {
     return {
       data: {
         country_code: countryCode,
       },
+      status: 200, // Add other necessary properties to match AxiosResponse
+      statusText: 'OK',
+      headers: {},
+      config: {},
     }
   }
 
@@ -36,9 +40,7 @@ describe('checkIpAddress', () => {
   test('Should throw NotAllowedError if IP address is outside of the U.S.', async () => {
     const londonIpAddress = '78.110.170.119'
 
-    mockedAxios.get.mockImplementationOnce(async () =>
-      mockIpWhoIsReturnValue('GB')
-    )
+    mockedAxios.get.mockResolvedValueOnce(mockIpWhoIsReturnValue('GB'))
     await expect(
       IpAddressService.checkIpAddress(londonIpAddress)
     ).rejects.toBeInstanceOf(NotAllowedError)
@@ -47,9 +49,7 @@ describe('checkIpAddress', () => {
   test('Should not throw error for valid IPv4 address', async () => {
     const newYorkIpAddress = '161.185.160.93'
 
-    mockedAxios.get.mockImplementationOnce(async () =>
-      mockIpWhoIsReturnValue('US')
-    )
+    mockedAxios.get.mockResolvedValueOnce(mockIpWhoIsReturnValue('US'))
     expect(() =>
       IpAddressService.checkIpAddress(newYorkIpAddress)
     ).not.toThrow()
@@ -58,9 +58,7 @@ describe('checkIpAddress', () => {
   test('Should not throw error for valid IPv6 address', async () => {
     const newYorkIpAddress = '2604:a880:400:d1::75a:a001'
 
-    mockedAxios.get.mockImplementationOnce(async () =>
-      mockIpWhoIsReturnValue('US')
-    )
+    mockedAxios.get.mockResolvedValueOnce(mockIpWhoIsReturnValue('US'))
     expect(() =>
       IpAddressService.checkIpAddress(newYorkIpAddress)
     ).not.toThrow()
