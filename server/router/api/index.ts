@@ -21,7 +21,6 @@ import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 import { routeSubjects } from './subjects'
-import { routeScorecaster } from './scorecaster'
 import { routeProgressReports } from './progress-reports'
 import { routeAdmin } from './admin'
 import { sendReferralProgramEmail } from '../../services/MailService'
@@ -47,7 +46,6 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeProductFlags(router)
   routeStudents(router)
   routeSubjects(router)
-  routeScorecaster(router)
   routeProgressReports(router)
   routeAdmin(app, router)
 
