@@ -1,5 +1,5 @@
 import faker from 'faker'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import * as UserRepo from '../../models/User'
 import * as StudentRepo from '../../models/Student'
 import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg'
@@ -27,15 +27,15 @@ jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/FederatedCredential/queries')
 jest.mock('../../services/MailService')
 
-const mockedUserRepo = mocked(UserRepo, true)
-const mockedStudentRepo = mocked(StudentRepo, true)
-const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo, true)
-const mockedSignUpSourceRepo = mocked(SignUpSourceRepo, true)
-const mockedUSMRepo = mocked(USMRepo, true)
-const mockedUPFRepo = mocked(UPFRepo, true)
-const mockedUserActionRepo = mocked(UserActionRepo, true)
-const mockedFedCredRepo = mocked(FedCredRepo, true)
-const mockedMailService = mocked(MailService, true)
+const mockedUserRepo = mocked(UserRepo)
+const mockedStudentRepo = mocked(StudentRepo)
+const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo)
+const mockedSignUpSourceRepo = mocked(SignUpSourceRepo)
+const mockedUSMRepo = mocked(USMRepo)
+const mockedUPFRepo = mocked(UPFRepo)
+const mockedUserActionRepo = mocked(UserActionRepo)
+const mockedFedCredRepo = mocked(FedCredRepo)
+const mockedMailService = mocked(MailService)
 jest.spyOn(EligibilityService, 'verifyEligibility').mockResolvedValue(true)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7

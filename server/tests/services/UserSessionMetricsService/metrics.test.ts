@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import moment from 'moment'
 import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
 import { FeedbackVersionTwo } from '../../../models/Feedback'

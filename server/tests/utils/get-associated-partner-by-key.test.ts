@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import { associatedPartnerManifests } from '../../partnerManifests'
 import getAssociatedPartnerOrgByKey from '../../utils/get-associated-partner-by-key'
 

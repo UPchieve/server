@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import QuestionModel from '../../models/Question'
 
 test('Called getSubcategories using good data', () => {

@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import { performance } from 'perf_hooks'
 
 import { ChatbotMessage } from '../../../worker/jobs/chatbot/messages'

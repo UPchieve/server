@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 
 import { GRADES } from '../../constants'
 import { buildUser, getIpAddress, getEmail } from '../mocks/generate'
@@ -18,11 +18,11 @@ jest.mock('../../controllers/UserCtrl')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/ZipCode/queries')
 
-const mockedUserRepo = mocked(UserRepo, true)
-const mockedIneligibleStudentRepo = mocked(IneligibleStudentRepo, true)
-const mockedSchoolRepo = mocked(SchoolRepo, true)
-const mockedUserCtrl = mocked(UserCtrl, true)
-const mockedZipCodeRepo = mocked(ZipCodeRepo, true)
+const mockedUserRepo = mocked(UserRepo)
+const mockedIneligibleStudentRepo = mocked(IneligibleStudentRepo)
+const mockedSchoolRepo = mocked(SchoolRepo)
+const mockedUserCtrl = mocked(UserCtrl)
+const mockedZipCodeRepo = mocked(ZipCodeRepo)
 
 function buildIneligibleStudent(): IneligibleStudent {
   return {

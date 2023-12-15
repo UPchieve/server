@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import * as SurveyService from '../../services/SurveyService'
 import * as SurveyRepo from '../../models/Survey/queries'
 import * as UserRepo from '../../models/User/queries'
@@ -16,9 +16,9 @@ jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/Session/queries')
 
-const mockedSurveyRepo = mocked(SurveyRepo, true)
-const mockedUserRepo = mocked(UserRepo, true)
-const mockedSessionRepo = mocked(SessionRepo, true)
+const mockedSurveyRepo = mocked(SurveyRepo)
+const mockedUserRepo = mocked(UserRepo)
+const mockedSessionRepo = mocked(SessionRepo)
 
 beforeEach(async () => {
   jest.resetAllMocks()

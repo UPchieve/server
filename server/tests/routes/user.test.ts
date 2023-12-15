@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { buildStudent } from '../mocks/generate'
@@ -8,7 +8,7 @@ import { InputError } from '../../models/Errors'
 
 jest.mock('../../services/UserService')
 
-const mockedUserService = mocked(UserService, true)
+const mockedUserService = mocked(UserService)
 const mockGetUser = () => buildStudent()
 const router = mockRouter()
 routeUser(router)

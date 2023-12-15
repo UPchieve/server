@@ -1,5 +1,5 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
+test.todo('postgres migration')
+/*import { mocked } from 'jest-mock';
 import Delta from 'quill-delta'
 import * as SessionService from '../../services/SessionService'
 import { Session } from '../../models/Session'

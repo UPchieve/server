@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import { MATH_CERTS, SCIENCE_CERTS } from '../../constants'
 import countCerts from '../../utils/count-certs'
 import { buildCertifications } from '../generate'

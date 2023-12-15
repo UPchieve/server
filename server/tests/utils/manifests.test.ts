@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import { volunteerPartnerManifests } from '../../partnerManifests'
 
 test('Example3 volunteer has all data', () => {
