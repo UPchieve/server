@@ -227,8 +227,8 @@ export async function deleteReference(
 
 interface AdminUpdate {
   userId: Ulid
-  firstName: string
-  lastName: string
+  firstName?: string
+  lastName?: string
   email: string
   partnerOrg?: string
   partnerSite?: string
@@ -241,8 +241,8 @@ interface AdminUpdate {
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   userId: asString,
-  firstName: asString,
-  lastName: asString,
+  firstName: asOptional(asString),
+  lastName: asOptional(asString),
   email: asString,
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
