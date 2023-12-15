@@ -1,8 +1,8 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import moment from 'moment'
 import 'moment-timezone'
 import mongoose from 'mongoose'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock';
 import * as TwilioService from '../../services/TwilioService'
 import { MATH_SUBJECTS, SAT_SUBJECTS } from '../../constants'
 import {

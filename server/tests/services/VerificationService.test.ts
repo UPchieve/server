@@ -1,4 +1,4 @@
-/*import { mocked } from 'ts-jest/utils'
+/*import { mocked } from 'jest-mock';
 import { Types } from 'mongoose'
 
 import { getEmail, buildStudent, buildVolunteer } from '../generate'
@@ -20,10 +20,10 @@ jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
 jest.mock('../../models/User/queries')
 
-const mockedTwilioService = mocked(TwilioService, true)
+const mockedTwilioService = mocked(TwilioService)
 
-const mockedUserService = mocked(UserService, true)
-const mockedUserRepo = mocked(UserRepo, true)
+const mockedUserService = mocked(UserService)
+const mockedUserRepo = mocked(UserRepo)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -226,7 +226,7 @@ describe('confirmVerification', () => {
 */
 
 import * as UserRepo from '../../models/User/queries'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
@@ -247,10 +247,10 @@ jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
 jest.mock('../../services/FeatureFlagService')
 
-const mockedTwilioService = mocked(TwilioService, true)
+const mockedTwilioService = mocked(TwilioService)
 const mockedUserRepo = mocked(UserRepo)
-const mockedMailService = mocked(MailService, true)
-const mockFeatureFlagService = mocked(FeatureFlagService, true)
+const mockedMailService = mocked(MailService)
+const mockFeatureFlagService = mocked(FeatureFlagService)
 
 describe('VerificationService', () => {
   beforeEach(async () => {

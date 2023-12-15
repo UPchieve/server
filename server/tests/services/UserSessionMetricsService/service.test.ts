@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import { CounterMetricProcessor } from '../../../services/UserSessionMetricsService/types'
 import * as USMService from '../../../services/UserSessionMetricsService'
 

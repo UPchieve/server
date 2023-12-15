@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import { GRADES } from '../../constants'
 
 import * as UserRepo from '../../models/User/queries'
@@ -37,19 +37,19 @@ import { getDbUlid } from '../../models/pgUtils'
 
 // Mocks
 jest.mock('../../models/User/queries')
-const mockedUserRepo = mocked(UserRepo, true)
+const mockedUserRepo = mocked(UserRepo)
 jest.mock('../../models/School/queries')
-const mockedSchoolRepo = mocked(SchoolRepo, true)
+const mockedSchoolRepo = mocked(SchoolRepo)
 jest.mock('../../models/ZipCode/queries')
-const mockedZipCodeRepo = mocked(ZipCodeRepo, true)
+const mockedZipCodeRepo = mocked(ZipCodeRepo)
 jest.mock('../../models/StudentPartnerOrg/queries')
-const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo, true)
+const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo)
 jest.mock('../../models/VolunteerPartnerOrg/queries')
-const mockedVolunteerPartnerOrgRepo = mocked(VolunteerPartnerOrgRepo, true)
+const mockedVolunteerPartnerOrgRepo = mocked(VolunteerPartnerOrgRepo)
 jest.mock('../../controllers/UserCtrl')
-const mockedUserCtrl = mocked(UserCtrl, true)
+const mockedUserCtrl = mocked(UserCtrl)
 jest.mock('../../services/IpAddressService')
-const mockedIpAddressService = mocked(IpAddressService, true)
+const mockedIpAddressService = mocked(IpAddressService)
 
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/MailService')
