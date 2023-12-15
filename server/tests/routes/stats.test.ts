@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import * as SessionService from '../../services/SessionService'
 import { buildUserContactInfo } from '../mocks/generate'
@@ -9,7 +9,7 @@ import { routes as routeStats } from '../../router/api/stats'
 import * as SessionUtils from '../../utils/session-utils'
 
 jest.mock('../../services/SessionService')
-const mockedSessionService = mocked(SessionService, true)
+const mockedSessionService = mocked(SessionService)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api'

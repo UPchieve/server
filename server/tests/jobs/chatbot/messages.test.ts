@@ -1,5 +1,5 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
+test.todo('postgres migration')
+/*import { mocked } from 'jest-mock';
 import { Types } from 'mongoose'
 import moment from 'moment'
 import { SUBJECTS, SUBJECT_TYPES } from '../../../constants'

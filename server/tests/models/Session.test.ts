@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import mongoose from 'mongoose'
 import SessionModel, { Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'

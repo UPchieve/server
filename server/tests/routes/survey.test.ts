@@ -1,5 +1,5 @@
 import request, { Test } from 'supertest'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import { SUBJECTS } from '../../constants'
 import { getDbUlid } from '../../models/pgUtils'
 import * as SurveyRepo from '../../models/Survey'
@@ -18,8 +18,8 @@ import {
 
 jest.mock('../../services/SurveyService')
 jest.mock('../../models/Survey')
-const mockedSurveyService = mocked(SurveyService, true)
-const mockedSurveyRepo = mocked(SurveyRepo, true)
+const mockedSurveyService = mocked(SurveyService)
+const mockedSurveyRepo = mocked(SurveyRepo)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const API_ROUTE = '/api'

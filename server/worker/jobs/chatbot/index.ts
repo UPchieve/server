@@ -4,7 +4,7 @@ import {
   getSessionForChatbot,
   SessionForChatbot,
 } from '../../../models/Session/queries'
-import socket from '../../sockets'
+import { getSocket } from '../../sockets'
 import { log } from '../../logger'
 import { safeAsync } from '../../../utils/safe-async'
 import { MESSAGES, ChatbotMessage } from './messages'
@@ -20,6 +20,7 @@ async function sendMessage(
   chatbot: Ulid,
   delay: number
 ): Promise<void> {
+  const socket = getSocket()
   socket.emit('typing', { sessionId })
   await setTimeout(delay)
   socket.emit('notTyping', { sessionId })

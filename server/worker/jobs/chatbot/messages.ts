@@ -1,7 +1,7 @@
 import { Ulid } from '../../../models/pgUtils'
 import moment from 'moment'
 import { SessionForChatbot, MessageForFrontend } from '../../../models/Session'
-import socket from '../../sockets'
+import { getSocket } from '../../sockets'
 import { SUBJECT_TYPES } from '../../../constants'
 import QueueService from '../../../services/QueueService'
 import { Jobs } from '../index'
@@ -12,6 +12,7 @@ import config from '../../../config'
 const ONE_MINUTE = 1 * 60 * 1000
 export const WAIT_FOR_MATCH = 10 * ONE_MINUTE
 export const WAIT_FOR_REPLY = 3 * ONE_MINUTE
+const socket = getSocket()
 
 async function textMoreVolunteers(sessionId: Ulid): Promise<void> {
   // ignore the initial delay on the notification schedule and notify tutors ASAP

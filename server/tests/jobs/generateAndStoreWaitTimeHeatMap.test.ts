@@ -1,11 +1,11 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import generateAndStoreWaitTimeHeatMap from '../../worker/jobs/generateAndStoreWaitTimeHeatMap'
 import * as SessionService from '../../services/SessionService'
 import { Jobs } from '../../worker/jobs'
 import * as SessionUtils from '../../utils/session-utils'
 jest.mock('../../services/SessionService')
 
-const mockedSessionService = mocked(SessionService, true)
+const mockedSessionService = mocked(SessionService)
 
 describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
   beforeEach(async () => {
