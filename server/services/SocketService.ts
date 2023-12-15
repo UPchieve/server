@@ -6,10 +6,20 @@ import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 
 class SocketService {
+  private static instance: SocketService
   private io: socketio.Server
 
-  constructor(io: socketio.Server) {
+  private constructor(io: socketio.Server) {
     this.io = io
+  }
+
+  // Allow singleton use of SocketService
+  static getInstance(io?: socketio.Server): SocketService {
+    if (!SocketService.instance) {
+      if (!io) throw new Error('SocketService has not been initialized')
+      SocketService.instance = new SocketService(io)
+    }
+    return SocketService.instance
   }
 
   /**
