@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { routeStudents } from '../../router/api/students'
@@ -12,8 +12,8 @@ import { RepoUpdateError } from '../../models/Errors'
 
 jest.mock('../../models/Student/queries')
 jest.mock('../../services/StudentService')
-const mockedStudentRepo = mocked(StudentRepo, true)
-const mockedStudentService = mocked(StudentService, true)
+const mockedStudentRepo = mocked(StudentRepo)
+const mockedStudentService = mocked(StudentService)
 
 // mock app - passport should attach any user we need
 const app = mockApp()

@@ -1,4 +1,4 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import countAvailabilitySelected from '../../utils/count-availability-selected'
 import { buildAvailability } from '../generate'
 

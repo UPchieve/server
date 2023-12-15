@@ -1,6 +1,6 @@
-test.skip('postgres migration', () => 1)
+test.todo('postgres migration')
 /*import moment from 'moment'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock';
 import * as reportUtils from '../../utils/reportUtils'
 import * as UserActionRepo from '../../models/UserAction/queries'
 import * as SessionRepo from '../../models/Session/queries'

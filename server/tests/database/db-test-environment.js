@@ -1,4 +1,4 @@
-const NodeEnvironment = require('jest-environment-node')
+const NodeEnvironment = require('jest-environment-node').TestEnvironment
 const Pool = require('pg').Pool
 
 class DbTestEnvironment extends NodeEnvironment {

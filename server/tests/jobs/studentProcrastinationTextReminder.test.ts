@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import * as UserRepo from '../../models/User/queries'
 import * as TwilioService from '../../services/TwilioService'
 import * as AnalyticsService from '../../services/AnalyticsService'
@@ -10,9 +10,9 @@ jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/User/queries')
 jest.mock('../../worker/logger')
 
-const mockedTwilioService = mocked(TwilioService, true)
-const mockedAnalyticsService = mocked(AnalyticsService, true)
-const mockedUserRepo = mocked(UserRepo, true)
+const mockedTwilioService = mocked(TwilioService)
+const mockedAnalyticsService = mocked(AnalyticsService)
+const mockedUserRepo = mocked(UserRepo)
 
 describe('studentProcrastinationTextReminder', () => {
   beforeEach(async () => {

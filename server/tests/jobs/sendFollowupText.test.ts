@@ -1,5 +1,5 @@
-test.skip('postgres migration', () => 1)
-/*import { mocked } from 'ts-jest/utils'
+test.todo('postgres migration')
+/*import { mocked } from 'jest-mock';
 import * as SessionRepo from '../../models/Session/queries'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import * as TwilioService from '../../services/TwilioService'

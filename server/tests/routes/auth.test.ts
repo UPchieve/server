@@ -1,5 +1,5 @@
 import request, { Test } from 'supertest'
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import { CreatedStudent } from '../../models/Student'
 import * as AuthRouter from '../../router/auth'
 import * as AuthService from '../../services/AuthService'
@@ -12,7 +12,7 @@ import { mockApp, mockPassportMiddleware } from '../mock-app'
 import { CreatedVolunteer } from '../../models/Volunteer'
 
 jest.mock('../../services/AuthService')
-const mockedAuthService = mocked(AuthService, true)
+const mockedAuthService = mocked(AuthService)
 
 jest.mock('../../utils/auth-utils', () => ({
   ...(jest.requireActual('../../utils/auth-utils') as any),

@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils'
+import { mocked } from 'jest-mock'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import faker from 'faker'
 
@@ -21,7 +21,7 @@ jest.mock('../../models/UserAction')
 jest.mock('../../models/Availability')
 jest.mock('../../models/User')
 
-const mockedVolunteerRepo = mocked(VolunteerRepo, true)
+const mockedVolunteerRepo = mocked(VolunteerRepo)
 
 const mockSaturdayAvailability = {
   '10a': false,
