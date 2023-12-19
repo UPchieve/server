@@ -3,13 +3,13 @@ import { Ulid, getDbUlid } from '../../models/pgUtils'
 import {
   ProgressReportDetailInsert,
   ProgressReportStatuses,
-  ProgressReportTopicInsert,
+  ProgressReportConceptInsert,
   insertProgressReport,
   insertProgressReportSession,
   insertProgressReportSummary,
   insertProgressReportSummaryDetail,
-  insertProgressReportTopic,
-  insertProgressReportTopicDetail,
+  insertProgressReportConcept,
+  insertProgressReportConceptDetail,
   updateProgressReportStatus,
 } from '../../models/ProgressReports'
 import { buildSessionRow, buildUserRow } from '../mocks/generate'
@@ -197,8 +197,8 @@ describe('insertProgressReportSummaryDetail', () => {
     )
     const summaryDetailData: ProgressReportDetailInsert = {
       content: 'Content',
-      reportEvaluationType: 'strength',
-      reportEvaluationDetailType: 'reason',
+      focusArea: 'strength',
+      infoType: 'reason',
     }
     await insertProgressReportSummaryDetail(
       summaryId,
@@ -210,38 +210,38 @@ describe('insertProgressReportSummaryDetail', () => {
       `SELECT 
         *
       FROM progress_report_summary_details
-        JOIN progress_report_evaluation_types 
-          ON progress_report_summary_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id
-        JOIN progress_report_evaluation_detail_types 
-          ON progress_report_summary_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id
+        JOIN progress_report_focus_areas 
+          ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
+        JOIN progress_report_info_types 
+          ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id
       WHERE 
         progress_report_summary_id = $1 
         AND content = $2
-        AND progress_report_evaluation_types.name = $3 
-        AND progress_report_evaluation_detail_types.name = $4`,
+        AND progress_report_focus_areas.name = $3 
+        AND progress_report_info_types.name = $4`,
       [
         summaryId,
         summaryDetailData.content,
-        summaryDetailData.reportEvaluationType,
-        summaryDetailData.reportEvaluationDetailType,
+        summaryDetailData.focusArea,
+        summaryDetailData.infoType,
       ]
     )
     expect(actual.rows).toHaveLength(1)
   })
 })
 
-describe('insertProgressReportTopic', () => {
-  test('Stores a progress report topic', async () => {
+describe('insertProgressReportConcept', () => {
+  test('Stores a progress report concept', async () => {
     const data = {
-      name: 'Topic',
-      description: 'This topic is about Math',
+      name: 'Concept',
+      description: 'This concept is about Math',
       grade: 100,
     }
-    await insertProgressReportTopic(reportId, data, client)
+    await insertProgressReportConcept(reportId, data, client)
     const query = `
     SELECT 
       *
-    FROM progress_report_topics
+    FROM progress_report_concepts
     WHERE progress_report_id = $1
       AND name = $2
       AND description = $3
@@ -258,41 +258,49 @@ describe('insertProgressReportTopic', () => {
   })
 })
 
-describe('insertProgressReportTopicDetail', () => {
-  test('Stores a progress report topic detail', async () => {
-    const topicData: ProgressReportTopicInsert = {
-      name: 'Topic',
-      description: 'This topic is about Math',
+describe('insertProgressReportConceptDetail', () => {
+  test('Stores a progress report concept detail', async () => {
+    const conceptData: ProgressReportConceptInsert = {
+      name: 'Concept',
+      description: 'This concept is about Math',
       grade: 100,
     }
-    const topicId = await insertProgressReportTopic(reportId, topicData, client)
+    const conceptId = await insertProgressReportConcept(
+      reportId,
+      conceptData,
+      client
+    )
 
-    const topicDetailData: ProgressReportDetailInsert = {
+    const conceptDetailData: ProgressReportDetailInsert = {
       content: 'Content',
-      reportEvaluationType: 'practiceArea',
-      reportEvaluationDetailType: 'recommendation',
+      focusArea: 'practiceArea',
+      infoType: 'recommendation',
     }
 
-    await insertProgressReportTopicDetail(topicId, topicDetailData, client)
+    await insertProgressReportConceptDetail(
+      conceptId,
+      conceptDetailData,
+      client
+    )
 
     const actual = await client.query(
       `SELECT 
         *
-      FROM progress_report_topic_details
-        JOIN progress_report_evaluation_types 
-          ON progress_report_topic_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id
-        JOIN progress_report_evaluation_detail_types 
-          ON progress_report_topic_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id
+      FROM progress_report_concept_details
+        JOIN progress_report_focus_areas 
+          ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id
+        JOIN progress_report_info_types 
+          ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id
       WHERE 
-        progress_report_topic_id = $1 
+        progress_report_concept_id = $1 
         AND content = $2
-        AND progress_report_evaluation_types.name = $3 
-        AND progress_report_evaluation_detail_types.name = $4`,
+        AND progress_report_focus_areas.name = $3 
+        AND progress_report_info_types.name = $4`,
       [
-        topicId,
-        topicDetailData.content,
-        topicDetailData.reportEvaluationType,
-        topicDetailData.reportEvaluationDetailType,
+        conceptId,
+        conceptDetailData.content,
+        conceptDetailData.focusArea,
+        conceptDetailData.infoType,
       ]
     )
     expect(actual.rows).toHaveLength(1)

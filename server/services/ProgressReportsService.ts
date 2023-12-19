@@ -8,8 +8,8 @@ import {
   insertProgressReportSession,
   insertProgressReportSummary,
   insertProgressReportSummaryDetail,
-  insertProgressReportTopic,
-  insertProgressReportTopicDetail,
+  insertProgressReportConcept,
+  insertProgressReportConceptDetail,
   updateProgressReportStatus,
 } from '../models/ProgressReports'
 import {
@@ -64,7 +64,7 @@ export async function saveProgressReport(
   let reportId: Ulid = ''
   try {
     // Early exit if there is no report to save
-    if (!Object.keys(data.summary).length || !data.topics.length) return
+    if (!Object.keys(data.summary).length || !data.concepts.length) return
 
     reportId = await insertProgressReport(userId, 'pending')
 
@@ -88,14 +88,14 @@ export async function saveProgressReport(
         await insertProgressReportSummaryDetail(reportSummaryId, detail, tc)
       }
 
-      for (const topic of data.topics) {
-        const reportTopicId = await insertProgressReportTopic(
+      for (const concept of data.concepts) {
+        const reportConceptId = await insertProgressReportConcept(
           reportId,
-          topic,
+          concept,
           tc
         )
-        for (const detail of topic.details) {
-          await insertProgressReportTopicDetail(reportTopicId, detail, tc)
+        for (const detail of concept.details) {
+          await insertProgressReportConceptDetail(reportConceptId, detail, tc)
         }
       }
       await updateProgressReportStatus(reportId, 'complete')

@@ -42,15 +42,15 @@ ON CONFLICT (progress_report_id)
         id;
 
 
-/* @name insertProgressReportTopic */
-INSERT INTO progress_report_topics (id, name, description, grade, progress_report_id)
+/* @name InsertProgressReportConcept */
+INSERT INTO progress_report_concepts (id, name, description, grade, progress_report_id)
     VALUES (:id!, :name!, :description!, :grade!, :reportId!)
 RETURNING
     id;
 
 
 /* @name insertProgressReportSummaryDetail */
-INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id)
+INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id)
 SELECT
     :id!,
     :content!,
@@ -59,38 +59,38 @@ SELECT
         SELECT
             id
         FROM
-            upchieve.progress_report_evaluation_types
+            upchieve.progress_report_focus_areas
         WHERE
-            name = :reportEvaluationType!), (
+            name = :focusArea!), (
         SELECT
             id
         FROM
-            upchieve.progress_report_evaluation_detail_types
+            upchieve.progress_report_info_types
         WHERE
-            name = :reportEvaluationDetailType!)
+            name = :infoType!)
 RETURNING
     id;
 
 
-/* @name insertProgressReportTopicDetail */
-INSERT INTO progress_report_topic_details (id, content, progress_report_topic_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id)
+/* @name insertProgressReportConceptDetail */
+INSERT INTO progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id)
 SELECT
     :id!,
     :content!,
-    :reportTopicId!,
+    :reportConceptId!,
     (
         SELECT
             id
         FROM
-            upchieve.progress_report_evaluation_types
+            upchieve.progress_report_focus_areas
         WHERE
-            name = :reportEvaluationType!), (
+            name = :focusArea!), (
         SELECT
             id
         FROM
-            upchieve.progress_report_evaluation_detail_types
+            upchieve.progress_report_info_types
         WHERE
-            name = :reportEvaluationDetailType!)
+            name = :infoType!)
 RETURNING
     id;
 

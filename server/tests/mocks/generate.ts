@@ -26,7 +26,7 @@ import {
   ProgressReport,
   ProgressReportDetail,
   ProgressReportSummary,
-  ProgressReportTopic,
+  ProgressReportConcept,
 } from '../../models/ProgressReports'
 
 export function getEmail(): string {
@@ -406,17 +406,17 @@ export const buildProgressReportDetails = (
   const detail: ProgressReportDetail = {
     id: getDbUlid(),
     content: faker.lorem.sentence(),
-    reportEvaluationType: 'practiceArea',
-    reportEvaluationDetailType: 'recommendation',
+    focusArea: 'practiceArea',
+    infoType: 'recommendation',
     ...overrides,
   }
   return detail
 }
 
-export const buildProgressReportTopic = (
-  overrides: Partial<ProgressReportTopic> = {}
-): ProgressReportTopic => {
-  const topic: ProgressReportTopic = {
+export const buildProgressReportConcept = (
+  overrides: Partial<ProgressReportConcept> = {}
+): ProgressReportConcept => {
+  const concept: ProgressReportConcept = {
     id: getDbUlid(),
     name: faker.lorem.word(),
     description: faker.lorem.sentence(),
@@ -424,7 +424,7 @@ export const buildProgressReportTopic = (
     details: [],
     ...overrides,
   }
-  return topic
+  return concept
 }
 
 export const buildProgressReportSummary = (
@@ -446,7 +446,7 @@ export const buildProgressReport = (
 ): ProgressReport => {
   const report = {
     summary: buildProgressReportSummary(),
-    topics: [buildProgressReportTopic()],
+    concepts: [buildProgressReportConcept()],
     ...overrides,
   }
   return report
