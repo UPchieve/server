@@ -1,10 +1,6 @@
 import { mocked } from 'jest-mock'
-import {
-  generateProgressReportForUser,
-  getSessionsToAnalyzeForProgressReport,
-  saveProgressReport,
-} from '../../services/ProgressReportsService'
-import { Ulid, getDbUlid } from '../../models/pgUtils'
+import * as ProgressReportsService from '../../services/ProgressReportsService'
+import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
 import * as BotsService from '../../services/BotsService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as ProgressReportsRepo from '../../models/ProgressReports'
@@ -13,6 +9,8 @@ import {
   buildProgressReport,
   buildUserSession,
   buildMessageForFrontend,
+  buildProgressReportSummaryRow,
+  buildProgressReportTopicRow,
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS } from '../../constants'
@@ -28,12 +26,22 @@ const mockedProgressReportsRepo = mocked(ProgressReportsRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 
 const userId: Ulid = getDbUlid()
-const sessionId: Ulid = getDbUlid()
+const session = buildUserSession({
+  studentId: userId,
+  volunteerId: getDbUlid(),
+})
 const mockedProgressReport = buildProgressReport()
 
 beforeEach(() => {
   jest.clearAllMocks()
 })
+
+function createSessionsWithMessages(sessions: SessionRepo.UserSessions[]) {
+  return sessions.map(session => ({
+    ...session,
+    messages: [{ ...buildMessageForFrontend({ user: userId }) }],
+  }))
+}
 
 describe('saveProgressReport', () => {
   test(`Should save the progress report for 'single' session analysis`, async () => {
@@ -51,7 +59,11 @@ describe('saveProgressReport', () => {
       reportTopicId
     )
 
-    await saveProgressReport(userId, [sessionId], mockedProgressReport)
+    await ProgressReportsService.saveProgressReport(
+      userId,
+      [session.id],
+      mockedProgressReport
+    )
     expect(mockedProgressReportsRepo.insertProgressReport).toHaveBeenCalledWith(
       userId,
       'pending'
@@ -59,7 +71,7 @@ describe('saveProgressReport', () => {
 
     expect(
       mockedProgressReportsRepo.insertProgressReportSession
-    ).toHaveBeenCalledWith(reportId, sessionId, 'single', expect.anything())
+    ).toHaveBeenCalledWith(reportId, session.id, 'single', expect.anything())
     expect(
       mockedProgressReportsRepo.insertProgressReportSummary
     ).toHaveBeenCalledWith(
@@ -92,7 +104,7 @@ describe('saveProgressReport', () => {
     const reportId = getDbUlid()
     const reportSummaryId = getDbUlid()
     const reportTopicId = getDbUlid()
-    const sessionIds = [sessionId, getDbUlid(), getDbUlid()]
+    const sessionIds = [session.id, getDbUlid(), getDbUlid()]
 
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValueOnce(
       reportId
@@ -104,7 +116,11 @@ describe('saveProgressReport', () => {
       reportTopicId
     )
 
-    await saveProgressReport(userId, sessionIds, mockedProgressReport)
+    await ProgressReportsService.saveProgressReport(
+      userId,
+      sessionIds,
+      mockedProgressReport
+    )
     expect(mockedProgressReportsRepo.insertProgressReport).toHaveBeenCalledWith(
       userId,
       'pending'
@@ -112,7 +128,7 @@ describe('saveProgressReport', () => {
 
     expect(
       mockedProgressReportsRepo.insertProgressReportSession
-    ).toHaveBeenCalledWith(reportId, sessionId, 'group', expect.anything())
+    ).toHaveBeenCalledWith(reportId, session.id, 'group', expect.anything())
     expect(
       mockedProgressReportsRepo.insertProgressReportSummary
     ).toHaveBeenCalledWith(
@@ -151,7 +167,11 @@ describe('saveProgressReport', () => {
     )
 
     await expect(
-      saveProgressReport(userId, [sessionId], mockedProgressReport)
+      ProgressReportsService.saveProgressReport(
+        userId,
+        [session.id],
+        mockedProgressReport
+      )
     ).rejects.toThrow()
     expect(
       mockedProgressReportsRepo.updateProgressReportStatus
@@ -174,99 +194,127 @@ describe('getSessionsToAnalyzeForProgressReport', () => {
     }
   }
 
-  const createSessionsWithMessages = (sessions: SessionRepo.UserSessions[]) => {
-    return sessions.map(session => ({
-      ...session,
-      ...buildMessageForFrontend({ user: userId }),
-    }))
-  }
-
   test('Should get user sessions with messages', async () => {
-    const sessions = [
-      buildUserSession({
-        id: sessionId,
-        studentId: userId,
-        volunteerId: getDbUlid(),
-      }),
-    ]
+    const sessions = [session]
     const sessionsWithMessages = createSessionsWithMessages(sessions)
-    setupMocks(sessions, sessionsWithMessages)
+    mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
+    mockedSessionRepo.getMessagesForFrontend.mockImplementation(
+      (sessionId: Ulid) => {
+        const session = sessionsWithMessages.find(s => s.id === sessionId)
+        return Promise.resolve(session ? session.messages : [])
+      }
+    )
 
-    const result = await getSessionsToAnalyzeForProgressReport(
+    const result = await ProgressReportsService.getSessionsToAnalyzeForProgressReport(
       userId,
-      sessionId
+      {
+        sessionId: session.id,
+        subject: session.subjectName,
+      }
     )
     expect(result).toHaveLength(1)
     expect(mockedSessionRepo.getUserSessionsByUserId).toHaveBeenCalledWith(
       userId,
       {
-        subject: 'reading',
-        sessionId: expect.anything(),
+        subject: session.subjectName,
+        sessionId: session.id,
       }
     )
     expect(mockedSessionRepo.getMessagesForFrontend).toHaveBeenCalled()
   })
 
   test('Should properly skip over sessions that have not been matched with volunteers', async () => {
+    const subject = 'algebraOne'
     const sessions = [
       buildUserSession({
-        id: sessionId,
         studentId: userId,
         volunteerId: getDbUlid(),
+        subjectName: subject,
       }),
       // Not matched session
-      buildUserSession({ id: sessionId, studentId: userId }),
+      buildUserSession({ studentId: userId, subjectName: subject }),
       buildUserSession({
-        id: sessionId,
         studentId: userId,
         volunteerId: getDbUlid(),
+        subjectName: subject,
       }),
     ]
     const sessionsWithMessages = createSessionsWithMessages(sessions)
-    setupMocks(sessions, sessionsWithMessages)
+    mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
+    mockedSessionRepo.getMessagesForFrontend.mockImplementation(
+      (sessionId: Ulid) => {
+        const session = sessionsWithMessages.find(s => s.id === sessionId)
+        return Promise.resolve(session ? session.messages : [])
+      }
+    )
 
-    const result = await getSessionsToAnalyzeForProgressReport(
+    const result = await ProgressReportsService.getSessionsToAnalyzeForProgressReport(
       userId,
-      sessionId
+      {
+        subject,
+      }
     )
     expect(result).toHaveLength(2)
     expect(mockedSessionRepo.getUserSessionsByUserId).toHaveBeenCalledWith(
       userId,
       {
-        subject: 'reading',
-        sessionId: expect.anything(),
+        subject,
       }
     )
     expect(mockedSessionRepo.getMessagesForFrontend).toHaveBeenCalled()
   })
 
   test('Should log error if error thrown when retrieving session messages', async () => {
-    const sessions = [
-      buildUserSession({
-        id: sessionId,
-        studentId: userId,
-        volunteerId: getDbUlid(),
-      }),
-    ]
+    const sessions = [session]
     const error = new Error('Test')
     setupMocks(sessions, [], error)
 
-    await getSessionsToAnalyzeForProgressReport(userId, sessionId)
+    await ProgressReportsService.getSessionsToAnalyzeForProgressReport(userId, {
+      sessionId: session.id,
+      subject: session.subjectName,
+    })
     expect(logError).toHaveBeenCalledWith(error)
   })
 })
 
 describe('generateProgressReportForUser', () => {
+  // This test is following bad design for a unit test. We cannot mock
+  // other functions inside the same service, so we're using the actual
+  // implementation of ProgressReportsService.getProgressReportSummaryAndTopics
+  // to get values back
   test('Should generate and save a progress report', async () => {
-    mockedBotsService.generateProgressReport.mockResolvedValue(
-      mockedProgressReport
+    const reportId = getUuid()
+    const summaryRow = buildProgressReportSummaryRow()
+    const topicRow = buildProgressReportTopicRow()
+    mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValue(
+      [summaryRow]
     )
-    mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(
-      getDbUlid()
+    mockedProgressReportsRepo.getProgressReportTopicsByReportId.mockResolvedValue(
+      [topicRow]
+    )
+    const {
+      summary,
+      topics,
+    } = await ProgressReportsService.getProgressReportSummaryAndTopics(reportId)
+    const progressReport = buildProgressReport({
+      id: reportId,
+      summary,
+      topics,
+    })
+    mockedBotsService.generateProgressReport.mockResolvedValue(progressReport)
+    mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)
+    mockedProgressReportsRepo.getProgressReportByReportId.mockResolvedValueOnce(
+      progressReport
     )
 
-    const report = await generateProgressReportForUser(userId, sessionId)
-    expect(report).toEqual(mockedProgressReport)
+    const report = await ProgressReportsService.generateProgressReportForUser(
+      userId,
+      {
+        sessionId: session.id,
+        subject: session.subjectName,
+      }
+    )
+    expect(report).toEqual(progressReport)
     expect(mockedBotsService.generateProgressReport).toHaveBeenCalled()
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       userId,

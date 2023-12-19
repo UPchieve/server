@@ -1,5 +1,5 @@
 import { getClient } from '../../db'
-import { Ulid, getDbUlid } from '../../models/pgUtils'
+import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
 import {
   ProgressReportDetailInsert,
   ProgressReportStatuses,
@@ -11,8 +11,20 @@ import {
   insertProgressReportTopic,
   insertProgressReportTopicDetail,
   updateProgressReportStatus,
+  getProgressReportInfoBySessionId,
+  ProgressReportTopic,
+  ProgressReportSummary,
+  getProgressReportByReportId,
+  getProgressReportSummariesForMany,
+  getProgressReportTopicsByReportId,
 } from '../../models/ProgressReports'
-import { buildSessionRow, buildUserRow } from '../mocks/generate'
+import {
+  buildProgressReportDetails,
+  buildProgressReportSummary,
+  buildProgressReportTopic,
+  buildSessionRow,
+  buildUserRow,
+} from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 
 const client = getClient()
@@ -34,6 +46,139 @@ async function insertSession() {
     await buildSessionRow({ id: getDbUlid(), studentId: userId }),
     client
   )
+}
+
+type ProgressReportInfoRow = {
+  id?: Ulid
+  userId: Ulid
+  statusId: number
+}
+async function insertProgressReportInfoRow(data: ProgressReportInfoRow) {
+  return await insertSingleRow(
+    'progress_reports',
+    {
+      id: getDbUlid(),
+      ...data,
+    },
+    client
+  )
+}
+
+type ProgressReportSessionRow = {
+  sessionId: Ulid
+  progressReportId: Ulid
+  progressReportAnalysisTypeId: number
+}
+async function insertProgressReportSessionRow(data: ProgressReportSessionRow) {
+  return await insertSingleRow('progress_report_sessions', data, client)
+}
+
+type ProgressReportSummaryRow = {
+  id: Ulid
+  summary: string
+  overallGrade: number
+  progressReportId: Ulid
+  createdAt: Date
+}
+
+async function insertProgressReportSummaryRow(data: ProgressReportSummaryRow) {
+  return await insertSingleRow('progress_report_summaries', data, client)
+}
+
+type ProgressReportTopicRow = {
+  id: Ulid
+  name: string
+  description: string
+  grade: number
+  progressReportId: Ulid
+  createdAt: Date
+}
+
+async function insertProgressReportTopicRow(data: ProgressReportTopicRow) {
+  return await insertSingleRow('progress_report_topics', data, client)
+}
+
+type TopicDetailRow = {
+  id: Ulid
+  content: string
+  progressReportTopicId: Ulid
+  progressReportEvaluationTypeId: number
+  progressReportEvaluationDetailTypeId: number
+}
+
+async function insertProgressReportTopicDetailRow(data: TopicDetailRow) {
+  return await insertSingleRow('progress_report_topic_details', data, client)
+}
+
+type SummaryDetailRow = {
+  id: Ulid
+  content: string
+  progressReportSummaryId: Ulid
+  progressReportEvaluationTypeId: number
+  progressReportEvaluationDetailTypeId: number
+}
+async function insertProgressReportSummaryDetailRow(data: SummaryDetailRow) {
+  return await insertSingleRow('progress_report_summary_details', data, client)
+}
+
+type ProgressReportInsert = {
+  id: Ulid
+  sessionId: Ulid
+  statusId: number
+  topics: ProgressReportTopic[]
+  summary: ProgressReportSummary
+}
+async function insertProgressReportWithSummaryAndTopics(
+  data: ProgressReportInsert
+) {
+  const reportId = data.id
+  await insertProgressReportInfoRow({
+    id: reportId,
+    userId,
+    statusId: data.statusId,
+  })
+  await insertProgressReportSessionRow({
+    sessionId: data.sessionId,
+    progressReportId: reportId,
+    progressReportAnalysisTypeId: 1,
+  })
+  await insertProgressReportSummaryRow({
+    id: data.summary.id,
+    progressReportId: reportId,
+    overallGrade: data.summary.overallGrade,
+    summary: data.summary.summary,
+    createdAt: data.summary.createdAt,
+  })
+  for (const detail of data.summary.details) {
+    await insertProgressReportSummaryDetailRow({
+      id: detail.id,
+      progressReportEvaluationTypeId: 2,
+      progressReportEvaluationDetailTypeId: 1,
+      progressReportSummaryId: data.summary.id,
+      content: detail.content,
+    })
+  }
+
+  for (const topic of data.topics) {
+    await insertProgressReportTopicRow({
+      id: topic.id,
+      name: topic.name,
+      grade: topic.grade,
+      description: topic.description,
+      progressReportId: reportId,
+      createdAt: topic.createdAt,
+    })
+
+    for (const detail of topic.details) {
+      await insertProgressReportTopicDetailRow({
+        id: detail.id,
+        progressReportEvaluationTypeId: 2,
+        progressReportEvaluationDetailTypeId: 1,
+        progressReportTopicId: topic.id,
+        content: detail.content,
+      })
+    }
+  }
 }
 
 async function getProgressReport(
@@ -197,8 +342,8 @@ describe('insertProgressReportSummaryDetail', () => {
     )
     const summaryDetailData: ProgressReportDetailInsert = {
       content: 'Content',
-      reportEvaluationType: 'strength',
-      reportEvaluationDetailType: 'reason',
+      evaluationType: 'strength',
+      evaluationDetailType: 'reason',
     }
     await insertProgressReportSummaryDetail(
       summaryId,
@@ -222,8 +367,8 @@ describe('insertProgressReportSummaryDetail', () => {
       [
         summaryId,
         summaryDetailData.content,
-        summaryDetailData.reportEvaluationType,
-        summaryDetailData.reportEvaluationDetailType,
+        summaryDetailData.evaluationType,
+        summaryDetailData.evaluationDetailType,
       ]
     )
     expect(actual.rows).toHaveLength(1)
@@ -269,8 +414,8 @@ describe('insertProgressReportTopicDetail', () => {
 
     const topicDetailData: ProgressReportDetailInsert = {
       content: 'Content',
-      reportEvaluationType: 'practiceArea',
-      reportEvaluationDetailType: 'recommendation',
+      evaluationType: 'practiceArea',
+      evaluationDetailType: 'recommendation',
     }
 
     await insertProgressReportTopicDetail(topicId, topicDetailData, client)
@@ -291,8 +436,8 @@ describe('insertProgressReportTopicDetail', () => {
       [
         topicId,
         topicDetailData.content,
-        topicDetailData.reportEvaluationType,
-        topicDetailData.reportEvaluationDetailType,
+        topicDetailData.evaluationType,
+        topicDetailData.evaluationDetailType,
       ]
     )
     expect(actual.rows).toHaveLength(1)
@@ -312,5 +457,146 @@ describe('updateProgressReportStatus', () => {
     await updateProgressReportStatus(reportId, 'complete', client)
     const reportComplete = await getProgressReport(reportId, 'complete')
     expect(reportComplete.rows.length).toBe(1)
+  })
+})
+
+describe('getProgressReportInfoBySessionId', () => {
+  test('Get the progress report by the session ID', async () => {
+    const reportId = getUuid()
+    const session = await insertSession()
+    await insertProgressReportWithSummaryAndTopics({
+      id: reportId,
+      statusId: 1,
+      sessionId: session.id,
+      summary: buildProgressReportSummary(),
+      topics: [buildProgressReportTopic()],
+    })
+
+    const result = await getProgressReportInfoBySessionId(
+      userId,
+      session.id,
+      'single'
+    )
+    expect(result).toEqual({ id: reportId, status: 'pending' })
+  })
+})
+
+describe('getProgressReportByReportId', () => {
+  test('Get the progress report by the report id', async () => {
+    const reportId = getUuid()
+    const session = await insertSession()
+    await insertProgressReportWithSummaryAndTopics({
+      id: reportId,
+      statusId: 1,
+      sessionId: session.id,
+      summary: buildProgressReportSummary(),
+      topics: [buildProgressReportTopic()],
+    })
+
+    const result = await getProgressReportByReportId(reportId)
+    expect(result).toEqual({ id: reportId, status: 'pending' })
+  })
+})
+
+describe('getProgressReportSummariesForMany', () => {
+  test('Get multiple report summaries from multiple report ids', async () => {
+    const reports: ProgressReportInsert[] = []
+    for (let i = 0; i < 3; i++) {
+      const session = await insertSession()
+      const data = {
+        id: getUuid(),
+        statusId: 1,
+        sessionId: session.id,
+        summary: buildProgressReportSummary({
+          details: [buildProgressReportDetails(), buildProgressReportDetails()],
+        }),
+        topics: [buildProgressReportTopic()],
+      }
+
+      await insertProgressReportWithSummaryAndTopics(data)
+      reports.push(data)
+    }
+
+    const result = await getProgressReportSummariesForMany(
+      reports.map(report => report.id)
+    )
+
+    for (const row of result) {
+      const matchingSummary = reports.find(
+        report => report.summary.id === row.id
+      )
+      if (!matchingSummary) continue
+      const matchingDetail = matchingSummary.summary.details.find(
+        detail => detail.id === row.detailId
+      )
+      if (!matchingDetail) continue
+
+      expect(row).toEqual({
+        id: matchingSummary.summary.id,
+        summary: matchingSummary.summary.summary,
+        overallGrade: matchingSummary.summary.overallGrade,
+        createdAt: matchingSummary.summary.createdAt,
+        content: matchingDetail.content,
+        detailId: matchingDetail.id,
+        evaluationType: matchingDetail.evaluationType,
+        evaluationDetailType: matchingDetail.evaluationDetailType,
+      })
+    }
+  })
+
+  test('Should return an empty array when no summaries are found from a list of report ids', async () => {
+    const result = await getProgressReportSummariesForMany([
+      getUuid(),
+      getUuid(),
+    ])
+    expect(result).toHaveLength(0)
+  })
+})
+
+describe('getProgressReportTopicsByReportId', () => {
+  test('Get topics for a progress report', async () => {
+    const session = await insertSession()
+    const data = {
+      id: getUuid(),
+      statusId: 1,
+      sessionId: session.id,
+      summary: buildProgressReportSummary(),
+      topics: [
+        buildProgressReportTopic({
+          details: [buildProgressReportDetails(), buildProgressReportDetails()],
+        }),
+      ],
+    }
+    await insertProgressReportWithSummaryAndTopics(data)
+
+    const result = await getProgressReportTopicsByReportId(data.id)
+
+    for (const row of result) {
+      for (const topic of data.topics) {
+        console.log('the row', row, topic)
+        const matchingDetail = topic.details.find(
+          detail => detail.id === row.detailId
+        )
+        console.log('The matching detail', matchingDetail)
+        if (!matchingDetail) continue
+
+        expect(row).toEqual({
+          id: topic.id,
+          name: topic.name,
+          description: topic.description,
+          grade: topic.grade,
+          createdAt: topic.createdAt,
+          content: matchingDetail.content,
+          detailId: matchingDetail.id,
+          evaluationType: matchingDetail.evaluationType,
+          evaluationDetailType: matchingDetail.evaluationDetailType,
+        })
+      }
+    }
+  })
+
+  test('Should return an empty array when no topics are found from a report ID', async () => {
+    const result = await getProgressReportTopicsByReportId(getUuid())
+    expect(result).toHaveLength(0)
   })
 })
