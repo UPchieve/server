@@ -14,12 +14,12 @@ import {
   ProgressReportDetail,
   ProgressReportSummaryRow,
   ProgressReportSummary,
-  ProgressReportTopicRow,
-  ProgressReportTopic,
-  ProgressReportEvaluationTypes,
-  ProgressReportEvaluationDetailTypes,
+  ProgressReportConceptRow,
+  ProgressReportConcept,
+  ProgressReportFocusAreas,
+  ProgressReportInfoTypes,
   getProgressReportSummariesForMany,
-  getProgressReportTopicsByReportId,
+  getProgressReportConceptsByReportId,
   getProgressReportInfoBySessionId,
   getProgressReportByReportId,
   ProgressReportInfo,
@@ -124,8 +124,8 @@ export function transformProgressReportSummaryRows(
     const detail: ProgressReportDetail = {
       id: row.detailId,
       content: row.content,
-      evaluationType: row.evaluationType as ProgressReportEvaluationTypes,
-      evaluationDetailType: row.evaluationDetailType as ProgressReportEvaluationDetailTypes,
+      focusArea: row.focusArea as ProgressReportFocusAreas,
+      infoType: row.infoType as ProgressReportInfoTypes,
     }
 
     summaries[row.id].details.push(detail)
@@ -134,14 +134,14 @@ export function transformProgressReportSummaryRows(
   return Object.values(summaries)
 }
 
-export function transformProgressReportTopicRows(
-  rows: ProgressReportTopicRow[]
-): ProgressReportTopic[] {
-  const topics: Record<Ulid, ProgressReportTopic> = {}
+export function transformProgressReportConceptRows(
+  rows: ProgressReportConceptRow[]
+): ProgressReportConcept[] {
+  const concepts: Record<Ulid, ProgressReportConcept> = {}
 
   for (const row of rows) {
-    if (!topics[row.id]) {
-      topics[row.id] = {
+    if (!concepts[row.id]) {
+      concepts[row.id] = {
         id: row.id,
         name: row.name,
         description: row.description,
@@ -154,14 +154,14 @@ export function transformProgressReportTopicRows(
     const detail: ProgressReportDetail = {
       id: row.detailId,
       content: row.content,
-      evaluationType: row.evaluationType as ProgressReportEvaluationTypes,
-      evaluationDetailType: row.evaluationDetailType as ProgressReportEvaluationDetailTypes,
+      focusArea: row.focusArea as ProgressReportFocusAreas,
+      infoType: row.infoType as ProgressReportInfoTypes,
     }
 
-    topics[row.id].details.push(detail)
+    concepts[row.id].details.push(detail)
   }
 
-  return Object.values(topics)
+  return Object.values(concepts)
 }
 
 export async function getProgressReportSummary(
@@ -175,23 +175,24 @@ export async function getProgressReportSummary(
   return summaries[0]
 }
 
-export async function getProgressReportTopics(
+export async function getProgressReportConcepts(
   reportId: Ulid,
   tc?: TransactionClient
-): Promise<ProgressReportTopic[]> {
-  const topicRows = await getProgressReportTopicsByReportId(reportId, tc)
-  const topics = transformProgressReportTopicRows(topicRows)
-  if (!topics.length) throw new Error(`No topics found for report ${reportId}`)
-  return topics
+): Promise<ProgressReportConcept[]> {
+  const conceptRows = await getProgressReportConceptsByReportId(reportId, tc)
+  const concepts = transformProgressReportConceptRows(conceptRows)
+  if (!concepts.length)
+    throw new Error(`No concepts found for report ${reportId}`)
+  return concepts
 }
 
-export async function getProgressReportSummaryAndTopics(
+export async function getProgressReportSummaryAndConcepts(
   reportId: Ulid,
   tc?: TransactionClient
-): Promise<Pick<ProgressReport, 'summary' | 'topics'>> {
+): Promise<Pick<ProgressReport, 'summary' | 'concepts'>> {
   const summary = await getProgressReportSummary(reportId, tc)
-  const topics = await getProgressReportTopics(reportId, tc)
-  return { summary, topics }
+  const concepts = await getProgressReportConcepts(reportId, tc)
+  return { summary, concepts }
 }
 
 export async function getProgressReportDataAndDetails(
@@ -202,11 +203,11 @@ export async function getProgressReportDataAndDetails(
   if (!reportData?.id) {
     throw new Error('No report found')
   }
-  const summaryAndTopics = await getProgressReportSummaryAndTopics(
+  const summaryAndconcepts = await getProgressReportSummaryAndConcepts(
     reportData.id,
     tc
   )
-  return { ...reportData, ...summaryAndTopics }
+  return { ...reportData, ...summaryAndconcepts }
 }
 
 export async function getProgressReportForUserSession(
@@ -301,13 +302,3 @@ export async function getSessionsToAnalyzeForProgressReport(
   }
   return sessionsWithMessages
 }
-
-/**
- *
- *
- * TODO: the sessoin history tab should have a red indicator for async, temporary
- * WHEN we do the session recap
- *
- *
- *
- */

@@ -9,6 +9,8 @@ import {
   ProgressReportStatuses,
   ProgressReportSummaryInsert,
   ProgressReportConceptInsert,
+  ProgressReportConceptRow,
+  ProgressReportSummaryRow,
 } from './types'
 
 export async function insertProgressReport(
@@ -247,12 +249,12 @@ export async function getProgressReportSummariesForMany(
   }
 }
 
-export async function getProgressReportTopicsByReportId(
+export async function getProgressReportConceptsByReportId(
   reportId: Ulid,
   tc?: TransactionClient
-): Promise<ProgressReportTopicRow[]> {
+): Promise<ProgressReportConceptRow[]> {
   try {
-    const result = await pgQueries.getProgressReportTopicsByReportId.run(
+    const result = await pgQueries.getProgressReportConceptsByReportId.run(
       {
         reportId,
       },

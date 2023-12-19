@@ -24,7 +24,10 @@ describe(Jobs.GenerateProgressReport, () => {
 
   test('Should generate a progress report for a single session and an overview progress report', async () => {
     const userId = getDbUlid()
-    const session = await buildSession({ studentId: userId, subject: '' })
+    const session = await buildSession({
+      studentId: userId,
+      subject: 'reading',
+    })
     const job = {
       data: {
         sessionId: session.id,
@@ -77,7 +80,10 @@ describe(Jobs.GenerateProgressReport, () => {
   })
 
   test('Should let errors bubble up for both single and group progress report analysis', async () => {
-    const session = await buildSession({ studentId: getDbUlid() })
+    const session = await buildSession({
+      studentId: getDbUlid(),
+      subject: 'reading',
+    })
     const job = {
       data: {
         sessionId: session.id,
@@ -102,5 +108,23 @@ describe(Jobs.GenerateProgressReport, () => {
     expect(
       mockedProgressReportsService.generateProgressReportForUser
     ).toHaveBeenCalledTimes(2)
+  })
+
+  test('Should early exit if not a reading session', async () => {
+    const session = await buildSession({
+      studentId: getDbUlid(),
+      subject: 'algebraOne',
+    })
+    const job = {
+      data: {
+        sessionId: session.id,
+      },
+    }
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+
+    await generateProgressReport(job as Job)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledTimes(0)
   })
 })

@@ -8,9 +8,9 @@ export type ProgressReportStatuses =
 
 export type ProgressReportAnalysisTypes = 'single' | 'group'
 
-export type ProgressFocusAreas = 'strength' | 'practiceArea'
+export type ProgressReportFocusAreas = 'strength' | 'practiceArea'
 
-export type ProgressInfoTypes = 'recommendation' | 'reason'
+export type ProgressReportInfoTypes = 'recommendation' | 'reason'
 
 export type ProgressReportSession = {
   reportId: Ulid
@@ -23,8 +23,8 @@ export type ProgressReportSession = {
 export type ProgressReportDetail = {
   id: Ulid
   content: string
-  focusArea: ProgressFocusAreas
-  infoType: ProgressInfoTypes
+  focusArea: ProgressReportFocusAreas
+  infoType: ProgressReportInfoTypes
 }
 
 export type ProgressReportSummary = {

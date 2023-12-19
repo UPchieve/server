@@ -150,36 +150,36 @@ SELECT
     progress_report_summaries.overall_grade,
     progress_report_summary_details.id AS detail_id,
     progress_report_summary_details.content,
-    progress_report_evaluation_types.name AS evaluation_type,
-    progress_report_evaluation_detail_types.name AS evaluation_detail_type,
+    progress_report_focus_areas.name AS focus_area,
+    progress_report_info_types.name AS info_type,
     progress_report_summaries.created_at
 FROM
     progress_report_summaries
     JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id
-    JOIN progress_report_evaluation_detail_types ON progress_report_summary_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id
-    JOIN progress_report_evaluation_types ON progress_report_summary_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id
+    JOIN progress_report_info_types ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id
+    JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
 WHERE
     progress_report_summaries.progress_report_id = ANY (:reportIds!)
 ORDER BY
     progress_report_summaries.created_at DESC;
 
 
-/* @name getProgressReportTopicsByReportId */
+/* @name getProgressReportConceptsByReportId */
 SELECT
-    progress_report_topics.id,
-    progress_report_topics.name,
-    progress_report_topics.description,
-    progress_report_topics.grade,
-    progress_report_topic_details.id AS detail_id,
-    progress_report_topic_details.content,
-    progress_report_evaluation_types.name AS evaluation_type,
-    progress_report_evaluation_detail_types.name AS evaluation_detail_type,
-    progress_report_topics.created_at
+    progress_report_concepts.id,
+    progress_report_concepts.name,
+    progress_report_concepts.description,
+    progress_report_concepts.grade,
+    progress_report_concept_details.id AS detail_id,
+    progress_report_concept_details.content,
+    progress_report_focus_areas.name AS focus_area,
+    progress_report_info_types.name AS info_type,
+    progress_report_concepts.created_at
 FROM
-    progress_report_topics
-    JOIN progress_report_topic_details ON progress_report_topics.id = progress_report_topic_details.progress_report_topic_id
-    JOIN progress_report_evaluation_types ON progress_report_topic_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id
-    JOIN progress_report_evaluation_detail_types ON progress_report_topic_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id
+    progress_report_concepts
+    JOIN progress_report_concept_details ON progress_report_concepts.id = progress_report_concept_details.progress_report_concept_id
+    JOIN progress_report_focus_areas ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id
+    JOIN progress_report_info_types ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id
 WHERE
-    progress_report_topics.progress_report_id = :reportId;
+    progress_report_concepts.progress_report_id = :reportId;
 

@@ -10,7 +10,7 @@ import {
   buildUserSession,
   buildMessageForFrontend,
   buildProgressReportSummaryRow,
-  buildProgressReportTopicRow,
+  buildProgressReportConceptRow,
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS } from '../../constants'
@@ -104,7 +104,7 @@ describe('saveProgressReport', () => {
     const reportId = getDbUlid()
     const reportSummaryId = getDbUlid()
     const reportConceptId = getDbUlid()
-    const sessionIds = [sessionId, getDbUlid(), getDbUlid()]
+    const sessionIds = [session.id, getDbUlid(), getDbUlid()]
 
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValueOnce(
       reportId
@@ -280,26 +280,28 @@ describe('getSessionsToAnalyzeForProgressReport', () => {
 describe('generateProgressReportForUser', () => {
   // This test is following bad design for a unit test. We cannot mock
   // other functions inside the same service, so we're using the actual
-  // implementation of ProgressReportsService.getProgressReportSummaryAndTopics
+  // implementation of ProgressReportsService.getProgressReportSummaryAndConcepts
   // to get values back
   test('Should generate and save a progress report', async () => {
     const reportId = getUuid()
     const summaryRow = buildProgressReportSummaryRow()
-    const topicRow = buildProgressReportTopicRow()
+    const conceptRow = buildProgressReportConceptRow()
     mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValue(
       [summaryRow]
     )
-    mockedProgressReportsRepo.getProgressReportTopicsByReportId.mockResolvedValue(
-      [topicRow]
+    mockedProgressReportsRepo.getProgressReportConceptsByReportId.mockResolvedValue(
+      [conceptRow]
     )
     const {
       summary,
-      topics,
-    } = await ProgressReportsService.getProgressReportSummaryAndTopics(reportId)
+      concepts,
+    } = await ProgressReportsService.getProgressReportSummaryAndConcepts(
+      reportId
+    )
     const progressReport = buildProgressReport({
       id: reportId,
       summary,
-      topics,
+      concepts,
     })
     mockedBotsService.generateProgressReport.mockResolvedValue(progressReport)
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)

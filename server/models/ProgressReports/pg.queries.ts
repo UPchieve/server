@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/ProgressReports/progress_reports.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
+export type stringArray = (string)[];
+
 /** 'InsertProgressReport' parameters type */
 export interface IInsertProgressReportParams {
   id: string;
@@ -377,13 +379,30 @@ const getProgressReportByReportIdIR: any = {"name":"getProgressReportByReportId"
 export const getProgressReportByReportId = new PreparedQuery<IGetProgressReportByReportIdParams,IGetProgressReportByReportIdResult>(getProgressReportByReportIdIR);
 
 
-/** Query 'GetProgressReportSummariesForMany' is invalid, so its result is assigned type 'never' */
-export type IGetProgressReportSummariesForManyResult = never;
+/** 'GetProgressReportSummariesForMany' parameters type */
+export interface IGetProgressReportSummariesForManyParams {
+  reportIds: stringArray;
+}
 
-/** Query 'GetProgressReportSummariesForMany' is invalid, so its parameters are assigned type 'never' */
-export type IGetProgressReportSummariesForManyParams = never;
+/** 'GetProgressReportSummariesForMany' return type */
+export interface IGetProgressReportSummariesForManyResult {
+  content: string;
+  createdAt: Date;
+  detailId: string;
+  focusArea: string;
+  id: string;
+  infoType: string;
+  overallGrade: number;
+  summary: string;
+}
 
-const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSummariesForMany","params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4654,"b":4663,"line":162,"col":57}]}}],"usedParamSet":{"reportIds":true},"statement":{"body":"SELECT\n    progress_report_summaries.id,\n    progress_report_summaries.summary,\n    progress_report_summaries.overall_grade,\n    progress_report_summary_details.id AS detail_id,\n    progress_report_summary_details.content,\n    progress_report_evaluation_types.name AS evaluation_type,\n    progress_report_evaluation_detail_types.name AS evaluation_detail_type,\n    progress_report_summaries.created_at\nFROM\n    progress_report_summaries\n    JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id\n    JOIN progress_report_evaluation_detail_types ON progress_report_summary_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id\n    JOIN progress_report_evaluation_types ON progress_report_summary_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id\nWHERE\n    progress_report_summaries.progress_report_id = ANY (:reportIds!)\nORDER BY\n    progress_report_summaries.created_at DESC","loc":{"a":3699,"b":4719,"line":147,"col":0}}};
+/** 'GetProgressReportSummariesForMany' query type */
+export interface IGetProgressReportSummariesForManyQuery {
+  params: IGetProgressReportSummariesForManyParams;
+  result: IGetProgressReportSummariesForManyResult;
+}
+
+const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSummariesForMany","params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4564,"b":4573,"line":162,"col":57}]}}],"usedParamSet":{"reportIds":true},"statement":{"body":"SELECT\n    progress_report_summaries.id,\n    progress_report_summaries.summary,\n    progress_report_summaries.overall_grade,\n    progress_report_summary_details.id AS detail_id,\n    progress_report_summary_details.content,\n    progress_report_focus_areas.name AS focus_area,\n    progress_report_info_types.name AS info_type,\n    progress_report_summaries.created_at\nFROM\n    progress_report_summaries\n    JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id\n    JOIN progress_report_info_types ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id\n    JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id\nWHERE\n    progress_report_summaries.progress_report_id = ANY (:reportIds!)\nORDER BY\n    progress_report_summaries.created_at DESC","loc":{"a":3699,"b":4629,"line":147,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -394,14 +413,14 @@ const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSumma
  *     progress_report_summaries.overall_grade,
  *     progress_report_summary_details.id AS detail_id,
  *     progress_report_summary_details.content,
- *     progress_report_evaluation_types.name AS evaluation_type,
- *     progress_report_evaluation_detail_types.name AS evaluation_detail_type,
+ *     progress_report_focus_areas.name AS focus_area,
+ *     progress_report_info_types.name AS info_type,
  *     progress_report_summaries.created_at
  * FROM
  *     progress_report_summaries
  *     JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id
- *     JOIN progress_report_evaluation_detail_types ON progress_report_summary_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id
- *     JOIN progress_report_evaluation_types ON progress_report_summary_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id
+ *     JOIN progress_report_info_types ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id
+ *     JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
  * WHERE
  *     progress_report_summaries.progress_report_id = ANY (:reportIds!)
  * ORDER BY
@@ -411,36 +430,54 @@ const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSumma
 export const getProgressReportSummariesForMany = new PreparedQuery<IGetProgressReportSummariesForManyParams,IGetProgressReportSummariesForManyResult>(getProgressReportSummariesForManyIR);
 
 
-/** Query 'GetProgressReportTopicsByReportId' is invalid, so its result is assigned type 'never' */
-export type IGetProgressReportTopicsByReportIdResult = never;
+/** 'GetProgressReportConceptsByReportId' parameters type */
+export interface IGetProgressReportConceptsByReportIdParams {
+  reportId: string | null | void;
+}
 
-/** Query 'GetProgressReportTopicsByReportId' is invalid, so its parameters are assigned type 'never' */
-export type IGetProgressReportTopicsByReportIdParams = never;
+/** 'GetProgressReportConceptsByReportId' return type */
+export interface IGetProgressReportConceptsByReportIdResult {
+  content: string;
+  createdAt: Date;
+  description: string;
+  detailId: string;
+  focusArea: string;
+  grade: number;
+  id: string;
+  infoType: string;
+  name: string;
+}
 
-const getProgressReportTopicsByReportIdIR: any = {"name":"getProgressReportTopicsByReportId","params":[{"name":"reportId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5714,"b":5721,"line":184,"col":49}]}}],"usedParamSet":{"reportId":true},"statement":{"body":"SELECT\n    progress_report_topics.id,\n    progress_report_topics.name,\n    progress_report_topics.description,\n    progress_report_topics.grade,\n    progress_report_topic_details.id AS detail_id,\n    progress_report_topic_details.content,\n    progress_report_evaluation_types.name AS evaluation_type,\n    progress_report_evaluation_detail_types.name AS evaluation_detail_type,\n    progress_report_topics.created_at\nFROM\n    progress_report_topics\n    JOIN progress_report_topic_details ON progress_report_topics.id = progress_report_topic_details.progress_report_topic_id\n    JOIN progress_report_evaluation_types ON progress_report_topic_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id\n    JOIN progress_report_evaluation_detail_types ON progress_report_topic_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id\nWHERE\n    progress_report_topics.progress_report_id = :reportId","loc":{"a":4770,"b":5721,"line":168,"col":0}}};
+/** 'GetProgressReportConceptsByReportId' query type */
+export interface IGetProgressReportConceptsByReportIdQuery {
+  params: IGetProgressReportConceptsByReportIdParams;
+  result: IGetProgressReportConceptsByReportIdResult;
+}
+
+const getProgressReportConceptsByReportIdIR: any = {"name":"getProgressReportConceptsByReportId","params":[{"name":"reportId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5566,"b":5573,"line":184,"col":51}]}}],"usedParamSet":{"reportId":true},"statement":{"body":"SELECT\n    progress_report_concepts.id,\n    progress_report_concepts.name,\n    progress_report_concepts.description,\n    progress_report_concepts.grade,\n    progress_report_concept_details.id AS detail_id,\n    progress_report_concept_details.content,\n    progress_report_focus_areas.name AS focus_area,\n    progress_report_info_types.name AS info_type,\n    progress_report_concepts.created_at\nFROM\n    progress_report_concepts\n    JOIN progress_report_concept_details ON progress_report_concepts.id = progress_report_concept_details.progress_report_concept_id\n    JOIN progress_report_focus_areas ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id\n    JOIN progress_report_info_types ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id\nWHERE\n    progress_report_concepts.progress_report_id = :reportId","loc":{"a":4682,"b":5573,"line":168,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     progress_report_topics.id,
- *     progress_report_topics.name,
- *     progress_report_topics.description,
- *     progress_report_topics.grade,
- *     progress_report_topic_details.id AS detail_id,
- *     progress_report_topic_details.content,
- *     progress_report_evaluation_types.name AS evaluation_type,
- *     progress_report_evaluation_detail_types.name AS evaluation_detail_type,
- *     progress_report_topics.created_at
+ *     progress_report_concepts.id,
+ *     progress_report_concepts.name,
+ *     progress_report_concepts.description,
+ *     progress_report_concepts.grade,
+ *     progress_report_concept_details.id AS detail_id,
+ *     progress_report_concept_details.content,
+ *     progress_report_focus_areas.name AS focus_area,
+ *     progress_report_info_types.name AS info_type,
+ *     progress_report_concepts.created_at
  * FROM
- *     progress_report_topics
- *     JOIN progress_report_topic_details ON progress_report_topics.id = progress_report_topic_details.progress_report_topic_id
- *     JOIN progress_report_evaluation_types ON progress_report_topic_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id
- *     JOIN progress_report_evaluation_detail_types ON progress_report_topic_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id
+ *     progress_report_concepts
+ *     JOIN progress_report_concept_details ON progress_report_concepts.id = progress_report_concept_details.progress_report_concept_id
+ *     JOIN progress_report_focus_areas ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id
+ *     JOIN progress_report_info_types ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id
  * WHERE
- *     progress_report_topics.progress_report_id = :reportId
+ *     progress_report_concepts.progress_report_id = :reportId
  * ```
  */
-export const getProgressReportTopicsByReportId = new PreparedQuery<IGetProgressReportTopicsByReportIdParams,IGetProgressReportTopicsByReportIdResult>(getProgressReportTopicsByReportIdIR);
+export const getProgressReportConceptsByReportId = new PreparedQuery<IGetProgressReportConceptsByReportIdParams,IGetProgressReportConceptsByReportIdResult>(getProgressReportConceptsByReportIdIR);
 
 

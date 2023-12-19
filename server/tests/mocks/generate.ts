@@ -28,6 +28,8 @@ import {
   ProgressReportStatuses,
   ProgressReportSummary,
   ProgressReportConcept,
+  ProgressReportSummaryRow,
+  ProgressReportConceptRow,
 } from '../../models/ProgressReports'
 
 export function getEmail(): string {
@@ -417,7 +419,7 @@ export const buildProgressReportConcept = (
   overrides: Partial<ProgressReportConcept> = {}
 ): ProgressReportConcept => {
   const concept: ProgressReportConcept = {
-    id: getDbUlid(),
+    id: getUuid(),
     name: faker.lorem.word(),
     description: faker.lorem.sentence(),
     grade: 100,
@@ -451,30 +453,30 @@ export const buildProgressReportSummaryRow = (
     overallGrade: 100,
     detailId: getUuid(),
     content: faker.lorem.sentence(),
-    evaluationType: 'strength',
-    evaluationDetailType: 'reason',
+    focusArea: 'strength',
+    infoType: 'reason',
     createdAt: new Date(),
     ...overrides,
   }
   return summaryRow
 }
 
-export const buildProgressReportTopicRow = (
-  overrides: Partial<ProgressReportTopicRow> = {}
-): ProgressReportTopicRow => {
-  const topicRow = {
+export const buildProgressReportConceptRow = (
+  overrides: Partial<ProgressReportConceptRow> = {}
+): ProgressReportConceptRow => {
+  const conceptRow = {
     id: getUuid(),
     name: faker.lorem.word(),
     description: faker.lorem.sentence(),
     grade: 100,
     detailId: getUuid(),
     content: faker.lorem.sentence(),
-    evaluationType: 'strength',
-    evaluationDetailType: 'reason',
+    focusArea: 'strength',
+    infoType: 'reason',
     createdAt: new Date(),
     ...overrides,
   }
-  return topicRow
+  return conceptRow
 }
 
 export const buildProgressReport = (

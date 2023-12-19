@@ -8,5 +8,6 @@ export function registerListeners() {
   SessionServiceListeners()
   USMServiceListeners()
   StudentServiceListeners()
-  UserCreationServiceListeners(), ProgressReportsServiceListeners()
+  UserCreationServiceListeners()
+  ProgressReportsServiceListeners()
 }
