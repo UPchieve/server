@@ -48,13 +48,13 @@ export async function generateProgressReport(
           type ProgressReportEvaluationDetailTypes = 'recommendation' | 'reason'
 
           type ProgressReportDetail = {
-            // Content elaborating on the reportEvaluationType and reportEvaluationDetailType for a topic, specific to the student's performance or needs
+            // Content elaborating on the evaluationType and evaluationDetailType for a topic, specific to the student's performance or needs
             content: string
             // Determines if the associated topic is categorized as a 'strength' or 'practiceArea', with flexibility for future assessment types
-            reportEvaluationType: ProgressReportEvaluationTypes
+            evaluationType: ProgressReportEvaluationTypes
             // Specifies the nature of the assessment detail, such as a 'recommendation' for improvement or a 'reason' explaining the assessment
             // If a 'practiceArea' is given, provide a recommendation for improvement
-            reportEvaluationDetailType: ProgressReportEvaluationDetailTypes
+            evaluationDetailType: ProgressReportEvaluationDetailTypes
           }
 
           type ProgressReportSummary = {
