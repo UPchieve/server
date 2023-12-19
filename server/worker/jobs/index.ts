@@ -48,6 +48,7 @@ import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessi
 import updateGradeLevel from './updateGradeLevel'
 import studentProcrastinationTextReminder from './studentProcrastinationTextReminder'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
+import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 
 export enum Jobs {
@@ -96,6 +97,7 @@ export enum Jobs {
   UpdateGradeLevel = 'UpdateGradeLevel',
   StudentProcrastinationTextReminder = 'StudentProcrastinationTextReminder',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
+  GenerateProgressReport = 'GenerateProgressReport',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -300,6 +302,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendSessionRecapMessageNotification,
     processor: sendSessionRecapMessageNotification,
+  },
+  {
+    name: Jobs.GenerateProgressReport,
+    processor: generateProgressReport,
   },
 
   // TODO: remove the following deprecated job names
