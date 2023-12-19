@@ -17,6 +17,13 @@ CREATE SCHEMA auth;
 
 
 --
+-- Name: basic_access; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA basic_access;
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -734,42 +741,40 @@ ALTER SEQUENCE upchieve.progress_report_analysis_types_id_seq OWNED BY upchieve.
 
 
 --
--- Name: progress_report_evaluation_detail_types; Type: TABLE; Schema: upchieve; Owner: -
+-- Name: progress_report_concept_details; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-CREATE TABLE upchieve.progress_report_evaluation_detail_types (
-    id integer NOT NULL,
-    name text NOT NULL,
+CREATE TABLE upchieve.progress_report_concept_details (
+    id uuid NOT NULL,
+    content text NOT NULL,
+    progress_report_concept_id uuid NOT NULL,
+    progress_report_focus_area_id integer NOT NULL,
+    progress_report_info_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
 --
--- Name: progress_report_evaluation_detail_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+-- Name: progress_report_concepts; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.progress_report_evaluation_detail_types_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: progress_report_evaluation_detail_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.progress_report_evaluation_detail_types_id_seq OWNED BY upchieve.progress_report_evaluation_detail_types.id;
+CREATE TABLE upchieve.progress_report_concepts (
+    id uuid NOT NULL,
+    name text NOT NULL,
+    description text NOT NULL,
+    grade smallint NOT NULL,
+    progress_report_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
 
 
 --
--- Name: progress_report_evaluation_types; Type: TABLE; Schema: upchieve; Owner: -
+-- Name: progress_report_focus_areas; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-CREATE TABLE upchieve.progress_report_evaluation_types (
+CREATE TABLE upchieve.progress_report_focus_areas (
     id integer NOT NULL,
     name text NOT NULL,
     display_name text NOT NULL,
@@ -779,10 +784,10 @@ CREATE TABLE upchieve.progress_report_evaluation_types (
 
 
 --
--- Name: progress_report_evaluation_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+-- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.progress_report_evaluation_types_id_seq
+CREATE SEQUENCE upchieve.progress_report_focus_areas_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -792,10 +797,42 @@ CREATE SEQUENCE upchieve.progress_report_evaluation_types_id_seq
 
 
 --
--- Name: progress_report_evaluation_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+-- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
 --
 
-ALTER SEQUENCE upchieve.progress_report_evaluation_types_id_seq OWNED BY upchieve.progress_report_evaluation_types.id;
+ALTER SEQUENCE upchieve.progress_report_focus_areas_id_seq OWNED BY upchieve.progress_report_focus_areas.id;
+
+
+--
+-- Name: progress_report_info_types; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.progress_report_info_types (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: progress_report_info_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_info_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_info_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_info_types_id_seq OWNED BY upchieve.progress_report_info_types.id;
 
 
 --
@@ -865,38 +902,8 @@ CREATE TABLE upchieve.progress_report_summary_details (
     id uuid NOT NULL,
     content text NOT NULL,
     progress_report_summary_id uuid NOT NULL,
-    progress_report_evaluation_type_id integer NOT NULL,
-    progress_report_evaluation_detail_type_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: progress_report_topic_details; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.progress_report_topic_details (
-    id uuid NOT NULL,
-    content text NOT NULL,
-    progress_report_topic_id uuid NOT NULL,
-    progress_report_evaluation_type_id integer NOT NULL,
-    progress_report_evaluation_detail_type_id integer NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: progress_report_topics; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.progress_report_topics (
-    id uuid NOT NULL,
-    name text NOT NULL,
-    description text NOT NULL,
-    grade smallint NOT NULL,
-    progress_report_id uuid NOT NULL,
+    progress_report_focus_area_id integer NOT NULL,
+    progress_report_info_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -2494,17 +2501,17 @@ ALTER TABLE ONLY upchieve.progress_report_analysis_types ALTER COLUMN id SET DEF
 
 
 --
--- Name: progress_report_evaluation_detail_types id; Type: DEFAULT; Schema: upchieve; Owner: -
+-- Name: progress_report_focus_areas id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.progress_report_evaluation_detail_types ALTER COLUMN id SET DEFAULT nextval('upchieve.progress_report_evaluation_detail_types_id_seq'::regclass);
+ALTER TABLE ONLY upchieve.progress_report_focus_areas ALTER COLUMN id SET DEFAULT nextval('upchieve.progress_report_focus_areas_id_seq'::regclass);
 
 
 --
--- Name: progress_report_evaluation_types id; Type: DEFAULT; Schema: upchieve; Owner: -
+-- Name: progress_report_info_types id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.progress_report_evaluation_types ALTER COLUMN id SET DEFAULT nextval('upchieve.progress_report_evaluation_types_id_seq'::regclass);
+ALTER TABLE ONLY upchieve.progress_report_info_types ALTER COLUMN id SET DEFAULT nextval('upchieve.progress_report_info_types_id_seq'::regclass);
 
 
 --
@@ -3005,35 +3012,51 @@ ALTER TABLE ONLY upchieve.progress_report_analysis_types
 
 
 --
--- Name: progress_report_evaluation_detail_types progress_report_evaluation_detail_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: progress_report_concept_details progress_report_concept_details_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.progress_report_evaluation_detail_types
-    ADD CONSTRAINT progress_report_evaluation_detail_types_name_key UNIQUE (name);
-
-
---
--- Name: progress_report_evaluation_detail_types progress_report_evaluation_detail_types_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_evaluation_detail_types
-    ADD CONSTRAINT progress_report_evaluation_detail_types_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY upchieve.progress_report_concept_details
+    ADD CONSTRAINT progress_report_concept_details_pkey PRIMARY KEY (id);
 
 
 --
--- Name: progress_report_evaluation_types progress_report_evaluation_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: progress_report_concepts progress_report_concepts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.progress_report_evaluation_types
-    ADD CONSTRAINT progress_report_evaluation_types_name_key UNIQUE (name);
+ALTER TABLE ONLY upchieve.progress_report_concepts
+    ADD CONSTRAINT progress_report_concepts_pkey PRIMARY KEY (id);
 
 
 --
--- Name: progress_report_evaluation_types progress_report_evaluation_types_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: progress_report_focus_areas progress_report_focus_areas_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
-ALTER TABLE ONLY upchieve.progress_report_evaluation_types
-    ADD CONSTRAINT progress_report_evaluation_types_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY upchieve.progress_report_focus_areas
+    ADD CONSTRAINT progress_report_focus_areas_name_key UNIQUE (name);
+
+
+--
+-- Name: progress_report_focus_areas progress_report_focus_areas_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_focus_areas
+    ADD CONSTRAINT progress_report_focus_areas_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: progress_report_info_types progress_report_info_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_info_types
+    ADD CONSTRAINT progress_report_info_types_name_key UNIQUE (name);
+
+
+--
+-- Name: progress_report_info_types progress_report_info_types_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_info_types
+    ADD CONSTRAINT progress_report_info_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -3082,22 +3105,6 @@ ALTER TABLE ONLY upchieve.progress_report_summaries
 
 ALTER TABLE ONLY upchieve.progress_report_summary_details
     ADD CONSTRAINT progress_report_summary_details_pkey PRIMARY KEY (id);
-
-
---
--- Name: progress_report_topic_details progress_report_topic_details_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_topic_details
-    ADD CONSTRAINT progress_report_topic_details_pkey PRIMARY KEY (id);
-
-
---
--- Name: progress_report_topics progress_report_topics_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_topics
-    ADD CONSTRAINT progress_report_topics_pkey PRIMARY KEY (id);
 
 
 --
@@ -3872,6 +3879,20 @@ CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_i
 
 
 --
+-- Name: progress_report_concept_details_concept_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX progress_report_concept_details_concept_id ON upchieve.progress_report_concept_details USING btree (progress_report_concept_id);
+
+
+--
+-- Name: progress_report_concepts_progress_report_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX progress_report_concepts_progress_report_id ON upchieve.progress_report_concepts USING btree (progress_report_id);
+
+
+--
 -- Name: progress_report_sessions_analysis_type_created_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -3904,20 +3925,6 @@ CREATE INDEX progress_report_summaries_progress_report_id ON upchieve.progress_r
 --
 
 CREATE INDEX progress_report_summary_details_report_summary_id ON upchieve.progress_report_summary_details USING btree (progress_report_summary_id);
-
-
---
--- Name: progress_report_topic_details_topic_id; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE INDEX progress_report_topic_details_topic_id ON upchieve.progress_report_topic_details USING btree (progress_report_topic_id);
-
-
---
--- Name: progress_report_topics_progress_report_id; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE INDEX progress_report_topics_progress_report_id ON upchieve.progress_report_topics USING btree (progress_report_id);
 
 
 --
@@ -4302,6 +4309,38 @@ ALTER TABLE ONLY upchieve.pre_session_surveys
 
 
 --
+-- Name: progress_report_concept_details progress_report_concept_detai_progress_report_focus_area_i_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_concept_details
+    ADD CONSTRAINT progress_report_concept_detai_progress_report_focus_area_i_fkey FOREIGN KEY (progress_report_focus_area_id) REFERENCES upchieve.progress_report_focus_areas(id);
+
+
+--
+-- Name: progress_report_concept_details progress_report_concept_detai_progress_report_info_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_concept_details
+    ADD CONSTRAINT progress_report_concept_detai_progress_report_info_type_id_fkey FOREIGN KEY (progress_report_info_type_id) REFERENCES upchieve.progress_report_info_types(id);
+
+
+--
+-- Name: progress_report_concept_details progress_report_concept_details_progress_report_concept_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_concept_details
+    ADD CONSTRAINT progress_report_concept_details_progress_report_concept_id_fkey FOREIGN KEY (progress_report_concept_id) REFERENCES upchieve.progress_report_concepts(id);
+
+
+--
+-- Name: progress_report_concepts progress_report_concepts_progress_report_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_concepts
+    ADD CONSTRAINT progress_report_concepts_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id);
+
+
+--
 -- Name: progress_report_sessions progress_report_sessions_progress_report_analysis_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4334,19 +4373,19 @@ ALTER TABLE ONLY upchieve.progress_report_summaries
 
 
 --
--- Name: progress_report_summary_details progress_report_summary_detai_progress_report_evaluation_d_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: progress_report_summary_details progress_report_summary_detai_progress_report_focus_area_i_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.progress_report_summary_details
-    ADD CONSTRAINT progress_report_summary_detai_progress_report_evaluation_d_fkey FOREIGN KEY (progress_report_evaluation_detail_type_id) REFERENCES upchieve.progress_report_evaluation_detail_types(id);
+    ADD CONSTRAINT progress_report_summary_detai_progress_report_focus_area_i_fkey FOREIGN KEY (progress_report_focus_area_id) REFERENCES upchieve.progress_report_focus_areas(id);
 
 
 --
--- Name: progress_report_summary_details progress_report_summary_detai_progress_report_evaluation_t_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: progress_report_summary_details progress_report_summary_detai_progress_report_info_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.progress_report_summary_details
-    ADD CONSTRAINT progress_report_summary_detai_progress_report_evaluation_t_fkey FOREIGN KEY (progress_report_evaluation_type_id) REFERENCES upchieve.progress_report_evaluation_types(id);
+    ADD CONSTRAINT progress_report_summary_detai_progress_report_info_type_id_fkey FOREIGN KEY (progress_report_info_type_id) REFERENCES upchieve.progress_report_info_types(id);
 
 
 --
@@ -4355,38 +4394,6 @@ ALTER TABLE ONLY upchieve.progress_report_summary_details
 
 ALTER TABLE ONLY upchieve.progress_report_summary_details
     ADD CONSTRAINT progress_report_summary_details_progress_report_summary_id_fkey FOREIGN KEY (progress_report_summary_id) REFERENCES upchieve.progress_report_summaries(id);
-
-
---
--- Name: progress_report_topic_details progress_report_topic_details_progress_report_evaluation_d_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_topic_details
-    ADD CONSTRAINT progress_report_topic_details_progress_report_evaluation_d_fkey FOREIGN KEY (progress_report_evaluation_detail_type_id) REFERENCES upchieve.progress_report_evaluation_detail_types(id);
-
-
---
--- Name: progress_report_topic_details progress_report_topic_details_progress_report_evaluation_t_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_topic_details
-    ADD CONSTRAINT progress_report_topic_details_progress_report_evaluation_t_fkey FOREIGN KEY (progress_report_evaluation_type_id) REFERENCES upchieve.progress_report_evaluation_types(id);
-
-
---
--- Name: progress_report_topic_details progress_report_topic_details_progress_report_topic_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_topic_details
-    ADD CONSTRAINT progress_report_topic_details_progress_report_topic_id_fkey FOREIGN KEY (progress_report_topic_id) REFERENCES upchieve.progress_report_topics(id);
-
-
---
--- Name: progress_report_topics progress_report_topics_progress_report_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_topics
-    ADD CONSTRAINT progress_report_topics_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id);
 
 
 --
