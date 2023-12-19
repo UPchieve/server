@@ -39,7 +39,7 @@ export async function generateProgressReport(
           tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; 
           and students may make additional edits to respond to the tutor's feedback. 
           
-          Respond in a JSON format in the shape of ProgressReportBotResponse from the TypeScript types below
+          Respond in a JSON format in the shape of ProgressReportResponse from the TypeScript types below
 
           // Types of assessment for a report, currently 'strength' and 'practiceArea', but designed to include more types in the future
           type ProgressFocusAreas = 'strength' | 'practiceArea'
@@ -77,7 +77,7 @@ export async function generateProgressReport(
             details: ProgressReportDetail[]
           }
 
-          type ProgressReportBotResponse = {
+          type ProgressReportResponse = {
             // The summary section encapsulating an overall assessment and grade for the subject; an empty object indicates a summary couldn't be produced
             summary: ProgressReportSummary
             // Array of concepts (topics), each with detailed assessments; an empty array indicates no concepts to analyze
