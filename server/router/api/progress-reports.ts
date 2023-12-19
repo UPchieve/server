@@ -7,7 +7,10 @@ export function routeProgressReports(router: Router): void {
   router.get('/progress-reports/generate', async function(req, res) {
     try {
       const user = extractUser(req)
-      const analysis = await generateProgressReportForUser(user.id)
+      // Force reading until we are passing in a subject from the client
+      const analysis = await generateProgressReportForUser(user.id, {
+        subject: 'reading',
+      })
       res.json(analysis)
     } catch (err) {
       resError(res, err)
