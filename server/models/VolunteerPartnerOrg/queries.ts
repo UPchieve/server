@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg'
 import { getClient } from '../../db'
 import { RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeOptional } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   VolunteerPartnerOrg,
@@ -35,6 +35,23 @@ export async function getFullVolunteerPartnerOrgByKey(
     if (!(result.length && makeRequired(result[0])))
       throw new Error(`no volunteer partner org found with key ${key}`)
     return makeSomeOptional(result[0], ['domains'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerPartnerOrgIdByKey(
+  key: string
+): Promise<Ulid | undefined> {
+  try {
+    const result = await pgQueries.getVolunteerPartnerOrgIdByKey.run(
+      { key },
+      getClient()
+    )
+    if (!result.length) {
+      return undefined
+    }
+    return result[0].id
   } catch (err) {
     throw new RepoReadError(err)
   }
