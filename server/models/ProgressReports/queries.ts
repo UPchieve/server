@@ -8,9 +8,7 @@ import {
   ProgressReportInfo,
   ProgressReportStatuses,
   ProgressReportSummaryInsert,
-  ProgressReportSummaryRow,
-  ProgressReportTopicInsert,
-  ProgressReportTopicRow,
+  ProgressReportConceptInsert,
 } from './types'
 
 export async function insertProgressReport(
@@ -95,8 +93,8 @@ export async function insertProgressReportSummaryDetail(
         id: getDbUlid(),
         content: data.content,
         reportSummaryId,
-        evaluationType: data.evaluationType,
-        evaluationDetailType: data.evaluationDetailType,
+        focusArea: data.focusArea,
+        infoType: data.infoType,
       },
       tc ?? getClient()
     )
@@ -109,13 +107,13 @@ export async function insertProgressReportSummaryDetail(
   }
 }
 
-export async function insertProgressReportTopic(
+export async function insertProgressReportConcept(
   reportId: Ulid,
-  data: ProgressReportTopicInsert,
+  data: ProgressReportConceptInsert,
   tc?: TransactionClient
 ): Promise<Ulid> {
   try {
-    const result = await pgQueries.insertProgressReportTopic.run(
+    const result = await pgQueries.insertProgressReportConcept.run(
       {
         id: getDbUlid(),
         name: data.name,
@@ -127,32 +125,32 @@ export async function insertProgressReportTopic(
     )
     if (result.length) return makeRequired(result[0]).id
     throw new RepoCreateError(
-      `insertProgressReportTopic: Insert query did not return new row for report ${reportId}`
+      `insertProgressReportConcept: Insert query did not return new row for report ${reportId}`
     )
   } catch (err) {
     throw new RepoCreateError(err)
   }
 }
 
-export async function insertProgressReportTopicDetail(
-  reportTopicId: Ulid,
+export async function insertProgressReportConceptDetail(
+  reportConceptId: Ulid,
   data: ProgressReportDetailInsert,
   tc?: TransactionClient
 ): Promise<Ulid> {
   try {
-    const result = await pgQueries.insertProgressReportTopicDetail.run(
+    const result = await pgQueries.insertProgressReportConceptDetail.run(
       {
         id: getDbUlid(),
         content: data.content,
-        reportTopicId,
-        evaluationType: data.evaluationType,
-        evaluationDetailType: data.evaluationDetailType,
+        reportConceptId,
+        focusArea: data.focusArea,
+        infoType: data.infoType,
       },
       tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0]).id
     throw new RepoCreateError(
-      `insertProgressReportTopicDetail: Insert query did not return new row for progress report topic ${reportTopicId}`
+      `insertProgressReportConceptDetail: Insert query did not return new row for progress report concept ${reportConceptId}`
     )
   } catch (err) {
     throw new RepoCreateError(err)

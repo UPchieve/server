@@ -8,9 +8,9 @@ export type ProgressReportStatuses =
 
 export type ProgressReportAnalysisTypes = 'single' | 'group'
 
-export type ProgressReportEvaluationTypes = 'strength' | 'practiceArea'
+export type ProgressFocusAreas = 'strength' | 'practiceArea'
 
-export type ProgressReportEvaluationDetailTypes = 'recommendation' | 'reason'
+export type ProgressInfoTypes = 'recommendation' | 'reason'
 
 export type ProgressReportSession = {
   reportId: Ulid
@@ -23,8 +23,8 @@ export type ProgressReportSession = {
 export type ProgressReportDetail = {
   id: Ulid
   content: string
-  evaluationType: ProgressReportEvaluationTypes
-  evaluationDetailType: ProgressReportEvaluationDetailTypes
+  focusArea: ProgressFocusAreas
+  infoType: ProgressInfoTypes
 }
 
 export type ProgressReportSummary = {
@@ -35,7 +35,7 @@ export type ProgressReportSummary = {
   createdAt: Date
 }
 
-export type ProgressReportTopic = {
+export type ProgressReportConcept = {
   id: Ulid
   name: string
   description: string
@@ -48,7 +48,7 @@ export type ProgressReport = {
   id: Ulid
   status: ProgressReportStatuses
   summary: ProgressReportSummary
-  topics: ProgressReportTopic[]
+  concepts: ProgressReportConcept[]
 }
 
 export type ProgressReportInfo = {
@@ -62,20 +62,20 @@ export type ProgressReportSummaryRow = {
   overallGrade: number
   detailId: Ulid
   content: string
-  evaluationType: string
-  evaluationDetailType: string
+  focusArea: string
+  infoType: string
   createdAt: Date
 }
 
-export type ProgressReportTopicRow = {
+export type ProgressReportConceptRow = {
   id: Ulid
   name: string
   description: string
   grade: number
   detailId: Ulid
   content: string
-  evaluationType: string
-  evaluationDetailType: string
+  focusArea: string
+  infoType: string
   createdAt: Date
 }
 
@@ -84,12 +84,12 @@ export type ProgressReportSummaryInsert = Pick<
   'summary' | 'overallGrade'
 >
 
-export type ProgressReportTopicInsert = Pick<
-  ProgressReportTopic,
+export type ProgressReportConceptInsert = Pick<
+  ProgressReportConcept,
   'name' | 'description' | 'grade'
 >
 
 export type ProgressReportDetailInsert = Pick<
   ProgressReportDetail,
-  'content' | 'evaluationDetailType' | 'evaluationType'
+  'content' | 'infoType' | 'focusArea'
 >

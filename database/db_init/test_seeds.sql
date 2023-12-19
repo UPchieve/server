@@ -1570,28 +1570,8 @@ COPY upchieve.pre_session_surveys (id, response_data, session_id, user_id, creat
 --
 
 COPY upchieve.progress_report_analysis_types (id, name, created_at, updated_at) FROM stdin;
-1	single	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-2	group	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-\.
-
-
---
--- Data for Name: progress_report_evaluation_detail_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.progress_report_evaluation_detail_types (id, name, created_at, updated_at) FROM stdin;
-1	recommendation	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-2	reason	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-\.
-
-
---
--- Data for Name: progress_report_evaluation_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.progress_report_evaluation_types (id, name, display_name, created_at, updated_at) FROM stdin;
-1	strength	Strength	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-2	practiceArea	Practice Area	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
+1	single	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	group	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
 \.
 
 
@@ -1600,10 +1580,10 @@ COPY upchieve.progress_report_evaluation_types (id, name, display_name, created_
 --
 
 COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM stdin;
-1	pending	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-2	processing	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-3	error	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
-4	complete	2023-12-14 18:26:43.295433+00	2023-12-14 18:26:43.295433+00
+1	pending	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	processing	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+3	error	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+4	complete	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
 \.
 
 
@@ -1612,6 +1592,42 @@ COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM s
 --
 
 COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_concepts; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_concepts (id, name, description, grade, progress_report_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_focus_areas; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_focus_areas (id, name, display_name, created_at, updated_at) FROM stdin;
+1	strength	Strength	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	practiceArea	Practice Area	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+\.
+
+
+--
+-- Data for Name: progress_report_info_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_info_types (id, name, created_at, updated_at) FROM stdin;
+1	recommendation	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	reason	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+\.
+
+
+--
+-- Data for Name: progress_report_concept_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -1635,23 +1651,7 @@ COPY upchieve.progress_report_summaries (id, summary, overall_grade, progress_re
 -- Data for Name: progress_report_summary_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.progress_report_summary_details (id, content, progress_report_summary_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: progress_report_topics; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.progress_report_topics (id, name, description, grade, progress_report_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: progress_report_topic_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.progress_report_topic_details (id, content, progress_report_topic_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id, created_at, updated_at) FROM stdin;
+COPY upchieve.progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -3878,17 +3878,17 @@ SELECT pg_catalog.setval('upchieve.progress_report_analysis_types_id_seq', 2, tr
 
 
 --
--- Name: progress_report_evaluation_detail_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+-- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.progress_report_evaluation_detail_types_id_seq', 2, true);
+SELECT pg_catalog.setval('upchieve.progress_report_focus_areas_id_seq', 2, true);
 
 
 --
--- Name: progress_report_evaluation_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+-- Name: progress_report_info_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.progress_report_evaluation_types_id_seq', 2, true);
+SELECT pg_catalog.setval('upchieve.progress_report_info_types_id_seq', 2, true);
 
 
 --

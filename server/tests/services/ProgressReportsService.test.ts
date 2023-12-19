@@ -47,7 +47,7 @@ describe('saveProgressReport', () => {
   test(`Should save the progress report for 'single' session analysis`, async () => {
     const reportId = getDbUlid()
     const reportSummaryId = getDbUlid()
-    const reportTopicId = getDbUlid()
+    const reportConceptId = getDbUlid()
 
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValueOnce(
       reportId
@@ -55,8 +55,8 @@ describe('saveProgressReport', () => {
     mockedProgressReportsRepo.insertProgressReportSummary.mockResolvedValueOnce(
       reportSummaryId
     )
-    mockedProgressReportsRepo.insertProgressReportTopic.mockResolvedValueOnce(
-      reportTopicId
+    mockedProgressReportsRepo.insertProgressReportConcept.mockResolvedValueOnce(
+      reportConceptId
     )
 
     await ProgressReportsService.saveProgressReport(
@@ -84,14 +84,14 @@ describe('saveProgressReport', () => {
         mockedProgressReportsRepo.insertProgressReportSummaryDetail
       ).toHaveBeenCalledWith(reportSummaryId, detail, expect.anything())
     }
-    for (const topic of mockedProgressReport.topics) {
+    for (const concept of mockedProgressReport.concepts) {
       expect(
-        mockedProgressReportsRepo.insertProgressReportTopic
-      ).toHaveBeenCalledWith(reportId, topic, expect.anything())
-      for (const detail of topic.details) {
+        mockedProgressReportsRepo.insertProgressReportConcept
+      ).toHaveBeenCalledWith(reportId, concept, expect.anything())
+      for (const detail of concept.details) {
         expect(
-          mockedProgressReportsRepo.insertProgressReportTopicDetail
-        ).toHaveBeenCalledWith(reportTopicId, detail, expect.anything())
+          mockedProgressReportsRepo.insertProgressReportConceptDetail
+        ).toHaveBeenCalledWith(reportConceptId, detail, expect.anything())
       }
     }
     expect(
@@ -103,8 +103,8 @@ describe('saveProgressReport', () => {
   test(`Should save the progress report for 'group' session analysis`, async () => {
     const reportId = getDbUlid()
     const reportSummaryId = getDbUlid()
-    const reportTopicId = getDbUlid()
-    const sessionIds = [session.id, getDbUlid(), getDbUlid()]
+    const reportConceptId = getDbUlid()
+    const sessionIds = [sessionId, getDbUlid(), getDbUlid()]
 
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValueOnce(
       reportId
@@ -112,8 +112,8 @@ describe('saveProgressReport', () => {
     mockedProgressReportsRepo.insertProgressReportSummary.mockResolvedValueOnce(
       reportSummaryId
     )
-    mockedProgressReportsRepo.insertProgressReportTopic.mockResolvedValueOnce(
-      reportTopicId
+    mockedProgressReportsRepo.insertProgressReportConcept.mockResolvedValueOnce(
+      reportConceptId
     )
 
     await ProgressReportsService.saveProgressReport(
@@ -141,14 +141,14 @@ describe('saveProgressReport', () => {
         mockedProgressReportsRepo.insertProgressReportSummaryDetail
       ).toHaveBeenCalledWith(reportSummaryId, detail, expect.anything())
     }
-    for (const topic of mockedProgressReport.topics) {
+    for (const concept of mockedProgressReport.concepts) {
       expect(
-        mockedProgressReportsRepo.insertProgressReportTopic
-      ).toHaveBeenCalledWith(reportId, topic, expect.anything())
-      for (const detail of topic.details) {
+        mockedProgressReportsRepo.insertProgressReportConcept
+      ).toHaveBeenCalledWith(reportId, concept, expect.anything())
+      for (const detail of concept.details) {
         expect(
-          mockedProgressReportsRepo.insertProgressReportTopicDetail
-        ).toHaveBeenCalledWith(reportTopicId, detail, expect.anything())
+          mockedProgressReportsRepo.insertProgressReportConceptDetail
+        ).toHaveBeenCalledWith(reportConceptId, detail, expect.anything())
       }
     }
     expect(

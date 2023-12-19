@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS upchieve.progress_report_sessions (
     PRIMARY KEY (progress_report_id, session_id, progress_report_analysis_type_id)
 );
 
-CREATE TABLE IF NOT EXISTS upchieve.progress_report_evaluation_types (
+CREATE TABLE IF NOT EXISTS upchieve.progress_report_focus_areas (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,
     display_name text NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS upchieve.progress_report_evaluation_types (
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS upchieve.progress_report_evaluation_detail_types (
+CREATE TABLE IF NOT EXISTS upchieve.progress_report_info_types (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,
     created_at timestamptz NOT NULL DEFAULT NOW(),
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS upchieve.progress_report_summaries (
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS upchieve.progress_report_topics (
+CREATE TABLE IF NOT EXISTS upchieve.progress_report_concepts (
     id uuid PRIMARY KEY,
     name text NOT NULL,
     description text NOT NULL,
@@ -64,12 +64,12 @@ CREATE TABLE IF NOT EXISTS upchieve.progress_report_topics (
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS upchieve.progress_report_topic_details (
+CREATE TABLE IF NOT EXISTS upchieve.progress_report_concept_details (
     id uuid PRIMARY KEY,
     content text NOT NULL,
-    progress_report_topic_id uuid NOT NULL REFERENCES upchieve.progress_report_topics (id),
-    progress_report_evaluation_type_id integer NOT NULL REFERENCES upchieve.progress_report_evaluation_types (id),
-    progress_report_evaluation_detail_type_id integer NOT NULL REFERENCES upchieve.progress_report_evaluation_detail_types (id),
+    progress_report_concept_id uuid NOT NULL REFERENCES upchieve.progress_report_concepts (id),
+    progress_report_focus_area_id integer NOT NULL REFERENCES upchieve.progress_report_focus_areas (id),
+    progress_report_info_type_id integer NOT NULL REFERENCES upchieve.progress_report_info_types (id),
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
@@ -78,8 +78,8 @@ CREATE TABLE IF NOT EXISTS upchieve.progress_report_summary_details (
     id uuid PRIMARY KEY,
     content text NOT NULL,
     progress_report_summary_id uuid NOT NULL REFERENCES upchieve.progress_report_summaries (id),
-    progress_report_evaluation_type_id integer NOT NULL REFERENCES upchieve.progress_report_evaluation_types (id),
-    progress_report_evaluation_detail_type_id integer NOT NULL REFERENCES upchieve.progress_report_evaluation_detail_types (id),
+    progress_report_focus_area_id integer NOT NULL REFERENCES upchieve.progress_report_focus_areas (id),
+    progress_report_info_type_id integer NOT NULL REFERENCES upchieve.progress_report_info_types (id),
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
@@ -97,11 +97,11 @@ CREATE INDEX progress_report_sessions_analysis_type_created_at ON upchieve.progr
 
 CREATE INDEX progress_report_summaries_progress_report_id ON upchieve.progress_report_summaries (progress_report_id);
 
-CREATE INDEX progress_report_topics_progress_report_id ON upchieve.progress_report_topics (progress_report_id);
+CREATE INDEX progress_report_concepts_progress_report_id ON upchieve.progress_report_concepts (progress_report_id);
 
 CREATE INDEX progress_report_summary_details_report_summary_id ON upchieve.progress_report_summary_details (progress_report_summary_id);
 
-CREATE INDEX progress_report_topic_details_topic_id ON upchieve.progress_report_topic_details (progress_report_topic_id);
+CREATE INDEX progress_report_concept_details_concept_id ON upchieve.progress_report_concept_details (progress_report_concept_id);
 
 -- migrate:down
 DROP INDEX IF EXISTS upchieve.progress_reports_user_id;
@@ -114,23 +114,23 @@ DROP INDEX IF EXISTS upchieve.progress_report_sessions_analysis_type_created_at;
 
 DROP INDEX IF EXISTS upchieve.progress_report_summaries_progress_report_id;
 
-DROP INDEX IF EXISTS upchieve.progress_report_topics_progress_report_id;
+DROP INDEX IF EXISTS upchieve.progress_report_concepts_progress_report_id;
 
 DROP INDEX IF EXISTS upchieve.progress_report_summary_details_report_summary_id;
 
-DROP INDEX IF EXISTS upchieve.progress_report_topic_details_topic_id;
+DROP INDEX IF EXISTS upchieve.progress_report_concept_details_concept_id;
 
 DROP TABLE IF EXISTS upchieve.progress_report_summary_details;
 
-DROP TABLE IF EXISTS upchieve.progress_report_topic_details;
+DROP TABLE IF EXISTS upchieve.progress_report_concept_details;
 
-DROP TABLE IF EXISTS upchieve.progress_report_topics;
+DROP TABLE IF EXISTS upchieve.progress_report_concepts;
 
 DROP TABLE IF EXISTS upchieve.progress_report_summaries;
 
-DROP TABLE IF EXISTS upchieve.progress_report_evaluation_detail_types;
+DROP TABLE IF EXISTS upchieve.progress_report_info_types;
 
-DROP TABLE IF EXISTS upchieve.progress_report_evaluation_types;
+DROP TABLE IF EXISTS upchieve.progress_report_focus_areas;
 
 DROP TABLE IF EXISTS upchieve.progress_report_sessions;
 

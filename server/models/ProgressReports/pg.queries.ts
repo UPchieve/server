@@ -1,8 +1,6 @@
 /** Types generated for queries found in "server/models/ProgressReports/progress_reports.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
-export type stringArray = (string)[];
-
 /** 'InsertProgressReport' parameters type */
 export interface IInsertProgressReportParams {
   id: string;
@@ -123,8 +121,8 @@ const insertProgressReportSummaryIR: any = {"name":"insertProgressReportSummary"
 export const insertProgressReportSummary = new PreparedQuery<IInsertProgressReportSummaryParams,IInsertProgressReportSummaryResult>(insertProgressReportSummaryIR);
 
 
-/** 'InsertProgressReportTopic' parameters type */
-export interface IInsertProgressReportTopicParams {
+/** 'InsertProgressReportConcept' parameters type */
+export interface IInsertProgressReportConceptParams {
   description: string;
   grade: number;
   id: string;
@@ -132,37 +130,37 @@ export interface IInsertProgressReportTopicParams {
   reportId: string;
 }
 
-/** 'InsertProgressReportTopic' return type */
-export interface IInsertProgressReportTopicResult {
+/** 'InsertProgressReportConcept' return type */
+export interface IInsertProgressReportConceptResult {
   id: string;
 }
 
-/** 'InsertProgressReportTopic' query type */
-export interface IInsertProgressReportTopicQuery {
-  params: IInsertProgressReportTopicParams;
-  result: IInsertProgressReportTopicResult;
+/** 'InsertProgressReportConcept' query type */
+export interface IInsertProgressReportConceptQuery {
+  params: IInsertProgressReportConceptParams;
+  result: IInsertProgressReportConceptResult;
 }
 
-const insertProgressReportTopicIR: any = {"name":"insertProgressReportTopic","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1104,"b":1106,"line":47,"col":13}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1110,"b":1114,"line":47,"col":19}]}},{"name":"description","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1118,"b":1129,"line":47,"col":27}]}},{"name":"grade","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1133,"b":1138,"line":47,"col":42}]}},{"name":"reportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1142,"b":1150,"line":47,"col":51}]}}],"usedParamSet":{"id":true,"name":true,"description":true,"grade":true,"reportId":true},"statement":{"body":"INSERT INTO progress_report_topics (id, name, description, grade, progress_report_id)\n    VALUES (:id!, :name!, :description!, :grade!, :reportId!)\nRETURNING\n    id","loc":{"a":1005,"b":1168,"line":46,"col":0}}};
+const insertProgressReportConceptIR: any = {"name":"InsertProgressReportConcept","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1108,"b":1110,"line":47,"col":13}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1114,"b":1118,"line":47,"col":19}]}},{"name":"description","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1122,"b":1133,"line":47,"col":27}]}},{"name":"grade","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1137,"b":1142,"line":47,"col":42}]}},{"name":"reportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1146,"b":1154,"line":47,"col":51}]}}],"usedParamSet":{"id":true,"name":true,"description":true,"grade":true,"reportId":true},"statement":{"body":"INSERT INTO progress_report_concepts (id, name, description, grade, progress_report_id)\n    VALUES (:id!, :name!, :description!, :grade!, :reportId!)\nRETURNING\n    id","loc":{"a":1007,"b":1172,"line":46,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO progress_report_topics (id, name, description, grade, progress_report_id)
+ * INSERT INTO progress_report_concepts (id, name, description, grade, progress_report_id)
  *     VALUES (:id!, :name!, :description!, :grade!, :reportId!)
  * RETURNING
  *     id
  * ```
  */
-export const insertProgressReportTopic = new PreparedQuery<IInsertProgressReportTopicParams,IInsertProgressReportTopicResult>(insertProgressReportTopicIR);
+export const insertProgressReportConcept = new PreparedQuery<IInsertProgressReportConceptParams,IInsertProgressReportConceptResult>(insertProgressReportConceptIR);
 
 
 /** 'InsertProgressReportSummaryDetail' parameters type */
 export interface IInsertProgressReportSummaryDetailParams {
   content: string;
-  evaluationDetailType: string;
-  evaluationType: string;
+  focusArea: string;
   id: string;
+  infoType: string;
   reportSummaryId: string;
 }
 
@@ -177,12 +175,12 @@ export interface IInsertProgressReportSummaryDetailQuery {
   result: IInsertProgressReportSummaryDetailResult;
 }
 
-const insertProgressReportSummaryDetailIR: any = {"name":"insertProgressReportSummaryDetail","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1396,"b":1398,"line":55,"col":5}]}},{"name":"content","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1406,"b":1413,"line":56,"col":5}]}},{"name":"reportSummaryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1421,"b":1436,"line":57,"col":5}]}},{"name":"evaluationType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1576,"b":1590,"line":64,"col":20}]}},{"name":"evaluationDetailType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1734,"b":1754,"line":70,"col":20}]}}],"usedParamSet":{"id":true,"content":true,"reportSummaryId":true,"evaluationType":true,"evaluationDetailType":true},"statement":{"body":"INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportSummaryId!,\n    (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_evaluation_types\n        WHERE\n            name = :evaluationType!), (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_evaluation_detail_types\n        WHERE\n            name = :evaluationDetailType!)\nRETURNING\n    id","loc":{"a":1219,"b":1772,"line":53,"col":0}}};
+const insertProgressReportSummaryDetailIR: any = {"name":"insertProgressReportSummaryDetail","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1382,"b":1384,"line":55,"col":5}]}},{"name":"content","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1392,"b":1399,"line":56,"col":5}]}},{"name":"reportSummaryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1407,"b":1422,"line":57,"col":5}]}},{"name":"focusArea","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1557,"b":1566,"line":64,"col":20}]}},{"name":"infoType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1697,"b":1705,"line":70,"col":20}]}}],"usedParamSet":{"id":true,"content":true,"reportSummaryId":true,"focusArea":true,"infoType":true},"statement":{"body":"INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportSummaryId!,\n    (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_focus_areas\n        WHERE\n            name = :focusArea!), (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_info_types\n        WHERE\n            name = :infoType!)\nRETURNING\n    id","loc":{"a":1223,"b":1723,"line":53,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id)
+ * INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id)
  * SELECT
  *     :id!,
  *     :content!,
@@ -191,15 +189,15 @@ const insertProgressReportSummaryDetailIR: any = {"name":"insertProgressReportSu
  *         SELECT
  *             id
  *         FROM
- *             upchieve.progress_report_evaluation_types
+ *             upchieve.progress_report_focus_areas
  *         WHERE
- *             name = :evaluationType!), (
+ *             name = :focusArea!), (
  *         SELECT
  *             id
  *         FROM
- *             upchieve.progress_report_evaluation_detail_types
+ *             upchieve.progress_report_info_types
  *         WHERE
- *             name = :evaluationDetailType!)
+ *             name = :infoType!)
  * RETURNING
  *     id
  * ```
@@ -207,54 +205,54 @@ const insertProgressReportSummaryDetailIR: any = {"name":"insertProgressReportSu
 export const insertProgressReportSummaryDetail = new PreparedQuery<IInsertProgressReportSummaryDetailParams,IInsertProgressReportSummaryDetailResult>(insertProgressReportSummaryDetailIR);
 
 
-/** 'InsertProgressReportTopicDetail' parameters type */
-export interface IInsertProgressReportTopicDetailParams {
+/** 'InsertProgressReportConceptDetail' parameters type */
+export interface IInsertProgressReportConceptDetailParams {
   content: string;
-  evaluationDetailType: string;
-  evaluationType: string;
+  focusArea: string;
   id: string;
-  reportTopicId: string;
+  infoType: string;
+  reportConceptId: string;
 }
 
-/** 'InsertProgressReportTopicDetail' return type */
-export interface IInsertProgressReportTopicDetailResult {
+/** 'InsertProgressReportConceptDetail' return type */
+export interface IInsertProgressReportConceptDetailResult {
   id: string;
 }
 
-/** 'InsertProgressReportTopicDetail' query type */
-export interface IInsertProgressReportTopicDetailQuery {
-  params: IInsertProgressReportTopicDetailParams;
-  result: IInsertProgressReportTopicDetailResult;
+/** 'InsertProgressReportConceptDetail' query type */
+export interface IInsertProgressReportConceptDetailQuery {
+  params: IInsertProgressReportConceptDetailParams;
+  result: IInsertProgressReportConceptDetailResult;
 }
 
-const insertProgressReportTopicDetailIR: any = {"name":"insertProgressReportTopicDetail","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1994,"b":1996,"line":78,"col":5}]}},{"name":"content","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2004,"b":2011,"line":79,"col":5}]}},{"name":"reportTopicId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2019,"b":2032,"line":80,"col":5}]}},{"name":"evaluationType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2172,"b":2186,"line":87,"col":20}]}},{"name":"evaluationDetailType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2330,"b":2350,"line":93,"col":20}]}}],"usedParamSet":{"id":true,"content":true,"reportTopicId":true,"evaluationType":true,"evaluationDetailType":true},"statement":{"body":"INSERT INTO progress_report_topic_details (id, content, progress_report_topic_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportTopicId!,\n    (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_evaluation_types\n        WHERE\n            name = :evaluationType!), (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_evaluation_detail_types\n        WHERE\n            name = :evaluationDetailType!)\nRETURNING\n    id","loc":{"a":1821,"b":2368,"line":76,"col":0}}};
+const insertProgressReportConceptDetailIR: any = {"name":"insertProgressReportConceptDetail","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1933,"b":1935,"line":78,"col":5}]}},{"name":"content","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1943,"b":1950,"line":79,"col":5}]}},{"name":"reportConceptId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1958,"b":1973,"line":80,"col":5}]}},{"name":"focusArea","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2108,"b":2117,"line":87,"col":20}]}},{"name":"infoType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2248,"b":2256,"line":93,"col":20}]}}],"usedParamSet":{"id":true,"content":true,"reportConceptId":true,"focusArea":true,"infoType":true},"statement":{"body":"INSERT INTO progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportConceptId!,\n    (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_focus_areas\n        WHERE\n            name = :focusArea!), (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_info_types\n        WHERE\n            name = :infoType!)\nRETURNING\n    id","loc":{"a":1774,"b":2274,"line":76,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO progress_report_topic_details (id, content, progress_report_topic_id, progress_report_evaluation_type_id, progress_report_evaluation_detail_type_id)
+ * INSERT INTO progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id)
  * SELECT
  *     :id!,
  *     :content!,
- *     :reportTopicId!,
+ *     :reportConceptId!,
  *     (
  *         SELECT
  *             id
  *         FROM
- *             upchieve.progress_report_evaluation_types
+ *             upchieve.progress_report_focus_areas
  *         WHERE
- *             name = :evaluationType!), (
+ *             name = :focusArea!), (
  *         SELECT
  *             id
  *         FROM
- *             upchieve.progress_report_evaluation_detail_types
+ *             upchieve.progress_report_info_types
  *         WHERE
- *             name = :evaluationDetailType!)
+ *             name = :infoType!)
  * RETURNING
  *     id
  * ```
  */
-export const insertProgressReportTopicDetail = new PreparedQuery<IInsertProgressReportTopicDetailParams,IInsertProgressReportTopicDetailResult>(insertProgressReportTopicDetailIR);
+export const insertProgressReportConceptDetail = new PreparedQuery<IInsertProgressReportConceptDetailParams,IInsertProgressReportConceptDetailResult>(insertProgressReportConceptDetailIR);
 
 
 /** 'UpdateProgressReportStatus' parameters type */
@@ -274,7 +272,7 @@ export interface IUpdateProgressReportStatusQuery {
   result: IUpdateProgressReportStatusResult;
 }
 
-const updateProgressReportStatusIR: any = {"name":"updateProgressReportStatus","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2611,"b":2617,"line":110,"col":16}]}},{"name":"reportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2665,"b":2673,"line":112,"col":27}]}}],"usedParamSet":{"status":true,"reportId":true},"statement":{"body":"UPDATE\n    upchieve.progress_reports\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        upchieve.progress_report_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    progress_reports.id = :reportId!\nRETURNING\n    progress_reports.id AS ok","loc":{"a":2412,"b":2713,"line":99,"col":0}}};
+const updateProgressReportStatusIR: any = {"name":"updateProgressReportStatus","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2517,"b":2523,"line":110,"col":16}]}},{"name":"reportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2571,"b":2579,"line":112,"col":27}]}}],"usedParamSet":{"status":true,"reportId":true},"statement":{"body":"UPDATE\n    upchieve.progress_reports\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        upchieve.progress_report_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    progress_reports.id = :reportId!\nRETURNING\n    progress_reports.id AS ok","loc":{"a":2318,"b":2619,"line":99,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -319,7 +317,7 @@ export interface IGetProgressReportInfoBySessionIdQuery {
   result: IGetProgressReportInfoBySessionIdResult;
 }
 
-const getProgressReportInfoBySessionIdIR: any = {"name":"getProgressReportInfoBySessionId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3313,"b":3319,"line":128,"col":32}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3344,"b":3353,"line":129,"col":23}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3402,"b":3414,"line":130,"col":47}]}}],"usedParamSet":{"userId":true,"sessionId":true,"analysisType":true},"statement":{"body":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status\nFROM\n    progress_reports\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\n    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND sessions.id = :sessionId!\n    AND progress_report_analysis_types.name = :analysisType!\nORDER BY\n    progress_reports.created_at DESC","loc":{"a":2763,"b":3460,"line":118,"col":0}}};
+const getProgressReportInfoBySessionIdIR: any = {"name":"getProgressReportInfoBySessionId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3219,"b":3225,"line":128,"col":32}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3250,"b":3259,"line":129,"col":23}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3308,"b":3320,"line":130,"col":47}]}}],"usedParamSet":{"userId":true,"sessionId":true,"analysisType":true},"statement":{"body":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status\nFROM\n    progress_reports\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\n    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND sessions.id = :sessionId!\n    AND progress_report_analysis_types.name = :analysisType!\nORDER BY\n    progress_reports.created_at DESC","loc":{"a":2669,"b":3366,"line":118,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -361,7 +359,7 @@ export interface IGetProgressReportByReportIdQuery {
   result: IGetProgressReportByReportIdResult;
 }
 
-const getProgressReportByReportIdIR: any = {"name":"getProgressReportByReportId","params":[{"name":"reportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3734,"b":3742,"line":143,"col":27}]}}],"usedParamSet":{"reportId":true},"statement":{"body":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\nWHERE\n    progress_reports.id = :reportId!","loc":{"a":3505,"b":3742,"line":136,"col":0}}};
+const getProgressReportByReportIdIR: any = {"name":"getProgressReportByReportId","params":[{"name":"reportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3640,"b":3648,"line":143,"col":27}]}}],"usedParamSet":{"reportId":true},"statement":{"body":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\nWHERE\n    progress_reports.id = :reportId!","loc":{"a":3411,"b":3648,"line":136,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -379,30 +377,13 @@ const getProgressReportByReportIdIR: any = {"name":"getProgressReportByReportId"
 export const getProgressReportByReportId = new PreparedQuery<IGetProgressReportByReportIdParams,IGetProgressReportByReportIdResult>(getProgressReportByReportIdIR);
 
 
-/** 'GetProgressReportSummariesForMany' parameters type */
-export interface IGetProgressReportSummariesForManyParams {
-  reportIds: stringArray;
-}
+/** Query 'GetProgressReportSummariesForMany' is invalid, so its result is assigned type 'never' */
+export type IGetProgressReportSummariesForManyResult = never;
 
-/** 'GetProgressReportSummariesForMany' return type */
-export interface IGetProgressReportSummariesForManyResult {
-  content: string;
-  createdAt: Date;
-  detailId: string;
-  evaluationDetailType: string;
-  evaluationType: string;
-  id: string;
-  overallGrade: number;
-  summary: string;
-}
+/** Query 'GetProgressReportSummariesForMany' is invalid, so its parameters are assigned type 'never' */
+export type IGetProgressReportSummariesForManyParams = never;
 
-/** 'GetProgressReportSummariesForMany' query type */
-export interface IGetProgressReportSummariesForManyQuery {
-  params: IGetProgressReportSummariesForManyParams;
-  result: IGetProgressReportSummariesForManyResult;
-}
-
-const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSummariesForMany","params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4748,"b":4757,"line":162,"col":57}]}}],"usedParamSet":{"reportIds":true},"statement":{"body":"SELECT\n    progress_report_summaries.id,\n    progress_report_summaries.summary,\n    progress_report_summaries.overall_grade,\n    progress_report_summary_details.id AS detail_id,\n    progress_report_summary_details.content,\n    progress_report_evaluation_types.name AS evaluation_type,\n    progress_report_evaluation_detail_types.name AS evaluation_detail_type,\n    progress_report_summaries.created_at\nFROM\n    progress_report_summaries\n    JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id\n    JOIN progress_report_evaluation_detail_types ON progress_report_summary_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id\n    JOIN progress_report_evaluation_types ON progress_report_summary_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id\nWHERE\n    progress_report_summaries.progress_report_id = ANY (:reportIds!)\nORDER BY\n    progress_report_summaries.created_at DESC","loc":{"a":3793,"b":4813,"line":147,"col":0}}};
+const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSummariesForMany","params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4654,"b":4663,"line":162,"col":57}]}}],"usedParamSet":{"reportIds":true},"statement":{"body":"SELECT\n    progress_report_summaries.id,\n    progress_report_summaries.summary,\n    progress_report_summaries.overall_grade,\n    progress_report_summary_details.id AS detail_id,\n    progress_report_summary_details.content,\n    progress_report_evaluation_types.name AS evaluation_type,\n    progress_report_evaluation_detail_types.name AS evaluation_detail_type,\n    progress_report_summaries.created_at\nFROM\n    progress_report_summaries\n    JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id\n    JOIN progress_report_evaluation_detail_types ON progress_report_summary_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id\n    JOIN progress_report_evaluation_types ON progress_report_summary_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id\nWHERE\n    progress_report_summaries.progress_report_id = ANY (:reportIds!)\nORDER BY\n    progress_report_summaries.created_at DESC","loc":{"a":3699,"b":4719,"line":147,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -430,31 +411,13 @@ const getProgressReportSummariesForManyIR: any = {"name":"getProgressReportSumma
 export const getProgressReportSummariesForMany = new PreparedQuery<IGetProgressReportSummariesForManyParams,IGetProgressReportSummariesForManyResult>(getProgressReportSummariesForManyIR);
 
 
-/** 'GetProgressReportTopicsByReportId' parameters type */
-export interface IGetProgressReportTopicsByReportIdParams {
-  reportId: string | null | void;
-}
+/** Query 'GetProgressReportTopicsByReportId' is invalid, so its result is assigned type 'never' */
+export type IGetProgressReportTopicsByReportIdResult = never;
 
-/** 'GetProgressReportTopicsByReportId' return type */
-export interface IGetProgressReportTopicsByReportIdResult {
-  content: string;
-  createdAt: Date;
-  description: string;
-  detailId: string;
-  evaluationDetailType: string;
-  evaluationType: string;
-  grade: number;
-  id: string;
-  name: string;
-}
+/** Query 'GetProgressReportTopicsByReportId' is invalid, so its parameters are assigned type 'never' */
+export type IGetProgressReportTopicsByReportIdParams = never;
 
-/** 'GetProgressReportTopicsByReportId' query type */
-export interface IGetProgressReportTopicsByReportIdQuery {
-  params: IGetProgressReportTopicsByReportIdParams;
-  result: IGetProgressReportTopicsByReportIdResult;
-}
-
-const getProgressReportTopicsByReportIdIR: any = {"name":"getProgressReportTopicsByReportId","params":[{"name":"reportId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5808,"b":5815,"line":184,"col":49}]}}],"usedParamSet":{"reportId":true},"statement":{"body":"SELECT\n    progress_report_topics.id,\n    progress_report_topics.name,\n    progress_report_topics.description,\n    progress_report_topics.grade,\n    progress_report_topic_details.id AS detail_id,\n    progress_report_topic_details.content,\n    progress_report_evaluation_types.name AS evaluation_type,\n    progress_report_evaluation_detail_types.name AS evaluation_detail_type,\n    progress_report_topics.created_at\nFROM\n    progress_report_topics\n    JOIN progress_report_topic_details ON progress_report_topics.id = progress_report_topic_details.progress_report_topic_id\n    JOIN progress_report_evaluation_types ON progress_report_topic_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id\n    JOIN progress_report_evaluation_detail_types ON progress_report_topic_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id\nWHERE\n    progress_report_topics.progress_report_id = :reportId","loc":{"a":4864,"b":5815,"line":168,"col":0}}};
+const getProgressReportTopicsByReportIdIR: any = {"name":"getProgressReportTopicsByReportId","params":[{"name":"reportId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":5714,"b":5721,"line":184,"col":49}]}}],"usedParamSet":{"reportId":true},"statement":{"body":"SELECT\n    progress_report_topics.id,\n    progress_report_topics.name,\n    progress_report_topics.description,\n    progress_report_topics.grade,\n    progress_report_topic_details.id AS detail_id,\n    progress_report_topic_details.content,\n    progress_report_evaluation_types.name AS evaluation_type,\n    progress_report_evaluation_detail_types.name AS evaluation_detail_type,\n    progress_report_topics.created_at\nFROM\n    progress_report_topics\n    JOIN progress_report_topic_details ON progress_report_topics.id = progress_report_topic_details.progress_report_topic_id\n    JOIN progress_report_evaluation_types ON progress_report_topic_details.progress_report_evaluation_type_id = progress_report_evaluation_types.id\n    JOIN progress_report_evaluation_detail_types ON progress_report_topic_details.progress_report_evaluation_detail_type_id = progress_report_evaluation_detail_types.id\nWHERE\n    progress_report_topics.progress_report_id = :reportId","loc":{"a":4770,"b":5721,"line":168,"col":0}}};
 
 /**
  * Query generated from SQL:
