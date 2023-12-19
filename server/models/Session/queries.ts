@@ -9,7 +9,7 @@ import {
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
-import { Session, UserSessionStats } from './types'
+import { Session, UserSessionStats, UserSessionsFilter } from './types'
 import 'moment-timezone'
 import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -1365,14 +1365,6 @@ export async function sessionHasBannedParticipant(
   }
 }
 
-export type UserSessionsFilter = {
-  start?: Date
-  end?: Date
-  subject?: string
-  topic?: string
-  sessionId?: Ulid
-}
-
 export type UserSessions = {
   id: Ulid
   createdAt: Date
@@ -1392,7 +1384,7 @@ export async function getUserSessionsByUserId(
   filter: UserSessionsFilter = {
     start: undefined,
     end: undefined,
-    subject: undefined,
+    subject: '',
     topic: undefined,
     sessionId: undefined,
   }

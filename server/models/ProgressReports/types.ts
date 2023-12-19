@@ -23,8 +23,8 @@ export type ProgressReportSession = {
 export type ProgressReportDetail = {
   id: Ulid
   content: string
-  reportEvaluationType: ProgressReportEvaluationTypes
-  reportEvaluationDetailType: ProgressReportEvaluationDetailTypes
+  evaluationType: ProgressReportEvaluationTypes
+  evaluationDetailType: ProgressReportEvaluationDetailTypes
 }
 
 export type ProgressReportSummary = {
@@ -41,11 +41,19 @@ export type ProgressReportTopic = {
   description: string
   grade: number
   details: ProgressReportDetail[]
+  createdAt: Date
 }
 
 export type ProgressReport = {
+  id: Ulid
+  status: ProgressReportStatuses
   summary: ProgressReportSummary
   topics: ProgressReportTopic[]
+}
+
+export type ProgressReportInfo = {
+  id: Ulid
+  status: ProgressReportStatuses
 }
 
 export type ProgressReportSummaryRow = {
@@ -83,5 +91,5 @@ export type ProgressReportTopicInsert = Pick<
 
 export type ProgressReportDetailInsert = Pick<
   ProgressReportDetail,
-  'content' | 'reportEvaluationDetailType' | 'reportEvaluationType'
+  'content' | 'evaluationDetailType' | 'evaluationType'
 >

@@ -1,13 +1,16 @@
-import { RepoCreateError, RepoUpdateError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 import {
   ProgressReportAnalysisTypes,
   ProgressReportDetailInsert,
+  ProgressReportInfo,
   ProgressReportStatuses,
   ProgressReportSummaryInsert,
+  ProgressReportSummaryRow,
   ProgressReportTopicInsert,
+  ProgressReportTopicRow,
 } from './types'
 
 export async function insertProgressReport(
@@ -92,8 +95,8 @@ export async function insertProgressReportSummaryDetail(
         id: getDbUlid(),
         content: data.content,
         reportSummaryId,
-        reportEvaluationType: data.reportEvaluationType,
-        reportEvaluationDetailType: data.reportEvaluationDetailType,
+        evaluationType: data.evaluationType,
+        evaluationDetailType: data.evaluationDetailType,
       },
       tc ?? getClient()
     )
@@ -142,8 +145,8 @@ export async function insertProgressReportTopicDetail(
         id: getDbUlid(),
         content: data.content,
         reportTopicId,
-        reportEvaluationType: data.reportEvaluationType,
-        reportEvaluationDetailType: data.reportEvaluationDetailType,
+        evaluationType: data.evaluationType,
+        evaluationDetailType: data.evaluationDetailType,
       },
       tc ?? getClient()
     )
@@ -175,5 +178,91 @@ export async function updateProgressReportStatus(
       )
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function getProgressReportInfoBySessionId(
+  userId: Ulid,
+  sessionId: Ulid,
+  analysisType: ProgressReportAnalysisTypes,
+  tc?: TransactionClient
+): Promise<ProgressReportInfo | undefined> {
+  try {
+    const result = await pgQueries.getProgressReportInfoBySessionId.run(
+      {
+        userId,
+        sessionId,
+        analysisType,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) {
+      const data = makeRequired(result[0])
+      return {
+        ...data,
+        status: data.status as ProgressReportStatuses,
+      }
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getProgressReportByReportId(
+  reportId: Ulid,
+  tc?: TransactionClient
+): Promise<ProgressReportInfo | undefined> {
+  try {
+    const result = await pgQueries.getProgressReportByReportId.run(
+      {
+        reportId,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) {
+      const data = makeRequired(result[0])
+      return {
+        ...data,
+        status: data.status as ProgressReportStatuses,
+      }
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getProgressReportSummariesForMany(
+  reportIds: Ulid[],
+  tc?: TransactionClient
+): Promise<ProgressReportSummaryRow[]> {
+  try {
+    const result = await pgQueries.getProgressReportSummariesForMany.run(
+      {
+        reportIds,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(v => makeRequired(v))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getProgressReportTopicsByReportId(
+  reportId: Ulid,
+  tc?: TransactionClient
+): Promise<ProgressReportTopicRow[]> {
+  try {
+    const result = await pgQueries.getProgressReportTopicsByReportId.run(
+      {
+        reportId,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(v => makeRequired(v))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

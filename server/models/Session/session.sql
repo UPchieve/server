@@ -1190,7 +1190,7 @@ AND ((:start)::date IS NULL
 AND ((:end)::date IS NULL
     OR sessions.created_at <= (:end)::date)
 AND ((:subject)::text IS NULL
-    OR subjects.name = (:subject)::text)
+    OR subjects.name = (:subject!)::text)
 AND (:sessionId::uuid IS NULL
     OR sessions.id = :sessionId::uuid)
 AND ((:topic)::text IS NULL
