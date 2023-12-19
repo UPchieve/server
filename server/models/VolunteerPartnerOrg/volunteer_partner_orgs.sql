@@ -86,7 +86,7 @@ FROM
 SELECT
     id
 FROM
-    volunteer_partner_orgs vpo
+    upchieve.volunteer_partner_orgs vpo
 WHERE
     KEY = :key!
 LIMIT 1;
