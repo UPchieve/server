@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
--- Dumped by pg_dump version 14.9 (Homebrew)
+-- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
+-- Dumped by pg_dump version 14.10 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1562,6 +1562,96 @@ COPY upchieve.photo_id_statuses (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.pre_session_surveys (id, response_data, session_id, user_id, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_analysis_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_analysis_types (id, name, created_at, updated_at) FROM stdin;
+1	single	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	group	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+\.
+
+
+--
+-- Data for Name: progress_report_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM stdin;
+1	pending	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	processing	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+3	error	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+4	complete	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+\.
+
+
+--
+-- Data for Name: progress_reports; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_concepts; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_concepts (id, name, description, grade, progress_report_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_focus_areas; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_focus_areas (id, name, display_name, created_at, updated_at) FROM stdin;
+1	strength	Strength	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	practiceArea	Practice Area	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+\.
+
+
+--
+-- Data for Name: progress_report_info_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_info_types (id, name, created_at, updated_at) FROM stdin;
+1	recommendation	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+2	reason	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+\.
+
+
+--
+-- Data for Name: progress_report_concept_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_sessions (progress_report_id, session_id, progress_report_analysis_type_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_summaries; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_summaries (id, summary, overall_grade, progress_report_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: progress_report_summary_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -3778,6 +3868,34 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 --
 
 SELECT pg_catalog.setval('upchieve.photo_id_statuses_id_seq', 4, true);
+
+
+--
+-- Name: progress_report_analysis_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.progress_report_analysis_types_id_seq', 2, true);
+
+
+--
+-- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.progress_report_focus_areas_id_seq', 2, true);
+
+
+--
+-- Name: progress_report_info_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.progress_report_info_types_id_seq', 2, true);
+
+
+--
+-- Name: progress_report_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.progress_report_statuses_id_seq', 4, true);
 
 
 --
