@@ -9,20 +9,20 @@ INSERT INTO upchieve.progress_report_analysis_types (name)
 ON CONFLICT ON CONSTRAINT progress_report_analysis_types_name_key
     DO NOTHING;
 
-INSERT INTO upchieve.progress_report_evaluation_types (name, display_name)
+INSERT INTO upchieve.progress_report_focus_areas (name, display_name)
     VALUES ('strength', 'Strength'), ('practiceArea', 'Practice Area')
-ON CONFLICT ON CONSTRAINT progress_report_evaluation_types_name_key
+ON CONFLICT ON CONSTRAINT progress_report_focus_areas_name_key
     DO NOTHING;
 
-INSERT INTO upchieve.progress_report_evaluation_detail_types (name)
+INSERT INTO upchieve.progress_report_info_types (name)
     VALUES ('recommendation'), ('reason')
-ON CONFLICT ON CONSTRAINT progress_report_evaluation_detail_types_name_key
+ON CONFLICT ON CONSTRAINT progress_report_info_types_name_key
     DO NOTHING;
 
 -- migrate:down
-DELETE FROM upchieve.progress_report_evaluation_detail_types;
+DELETE FROM upchieve.progress_report_info_types;
 
-DELETE FROM upchieve.progress_report_evaluation_types;
+DELETE FROM upchieve.progress_report_focus_areas;
 
 DELETE FROM upchieve.progress_report_analysis_types;
 
