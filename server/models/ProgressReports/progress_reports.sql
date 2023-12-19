@@ -35,11 +35,8 @@ RETURNING
 /* @name insertProgressReportSummary */
 INSERT INTO progress_report_summaries (id, progress_report_id, summary, overall_grade)
     VALUES (:id!, :reportId!, :summary!, :overallGrade!)
-ON CONFLICT (progress_report_id)
-    DO UPDATE SET
-        summary = :summary!, overall_grade = :overallGrade!
-    RETURNING
-        id;
+RETURNING
+    id;
 
 
 /* @name InsertProgressReportConcept */

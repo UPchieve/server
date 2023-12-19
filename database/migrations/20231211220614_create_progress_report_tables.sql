@@ -84,9 +84,6 @@ CREATE TABLE IF NOT EXISTS upchieve.progress_report_summary_details (
     updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
-ALTER TABLE ONLY upchieve.progress_report_summaries
-    ADD CONSTRAINT progress_report_summaries_unique_progress_report_id UNIQUE (progress_report_id);
-
 CREATE INDEX progress_reports_user_id ON upchieve.progress_reports (user_id);
 
 CREATE INDEX progress_report_sessions_progress_report_id ON upchieve.progress_report_sessions (progress_report_id);
