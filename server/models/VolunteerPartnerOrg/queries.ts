@@ -50,8 +50,9 @@ export async function getVolunteerPartnerOrgIdByKey(
       { volunteerPartnerOrg },
       client
     )
-    if (!result.length) return
-    return makeRequired(result[0]).id
+    if (result.length) {
+      return result[0].id
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
