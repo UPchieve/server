@@ -86,10 +86,9 @@ FROM
 SELECT
     id
 FROM
-    upchieve.volunteer_partner_orgs vpo
+    volunteer_partner_orgs
 WHERE
-    KEY = :key!
-LIMIT 1;
+    KEY = :volunteerPartnerOrg!;
 
 
 /* @name migrateExistingvolunteerPartnerOrgRelationships */

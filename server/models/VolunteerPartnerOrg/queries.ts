@@ -41,17 +41,17 @@ export async function getFullVolunteerPartnerOrgByKey(
 }
 
 export async function getVolunteerPartnerOrgIdByKey(
-  key: string
+  volunteerPartnerOrg: string,
+  poolClient?: PoolClient
 ): Promise<Ulid | undefined> {
+  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getVolunteerPartnerOrgIdByKey.run(
-      { key },
-      getClient()
+      { volunteerPartnerOrg },
+      client
     )
-    if (!result.length) {
-      return undefined
-    }
-    return result[0].id
+    if (!result.length) return
+    return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
   }
