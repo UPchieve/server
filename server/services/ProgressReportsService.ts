@@ -37,6 +37,7 @@ import * as BotsService from './BotsService'
 import moment from 'moment'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import { ProgressReportNotFoundError } from './Errors'
 
 export function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -86,7 +87,7 @@ export async function generateProgressReportForUser(
   const reportId = await saveProgressReport(userId, sessionIds, botReport)
   if (!reportId)
     throw new Error(
-      `Failed to save a progress report for sessions ${sessions.join(
+      `Failed to save a progress report for sessions ${sessionIds.join(
         ','
       )} for user ${userId}`
     )
@@ -201,7 +202,7 @@ export async function getProgressReportDataAndDetails(
 ): Promise<ProgressReport> {
   const reportData = await getReportData()
   if (!reportData?.id) {
-    throw new Error('No report found')
+    throw new ProgressReportNotFoundError('No report found')
   }
   const summaryAndconcepts = await getProgressReportSummaryAndConcepts(
     reportData.id,

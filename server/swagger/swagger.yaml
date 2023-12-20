@@ -2870,17 +2870,18 @@ paths:
       security:
         - cookieAuth: []
       responses:
-  /api/progress-reports/generate:
+  /api/progress-reports/sessions/:sessionId:
     get:
       tags:
         - progress-reports
-      summary: Gets a generated ProgressReport from the user's session
+      summary: Gets a progress report for a given session
       security:
         - cookieAuth: []
       responses:
         '200':
           description: |
-            A generated report for the user's sessions
+            - Gets a progress report for a given session
+            - 200 if no progress report is found
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
