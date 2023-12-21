@@ -3092,14 +3092,6 @@ ALTER TABLE ONLY upchieve.progress_report_summaries
 
 
 --
--- Name: progress_report_summaries progress_report_summaries_unique_progress_report_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.progress_report_summaries
-    ADD CONSTRAINT progress_report_summaries_unique_progress_report_id UNIQUE (progress_report_id);
-
-
---
 -- Name: progress_report_summary_details progress_report_summary_details_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 

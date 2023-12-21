@@ -2,6 +2,7 @@ jest.mock('ioredis', () => require('ioredis-mock/jest'))
 
 jest.mock('posthog-node')
 jest.mock('@unleash/proxy')
+jest.mock('openai')
 jest.mock('../services/AnalyticsService')
 jest.mock('../services/FeatureFlagService')
 
@@ -157,6 +158,22 @@ jest.mock('../config', () => {
 jest.mock('unleash-client', () => {
   return {
     isEnabled: (): boolean => true,
+  }
+})
+
+// TODO: have Jest automock.
+//       Jest default mock results in error like "newrelic_1.default.noticeError is not a function" for example
+jest.mock('newrelic', () => {
+  return {
+    noticeError: jest.fn().mockImplementation(() => {
+      return
+    }),
+    startSegment: jest.fn().mockImplementation(() => {
+      return
+    }),
+    addCustomAttribute: jest.fn().mockImplementation(() => {
+      return
+    }),
   }
 })
 
