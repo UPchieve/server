@@ -33,6 +33,7 @@ describe(Jobs.GenerateProgressReport, () => {
     const session = await buildSession({
       studentId: userId,
       subject: 'reading',
+      timeTutored: 1000 * 60,
     })
     const job = {
       data: {
@@ -89,6 +90,7 @@ describe(Jobs.GenerateProgressReport, () => {
     const session = await buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
+      timeTutored: 1000 * 60,
     })
     const job = {
       data: {
@@ -138,6 +140,7 @@ describe(Jobs.GenerateProgressReport, () => {
     const session = await buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
+      timeTutored: 1000 * 60,
     })
     const job = {
       data: {
@@ -149,6 +152,25 @@ describe(Jobs.GenerateProgressReport, () => {
     mockedFeatureFlagService.getProgressReportsFeatureFlag.mockResolvedValue(
       false
     )
+
+    await generateProgressReport(job as Job)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should early exit if time tutored is not greater than session length', async () => {
+    const session = await buildSession({
+      studentId: getDbUlid(),
+      subject: 'reading',
+    })
+    const job = {
+      data: {
+        sessionId: session.id,
+      },
+    }
+
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
 
     await generateProgressReport(job as Job)
     expect(
