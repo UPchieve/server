@@ -1570,8 +1570,8 @@ COPY upchieve.pre_session_surveys (id, response_data, session_id, user_id, creat
 --
 
 COPY upchieve.progress_report_analysis_types (id, name, created_at, updated_at) FROM stdin;
-1	single	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
-2	group	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+1	single	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
+2	group	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
 \.
 
 
@@ -1580,10 +1580,10 @@ COPY upchieve.progress_report_analysis_types (id, name, created_at, updated_at) 
 --
 
 COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM stdin;
-1	pending	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
-2	processing	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
-3	error	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
-4	complete	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+1	pending	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
+2	processing	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
+3	error	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
+4	complete	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
 \.
 
 
@@ -1608,8 +1608,8 @@ COPY upchieve.progress_report_concepts (id, name, description, grade, progress_r
 --
 
 COPY upchieve.progress_report_focus_areas (id, name, display_name, created_at, updated_at) FROM stdin;
-1	strength	Strength	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
-2	practiceArea	Practice Area	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+1	strength	Strength	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
+2	practiceArea	Practice Area	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
 \.
 
 
@@ -1618,8 +1618,8 @@ COPY upchieve.progress_report_focus_areas (id, name, display_name, created_at, u
 --
 
 COPY upchieve.progress_report_info_types (id, name, created_at, updated_at) FROM stdin;
-1	recommendation	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
-2	reason	2023-12-19 08:09:33.57839+00	2023-12-19 08:09:33.57839+00
+1	recommendation	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
+2	reason	2023-12-19 21:43:40.155818+00	2023-12-19 21:43:40.155818+00
 \.
 
 

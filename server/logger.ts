@@ -15,4 +15,3 @@ export function logError(
 }
 
 export default logger
-module.exports = logger
