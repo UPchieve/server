@@ -182,6 +182,38 @@ const migrateExistingVolunteerPartnerOrgsIR: any = {"name":"migrateExistingVolun
 export const migrateExistingVolunteerPartnerOrgs = new PreparedQuery<IMigrateExistingVolunteerPartnerOrgsParams,IMigrateExistingVolunteerPartnerOrgsResult>(migrateExistingVolunteerPartnerOrgsIR);
 
 
+/** 'GetVolunteerPartnerOrgIdByKey' parameters type */
+export interface IGetVolunteerPartnerOrgIdByKeyParams {
+  volunteerPartnerOrg: string;
+}
+
+/** 'GetVolunteerPartnerOrgIdByKey' return type */
+export interface IGetVolunteerPartnerOrgIdByKeyResult {
+  id: string;
+}
+
+/** 'GetVolunteerPartnerOrgIdByKey' query type */
+export interface IGetVolunteerPartnerOrgIdByKeyQuery {
+  params: IGetVolunteerPartnerOrgIdByKeyParams;
+  result: IGetVolunteerPartnerOrgIdByKeyResult;
+}
+
+const getVolunteerPartnerOrgIdByKeyIR: any = {"name":"getVolunteerPartnerOrgIdByKey","params":[{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2408,"b":2427,"line":91,"col":11}]}}],"usedParamSet":{"volunteerPartnerOrg":true},"statement":{"body":"SELECT\n    id\nFROM\n    volunteer_partner_orgs\nWHERE\n    KEY = :volunteerPartnerOrg!","loc":{"a":2345,"b":2427,"line":86,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id
+ * FROM
+ *     volunteer_partner_orgs
+ * WHERE
+ *     KEY = :volunteerPartnerOrg!
+ * ```
+ */
+export const getVolunteerPartnerOrgIdByKey = new PreparedQuery<IGetVolunteerPartnerOrgIdByKeyParams,IGetVolunteerPartnerOrgIdByKeyResult>(getVolunteerPartnerOrgIdByKeyIR);
+
+
 /** 'MigrateExistingvolunteerPartnerOrgRelationships' parameters type */
 export type IMigrateExistingvolunteerPartnerOrgRelationshipsParams = void;
 
@@ -194,7 +226,7 @@ export interface IMigrateExistingvolunteerPartnerOrgRelationshipsQuery {
   result: IMigrateExistingvolunteerPartnerOrgRelationshipsResult;
 }
 
-const migrateExistingvolunteerPartnerOrgRelationshipsIR: any = {"name":"migrateExistingvolunteerPartnerOrgRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL","loc":{"a":2363,"b":2676,"line":86,"col":0}}};
+const migrateExistingvolunteerPartnerOrgRelationshipsIR: any = {"name":"migrateExistingvolunteerPartnerOrgRelationships","params":[],"usedParamSet":{},"statement":{"body":"INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL","loc":{"a":2492,"b":2805,"line":95,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -233,7 +265,7 @@ export interface IBackfillVolunteerPartnerOrgStartDatesQuery {
   result: IBackfillVolunteerPartnerOrgStartDatesResult;
 }
 
-const backfillVolunteerPartnerOrgStartDatesIR: any = {"name":"backfillVolunteerPartnerOrgStartDates","params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2806,"b":2815,"line":103,"col":18}]}},{"name":"endedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2840,"b":2846,"line":104,"col":22}]}},{"name":"vpoName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3014,"b":3021,"line":110,"col":20}]}}],"usedParamSet":{"createdAt":true,"endedAt":true,"vpoName":true},"statement":{"body":"UPDATE\n    volunteer_partner_orgs_upchieve_instances\nSET\n    created_at = :createdAt!,\n    deactivated_on = :endedAt,\n    updated_at = NOW()\nFROM\n    volunteer_partner_orgs vpo\nWHERE\n    vpo.id = volunteer_partner_orgs_upchieve_instances.volunteer_partner_org_id\n    AND vpo.name = :vpoName!\nRETURNING\n    volunteer_partner_orgs_upchieve_instances.id AS ok","loc":{"a":2731,"b":3086,"line":100,"col":0}}};
+const backfillVolunteerPartnerOrgStartDatesIR: any = {"name":"backfillVolunteerPartnerOrgStartDates","params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2935,"b":2944,"line":112,"col":18}]}},{"name":"endedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2969,"b":2975,"line":113,"col":22}]}},{"name":"vpoName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3143,"b":3150,"line":119,"col":20}]}}],"usedParamSet":{"createdAt":true,"endedAt":true,"vpoName":true},"statement":{"body":"UPDATE\n    volunteer_partner_orgs_upchieve_instances\nSET\n    created_at = :createdAt!,\n    deactivated_on = :endedAt,\n    updated_at = NOW()\nFROM\n    volunteer_partner_orgs vpo\nWHERE\n    vpo.id = volunteer_partner_orgs_upchieve_instances.volunteer_partner_org_id\n    AND vpo.name = :vpoName!\nRETURNING\n    volunteer_partner_orgs_upchieve_instances.id AS ok","loc":{"a":2860,"b":3215,"line":109,"col":0}}};
 
 /**
  * Query generated from SQL:

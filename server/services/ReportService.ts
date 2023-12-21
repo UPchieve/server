@@ -236,9 +236,13 @@ type FullReport = {
 }
 export async function generatePartnerAnalyticsReport(
   partnerOrg: string,
+  partnerOrgId: string,
   startDate: string,
   endDate: string
 ): Promise<FullReport> {
+  const logData = {
+    volunteerPartnerOrgId: partnerOrgId,
+  }
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
 
@@ -251,7 +255,8 @@ export async function generatePartnerAnalyticsReport(
     end
   )
   if (!volunteers)
-    throw new Error(`no volunteer partner org found with key ${partnerOrg}`)
+    throw new Error(`no volunteer partner org found with id=${partnerOrgId}`)
+  logger.info(logData, `Found ${volunteers.length} volunteers for partner org`)
 
   const report: AnalyticsReportRow[] = []
   for (const volunteer of volunteers) {
@@ -276,10 +281,14 @@ export async function generatePartnerAnalyticsReport(
     const row = getAnalyticsReportRow(volunteerWithAnalytics)
     report.push(row)
   }
+  logger.info(logData, 'Generated all volunteer rows for analytics report')
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
-  if (report.length > 0)
+  if (report.length > 0) {
     summary = await getAnalyticsReportSummary(partnerOrg, report, start, end)
+    logger.info(logData, 'Finished generating partner analytics report summary')
+  }
+
   return { summary, report }
 }
 
@@ -337,22 +346,39 @@ export async function getAnalyticsReport(data: unknown) {
     const { partnerOrg, startDate, endDate } = validateVolunteerReportQuery(
       data
     )
+
+    const partnerOrgId = await VolunteerPartnerOrgRepo.getVolunteerPartnerOrgIdByKey(
+      partnerOrg
+    )
     if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
+    if (!partnerOrgId)
+      throw new ReportNoDataFoundError('No partner org found with given key')
+    const logData = {
+      volunteerPartnerOrgId: partnerOrgId,
+    }
+
     const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
+      partnerOrgId,
       startDate,
       endDate
     )
     if (analyticsReport.report.length === 0)
       throw new ReportNoDataFoundError(
-        'No analytics report data for the requested partner'
+        `No analytics report data for partner with id=${partnerOrgId}`
       )
-    return await writeAnalyticsReport(
+    logger.info(
+      logData,
+      `Generated partner analytics report with length=${analyticsReport.report.length}`
+    )
+    const reportFilePath = await writeAnalyticsReport(
       analyticsReport,
       startDate,
       endDate,
       partnerOrg
     )
+    logger.info(logData, 'Finished writing partner analytics report')
+    return reportFilePath
   } catch (error) {
     logger.error(error as Error)
     if (error instanceof ReportNoDataFoundError || error instanceof InputError)
