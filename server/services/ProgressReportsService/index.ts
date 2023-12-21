@@ -58,7 +58,7 @@ export function formatSessionsForBotPrompt(
 
 export async function saveProgressReport(
   userId: Ulid,
-  sessionIds: Ulid | Ulid[],
+  sessionIds: Ulid[],
   data: ProgressReport
 ) {
   let reportId: Ulid = ''
@@ -69,13 +69,10 @@ export async function saveProgressReport(
     reportId = await insertProgressReport(userId, 'pending')
 
     await runInTransaction(async (tc: TransactionClient) => {
-      const sessionIdsList = Array.isArray(sessionIds)
-        ? sessionIds
-        : [sessionIds]
       const reportType: ProgressReportAnalysisTypes =
-        sessionIdsList.length > 1 ? 'group' : 'single'
+        sessionIds.length > 1 ? 'group' : 'single'
 
-      for (const sessionId of sessionIdsList) {
+      for (const sessionId of sessionIds) {
         await insertProgressReportSession(reportId, sessionId, reportType, tc)
       }
 
