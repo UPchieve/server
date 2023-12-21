@@ -66,7 +66,8 @@ export function routeProgressReports(router: Router): void {
       )
       res.json(summary)
     } catch (err) {
-      resError(res, err)
+      if (err instanceof ProgressReportNotFoundError) res.sendStatus(200)
+      else resError(res, err)
     }
   })
 }
