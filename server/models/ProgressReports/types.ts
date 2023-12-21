@@ -53,6 +53,6 @@ export type ProgressReportConceptInsert = {
 
 export type ProgressReportDetailInsert = {
   content: string
-  focusArea: ProgressFocusAreas
-  infoType: ProgressInfoTypes
+  focusArea: ProgressReportFocusAreas
+  infoType: ProgressReportInfoTypes
 }

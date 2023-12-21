@@ -10,18 +10,35 @@ import {
   insertProgressReportConcept,
   insertProgressReportConceptDetail,
   updateProgressReportStatus,
+  ProgressReportSummaryRow,
+  ProgressReportConceptRow,
+  ProgressReportFocusAreas,
+  ProgressReportInfoTypes,
+  getProgressReportSummariesForMany,
+  getProgressReportConceptsByReportId,
+  getProgressReportInfoBySessionId,
+  getProgressReportByReportId,
+  ProgressReportInfo,
 } from '../../models/ProgressReports'
 import {
   UserSessionsWithMessages,
   getUserSessionsByUserId,
   getMessagesForFrontend,
   MessageForFrontend,
+  UserSessionsFilter,
 } from '../../models/Session'
 import { captureEvent } from '../AnalyticsService'
 import { EVENTS } from '../../constants'
 import moment from 'moment'
-import { ProgressReport } from './types'
+import {
+  ProgressReport,
+  ProgressReportDetail,
+  ProgressReportSummary,
+  ProgressReportConcept,
+} from './types'
 import { openai } from '../BotsService'
+import QueueService from '../QueueService'
+import { Jobs } from '../../worker/jobs'
 
 export function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -97,6 +114,7 @@ export async function saveProgressReport(
       }
       await updateProgressReportStatus(reportId, 'complete')
     })
+    return reportId
   } catch (error) {
     logError(error as Error)
     if (reportId) await updateProgressReportStatus(reportId, 'error')
@@ -106,12 +124,9 @@ export async function saveProgressReport(
 
 export async function getSessionsToAnalyzeForProgressReport(
   userId: Ulid,
-  sessionId?: Ulid
+  filter: UserSessionsFilter
 ): Promise<UserSessionsWithMessages[]> {
-  const sessions = await getUserSessionsByUserId(userId, {
-    subject: 'reading',
-    sessionId,
-  })
+  const sessions = await getUserSessionsByUserId(userId, filter)
   const sessionsWithMessages: UserSessionsWithMessages[] = []
   for (const session of sessions) {
     try {
@@ -127,20 +142,24 @@ export async function getSessionsToAnalyzeForProgressReport(
 
 export async function generateProgressReportForUser(
   userId: Ulid,
-  sessionId?: Ulid
+  filter: UserSessionsFilter
 ): Promise<ProgressReport> {
-  const sessions = await getSessionsToAnalyzeForProgressReport(
-    userId,
-    sessionId
-  )
+  const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
   const botPrompt = await formatSessionsForBotPrompt(sessions)
-  const report = await generateProgressReport(userId, botPrompt)
+  const botReport = await generateProgressReport(userId, botPrompt)
   captureEvent(userId, EVENTS.SCORECASTER_ANALYSIS_COMPLETED, {
-    response: report,
-    debug: report,
+    response: botReport,
+    debug: botReport,
   })
   const sessionIds = sessions.map(s => s.id)
-  await saveProgressReport(userId, sessionIds, report)
+  const reportId = await saveProgressReport(userId, sessionIds, botReport)
+  if (!reportId)
+    throw new Error(
+      `Failed to save a progress report for sessions ${sessions.join(
+        ','
+      )} for user ${userId}`
+    )
+  const report = await getProgressReportForReport(reportId)
   return report
 }
 
@@ -232,4 +251,142 @@ export async function generateProgressReport(
     `User: ${userId} received ProgressReport completion ${completion} with response ${response}`
   )
   return response ? JSON.parse(response) : { summary: {}, concepts: [] }
+}
+
+export async function queueGenerateProgressReportForUser(
+  sessionId: Ulid
+): Promise<void> {
+  await QueueService.add(
+    Jobs.GenerateProgressReport,
+    { sessionId },
+    { removeOnComplete: true, removeOnFail: true }
+  )
+}
+
+export function transformProgressReportSummaryRows(
+  rows: ProgressReportSummaryRow[]
+): ProgressReportSummary[] {
+  const summaries: Record<Ulid, ProgressReportSummary> = {}
+
+  for (const row of rows) {
+    if (!summaries[row.id]) {
+      summaries[row.id] = {
+        id: row.id,
+        summary: row.summary,
+        overallGrade: row.overallGrade,
+        details: [],
+        createdAt: row.createdAt,
+      }
+    }
+
+    const detail: ProgressReportDetail = {
+      id: row.detailId,
+      content: row.content,
+      focusArea: row.focusArea as ProgressReportFocusAreas,
+      infoType: row.infoType as ProgressReportInfoTypes,
+    }
+
+    summaries[row.id].details.push(detail)
+  }
+
+  return Object.values(summaries)
+}
+
+export function transformProgressReportConceptRows(
+  rows: ProgressReportConceptRow[]
+): ProgressReportConcept[] {
+  const concepts: Record<Ulid, ProgressReportConcept> = {}
+
+  for (const row of rows) {
+    if (!concepts[row.id]) {
+      concepts[row.id] = {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        grade: row.grade,
+        details: [],
+        createdAt: row.createdAt,
+      }
+    }
+
+    const detail: ProgressReportDetail = {
+      id: row.detailId,
+      content: row.content,
+      focusArea: row.focusArea as ProgressReportFocusAreas,
+      infoType: row.infoType as ProgressReportInfoTypes,
+    }
+
+    concepts[row.id].details.push(detail)
+  }
+
+  return Object.values(concepts)
+}
+
+export async function getProgressReportSummary(
+  reportId: Ulid,
+  tc?: TransactionClient
+): Promise<ProgressReportSummary> {
+  const summaryRows = await getProgressReportSummariesForMany([reportId], tc)
+  const summaries = await transformProgressReportSummaryRows(summaryRows)
+  if (!summaries.length)
+    throw new Error(`No summary found for report ${reportId}`)
+  return summaries[0]
+}
+
+export async function getProgressReportConcepts(
+  reportId: Ulid,
+  tc?: TransactionClient
+): Promise<ProgressReportConcept[]> {
+  const conceptRows = await getProgressReportConceptsByReportId(reportId, tc)
+  const concepts = transformProgressReportConceptRows(conceptRows)
+  if (!concepts.length)
+    throw new Error(`No concepts found for report ${reportId}`)
+  return concepts
+}
+
+export async function getProgressReportSummaryAndConcepts(
+  reportId: Ulid,
+  tc?: TransactionClient
+): Promise<Pick<ProgressReport, 'summary' | 'concepts'>> {
+  const summary = await getProgressReportSummary(reportId, tc)
+  const concepts = await getProgressReportConcepts(reportId, tc)
+  return { summary, concepts }
+}
+
+export async function getProgressReportDataAndDetails(
+  getReportData: () => Promise<ProgressReportInfo | undefined>,
+  tc: TransactionClient
+): Promise<ProgressReport> {
+  const reportData = await getReportData()
+  if (!reportData?.id) {
+    throw new Error('No report found')
+  }
+  const summaryAndconcepts = await getProgressReportSummaryAndConcepts(
+    reportData.id,
+    tc
+  )
+  return { ...reportData, ...summaryAndconcepts }
+}
+
+export async function getProgressReportForUserSession(
+  userId: Ulid,
+  sessionId: Ulid
+): Promise<ProgressReport> {
+  return await runInTransaction(async (tc: TransactionClient) => {
+    return getProgressReportDataAndDetails(
+      () => getProgressReportInfoBySessionId(userId, sessionId, 'single', tc),
+      tc
+    )
+  })
+}
+
+export async function getProgressReportForReport(
+  reportId: Ulid
+): Promise<ProgressReport> {
+  return await runInTransaction(async (tc: TransactionClient) => {
+    return getProgressReportDataAndDetails(
+      () => getProgressReportByReportId(reportId, tc),
+      tc
+    )
+  })
 }

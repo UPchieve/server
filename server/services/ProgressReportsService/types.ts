@@ -1,8 +1,9 @@
 import { Ulid } from '../../models/pgUtils'
 import {
-  ProgressFocusAreas,
-  ProgressInfoTypes,
+  ProgressReportFocusAreas,
+  ProgressReportInfoTypes,
   ProgressReportAnalysisTypes,
+  ProgressReportInfo,
 } from '../../models/ProgressReports'
 
 export type ProgressReportSession = {
@@ -16,8 +17,8 @@ export type ProgressReportSession = {
 export type ProgressReportDetail = {
   id: Ulid
   content: string
-  focusArea: ProgressFocusAreas
-  infoType: ProgressInfoTypes
+  focusArea: ProgressReportFocusAreas
+  infoType: ProgressReportInfoTypes
 }
 
 export type ProgressReportSummary = {
@@ -34,9 +35,10 @@ export type ProgressReportConcept = {
   description: string
   grade: number
   details: ProgressReportDetail[]
+  createdAt: Date
 }
 
-export type ProgressReport = {
+export type ProgressReport = ProgressReportInfo & {
   summary: ProgressReportSummary
   concepts: ProgressReportConcept[]
 }
