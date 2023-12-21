@@ -809,8 +809,10 @@ export async function getCurrentSessionBySessionId(
 }
 
 export type StudentLatestSession = {
-  _id: string
-  createdAt: string
+  id: string
+  createdAt: Date
+  subject: string
+  timeTutored: number
 }
 export async function getLatestSessionByStudentId(
   studentId: Ulid
@@ -821,11 +823,7 @@ export async function getLatestSessionByStudentId(
       getClient()
     )
     if (!result.length) return
-    const session = makeRequired(result[0])
-    return {
-      _id: session.id,
-      createdAt: session.createdAt.toISOString(),
-    } as StudentLatestSession
+    return makeRequired(result[0])
   } catch (error) {
     throw error
   }
