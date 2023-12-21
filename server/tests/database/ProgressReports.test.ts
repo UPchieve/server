@@ -12,12 +12,14 @@ import {
   insertProgressReportConceptDetail,
   updateProgressReportStatus,
   getProgressReportInfoBySessionId,
-  ProgressReportConcept,
-  ProgressReportSummary,
   getProgressReportByReportId,
   getProgressReportSummariesForMany,
   getProgressReportConceptsByReportId,
 } from '../../models/ProgressReports'
+import {
+  ProgressReportConcept,
+  ProgressReportSummary,
+} from '../../services/ProgressReportsService'
 import {
   buildProgressReportDetails,
   buildProgressReportSummary,

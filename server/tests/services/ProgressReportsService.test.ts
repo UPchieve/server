@@ -1,7 +1,6 @@
 import { mocked } from 'jest-mock'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
 import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
-import * as BotsService from '../../services/BotsService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as ProgressReportsRepo from '../../models/ProgressReports'
 import * as SessionRepo from '../../models/Session'
@@ -14,14 +13,25 @@ import {
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS } from '../../constants'
+import { openai } from '../../services/BotsService'
 
-jest.mock('../../services/BotsService')
+jest.mock('openai', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      chat: {
+        completions: {
+          create: jest.fn().mockResolvedValue({}),
+        },
+      },
+    }
+  })
+})
+
 jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/ProgressReports')
 jest.mock('../../models/Session')
 jest.mock('../../logger')
 
-const mockedBotsService = mocked(BotsService)
 const mockedProgressReportsRepo = mocked(ProgressReportsRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 
@@ -303,7 +313,27 @@ describe('generateProgressReportForUser', () => {
       summary,
       concepts,
     })
-    mockedBotsService.generateProgressReport.mockResolvedValue(progressReport)
+    // This is smelly. There should be a proper mock for this
+    // This uses the types defined in OpenAI
+    jest.spyOn(openai.chat.completions, 'create').mockResolvedValue({
+      id: getDbUlid(),
+      choices: [
+        {
+          message: {
+            content: JSON.stringify(progressReport),
+            role: 'assistant',
+          },
+          finish_reason: 'stop',
+          index: 1,
+        },
+      ],
+      model: 'gpt-4',
+      created: Date.now(),
+      // It seems that this is needed on the type, but TS complains when it's here.
+      // We're going to ignore TS for now
+      // @ts-ignore
+      object: 'chat.completion.chunk',
+    })
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)
     mockedProgressReportsRepo.getProgressReportByReportId.mockResolvedValueOnce(
       progressReport
@@ -316,8 +346,17 @@ describe('generateProgressReportForUser', () => {
         subject: session.subjectName,
       }
     )
-    expect(report).toEqual(progressReport)
-    expect(mockedBotsService.generateProgressReport).toHaveBeenCalled()
+    /**
+     *
+     * When you JSON.stringify an object and then parse it back using JSON.parse,
+     * all the Date objects within the original object are converted to strings.
+     * We stringify the mockedProgressReport in the openAI mock, which converts
+     * the `summary.createdAt` into a string instead of a Date. We're manually
+     * changing it back to a Date to properly assert it against the mock
+     *
+     */
+    report.summary.createdAt = new Date(report.summary.createdAt)
+    expect(report).toMatchObject(progressReport)
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       userId,
       EVENTS.SCORECASTER_ANALYSIS_COMPLETED,

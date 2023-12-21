@@ -1041,15 +1041,6 @@ RETURNING
     id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at;
 
 
-/* @name getVolunteerPartnerOrgIdByKey */
-SELECT
-    id
-FROM
-    volunteer_partner_orgs
-WHERE
-    KEY = :volunteerPartnerOrg!;
-
-
 /* @name createUserVolunteerPartnerOrgInstance */
 INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
 SELECT

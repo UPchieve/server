@@ -4,7 +4,7 @@ import logger from '../logger'
 import { CurrentSession, getCurrentSessionBySessionId } from '../models/Session'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
-import { ProgressReport } from '../models/ProgressReports'
+import { ProgressReport } from '../services/ProgressReportsService'
 
 class SocketService {
   private static instance: SocketService

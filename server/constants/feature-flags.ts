@@ -9,4 +9,5 @@ export enum FEATURE_FLAGS {
   RECAP_SOCKET_UPDATES = 'recap-socket-updates',
   SMS_VERIFICATION = 'sms-verification',
   ALLOW_DMS_TO_PARTNER_STUDENTS = 'allow-dms-to-partner-students',
+  PROGRESS_REPORTS = 'progress-reports',
 }

@@ -724,7 +724,7 @@ export async function getSessionHistoryIdsByUserId(
   const client = await getClient().connect()
   try {
     const result = await pgQueries.getSessionHistoryIdsByUserId.run(
-      { userId, minSessionLength: config.sessionHistoryMinSessionLength },
+      { userId, minSessionLength: config.minSessionLength },
       client
     )
     if (!result.length) return []
@@ -809,8 +809,10 @@ export async function getCurrentSessionBySessionId(
 }
 
 export type StudentLatestSession = {
-  _id: string
-  createdAt: string
+  id: string
+  createdAt: Date
+  subject: string
+  timeTutored: number
 }
 export async function getLatestSessionByStudentId(
   studentId: Ulid
@@ -821,11 +823,7 @@ export async function getLatestSessionByStudentId(
       getClient()
     )
     if (!result.length) return
-    const session = makeRequired(result[0])
-    return {
-      _id: session.id,
-      createdAt: session.createdAt.toISOString(),
-    } as StudentLatestSession
+    return makeRequired(result[0])
   } catch (error) {
     throw error
   }
@@ -1244,7 +1242,7 @@ export async function getSessionHistory(
     const result = await pgQueries.getSessionHistory.run(
       {
         userId,
-        minSessionLength: config.sessionHistoryMinSessionLength,
+        minSessionLength: config.minSessionLength,
         limit,
         offset,
       },
@@ -1261,7 +1259,7 @@ export async function getSessionHistory(
 export async function getTotalSessionHistory(userId: Ulid): Promise<number> {
   try {
     const result = await pgQueries.getTotalSessionHistory.run(
-      { userId, minSessionLength: config.sessionHistoryMinSessionLength },
+      { userId, minSessionLength: config.minSessionLength },
       getClient()
     )
 
@@ -1319,7 +1317,7 @@ export async function isEligibleForSessionRecap(
   const client = await getClient().connect()
   try {
     const result = await pgQueries.isEligibleForSessionRecap.run(
-      { sessionId, minSessionLength: config.sessionHistoryMinSessionLength },
+      { sessionId, minSessionLength: config.minSessionLength },
       client
     )
     if (!result.length) return false
@@ -1414,7 +1412,7 @@ export async function getUserSessionStats(
     const result = await pgQueries.getUserSessionStats.run(
       {
         userId,
-        minSessionLength: config.sessionHistoryMinSessionLength,
+        minSessionLength: config.minSessionLength,
       },
       getClient()
     )

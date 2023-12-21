@@ -4,6 +4,8 @@ import { asUlid } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
 import { generateProgressReportForUser } from '../../services/ProgressReportsService'
 import { getSocket } from '../sockets'
+import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
+import config from '../../config'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -38,7 +40,15 @@ async function generateAndEmitProgressReport(
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {
   const sessionId = asUlid(job.data.sessionId)
   const session = await getSessionById(sessionId)
-  if (session.subject !== 'reading') return
+  const isProgressReportsActive = await getProgressReportsFeatureFlag(
+    session.studentId
+  )
+  if (
+    session.subject !== 'reading' ||
+    !isProgressReportsActive ||
+    session.timeTutored < config.minSessionLength
+  )
+    return
   const tasks = [
     // Single session analysis
     generateAndEmitProgressReport(session.studentId, {
