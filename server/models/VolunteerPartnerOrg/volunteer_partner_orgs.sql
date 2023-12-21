@@ -82,6 +82,15 @@ FROM
     volunteer_partner_orgs vpo;
 
 
+/* @name getVolunteerPartnerOrgIdByKey */
+SELECT
+    id
+FROM
+    volunteer_partner_orgs
+WHERE
+    KEY = :volunteerPartnerOrg!;
+
+
 /* @name migrateExistingvolunteerPartnerOrgRelationships */
 INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)
 SELECT
