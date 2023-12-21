@@ -25,10 +25,14 @@ import { MessageForFrontend, Session, UserSessions } from '../../models/Session'
 import {
   ProgressReport,
   ProgressReportDetail,
-  ProgressReportStatuses,
   ProgressReportSummary,
   ProgressReportConcept,
-} from '../../services/ProgressReportsService/types'
+} from '../../services/ProgressReportsService'
+import {
+  ProgressReportConceptRow,
+  ProgressReportStatuses,
+  ProgressReportSummaryRow,
+} from '../../models/ProgressReports/'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()

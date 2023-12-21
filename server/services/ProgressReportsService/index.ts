@@ -39,6 +39,7 @@ import {
 import { openai } from '../BotsService'
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
+export * from './types'
 
 export function formatTranscriptMessage(
   message: MessageForFrontend,
