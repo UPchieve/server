@@ -27,6 +27,7 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
+import { delay } from '../utils/sleep'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -249,6 +250,10 @@ export async function generatePartnerAnalyticsReport(
   // Date range check
   if (start >= end) throw new Error('Invalid date range')
 
+  logger.info(logData, 'About to fetch volunteers for analytics report')
+  logger.info(logData, 'Sleeping...')
+  await delay(11000) // For testing
+  logger.info(logData, 'Finished sleeping!')
   const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
