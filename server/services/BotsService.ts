@@ -1,7 +1,7 @@
 import 'openai/shims/node'
 import OpenAI from 'openai'
 import config from '../config'
-import { ProgressReport } from '../models/ProgressReports'
+import { ProgressReport } from '../services/ProgressReportsService/types'
 import { Ulid } from '../models/pgUtils'
 import logger from '../logger'
 

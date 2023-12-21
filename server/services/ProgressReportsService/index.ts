@@ -1,8 +1,7 @@
-import { Ulid } from '../models/pgUtils'
-import { logError } from '../logger'
-import { TransactionClient, runInTransaction } from '../db'
+import { Ulid } from '../../models/pgUtils'
+import { logError } from '../../logger'
+import { TransactionClient, runInTransaction } from '../../db'
 import {
-  ProgressReport,
   ProgressReportAnalysisTypes,
   insertProgressReport,
   insertProgressReportSession,
@@ -11,17 +10,18 @@ import {
   insertProgressReportConcept,
   insertProgressReportConceptDetail,
   updateProgressReportStatus,
-} from '../models/ProgressReports'
+} from '../../models/ProgressReports'
 import {
   UserSessionsWithMessages,
   getUserSessionsByUserId,
   getMessagesForFrontend,
   MessageForFrontend,
-} from '../models/Session'
-import { captureEvent } from './AnalyticsService'
-import { EVENTS } from '../constants'
-import * as BotsService from './BotsService'
+} from '../../models/Session'
+import { captureEvent } from '../AnalyticsService'
+import { EVENTS } from '../../constants'
+import * as BotsService from '../BotsService'
 import moment from 'moment'
+import { ProgressReport } from './types'
 
 export function formatTranscriptMessage(
   message: MessageForFrontend,
