@@ -266,3 +266,80 @@ export async function getProgressReportConceptsByReportId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getSessionProgressReportsForSubjectByPagination(
+  userId: Ulid,
+  data: {
+    subject: string
+    analysisType: ProgressReportAnalysisTypes
+    limit: number
+    offset: number
+  },
+  tc?: TransactionClient
+): Promise<any[]> {
+  try {
+    const result = await pgQueries.getSessionProgressReportsForSubjectByPagination.run(
+      {
+        userId,
+        subject: data.subject,
+        analysisType: data.analysisType,
+        limit: data.limit,
+        offset: data.offset,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAllProgressReportIdsByUserIdAndSubject(
+  userId: Ulid,
+  subject: string,
+  analysisType: ProgressReportAnalysisTypes,
+  tc?: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const result = await pgQueries.getAllProgressReportIdsByUserIdAndSubject.run(
+      {
+        userId,
+        subject,
+        analysisType,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row).id)
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestProgressReportIdBySubject(
+  userId: Ulid,
+  subject: Ulid,
+  analysisType: ProgressReportAnalysisTypes,
+  tc?: TransactionClient
+): Promise<ProgressReportInfo | undefined> {
+  try {
+    const result = await pgQueries.getLatestProgressReportIdBySubject.run(
+      {
+        userId,
+        subject,
+        analysisType,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) {
+      const data = makeRequired(result[0])
+      return {
+        ...data,
+        status: data.status as ProgressReportStatuses,
+      }
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

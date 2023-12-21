@@ -180,3 +180,73 @@ FROM
 WHERE
     progress_report_concepts.progress_report_id = :reportId;
 
+
+/* @name getSessionProgressReportsForSubjectByPagination */
+SELECT
+    sessions.id,
+    sessions.created_at AS created_at,
+    sessions.time_tutored::int AS time_tutored,
+    subjects.display_name AS subject,
+    topics.name AS topic,
+    topics.icon_link AS topic_icon_link
+FROM
+    progress_reports
+    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+    JOIN sessions ON progress_report_sessions.session_id = sessions.id
+    JOIN subjects ON sessions.subject_id = subjects.id
+    JOIN topics ON topics.id = subjects.topic_id
+WHERE
+    progress_reports.user_id = :userId!
+    AND subjects.name = :subject!
+    AND progress_report_analysis_types.name = :analysisType!
+    AND progress_report_statuses.name = 'complete'
+    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+    AND NOW()
+ORDER BY
+    sessions.created_at DESC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
+
+/* @name getAllProgressReportIdsByUserIdAndSubject */
+SELECT
+    progress_reports.id
+FROM
+    progress_reports
+    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+    LEFT JOIN subjects ON sessions.subject_id = subjects.id
+WHERE
+    progress_reports.user_id = :userId!
+    AND subjects.name = :subject!
+    AND progress_report_analysis_types.name = :analysisType!
+    AND progress_report_statuses.name = 'complete'
+GROUP BY
+    progress_reports.id
+ORDER BY
+    progress_reports.created_at DESC;
+
+
+/* @name getLatestProgressReportIdBySubject */
+SELECT
+    progress_reports.id,
+    progress_report_statuses.name AS status
+FROM
+    progress_reports
+    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+    JOIN sessions ON progress_report_sessions.session_id = sessions.id
+    JOIN subjects ON sessions.subject_id = subjects.id
+WHERE
+    progress_reports.user_id = :userId!
+    AND subjects.name = :subject!
+    AND progress_report_analysis_types.name = :analysisType!
+    AND progress_report_statuses.name = 'complete'
+ORDER BY
+    progress_reports.created_at DESC
+LIMIT 1;
+
