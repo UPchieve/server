@@ -181,11 +181,10 @@ WHERE
     progress_report_concepts.progress_report_id = :reportId;
 
 
-/* @name getSessionProgressReportsForSubjectByPagination */
+/* @name getProgressReportSessionsForSubjectByPagination */
 SELECT
     sessions.id,
     sessions.created_at AS created_at,
-    sessions.time_tutored::int AS time_tutored,
     subjects.display_name AS subject,
     topics.name AS topic,
     topics.icon_link AS topic_icon_link

@@ -93,3 +93,11 @@ export type ProgressReportDetailInsert = Pick<
   ProgressReportDetail,
   'content' | 'infoType' | 'focusArea'
 >
+
+export type ProgressReportSessionPaginated = {
+  id: Ulid
+  topic: string
+  topicIconLink: string
+  subject: string
+  createdAt: Date
+}

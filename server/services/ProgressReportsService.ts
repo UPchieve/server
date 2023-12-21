@@ -23,6 +23,9 @@ import {
   getProgressReportInfoBySessionId,
   getProgressReportByReportId,
   ProgressReportInfo,
+  getProgressReportSessionsForSubjectByPagination,
+  getAllProgressReportIdsByUserIdAndSubject,
+  getLatestProgressReportIdBySubject,
 } from '../models/ProgressReports'
 import {
   UserSessionsWithMessages,
@@ -302,4 +305,64 @@ export async function getSessionsToAnalyzeForProgressReport(
     }
   }
   return sessionsWithMessages
+}
+
+export async function getProgressReportsForSubjectPaginated(
+  userId: Ulid,
+  subject: string,
+  page: number
+) {
+  const limit = 5
+  const offset = (page - 1) * limit
+  const data = {
+    subject,
+    analysisType: 'single' as ProgressReportAnalysisTypes,
+    limit,
+    offset,
+  }
+  const sessions = await getProgressReportSessionsForSubjectByPagination(
+    userId,
+    data
+  )
+
+  const isLastPage = sessions.length < limit
+  return { sessions, page, isLastPage }
+}
+
+export async function getProgressReportSummaries(
+  reportIds: Ulid[],
+  tc?: TransactionClient
+): Promise<ProgressReportSummary[]> {
+  const summaryRows = await getProgressReportSummariesForMany(reportIds, tc)
+  const summaries = await transformProgressReportSummaryRows(summaryRows)
+  return summaries
+}
+
+export async function getProgressReportSummariesBySubject(
+  userId: Ulid,
+  subject: string
+): Promise<ProgressReportSummary[]> {
+  const data = await runInTransaction(async (tc: TransactionClient) => {
+    const reportIds = await getAllProgressReportIdsByUserIdAndSubject(
+      userId,
+      subject,
+      'group',
+      tc
+    )
+    const summaries = await getProgressReportSummaries(reportIds, tc)
+    return summaries
+  })
+  return data
+}
+
+export async function getLatestProgressReportSummaryBySubject(
+  userId: Ulid,
+  subject: string
+): Promise<ProgressReport> {
+  return await runInTransaction(async (tc: TransactionClient) => {
+    return getProgressReportDataAndDetails(
+      () => getLatestProgressReportIdBySubject(userId, subject, 'group', tc),
+      tc
+    )
+  })
 }

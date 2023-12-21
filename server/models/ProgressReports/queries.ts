@@ -11,6 +11,7 @@ import {
   ProgressReportConceptInsert,
   ProgressReportConceptRow,
   ProgressReportSummaryRow,
+  ProgressReportSessionPaginated,
 } from './types'
 
 export async function insertProgressReport(
@@ -267,7 +268,7 @@ export async function getProgressReportConceptsByReportId(
   }
 }
 
-export async function getSessionProgressReportsForSubjectByPagination(
+export async function getProgressReportSessionsForSubjectByPagination(
   userId: Ulid,
   data: {
     subject: string
@@ -276,9 +277,9 @@ export async function getSessionProgressReportsForSubjectByPagination(
     offset: number
   },
   tc?: TransactionClient
-): Promise<any[]> {
+): Promise<ProgressReportSessionPaginated[]> {
   try {
-    const result = await pgQueries.getSessionProgressReportsForSubjectByPagination.run(
+    const result = await pgQueries.getProgressReportSessionsForSubjectByPagination.run(
       {
         userId,
         subject: data.subject,
