@@ -2893,7 +2893,7 @@ paths:
         '200':
           description: |
             - Gets a paginated list of subject progress reports to allow students to see their analysis on a session
-   /api/progress-reports/summaries/:subject:
+  /api/progress-reports/summaries/:subject:
     get:
       tags:
         - progress-reports
@@ -2904,7 +2904,7 @@ paths:
         '200':
           description: |
             - Used to chart a student's progress overtime for a subject
-   /api/progress-reports/summaries/:subject/latest:
+  /api/progress-reports/summaries/:subject/latest:
     get:
       tags:
         - progress-reports
