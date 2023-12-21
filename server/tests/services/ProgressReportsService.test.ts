@@ -14,14 +14,25 @@ import {
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS } from '../../constants'
+import { openai } from '../../services/BotsService'
 
-jest.mock('../../services/BotsService')
+jest.mock('openai', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      chat: {
+        completions: {
+          create: jest.fn().mockResolvedValue({}),
+        },
+      },
+    }
+  })
+})
+
 jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/ProgressReports')
 jest.mock('../../models/Session')
 jest.mock('../../logger')
 
-const mockedBotsService = mocked(BotsService)
 const mockedProgressReportsRepo = mocked(ProgressReportsRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 

@@ -28,9 +28,7 @@ import {
   ProgressReportStatuses,
   ProgressReportSummary,
   ProgressReportConcept,
-  ProgressReportSummaryRow,
-  ProgressReportConceptRow,
-} from '../../models/ProgressReports'
+} from '../../services/ProgressReportsService/types'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()

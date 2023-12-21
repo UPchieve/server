@@ -12,45 +12,6 @@ export type ProgressReportFocusAreas = 'strength' | 'practiceArea'
 
 export type ProgressReportInfoTypes = 'recommendation' | 'reason'
 
-export type ProgressReportSession = {
-  reportId: Ulid
-  sessionId: Ulid
-  reportAnalysisType: ProgressReportAnalysisTypes
-  createdAt: Date
-  updatedAt: Date
-}
-
-export type ProgressReportDetail = {
-  id: Ulid
-  content: string
-  focusArea: ProgressReportFocusAreas
-  infoType: ProgressReportInfoTypes
-}
-
-export type ProgressReportSummary = {
-  id: Ulid
-  summary: string
-  overallGrade: number
-  details: ProgressReportDetail[]
-  createdAt: Date
-}
-
-export type ProgressReportConcept = {
-  id: Ulid
-  name: string
-  description: string
-  grade: number
-  details: ProgressReportDetail[]
-  createdAt: Date
-}
-
-export type ProgressReport = {
-  id: Ulid
-  status: ProgressReportStatuses
-  summary: ProgressReportSummary
-  concepts: ProgressReportConcept[]
-}
-
 export type ProgressReportInfo = {
   id: Ulid
   status: ProgressReportStatuses
@@ -79,17 +40,19 @@ export type ProgressReportConceptRow = {
   createdAt: Date
 }
 
-export type ProgressReportSummaryInsert = Pick<
-  ProgressReportSummary,
-  'summary' | 'overallGrade'
->
+export type ProgressReportSummaryInsert = {
+  summary: string
+  overallGrade: number
+}
 
-export type ProgressReportConceptInsert = Pick<
-  ProgressReportConcept,
-  'name' | 'description' | 'grade'
->
+export type ProgressReportConceptInsert = {
+  name: string
+  description: string
+  grade: number
+}
 
-export type ProgressReportDetailInsert = Pick<
-  ProgressReportDetail,
-  'content' | 'infoType' | 'focusArea'
->
+export type ProgressReportDetailInsert = {
+  content: string
+  focusArea: ProgressFocusAreas
+  infoType: ProgressInfoTypes
+}
