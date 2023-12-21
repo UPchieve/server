@@ -1,8 +1,13 @@
-import { getProgressReportForUserSession } from '../../services/ProgressReportsService'
+import {
+  getLatestProgressReportSummaryBySubject,
+  getProgressReportForUserSession,
+  getProgressReportsForSubjectPaginated,
+  getProgressReportSummariesBySubject,
+} from '../../services/ProgressReportsService'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import { Router } from 'express'
-import { asUlid } from '../../utils/type-utils'
+import { asNumber, asString, asUlid } from '../../utils/type-utils'
 import { ProgressReportNotFoundError } from '../../services/Errors'
 
 export function routeProgressReports(router: Router): void {
@@ -15,6 +20,53 @@ export function routeProgressReports(router: Router): void {
     } catch (err) {
       if (err instanceof ProgressReportNotFoundError) res.sendStatus(200)
       else resError(res, err)
+    }
+  })
+
+  router.get('/progress-reports/subjects/:subject', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const subject = asString(req.params.subject)
+      const page = asNumber(req.query.page)
+      const result = await getProgressReportsForSubjectPaginated(
+        user.id,
+        subject,
+        page
+      )
+      res.json(result)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/progress-reports/summaries/:subject', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const subject = asString(req.params.subject)
+      const summaries = await getProgressReportSummariesBySubject(
+        user.id,
+        subject
+      )
+      res.json(summaries)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/progress-reports/summaries/:subject/latest', async function(
+    req,
+    res
+  ) {
+    try {
+      const user = extractUser(req)
+      const subject = asString(req.params.subject)
+      const summary = await getLatestProgressReportSummaryBySubject(
+        user.id,
+        subject
+      )
+      res.json(summary)
+    } catch (err) {
+      resError(res, err)
     }
   })
 }
