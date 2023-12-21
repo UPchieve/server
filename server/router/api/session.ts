@@ -110,7 +110,7 @@ export function routeSession(router: Router, io: Server) {
         res.json(null)
       } else {
         res.json({
-          sessionId: latestSession._id,
+          sessionId: latestSession.id,
           data: latestSession,
         })
       }

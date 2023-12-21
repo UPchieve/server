@@ -21,6 +21,7 @@ import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId } from '../User'
+import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -1264,23 +1265,6 @@ export async function getVolunteerForTextResponse(
     )
     if (!result.length) return
     return makeSomeOptional(result[0], ['endedAt'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getVolunteerPartnerOrgIdByKey(
-  volunteerPartnerOrg: string,
-  poolClient?: PoolClient
-): Promise<Ulid | undefined> {
-  const client = poolClient ? poolClient : getClient()
-  try {
-    const result = await pgQueries.getVolunteerPartnerOrgIdByKey.run(
-      { volunteerPartnerOrg },
-      client
-    )
-    if (!result.length) return
-    return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
   }

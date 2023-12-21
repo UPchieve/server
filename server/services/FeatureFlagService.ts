@@ -102,3 +102,7 @@ export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
     userId
   )
 }
+
+export async function getProgressReportsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.PROGRESS_REPORTS, userId)
+}
