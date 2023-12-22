@@ -3,11 +3,13 @@ import {
   getProgressReportForUserSession,
   getProgressReportsForSubjectPaginated,
   getProgressReportSummariesBySubject,
+  readProgressReportsByIds,
+  getUnreadProgressReportOverviewSubjects,
 } from '../../services/ProgressReportsService'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import { Router } from 'express'
-import { asNumber, asString, asUlid } from '../../utils/type-utils'
+import { asArray, asNumber, asString, asUlid } from '../../utils/type-utils'
 import { ProgressReportNotFoundError } from '../../services/Errors'
 
 export function routeProgressReports(router: Router): void {
@@ -68,6 +70,26 @@ export function routeProgressReports(router: Router): void {
     } catch (err) {
       if (err instanceof ProgressReportNotFoundError) res.sendStatus(200)
       else resError(res, err)
+    }
+  })
+
+  router.post('/progress-reports/read', async function(req, res) {
+    try {
+      const reportIds = asArray(asString)(req.body.reportIds)
+      await readProgressReportsByIds(reportIds)
+      res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/progress-reports/unread', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const subjects = await getUnreadProgressReportOverviewSubjects(user.id)
+      res.json({ subjects })
+    } catch (err) {
+      resError(res, err)
     }
   })
 }

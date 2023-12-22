@@ -20,8 +20,10 @@ import {
   getProgressReportByReportId,
   ProgressReportInfo,
   getProgressReportSessionsForSubjectByPagination,
-  getAllProgressReportIdsByUserIdAndSubject,
   getLatestProgressReportIdBySubject,
+  updateProgressReportsReadAtByReportIds,
+  getUnreadProgressReportOverviewSubjectsByUserId,
+  getAllProgressReportIdsByUserIdAndSubject,
 } from '../../models/ProgressReports'
 import {
   UserSessionsWithMessages,
@@ -281,6 +283,8 @@ export function transformProgressReportSummaryRows(
         overallGrade: row.overallGrade,
         details: [],
         createdAt: row.createdAt,
+        reportId: row.reportId,
+        reportReadAt: row.reportReadAt,
       }
     }
 
@@ -311,6 +315,8 @@ export function transformProgressReportConceptRows(
         grade: row.grade,
         details: [],
         createdAt: row.createdAt,
+        reportId: row.reportId,
+        reportReadAt: row.reportReadAt,
       }
     }
 
@@ -454,4 +460,18 @@ export async function getLatestProgressReportSummaryBySubject(
       tc
     )
   })
+}
+
+export async function readProgressReportsByIds(
+  reportIds: Ulid[]
+): Promise<void> {
+  await updateProgressReportsReadAtByReportIds(reportIds)
+}
+
+export async function getUnreadProgressReportOverviewSubjects(
+  userId: Ulid
+): Promise<string[]> {
+  const result = await getUnreadProgressReportOverviewSubjectsByUserId(userId)
+  console.log(result)
+  return result
 }

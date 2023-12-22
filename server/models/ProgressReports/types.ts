@@ -15,6 +15,7 @@ export type ProgressReportInfoTypes = 'recommendation' | 'reason'
 export type ProgressReportInfo = {
   id: Ulid
   status: ProgressReportStatuses
+  readAt?: Date
 }
 
 export type ProgressReportSummaryRow = {
@@ -25,6 +26,8 @@ export type ProgressReportSummaryRow = {
   content: string
   focusArea: string
   infoType: string
+  reportId: Ulid
+  reportReadAt?: Date
   createdAt: Date
 }
 
@@ -37,6 +40,8 @@ export type ProgressReportConceptRow = {
   content: string
   focusArea: string
   infoType: string
+  reportId: Ulid
+  reportReadAt?: Date
   createdAt: Date
 }
 
