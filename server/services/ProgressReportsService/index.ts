@@ -47,7 +47,7 @@ import { Jobs } from '../../worker/jobs'
 export * from './types'
 import { ProgressReportNotFoundError } from '../Errors'
 
-export function formatTranscriptMessage(
+function formatTranscriptMessage(
   message: MessageForFrontend,
   userType: string
 ): string {
@@ -56,9 +56,7 @@ export function formatTranscriptMessage(
   }\n`
 }
 
-export function formatScorecasterSession(
-  session: UserSessionsWithMessages
-): string {
+function formatTranscriptAndEditor(session: UserSessionsWithMessages): string {
   let transcript = ''
   for (const message of session.messages) {
     const userType = message.user === session.studentId ? 'Student' : 'Tutor'
@@ -74,10 +72,10 @@ export function formatScorecasterSession(
     `
 }
 
-export function formatSessionsForBotPrompt(
+function formatSessionsForBotPrompt(
   sessions: UserSessionsWithMessages[]
 ): string {
-  return sessions.map(formatScorecasterSession).join('\n')
+  return sessions.map(formatTranscriptAndEditor).join('\n')
 }
 
 export async function saveProgressReport(
@@ -152,7 +150,7 @@ export async function generateProgressReportForUser(
   filter: UserSessionsFilter
 ): Promise<ProgressReport> {
   const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
-  const botPrompt = await formatSessionsForBotPrompt(sessions)
+  const botPrompt = formatSessionsForBotPrompt(sessions)
   const botReport = await generateProgressReport(userId, botPrompt)
   captureEvent(userId, EVENTS.SCORECASTER_ANALYSIS_COMPLETED, {
     response: botReport,
@@ -270,7 +268,7 @@ export async function queueGenerateProgressReportForUser(
   )
 }
 
-export function transformProgressReportSummaryRows(
+function transformProgressReportSummaryRows(
   rows: ProgressReportSummaryRow[]
 ): ProgressReportSummary[] {
   const summaries: Record<Ulid, ProgressReportSummary> = {}
@@ -301,7 +299,7 @@ export function transformProgressReportSummaryRows(
   return Object.values(summaries)
 }
 
-export function transformProgressReportConceptRows(
+function transformProgressReportConceptRows(
   rows: ProgressReportConceptRow[]
 ): ProgressReportConcept[] {
   const concepts: Record<Ulid, ProgressReportConcept> = {}
@@ -338,7 +336,7 @@ export async function getProgressReportSummary(
   tc?: TransactionClient
 ): Promise<ProgressReportSummary> {
   const summaryRows = await getProgressReportSummariesForMany([reportId], tc)
-  const summaries = await transformProgressReportSummaryRows(summaryRows)
+  const summaries = transformProgressReportSummaryRows(summaryRows)
   if (!summaries.length)
     throw new Error(`No summary found for report ${reportId}`)
   return summaries[0]
@@ -429,7 +427,7 @@ export async function getProgressReportSummaries(
   tc?: TransactionClient
 ): Promise<ProgressReportSummary[]> {
   const summaryRows = await getProgressReportSummariesForMany(reportIds, tc)
-  const summaries = await transformProgressReportSummaryRows(summaryRows)
+  const summaries = transformProgressReportSummaryRows(summaryRows)
   return summaries
 }
 
