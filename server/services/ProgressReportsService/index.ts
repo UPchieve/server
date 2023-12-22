@@ -471,7 +471,5 @@ export async function readProgressReportsByIds(
 export async function getUnreadProgressReportOverviewSubjects(
   userId: Ulid
 ): Promise<string[]> {
-  const result = await getUnreadProgressReportOverviewSubjectsByUserId(userId)
-  console.log(result)
-  return result
+  return await getUnreadProgressReportOverviewSubjectsByUserId(userId)
 }
