@@ -95,7 +95,8 @@ app.use(bodyParser.json() as express.RequestHandler)
 app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
 
-const origin = config.NODE_ENV === 'dev' ? config.host : `https://${config.host}`
+const origin =
+  config.NODE_ENV === 'dev' ? config.host : `https://${config.host}`
 app.use(
   cors({
     origin,
