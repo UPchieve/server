@@ -6,8 +6,15 @@ import logger from '../logger'
  * transport/upgrade options: https://github.com/socketio/socket.io-client/issues/1097
  */
 
+let protocol
+if (config.NODE_ENV === 'dev') {
+  protocol = 'http'
+} else {
+  protocol = 'https'
+}
+
 const socket = io(
-  `http://${config.clusterServerAddress}:${config.socketsPort}`,
+  `${protocol}://${config.clusterServerAddress}:${config.socketsPort}`,
   {
     query: { key: config.socketApiKey },
     autoConnect: false,
