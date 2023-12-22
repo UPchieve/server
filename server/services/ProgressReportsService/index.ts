@@ -362,11 +362,11 @@ export async function getProgressReportDataAndDetails(
   if (!reportData?.id) {
     throw new Error('No report found')
   }
-  const summaryAndconcepts = await getProgressReportSummaryAndConcepts(
+  const summaryAndConcepts = await getProgressReportSummaryAndConcepts(
     reportData.id,
     tc
   )
-  return { ...reportData, ...summaryAndconcepts }
+  return { ...reportData, ...summaryAndConcepts }
 }
 
 export async function getProgressReportForUserSession(
