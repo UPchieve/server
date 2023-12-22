@@ -981,25 +981,11 @@ const getSessionForAdminViewIR: any = {"name":"getSessionForAdminView","params":
 export const getSessionForAdminView = new PreparedQuery<IGetSessionForAdminViewParams,IGetSessionForAdminViewResult>(getSessionForAdminViewIR);
 
 
-/** 'GetSessionUserAgent' parameters type */
-export interface IGetSessionUserAgentParams {
-  sessionId: string;
-}
+/** Query 'GetSessionUserAgent' is invalid, so its result is assigned type 'never' */
+export type IGetSessionUserAgentResult = never;
 
-/** 'GetSessionUserAgent' return type */
-export interface IGetSessionUserAgentResult {
-  browser: string | null;
-  browserVersion: string | null;
-  device: string | null;
-  operatingSystem: string | null;
-  operatingSystemVersion: string | null;
-}
-
-/** 'GetSessionUserAgent' query type */
-export interface IGetSessionUserAgentQuery {
-  params: IGetSessionUserAgentParams;
-  result: IGetSessionUserAgentResult;
-}
+/** Query 'GetSessionUserAgent' is invalid, so its parameters are assigned type 'never' */
+export type IGetSessionUserAgentParams = never;
 
 const getSessionUserAgentIR: any = {"name":"getSessionUserAgent","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12645,"b":12654,"line":477,"col":31}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    user_actions.session_id = :sessionId!\n    AND user_actions.action = 'REQUESTED SESSION'\nLIMIT 1","loc":{"a":12482,"b":12712,"line":468,"col":0}}};
 

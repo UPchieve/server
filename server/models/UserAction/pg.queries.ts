@@ -77,26 +77,11 @@ const getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR: any = {"name"
 export const getQuizzesPassedForDateRangeForTelecomReportByVolunteerId = new PreparedQuery<IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdParams,IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult>(getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR);
 
 
-/** 'GetSessionRequestedUserAgentFromSessionId' parameters type */
-export interface IGetSessionRequestedUserAgentFromSessionIdParams {
-  sessionId: string;
-}
+/** Query 'GetSessionRequestedUserAgentFromSessionId' is invalid, so its result is assigned type 'never' */
+export type IGetSessionRequestedUserAgentFromSessionIdResult = never;
 
-/** 'GetSessionRequestedUserAgentFromSessionId' return type */
-export interface IGetSessionRequestedUserAgentFromSessionIdResult {
-  browser: string | null;
-  browserVersion: string | null;
-  device: string | null;
-  id: string;
-  operatingSystem: string | null;
-  operatingSystemVersion: string | null;
-}
-
-/** 'GetSessionRequestedUserAgentFromSessionId' query type */
-export interface IGetSessionRequestedUserAgentFromSessionIdQuery {
-  params: IGetSessionRequestedUserAgentFromSessionIdParams;
-  result: IGetSessionRequestedUserAgentFromSessionIdResult;
-}
+/** Query 'GetSessionRequestedUserAgentFromSessionId' is invalid, so its parameters are assigned type 'never' */
+export type IGetSessionRequestedUserAgentFromSessionIdParams = never;
 
 const getSessionRequestedUserAgentFromSessionIdIR: any = {"name":"getSessionRequestedUserAgentFromSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":827,"b":836,"line":40,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    id,\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    action_type = 'SESSION'\n    AND action = 'REQUESTED SESSION'\n    AND session_id = :sessionId!","loc":{"a":600,"b":836,"line":28,"col":0}}};
 
@@ -237,30 +222,11 @@ const createQuizActionIR: any = {"name":"createQuizAction","params":[{"name":"ac
 export const createQuizAction = new PreparedQuery<ICreateQuizActionParams,ICreateQuizActionResult>(createQuizActionIR);
 
 
-/** 'CreateSessionAction' parameters type */
-export interface ICreateSessionActionParams {
-  action: string;
-  actionType: string;
-  browser: string | null | void;
-  browserVersion: string | null | void;
-  device: string | null | void;
-  ipAddressId: string | null | void;
-  operatingSystem: string | null | void;
-  operatingSystemVersion: string | null | void;
-  sessionId: string;
-  userId: string;
-}
+/** Query 'CreateSessionAction' is invalid, so its result is assigned type 'never' */
+export type ICreateSessionActionResult = never;
 
-/** 'CreateSessionAction' return type */
-export interface ICreateSessionActionResult {
-  ok: string;
-}
-
-/** 'CreateSessionAction' query type */
-export interface ICreateSessionActionQuery {
-  params: ICreateSessionActionParams;
-  result: ICreateSessionActionResult;
-}
+/** Query 'CreateSessionAction' is invalid, so its parameters are assigned type 'never' */
+export type ICreateSessionActionParams = never;
 
 const createSessionActionIR: any = {"name":"createSessionAction","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1976,"b":1982,"line":87,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1986,"b":1995,"line":87,"col":23}]}},{"name":"actionType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1999,"b":2009,"line":87,"col":36}]}},{"name":"action","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2013,"b":2019,"line":87,"col":50}]}},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2023,"b":2033,"line":87,"col":60}]}},{"name":"device","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2037,"b":2042,"line":87,"col":74}]}},{"name":"browser","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2046,"b":2052,"line":87,"col":83}]}},{"name":"browserVersion","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2056,"b":2069,"line":87,"col":93}]}},{"name":"operatingSystem","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2073,"b":2087,"line":87,"col":110}]}},{"name":"operatingSystemVersion","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2091,"b":2112,"line":87,"col":128}]}}],"usedParamSet":{"userId":true,"sessionId":true,"actionType":true,"action":true,"ipAddressId":true,"device":true,"browser":true,"browserVersion":true,"operatingSystem":true,"operatingSystemVersion":true},"statement":{"body":"INSERT INTO user_actions (user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, created_at, updated_at)\n    VALUES (:userId!, :sessionId!, :actionType!, :action!, :ipAddressId, :device, :browser, :browserVersion, :operatingSystem, :operatingSystemVersion, NOW(), NOW())\nRETURNING\n    id AS ok","loc":{"a":1778,"b":2150,"line":86,"col":0}}};
 
