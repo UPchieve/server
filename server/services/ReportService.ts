@@ -353,9 +353,11 @@ export async function getAnalyticsReport(data: unknown) {
     if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
     if (!partnerOrgId)
       throw new ReportNoDataFoundError('No partner org found with given key')
+
     const logData = {
       volunteerPartnerOrgId: partnerOrgId,
     }
+    logger.info(logData, 'Beginning partner analytics report generation')
 
     const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
