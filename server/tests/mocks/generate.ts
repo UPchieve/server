@@ -21,6 +21,13 @@ import {
 } from '../../models/Survey'
 import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
+import { MessageForFrontend, Session, UserSessions } from '../../models/Session'
+import {
+  ProgressReport,
+  ProgressReportDetail,
+  ProgressReportSummary,
+  ProgressReportConcept,
+} from '../../services/ProgressReportsService/types'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -63,6 +70,8 @@ export function buildUserContactInfo(
   }
 }
 
+// TODO: There is weird behavior with buildUserRow, it's returning the same user data across test files.
+//       Noticing this behavior with other build functions when calling `insertSingleRow`
 export function buildUserRow(overrides: Partial<User> = {}): User {
   return {
     id: getDbUlid(),
@@ -149,8 +158,26 @@ export function buildStudentRow(overrides: Partial<Student> = {}): Student {
   }
 }
 
-type SessionRow = any
-export async function buildSession(
+export type SessionRow = {
+  id: Ulid
+  studentId: Ulid
+  subjectId: number
+  volunteerId?: Ulid
+  hasWhiteboardDoc: boolean
+  quillDoc?: string
+  volunteerJoinedAt?: Date
+  endedAt?: Date
+  endedByRoleId?: number
+  reviewed: boolean
+  toReview: boolean
+  studentBanned: boolean
+  timeTutored: number
+  createdAt: Date
+  updatedAt: Date
+  mongoId?: string
+}
+
+export async function buildSessionRow(
   overrides: Partial<SessionRow> & { studentId: Ulid },
   client?: Pool
 ): Promise<SessionRow> {
@@ -160,11 +187,61 @@ export async function buildSession(
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,
+    studentBanned: false,
     timeTutored: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
   }
+}
+
+export async function buildSession(
+  overrides: Partial<Session> & { studentId: Ulid },
+  client?: Pool
+): Promise<Session> {
+  return {
+    id: getDbUlid(),
+    hasWhiteboardDoc: true,
+    reviewed: false,
+    toReview: false,
+    timeTutored: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    studentBanned: false,
+    topic: 'math',
+    subject: 'algebraOne',
+    reported: false,
+    flags: [],
+    subjectDisplayName: 'Algebra 1',
+    toolType: 'whiteboard',
+    ...overrides,
+  }
+}
+
+export const buildUserSession = (
+  overrides: Partial<UserSessions> = {}
+): UserSessions => {
+  const session = {
+    id: getDbUlid(),
+    subjectName: 'algrebraOne',
+    topicName: 'math',
+    studentId: getDbUlid(),
+    createdAt: new Date(),
+    ...overrides,
+  }
+  return session
+}
+
+export const buildMessageForFrontend = (
+  overrides: Partial<MessageForFrontend> = {}
+): MessageForFrontend => {
+  const message = {
+    user: getDbUlid(),
+    contents: faker.lorem.sentence(),
+    createdAt: new Date(),
+    ...overrides,
+  }
+  return message
 }
 
 export function buildAssistmentsData(
@@ -321,4 +398,56 @@ export const buildUserSurvey = (
   }
 
   return survey
+}
+
+export const buildProgressReportDetails = (
+  overrides: Partial<ProgressReportDetail> = {}
+): ProgressReportDetail => {
+  const detail: ProgressReportDetail = {
+    id: getDbUlid(),
+    content: faker.lorem.sentence(),
+    focusArea: 'practiceArea',
+    infoType: 'recommendation',
+    ...overrides,
+  }
+  return detail
+}
+
+export const buildProgressReportConcept = (
+  overrides: Partial<ProgressReportConcept> = {}
+): ProgressReportConcept => {
+  const concept: ProgressReportConcept = {
+    id: getDbUlid(),
+    name: faker.lorem.word(),
+    description: faker.lorem.sentence(),
+    grade: 100,
+    details: [],
+    ...overrides,
+  }
+  return concept
+}
+
+export const buildProgressReportSummary = (
+  overrides: Partial<ProgressReportSummary> = {}
+): ProgressReportSummary => {
+  const summary = {
+    id: getDbUlid(),
+    summary: faker.lorem.sentence(),
+    overallGrade: 100,
+    details: [],
+    createdAt: new Date(),
+    ...overrides,
+  }
+  return summary
+}
+
+export const buildProgressReport = (
+  overrides: Partial<ProgressReport> = {}
+): ProgressReport => {
+  const report = {
+    summary: buildProgressReportSummary(),
+    concepts: [buildProgressReportConcept()],
+    ...overrides,
+  }
+  return report
 }

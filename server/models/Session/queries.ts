@@ -1370,6 +1370,7 @@ export type UserSessionsFilter = {
   end?: Date
   subject?: string
   topic?: string
+  sessionId?: Ulid
 }
 
 export type UserSessions = {
@@ -1393,6 +1394,7 @@ export async function getUserSessionsByUserId(
     end: undefined,
     subject: undefined,
     topic: undefined,
+    sessionId: undefined,
   }
 ): Promise<UserSessions[]> {
   try {
@@ -1403,6 +1405,7 @@ export async function getUserSessionsByUserId(
         end: filter.end,
         subject: filter.subject,
         topic: filter.topic,
+        sessionId: filter.sessionId,
       },
       getClient()
     )

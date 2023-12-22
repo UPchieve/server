@@ -2870,9 +2870,17 @@ paths:
       security:
         - cookieAuth: []
       responses:
+  /api/progress-reports/generate:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets a generated ProgressReport from the user's session
+      security:
+        - cookieAuth: []
+      responses:
         '200':
           description: |
-            Checks if a subject and topic are a valid pair
+            A generated report for the user's sessions
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
