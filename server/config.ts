@@ -27,7 +27,6 @@ const config: Static<typeof Config> = {
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'http://localhost:8080',
-  additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge: parseInt(
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'

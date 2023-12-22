@@ -95,18 +95,9 @@ app.use(bodyParser.json() as express.RequestHandler)
 app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
 
-let originRegex
-if (config.additionalAllowedOrigins !== '') {
-  originRegex = new RegExp(
-    `^(${config.host}|${config.additionalAllowedOrigins})$`
-  )
-} else {
-  originRegex = new RegExp(`^(${config.host})$`)
-}
-
 app.use(
   cors({
-    origin: originRegex,
+    origin: config.host,
     credentials: true,
     exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined,
   })
