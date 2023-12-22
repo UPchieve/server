@@ -252,7 +252,7 @@ export async function generatePartnerAnalyticsReport(
 
   logger.info(logData, 'About to fetch volunteers for analytics report')
   logger.info(logData, 'Sleeping...')
-  await delay(11000) // For testing
+  await delay(20000) // For testing
   logger.info(logData, 'Finished sleeping!')
   const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
