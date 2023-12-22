@@ -4,5 +4,5 @@ ALTER TABLE upchieve.progress_reports
 
 -- migrate:down
 ALTER TABLE upchieve.progress_reports
-    DROP IF EXISTS COLUMN read_at;
+    DROP COLUMN IF EXISTS read_at;
 

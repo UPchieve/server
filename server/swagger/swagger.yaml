@@ -2892,7 +2892,7 @@ paths:
       responses:
         '200':
           description: |
-            - Gets a paginated list of subject progress reports to allow students to see their analysis on a session
+            - Gets a paginated list of session progress reports to allow students to see their analysis on a subject
   /api/progress-reports/summaries/:subject:
     get:
       tags:
