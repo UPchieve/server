@@ -2,10 +2,7 @@ import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 
-async function isFeatureEnabled(
-  featureFlagName: FEATURE_FLAGS,
-  userId: Ulid
-) {
+async function isFeatureEnabled(featureFlagName: FEATURE_FLAGS, userId: Ulid) {
   return productClient.isFeatureEnabled(featureFlagName, userId)
 }
 
@@ -66,10 +63,7 @@ export async function getSmsVerificationFeatureFlag(userId: Ulid) {
 }
 
 export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
-  return isFeatureEnabled(
-    FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS,
-    userId
-  )
+  return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
 }
 
 export async function getProgressReportsFeatureFlag(userId: Ulid) {

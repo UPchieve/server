@@ -52,6 +52,6 @@ export default function(app: Express, io: Server) {
       featureFlags: Record<string, boolean | string>
       featureFlagPayloads: Record<string, unknown>
     } = await getAllFlagsForId(distinctId)
-    res.status(200).json({ id: distinctId, ...flags})
+    res.status(200).json({ id: distinctId, ...flags })
   })
 }

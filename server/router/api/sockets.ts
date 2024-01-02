@@ -18,7 +18,10 @@ import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
 import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
-import { getRecapSocketUpdatesFeatureFlag, isChatBotEnabled } from '../../services/FeatureFlagService'
+import {
+  getRecapSocketUpdatesFeatureFlag,
+  isChatBotEnabled,
+} from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
