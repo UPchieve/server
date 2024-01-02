@@ -17,7 +17,7 @@ const socket = io(
   `${protocol}://${config.clusterServerAddress}:${config.socketsPort}`,
   {
     query: { key: config.socketApiKey },
-    autoConnect: false,
+    autoConnect: true,
     reconnectionDelay: 3000,
     reconnection: true,
     transports: ['websocket'],
