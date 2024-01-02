@@ -16,6 +16,10 @@ export async function getFeatureFlagPayload(
   return productClient.isFeatureEnabled(featureFlagName, userId)
 }
 
+export async function getAllFlagsForId(id: Ulid) {
+  return productClient.getAllFlagsAndPayloads(id)
+}
+
 export function isChatBotEnabled() {
   // TODO: Either put this feature flag into PH, or remove
   // references from code.

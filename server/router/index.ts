@@ -16,6 +16,8 @@ import * as ReferralRouter from './referral'
 import * as SubjectsRouter from './subjects'
 import * as TwimlRouter from './twiml'
 import { Server } from 'socket.io'
+import { v4 as uuidv4 } from 'uuid'
+import { getAllFlagsForId } from '../services/FeatureFlagService'
 
 export default function(app: Express, io: Server) {
   logger.info('initializing server routing')
@@ -40,7 +42,16 @@ export default function(app: Express, io: Server) {
   ReferralRouter.routes(app)
   SubjectsRouter.routes(app)
 
-  app.get('/healthz', function(req, res) {
+  app.get('/healthz', function(_req, res) {
     res.status(200).json({ version: config.version })
+  })
+
+  app.get('/feature-flags', async function(req, res) {
+    const distinctId = req.user?.id ?? uuidv4()
+    const flags: {
+      featureFlags: Record<string, boolean | string>
+      featureFlagPayloads: Record<string, unknown>
+    } = await getAllFlagsForId(distinctId)
+    res.status(200).json({ id: distinctId, ...flags})
   })
 }
