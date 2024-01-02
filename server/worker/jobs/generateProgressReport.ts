@@ -2,36 +2,10 @@ import { Job } from 'bull'
 import { getSessionById, UserSessionsFilter } from '../../models/Session'
 import { asUlid } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
-import {
-  generateProgressReportForUser,
-  ProgressReport,
-} from '../../services/ProgressReportsService'
+import { generateProgressReportForUser } from '../../services/ProgressReportsService'
 import { getSocket } from '../sockets'
 import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
 import config from '../../config'
-import axios from 'axios'
-import { logError } from '../logger'
-
-export type ProcessedProgressReportData = {
-  userId: Ulid
-  report: Partial<ProgressReport>
-} & UserSessionsFilter
-
-export async function sendProgressReportProcessed(
-  data: ProcessedProgressReportData
-) {
-  try {
-    const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-    // Include port for non-production environment
-    const port = config.NODE_ENV === 'production' ? '' : config.apiPort
-    await axios.post(
-      `${protocol}://${config.host}${port}/api/processed-reports/processed`,
-      data
-    )
-  } catch (err) {
-    logError(err as Error)
-  }
-}
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -44,28 +18,21 @@ async function generateAndEmitProgressReport(
   const socket = getSocket()
   try {
     const report = await generateProgressReportForUser(userId, reportOptions)
-    const data = {
+    socket.emit('progress-report:processed', {
       userId: userId,
       ...reportOptions,
       report,
-    }
-    if (socket.connected) socket.emit('progress-report:processed', data)
-    else await sendProgressReportProcessed(data)
+    })
   } catch (error) {
-    // TODO: fix type
-    const report = ({
-      status: 'error',
-      summary: {},
-      topics: [],
-      id: '',
-    } as unknown) as ProgressReport
-    const data = {
+    socket.emit('progress-report:processed', {
       userId: userId,
       ...reportOptions,
-      report,
-    }
-    if (socket.connected) socket.emit('progress-report:processed', data)
-    else await sendProgressReportProcessed(data)
+      report: {
+        status: 'error',
+        summary: {},
+        topics: [],
+      },
+    })
     throw error
   }
 }
