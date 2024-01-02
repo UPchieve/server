@@ -1,19 +1,19 @@
 import { FEATURE_FLAGS } from '../constants'
-import { client as phClient } from '../posthog'
+import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
   userId: Ulid
 ) {
-  return await phClient.isFeatureEnabled(featureFlagName, userId)
+  return productClient.isFeatureEnabled(featureFlagName, userId)
 }
 
 export async function getFeatureFlagPayload(
   featureFlagName: FEATURE_FLAGS,
   userId: Ulid
 ) {
-  return await phClient.isFeatureEnabled(featureFlagName, userId)
+  return productClient.isFeatureEnabled(featureFlagName, userId)
 }
 
 export function isChatBotEnabled() {
@@ -39,30 +39,30 @@ export async function getUsingOurPlatformFlag(userId: Ulid) {
 export async function getProcrastinationTextReminderCopy(
   userId: Ulid
 ): Promise<string | undefined> {
-  return (await phClient.getFeatureFlagPayload(
+  return (await productClient.getFeatureFlagPayload(
     FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
     userId
   )) as string
 }
 
 export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
+  return isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
 }
 
 export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
+  return isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
 }
 
 export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.RECAP_SOCKET_UPDATES, userId)
+  return isFeatureEnabled(FEATURE_FLAGS.RECAP_SOCKET_UPDATES, userId)
 }
 
 export async function getSmsVerificationFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.SMS_VERIFICATION, userId)
+  return isFeatureEnabled(FEATURE_FLAGS.SMS_VERIFICATION, userId)
 }
 
 export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(
+  return isFeatureEnabled(
     FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS,
     userId
   )
