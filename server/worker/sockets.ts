@@ -13,11 +13,12 @@ if (config.NODE_ENV === 'dev') {
   protocol = 'https'
 }
 
-const url = `${protocol}://${config.clusterServerAddress}:${config.socketsPort}`
+const port = config.NODE_ENV === 'dev' ? `:${config.socketsPort}` : ''
+const url = `${protocol}://${config.clusterServerAddress}${port}`
 
 const socket = io(url, {
   query: { key: config.socketApiKey },
-  autoConnect: true,
+  autoConnect: false,
   reconnectionDelay: 3000,
   reconnection: true,
   transports: ['websocket'],
@@ -60,7 +61,9 @@ export function getSocket() {
 }
 
 export function startSocket(): void {
+  logger.debug('Starting the socket connection')
   socket.connect()
+  logger.debug('Executed socket connection')
 }
 
 logger.debug('Worker Socket.io client configuration:', {
