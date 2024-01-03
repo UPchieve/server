@@ -13,28 +13,46 @@ if (config.NODE_ENV === 'dev') {
   protocol = 'https'
 }
 
-const socket = io(
-  `${protocol}://${config.clusterServerAddress}:${config.socketsPort}`,
-  {
-    query: { key: config.socketApiKey },
-    autoConnect: true,
-    reconnectionDelay: 3000,
-    reconnection: true,
-    transports: ['websocket'],
-    upgrade: false,
-  }
-)
+const url = `${protocol}://${config.clusterServerAddress}:${config.socketsPort}`
+
+const socket = io(url, {
+  query: { key: config.socketApiKey },
+  autoConnect: true,
+  reconnectionDelay: 3000,
+  reconnection: true,
+  transports: ['websocket'],
+  upgrade: false,
+})
+
+// Logging the attempt to connect
+logger.info(`Attempting to connect to socket at ${url}`)
 
 socket.on('connect', () => {
   logger.info('Worker socket connected')
 })
 
-socket.on('connect_error', (error: Error) => {
-  logger.debug(`Worker socket connection error: ${error}`)
+socket.on('connect_error', error => {
+  logger.error(`Worker socket connection error: ${error.message}`, error)
 })
 
-socket.on('error', (error: Error) => {
-  logger.debug(`Worker socket error: ${error}`)
+socket.on('disconnect', reason => {
+  logger.warn(`Worker socket disconnected: ${reason}`)
+})
+
+socket.on('reconnect_attempt', () => {
+  logger.info(`Worker socket attempting to reconnect`)
+})
+
+socket.on('reconnect_failed', () => {
+  logger.error('Worker socket failed to reconnect')
+})
+
+socket.on('reconnect_error', error => {
+  logger.error(`Worker socket reconnection error: ${error.message}`, error)
+})
+
+socket.on('error', error => {
+  logger.error(`Worker socket general error: ${error.message}`, error)
 })
 
 export function getSocket() {
@@ -44,3 +62,8 @@ export function getSocket() {
 export function startSocket(): void {
   socket.connect()
 }
+
+logger.debug('Worker Socket.io client configuration:', {
+  serverAddress: config.clusterServerAddress,
+  port: config.socketsPort,
+})
