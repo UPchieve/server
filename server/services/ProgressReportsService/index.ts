@@ -152,7 +152,7 @@ export async function generateProgressReportForUser(
   const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
   const botPrompt = formatSessionsForBotPrompt(sessions)
   const botReport = await generateProgressReport(userId, botPrompt)
-  captureEvent(userId, EVENTS.SCORECASTER_ANALYSIS_COMPLETED, {
+  captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
     response: botReport,
     debug: botReport,
   })
