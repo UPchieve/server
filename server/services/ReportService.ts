@@ -239,49 +239,75 @@ export async function generatePartnerAnalyticsReport(
   partnerOrg: string,
   partnerOrgId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  batchSize: number
 ): Promise<FullReport> {
   const logData = {
     volunteerPartnerOrgId: partnerOrgId,
   }
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
-
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
-  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
-    partnerOrg,
-    start,
-    end,
-    associatedPartners
-  )
-
-  if (!volunteers)
-    throw new Error(`no volunteer partner org found with id=${partnerOrgId}`)
-  logger.info(logData, `Found ${volunteers.length} volunteers for partner org`)
-
   const report: AnalyticsReportRow[] = []
-  for (const volunteer of volunteers) {
-    // Get all hour summary data for the volunteer
-    const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
-      volunteer.userId,
-      new Date(volunteer.createdAt),
-      moment()
-        .utc()
-        .toDate()
+
+  let totalProcessed = 0
+  let isLastPage = false
+  do {
+    // Get next batch of volunteers
+    const batchNum = totalProcessed / batchSize + 1
+    logger.info(
+      logData,
+      `Partner analytics report: Fetching volunteer batch #${batchNum}`
     )
-    const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
-      volunteer.userId,
+    const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
+      partnerOrg,
       start,
-      end
+      end,
+      associatedPartners,
+      batchSize,
+      totalProcessed
     )
-    const volunteerWithAnalytics = {
-      ...volunteer,
-      hourSummaryTotal,
-      hourSummaryDateRange,
+    isLastPage = batch.isLastPage
+
+    if (!batch.volunteers)
+      throw new Error(
+        `Partner analytics report: No volunteer partner org found with id=${partnerOrgId}`
+      )
+    if (!batch.volunteers.length && totalProcessed === 0) {
+      throw new Error(
+        `Partner analytics report: No volunteers found for partner org with id=${partnerOrgId}`
+      )
     }
-    const row = getAnalyticsReportRow(volunteerWithAnalytics)
-    report.push(row)
-  }
+
+    // Fetch individual volunteer data
+    for (const volunteer of batch.volunteers) {
+      const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
+        volunteer.userId,
+        new Date(volunteer.createdAt),
+        moment()
+          .utc()
+          .toDate()
+      )
+      const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
+        volunteer.userId,
+        start,
+        end
+      )
+      const volunteerWithAnalytics = {
+        ...volunteer,
+        hourSummaryTotal,
+        hourSummaryDateRange,
+      }
+      const row = getAnalyticsReportRow(volunteerWithAnalytics)
+      report.push(row)
+      totalProcessed += batch.volunteers.length
+      logger.info(
+        logData,
+        `Partner analytics report: Completed batch #${batchNum}`
+      )
+    }
+  } while (!isLastPage)
+
   logger.info(logData, 'Generated all volunteer rows for analytics report')
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
@@ -356,11 +382,14 @@ export async function getAnalyticsReport(data: unknown) {
     }
     logger.info(logData, 'Beginning partner analytics report generation')
 
+    const batchSize = config.corporatePartnerReports.batchSize
+
     const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
       partnerOrgId,
       startDate,
-      endDate
+      endDate,
+      batchSize
     )
     if (analyticsReport.report.length === 0)
       throw new ReportNoDataFoundError(

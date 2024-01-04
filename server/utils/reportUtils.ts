@@ -714,7 +714,7 @@ export function processAnalyticsReportDataSheet(
 ) {
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
-  const isCustomAnalyticsReport = config.customAnalyticsReportPartnerOrgs.includes(
+  const isCustomAnalyticsReport = config.corporatePartnerReports.customAnalyticsReportPartnerOrgs.includes(
     partnerOrg
   )
   for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
@@ -853,7 +853,9 @@ export function processAnalyticsReportSummarySheet(
 
     // do not add unique partner students helped row to non-att/verizon reports
     if (
-      !config.customAnalyticsReportPartnerOrgs.includes(partnerOrg) &&
+      !config.corporatePartnerReports.customAnalyticsReportPartnerOrgs.includes(
+        partnerOrg
+      ) &&
       key === 'uniquePartnerStudentsHelped'
     )
       continue

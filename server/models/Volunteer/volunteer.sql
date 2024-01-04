@@ -1558,7 +1558,8 @@ WHERE
 WHERE
     volunteer_partner_orgs.key = :volunteerPartnerOrg!
 ORDER BY
-    users.created_at DESC;
+    users.created_at DESC
+LIMIT :limit!::int OFFSET :offset!::int;
 
 
 /* @name removeOnboardedStatusForUnqualifiedVolunteers */

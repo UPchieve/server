@@ -188,9 +188,14 @@ const config: Static<typeof Config> = {
   priorityMatchingSponsorOrgs: (
     process.env.SUBWAY_PRIORITY_MATCHING_SPONSOR_ORGS || 'onlySponsorsSchools'
   ).split(','),
-  customAnalyticsReportPartnerOrgs: (
-    process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'big-telecom'
-  ).split(','),
+
+  corporatePartnerReports: {
+    customAnalyticsReportPartnerOrgs: (
+      process.env.SUBWAY_CUSTOM_ANALYTICS_PARTNER_ORGS || 'big-telecom'
+    ).split(','),
+    batchSize:
+      Number(process.env.SUBWAY_CORPORATE_PARTNER_REPORTS_BATCH_SIZE) || 100,
+  },
 
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',

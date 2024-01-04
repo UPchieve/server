@@ -1681,8 +1681,16 @@ export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
   end: Date,
-  associatedPartners: AssociatedPartnersAndSchools
-): Promise<VolunteersForAnalyticsReport[] | undefined> {
+  associatedPartners: AssociatedPartnersAndSchools,
+  limit: number,
+  offset: number
+): Promise<
+  | {
+      volunteers: VolunteersForAnalyticsReport[]
+      isLastPage: boolean
+    }
+  | undefined
+> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
       {
@@ -1691,16 +1699,19 @@ export async function getVolunteersForAnalyticsReport(
         end,
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
+        limit,
+        offset,
       },
       getRoClient()
     )
 
     if (!result.length)
+      // @TODO This is not necessarily an error condition anymore, and also the error message is not necessarily accurate
       throw new Error(
         `no volunteer partner org found with key ${volunteerPartnerOrg}`
       )
 
-    return result.map(row => {
+    const volunteers = result.map(row => {
       const temp = makeSomeOptional(row, [
         'state',
         'dateOnboarded',
@@ -1713,8 +1724,13 @@ export async function getVolunteersForAnalyticsReport(
         totalPartnerTimeTutoredWithinRange: Number(
           temp.totalPartnerTimeTutoredWithinRange
         ),
-      }
+      } as VolunteersForAnalyticsReport
     })
+
+    return {
+      volunteers,
+      isLastPage: volunteers.length < limit,
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
