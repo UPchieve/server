@@ -1591,7 +1591,7 @@ COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM s
 -- Data for Name: progress_reports; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at) FROM stdin;
+COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at, read_at) FROM stdin;
 \.
 
 
