@@ -359,7 +359,7 @@ describe('generateProgressReportForUser', () => {
     expect(report).toMatchObject(progressReport)
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       userId,
-      EVENTS.SCORECASTER_ANALYSIS_COMPLETED,
+      EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED,
       expect.anything()
     )
     // Use this as a proxy to tell if saveProgressReport was called

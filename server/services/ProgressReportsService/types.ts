@@ -27,6 +27,8 @@ export type ProgressReportSummary = {
   overallGrade: number
   details: ProgressReportDetail[]
   createdAt: Date
+  reportId: Ulid
+  reportReadAt?: Date
 }
 
 export type ProgressReportConcept = {
@@ -36,6 +38,8 @@ export type ProgressReportConcept = {
   grade: number
   details: ProgressReportDetail[]
   createdAt: Date
+  reportId: Ulid
+  reportReadAt?: Date
 }
 
 export type ProgressReport = ProgressReportInfo & {
