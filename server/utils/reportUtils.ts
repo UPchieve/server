@@ -26,6 +26,8 @@ import config from '../config'
 import { QuizzesPassedForDateRange } from '../models/UserAction/types'
 import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
+import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
+import { ReportNoDataFoundError } from '../services/ReportService'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -876,16 +878,28 @@ export const asValidateVolunteerReportQuery = asFactory<VolunteerReportQuery>({
   endDate: asString,
 })
 
-export function validateVolunteerReportQuery(data: unknown) {
+export async function validateVolunteerReportQuery(data: unknown) {
   const { partnerOrg, startDate, endDate } = asValidateVolunteerReportQuery(
     data
   )
-  if (!moment(startDate, 'MM-DD-YYYY', true).isValid())
-    throw new InputError('Start date does not follow a MM-DD-YYYY format')
-  if (!moment(endDate, 'MM-DD-YYYY', true).isValid())
-    throw new InputError('End date does not follow a MM-DD-YYYY format')
+  const startMoment = moment(startDate, 'MM-DD-YYYY', true)
+  const endMoment = moment(endDate, 'MM-DD-YYYY', true)
 
-  return { partnerOrg, startDate, endDate }
+  if (!startMoment.isValid())
+    throw new InputError('Start date does not follow a MM-DD-YYYY format')
+  if (!endMoment.isValid())
+    throw new InputError('End date does not follow a MM-DD-YYYY format')
+  if (startMoment.toDate() >= endMoment.toDate())
+    throw new InputError('Invalid date range')
+
+  const partnerOrgId = await VolunteerPartnerOrgRepo.getVolunteerPartnerOrgIdByKey(
+    partnerOrg
+  )
+  if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
+  if (!partnerOrgId)
+    throw new ReportNoDataFoundError('No partner org found with given key')
+
+  return { partnerOrg, partnerOrgId, startDate, endDate }
 }
 
 export interface SessionDateRanges {

@@ -246,9 +246,6 @@ export async function generatePartnerAnalyticsReport(
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
 
-  // Date range check
-  if (start >= end) throw new Error('Invalid date range')
-
   const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
@@ -343,16 +340,12 @@ export async function writeAnalyticsReport(
 
 export async function getAnalyticsReport(data: unknown) {
   try {
-    const { partnerOrg, startDate, endDate } = validateVolunteerReportQuery(
-      data
-    )
-
-    const partnerOrgId = await VolunteerPartnerOrgRepo.getVolunteerPartnerOrgIdByKey(
-      partnerOrg
-    )
-    if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
-    if (!partnerOrgId)
-      throw new ReportNoDataFoundError('No partner org found with given key')
+    const {
+      partnerOrg,
+      partnerOrgId,
+      startDate,
+      endDate,
+    } = await validateVolunteerReportQuery(data)
 
     const logData = {
       volunteerPartnerOrgId: partnerOrgId,
