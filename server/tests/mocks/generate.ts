@@ -427,6 +427,7 @@ export const buildProgressReportConcept = (
     grade: 100,
     details: [],
     createdAt: new Date(),
+    reportId: getUuid(),
     ...overrides,
   }
   return concept
@@ -441,6 +442,7 @@ export const buildProgressReportSummary = (
     overallGrade: 100,
     details: [],
     createdAt: new Date(),
+    reportId: getUuid(),
     ...overrides,
   }
   return summary
@@ -458,6 +460,7 @@ export const buildProgressReportSummaryRow = (
     focusArea: 'strength',
     infoType: 'reason',
     createdAt: new Date(),
+    reportId: getUuid(),
     ...overrides,
   }
   return summaryRow
@@ -476,6 +479,7 @@ export const buildProgressReportConceptRow = (
     focusArea: 'strength',
     infoType: 'reason',
     createdAt: new Date(),
+    reportId: getUuid(),
     ...overrides,
   }
   return conceptRow
