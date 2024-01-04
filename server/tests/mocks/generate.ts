@@ -27,7 +27,12 @@ import {
   ProgressReportDetail,
   ProgressReportSummary,
   ProgressReportConcept,
-} from '../../services/ProgressReportsService/types'
+} from '../../services/ProgressReportsService'
+import {
+  ProgressReportConceptRow,
+  ProgressReportStatuses,
+  ProgressReportSummaryRow,
+} from '../../models/ProgressReports/'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -196,8 +201,7 @@ export async function buildSessionRow(
 }
 
 export async function buildSession(
-  overrides: Partial<Session> & { studentId: Ulid },
-  client?: Pool
+  overrides: Partial<Session> & { studentId: Ulid }
 ): Promise<Session> {
   return {
     id: getDbUlid(),
@@ -404,7 +408,7 @@ export const buildProgressReportDetails = (
   overrides: Partial<ProgressReportDetail> = {}
 ): ProgressReportDetail => {
   const detail: ProgressReportDetail = {
-    id: getDbUlid(),
+    id: getUuid(),
     content: faker.lorem.sentence(),
     focusArea: 'practiceArea',
     infoType: 'recommendation',
@@ -417,11 +421,13 @@ export const buildProgressReportConcept = (
   overrides: Partial<ProgressReportConcept> = {}
 ): ProgressReportConcept => {
   const concept: ProgressReportConcept = {
-    id: getDbUlid(),
+    id: getUuid(),
     name: faker.lorem.word(),
     description: faker.lorem.sentence(),
     grade: 100,
     details: [],
+    createdAt: new Date(),
+    reportId: getUuid(),
     ...overrides,
   }
   return concept
@@ -431,20 +437,60 @@ export const buildProgressReportSummary = (
   overrides: Partial<ProgressReportSummary> = {}
 ): ProgressReportSummary => {
   const summary = {
-    id: getDbUlid(),
+    id: getUuid(),
     summary: faker.lorem.sentence(),
     overallGrade: 100,
     details: [],
     createdAt: new Date(),
+    reportId: getUuid(),
     ...overrides,
   }
   return summary
+}
+
+export const buildProgressReportSummaryRow = (
+  overrides: Partial<ProgressReportSummaryRow> = {}
+): ProgressReportSummaryRow => {
+  const summaryRow = {
+    id: getUuid(),
+    summary: faker.lorem.sentence(),
+    overallGrade: 100,
+    detailId: getUuid(),
+    content: faker.lorem.sentence(),
+    focusArea: 'strength',
+    infoType: 'reason',
+    createdAt: new Date(),
+    reportId: getUuid(),
+    ...overrides,
+  }
+  return summaryRow
+}
+
+export const buildProgressReportConceptRow = (
+  overrides: Partial<ProgressReportConceptRow> = {}
+): ProgressReportConceptRow => {
+  const conceptRow = {
+    id: getUuid(),
+    name: faker.lorem.word(),
+    description: faker.lorem.sentence(),
+    grade: 100,
+    detailId: getUuid(),
+    content: faker.lorem.sentence(),
+    focusArea: 'strength',
+    infoType: 'reason',
+    createdAt: new Date(),
+    reportId: getUuid(),
+    ...overrides,
+  }
+  return conceptRow
 }
 
 export const buildProgressReport = (
   overrides: Partial<ProgressReport> = {}
 ): ProgressReport => {
   const report = {
+    id: getUuid(),
+    status: 'complete' as ProgressReportStatuses,
     summary: buildProgressReportSummary(),
     concepts: [buildProgressReportConcept()],
     ...overrides,

@@ -16,6 +16,21 @@ jest.mock('socket.io-client', () => ({
   }),
 }))
 
+jest.mock('../worker/sockets', () => {
+  const originalModule = jest.requireActual('../worker/sockets')
+  const mockEmit = jest.fn()
+
+  // Create a partial mock with only the methods you need
+  const partialMockSocket = {
+    emit: mockEmit,
+  }
+
+  return {
+    ...originalModule,
+    getSocket: () => partialMockSocket as any,
+  }
+})
+
 const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'example'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')
@@ -152,6 +167,8 @@ jest.mock('../config', () => {
 
     // recaptcha
     googleRecaptchaThreshold: 0.5,
+
+    minSessionLength: 60000,
   }
 })
 

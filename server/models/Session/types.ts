@@ -33,3 +33,11 @@ export type UserSessionStat = {
 export type UserSessionStats = {
   [subjectName: string]: UserSessionStat
 }
+
+export type UserSessionsFilter = {
+  start?: Date
+  end?: Date
+  subject: string
+  topic?: string
+  sessionId?: Ulid
+}
