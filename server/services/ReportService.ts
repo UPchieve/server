@@ -27,6 +27,7 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
+import { getAssociatedPartnersAndSchools } from '../models/AssociatedPartner'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -246,11 +247,14 @@ export async function generatePartnerAnalyticsReport(
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
 
+  const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
   const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
-    end
+    end,
+    associatedPartners
   )
+
   if (!volunteers)
     throw new Error(`no volunteer partner org found with id=${partnerOrgId}`)
   logger.info(logData, `Found ${volunteers.length} volunteers for partner org`)

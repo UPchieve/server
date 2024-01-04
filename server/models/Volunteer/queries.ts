@@ -16,7 +16,10 @@ import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
 import { PoolClient } from 'pg'
-import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
+import {
+  AssociatedPartnersAndSchools,
+  getAssociatedPartnersAndSchools,
+} from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
@@ -1677,12 +1680,10 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
 export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
-  end: Date
+  end: Date,
+  associatedPartners: AssociatedPartnersAndSchools
 ): Promise<VolunteersForAnalyticsReport[] | undefined> {
   try {
-    const associatedPartners = await getAssociatedPartnersAndSchools(
-      volunteerPartnerOrg
-    )
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
       {
         volunteerPartnerOrg,
