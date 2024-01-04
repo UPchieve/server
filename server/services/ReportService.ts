@@ -257,7 +257,7 @@ export async function generatePartnerAnalyticsReport(
     const batchNum = totalProcessed / batchSize + 1
     logger.info(
       logData,
-      `Partner analytics report: Fetching volunteer batch #${batchNum}`
+      `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
     )
     const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
       partnerOrg,
@@ -269,14 +269,8 @@ export async function generatePartnerAnalyticsReport(
     )
     isLastPage = batch.isLastPage
 
-    if (!batch.volunteers)
-      throw new Error(
-        `Partner analytics report: No volunteer partner org found with id=${partnerOrgId}`
-      )
     if (!batch.volunteers.length && totalProcessed === 0) {
-      throw new Error(
-        `Partner analytics report: No volunteers found for partner org with id=${partnerOrgId}`
-      )
+      throw new Error('Did not find any volunteers for partner org')
     }
 
     // Fetch individual volunteer data
@@ -300,12 +294,13 @@ export async function generatePartnerAnalyticsReport(
       }
       const row = getAnalyticsReportRow(volunteerWithAnalytics)
       report.push(row)
-      totalProcessed += batch.volunteers.length
-      logger.info(
-        logData,
-        `Partner analytics report: Completed batch #${batchNum}`
-      )
     }
+
+    totalProcessed += batch.volunteers.length
+    logger.info(
+      logData,
+      `Partner analytics report: Completed batch #${batchNum}`
+    )
   } while (!isLastPage)
 
   logger.info(logData, 'Generated all volunteer rows for analytics report')
