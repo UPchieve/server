@@ -659,10 +659,13 @@ WHERE
 
 /* @name getLatestSessionByStudentId */
 SELECT
-    id,
-    created_at
+    sessions.id,
+    sessions.created_at,
+    time_tutored::int,
+    subjects.name AS subject
 FROM
     sessions
+    JOIN subjects ON sessions.subject_id = subjects.id
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
@@ -1190,7 +1193,7 @@ AND ((:start)::date IS NULL
 AND ((:end)::date IS NULL
     OR sessions.created_at <= (:end)::date)
 AND ((:subject)::text IS NULL
-    OR subjects.name = (:subject)::text)
+    OR subjects.name = (:subject!)::text)
 AND (:sessionId::uuid IS NULL
     OR sessions.id = :sessionId::uuid)
 AND ((:topic)::text IS NULL
