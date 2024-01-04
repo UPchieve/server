@@ -2870,17 +2870,51 @@ paths:
       security:
         - cookieAuth: []
       responses:
-  /api/progress-reports/generate:
+  /api/progress-reports/sessions/:sessionId:
     get:
       tags:
         - progress-reports
-      summary: Gets a generated ProgressReport from the user's session
+      summary: Gets a progress report for a given session
       security:
         - cookieAuth: []
       responses:
         '200':
           description: |
-            A generated report for the user's sessions
+            - Gets a progress report for a given session
+            - 200 if no progress report is found
+  /api/progress-reports/subjects/:subject:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets a list of progress reports for a given subject
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Gets a paginated list of session progress reports to allow students to see their analysis on a subject
+  /api/progress-reports/summaries/:subject:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets a list of progress report summaries for a subject
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Used to chart a student's progress overtime for a subject
+  /api/progress-reports/summaries/:subject/latest:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets the latest progress report summary for a subject
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Used to show the student's current strengths and practice areas in a subject
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
