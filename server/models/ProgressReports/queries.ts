@@ -1,7 +1,7 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
+import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
 import {
   ProgressReportAnalysisTypes,
   ProgressReportDetailInsert,
@@ -11,6 +11,7 @@ import {
   ProgressReportConceptInsert,
   ProgressReportConceptRow,
   ProgressReportSummaryRow,
+  ProgressReportSessionPaginated,
 } from './types'
 
 export async function insertProgressReport(
@@ -197,7 +198,7 @@ export async function getProgressReportInfoBySessionId(
       tc ?? getClient()
     )
     if (result.length) {
-      const data = makeRequired(result[0])
+      const data = makeSomeOptional(result[0], ['readAt'])
       return {
         ...data,
         status: data.status as ProgressReportStatuses,
@@ -220,7 +221,7 @@ export async function getProgressReportByReportId(
       tc ?? getClient()
     )
     if (result.length) {
-      const data = makeRequired(result[0])
+      const data = makeSomeOptional(result[0], ['readAt'])
       return {
         ...data,
         status: data.status as ProgressReportStatuses,
@@ -242,7 +243,8 @@ export async function getProgressReportSummariesForMany(
       },
       tc ?? getClient()
     )
-    if (result.length) return result.map(v => makeRequired(v))
+    if (result.length)
+      return result.map(v => makeSomeOptional(v, ['reportReadAt']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -260,7 +262,123 @@ export async function getProgressReportConceptsByReportId(
       },
       tc ?? getClient()
     )
-    if (result.length) return result.map(v => makeRequired(v))
+    if (result.length)
+      return result.map(v => makeSomeOptional(v, ['reportReadAt']))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getProgressReportSessionsForSubjectByPagination(
+  userId: Ulid,
+  data: {
+    subject: string
+    analysisType: ProgressReportAnalysisTypes
+    limit: number
+    offset: number
+  },
+  tc?: TransactionClient
+): Promise<ProgressReportSessionPaginated[]> {
+  try {
+    const result = await pgQueries.getProgressReportSessionsForSubjectByPagination.run(
+      {
+        userId,
+        subject: data.subject,
+        analysisType: data.analysisType,
+        limit: data.limit,
+        offset: data.offset,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAllProgressReportIdsByUserIdAndSubject(
+  userId: Ulid,
+  subject: string,
+  analysisType: ProgressReportAnalysisTypes,
+  tc?: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const result = await pgQueries.getAllProgressReportIdsByUserIdAndSubject.run(
+      {
+        userId,
+        subject,
+        analysisType,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row).id)
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestProgressReportIdBySubject(
+  userId: Ulid,
+  subject: Ulid,
+  analysisType: ProgressReportAnalysisTypes,
+  tc?: TransactionClient
+): Promise<ProgressReportInfo | undefined> {
+  try {
+    const result = await pgQueries.getLatestProgressReportIdBySubject.run(
+      {
+        userId,
+        subject,
+        analysisType,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) {
+      const data = makeSomeOptional(result[0], ['readAt'])
+      return {
+        ...data,
+        status: data.status as ProgressReportStatuses,
+      }
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function updateProgressReportsReadAtByReportIds(
+  reportIds: Ulid[],
+  tc?: TransactionClient
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateProgressReportsReadAtByReportIds.run(
+      { reportIds },
+      tc ?? getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError(
+        `updateProgressReportReadAt: Update query did not return ok for ${reportIds.join(
+          ','
+        )}`
+      )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function getUnreadProgressReportOverviewSubjectsByUserId(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<string[]> {
+  try {
+    const result = await pgQueries.getUnreadProgressReportOverviewSubjectsByUserId.run(
+      {
+        userId,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row).subject)
     return []
   } catch (err) {
     throw new RepoReadError(err)
