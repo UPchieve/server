@@ -252,7 +252,7 @@ export async function generatePartnerAnalyticsReport(
 
   let totalProcessed = 0
   let isLastPage = false
-  do {
+  while (!isLastPage) {
     // Get next batch of volunteers
     const batchNum = totalProcessed / batchSize + 1
     logger.info(
@@ -269,7 +269,7 @@ export async function generatePartnerAnalyticsReport(
     )
     isLastPage = batch.isLastPage
 
-    if (!batch.volunteers.length && totalProcessed === 0) {
+    if (!batch.volunteers.length && !isLastPage) {
       throw new Error('Did not find any volunteers for partner org')
     }
 
@@ -301,7 +301,7 @@ export async function generatePartnerAnalyticsReport(
       logData,
       `Partner analytics report: Completed batch #${batchNum}`
     )
-  } while (!isLastPage)
+  }
 
   logger.info(logData, 'Generated all volunteer rows for analytics report')
 
