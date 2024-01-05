@@ -62,8 +62,7 @@ describe('ReportService', () => {
       'testOrg',
       'testOrgId',
       '01-01-2023',
-      '12-31-2023',
-      2
+      '12-31-2023'
     )
     expect(mockGetVolunteersForAnalyticsReport).toHaveBeenCalledTimes(3) // 3 batches
     expect(mockGetHourSummaryStats).toHaveBeenCalledTimes(10) // 5 total volunteers, called 2x per volunteer
@@ -91,13 +90,9 @@ describe('ReportService', () => {
     )
   })
 
-  it.each([
-    // batch size, total volunteers
-    [2, 2],
-    [2, 1],
-  ])(
+  it.each([2, 1])(
     'May generate a full report in a single batch',
-    async (batchSize, totalVolunteers) => {
+    async totalVolunteers => {
       mockGetVolunteersForAnalyticsReport.mockResolvedValue({
         isLastPage: true,
         volunteers: times(
@@ -105,12 +100,12 @@ describe('ReportService', () => {
           buildTestVolunteerForAnalyticsReport
         ),
       })
+
       const actual = await generatePartnerAnalyticsReport(
         'testOrg',
         'testOrgId',
         '01-01-2023',
-        '12-31-2023',
-        batchSize
+        '12-31-2023'
       )
       expect(actual.report.length).toEqual(totalVolunteers)
       expect(mockGetVolunteersForAnalyticsReport).toHaveBeenCalledTimes(1) // 1 batch
@@ -141,8 +136,7 @@ describe('ReportService', () => {
         'testOrg',
         'testOrgId',
         '01-01-2023',
-        '12-31-2023',
-        2
+        '12-31-2023'
       )
     ).rejects.toThrowError('Did not find any volunteers for partner org')
   })

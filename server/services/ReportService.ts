@@ -239,16 +239,18 @@ export async function generatePartnerAnalyticsReport(
   partnerOrg: string,
   partnerOrgId: string,
   startDate: string,
-  endDate: string,
-  batchSize: number
+  endDate: string
 ): Promise<FullReport> {
   const logData = {
     volunteerPartnerOrgId: partnerOrgId,
   }
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
-  const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
   const report: AnalyticsReportRow[] = []
+  const batchSize = config.corporatePartnerReports.batchSize
+  logger.info(`Partner analytics report: Using batchSize=${batchSize}`)
+
+  const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
   let totalProcessed = 0
   let isLastPage = false
@@ -377,14 +379,11 @@ export async function getAnalyticsReport(data: unknown) {
     }
     logger.info(logData, 'Beginning partner analytics report generation')
 
-    const batchSize = config.corporatePartnerReports.batchSize
-
     const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
       partnerOrgId,
       startDate,
-      endDate,
-      batchSize
+      endDate
     )
     if (analyticsReport.report.length === 0)
       throw new ReportNoDataFoundError(
