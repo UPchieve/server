@@ -447,6 +447,22 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
+    socket.on(
+      'progress-report:processed',
+      async ({ userId, sessionId, subject, report }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/progress-report:processed',
+          () => {
+            socketService.emitProgressReportProcessedToUser(userId, {
+              sessionId,
+              subject,
+              report,
+            })
+          }
+        )
+      }
+    )
+
     socket.on('disconnect', reason => {
       logger.info(`Socket disconnected for reason: ${reason}`)
     })

@@ -4,6 +4,7 @@ import logger from '../logger'
 import { CurrentSession, getCurrentSessionBySessionId } from '../models/Session'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
+import { ProgressReport } from '../services/ProgressReportsService'
 
 class SocketService {
   private static instance: SocketService
@@ -63,6 +64,21 @@ class SocketService {
       err
     )
     socket.emit('bump', data, err.toString())
+  }
+
+  async emitProgressReportProcessedToUser(
+    userId: Ulid,
+    data: {
+      report: ProgressReport
+      subject: string
+      sessionId?: Ulid
+    }
+  ) {
+    // The overall progress report is ready
+    if (!data.sessionId)
+      this.io.to(userId).emit('progress-report:processed:overview', data)
+    // A single progress report is ready
+    else this.io.to(userId).emit('progress-report:processed:session', data)
   }
 }
 

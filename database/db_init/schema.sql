@@ -918,7 +918,8 @@ CREATE TABLE upchieve.progress_reports (
     user_id uuid NOT NULL,
     status_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    read_at timestamp with time zone
 );
 
 
@@ -5342,4 +5343,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20231101180420'),
     ('20231109144205'),
     ('20231109145812'),
-    ('20231211220614');
+    ('20231211220614'),
+    ('20231221230720');

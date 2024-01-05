@@ -8,9 +8,15 @@ export type ProgressReportStatuses =
 
 export type ProgressReportAnalysisTypes = 'single' | 'group'
 
-export type ProgressFocusAreas = 'strength' | 'practiceArea'
+export type ProgressReportFocusAreas = 'strength' | 'practiceArea'
 
-export type ProgressInfoTypes = 'recommendation' | 'reason'
+export type ProgressReportInfoTypes = 'recommendation' | 'reason'
+
+export type ProgressReportInfo = {
+  id: Ulid
+  status: ProgressReportStatuses
+  readAt?: Date
+}
 
 export type ProgressReportSummaryRow = {
   id: Ulid
@@ -20,6 +26,8 @@ export type ProgressReportSummaryRow = {
   content: string
   focusArea: string
   infoType: string
+  reportId: Ulid
+  reportReadAt?: Date
   createdAt: Date
 }
 
@@ -32,6 +40,8 @@ export type ProgressReportConceptRow = {
   content: string
   focusArea: string
   infoType: string
+  reportId: Ulid
+  reportReadAt?: Date
   createdAt: Date
 }
 
@@ -48,6 +58,14 @@ export type ProgressReportConceptInsert = {
 
 export type ProgressReportDetailInsert = {
   content: string
-  focusArea: ProgressFocusAreas
-  infoType: ProgressInfoTypes
+  focusArea: ProgressReportFocusAreas
+  infoType: ProgressReportInfoTypes
+}
+
+export type ProgressReportSessionPaginated = {
+  id: Ulid
+  topic: string
+  topicIconLink: string
+  subject: string
+  createdAt: Date
 }
