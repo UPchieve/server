@@ -6,6 +6,7 @@ export const client =
   config.posthogToken !== 'bogus'
     ? new PostHog(config.posthogToken, {
         host: 'https://app.posthog.com',
+        personalApiKey: config.posthogPersonalApiToken,
       })
     : {
         isFeatureEnabled: () => false,
