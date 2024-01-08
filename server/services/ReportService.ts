@@ -248,7 +248,7 @@ export async function generatePartnerAnalyticsReport(
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
   const report: AnalyticsReportRow[] = []
   const batchSize = config.corporatePartnerReports.batchSize
-  logger.info(`Partner analytics report: Using batchSize=${batchSize}`)
+  logger.info(logData, `Partner analytics report: Using batchSize=${batchSize}`)
 
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
