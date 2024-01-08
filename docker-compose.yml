@@ -4,7 +4,6 @@ services:
         hostname: postgres
         ports:
             - "5432:5432"
-        platform: linux/amd64
         image: postgres:14
         environment:
             - POSTGRES_DB=upchieve
@@ -27,12 +26,10 @@ services:
         hostname: redis
         ports:
             - "6379:6379"
-        platform: linux/amd64
         image: redis:6.2.1
         volumes:
             - ./redis-volume:/data
     pgadmin:
-        platform: linux/amd64
         image: dpage/pgadmin4
         depends_on:
             - postgres
