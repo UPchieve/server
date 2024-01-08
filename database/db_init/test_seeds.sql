@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
--- Dumped by pg_dump version 14.10 (Homebrew)
+-- Dumped by pg_dump version 16.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3637,6 +3637,7 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 01859800-bca8-9c76-e3ad-ce3108a3236f	11	2023-01-09 19:27:43.603862+00	2023-01-09 19:27:43.603862+00
 01859800-bca8-9c76-e3ad-ce3108a3236f	19	2023-01-09 19:27:43.608806+00	2023-01-09 19:27:43.608806+00
 01859800-bca8-9c76-e3ad-ce3108a3236f	18	2023-01-09 19:27:43.613271+00	2023-01-09 19:27:43.613271+00
+01859800-bca8-af9e-8f1d-815bf6891cf5	23	2023-01-09 19:27:44+00	2023-01-09 19:27:44+00
 \.
 
 
