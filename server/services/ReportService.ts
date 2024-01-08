@@ -27,7 +27,10 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
-import { getAssociatedPartnersAndSchools } from '../models/AssociatedPartner'
+import {
+  AssociatedPartnersAndSchools,
+  getAssociatedPartnersAndSchools,
+} from '../models/AssociatedPartner'
 import { VolunteersForAnalyticsReportBatch } from '../models/Volunteer/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
@@ -236,6 +239,64 @@ type FullReport = {
   summary: AnalyticsReportSummary
   report: AnalyticsReportRow[]
 }
+
+/**
+ * Processes a batch of volunteers for the analytics report and mutates 'report' with the results.
+ * This function is written for memory/garbage collection efficiency. As such, the largest memory reference (the batch)
+ * is confined to the scope of this function and the overall report is passed in and mutated to avoid
+ * duplication.
+ *
+ * @param report - A collection of rows for the report. This is mutated by this function.
+ */
+async function processBatch(
+  partnerOrg: string,
+  start: Date,
+  end: Date,
+  associatedPartners: AssociatedPartnersAndSchools,
+  batchSize: number,
+  totalProcessed: number,
+  report: AnalyticsReportRow[]
+) {
+  const batch: VolunteersForAnalyticsReportBatch = await VolunteerRepo.getVolunteersForAnalyticsReport(
+    partnerOrg,
+    start,
+    end,
+    associatedPartners,
+    batchSize,
+    totalProcessed
+  )
+
+  if (!batch.volunteers.length && !batch.isLastPage) {
+    throw new Error('Did not find any volunteers for partner org')
+  }
+
+  // Fetch individual volunteer data
+  for (const volunteer of batch.volunteers) {
+    const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
+      volunteer.userId,
+      new Date(volunteer.createdAt),
+      moment()
+        .utc()
+        .toDate()
+    )
+    const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
+      volunteer.userId,
+      start,
+      end
+    )
+    const volunteerWithAnalytics = {
+      ...volunteer,
+      hourSummaryTotal,
+      hourSummaryDateRange,
+    }
+    const row = getAnalyticsReportRow(volunteerWithAnalytics)
+    report.push(row)
+  }
+
+  return {
+    isLastPage: batch.isLastPage,
+  }
+}
 export async function generatePartnerAnalyticsReport(
   partnerOrg: string,
   partnerOrgId: string,
@@ -253,60 +314,29 @@ export async function generatePartnerAnalyticsReport(
 
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
-  let totalProcessed = 0
   let isLastPage = false
+  let batchNum: number
   while (!isLastPage) {
-    // Get next batch of volunteers
-    const batchNum = totalProcessed / batchSize + 1
+    batchNum = report.length / batchSize + 1
     logger.info(
       logData,
       `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
     )
-    let batch:
-      | VolunteersForAnalyticsReportBatch
-      | undefined = await VolunteerRepo.getVolunteersForAnalyticsReport(
+    const result = await processBatch(
       partnerOrg,
       start,
       end,
       associatedPartners,
       batchSize,
-      totalProcessed
+      report.length,
+      report
     )
-    isLastPage = batch.isLastPage
+    isLastPage = result.isLastPage
 
-    if (!batch.volunteers.length && !isLastPage) {
-      throw new Error('Did not find any volunteers for partner org')
-    }
-
-    // Fetch individual volunteer data
-    for (const volunteer of batch.volunteers) {
-      const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
-        volunteer.userId,
-        new Date(volunteer.createdAt),
-        moment()
-          .utc()
-          .toDate()
-      )
-      const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
-        volunteer.userId,
-        start,
-        end
-      )
-      const volunteerWithAnalytics = {
-        ...volunteer,
-        hourSummaryTotal,
-        hourSummaryDateRange,
-      }
-      const row = getAnalyticsReportRow(volunteerWithAnalytics)
-      report.push(row)
-    }
-
-    totalProcessed += batch.volunteers.length
     logger.info(
       logData,
       `Partner analytics report: Completed batch #${batchNum}`
     )
-    batch = undefined
   }
 
   logger.info(logData, 'Generated all volunteer rows for analytics report')
