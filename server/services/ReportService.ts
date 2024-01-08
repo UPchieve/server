@@ -28,6 +28,7 @@ import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { getAssociatedPartnersAndSchools } from '../models/AssociatedPartner'
+import { VolunteersForAnalyticsReportBatch } from '../models/Volunteer/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -261,7 +262,9 @@ export async function generatePartnerAnalyticsReport(
       logData,
       `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
     )
-    const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
+    let batch:
+      | VolunteersForAnalyticsReportBatch
+      | undefined = await VolunteerRepo.getVolunteersForAnalyticsReport(
       partnerOrg,
       start,
       end,
@@ -303,6 +306,7 @@ export async function generatePartnerAnalyticsReport(
       logData,
       `Partner analytics report: Completed batch #${batchNum}`
     )
+    batch = undefined
   }
 
   logger.info(logData, 'Generated all volunteer rows for analytics report')

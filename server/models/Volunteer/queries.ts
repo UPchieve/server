@@ -1677,6 +1677,11 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
 }
 
 // TODO: break out anything that uses RO client into their own repo
+
+export interface VolunteersForAnalyticsReportBatch {
+  isLastPage: boolean
+  volunteers: VolunteersForAnalyticsReport[]
+}
 export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
@@ -1684,10 +1689,7 @@ export async function getVolunteersForAnalyticsReport(
   associatedPartners: AssociatedPartnersAndSchools,
   limit: number,
   offset: number
-): Promise<{
-  volunteers: VolunteersForAnalyticsReport[]
-  isLastPage: boolean
-}> {
+): Promise<VolunteersForAnalyticsReportBatch> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
       {
