@@ -14,7 +14,10 @@ export const client =
         getAllFlagsAndPayloads: () => {
           return { featureFlags: {}, featureFlagPayloads: {} }
         },
-        captureEvent: () => {
+        identify: () => {
+          /* no-op */
+        },
+        capture: () => {
           /* no-op */
         },
         shutdownAsync: () => {
