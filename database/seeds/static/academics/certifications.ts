@@ -25,7 +25,7 @@ export async function certifications(): Promise<NameToId> {
     'precalculus',
     'calculusAB',
     'calculusBC',
-    'usHistory'
+    'usHistory',
   ]
   const temp: NameToId = {}
   for (const cert of certifications) {
