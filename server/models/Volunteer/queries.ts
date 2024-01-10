@@ -1679,16 +1679,21 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
 // TODO: break out anything that uses RO client into their own repo
 
 export interface VolunteersForAnalyticsReportBatch {
-  isLastPage: boolean
   volunteers: VolunteersForAnalyticsReport[]
+  nextCursor: Ulid | null
 }
+
+/**
+ * Get the next batch of volunteers for the analytics report.
+ * Uses cursor pagination on user ID (ULID).
+ */
 export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools,
-  limit: number,
-  offset: number
+  pageSize: number,
+  cursor: Ulid | null
 ): Promise<VolunteersForAnalyticsReportBatch> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
@@ -1698,8 +1703,8 @@ export async function getVolunteersForAnalyticsReport(
         end,
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
-        limit,
-        offset,
+        pageSize,
+        cursor,
       },
       getRoClient()
     )
@@ -1719,10 +1724,14 @@ export async function getVolunteersForAnalyticsReport(
         ),
       } as VolunteersForAnalyticsReport
     })
+    let nextCursor = null
+    if (volunteers.length > pageSize) {
+      nextCursor = volunteers.pop()?.userId
+    }
 
     return {
       volunteers,
-      isLastPage: volunteers.length < limit,
+      nextCursor: nextCursor ?? null,
     }
   } catch (err) {
     throw new RepoReadError(err)

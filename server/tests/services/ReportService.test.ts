@@ -5,6 +5,7 @@ import { generatePartnerAnalyticsReport } from '../../services/ReportService'
 import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
 import { times } from 'lodash'
 import Logger from '../../logger'
+import { buildTestVolunteerForAnalyticsReport } from '../mocks/generate'
 
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../models/AssociatedPartner')
@@ -47,15 +48,15 @@ describe('ReportService', () => {
     mockGetVolunteersForAnalyticsReport
       .mockResolvedValueOnce({
         volunteers: [volunteers[0], volunteers[1]],
-        isLastPage: false,
+        nextCursor: volunteers[2].userId,
       })
       .mockResolvedValueOnce({
         volunteers: [volunteers[2], volunteers[3]],
-        isLastPage: false,
+        nextCursor: volunteers[4].userId,
       })
       .mockResolvedValueOnce({
         volunteers: [volunteers[4]],
-        isLastPage: true,
+        nextCursor: null,
       })
 
     const actual = await generatePartnerAnalyticsReport(
@@ -94,11 +95,11 @@ describe('ReportService', () => {
     'May generate a full report in a single batch',
     async totalVolunteers => {
       mockGetVolunteersForAnalyticsReport.mockResolvedValue({
-        isLastPage: true,
         volunteers: times(
           totalVolunteers,
           buildTestVolunteerForAnalyticsReport
         ),
+        nextCursor: null,
       })
 
       const actual = await generatePartnerAnalyticsReport(
@@ -128,8 +129,8 @@ describe('ReportService', () => {
 
   it('Throws an error if no volunteers were found and not on the last page', async () => {
     mockGetVolunteersForAnalyticsReport.mockResolvedValue({
-      isLastPage: false,
       volunteers: [],
+      nextCursor: null,
     })
     await expect(() =>
       generatePartnerAnalyticsReport(
@@ -141,29 +142,3 @@ describe('ReportService', () => {
     ).rejects.toThrowError('Did not find any volunteers for partner org')
   })
 })
-
-const buildTestVolunteerForAnalyticsReport = (overrides = {}) => {
-  return {
-    userId: 'abc-123',
-    firstName: 'Louise',
-    lastName: 'Belcher',
-    email: '1@test.co',
-    isOnboarded: true,
-    createdAt: new Date(),
-    dateOnboarded: new Date(),
-    totalQuizzesPassed: 10,
-    totalNotifications: 10,
-    totalNotificationsWithinRange: 5,
-    totalPartnerSessions: 10,
-    totalPartnerSessionsWithinRange: 5,
-    totalPartnerTimeTutored: 10,
-    totalPartnerTimeTutoredWithinRange: 5,
-    totalSessions: 10,
-    totalSessionsWithinRange: 5,
-    totalUniquePartnerStudentsHelped: 10,
-    totalUniquePartnerStudentsHelpedWithinRange: 5,
-    totalUniqueStudentsHelped: 10,
-    totalUniqueStudentsHelpedWithinRange: 5,
-    ...overrides,
-  } as VolunteersForAnalyticsReport
-}

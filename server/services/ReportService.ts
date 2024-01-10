@@ -32,6 +32,7 @@ import {
   getAssociatedPartnersAndSchools,
 } from '../models/AssociatedPartner'
 import { VolunteersForAnalyticsReportBatch } from '../models/Volunteer/queries'
+import { Ulid } from '../models/pgUtils'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -247,6 +248,7 @@ type FullReport = {
  * duplication.
  *
  * @param report - A collection of rows for the report. This is mutated by this function.
+ * @returns the next cursor to use, or null if on the last page.
  */
 async function processBatch(
   partnerOrg: string,
@@ -254,19 +256,19 @@ async function processBatch(
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools,
   batchSize: number,
-  totalProcessed: number,
+  cursor: null | Ulid,
   report: AnalyticsReportRow[]
-) {
+): Promise<Ulid | null> {
   const batch: VolunteersForAnalyticsReportBatch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
     end,
     associatedPartners,
     batchSize,
-    totalProcessed
+    cursor
   )
 
-  if (!batch.volunteers.length && !batch.isLastPage) {
+  if (!batch.volunteers.length && !batch.nextCursor) {
     throw new Error('Did not find any volunteers for partner org')
   }
 
@@ -293,9 +295,7 @@ async function processBatch(
     report.push(row)
   }
 
-  return {
-    isLastPage: batch.isLastPage,
-  }
+  return batch.nextCursor
 }
 export async function generatePartnerAnalyticsReport(
   partnerOrg: string,
@@ -314,30 +314,28 @@ export async function generatePartnerAnalyticsReport(
 
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
-  let isLastPage = false
   let batchNum: number
-  while (!isLastPage) {
+  let nextCursor: null | Ulid = null
+  do {
     batchNum = report.length / batchSize + 1
     logger.info(
       logData,
       `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
     )
-    const result = await processBatch(
+    nextCursor = await processBatch(
       partnerOrg,
       start,
       end,
       associatedPartners,
       batchSize,
-      report.length,
+      nextCursor,
       report
     )
-    isLastPage = result.isLastPage
-
     logger.info(
       logData,
       `Partner analytics report: Completed batch #${batchNum}`
     )
-  }
+  } while (nextCursor)
 
   logger.info(logData, 'Generated all volunteer rows for analytics report')
 
