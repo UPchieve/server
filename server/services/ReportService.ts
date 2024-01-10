@@ -243,12 +243,11 @@ type FullReport = {
 
 /**
  * Processes a batch of volunteers for the analytics report and mutates 'report' with the results.
- * This function is written for memory/garbage collection efficiency. As such, the largest memory reference (the batch)
- * is confined to the scope of this function and the overall report is passed in and mutated to avoid
- * duplication.
+ * This function is written for memory efficiency. As such, the batch should be confined to the scope of this function/
+ * not returned.
  *
  * @param report - A collection of rows for the report. This is mutated by this function.
- * @returns the next cursor to use, or null if on the last page.
+ * @returns the cursor of the next page, or null if on the last page
  */
 async function processBatch(
   partnerOrg: string,
@@ -267,10 +266,6 @@ async function processBatch(
     batchSize,
     cursor
   )
-
-  if (!batch.volunteers.length && !batch.nextCursor) {
-    throw new Error('Did not find any volunteers for partner org')
-  }
 
   // Fetch individual volunteer data
   for (const volunteer of batch.volunteers) {
@@ -435,9 +430,10 @@ export async function getAnalyticsReport(data: unknown) {
     return reportFilePath
   } catch (error) {
     logger.error(error as Error)
-    if (error instanceof ReportNoDataFoundError || error instanceof InputError)
-      throw error
-    throw new Error((error as Error).message)
+    if (error instanceof InputError) throw error
+    throw new Error(
+      'Something went wrong while generating the analytics report'
+    )
   }
 }
 

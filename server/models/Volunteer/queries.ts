@@ -25,6 +25,7 @@ import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
+import { ReportNoDataFoundError } from '../../services/ReportService'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -1708,6 +1709,10 @@ export async function getVolunteersForAnalyticsReport(
       },
       getRoClient()
     )
+
+    if (!result.length) {
+      throw new ReportNoDataFoundError('No volunteers found for partner org')
+    }
 
     const volunteers = result.map(row => {
       const temp = makeSomeOptional(row, [
