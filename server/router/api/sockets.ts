@@ -286,6 +286,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               socket.emit('sessions', sessions)
               callback({
                 status: 200,
+                sessions,
               })
               resolve()
             } catch (error) {
