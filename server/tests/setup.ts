@@ -1,7 +1,6 @@
 jest.mock('ioredis', () => require('ioredis-mock/jest'))
 
 jest.mock('posthog-node')
-jest.mock('@unleash/proxy')
 jest.mock('openai')
 jest.mock('../services/AnalyticsService')
 jest.mock('../services/FeatureFlagService')
@@ -169,12 +168,6 @@ jest.mock('../config', () => {
     googleRecaptchaThreshold: 0.5,
 
     minSessionLength: 60000,
-  }
-})
-
-jest.mock('unleash-client', () => {
-  return {
-    isEnabled: (): boolean => true,
   }
 })
 

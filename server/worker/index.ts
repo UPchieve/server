@@ -3,14 +3,12 @@ import newrelic from 'newrelic'
 import Redis from 'ioredis'
 import config from '../config'
 import * as db from '../db'
-import { initializeUnleash } from '../services/FeatureFlagService'
 import logger from '../logger'
 import { addJobProcessors } from './jobs'
 import { startSocket } from './sockets'
 
 const main = async (): Promise<void> => {
   try {
-    initializeUnleash()
     await db.connect()
     logger.info('Starting queue')
     const queue = new Queue(config.workerQueueName, {

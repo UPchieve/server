@@ -18,7 +18,6 @@ const gleapScriptUrl = 'https://widget.gleap.io'
 
 // connect sources
 const posthogUrl = 'https://p.upchieve.org'
-const unleashUrl = 'https://gitlab.com'
 const sentryUrl = 'https://*.ingest.sentry.io'
 const mathJaxFetchUrl = 'https://api.cdnjs.com'
 const gleapConnectUrls = [
@@ -80,14 +79,12 @@ export const imgSrc = [
 export const connectSrc = [
   "'self'",
   posthogUrl,
-  unleashUrl,
   sentryUrl,
   mathJaxFetchUrl,
   ...s3PhotoConnectUrls,
   ...newrelicUrls,
   ...googleUrls,
   ...gleapConnectUrls,
-  config.vueAppUnleashUrl,
   `wss://${config.host}`,
   `https://${config.host}`,
 ]
