@@ -1,7 +1,7 @@
 import { Express } from 'express'
 import passport from 'passport'
 import config from '../config'
-import logger from '../logger'
+import logger, { logError } from '../logger'
 import { authPassport } from '../utils/auth-utils'
 import SessionStore from './api/session-store'
 import * as ContactFormRouter from './contact'
@@ -47,11 +47,19 @@ export default function(app: Express, io: Server) {
   })
 
   app.get('/feature-flags', async function(req, res) {
-    const distinctId = req.user?.id ?? uuidv4()
-    const flags: {
-      featureFlags: Record<string, boolean | string>
-      featureFlagPayloads: Record<string, unknown>
-    } = await getAllFlagsForId(distinctId)
-    res.status(200).json({ id: distinctId, ...flags })
+    const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+    const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+    try {
+      const flags: {
+        featureFlags: Record<string, boolean | string>
+        featureFlagPayloads: Record<string, unknown>
+      } = await getAllFlagsForId(distinctId)
+      res.status(200).json({ id: distinctId, ...flags })
+    } catch (e) {
+      logError(new Error('Failed to bootstrap feature flags.'), {
+        userId: distinctId,
+      })
+      res.status(200).json({ id: distinctId })
+    }
   })
 }
