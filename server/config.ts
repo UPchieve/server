@@ -175,7 +175,6 @@ const config: Static<typeof Config> = {
   },
   apiPort: Number(process.env.SUBWAY_API_PORT) || 3000,
   socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
-  featureFlagPort: Number(process.env.SUBWAY_FEATURE_FLAG_PORT) || 3002,
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
@@ -271,18 +270,9 @@ const config: Static<typeof Config> = {
     sessionPhotoBucket:
       process.env.SUBWAY_SESSION_PHOTO_BUCKET || 'session-photo-bucket',
   },
-  unleashId: process.env.SUBWAY_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
-  unleashName: process.env.SUBWAY_UNLEASH_NAME || 'dev',
-  unleashUrl:
-    process.env.SUBWAY_UNLEASH_URL ||
-    'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
-  featureFlagClientKey: process.env.FEATURE_FLAG_CLIENT_KEY || 'development',
-  vueAppUnleashUrl:
-    process.env.VUE_APP_UNLEASH_URL ||
-    'https://gitlab.com/api/v4/feature_flags/unleash/23285197',
 
   /**
    *

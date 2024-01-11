@@ -3,13 +3,11 @@ import crypto from 'crypto'
 import _ from 'lodash'
 import moment from 'moment'
 import { Ulid } from '../models/pgUtils'
-import { isEnabled } from 'unleash-client'
 import * as cache from '../cache'
 import config from '../config'
 import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
-  FEATURE_FLAGS,
   HOURS_UTC,
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
@@ -61,6 +59,7 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
+  isChatBotEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 
@@ -566,8 +565,8 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     { delay, removeOnComplete: true, removeOnFail: true }
   )
 
-  // Begin chat bot messages immedeately
-  if (isEnabled(FEATURE_FLAGS.CHATBOT))
+  // Begin chat bot messages immediately.
+  if (isChatBotEnabled())
     await QueueService.add(
       Jobs.Chatbot,
       { sessionId: newSessionId },

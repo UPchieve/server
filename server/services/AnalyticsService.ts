@@ -1,4 +1,4 @@
-import { client } from '../posthog'
+import { client } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 
 export const captureEvent = (

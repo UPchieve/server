@@ -6,7 +6,7 @@ import { getConnections } from './server-setup'
 import { Server } from 'http'
 import { Server as SocketServer } from 'socket.io'
 import { Pool } from 'pg'
-import { client as phClient } from './posthog'
+import { client as productClient } from './product-client'
 
 function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
   const shutDownSocketServer = promisify(ioServer.close).bind(ioServer)
@@ -24,7 +24,7 @@ function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
       await shutDownSocketServer()
       logger.info('socket server closed')
 
-      await phClient.shutdownAsync()
+      await productClient.shutdownAsync()
       logger.info('shutting down posthog')
 
       // allow time for events to finish processing and making db calls before exiting
