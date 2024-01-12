@@ -6,7 +6,6 @@ import logger from './logger'
 import { registerListeners } from './services/listeners'
 import { serverSetup } from './server-setup'
 import { registerGracefulShutdownListeners } from './graceful-shutdown'
-import { unleashProxy, initializeUnleash } from './services/FeatureFlagService'
 import { getClient, setupDbConnection } from './db'
 
 async function main() {
@@ -15,13 +14,6 @@ async function main() {
   } catch (err) {
     throw new Error(`error parsing config on startup: ${err}`)
   }
-
-  initializeUnleash()
-  unleashProxy.listen(rawConfig.featureFlagPort, () => {
-    logger.info(
-      'feature flag proxy listening on port ' + rawConfig.featureFlagPort
-    )
-  })
 
   await setupDbConnection()
   registerListeners()
