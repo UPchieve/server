@@ -27,6 +27,12 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
+import {
+  AssociatedPartnersAndSchools,
+  getAssociatedPartnersAndSchools,
+} from '../models/AssociatedPartner'
+import { VolunteersForAnalyticsReportBatch } from '../models/Volunteer/queries'
+import { Ulid } from '../models/pgUtils'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -234,33 +240,35 @@ type FullReport = {
   summary: AnalyticsReportSummary
   report: AnalyticsReportRow[]
 }
-export async function generatePartnerAnalyticsReport(
+
+/**
+ * Processes a batch of volunteers for the analytics report and mutates 'report' with the results.
+ * This function is written for memory efficiency. As such, the batch should be confined to the scope of this function/
+ * not returned.
+ *
+ * @param report - A collection of rows for the report. This is mutated by this function.
+ * @returns the cursor of the next page, or null if on the last page
+ */
+async function processBatch(
   partnerOrg: string,
-  partnerOrgId: string,
-  startDate: string,
-  endDate: string
-): Promise<FullReport> {
-  const logData = {
-    volunteerPartnerOrgId: partnerOrgId,
-  }
-  const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
-  const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
-
-  // Date range check
-  if (start >= end) throw new Error('Invalid date range')
-
-  const volunteers = await VolunteerRepo.getVolunteersForAnalyticsReport(
+  start: Date,
+  end: Date,
+  associatedPartners: AssociatedPartnersAndSchools,
+  batchSize: number,
+  cursor: null | Ulid,
+  report: AnalyticsReportRow[]
+): Promise<Ulid | null> {
+  const batch: VolunteersForAnalyticsReportBatch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
-    end
+    end,
+    associatedPartners,
+    batchSize,
+    cursor
   )
-  if (!volunteers)
-    throw new Error(`no volunteer partner org found with id=${partnerOrgId}`)
-  logger.info(logData, `Found ${volunteers.length} volunteers for partner org`)
 
-  const report: AnalyticsReportRow[] = []
-  for (const volunteer of volunteers) {
-    // Get all hour summary data for the volunteer
+  // Fetch individual volunteer data
+  for (const volunteer of batch.volunteers) {
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
       new Date(volunteer.createdAt),
@@ -281,6 +289,49 @@ export async function generatePartnerAnalyticsReport(
     const row = getAnalyticsReportRow(volunteerWithAnalytics)
     report.push(row)
   }
+
+  return batch.nextCursor
+}
+export async function generatePartnerAnalyticsReport(
+  partnerOrg: string,
+  partnerOrgId: string,
+  startDate: string,
+  endDate: string
+): Promise<FullReport> {
+  const logData = {
+    volunteerPartnerOrgId: partnerOrgId,
+  }
+  const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
+  const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
+  const report: AnalyticsReportRow[] = []
+  const batchSize = config.corporatePartnerReports.batchSize
+  logger.info(logData, `Partner analytics report: Using batchSize=${batchSize}`)
+
+  const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
+
+  let batchNum: number
+  let nextCursor: null | Ulid = null
+  do {
+    batchNum = report.length / batchSize + 1
+    logger.info(
+      logData,
+      `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
+    )
+    nextCursor = await processBatch(
+      partnerOrg,
+      start,
+      end,
+      associatedPartners,
+      batchSize,
+      nextCursor,
+      report
+    )
+    logger.info(
+      logData,
+      `Partner analytics report: Completed batch #${batchNum}`
+    )
+  } while (nextCursor)
+
   logger.info(logData, 'Generated all volunteer rows for analytics report')
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
@@ -343,16 +394,12 @@ export async function writeAnalyticsReport(
 
 export async function getAnalyticsReport(data: unknown) {
   try {
-    const { partnerOrg, startDate, endDate } = validateVolunteerReportQuery(
-      data
-    )
-
-    const partnerOrgId = await VolunteerPartnerOrgRepo.getVolunteerPartnerOrgIdByKey(
-      partnerOrg
-    )
-    if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
-    if (!partnerOrgId)
-      throw new ReportNoDataFoundError('No partner org found with given key')
+    const {
+      partnerOrg,
+      partnerOrgId,
+      startDate,
+      endDate,
+    } = await validateVolunteerReportQuery(data)
 
     const logData = {
       volunteerPartnerOrgId: partnerOrgId,
@@ -383,9 +430,10 @@ export async function getAnalyticsReport(data: unknown) {
     return reportFilePath
   } catch (error) {
     logger.error(error as Error)
-    if (error instanceof ReportNoDataFoundError || error instanceof InputError)
-      throw error
-    throw new Error((error as Error).message)
+    if (error instanceof InputError) throw error
+    throw new Error(
+      'Something went wrong while generating the analytics report'
+    )
   }
 }
 
