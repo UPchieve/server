@@ -33,6 +33,7 @@ import {
   ProgressReportStatuses,
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
+import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -496,4 +497,30 @@ export const buildProgressReport = (
     ...overrides,
   }
   return report
+}
+
+export const buildTestVolunteerForAnalyticsReport = (overrides = {}) => {
+  return {
+    userId: 'abc-123',
+    firstName: 'Louise',
+    lastName: 'Belcher',
+    email: '1@test.co',
+    isOnboarded: true,
+    createdAt: new Date(),
+    dateOnboarded: new Date(),
+    totalQuizzesPassed: 10,
+    totalNotifications: 10,
+    totalNotificationsWithinRange: 5,
+    totalPartnerSessions: 10,
+    totalPartnerSessionsWithinRange: 5,
+    totalPartnerTimeTutored: 10,
+    totalPartnerTimeTutoredWithinRange: 5,
+    totalSessions: 10,
+    totalSessionsWithinRange: 5,
+    totalUniquePartnerStudentsHelped: 10,
+    totalUniquePartnerStudentsHelpedWithinRange: 5,
+    totalUniqueStudentsHelped: 10,
+    totalUniqueStudentsHelpedWithinRange: 5,
+    ...overrides,
+  } as VolunteersForAnalyticsReport
 }
