@@ -16,12 +16,16 @@ import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
 import { PoolClient } from 'pg'
-import { getAssociatedPartnersAndSchools } from '../AssociatedPartner'
+import {
+  AssociatedPartnersAndSchools,
+  getAssociatedPartnersAndSchools,
+} from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
+import { ReportNoDataFoundError } from '../../services/ReportService'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -1674,15 +1678,25 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
 }
 
 // TODO: break out anything that uses RO client into their own repo
+
+export interface VolunteersForAnalyticsReportBatch {
+  volunteers: VolunteersForAnalyticsReport[]
+  nextCursor: Ulid | null
+}
+
+/**
+ * Get the next batch of volunteers for the analytics report.
+ * Uses cursor pagination on user ID (ULID).
+ */
 export async function getVolunteersForAnalyticsReport(
   volunteerPartnerOrg: string,
   start: Date,
-  end: Date
-): Promise<VolunteersForAnalyticsReport[] | undefined> {
+  end: Date,
+  associatedPartners: AssociatedPartnersAndSchools,
+  pageSize: number,
+  cursor: Ulid | null
+): Promise<VolunteersForAnalyticsReportBatch> {
   try {
-    const associatedPartners = await getAssociatedPartnersAndSchools(
-      volunteerPartnerOrg
-    )
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
       {
         volunteerPartnerOrg,
@@ -1690,16 +1704,17 @@ export async function getVolunteersForAnalyticsReport(
         end,
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
+        pageSize,
+        cursor,
       },
       getRoClient()
     )
 
-    if (!result.length)
-      throw new Error(
-        `no volunteer partner org found with key ${volunteerPartnerOrg}`
-      )
+    if (!result.length) {
+      throw new ReportNoDataFoundError('No volunteers found for partner org')
+    }
 
-    return result.map(row => {
+    const volunteers = result.map(row => {
       const temp = makeSomeOptional(row, [
         'state',
         'dateOnboarded',
@@ -1712,8 +1727,17 @@ export async function getVolunteersForAnalyticsReport(
         totalPartnerTimeTutoredWithinRange: Number(
           temp.totalPartnerTimeTutoredWithinRange
         ),
-      }
+      } as VolunteersForAnalyticsReport
     })
+    let nextCursor = null
+    if (volunteers.length > pageSize) {
+      nextCursor = volunteers.pop()?.userId
+    }
+
+    return {
+      volunteers,
+      nextCursor: nextCursor ?? null,
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }

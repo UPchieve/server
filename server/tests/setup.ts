@@ -168,6 +168,11 @@ jest.mock('../config', () => {
     googleRecaptchaThreshold: 0.5,
 
     minSessionLength: 60000,
+
+    corporatePartnerReports: {
+      customAnalyticsReportPartnerOrgs: ['big-telecom'],
+      batchSize: 2,
+    },
   }
 })
 

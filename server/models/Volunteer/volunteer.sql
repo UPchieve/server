@@ -1557,8 +1557,11 @@ WHERE
         volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE
 WHERE
     volunteer_partner_orgs.key = :volunteerPartnerOrg!
+    AND (:cursor::uuid IS NULL
+        OR users.id <= :cursor::uuid)
 ORDER BY
-    users.created_at DESC;
+    users.id DESC
+LIMIT (:pageSize!::int + 1);
 
 
 /* @name removeOnboardedStatusForUnqualifiedVolunteers */

@@ -128,7 +128,10 @@ export const Config = Record({
   customVolunteerPartnerOrgs: Array(String),
   priorityMatchingPartnerOrgs: Array(String),
   priorityMatchingSponsorOrgs: Array(String),
-  customAnalyticsReportPartnerOrgs: Array(String),
+  corporatePartnerReports: Record({
+    customAnalyticsReportPartnerOrgs: Array(String),
+    batchSize: Number,
+  }),
 
   clusterServerAddress: String,
 
