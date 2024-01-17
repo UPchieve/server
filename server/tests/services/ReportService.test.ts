@@ -1,10 +1,7 @@
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as AssociatedPartnerRepo from '../../models/AssociatedPartner'
 import * as VolunteerService from '../../services/VolunteerService'
-import {
-  generatePartnerAnalyticsReport,
-  getAnalyticsReport,
-} from '../../services/ReportService'
+import { generatePartnerAnalyticsReport } from '../../services/ReportService'
 import { times } from 'lodash'
 import Logger from '../../logger'
 import { buildTestVolunteerForAnalyticsReport } from '../mocks/generate'
@@ -65,18 +62,9 @@ describe('ReportService', () => {
       ]
       // Mock returning multiple batches of volunteers (batchSize=2)
       mockGetVolunteersForAnalyticsReport
-        .mockResolvedValueOnce({
-          volunteers: [volunteers[0], volunteers[1]],
-          nextCursor: volunteers[2].userId,
-        })
-        .mockResolvedValueOnce({
-          volunteers: [volunteers[2], volunteers[3]],
-          nextCursor: volunteers[4].userId,
-        })
-        .mockResolvedValueOnce({
-          volunteers: [volunteers[4]],
-          nextCursor: null,
-        })
+        .mockResolvedValueOnce([volunteers[0], volunteers[1], volunteers[2]])
+        .mockResolvedValueOnce([volunteers[2], volunteers[3], volunteers[4]])
+        .mockResolvedValueOnce([volunteers[4]])
 
       const actual = await generatePartnerAnalyticsReport(
         'testOrg',
@@ -115,13 +103,9 @@ describe('ReportService', () => {
     it.each([2, 1])(
       'May generate a full report in a single batch',
       async totalVolunteers => {
-        mockGetVolunteersForAnalyticsReport.mockResolvedValue({
-          volunteers: times(
-            totalVolunteers,
-            buildTestVolunteerForAnalyticsReport
-          ),
-          nextCursor: null,
-        })
+        mockGetVolunteersForAnalyticsReport.mockResolvedValue(
+          times(totalVolunteers, buildTestVolunteerForAnalyticsReport)
+        )
 
         const actual = await generatePartnerAnalyticsReport(
           'testOrg',
