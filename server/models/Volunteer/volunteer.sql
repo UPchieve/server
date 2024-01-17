@@ -1561,7 +1561,7 @@ WHERE
         OR users.id <= :cursor::uuid)
 ORDER BY
     users.id DESC
-LIMIT (:pageSize!::int + 1);
+LIMIT (:pageSize!::int);
 
 
 /* @name removeOnboardedStatusForUnqualifiedVolunteers */

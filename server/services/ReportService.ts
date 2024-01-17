@@ -31,7 +31,6 @@ import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
 } from '../models/AssociatedPartner'
-import { VolunteersForAnalyticsReportBatch } from '../models/Volunteer/queries'
 import { Ulid } from '../models/pgUtils'
 
 export class ReportNoDataFoundError extends CustomError {}
@@ -258,17 +257,19 @@ async function processBatch(
   cursor: null | Ulid,
   report: AnalyticsReportRow[]
 ): Promise<Ulid | null> {
-  const batch: VolunteersForAnalyticsReportBatch = await VolunteerRepo.getVolunteersForAnalyticsReport(
+  const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
     end,
     associatedPartners,
-    batchSize,
+    batchSize + 1, // get an extra row for the cursor
     cursor
   )
+  const nextCursor =
+    batch.length < batchSize + 1 ? null : batch.pop()?.userId ?? null
 
   // Fetch individual volunteer data
-  for (const volunteer of batch.volunteers) {
+  for (const volunteer of batch) {
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
       new Date(volunteer.createdAt),
@@ -290,7 +291,7 @@ async function processBatch(
     report.push(row)
   }
 
-  return batch.nextCursor
+  return nextCursor
 }
 export async function generatePartnerAnalyticsReport(
   partnerOrg: string,
