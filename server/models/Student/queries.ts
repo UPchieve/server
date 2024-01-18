@@ -7,6 +7,7 @@ import {
   RepoReadError,
   RepoTransactionError,
   RepoUpdateError,
+  RepoUpsertError,
 } from '../Errors'
 import {
   generateReferralCode,
@@ -552,6 +553,31 @@ export async function createStudentProfile(
     return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function upsertStudentProfile(
+  studentData: CreateStudentProfilePayload,
+  tc: TransactionClient
+) {
+  try {
+    const result = await pgQueries.upsertStudentProfile.run(
+      {
+        userId: studentData.userId,
+        college: studentData.college,
+        schoolId: studentData.schoolId,
+        postalCode: studentData.zipCode,
+        gradeLevel: studentData.gradeLevel,
+        partnerOrg: studentData.studentPartnerOrg,
+        partnerSite: studentData.partnerSite,
+      },
+      tc
+    )
+    if (!result.length)
+      throw new RepoUpsertError('upsertStudentProfile returned 0 rows.')
+    return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
+  } catch (err) {
+    throw new RepoUpsertError(err)
   }
 }
 
