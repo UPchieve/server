@@ -207,9 +207,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: correctly type User from passport
 
-              console.log('\n\n=================');
+              console.log('\n=================');
               console.log('received `join` message', {session});
-              console.log('=================\n\n');
+              console.log('=================\n');
               await SessionService.joinSession(user, session, {
                 socket,
                 joinedFrom,
@@ -221,19 +221,22 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               console.log({sessionRoom, socketIds})
               // Have all of the user's socket connections join the tutoring session room
               for (const id of socketIds) {
+                console.log("\n=========")
+                console.log('remote join room', {id, sessionRoom});
+              console.log('=========\n');
                 await remoteJoinRoom(io, id, sessionRoom)
               }
 
-              console.log('\n\n=================');
+              console.log('\n=================');
               console.log('we should emit here', {session});
-              console.log('=================\n\n');
+              console.log('=================\n');
               await socketService.emitSessionChange(sessionId)
               resolve()
             } catch (error) {
-              console.log('\n\n=================');
+              console.log('\n=================');
               console.error(`ERROR`)
               console.error(error)
-              console.log('=================\n\n');
+              console.log('=================\n');
               socketService.bump(
                 socket,
                 {

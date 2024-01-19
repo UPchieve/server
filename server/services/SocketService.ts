@@ -43,9 +43,9 @@ class SocketService {
 
   async emitSessionChange(sessionId: Ulid): Promise<void> {
     const session = await this.getSessionData(sessionId)
-    console.log('\n\n=================')
-    console.log({session, room: getSessionRoom(sessionId)})
-    console.log('=================\n\n')
+    console.log('\n=================')
+    console.log('emitting session-change', {session, room: getSessionRoom(sessionId), sessionId})
+    console.log('=================\n')
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
     await this.updateSessionList()
