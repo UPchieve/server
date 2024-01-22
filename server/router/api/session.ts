@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import { Server } from 'socket.io'
 import SocketService from '../../services/SocketService'
 import * as SessionService from '../../services/SessionService'
 import { authPassport } from '../../utils/auth-utils'
@@ -9,10 +8,9 @@ import { ReportSessionError } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
 import { asString, asUlid } from '../../utils/type-utils'
 
-// TODO: figure out a better way to expose SocketService
-export function routeSession(router: Router, io: Server) {
+export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
-  const socketService = SocketService.getInstance(io)
+  const socketService = SocketService.getInstance()
 
   router.route('/session/new').post(async function(req, res) {
     try {
