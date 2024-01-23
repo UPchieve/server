@@ -1,7 +1,7 @@
 import { Express } from 'express'
 import passport from 'passport'
 import config from '../config'
-import logger from '../logger'
+import logger, { logError } from '../logger'
 import { authPassport } from '../utils/auth-utils'
 import SessionStore from './api/session-store'
 import * as ContactFormRouter from './contact'
@@ -16,6 +16,8 @@ import * as ReferralRouter from './referral'
 import * as SubjectsRouter from './subjects'
 import * as TwimlRouter from './twiml'
 import { Server } from 'socket.io'
+import { v4 as uuidv4 } from 'uuid'
+import { getAllFlagsForId } from '../services/FeatureFlagService'
 
 export default function(app: Express, io: Server) {
   logger.info('initializing server routing')
@@ -40,7 +42,24 @@ export default function(app: Express, io: Server) {
   ReferralRouter.routes(app)
   SubjectsRouter.routes(app)
 
-  app.get('/healthz', function(req, res) {
+  app.get('/healthz', function(_req, res) {
     res.status(200).json({ version: config.version })
+  })
+
+  app.get('/feature-flags', async function(req, res) {
+    const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+    const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+    try {
+      const flags: {
+        featureFlags: Record<string, boolean | string>
+        featureFlagPayloads: Record<string, unknown>
+      } = await getAllFlagsForId(distinctId)
+      res.status(200).json({ id: distinctId, ...flags })
+    } catch (e) {
+      logError(new Error('Failed to bootstrap feature flags.'), {
+        userId: distinctId,
+      })
+      res.status(200).json({ id: distinctId })
+    }
   })
 }

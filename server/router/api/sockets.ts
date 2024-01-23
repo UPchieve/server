@@ -8,7 +8,6 @@ import newrelic from 'newrelic'
 import passport from 'passport'
 import { LockError } from 'redlock'
 import { Server, Socket } from 'socket.io'
-import { isEnabled } from 'unleash-client'
 import { v4 as uuidv4 } from 'uuid'
 import * as cache from '../../cache'
 import config from '../../config'
@@ -19,7 +18,10 @@ import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
 import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
-import { getRecapSocketUpdatesFeatureFlag } from '../../services/FeatureFlagService'
+import {
+  getRecapSocketUpdatesFeatureFlag,
+  isChatBotEnabled,
+} from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
@@ -55,7 +57,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
-  const socketService = SocketService.getInstance(io)
+  const socketService = SocketService.getInstance()
 
   let chatbot: Ulid | undefined
 
@@ -106,10 +108,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     } = socket
 
     if (user) {
+      await handleUser(socket, user)
       const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
         user.id
       )
-      await handleUser(socket, user)
       if (!isRecapSocketUpdatesActive)
         await joinUserToSessionHistoryRooms(io, user.id)
     } else {
@@ -119,7 +121,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     }
 
-    if (isEnabled(FEATURE_FLAGS.CHATBOT)) {
+    if (isChatBotEnabled()) {
       chatbot = await lookupChatbotFromCache()
       if (!chatbot) logger.error(`Chatbot user not found`)
       else {
@@ -276,7 +278,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('list', () => {
+    socket.on('list', (_data, callback) => {
       newrelic.startWebTransaction(
         '/socket-io/list',
         () =>
@@ -284,6 +286,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               const sessions = await SessionRepo.getUnfulfilledSessions()
               socket.emit('sessions', sessions)
+              callback({
+                status: 200,
+                sessions,
+              })
               resolve()
             } catch (error) {
               reject(error)

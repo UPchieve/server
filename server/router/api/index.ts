@@ -33,7 +33,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeVolunteers(router)
   routeUser(router)
   routeVerify(router)
-  routeSession(router as Router, io)
+  routeSession(router as Router)
   routeCalendar(router)
   routeTraining(router)
   routeFeedback(router)
