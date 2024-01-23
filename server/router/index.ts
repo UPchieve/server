@@ -46,7 +46,7 @@ export default function(app: Express, io: Server) {
     res.status(200).json({ version: config.version })
   })
 
-  app.get('/feature-flags', async function(req, res) {
+  app.get('/api-public/feature-flags', async function(req, res) {
     const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
     const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
     try {
