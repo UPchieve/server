@@ -232,23 +232,32 @@ LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 /* @name getAllProgressReportIdsByUserIdAndSubject */
 SELECT
-    progress_reports.id
-FROM
-    progress_reports
-    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
-    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
-    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
-    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
-    LEFT JOIN subjects ON sessions.subject_id = subjects.id
+    grouped_reports.id
+FROM (
+    SELECT
+        progress_reports.id,
+        progress_reports.created_at,
+        STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) AS session_group,
+        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num
+    FROM
+        progress_reports
+        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+        LEFT JOIN subjects ON sessions.subject_id = subjects.id
+    WHERE
+        progress_reports.user_id = :userId!
+        AND subjects.name = :subject!
+        AND progress_report_analysis_types.name = :analysisType!
+        AND progress_report_statuses.name = 'complete'
+    GROUP BY
+        progress_reports.id,
+        progress_reports.created_at) AS grouped_reports
 WHERE
-    progress_reports.user_id = :userId!
-    AND subjects.name = :subject!
-    AND progress_report_analysis_types.name = :analysisType!
-    AND progress_report_statuses.name = 'complete'
-GROUP BY
-    progress_reports.id
+    grouped_reports.row_num = 1
 ORDER BY
-    progress_reports.created_at DESC;
+    grouped_reports.created_at DESC;
 
 
 /* @name getLatestProgressReportIdBySubject */
