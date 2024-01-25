@@ -520,7 +520,7 @@ export interface IGetProgressReportSessionsForSubjectByPaginationQuery {
   result: IGetProgressReportSessionsForSubjectByPaginationResult;
 }
 
-const getProgressReportSessionsForSubjectByPaginationIR: any = {"name":"getProgressReportSessionsForSubjectByPagination","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7021,"b":7027,"line":212,"col":32}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7054,"b":7061,"line":213,"col":25}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7110,"b":7122,"line":214,"col":47}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7299,"b":7304,"line":220,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7321,"b":7327,"line":220,"col":30}]}}],"usedParamSet":{"userId":true,"subject":true,"analysisType":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":6281,"b":7333,"line":197,"col":0}}};
+const getProgressReportSessionsForSubjectByPaginationIR: any = {"name":"getProgressReportSessionsForSubjectByPagination","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7130,"b":7136,"line":214,"col":36}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7189,"b":7201,"line":215,"col":51}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7782,"b":7789,"line":227,"col":21}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7837,"b":7842,"line":230,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7859,"b":7865,"line":230,"col":30}]}}],"usedParamSet":{"userId":true,"analysisType":true,"subject":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link\nFROM ( SELECT DISTINCT ON (session_id)\n        progress_report_sessions.progress_report_id,\n        progress_report_sessions.session_id,\n        progress_report_sessions.created_at\n    FROM\n        progress_report_sessions\n        JOIN progress_reports ON progress_reports.id = progress_report_sessions.progress_report_id\n        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    WHERE\n        progress_reports.user_id = :userId!\n        AND progress_report_analysis_types.name = :analysisType!\n        AND progress_report_statuses.name = 'complete'\n        AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n        AND NOW()\n    ORDER BY\n        session_id,\n        progress_report_sessions.created_at DESC) AS latest_progress_report_per_session\n    JOIN progress_reports ON progress_reports.id = latest_progress_report_per_session.progress_report_id\n    JOIN sessions ON latest_progress_report_per_session.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN topics ON subjects.topic_id = topics.id\nWHERE\n    subjects.name = :subject!\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":6281,"b":7871,"line":197,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -531,21 +531,31 @@ const getProgressReportSessionsForSubjectByPaginationIR: any = {"name":"getProgr
  *     subjects.display_name AS subject,
  *     topics.name AS topic,
  *     topics.icon_link AS topic_icon_link
- * FROM
- *     progress_reports
- *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
- *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
- *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
- *     JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ * FROM ( SELECT DISTINCT ON (session_id)
+ *         progress_report_sessions.progress_report_id,
+ *         progress_report_sessions.session_id,
+ *         progress_report_sessions.created_at
+ *     FROM
+ *         progress_report_sessions
+ *         JOIN progress_reports ON progress_reports.id = progress_report_sessions.progress_report_id
+ *         JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *         JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *         JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *     WHERE
+ *         progress_reports.user_id = :userId!
+ *         AND progress_report_analysis_types.name = :analysisType!
+ *         AND progress_report_statuses.name = 'complete'
+ *         AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+ *         AND NOW()
+ *     ORDER BY
+ *         session_id,
+ *         progress_report_sessions.created_at DESC) AS latest_progress_report_per_session
+ *     JOIN progress_reports ON progress_reports.id = latest_progress_report_per_session.progress_report_id
+ *     JOIN sessions ON latest_progress_report_per_session.session_id = sessions.id
  *     JOIN subjects ON sessions.subject_id = subjects.id
- *     JOIN topics ON topics.id = subjects.topic_id
+ *     JOIN topics ON subjects.topic_id = topics.id
  * WHERE
- *     progress_reports.user_id = :userId!
- *     AND subjects.name = :subject!
- *     AND progress_report_analysis_types.name = :analysisType!
- *     AND progress_report_statuses.name = 'complete'
- *     AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
- *     AND NOW()
+ *     subjects.name = :subject!
  * ORDER BY
  *     sessions.created_at DESC
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
@@ -572,7 +582,7 @@ export interface IGetAllProgressReportIdsByUserIdAndSubjectQuery {
   result: IGetAllProgressReportIdsByUserIdAndSubjectResult;
 }
 
-const getAllProgressReportIdsByUserIdAndSubjectIR: any = {"name":"getAllProgressReportIdsByUserIdAndSubject","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7957,"b":7963,"line":234,"col":32}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":7990,"b":7997,"line":235,"col":25}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8046,"b":8058,"line":236,"col":47}]}}],"usedParamSet":{"userId":true,"subject":true,"analysisType":true},"statement":{"body":"SELECT\n    progress_reports.id\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\nGROUP BY\n    progress_reports.id\nORDER BY\n    progress_reports.created_at DESC","loc":{"a":7392,"b":8188,"line":224,"col":0}}};
+const getAllProgressReportIdsByUserIdAndSubjectIR: any = {"name":"getAllProgressReportIdsByUserIdAndSubject","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8495,"b":8501,"line":244,"col":32}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8528,"b":8535,"line":245,"col":25}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8584,"b":8596,"line":246,"col":47}]}}],"usedParamSet":{"userId":true,"subject":true,"analysisType":true},"statement":{"body":"SELECT\n    progress_reports.id\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\nGROUP BY\n    progress_reports.id\nORDER BY\n    progress_reports.created_at DESC","loc":{"a":7930,"b":8726,"line":234,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -620,7 +630,7 @@ export interface IGetLatestProgressReportIdBySubjectQuery {
   result: IGetLatestProgressReportIdBySubjectResult;
 }
 
-const getLatestProgressReportIdBySubjectIR: any = {"name":"getLatestProgressReportIdBySubject","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8870,"b":8876,"line":257,"col":32}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8903,"b":8910,"line":258,"col":25}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":8959,"b":8971,"line":259,"col":47}]}}],"usedParamSet":{"userId":true,"subject":true,"analysisType":true},"statement":{"body":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\nORDER BY\n    progress_reports.created_at DESC\nLIMIT 1","loc":{"a":8240,"b":9076,"line":245,"col":0}}};
+const getLatestProgressReportIdBySubjectIR: any = {"name":"getLatestProgressReportIdBySubject","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9408,"b":9414,"line":267,"col":32}]}},{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9441,"b":9448,"line":268,"col":25}]}},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9497,"b":9509,"line":269,"col":47}]}}],"usedParamSet":{"userId":true,"subject":true,"analysisType":true},"statement":{"body":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\nORDER BY\n    progress_reports.created_at DESC\nLIMIT 1","loc":{"a":8778,"b":9614,"line":255,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -665,7 +675,7 @@ export interface IUpdateProgressReportsReadAtByReportIdsQuery {
   result: IUpdateProgressReportsReadAtByReportIdsResult;
 }
 
-const updateProgressReportsReadAtByReportIdsIR: any = {"name":"updateProgressReportsReadAtByReportIds","params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9246,"b":9255,"line":273,"col":32}]}}],"usedParamSet":{"reportIds":true},"statement":{"body":"UPDATE\n    progress_reports\nSET\n    read_at = NOW(),\n    updated_at = NOW()\nWHERE\n    progress_reports.id = ANY (:reportIds!)\nRETURNING\n    progress_reports.id AS ok","loc":{"a":9132,"b":9296,"line":267,"col":0}}};
+const updateProgressReportsReadAtByReportIdsIR: any = {"name":"updateProgressReportsReadAtByReportIds","params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9784,"b":9793,"line":283,"col":32}]}}],"usedParamSet":{"reportIds":true},"statement":{"body":"UPDATE\n    progress_reports\nSET\n    read_at = NOW(),\n    updated_at = NOW()\nWHERE\n    progress_reports.id = ANY (:reportIds!)\nRETURNING\n    progress_reports.id AS ok","loc":{"a":9670,"b":9834,"line":277,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -700,7 +710,7 @@ export interface IGetUnreadProgressReportOverviewSubjectsByUserIdQuery {
   result: IGetUnreadProgressReportOverviewSubjectsByUserIdResult;
 }
 
-const getUnreadProgressReportOverviewSubjectsByUserIdIR: any = {"name":"getUnreadProgressReportOverviewSubjectsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":9921,"b":9927,"line":289,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    subjects.name AS subject\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\n    AND progress_reports.read_at IS NULL\nGROUP BY\n    subjects.name","loc":{"a":9361,"b":10100,"line":279,"col":0}}};
+const getUnreadProgressReportOverviewSubjectsByUserIdIR: any = {"name":"getUnreadProgressReportOverviewSubjectsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":10459,"b":10465,"line":299,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    subjects.name AS subject\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\n    AND progress_reports.read_at IS NULL\nGROUP BY\n    subjects.name","loc":{"a":9899,"b":10638,"line":289,"col":0}}};
 
 /**
  * Query generated from SQL:
