@@ -5,6 +5,7 @@ import { CurrentSession, getCurrentSessionBySessionId } from '../models/Session'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
+import { WebsocketEvents } from '../router/api/sockets'
 
 class SocketService {
   private static instance: SocketService
@@ -63,7 +64,7 @@ class SocketService {
       `User ${data.userId} could not join session ${data.sessionId}: `,
       err
     )
-    socket.emit('bump', data, err.toString())
+    socket.emit(WebsocketEvents.BUMP, data, err.toString())
   }
 
   async emitProgressReportProcessedToUser(

@@ -6,6 +6,7 @@ import { generateProgressReportForUser } from '../../services/ProgressReportsSer
 import { getSocket } from '../sockets'
 import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
 import config from '../../config'
+import { WebsocketEvents } from '../../router/api/sockets'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -18,13 +19,13 @@ async function generateAndEmitProgressReport(
   const socket = getSocket()
   try {
     const report = await generateProgressReportForUser(userId, reportOptions)
-    socket.emit('progress-report:processed', {
+    socket.emit(WebsocketEvents.PROGRESS_REPORT_PROCESSED, {
       userId: userId,
       ...reportOptions,
       report,
     })
   } catch (error) {
-    socket.emit('progress-report:processed', {
+    socket.emit(WebsocketEvents.PROGRESS_REPORT_PROCESSED, {
       userId: userId,
       ...reportOptions,
       report: {

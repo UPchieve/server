@@ -23,31 +23,41 @@ const socket = io(socketUri, {
   upgrade: false,
 })
 
-socket.on('connect', () => {
+export enum WorkerSocketEvents {
+  CONNECT = 'connect',
+  CONNECT_ERROR = 'connect_error',
+  DISCONNECT = 'disconnect',
+  RECONNECT_ATTEMPT = 'reconnect_attempt',
+  RECONNECT_FAILED = 'reconnect_failed',
+  RECONNECT_ERROR = 'reconnect_error',
+  ERROR = 'error',
+}
+
+socket.on(WorkerSocketEvents.CONNECT, () => {
   logger.info('Worker socket connected')
 })
 
-socket.on('connect_error', error => {
+socket.on(WorkerSocketEvents.CONNECT_ERROR, error => {
   logger.error(`Worker socket connection error: ${error.message} - ${error}`)
 })
 
-socket.on('disconnect', reason => {
+socket.on(WorkerSocketEvents.DISCONNECT, reason => {
   logger.warn(`Worker socket disconnected: ${reason}`)
 })
 
-socket.on('reconnect_attempt', () => {
+socket.on(WorkerSocketEvents.RECONNECT_ATTEMPT, () => {
   logger.info(`Worker socket attempting to reconnect`)
 })
 
-socket.on('reconnect_failed', () => {
+socket.on(WorkerSocketEvents.RECONNECT_FAILED, () => {
   logger.error('Worker socket failed to reconnect')
 })
 
-socket.on('reconnect_error', error => {
+socket.on(WorkerSocketEvents.RECONNECT_ERROR, error => {
   logger.error(`Worker socket reconnection error: ${error.message} - ${error}`)
 })
 
-socket.on('error', error => {
+socket.on(WorkerSocketEvents.ERROR, error => {
   logger.error(`Worker socket general error: ${error.message} - ${error}`)
 })
 

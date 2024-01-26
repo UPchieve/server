@@ -11,6 +11,7 @@ import { MESSAGES, ChatbotMessage } from './messages'
 import { asString } from '../../../utils/type-utils'
 import { setTimeout } from 'timers/promises'
 import { lookupChatbotFromCache } from '../../../utils/chatbot-lookup'
+import { WebsocketEvents } from '../../../router/api/sockets'
 
 export const MESSAGE_TYPING_DELAY = 3 * 1000
 
@@ -21,10 +22,10 @@ async function sendMessage(
   delay: number
 ): Promise<void> {
   const socket = getSocket()
-  socket.emit('typing', { sessionId })
+  socket.emit(WebsocketEvents.TYPING, { sessionId })
   await setTimeout(delay)
-  socket.emit('notTyping', { sessionId })
-  socket.emit('message', {
+  socket.emit(WebsocketEvents.NOT_TYPING, { sessionId })
+  socket.emit(WebsocketEvents.MESSAGE, {
     // socket message handler expects a FRONTEND user-like object
     user: { _id: chatbot, isVolunteer: true },
     sessionId,

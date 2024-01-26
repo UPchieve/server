@@ -8,6 +8,7 @@ import { Jobs } from '../index'
 import { isSubjectUsingDocumentEditor } from '../../../utils/session-utils'
 import { volunteersAvailableForSession } from '../../../services/SessionService'
 import config from '../../../config'
+import { WebsocketEvents } from '../../../router/api/sockets'
 
 const ONE_MINUTE = 1 * 60 * 1000
 export const WAIT_FOR_MATCH = 10 * ONE_MINUTE
@@ -28,11 +29,11 @@ async function textMoreVolunteers(sessionId: Ulid): Promise<void> {
 }
 
 export async function updateActivityStatus(sessionId: Ulid): Promise<void> {
-  socket.emit('activity-prompt-sent', { sessionId })
+  socket.emit(WebsocketEvents.ACTIVITY_PROMPT_SENT, { sessionId })
 }
 
 export async function autoEndSession(sessionId: Ulid): Promise<void> {
-  socket.emit('auto-end-session', { sessionId })
+  socket.emit(WebsocketEvents.AUTO_END_SESSION, { sessionId })
 }
 
 export interface ChatbotMessage {

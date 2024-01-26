@@ -32,6 +32,39 @@ import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
 
+export enum WebsocketEvents {
+  CONNECT = 'connection', // Socket.IO understands 'connection' to be the same as 'connect'
+  DISCONNECT = 'disconnect',
+  ERROR = 'error',
+  BUMP = 'bump',
+  REDIRECT = 'redirect',
+  SESSION_CHANGE = 'session-change',
+  ACTIVITY_PROMPT_SENT = 'activity-prompt-sent',
+  AUTO_END_SESSION = 'auto-end-session',
+  JOIN = 'join',
+  SESSIONS = 'sessions',
+  SESSION_RECAP_JOIN = 'sessions/recap:join',
+  SESSION_RECAP_JOINED = 'sessions/recap:joined',
+  SESSION_RECAP_JOIN_FAILED = 'sessions/recap:join-failed',
+  LIST = 'list',
+  TYPING = 'typing',
+  IS_TYPING = 'is-typing',
+  NOT_TYPING = 'notTyping',
+  MESSAGE = 'message',
+  MESSAGE_SENT = 'messageSend',
+  MESSAGE_ERROR = 'messageError',
+  QUILL_LAST_DELTA_STORED = 'lastDeltaStored',
+  QUILL_STATE = 'quillState',
+  QUILL_RETRY_LOADING_DOC = 'retryLoadingDoc',
+  QUILL_TRANSMIT_DELTA = 'transmitQuillDelta',
+  QUILL_PARTNER_DELTA = 'partnerQuillDelta',
+  QUILL_TRANSMIT_SELECTION = 'transmitQuillSelection',
+  QUILL_PARTNER_SELECTION = 'quillPartnerSelection',
+  REQUEST_QUILL_STATE = 'requestQuillState',
+  RESET_WHITEBOARD = 'resetWhiteboard',
+  PROGRESS_REPORT_PROCESSED = 'progress-report:processed',
+}
+
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
   logger.debug(`Attempted key: ${key}`)
@@ -50,7 +83,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
   // Join user to their latest session if it has not ended
   if (latestSession && !latestSession.endedAt) {
     socket.join(getSessionRoom(latestSession.id))
-    socket.emit('session-change', latestSession)
+    socket.emit(WebsocketEvents.SESSION_CHANGE, latestSession)
   }
 
   if (user && user.isVolunteer) socket.join('volunteers')
@@ -99,7 +132,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   })
 
   // TODO: handle transport close errors from worker socket disconnecting
-  io.on('connection', async function(socket: SocketUser) {
+  io.on(WebsocketEvents.CONNECT, async function(socket: SocketUser) {
     const {
       request: { user },
       handshake: {
@@ -116,7 +149,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         await joinUserToSessionHistoryRooms(io, user.id)
     } else {
       if (!socketApiKey) {
-        socket.emit('redirect')
+        socket.emit(WebsocketEvents.REDIRECT)
         throw new Error('User not authenticated')
       }
     }
@@ -126,7 +159,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       if (!chatbot) logger.error(`Chatbot user not found`)
       else {
         // chatbot activity prompt handler
-        socket.on('activity-prompt-sent', async function(data) {
+        socket.on(WebsocketEvents.ACTIVITY_PROMPT_SENT, async function(data) {
           newrelic.startWebTransaction(
             '/socket-io/chatbot',
             () =>
@@ -150,7 +183,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         })
 
         // chatbot end session handler
-        socket.on('auto-end-session', async function(data) {
+        socket.on(WebsocketEvents.AUTO_END_SESSION, async function(data) {
           newrelic.startWebTransaction(
             '/socket-io/chatbot',
             () =>
@@ -177,13 +210,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
 
     // Tutor session management
-    socket.on('join', async function(data) {
+    socket.on(WebsocketEvents.JOIN, async function(data) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
           new Promise<void>(async (resolve, reject) => {
             if (!data || !data.sessionId) {
-              socket.emit('redirect')
+              socket.emit(WebsocketEvents.REDIRECT)
               resolve()
               return
             }
@@ -199,7 +232,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 throw new Error('Volunteer not approved')
               session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
-              socket.emit('redirect')
+              socket.emit(WebsocketEvents.REDIRECT)
               reject(error)
               return
             }
@@ -238,13 +271,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('sessions/recap:join', async function(data) {
+    socket.on(WebsocketEvents.SESSION_RECAP_JOIN, async function(data) {
       newrelic.startWebTransaction(
         '/socket-io/sessions/recap:join',
         () =>
           new Promise<void>(async (resolve, reject) => {
             if (!data || !data.sessionId) {
-              socket.emit('redirect')
+              socket.emit(WebsocketEvents.REDIRECT)
               resolve()
               return
             }
@@ -260,7 +293,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               )
                 throw new Error('Not a session participant')
             } catch (error) {
-              socket.emit('redirect', error)
+              socket.emit(WebsocketEvents.REDIRECT, error)
               resolve()
               return
             }
@@ -268,9 +301,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               const sessionRoom = getSessionRoom(sessionId)
               await remoteJoinRoom(io, socket.id, sessionRoom)
-              socket.emit('sessions/recap:joined')
+              socket.emit(WebsocketEvents.SESSION_RECAP_JOINED)
             } catch (error) {
-              socket.emit('sessions/recap:join-failed', error)
+              socket.emit(WebsocketEvents.SESSION_RECAP_JOIN_FAILED, error)
             } finally {
               resolve()
             }
@@ -278,14 +311,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('list', (_data, callback) => {
+    socket.on(WebsocketEvents.LIST, (_data, callback) => {
       newrelic.startWebTransaction(
         '/socket-io/list',
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
               const sessions = await SessionRepo.getUnfulfilledSessions()
-              socket.emit('sessions', sessions)
+              socket.emit(WebsocketEvents.SESSIONS, sessions)
               callback({
                 status: 200,
                 sessions,
@@ -298,23 +331,23 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('typing', data => {
+    socket.on(WebsocketEvents.TYPING, data => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
         socket
           .to(getSessionRoom(data.sessionId))
-          .emit('is-typing', { sessionId: data.sessionId })
+          .emit(WebsocketEvents.IS_TYPING, { sessionId: data.sessionId }) // @TODO Switch FE/BE over to just use 'TYPING'
       })
     })
 
-    socket.on('notTyping', data => {
+    socket.on(WebsocketEvents.NOT_TYPING, data => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
         socket
           .to(getSessionRoom(data.sessionId))
-          .emit('not-typing', { sessionId: data.sessionId })
+          .emit(WebsocketEvents.TYPING, { sessionId: data.sessionId })
       })
     })
 
-    socket.on('message', async data => {
+    socket.on(WebsocketEvents.MESSAGE, async data => {
       newrelic.startWebTransaction(
         '/socket-io/message',
         () =>
@@ -369,17 +402,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
 
               const socketRoom = getSessionRoom(data.sessionId)
-              io.in(socketRoom).emit('messageSend', messageData)
+              io.in(socketRoom).emit(WebsocketEvents.MESSAGE_SENT, messageData)
               resolve()
             } catch (error) {
-              socket.emit('messageError', { sessionId: data.session })
+              socket.emit(WebsocketEvents.MESSAGE_ERROR, {
+                sessionId: data.session,
+              })
               reject(error)
             }
           })
       )
     })
 
-    socket.on('requestQuillState', async ({ sessionId }) => {
+    socket.on(WebsocketEvents.REQUEST_QUILL_STATE, async ({ sessionId }) => {
       newrelic.startWebTransaction(
         '/socket-io/requestQuillState',
         () =>
@@ -391,70 +426,86 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               let doc = quillState?.doc
 
               if (quillState?.lastDeltaStored)
-                socket.emit('lastDeltaStored', {
+                socket.emit(WebsocketEvents.QUILL_LAST_DELTA_STORED, {
                   delta: quillState.lastDeltaStored,
                 })
               else if (!doc) doc = await QuillDocService.createDoc(sessionId)
 
-              socket.emit('quillState', {
+              socket.emit(WebsocketEvents.QUILL_STATE, {
                 delta: doc,
               })
               resolve()
             } catch (error) {
-              if (error instanceof LockError) socket.emit('retryLoadingDoc')
+              if (error instanceof LockError)
+                socket.emit(WebsocketEvents.QUILL_RETRY_LOADING_DOC)
               else reject(error)
             }
           })
       )
     })
 
-    socket.on('transmitQuillDelta', async ({ sessionId, delta }) => {
-      newrelic.startWebTransaction(
-        '/socket-io/transmitQuillDelta',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            /**
-             *
-             * Add a unique ID to each delta. This allows for the client to determine
-             * which deltas are which when it is queueing incoming deltas.
-             *
-             * The IDs are ignored when a delta is instantiated with `new Delta(delta)`
-             * or when a quill doc is composed
-             *
-             */
-            delta.id = uuidv4()
-            await QuillDocService.appendToDoc(sessionId, delta)
-            socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
-              delta,
+    socket.on(
+      WebsocketEvents.QUILL_TRANSMIT_DELTA,
+      async ({ sessionId, delta }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/transmitQuillDelta',
+          () =>
+            new Promise<void>(async (resolve, reject) => {
+              /**
+               *
+               * Add a unique ID to each delta. This allows for the client to determine
+               * which deltas are which when it is queueing incoming deltas.
+               *
+               * The IDs are ignored when a delta is instantiated with `new Delta(delta)`
+               * or when a quill doc is composed
+               *
+               */
+              delta.id = uuidv4()
+              await QuillDocService.appendToDoc(sessionId, delta)
+              socket
+                .to(getSessionRoom(sessionId))
+                .emit(WebsocketEvents.QUILL_PARTNER_DELTA, {
+                  delta,
+                })
+              return resolve()
             })
-            return resolve()
-          })
-      )
-    })
+        )
+      }
+    )
 
-    socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
-      newrelic.startWebTransaction('/socket-io/transmitQuillSelection', () => {
-        socket.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
-          range,
-        })
-      })
-    })
+    socket.on(
+      WebsocketEvents.QUILL_TRANSMIT_SELECTION,
+      async ({ sessionId, range }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/transmitQuillSelection',
+          () => {
+            socket
+              .to(getSessionRoom(sessionId))
+              .emit(WebsocketEvents.QUILL_PARTNER_SELECTION, {
+                range,
+              })
+          }
+        )
+      }
+    )
 
-    socket.on('error', function(error) {
+    socket.on(WebsocketEvents.ERROR, function(error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
         logger.error(`Socket error: ${error}`)
         Sentry.captureException(error)
       })
     })
 
-    socket.on('resetWhiteboard', async ({ sessionId }) => {
+    socket.on(WebsocketEvents.RESET_WHITEBOARD, async ({ sessionId }) => {
       newrelic.startWebTransaction('/socket-io/resetWhiteboard', () => {
-        socket.to(getSessionRoom(sessionId)).emit('resetWhiteboard')
+        socket
+          .to(getSessionRoom(sessionId))
+          .emit(WebsocketEvents.RESET_WHITEBOARD)
       })
     })
 
     socket.on(
-      'progress-report:processed',
+      WebsocketEvents.PROGRESS_REPORT_PROCESSED,
       async ({ userId, sessionId, subject, report }) => {
         newrelic.startWebTransaction(
           '/socket-io/progress-report:processed',
@@ -469,7 +520,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     )
 
-    socket.on('disconnect', reason => {
+    socket.on(WebsocketEvents.DISCONNECT, reason => {
       logger.info(`Socket disconnected for reason: ${reason}`)
     })
   })
