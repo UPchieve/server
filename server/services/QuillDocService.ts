@@ -10,6 +10,10 @@ function getSessionDeltasKey(id: Ulid): string {
   return `${sessionIdToKey(id)}-deltas`
 }
 
+function getSessionDocumentUpdatesKey(id: Ulid): string {
+  return `${sessionIdToKey(id)}-document-updates`
+}
+
 export async function createDoc(sessionId: Ulid): Promise<Delta> {
   const newDoc = new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
@@ -91,11 +95,34 @@ export async function appendToDoc(
   await cache.rpush(getSessionDeltasKey(sessionId), JSON.stringify(delta))
 }
 
+/**
+ *
+ * The new version of our Quill editor is backed by Yjs CRDTs.
+ * Updates to the document are represented as Uint8Arrays. We
+ * store them in a Redis @set as a string of comma separated 8-bit integers
+ *
+ * example: "1,8,3,9,4"
+ *
+ * When we want to turn this into an actual document, we retrieve all members
+ * of the Redis @set at a given key, convert them back to Uint8Arrays, then
+ * apply them as updates to the Y.Doc.
+ *
+ */
+export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
+  return await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
+}
+
+export async function addDocumentUpdate(
+  sessionId: Ulid,
+  update: string
+): Promise<void> {
+  await cache.sadd(getSessionDocumentUpdatesKey(sessionId), update)
+}
+
 export async function deleteDoc(sessionId: Ulid): Promise<void> {
-  try {
-    await cache.remove(sessionIdToKey(sessionId))
-    await cache.remove(getSessionDeltasKey(sessionId))
-  } catch (err) {
-    if (!(err instanceof cache.KeyDeletionFailureError)) throw err
-  }
+  await Promise.allSettled([
+    cache.remove(sessionIdToKey(sessionId)),
+    cache.remove(getSessionDeltasKey(sessionId)),
+    cache.remove(getSessionDocumentUpdatesKey(sessionId)),
+  ])
 }
