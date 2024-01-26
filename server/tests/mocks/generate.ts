@@ -444,6 +444,7 @@ export const buildProgressReportSummary = (
     details: [],
     createdAt: new Date(),
     reportId: getUuid(),
+    sessionCreatedAt: new Date(),
     ...overrides,
   }
   return summary
@@ -462,6 +463,7 @@ export const buildProgressReportSummaryRow = (
     infoType: 'reason',
     createdAt: new Date(),
     reportId: getUuid(),
+    sessionCreatedAt: new Date(),
     ...overrides,
   }
   return summaryRow

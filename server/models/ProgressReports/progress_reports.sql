@@ -153,7 +153,8 @@ SELECT
     progress_report_info_types.name AS info_type,
     progress_report_summaries.progress_report_id AS report_id,
     progress_reports.read_at AS report_read_at,
-    progress_report_summaries.created_at
+    progress_report_summaries.created_at,
+    latest_session_for_summary.created_at AS session_created_at
 FROM
     progress_report_summaries
     JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id
@@ -161,6 +162,15 @@ FROM
     JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
     JOIN progress_reports ON progress_report_summaries.progress_report_id = progress_reports.id
     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+    JOIN (
+        SELECT
+            progress_report_id,
+            MAX(sessions.created_at) AS created_at
+        FROM
+            progress_report_sessions
+            JOIN sessions ON progress_report_sessions.session_id = sessions.id
+        GROUP BY
+            progress_report_id) AS latest_session_for_summary ON progress_report_summaries.progress_report_id = latest_session_for_summary.progress_report_id
 WHERE
     progress_report_summaries.progress_report_id = ANY (:reportIds!)
     AND progress_report_statuses.name = 'complete'
