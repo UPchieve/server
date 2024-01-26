@@ -39,7 +39,7 @@ class SocketService {
 
   async updateSessionList(): Promise<void> {
     const sessions = await getUnfulfilledSessions()
-    this.io.in('volunteers').emit('sessions', sessions)
+    this.io.in('volunteers').emit(WebsocketEvents.SESSIONS, sessions)
   }
 
   async emitSessionChange(sessionId: Ulid): Promise<void> {
