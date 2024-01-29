@@ -30,11 +30,23 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
-import { TwilioError } from './models/Errors'
 const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
+  else {
+    logger.error(
+      {
+        reqId: req.id,
+        userId: req.user?.id,
+        method: req.method,
+        path: req.path,
+        url: req.url,
+        originalUrl: req.originalUrl,
+      },
+      'Request timed out'
+    )
+  }
 }
 
 // Set up Sentry error tracking
