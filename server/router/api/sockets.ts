@@ -459,6 +459,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         newrelic.startWebTransaction(
           '/socket-io/progress-report:processed',
           () => {
+            logger.info(
+              `Socket event progress-report:processed received for user ${userId} for session ${sessionId}`
+            )
             socketService.emitProgressReportProcessedToUser(userId, {
               sessionId,
               subject,
