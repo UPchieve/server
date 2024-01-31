@@ -2,9 +2,17 @@ import pino from 'pino'
 import config from './config'
 import newrelic from 'newrelic'
 
-const logger = pino({
-  level: config.logLevel,
-})
+const logger =
+  config.NODE_ENV !== 'dev'
+    ? pino({
+        level: config.logLevel,
+      })
+    : pino({
+        level: config.logLevel,
+        transport: {
+          target: 'pino-pretty',
+        },
+      })
 
 // TODO: Consolidate into one logger file
 export function logError(
