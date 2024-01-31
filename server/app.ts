@@ -30,7 +30,6 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
-const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
@@ -152,20 +151,6 @@ app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
 const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
 const swaggerYaml = YAML.parse(swaggerDoc)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
-
-// Setting up csrf middleware
-app.use(csrf({ cookie: true }))
-app.get('/api/csrftoken', function(req, res) {
-  res.json({ csrfToken: req.csrfToken() })
-})
-
-// CSRF error handler
-app.use(function(err: any, req: Request, res: Response, next: NextFunction) {
-  if (err.code !== 'EBADCSRFTOKEN') return next(err)
-
-  logger.error(`CSRF Token Error: ${err}`)
-  res.sendStatus(403)
-})
 
 // initialize Express WebSockets
 expressWs(app)
