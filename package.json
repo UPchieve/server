@@ -92,7 +92,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
     "multer": "^1.4.5-lts.1",
-    "newrelic": "^10.6.2",
+    "newrelic": "^11.10.1",
     "nodemailer": "^6.6.0",
     "nodemailer-express-handlebars": "^4.0.0",
     "openai": "^4.20.0",
