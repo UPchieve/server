@@ -169,7 +169,9 @@ app.use(function(err: any, _req: Request, res: Response, next: NextFunction) {
   if (err.code !== 'EBADCSRFTOKEN') return next(err)
 
   logger.error(`CSRF Token Error: ${err}`)
-  res.sendStatus(403)
+  res.status(403).json({
+    err: 'invalid csrf token',
+  })
 })
 
 // initialize Express WebSockets
