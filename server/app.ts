@@ -30,6 +30,7 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
+const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
