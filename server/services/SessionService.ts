@@ -40,7 +40,7 @@ import {
 } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
-import { asNumber, asString } from '../utils/type-utils'
+import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
@@ -62,6 +62,7 @@ import {
   isChatBotEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
+import * as Y from 'yjs'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -251,17 +252,12 @@ export async function processAssistmentsSession(sessionId: Ulid) {
 }
 
 export async function processSessionReported(sessionId: Ulid) {
-  try {
-    await QueueService.add(
-      Jobs.EmailSessionReported,
-      JSON.parse(await cache.get(`${sessionId}-reported`)),
-      { removeOnComplete: true, removeOnFail: true }
-    )
-    await cache.remove(`${sessionId}-reported`)
-  } catch (err) {
-    // we don't care if the key is not found
-    if (!(err instanceof cache.KeyNotFoundError)) throw err
-  }
+  await QueueService.add(
+    Jobs.EmailSessionReported,
+    JSON.parse(await cache.get(`${sessionId}-reported`)),
+    { removeOnComplete: true, removeOnFail: true }
+  )
+  await cache.remove(`${sessionId}-reported`)
 }
 
 export async function processCalculateMetrics(sessionId: Ulid) {
@@ -320,30 +316,76 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   }
 }
 
-export async function storeAndDeleteQuillDoc(
+async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
+  return await Number(await cache.get(`${sessionId}-doc-editor-version`))
+}
+
+async function setDocEditorVersion(
+  sessionId: Ulid,
+  value: string
+): Promise<void> {
+  return await cache.saveWithExpiration(
+    `${sessionId}-doc-editor-version`,
+    value
+  )
+}
+
+export async function addDocEditorVersionTo(
+  session: SessionRepo.CurrentSession | undefined
+): Promise<void> {
+  if (session?.id) {
+    const docEditorVersion = await getDocEditorVersion(session.id)
+    if (docEditorVersion) {
+      session.docEditorVersion = docEditorVersion
+    }
+  }
+}
+
+async function storeQuillDocV1(
   sessionId: Ulid,
   retries: number = 0
 ): Promise<void> {
-  let quillState: QuillDocService.QuillCacheState | undefined
   try {
-    quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
+    const quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
+    if (quillState?.doc) {
+      await SessionRepo.updateSessionQuillDoc(
+        sessionId,
+        JSON.stringify(quillState.doc)
+      )
+    }
   } catch (error) {
     if (error instanceof LockError && retries < 10)
-      return storeAndDeleteQuillDoc(sessionId, retries + 1)
+      return storeQuillDocV1(sessionId, retries + 1)
     else
       logger.error(
         `Failed to update and get document in the cache for session ${sessionId} - ${error}`
       )
     return
   }
+}
 
-  if (quillState) {
-    await SessionRepo.updateSessionQuillDoc(
-      sessionId,
-      JSON.stringify(quillState.doc)
-    )
-    await QuillDocService.deleteDoc(sessionId)
+async function storeQuillDocV2(sessionId: Ulid) {
+  const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
+  const ydoc = new Y.Doc()
+  const text = ydoc.getText('quill')
+  for (const update of quillStateV2) {
+    Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
   }
+  await SessionRepo.updateSessionQuillDoc(
+    sessionId,
+    // Ensure viewing the document in a recap works by matching existing sessions.quill_doc format
+    JSON.stringify({ ops: text.toDelta() })
+  )
+}
+
+export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
+  if ((await getDocEditorVersion(sessionId)) === 2) {
+    await storeQuillDocV2(sessionId)
+  } else {
+    await storeQuillDocV1(sessionId)
+  }
+
+  await QuillDocService.deleteDoc(sessionId)
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
@@ -502,6 +544,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     assignmentId,
     studentId,
     userAgent,
+    docEditorVersion,
   } = sessionUtils.asStartSessionData(data)
   const subject = Case.camel(sessionSubTopic)
   const topic = Case.camel(sessionType)
@@ -573,6 +616,8 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       { removeOnComplete: true, removeOnFail: true }
     )
 
+  await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
+
   await createSessionAction({
     userId: user.id,
     sessionId: newSessionId,
@@ -591,7 +636,9 @@ export async function checkSession(data: unknown) {
 }
 
 export async function currentSession(userId: Ulid) {
-  return await SessionRepo.getCurrentSessionByUserId(userId)
+  const session = await SessionRepo.getCurrentSessionByUserId(userId)
+  await addDocEditorVersionTo(session)
+  return session
 }
 
 export async function getRecapSessionForDms(userId: Ulid) {
@@ -832,10 +879,10 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
       await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     }
   } catch (err) {
-    // if key missing do nothing - means chatbot is not active yet
-    if (err instanceof cache.KeyNotFoundError) return
     // TODO: cancel chatbot jobs here
-    logger.error(`Could not process message acitvity state, cancelling chatbot`)
+    logger.error(
+      `Could not process message acitvity state, cancelling chatbot ${err}`
+    )
   }
 }
 
