@@ -53,7 +53,6 @@ import SocketService from './SocketService'
 import * as TwilioService from './TwilioService'
 import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
-import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
@@ -252,12 +251,17 @@ export async function processAssistmentsSession(sessionId: Ulid) {
 }
 
 export async function processSessionReported(sessionId: Ulid) {
-  await QueueService.add(
-    Jobs.EmailSessionReported,
-    JSON.parse(await cache.get(`${sessionId}-reported`)),
-    { removeOnComplete: true, removeOnFail: true }
-  )
-  await cache.remove(`${sessionId}-reported`)
+  try {
+    await QueueService.add(
+      Jobs.EmailSessionReported,
+      JSON.parse(await cache.get(`${sessionId}-reported`)),
+      { removeOnComplete: true, removeOnFail: true }
+    )
+    await cache.remove(`${sessionId}-reported`)
+  } catch (err) {
+    // we don't care if the key is not found
+    if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
 }
 
 export async function processCalculateMetrics(sessionId: Ulid) {
@@ -341,29 +345,6 @@ export async function addDocEditorVersionTo(
   }
 }
 
-async function storeQuillDocV1(
-  sessionId: Ulid,
-  retries: number = 0
-): Promise<void> {
-  try {
-    const quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
-    if (quillState?.doc) {
-      await SessionRepo.updateSessionQuillDoc(
-        sessionId,
-        JSON.stringify(quillState.doc)
-      )
-    }
-  } catch (error) {
-    if (error instanceof LockError && retries < 10)
-      return storeQuillDocV1(sessionId, retries + 1)
-    else
-      logger.error(
-        `Failed to update and get document in the cache for session ${sessionId} - ${error}`
-      )
-    return
-  }
-}
-
 async function storeQuillDocV2(sessionId: Ulid) {
   const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
   const ydoc = new Y.Doc()
@@ -379,10 +360,15 @@ async function storeQuillDocV2(sessionId: Ulid) {
 }
 
 export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
-  if ((await getDocEditorVersion(sessionId)) === 2) {
+  const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
+  const quillState = await QuillDocService.getQuillDocV1(sessionId)
+  if (quillStateV2.length) {
     await storeQuillDocV2(sessionId)
-  } else {
-    await storeQuillDocV1(sessionId)
+  } else if (quillState?.doc) {
+    await SessionRepo.updateSessionQuillDoc(
+      sessionId,
+      JSON.stringify(quillState.doc)
+    )
   }
 
   await QuillDocService.deleteDoc(sessionId)
@@ -579,6 +565,10 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     user.banned
   )
 
+  // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
+  // and looking for this value before it's set
+  await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
+
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)
     try {
@@ -615,8 +605,6 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       { sessionId: newSessionId },
       { removeOnComplete: true, removeOnFail: true }
     )
-
-  await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
 
   await createSessionAction({
     userId: user.id,
