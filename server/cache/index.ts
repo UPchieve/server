@@ -67,9 +67,8 @@ export async function get(key: string): Promise<string> {
   return value
 }
 
-export async function remove(key: string): Promise<void> {
-  const docsRemoved = await redisClient.del(key)
-  if (docsRemoved === 0) throw new KeyDeletionFailureError(key)
+export async function remove(key: string): Promise<number> {
+  return await redisClient.del(key)
 }
 
 export async function append(key: string, addition: string): Promise<void> {
@@ -87,4 +86,12 @@ export async function lpop(key: string): Promise<string> {
 
 export async function lock(key: string, lockDuration: number): Promise<Lock> {
   return await redisLock.lock(`lock:${key}`, lockDuration)
+}
+
+export async function sadd(key: string, member: string) {
+  return await redisClient.sadd(key, member)
+}
+
+export async function smembers(key: string) {
+  return await redisClient.smembers(key)
 }

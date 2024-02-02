@@ -30,7 +30,7 @@ export const appendToDoc = (
   return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
-export const deleteDoc = (sessionId: Ulid): Promise<void> => {
+export const deleteDoc = (sessionId: Ulid): Promise<number> => {
   return cache.remove(sessionIdToKey(sessionId))
 }
 
