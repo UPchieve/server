@@ -337,7 +337,10 @@ async function setDocEditorVersion(
 export async function addDocEditorVersionTo(
   session: SessionRepo.CurrentSession | undefined
 ): Promise<void> {
-  if (session?.id) {
+  if (
+    session?.toolType &&
+    sessionUtils.isSubjectUsingDocumentEditor(session.toolType)
+  ) {
     const docEditorVersion = await getDocEditorVersion(session.id)
     if (docEditorVersion) {
       session.docEditorVersion = docEditorVersion
@@ -565,9 +568,12 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     user.banned
   )
 
-  // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
-  // and looking for this value before it's set
-  await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
+  const session = await SessionRepo.getSessionById(newSessionId)
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
+    // and looking for this value before it's set
+    await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
+  }
 
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)
