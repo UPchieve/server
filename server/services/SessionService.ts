@@ -335,16 +335,10 @@ async function setDocEditorVersion(
 }
 
 export async function addDocEditorVersionTo(
-  session: SessionRepo.CurrentSession | undefined
+  session: SessionRepo.CurrentSession
 ): Promise<void> {
-  if (
-    session?.toolType &&
-    sessionUtils.isSubjectUsingDocumentEditor(session.toolType)
-  ) {
-    const docEditorVersion = await getDocEditorVersion(session.id)
-    if (docEditorVersion) {
-      session.docEditorVersion = docEditorVersion
-    }
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    session.docEditorVersion = await getDocEditorVersion(session.id)
   }
 }
 
@@ -631,7 +625,7 @@ export async function checkSession(data: unknown) {
 
 export async function currentSession(userId: Ulid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
-  if (session && sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+  if (session) {
     await addDocEditorVersionTo(session)
   }
   return session

@@ -6,7 +6,6 @@ import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { addDocEditorVersionTo } from './SessionService'
-import { isSubjectUsingDocumentEditor } from '../utils/session-utils'
 
 class SocketService {
   private static instance: SocketService
@@ -45,9 +44,7 @@ class SocketService {
 
   async emitSessionChange(sessionId: Ulid): Promise<void> {
     const session = await this.getSessionData(sessionId)
-    if (isSubjectUsingDocumentEditor(session.toolType)) {
-      await addDocEditorVersionTo(session)
-    }
+    await addDocEditorVersionTo(session)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
     await this.updateSessionList()
