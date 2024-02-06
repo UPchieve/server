@@ -47,6 +47,7 @@ import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 export * from './types'
 import { ProgressReportNotFoundError } from '../Errors'
+import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -276,7 +277,10 @@ export async function queueGenerateProgressReportForUser(
   sessionId: Ulid
 ): Promise<void> {
   const session = await getSessionById(sessionId)
-  if (session.subject !== 'reading') return
+  const isProgressReportsActive = await getProgressReportsFeatureFlag(
+    session.studentId
+  )
+  if (session.subject !== 'reading' || !isProgressReportsActive) return
   await QueueService.add(
     Jobs.GenerateProgressReport,
     { sessionId },
