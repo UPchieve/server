@@ -532,8 +532,8 @@ export async function startSession(user: UserContactInfo, data: unknown) {
   const subject = Case.camel(sessionSubTopic)
   const topic = Case.camel(sessionType)
 
-  const isValid = await getSubjectAndTopic(subject, topic)
-  if (!isValid)
+  const subjectAndTopic = await getSubjectAndTopic(subject, topic)
+  if (!subjectAndTopic)
     throw new sessionUtils.StartSessionError(
       `Unable to start new session for the topic ${topic} and subject ${subject}`
     )
@@ -562,8 +562,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     user.banned
   )
 
-  const session = await SessionRepo.getSessionById(newSessionId)
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+  if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
     // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
     // and looking for this value before it's set
     await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
