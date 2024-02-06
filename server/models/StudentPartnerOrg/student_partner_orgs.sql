@@ -224,6 +224,17 @@ RETURNING
     student_partner_orgs_upchieve_instances.id AS ok;
 
 
+/* @name deactivateUserStudentPartnerOrgInstance */
+UPDATE
+    users_student_partner_orgs_instances
+SET
+    deactivated_on = NOW(),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+    AND student_partner_org_id = :spoId!;
+
+
 /* @name migratePartnerSchoolsToPartnerOrgs */
 INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)
 SELECT
