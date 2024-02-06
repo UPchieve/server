@@ -631,7 +631,9 @@ export async function checkSession(data: unknown) {
 
 export async function currentSession(userId: Ulid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
-  await addDocEditorVersionTo(session)
+  if (session && sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    await addDocEditorVersionTo(session)
+  }
   return session
 }
 
