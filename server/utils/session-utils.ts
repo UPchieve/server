@@ -174,6 +174,7 @@ export interface StartSessionData extends RequestIdentifier {
   problemId?: string
   assignmentId?: string
   studentId?: string
+  docEditorVersion?: number
 }
 export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
@@ -182,6 +183,7 @@ export const asStartSessionData = asFactory<StartSessionData>({
   problemId: asOptional(asString),
   assignmentId: asOptional(asString),
   studentId: asOptional(asString),
+  docEditorVersion: asOptional(asNumber),
 })
 
 export interface SessionsToReviewData {

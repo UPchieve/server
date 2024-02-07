@@ -43,7 +43,6 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
   socket.join(user.id.toString())
-  logger.debug('User connected to socket!')
 
   const latestSession = await SessionService.currentSession(user.id)
 
@@ -408,6 +407,31 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
+    socket.on('requestQuillStateV2', async ({ sessionId }) => {
+      newrelic.startWebTransaction(
+        '/socket-io/requestQuillStateV2',
+        async () => {
+          const updates = await QuillDocService.getDocumentUpdates(sessionId)
+          socket.emit('quillStateV2', { updates })
+        }
+      )
+    })
+
+    socket.on(
+      'transmitQuillDeltaV2',
+      async ({ sessionId, update }: { sessionId: string; update: string }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/transmitQuillDeltaV2',
+          async () => {
+            await QuillDocService.addDocumentUpdate(sessionId, update)
+            socket
+              .to(getSessionRoom(sessionId))
+              .emit('partnerQuillDeltaV2', { update })
+          }
+        )
+      }
+    )
+
     socket.on('transmitQuillDelta', async ({ sessionId, delta }) => {
       newrelic.startWebTransaction(
         '/socket-io/transmitQuillDelta',
@@ -459,6 +483,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         newrelic.startWebTransaction(
           '/socket-io/progress-report:processed',
           () => {
+            logger.info(
+              `Socket event progress-report:processed received for user ${userId} for session ${sessionId}`
+            )
             socketService.emitProgressReportProcessedToUser(userId, {
               sessionId,
               subject,

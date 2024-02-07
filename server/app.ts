@@ -30,11 +30,23 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
-import { TwilioError } from './models/Errors'
 const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
+  else {
+    logger.error(
+      {
+        reqId: req.id,
+        userId: req.user?.id,
+        method: req.method,
+        path: req.path,
+        url: req.url,
+        originalUrl: req.originalUrl,
+      },
+      'Request timed out'
+    )
+  }
 }
 
 // Set up Sentry error tracking
@@ -141,18 +153,25 @@ const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
 const swaggerYaml = YAML.parse(swaggerDoc)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 
-// Setting up csrf middleware
-app.use(csrf({ cookie: true }))
-app.get('/api/csrftoken', function(req, res) {
+// CSRF middleware.
+const csrfProtection = csrf({ cookie: true })
+app.get('/api/csrftoken', csrfProtection, function(req, res) {
   res.json({ csrfToken: req.csrfToken() })
 })
-
-// CSRF error handler
-app.use(function(err: any, req: Request, res: Response, next: NextFunction) {
+app.use(function(req, res, next) {
+  if (req.method !== 'GET') {
+    csrfProtection(req, res, next)
+  } else {
+    next()
+  }
+})
+app.use(function(err: any, _req: Request, res: Response, next: NextFunction) {
   if (err.code !== 'EBADCSRFTOKEN') return next(err)
 
   logger.error(`CSRF Token Error: ${err}`)
-  res.sendStatus(403)
+  res.status(403).json({
+    err: 'invalid csrf token',
+  })
 })
 
 // initialize Express WebSockets
