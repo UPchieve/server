@@ -1,6 +1,8 @@
 import Delta from 'quill-delta'
 import * as cache from '../cache'
 import { Ulid } from '../models/pgUtils'
+import { LockError } from 'redlock'
+import logger from '../logger'
 
 function sessionIdToKey(id: Ulid): string {
   return `quill-${id.toString()}`
@@ -53,6 +55,26 @@ export async function lockAndGetDocCacheState(
     return result
   } catch (err) {
     if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
+}
+
+/*
+ * `lockAndGetDocCacheState` with retry
+ */
+export async function getQuillDocV1(
+  sessionId: Ulid,
+  retries: number = 0
+): Promise<QuillCacheState | undefined> {
+  try {
+    return await lockAndGetDocCacheState(sessionId)
+  } catch (error) {
+    if (error instanceof LockError && retries < 10)
+      return getQuillDocV1(sessionId, retries + 1)
+    else
+      logger.error(
+        `Failed to update and get document in the cache for session ${sessionId} - ${error}`
+      )
+    return
   }
 }
 
