@@ -629,6 +629,7 @@ export type CurrentSession = {
   messages: MessageForFrontend[]
   endedAt?: Date
   toolType: string
+  docEditorVersion?: number
 }
 
 export type SessionInfoForUser = {
