@@ -210,31 +210,26 @@ SELECT
     subjects.display_name AS subject,
     topics.name AS topic,
     topics.icon_link AS topic_icon_link
-FROM ( SELECT DISTINCT ON (session_id)
-        progress_report_sessions.progress_report_id,
-        progress_report_sessions.session_id,
-        progress_report_sessions.created_at
-    FROM
-        progress_report_sessions
-        JOIN progress_reports ON progress_reports.id = progress_report_sessions.progress_report_id
-        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
-        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
-        JOIN sessions ON progress_report_sessions.session_id = sessions.id
-    WHERE
-        progress_reports.user_id = :userId!
-        AND progress_report_analysis_types.name = :analysisType!
-        AND progress_report_statuses.name = 'complete'
-        AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-        AND NOW()
-    ORDER BY
-        session_id,
-        progress_report_sessions.created_at DESC) AS latest_progress_report_per_session
-    JOIN progress_reports ON progress_reports.id = latest_progress_report_per_session.progress_report_id
-    JOIN sessions ON latest_progress_report_per_session.session_id = sessions.id
+FROM
+    progress_reports
+    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+    JOIN sessions ON progress_report_sessions.session_id = sessions.id
     JOIN subjects ON sessions.subject_id = subjects.id
-    JOIN topics ON subjects.topic_id = topics.id
+    JOIN topics ON topics.id = subjects.topic_id
 WHERE
-    subjects.name = :subject!
+    progress_reports.user_id = :userId!
+    AND subjects.name = :subject!
+    AND progress_report_analysis_types.name = :analysisType!
+    AND progress_report_statuses.name = 'complete'
+    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+    AND NOW()
+GROUP BY
+    sessions.id,
+    subjects.display_name,
+    topics.name,
+    topics.icon_link
 ORDER BY
     sessions.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
