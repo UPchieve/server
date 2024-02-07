@@ -874,12 +874,13 @@ export async function deleteSelfFavoritedVolunteers(): Promise<void> {
 }
 
 export async function getActivePartnersForStudent(
-  studentId: Ulid
+  studentId: Ulid,
+  tc?: TransactionClient
 ): Promise<StudentPartnerOrgInstance[] | undefined> {
   try {
     const result = await pgQueries.getPartnerOrgsByStudent.run(
       { studentId },
-      getClient()
+      tc ?? getClient()
     )
 
     if (result.length)
