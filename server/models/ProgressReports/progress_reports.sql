@@ -153,7 +153,8 @@ SELECT
     progress_report_info_types.name AS info_type,
     progress_report_summaries.progress_report_id AS report_id,
     progress_reports.read_at AS report_read_at,
-    progress_report_summaries.created_at
+    progress_report_summaries.created_at,
+    latest_session_for_summary.created_at AS session_created_at
 FROM
     progress_report_summaries
     JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id
@@ -161,6 +162,15 @@ FROM
     JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
     JOIN progress_reports ON progress_report_summaries.progress_report_id = progress_reports.id
     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+    JOIN (
+        SELECT
+            progress_report_id,
+            MAX(sessions.created_at) AS created_at
+        FROM
+            progress_report_sessions
+            JOIN sessions ON progress_report_sessions.session_id = sessions.id
+        GROUP BY
+            progress_report_id) AS latest_session_for_summary ON progress_report_summaries.progress_report_id = latest_session_for_summary.progress_report_id
 WHERE
     progress_report_summaries.progress_report_id = ANY (:reportIds!)
     AND progress_report_statuses.name = 'complete'
@@ -215,6 +225,11 @@ WHERE
     AND progress_report_statuses.name = 'complete'
     AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
     AND NOW()
+GROUP BY
+    sessions.id,
+    subjects.display_name,
+    topics.name,
+    topics.icon_link
 ORDER BY
     sessions.created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
@@ -222,23 +237,32 @@ LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 /* @name getAllProgressReportIdsByUserIdAndSubject */
 SELECT
-    progress_reports.id
-FROM
-    progress_reports
-    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
-    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
-    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
-    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
-    LEFT JOIN subjects ON sessions.subject_id = subjects.id
+    grouped_reports.id
+FROM (
+    SELECT
+        progress_reports.id,
+        progress_reports.created_at,
+        STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) AS session_group,
+        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num
+    FROM
+        progress_reports
+        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+        LEFT JOIN subjects ON sessions.subject_id = subjects.id
+    WHERE
+        progress_reports.user_id = :userId!
+        AND subjects.name = :subject!
+        AND progress_report_analysis_types.name = :analysisType!
+        AND progress_report_statuses.name = 'complete'
+    GROUP BY
+        progress_reports.id,
+        progress_reports.created_at) AS grouped_reports
 WHERE
-    progress_reports.user_id = :userId!
-    AND subjects.name = :subject!
-    AND progress_report_analysis_types.name = :analysisType!
-    AND progress_report_statuses.name = 'complete'
-GROUP BY
-    progress_reports.id
+    grouped_reports.row_num = 1
 ORDER BY
-    progress_reports.created_at DESC;
+    grouped_reports.created_at DESC;
 
 
 /* @name getLatestProgressReportIdBySubject */

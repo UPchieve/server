@@ -28,6 +28,7 @@ export type ProgressReportSummary = {
   details: ProgressReportDetail[]
   createdAt: Date
   reportId: Ulid
+  sessionCreatedAt: Date
   reportReadAt?: Date
 }
 
