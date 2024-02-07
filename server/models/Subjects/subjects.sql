@@ -3,10 +3,12 @@ SELECT
     subjects.name AS subject_name,
     subjects.display_name AS subject_display_name,
     topics.name AS topic_name,
-    topics.display_name AS topic_display_name
+    topics.display_name AS topic_display_name,
+    tool_types.name AS tool_type
 FROM
     subjects
     JOIN topics ON subjects.topic_id = topics.id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     subjects.name = :subject!
     AND topics.name = :topic!;

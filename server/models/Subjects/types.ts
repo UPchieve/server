@@ -3,6 +3,7 @@ export type SubjectAndTopic = {
   subjectDisplayName: string
   topicName: string
   topicDisplayName: string
+  toolType: string
 }
 
 export type SubjectWithTopic = {
