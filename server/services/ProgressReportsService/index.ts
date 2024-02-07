@@ -303,6 +303,7 @@ function transformProgressReportSummaryRows(
         createdAt: row.createdAt,
         reportId: row.reportId,
         reportReadAt: row.reportReadAt,
+        sessionCreatedAt: row.sessionCreatedAt,
       }
     }
 

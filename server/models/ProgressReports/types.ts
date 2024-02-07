@@ -29,6 +29,7 @@ export type ProgressReportSummaryRow = {
   reportId: Ulid
   reportReadAt?: Date
   createdAt: Date
+  sessionCreatedAt: Date
 }
 
 export type ProgressReportConceptRow = {
