@@ -35,13 +35,7 @@ export default function(app: Express) {
     return res.json({ csrfToken })
   })
 
-  app.use((req, res, next) => {
-    if (req.url === '/auth/login') {
-      next()
-    } else {
-      csrfSynchronisedProtection(req, res, next)
-    }
-  })
+  app.use(csrfSynchronisedProtection)
 
   return store
 }
