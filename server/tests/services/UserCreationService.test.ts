@@ -60,12 +60,11 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
       }
 
-      const failed = await rosterPartnerStudents([invalidFirstName], '123')
+      const { failed } = await rosterPartnerStudents([invalidFirstName], '123')
 
       expect(failed.length).toBe(1)
       expect(failed[0].email).toBe(invalidFirstName.email)
       expect(failed[0].firstName).toBe(invalidFirstName.firstName)
-      expect(failed[0].lastName).toBe(invalidFirstName.lastName)
     })
 
     test('ensure lastName is valid', async () => {
@@ -76,12 +75,11 @@ describe('rosterPartnerStudents', () => {
         lastName: 'DELETE * FROM upchieve.users;',
       }
 
-      const failed = await rosterPartnerStudents([invalidLastName], '123')
+      const { failed } = await rosterPartnerStudents([invalidLastName], '123')
 
       expect(failed.length).toBe(1)
       expect(failed[0].email).toBe(invalidLastName.email)
       expect(failed[0].firstName).toBe(invalidLastName.firstName)
-      expect(failed[0].lastName).toBe(invalidLastName.lastName)
     })
 
     test('ensure email is valid', async () => {
@@ -92,12 +90,11 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
       }
 
-      const failed = await rosterPartnerStudents([invalidEmail], '123')
+      const { failed } = await rosterPartnerStudents([invalidEmail], '123')
 
       expect(failed.length).toBe(1)
       expect(failed[0].email).toBe(invalidEmail.email)
       expect(failed[0].firstName).toBe(invalidEmail.firstName)
-      expect(failed[0].lastName).toBe(invalidEmail.lastName)
     })
   })
 
@@ -111,16 +108,17 @@ describe('rosterPartnerStudents', () => {
       lastName: faker.name.lastName(),
       password: '123456Aa',
     }
-    mockedUserRepo.createUser.mockResolvedValue({
+    mockedUserRepo.upsertUser.mockResolvedValue({
       id: USER_ID,
       email: rosterStudent.email,
       firstName: rosterStudent.firstName,
       proxyEmail: undefined,
+      isCreated: true,
     })
 
     await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
-    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+    expect(mockedUserRepo.upsertUser).toHaveBeenCalledWith(
       {
         email: rosterStudent.email,
         emailVerified: true,
@@ -151,7 +149,7 @@ describe('rosterPartnerStudents', () => {
       { action: ACCOUNT_USER_ACTIONS.CREATED, userId: USER_ID },
       expect.toBeTransactionClient()
     )
-    expect(mockedStudentRepo.createStudentProfile).toHaveBeenCalledWith(
+    expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalledWith(
       {
         userId: USER_ID,
         gradeLevel: parseInt(rosterStudent.gradeLevel).toFixed(0) + 'th',
@@ -171,16 +169,17 @@ describe('rosterPartnerStudents', () => {
       lastName: faker.name.lastName(),
       password: '123456Aa',
     }
-    mockedUserRepo.createUser.mockResolvedValue({
+    mockedUserRepo.upsertUser.mockResolvedValue({
       id: USER_ID,
       email: rosterStudent.email,
       firstName: rosterStudent.firstName,
       proxyEmail: undefined,
+      isCreated: true,
     })
 
     await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
-    const firstArg = mockedUserRepo.createUser.mock.calls[0][0]
+    const firstArg = mockedUserRepo.upsertUser.mock.calls[0][0]
     const hashedStudentPassword = await hashPassword(rosterStudent.password!)
     const isSame = await verifyPassword(
       firstArg.password!,
@@ -199,16 +198,17 @@ describe('rosterPartnerStudents', () => {
       lastName: faker.name.lastName(),
       proxyEmail: faker.internet.email(),
     }
-    mockedUserRepo.createUser.mockResolvedValue({
+    mockedUserRepo.upsertUser.mockResolvedValue({
       id: USER_ID,
       email: rosterStudent.email,
       firstName: rosterStudent.firstName,
       proxyEmail: rosterStudent.proxyEmail,
+      isCreated: true,
     })
 
     await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
-    const firstArg = mockedUserRepo.createUser.mock.calls[0][0]
+    const firstArg = mockedUserRepo.upsertUser.mock.calls[0][0]
     expect(firstArg.password).toBeFalsy()
     expect(firstArg.passwordResetToken).toBeTruthy()
 
@@ -221,14 +221,43 @@ describe('rosterPartnerStudents', () => {
     )
   })
 
-  describe('creates studentPartnerOrg instance', () => {
-    test('if partner org', async () => {
+  describe('if student already exists', () => {
+    test('upserts the user and student profile but not the metadata', async () => {
+      const USER_ID = 'userId789'
+      const SCHOOL_ID = 'schoolId789'
+      const rosterStudent = {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        gradeLevel: '12',
+        lastName: faker.name.lastName(),
+        password: faker.internet.password(),
+        proxyEmail: faker.internet.email(),
+      }
+      mockedUserRepo.upsertUser.mockResolvedValue({
+        id: USER_ID,
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        proxyEmail: rosterStudent.proxyEmail,
+        isCreated: false,
+      })
+
+      await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
+
+      expect(mockedUserRepo.upsertUser).toHaveBeenCalled()
+      expect(mockedUserRepo.insertUserRoleByUserId).not.toHaveBeenCalled()
+      expect(mockedUSMRepo.createUSMByUserId).not.toHaveBeenCalled()
+      expect(mockedUPFRepo.createUPFByUserId).not.toHaveBeenCalled()
+      expect(mockedUserActionRepo.createAccountAction).not.toHaveBeenCalled()
+      expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalled()
+    })
+  })
+
+  describe('creates and/or deactivates studentPartnerOrg instance', () => {
+    test('creates non-school partner org instance when none active', async () => {
       const USER_ID = 'userId000'
-      const SCHOOL_ID = 'schoolId000'
-      const PARTNER_ID = 'partnerId000'
-      const PARTNER_KEY = 'partner-key'
-      const SITE_ID = 'siteId000'
-      const SITE = 'partner-site'
+      const NEW_PARTNER_ID = 'new-partner-id'
+      const NEW_PARTNER_KEY = 'new-partner-key'
+      const NEW_SITE_ID = 'new-site-id'
 
       const rosterStudent = {
         email: faker.internet.email(),
@@ -237,38 +266,42 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
         proxyEmail: faker.internet.email(),
       }
-      mockedUserRepo.createUser.mockResolvedValue({
+      mockedUserRepo.upsertUser.mockResolvedValue({
         id: USER_ID,
         email: rosterStudent.email,
         firstName: rosterStudent.firstName,
         proxyEmail: undefined,
+        isCreated: true,
       })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue(undefined)
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
+        undefined
+      )
       mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
-        partnerId: PARTNER_ID,
-        partnerKey: PARTNER_KEY,
-        partnerName: 'partner-name',
-        siteId: SITE_ID,
-        siteName: SITE,
+        partnerId: NEW_PARTNER_ID,
+        partnerKey: NEW_PARTNER_KEY,
+        partnerName: 'new-partner-name',
+        siteId: NEW_SITE_ID,
       })
 
-      await rosterPartnerStudents([rosterStudent], SCHOOL_ID, PARTNER_KEY, SITE)
+      await rosterPartnerStudents([rosterStudent], 'school-id', NEW_PARTNER_KEY)
 
       expect(
         mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
       ).toHaveBeenCalledWith(
         {
           userId: USER_ID,
-          studentPartnerOrgId: PARTNER_ID,
-          studentPartnerOrgSiteId: SITE_ID,
+          studentPartnerOrgId: NEW_PARTNER_ID,
+          studentPartnerOrgSiteId: NEW_SITE_ID,
         },
         expect.toBeTransactionClient()
       )
     })
 
-    test('if partner school', async () => {
+    test('creates school partner org instance when none active', async () => {
       const USER_ID = 'userId111'
       const SCHOOL_ID = 'schoolId111'
-      const PARTNER_ID = 'partnerId111'
+      const NEW_SCHOOL_PARTNER_ID = 'new-school-partner-id'
 
       const rosterStudent = {
         email: faker.internet.email(),
@@ -277,17 +310,19 @@ describe('rosterPartnerStudents', () => {
         lastName: faker.name.lastName(),
         proxyEmail: faker.internet.email(),
       }
-      mockedUserRepo.createUser.mockResolvedValue({
+      mockedUserRepo.upsertUser.mockResolvedValue({
         id: USER_ID,
         email: rosterStudent.email,
         firstName: rosterStudent.firstName,
         proxyEmail: undefined,
+        isCreated: true,
       })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue(undefined)
       mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
         {
-          partnerId: PARTNER_ID,
-          partnerKey: 'partner-key',
-          partnerName: 'partner-name',
+          partnerId: NEW_SCHOOL_PARTNER_ID,
+          partnerKey: 'new-school-partner-key',
+          partnerName: 'new-school-partner-name',
         }
       )
 
@@ -298,13 +333,208 @@ describe('rosterPartnerStudents', () => {
       ).toHaveBeenCalledWith(
         {
           userId: USER_ID,
-          studentPartnerOrgId: PARTNER_ID,
+          studentPartnerOrgId: NEW_SCHOOL_PARTNER_ID,
         },
         expect.toBeTransactionClient()
       )
       expect(
         mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey
       ).not.toHaveBeenCalled()
+    })
+
+    test('do nothing if student partner org instance to add is already active', async () => {
+      const USER_ID = 'partnerOrgAlreadyActive'
+      const PARTNER_ID = 'existing-partner-id'
+      const PARTNER_KEY = 'existing-partner-key'
+
+      const rosterStudent = {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        gradeLevel: '9',
+        lastName: faker.name.lastName(),
+        proxyEmail: faker.internet.email(),
+      }
+      mockedUserRepo.upsertUser.mockResolvedValue({
+        id: USER_ID,
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        proxyEmail: undefined,
+        isCreated: true,
+      })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue([
+        {
+          id: PARTNER_ID,
+          name: PARTNER_KEY,
+        },
+      ])
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+        partnerId: PARTNER_ID,
+        partnerKey: PARTNER_KEY,
+        partnerName: 'new-partner-name',
+      })
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
+        undefined
+      )
+
+      await rosterPartnerStudents(
+        [rosterStudent],
+        'spo-already-active',
+        PARTNER_KEY
+      )
+
+      expect(
+        mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+      ).not.toHaveBeenCalled()
+    })
+
+    test('deactivates and adds new instance if student partner org to add is different than active', async () => {
+      const USER_ID = 'deactivate-existing-spo'
+      const EXISTING_PARTNER_ID = 'existing-partner-id'
+      const NEW_PARTNER_ID = 'new-partner-id'
+      const NEW_PARTNER_KEY = 'new-partner-key'
+
+      const rosterStudent = {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        gradeLevel: '9',
+        lastName: faker.name.lastName(),
+        proxyEmail: faker.internet.email(),
+      }
+      mockedUserRepo.upsertUser.mockResolvedValue({
+        id: USER_ID,
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        proxyEmail: undefined,
+        isCreated: true,
+      })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue([
+        {
+          id: EXISTING_PARTNER_ID,
+          name: EXISTING_PARTNER_ID,
+        },
+      ])
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+        partnerId: NEW_PARTNER_ID,
+        partnerKey: NEW_PARTNER_KEY,
+        partnerName: 'new-partner-name',
+      })
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
+        undefined
+      )
+
+      await rosterPartnerStudents(
+        [rosterStudent],
+        'deactivate',
+        NEW_PARTNER_KEY
+      )
+
+      expect(
+        mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance
+      ).toHaveBeenCalledWith(
+        expect.toBeTransactionClient(),
+        USER_ID,
+        EXISTING_PARTNER_ID
+      )
+      expect(
+        mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+      ).toHaveBeenCalledWith(
+        {
+          userId: USER_ID,
+          studentPartnerOrgId: NEW_PARTNER_ID,
+        },
+        expect.toBeTransactionClient()
+      )
+    })
+
+    test('do nothing if school student partner org to add is already active', async () => {
+      const EXISTING_SCHOOL_PARTNER_ID = 'existing-school-partner-id'
+      const EXISTING_SCHOOL_PARTNER_KEY = 'existing-school-partner-key'
+      const rosterStudent = {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        gradeLevel: '9',
+        lastName: faker.name.lastName(),
+        proxyEmail: faker.internet.email(),
+      }
+      mockedUserRepo.upsertUser.mockResolvedValue({
+        id: 'school-spo-already-active',
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        proxyEmail: undefined,
+        isCreated: true,
+      })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue([
+        {
+          id: EXISTING_SCHOOL_PARTNER_ID,
+          name: EXISTING_SCHOOL_PARTNER_KEY,
+        },
+      ])
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
+        {
+          partnerId: EXISTING_SCHOOL_PARTNER_ID,
+          partnerKey: EXISTING_SCHOOL_PARTNER_KEY,
+          partnerName: 'existing-school-partner-name',
+        }
+      )
+
+      await rosterPartnerStudents([rosterStudent], 'school-spo-already-active')
+
+      expect(
+        mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+      ).not.toHaveBeenCalled()
+    })
+
+    test('deactivates and adds new instance if school student partner org to add is different than active', async () => {
+      const USER_ID = 'deactivates-existing-school-partner-instance'
+      const EXISTING_SCHOOL_PARTNER_ID = 'existing-school-partner-id'
+      const NEW_SCHOOL_PARTNER_ID = 'new-school-partner-id'
+
+      const rosterStudent = {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        gradeLevel: '9',
+        lastName: faker.name.lastName(),
+        proxyEmail: faker.internet.email(),
+      }
+      mockedUserRepo.upsertUser.mockResolvedValue({
+        id: USER_ID,
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        proxyEmail: undefined,
+        isCreated: false,
+      })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue([
+        {
+          id: EXISTING_SCHOOL_PARTNER_ID,
+          name: 'existing-school-partner-id',
+        },
+      ])
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
+        {
+          partnerId: NEW_SCHOOL_PARTNER_ID,
+          partnerKey: 'new-school-parnter-key',
+          partnerName: 'new-school-partner-name',
+        }
+      )
+
+      await rosterPartnerStudents([rosterStudent], 'replaces')
+
+      expect(
+        mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance
+      ).toHaveBeenCalledWith(
+        expect.toBeTransactionClient(),
+        USER_ID,
+        EXISTING_SCHOOL_PARTNER_ID
+      )
+      expect(
+        mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
+      ).toHaveBeenCalledWith(
+        {
+          userId: USER_ID,
+          studentPartnerOrgId: NEW_SCHOOL_PARTNER_ID,
+        },
+        expect.toBeTransactionClient()
+      )
     })
   })
 })
@@ -365,7 +595,7 @@ describe('registerStudent', () => {
       },
       expect.toBeTransactionClient()
     )
-    expect(mockedStudentRepo.createStudentProfile).toHaveBeenCalledWith(
+    expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalledWith(
       {
         userId: USER_ID,
         gradeLevel: student.gradeLevel,
@@ -498,11 +728,6 @@ describe('registerStudent', () => {
       key: 'partnerOrgKey',
       name: 'Partner Org Name',
     }
-    mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
-      partnerId: PARTNER_ORG.id,
-      partnerKey: PARTNER_ORG.key,
-      partnerName: PARTNER_ORG.name,
-    })
     const student = {
       email: faker.internet.email(),
       firstName: faker.name.firstName(),
@@ -515,6 +740,12 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
+    mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+      partnerId: PARTNER_ORG.id,
+      partnerKey: PARTNER_ORG.key,
+      partnerName: PARTNER_ORG.name,
+    })
+    mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue(undefined)
 
     await registerStudent(student)
 
@@ -596,7 +827,7 @@ describe('registerStudent', () => {
 
     await registerStudent(student)
 
-    expect(mockedStudentRepo.createStudentProfile).toHaveBeenCalledWith(
+    expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalledWith(
       {
         college: undefined,
         gradeLevel: undefined,
