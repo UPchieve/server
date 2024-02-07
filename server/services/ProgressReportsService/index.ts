@@ -87,14 +87,13 @@ export async function saveProgressReport(
 ) {
   let reportId: Ulid = ''
   try {
-    // Early exit if there is no report to save
-    if (!Object.keys(data.summary).length)
+    if (!data.summary || !Object.keys(data.summary).length)
       throw new Error(
         `No progress report summary created for user ${userId} on session ${sessionIds.join(
           ','
         )}`
       )
-    if (!data.concepts.length)
+    if (!data.concepts || !data.concepts.length)
       throw new Error(
         `No progress report concepts created for user ${userId} on session ${sessionIds.join(
           ','
