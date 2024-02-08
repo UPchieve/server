@@ -173,6 +173,10 @@ jest.mock('../config', () => {
       customAnalyticsReportPartnerOrgs: ['big-telecom'],
       batchSize: 2,
     },
+
+    subwayApiCredentials: 'bogus',
+    apiPort: 3000,
+    clusterServerAddress: 'localhost',
   }
 })
 
