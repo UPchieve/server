@@ -30,6 +30,7 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
+import { extractAuthCredentials } from './utils/auth-utils'
 const csrf = require('csurf')
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
@@ -159,7 +160,11 @@ app.get('/api/csrftoken', csrfProtection, function(req, res) {
   res.json({ csrfToken: req.csrfToken() })
 })
 app.use(function(req, res, next) {
-  if (req.method !== 'GET') {
+  const token = extractAuthCredentials(req)
+  if (
+    req.method !== 'GET' &&
+    (!token || token !== config.subwayApiCredentials)
+  ) {
     csrfProtection(req, res, next)
   } else {
     next()

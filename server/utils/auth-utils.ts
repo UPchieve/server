@@ -305,6 +305,11 @@ export function verifyPassword(
   })
 }
 
+export function extractAuthCredentials(req: Request) {
+  const authHeader = req.headers.authorization
+  return authHeader && authHeader.split(' ')[1]
+}
+
 // Passport functions
 function setupPassport() {
   passport.serializeUser(function(user: Express.User, done: Function) {
@@ -537,7 +542,11 @@ function setupPassport() {
 
 // Login Required middleware
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
+  const token = extractAuthCredentials(req)
+  if (
+    req.isAuthenticated() ||
+    (token && token === config.subwayApiCredentials)
+  ) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
