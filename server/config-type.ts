@@ -208,4 +208,6 @@ export const Config = Record({
   minSessionLength: Number,
 
   openAIApiKey: String,
+
+  subwayApiCredentials: String,
 })
