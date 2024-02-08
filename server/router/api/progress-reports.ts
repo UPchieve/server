@@ -100,13 +100,14 @@ export function routeProgressReports(router: Router): void {
       const sessionId = asUlid(req.body.sessionId)
       const subject = asString(req.body.subject)
       const report = req.body.report
-      if (!userId || !report) return
+      if (!userId || !report) return res.status(400)
       const socketService = SocketService.getInstance()
       socketService.emitProgressReportProcessedToUser(userId, {
         sessionId,
         subject,
         report,
       })
+      return res.status(200)
     } catch (err) {
       resError(res, err)
     }
