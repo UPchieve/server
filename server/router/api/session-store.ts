@@ -35,7 +35,21 @@ export default function(app: Express) {
     return res.json({ csrfToken })
   })
 
-  app.use(csrfSynchronisedProtection)
+  app.use((req, res, next) => {
+    const exclusions = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/reset',
+      '/api-public/eligibility',
+      '/api-public/contact',
+      // /verify ?
+    ]
+    if (exclusions.some(ex => req.url.indexOf(ex) !== -1)) {
+      next()
+    } else {
+      csrfSynchronisedProtection(req, res, next)
+    }
+  })
 
   return store
 }
