@@ -32,6 +32,8 @@ socket.on('connect_error', error => {
 })
 
 socket.on('disconnect', reason => {
+  if (reason === 'io server disconnect' || reason === 'transport close')
+    socket.connect()
   logger.warn(`Worker socket disconnected: ${reason}`)
 })
 
