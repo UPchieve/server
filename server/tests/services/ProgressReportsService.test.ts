@@ -54,6 +54,44 @@ function createSessionsWithMessages(sessions: SessionRepo.UserSessions[]) {
 }
 
 describe('saveProgressReport', () => {
+  test(`Should throw error if no summary has been generated`, async () => {
+    const mockedProgressReport = buildProgressReport({
+      summary: {} as ProgressReportsService.ProgressReportSummary,
+    })
+    const sessionIds = [session.id]
+    const error = new Error(
+      `No progress report summary created for user ${userId} on session ${sessionIds.join(
+        ','
+      )}`
+    )
+    await expect(
+      ProgressReportsService.saveProgressReport(
+        userId,
+        sessionIds,
+        mockedProgressReport
+      )
+    ).rejects.toThrow(error)
+  })
+
+  test(`Should throw error if no concepts have been generated`, async () => {
+    const mockedProgressReport = buildProgressReport({
+      concepts: [] as ProgressReportsService.ProgressReportConcept[],
+    })
+    const sessionIds = [session.id]
+    const error = new Error(
+      `No progress report concepts created for user ${userId} on session ${sessionIds.join(
+        ','
+      )}`
+    )
+    await expect(
+      ProgressReportsService.saveProgressReport(
+        userId,
+        sessionIds,
+        mockedProgressReport
+      )
+    ).rejects.toThrow(error)
+  })
+
   test(`Should save the progress report for 'single' session analysis`, async () => {
     const reportId = getDbUlid()
     const reportSummaryId = getDbUlid()
