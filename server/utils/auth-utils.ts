@@ -305,9 +305,9 @@ export function verifyPassword(
   })
 }
 
-export function extractAuthCredentials(req: Request) {
-  const authHeader = req.headers.authorization
-  return authHeader && authHeader.split(' ')[1]
+export function getApiKeyFromHeader(req: Request) {
+  const apiKey = req.headers['x-api-key'] ?? null
+  return apiKey
 }
 
 // Passport functions
@@ -542,10 +542,10 @@ function setupPassport() {
 
 // Login Required middleware
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  const token = extractAuthCredentials(req)
+  const apiKey = getApiKeyFromHeader(req)
   if (
     req.isAuthenticated() ||
-    (token && token === config.subwayApiCredentials)
+    (apiKey && apiKey === config.subwayApiCredentials)
   ) {
     return next()
   }
@@ -557,6 +557,14 @@ function isAdmin(req: Request, res: Response, next: NextFunction) {
     return next()
   }
   return res.status(403).json({ err: 'Unauthorized' })
+}
+
+function isWorker(req: Request, res: Response, next: NextFunction) {
+  const token = getApiKeyFromHeader(req)
+  if (token && token === config.subwayApiCredentials) {
+    return next()
+  }
+  return res.status(401).json({ err: 'Not authenticated' })
 }
 
 function isAuthenticatedRedirect(
@@ -606,6 +614,7 @@ export const authPassport = {
   setupPassport,
   isAuthenticated,
   isAdmin,
+  isWorker,
   isAuthenticatedRedirect,
   isAdminRedirect,
   checkRecaptcha,

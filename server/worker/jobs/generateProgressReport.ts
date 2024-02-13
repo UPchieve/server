@@ -31,7 +31,7 @@ async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
   try {
     await axios.post(url, data, {
       headers: {
-        Authorization: `Bearer ${config.subwayApiCredentials}`,
+        'x-api-key': config.subwayApiCredentials,
       },
     })
   } catch (error) {

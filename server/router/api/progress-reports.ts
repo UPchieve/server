@@ -12,6 +12,7 @@ import { Router } from 'express'
 import { asArray, asNumber, asString, asUlid } from '../../utils/type-utils'
 import { ProgressReportNotFoundError } from '../../services/Errors'
 import SocketService from '../../services/SocketService'
+import { authPassport } from '../../utils/auth-utils'
 
 export function routeProgressReports(router: Router): void {
   router.get('/progress-reports/sessions/:sessionId', async function(req, res) {
@@ -94,22 +95,26 @@ export function routeProgressReports(router: Router): void {
     }
   })
 
-  router.post('/progress-reports/processed', async function(req, res) {
-    try {
-      const userId = asUlid(req.body.userId)
-      const sessionId = asUlid(req.body.sessionId)
-      const subject = asString(req.body.subject)
-      const report = req.body.report
-      if (!userId || !report) return res.sendStatus(400)
-      const socketService = SocketService.getInstance()
-      socketService.emitProgressReportProcessedToUser(userId, {
-        sessionId,
-        subject,
-        report,
-      })
-      return res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
+  router.post(
+    '/progress-reports/processed',
+    authPassport.isWorker,
+    async function(req, res) {
+      try {
+        const userId = asUlid(req.body.userId)
+        const sessionId = asUlid(req.body.sessionId)
+        const subject = asString(req.body.subject)
+        const report = req.body.report
+        if (!userId || !report) return res.sendStatus(400)
+        const socketService = SocketService.getInstance()
+        socketService.emitProgressReportProcessedToUser(userId, {
+          sessionId,
+          subject,
+          report,
+        })
+        return res.sendStatus(200)
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 }
