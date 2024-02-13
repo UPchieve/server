@@ -9,6 +9,7 @@ import { getDbUlid } from '../../models/pgUtils'
 import { Job } from 'bull'
 import { getSocket } from '../../worker/sockets'
 import axios from 'axios'
+import config from '../../config'
 
 jest.mock('axios')
 jest.mock('../../services/ProgressReportsService')
@@ -171,7 +172,7 @@ describe(Jobs.GenerateProgressReport, () => {
         report: reportOne,
       },
       {
-        headers: { Authorization: 'Bearer bogus' },
+        headers: { 'x-api-key': config.subwayApiCredentials },
       }
     )
     expect(axios.post).toHaveBeenNthCalledWith(
@@ -183,7 +184,7 @@ describe(Jobs.GenerateProgressReport, () => {
         report: reportTwo,
       },
       {
-        headers: { Authorization: 'Bearer bogus' },
+        headers: { 'x-api-key': config.subwayApiCredentials },
       }
     )
   })
