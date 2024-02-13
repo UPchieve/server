@@ -42,7 +42,7 @@ export default function(app: Express) {
       '/auth/reset',
       '/api-public/eligibility',
       '/api-public/contact',
-      // /verify ?
+      '/api/verify',
     ]
     if (exclusions.some(ex => req.url.indexOf(ex) !== -1)) {
       next()
