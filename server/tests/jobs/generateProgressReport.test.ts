@@ -138,7 +138,7 @@ describe(Jobs.GenerateProgressReport, () => {
     }
     const reportOne = buildProgressReport()
     const reportTwo = buildProgressReport()
-    const url = `http://localhost:3000/api/progress-reports/processed`
+    const url = `http://localhost:3000/api/webhooks/progress-reports/processed`
     // Mock the return value twice for double execution of a single and group analysis
     mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
       reportOne

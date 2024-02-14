@@ -27,7 +27,7 @@ type ProgressReportPayload = {
 async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
   const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
   const port = config.NODE_ENV === 'dev' ? `:${config.apiPort}` : ''
-  const url = `${protocol}://${config.clusterServerAddress}${port}/api/progress-reports/processed`
+  const url = `${protocol}://${config.clusterServerAddress}${port}/api/webhooks/progress-reports/processed`
   try {
     await axios.post(url, data, {
       headers: {

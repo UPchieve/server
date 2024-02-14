@@ -542,11 +542,7 @@ function setupPassport() {
 
 // Login Required middleware
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  const apiKey = getApiKeyFromHeader(req)
-  if (
-    req.isAuthenticated() ||
-    (apiKey && apiKey === config.subwayApiCredentials)
-  ) {
+  if (req.isAuthenticated()) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
@@ -565,6 +561,18 @@ function isWorker(req: Request, res: Response, next: NextFunction) {
     return next()
   }
   return res.status(401).json({ err: 'Not authenticated' })
+}
+
+function bypassMiddlewareForWebhooks(
+  fn: (req: Request, res: Response, next: NextFunction) => void
+) {
+  return function(req: Request, res: Response, next: NextFunction) {
+    if (req.path.includes('/webhooks/') && req.method === 'POST') {
+      next()
+    } else {
+      fn(req, res, next)
+    }
+  }
 }
 
 function isAuthenticatedRedirect(
@@ -618,4 +626,5 @@ export const authPassport = {
   isAuthenticatedRedirect,
   isAdminRedirect,
   checkRecaptcha,
+  bypassMiddlewareForWebhooks,
 }
