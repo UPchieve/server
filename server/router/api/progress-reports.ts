@@ -11,8 +11,6 @@ import { resError } from '../res-error'
 import { Router } from 'express'
 import { asArray, asNumber, asString, asUlid } from '../../utils/type-utils'
 import { ProgressReportNotFoundError } from '../../services/Errors'
-import SocketService from '../../services/SocketService'
-import { authPassport } from '../../utils/auth-utils'
 
 export function routeProgressReports(router: Router): void {
   router.get('/progress-reports/sessions/:sessionId', async function(req, res) {
