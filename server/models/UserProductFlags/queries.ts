@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { UserProductFlags } from './types'
 
@@ -15,7 +15,9 @@ export async function createUPFByUserId(
       },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) {
+      return makeSomeOptional(result[0], ['paidTutorsPilotGroup'])
+    }
     throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
     throw new RepoCreateError(err)
@@ -33,7 +35,9 @@ export async function getUPFByUserId(
       getClient()
     )
 
-    if (result.length) return makeRequired(result[0])
+    if (result.length) {
+      return makeSomeOptional(result[0], ['paidTutorsPilotGroup'])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -119,6 +123,23 @@ export async function updateFallIncentiveProgram(
   try {
     const result = await pgQueries.updateFallIncentiveProgram.run(
       { userId, status },
+      getClient()
+    )
+    if (result.length && makeRequired(result[0].ok)) return
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updatePaidTutorsPilotGroup(
+  userId: Ulid,
+  group: 'test' | 'control'
+): Promise<void> {
+  try {
+    const result = await pgQueries.updatePaidTutorsPilotGroup.run(
+      { userId, group },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return

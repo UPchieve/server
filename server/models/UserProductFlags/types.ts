@@ -11,4 +11,5 @@ export type UserProductFlags = {
   fallIncentiveProgram: boolean
   createdAt: Date
   updatedAt: Date
+  paidTutorsPilotGroup?: 'test' | 'control'
 }
