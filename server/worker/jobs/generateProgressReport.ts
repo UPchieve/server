@@ -1,40 +1,74 @@
 import { Job } from 'bull'
 import { getSessionById, UserSessionsFilter } from '../../models/Session'
-import { asUlid } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
-import { generateProgressReportForUser } from '../../services/ProgressReportsService'
+import {
+  generateProgressReportForUser,
+  ProgressReport,
+} from '../../services/ProgressReportsService'
 import { getSocket } from '../sockets'
 import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
 import config from '../../config'
+import axios from 'axios'
+import { ProgressReportStatuses } from '../../models/ProgressReports'
+import logger from '../../logger'
+import { asUlid } from '../../utils/type-utils'
 
 interface GenerateProgressReport {
   sessionId: Ulid
+}
+
+type ProgressReportPayload = {
+  userId: Ulid
+  sessionId?: Ulid
+  subject: string
+  report: Partial<ProgressReport>
+}
+
+async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
+  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
+  const port = config.NODE_ENV === 'dev' ? `:${config.apiPort}` : ''
+  const url = `${protocol}://${config.clusterServerAddress}${port}/api/webhooks/progress-reports/processed`
+  try {
+    await axios.post(url, data, {
+      headers: {
+        'x-api-key': config.subwayApiCredentials,
+      },
+    })
+  } catch (error) {
+    const errorMessage = `Failed to send progress report via HTTP to user ${userId} error ${error}`
+    logger.error(errorMessage)
+    throw new Error(errorMessage)
+  }
 }
 
 async function generateAndEmitProgressReport(
   userId: Ulid,
   reportOptions: UserSessionsFilter
 ) {
-  const socket = getSocket()
+  let report: Partial<ProgressReport>
+  let reportGenerationError
   try {
-    const report = await generateProgressReportForUser(userId, reportOptions)
-    socket.emit('progress-report:processed', {
-      userId: userId,
-      ...reportOptions,
-      report,
-    })
+    report = await generateProgressReportForUser(userId, reportOptions)
   } catch (error) {
-    socket.emit('progress-report:processed', {
-      userId: userId,
-      ...reportOptions,
-      report: {
-        status: 'error',
-        summary: {},
-        topics: [],
-      },
-    })
-    throw error
+    reportGenerationError = error
+    logger.error(`Error generating progress report: ${error}`)
+    report = {
+      status: 'error' as ProgressReportStatuses,
+      summary: undefined,
+      concepts: undefined,
+    }
   }
+
+  const data = {
+    userId: userId,
+    ...reportOptions,
+    report,
+  }
+  const socket = getSocket()
+  if (socket.connected) socket.emit('progress-report:processed', data)
+  else await sendProgressReport(userId, data)
+
+  if (reportGenerationError) throw reportGenerationError
 }
 
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {

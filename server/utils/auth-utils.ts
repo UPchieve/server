@@ -305,6 +305,11 @@ export function verifyPassword(
   })
 }
 
+export function getApiKeyFromHeader(req: Request) {
+  const apiKey = req.headers['x-api-key'] ?? null
+  return apiKey
+}
+
 // Passport functions
 function setupPassport() {
   passport.serializeUser(function(user: Express.User, done: Function) {
@@ -550,6 +555,26 @@ function isAdmin(req: Request, res: Response, next: NextFunction) {
   return res.status(403).json({ err: 'Unauthorized' })
 }
 
+function isWorker(req: Request, res: Response, next: NextFunction) {
+  const token = getApiKeyFromHeader(req)
+  if (token && token === config.subwayApiCredentials) {
+    return next()
+  }
+  return res.status(401).json({ err: 'Not authenticated' })
+}
+
+function bypassMiddlewareForWebhooks(
+  fn: (req: Request, res: Response, next: NextFunction) => void
+) {
+  return function(req: Request, res: Response, next: NextFunction) {
+    if (req.path.includes('/webhooks/') && req.method === 'POST') {
+      next()
+    } else {
+      fn(req, res, next)
+    }
+  }
+}
+
 function isAuthenticatedRedirect(
   req: Request,
   res: Response,
@@ -597,7 +622,9 @@ export const authPassport = {
   setupPassport,
   isAuthenticated,
   isAdmin,
+  isWorker,
   isAuthenticatedRedirect,
   isAdminRedirect,
   checkRecaptcha,
+  bypassMiddlewareForWebhooks,
 }

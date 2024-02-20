@@ -323,6 +323,7 @@ const config: Static<typeof Config> = {
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
   openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
+  subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
 }
 
 module.exports = config
