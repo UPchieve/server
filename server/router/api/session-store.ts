@@ -4,7 +4,7 @@ import config from '../../config'
 import { Express } from 'express'
 import { getClient } from '../../db'
 import { csrfSync } from 'csrf-sync'
-import logger from '../../logger'
+import { getApiKeyFromHeader } from '../../utils/auth-utils'
 
 const PgStore = CreatePgStore(session)
 
@@ -44,7 +44,11 @@ export default function(app: Express) {
       '/api-public/contact',
       '/api/verify',
     ]
-    if (exclusions.some(ex => req.url.indexOf(ex) !== -1)) {
+    const apiKey = getApiKeyFromHeader(req)
+    if (
+      exclusions.some(ex => req.url.indexOf(ex) !== -1) ||
+      (apiKey && apiKey === config.subwayApiCredentials)
+    ) {
       next()
     } else {
       csrfSynchronisedProtection(req, res, next)
