@@ -1574,7 +1574,7 @@ export async function getNextVolunteerToNotify(options: {
   try {
     const result = await pgQueries.getNextVolunteerToNotify.run(
       options,
-      getClient()
+      getRoClient()
     )
     if (!result.length) return
     return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
