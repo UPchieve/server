@@ -84,7 +84,9 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
       getClient()
     )
 
-    const sessions = result.map(v => makeSomeOptional(v, ['volunteer']))
+    const sessions = result.map(v =>
+      makeSomeOptional(v, ['volunteer', 'paidTutorsPilotGroup'])
+    )
     const oneMinuteAgo = moment().subtract(1, 'minutes')
 
     const fileteredSessions = sessions.filter(session => {

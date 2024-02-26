@@ -12,6 +12,7 @@ import {
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
+  SUBJECT_TYPES,
   USER_BAN_REASONS,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
@@ -62,6 +63,7 @@ import {
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
+import * as PaidTutorsPilotService from './PaidTutorsPilotService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -554,6 +556,8 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     throw new sessionUtils.StartSessionError(
       'Student already has an active session'
     )
+
+  await PaidTutorsPilotService.bucketUser(userId, topic as SUBJECT_TYPES)
 
   const newSessionId = await SessionRepo.createSession(
     userId,

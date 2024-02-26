@@ -15,6 +15,7 @@ export const client = isValidConfigToken(config.posthogToken)
   : {
       isFeatureEnabled: () => false,
       getFeatureFlagPayload: () => '',
+      getFeatureFlag: () => '',
       getAllFlagsAndPayloads: () => {
         return { featureFlags: {}, featureFlagPayloads: {} }
       },
