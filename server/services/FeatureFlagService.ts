@@ -69,3 +69,17 @@ export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
 export async function getProgressReportsFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.PROGRESS_REPORTS, userId)
 }
+
+export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
+  userId: Ulid
+) {
+  return await productClient.getFeatureFlag(
+    FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY,
+    userId,
+    {
+      personProperties: {
+        paidTutorsPilotEligible: 'true',
+      },
+    }
+  )
+}

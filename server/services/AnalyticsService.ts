@@ -22,6 +22,7 @@ export type IdentifyProperties = {
   schoolPartner?: string
   partner?: string
   userType?: string
+  paidTutorsPilotGroup?: 'test' | 'control'
 }
 
 export function identify(userId: Ulid, properties: IdentifyProperties) {
