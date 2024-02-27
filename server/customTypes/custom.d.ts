@@ -1,4 +1,3 @@
-import { UserContactInfo } from '../models/User'
 import { Ulid } from '../models/pgUtils'
 
 declare global {
