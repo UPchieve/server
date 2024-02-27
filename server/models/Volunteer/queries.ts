@@ -15,7 +15,7 @@ import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
-import { PoolClient } from 'pg'
+import { Pool, PoolClient } from 'pg'
 import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
@@ -1190,7 +1190,7 @@ export type CreatedVolunteer = VolunteerContactInfo & {
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload
 ): Promise<CreatedVolunteer> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     volunteerData.email = volunteerData.email.toLowerCase()
     const partnerOrg = volunteerData.volunteerPartnerOrg
@@ -1247,8 +1247,6 @@ export async function createVolunteer(
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 export type VolunteerForTextResponse = {
@@ -1282,7 +1280,7 @@ export type VolunteerPartnerOrgByKey = {
 
 export async function getPartnerOrgByKey(
   partnerKey: string | undefined,
-  client: PoolClient
+  client: Pool
 ): Promise<VolunteerPartnerOrgByKey | undefined> {
   if (!partnerKey) return
   try {
@@ -1314,7 +1312,7 @@ export type AdminUpdateVolunteer = {
 async function adminUpdateVolunteerPartnerOrgInstance(
   volunteerId: Ulid,
   newPartnerOrgKey: string | undefined,
-  client: PoolClient
+  client: Pool
 ) {
   try {
     const newPartnerOrg = await getPartnerOrgByKey(newPartnerOrgKey, client)
@@ -1394,7 +1392,7 @@ export async function updateVolunteerForAdmin(
   userId: Ulid,
   update: AdminUpdateVolunteer
 ): Promise<void> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     const partnerOrgId = update.volunteerPartnerOrg
       ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg)
@@ -1440,8 +1438,6 @@ export async function updateVolunteerForAdmin(
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 
