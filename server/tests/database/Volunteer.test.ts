@@ -1,18 +1,22 @@
 import {
-  addVolunteerCertification,
-  CreatedVolunteer,
-  getNextVolunteerToNotify,
-  updateVolunteerApproved,
-  updateVolunteerOnboarded,
-} from '../../models/Volunteer'
-import {
   Availability,
   updateAvailabilityByVolunteerId,
 } from '../../models/Availability'
 import { DAYS, HOURS } from '../../constants'
 import faker from 'faker'
+import {
+  addVolunteerCertification,
+  CreatedVolunteer,
+  createVolunteer,
+  CreateVolunteerPayload,
+  getNextVolunteerToNotify,
+  updateVolunteerApproved,
+  updateVolunteerOnboarded,
+} from '../../models/Volunteer'
 import { registerVolunteer } from '../../services/AuthService'
-import moment from 'moment'
+import { getClient, getRoClient } from '../../db'
+import { createUser } from '../../models/User'
+import { Ulid } from '../../models/pgUtils'
 
 const TIMEZONE = 'EST'
 describe('VolunteerRepo', () => {
@@ -31,9 +35,12 @@ describe('VolunteerRepo', () => {
 
   describe('getNextVolunteerToNotify', () => {
     it('Test', async () => {
-      const vol = generateVolunteer()
+      const vol = await loadVolunteer(generateVolunteer(), true, true, [
+        'prealgebra',
+      ])
+      await loadVolunteerAvailability(vol.id, generateFullAvailability())
       const result = await getNextVolunteerToNotify({
-        subject: 'algebraOne',
+        subject: 'prealgebra',
         lastNotified: faker.date.past(),
         isPartner: false,
         highLevelSubjects: undefined,
@@ -68,13 +75,13 @@ const generateFullAvailability = (): Availability => {
 }
 
 const loadVolunteerAvailability = async (
-  volunteerId,
+  volunteerId: string,
   availability: Availability
 ) => {
   await updateAvailabilityByVolunteerId(volunteerId, availability, TIMEZONE)
 }
 
-const generateVolunteer = () => {
+const generateVolunteer = (): CreateVolunteerPayload => {
   const firstName = faker.name.firstName()
   const lastName = faker.name.lastName()
   return {
@@ -85,21 +92,24 @@ const generateVolunteer = () => {
     terms: true,
     firstName,
     lastName,
-  }
+    referredBy: undefined,
+    timezone: TIMEZONE,
+    volunteerPartnerOrg: undefined,
+  } as CreateVolunteerPayload
 }
 
 const loadVolunteer = async (
-  v: unknown,
+  v: any,
   onboarded = true,
   approved = true,
   certificationSubjects: string[] = []
 ): Promise<CreatedVolunteer> => {
-  const res = await registerVolunteer(v)
-  if (onboarded) await updateVolunteerOnboarded(v.id)
-  if (approved) await updateVolunteerApproved(v.id)
+  const res = await createVolunteer(v)
+  if (onboarded) await updateVolunteerOnboarded(res.id)
+  if (approved) await updateVolunteerApproved(res.id)
   if (certificationSubjects) {
     for (let subj of certificationSubjects) {
-      await addVolunteerCertification(v.id, subj)
+      await addVolunteerCertification(res.id, subj)
     }
   }
   return res
