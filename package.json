@@ -8,7 +8,7 @@
     "build:database": "docker build -t subway-postgres .",
     "dev": "npm run build:frontend && npm run dev:backend & npm run dev:frontend",
     "dev:backend": "ts-node-dev -r dotenv/config -P tsconfig.server.json --watch server --transpile-only server/main",
-    "dev:worker": "ts-node-dev -P tsconfig.server.json server/worker --watch server server/worker",
+    "dev:worker": "ts-node-dev -P tsconfig.server.json --watch server --transpile-only server/worker",
     "lint:backend": "prettier --write \"server/**/*.ts\" > /dev/null",
     "lint:backend:dry": "prettier --check \"server/**/*.ts\"",
     "lint:database": "prettier --write \"database/seeds/**/*.ts\" > /dev/null",
