@@ -55,6 +55,22 @@ export const buildAvailability = (overrides = {}): Availability => {
   return mergedAvailability
 }
 
+export const buildNotification = (overrides = {}) => {
+  return {
+    id: getDbUlid(),
+    userId: getDbUlid(),
+    sentAt: new Date(),
+    sessionId: getDbUlid(),
+    typeId: 2,
+    methodId: 1,
+    priorityGroupId: 1,
+    successful: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
 export function buildUserContactInfo(
   overrides: Partial<UserContactInfo> = {}
 ): UserContactInfo {
