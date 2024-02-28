@@ -1,16 +1,21 @@
+import logger from '../logger'
+
 export const timeLimit = async ({
   promise,
   waitInMs,
-  rejectWith,
+  resolveWith,
+  timeReachedErrorMessage,
 }: {
   promise: Promise<any>
   waitInMs: number
-  rejectWith: any
+  resolveWith: any
+  timeReachedErrorMessage: string
 }) =>
   await Promise.race([
-    new Promise((_, rej) =>
+    new Promise(resolve =>
       setTimeout(() => {
-        rej(rejectWith)
+        logger.error(new Error(timeReachedErrorMessage))
+        resolve(resolveWith)
       }, waitInMs)
     ),
     promise,
