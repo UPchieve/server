@@ -14,12 +14,15 @@ export async function getFeatureFlagPayload(
 }
 
 export async function getAllFlagsForId(id: Ulid) {
-  const timeoutId = setTimeout(() => {
-    throw new Error('Posthog taking too long')
-  }, 1000)
-  const result = await productClient.getAllFlagsAndPayloads(id)
-  clearTimeout(timeoutId)
-  return result
+  const timelimit = new Promise((_, rej) =>
+    setTimeout(() => {
+      rej(new Error('Posthog taking too long'))
+    }, 1000)
+  )
+  return await Promise.race([
+    timelimit,
+    productClient.getAllFlagsAndPayloads(id),
+  ])
 }
 
 export function isChatBotEnabled() {
