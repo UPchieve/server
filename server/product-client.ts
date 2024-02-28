@@ -13,19 +13,19 @@ export const client = isValidConfigToken(config.posthogToken)
       featureFlagsPollingInterval: ONE_MINUTE_IN_MS,
     })
   : {
-      isFeatureEnabled: () => false,
-      getFeatureFlagPayload: () => '',
-      getFeatureFlag: () => '',
-      getAllFlagsAndPayloads: () => {
+      isFeatureEnabled: async () => false,
+      getFeatureFlagPayload: async () => '',
+      getFeatureFlag: async () => '',
+      getAllFlagsAndPayloads: async () => {
         return { featureFlags: {}, featureFlagPayloads: {} }
       },
-      identify: () => {
+      identify: async () => {
         /* no-op */
       },
-      capture: () => {
+      capture: async () => {
         /* no-op */
       },
-      shutdownAsync: () => {
+      shutdownAsync: async () => {
         /* no-op */
       },
     }
