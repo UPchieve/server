@@ -7,7 +7,8 @@ async function isFeatureEnabled(featureFlagName: FEATURE_FLAGS, userId: Ulid) {
   return await timeLimit({
     promise: productClient.isFeatureEnabled(featureFlagName, userId),
     waitInMs: 1000,
-    rejectWith: false,
+    resolveWith: false,
+    timeReachedErrorMessage: `${featureFlagName} reached time limit of 1000`,
   })
 }
 
@@ -18,7 +19,8 @@ export async function getFeatureFlagPayload(
   return await timeLimit({
     promise: productClient.isFeatureEnabled(featureFlagName, userId),
     waitInMs: 1000,
-    rejectWith: false,
+    resolveWith: false,
+    timeReachedErrorMessage: `${featureFlagName} reached time limit of 1000`,
   })
 }
 
@@ -26,7 +28,8 @@ export async function getAllFlagsForId(id: Ulid) {
   return await timeLimit({
     promise: productClient.getAllFlagsAndPayloads(id),
     waitInMs: 1000,
-    rejectWith: new Error('Posthog taking too long'),
+    resolveWith: { featureFlags: {}, featureFlagPayloads: {} },
+    timeReachedErrorMessage: `'getAllFlagsForId' reached time limit of 1000`,
   })
 }
 
@@ -59,7 +62,8 @@ export async function getProcrastinationTextReminderCopy(
       userId
     ),
     waitInMs: 1000,
-    rejectWith: undefined,
+    resolveWith: undefined,
+    timeReachedErrorMessage: `getFeatureFlagPayload reached time limit of 1000`,
   })
 }
 
@@ -101,6 +105,7 @@ export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
       }
     ),
     waitInMs: 1000,
-    rejectWith: false,
+    resolveWith: false,
+    timeReachedErrorMessage: `getFeatureFlag for ${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY} reached time limit`,
   })
 }
