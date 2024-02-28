@@ -56,7 +56,7 @@ export default function(app: Express, io: Server) {
       } = await getAllFlagsForId(distinctId)
       res.status(200).json({ id: distinctId, ...flags })
     } catch (e) {
-      logError(new Error('Failed to bootstrap feature flags.'), {
+      logError(new Error(`Failed to bootstrap feature flags. ${e}`), {
         userId: distinctId,
       })
       res.status(200).json({ id: distinctId })
