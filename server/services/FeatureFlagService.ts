@@ -1,28 +1,33 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
+import { timeLimit } from '../utils/time-limit'
 
 async function isFeatureEnabled(featureFlagName: FEATURE_FLAGS, userId: Ulid) {
-  return productClient.isFeatureEnabled(featureFlagName, userId)
+  return await timeLimit({
+    promise: productClient.isFeatureEnabled(featureFlagName, userId),
+    waitInMs: 1000,
+    rejectWith: false,
+  })
 }
 
 export async function getFeatureFlagPayload(
   featureFlagName: FEATURE_FLAGS,
   userId: Ulid
 ) {
-  return productClient.isFeatureEnabled(featureFlagName, userId)
+  return await timeLimit({
+    promise: productClient.isFeatureEnabled(featureFlagName, userId),
+    waitInMs: 1000,
+    rejectWith: false,
+  })
 }
 
 export async function getAllFlagsForId(id: Ulid) {
-  const timelimit = new Promise((_, rej) =>
-    setTimeout(() => {
-      rej(new Error('Posthog taking too long'))
-    }, 1000)
-  )
-  return await Promise.race([
-    timelimit,
-    productClient.getAllFlagsAndPayloads(id),
-  ])
+  return await timeLimit({
+    promise: productClient.getAllFlagsAndPayloads(id),
+    waitInMs: 1000,
+    rejectWith: new Error('Posthog taking too long'),
+  })
 }
 
 export function isChatBotEnabled() {
@@ -48,10 +53,14 @@ export async function getUsingOurPlatformFlag(userId: Ulid) {
 export async function getProcrastinationTextReminderCopy(
   userId: Ulid
 ): Promise<string | undefined> {
-  return (await productClient.getFeatureFlagPayload(
-    FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
-    userId
-  )) as string
+  return await timeLimit({
+    promise: productClient.getFeatureFlagPayload(
+      FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
+      userId
+    ),
+    waitInMs: 1000,
+    rejectWith: undefined,
+  })
 }
 
 export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
@@ -81,13 +90,17 @@ export async function getProgressReportsFeatureFlag(userId: Ulid) {
 export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
   userId: Ulid
 ) {
-  return await productClient.getFeatureFlag(
-    FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY,
-    userId,
-    {
-      personProperties: {
-        paidTutorsPilotEligible: 'true',
-      },
-    }
-  )
+  return await timeLimit({
+    promise: productClient.getFeatureFlag(
+      FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY,
+      userId,
+      {
+        personProperties: {
+          paidTutorsPilotEligible: 'true',
+        },
+      }
+    ),
+    waitInMs: 1000,
+    rejectWith: false,
+  })
 }
