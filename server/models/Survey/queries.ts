@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, getRoClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import {
   getDbUlid,
@@ -367,14 +367,14 @@ export async function getSessionRating(
   if (userRole === USER_ROLES.STUDENT) {
     const ratings = await pgQueries.getStudentSessionRating.run(
       { sessionId },
-      getClient()
+      getRoClient()
     )
     const result = ratings.map(rate => rate.score)
     return result.length ? result[0] : undefined
   }
   const ratings = await pgQueries.getVolunteerSessionRating.run(
     { sessionId },
-    getClient()
+    getRoClient()
   )
   const result = ratings.map(rate => rate.score)
   return result.length ? result[0] : undefined

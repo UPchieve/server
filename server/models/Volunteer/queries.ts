@@ -1,4 +1,4 @@
-import { getClient, getRoClient } from '../../db'
+import { getAnalyticsClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -390,7 +390,7 @@ export async function getVolunteersForTelecomReport(
   try {
     const result = await pgQueries.getVolunteersForTelecomReport.run(
       { partnerOrg },
-      getRoClient()
+      getAnalyticsClient()
     )
     const rows = result.map(v => makeSomeOptional(v, ['volunteerPartnerOrg']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
@@ -1702,7 +1702,7 @@ export async function getVolunteersForAnalyticsReport(
         pageSize,
         cursor,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
 
     if (!result.length) {
