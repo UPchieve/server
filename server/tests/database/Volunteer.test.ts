@@ -13,24 +13,34 @@ import {
   updateVolunteerApproved,
   updateVolunteerOnboarded,
 } from '../../models/Volunteer'
-import { registerVolunteer } from '../../services/AuthService'
-import { getClient, getRoClient } from '../../db'
-import { createUser } from '../../models/User'
+import moment from 'moment'
+import { addSessionNotification, createSession } from '../../models/Session'
+import { getClient } from '../../db'
+import { insertSingleRow } from '../db-utils'
+import {
+  buildNotification,
+  buildSessionRow,
+  SessionRow,
+} from '../mocks/generate'
 import { Ulid } from '../../models/pgUtils'
 
+const client = getClient()
 const TIMEZONE = 'EST'
+let studentId = '01859800-be4b-685f-4130-8709193d461c'
+let completedUnmatchedSession: any
+
 describe('VolunteerRepo', () => {
-  test('Make a connection', async () => {
-    const result = await getNextVolunteerToNotify({
-      subject: 'algebraOne',
-      lastNotified: new Date(),
-      isPartner: false,
-      highLevelSubjects: undefined,
-      disqualifiedVolunteers: undefined,
-      specificPartner: undefined,
-      favoriteVolunteers: undefined,
+  beforeEach(async () => {
+    const sessionRow = await buildSessionRow({
+      subjectId: 1,
+      volunteerJoinedAt: undefined,
+      studentId,
     })
-    expect(result).toBeUndefined()
+    completedUnmatchedSession = await insertSingleRow(
+      'sessions',
+      sessionRow,
+      client
+    )
   })
 
   describe('getNextVolunteerToNotify', () => {
@@ -48,7 +58,6 @@ describe('VolunteerRepo', () => {
         specificPartner: undefined,
         favoriteVolunteers: undefined,
       })
-      expect(result).not.toBeUndefined()
       expect(result).toMatchObject(
         expect.objectContaining({
           email: vol.email,
@@ -58,10 +67,63 @@ describe('VolunteerRepo', () => {
         })
       )
     })
+
+    it('Returns the volunteer who was not recently notified', async () => {
+      const recentlyNotifiedVolunteer = await loadVolunteer(
+        generateVolunteer(),
+        true,
+        true,
+        ['prealgebra']
+      )
+      const expectedVolunteer = await loadVolunteer(
+        generateVolunteer(),
+        true,
+        true,
+        ['prealgebra']
+      )
+      await loadVolunteerAvailability(
+        recentlyNotifiedVolunteer.id,
+        generateFullAvailability()
+      )
+      await loadVolunteerAvailability(
+        expectedVolunteer.id,
+        generateFullAvailability()
+      )
+
+      await loadNotification(
+        // 2 hours old notification
+        recentlyNotifiedVolunteer.id,
+        completedUnmatchedSession.id,
+        moment()
+          .subtract(2, 'hours')
+          .toDate()
+      )
+
+      const result = await getNextVolunteerToNotify({
+        subject: 'prealgebra',
+        lastNotified: moment()
+          .subtract(3, 'hours')
+          .toDate(),
+        isPartner: false,
+        highLevelSubjects: undefined,
+        disqualifiedVolunteers: undefined,
+        specificPartner: undefined,
+        favoriteVolunteers: undefined,
+      })
+      expect(result).toMatchObject(
+        expect.objectContaining({
+          email: expectedVolunteer.email,
+          phone: expectedVolunteer.phone,
+          firstName: expectedVolunteer.firstName,
+          lastName: expectedVolunteer.lastName,
+        })
+      )
+    })
   })
 })
 
 const generateFullAvailability = (): Availability => {
+  // @TODO move to mocks/generate.ts
   const fullAvailabilityDay = {}
   for (let key of HOURS) {
     Object.assign(fullAvailabilityDay, { [key]: true })
@@ -113,4 +175,17 @@ const loadVolunteer = async (
     }
   }
   return res
+}
+
+const loadNotification = async (
+  volunteerId: string,
+  sessionId = completedUnmatchedSession.id,
+  sentAt: Date = new Date()
+) => {
+  const notification = buildNotification({
+    userId: volunteerId,
+    sentAt,
+    sessionId,
+  })
+  await insertSingleRow('notifications', notification, client)
 }
