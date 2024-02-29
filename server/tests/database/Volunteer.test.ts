@@ -14,14 +14,9 @@ import {
   updateVolunteerOnboarded,
 } from '../../models/Volunteer'
 import moment from 'moment'
-import { addSessionNotification, createSession } from '../../models/Session'
 import { getClient } from '../../db'
 import { insertSingleRow } from '../db-utils'
-import {
-  buildNotification,
-  buildSessionRow,
-  SessionRow,
-} from '../mocks/generate'
+import { buildNotification, buildSessionRow } from '../mocks/generate'
 import { Ulid } from '../../models/pgUtils'
 
 const client = getClient()
@@ -30,7 +25,7 @@ let studentId = '01859800-be4b-685f-4130-8709193d461c'
 let completedUnmatchedSession: any
 
 describe('VolunteerRepo', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     const sessionRow = await buildSessionRow({
       subjectId: 1,
       volunteerJoinedAt: undefined,
@@ -41,6 +36,11 @@ describe('VolunteerRepo', () => {
       sessionRow,
       client
     )
+  })
+
+  beforeEach(async () => {
+    await client.query(`DELETE FROM upchieve.availabilities;`)
+    await client.query(`DELETE FROM upchieve.users_certifications;`)
   })
 
   describe('getNextVolunteerToNotify', () => {
@@ -110,14 +110,32 @@ describe('VolunteerRepo', () => {
         specificPartner: undefined,
         favoriteVolunteers: undefined,
       })
-      expect(result).toMatchObject(
-        expect.objectContaining({
-          email: expectedVolunteer.email,
-          phone: expectedVolunteer.phone,
-          firstName: expectedVolunteer.firstName,
-          lastName: expectedVolunteer.lastName,
-        })
-      )
+      expect(result?.id).toEqual(expectedVolunteer.id)
+    })
+
+    it('Returns the volunteer who is not disqualified', async () => {
+      const v1 = await loadVolunteer(generateVolunteer(), true, true, [
+        'prealgebra',
+      ])
+      const v2 = await loadVolunteer(generateVolunteer(), true, true, [
+        'prealgebra',
+      ])
+      await loadVolunteerAvailability(v1.id, generateFullAvailability())
+      await loadVolunteerAvailability(v2.id, generateFullAvailability())
+
+      console.log(`Created v1=${v1.email}/${v1.id} and v2=${v2.email}/${v2.id}`)
+
+      const result = await getNextVolunteerToNotify({
+        subject: 'prealgebra',
+        lastNotified: new Date(),
+        isPartner: false,
+        highLevelSubjects: undefined,
+        disqualifiedVolunteers: [v1.id as Ulid],
+        specificPartner: undefined,
+        favoriteVolunteers: undefined,
+      })
+      expect(result?.email).toEqual(v2.email)
+      expect(result?.id).toEqual(v2.id)
     })
   })
 })
@@ -148,7 +166,7 @@ const generateVolunteer = (): CreateVolunteerPayload => {
   const lastName = faker.name.lastName()
   return {
     ip: '123',
-    email: `${firstName}${faker.name.middleName()}${lastName}@test.com`,
+    email: faker.internet.email(),
     password: 'Password!123', // pragma: allowlist secret
     phone: faker.phone.phoneNumber('+###########'),
     terms: true,
