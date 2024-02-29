@@ -1,5 +1,10 @@
 import { PoolClient } from 'pg'
-import { getClient, getRoClient, TransactionClient } from '../../db'
+import {
+  getAnalyticsClient,
+  getClient,
+  getRoClient,
+  TransactionClient,
+} from '../../db'
 import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
@@ -722,7 +727,7 @@ export async function getSessionReport(
         start: query.start,
         end: query.end,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
 
     const report = []
@@ -797,7 +802,7 @@ export async function getUsageReport(
         sessionStart: query.sessionStart,
         sessionEnd: query.sessionEnd,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
 
     const report = []
