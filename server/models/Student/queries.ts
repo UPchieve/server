@@ -1,10 +1,5 @@
 import { PoolClient } from 'pg'
-import {
-  getAnalyticsClient,
-  getClient,
-  getRoClient,
-  TransactionClient,
-} from '../../db'
+import { getAnalyticsClient, getClient, TransactionClient } from '../../db'
 import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
@@ -23,7 +18,6 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
-import { getSessionRating } from '../Survey'
 import { USER_ROLES } from '../../constants'
 import { insertUserRoleByUserId } from '../User'
 import {
@@ -730,25 +724,16 @@ export async function getSessionReport(
       getAnalyticsClient()
     )
 
-    const report = []
-
     if (result.length) {
-      for (const row of result) {
-        const session = makeSomeOptional(row, [
+      return result.map(r =>
+        makeSomeOptional(r, [
           'partnerSite',
-          'volunteerJoinedAt',
-          'sponsorOrg',
           'waitTimeMins',
+          'volunteerJoinedAt',
+          'sessionRating',
+          'sponsorOrg',
         ])
-        const sessionRating = await getSessionRating(
-          session.sessionId,
-          USER_ROLES.STUDENT
-        )
-        row.email = row.email.toLowerCase()
-        report.push({ ...session, sessionRating })
-      }
-
-      return report
+      )
     }
   } catch (err) {
     throw new RepoReadError(err)
