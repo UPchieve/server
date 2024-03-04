@@ -11,6 +11,7 @@ import {
   CreateVolunteerPayload,
   getNextVolunteerToNotify,
   updateVolunteerApproved,
+  updateVolunteerForAdmin,
   updateVolunteerOnboarded,
 } from '../../models/Volunteer'
 import moment from 'moment'
@@ -45,10 +46,7 @@ describe('VolunteerRepo', () => {
 
   describe('getNextVolunteerToNotify', () => {
     it('Test', async () => {
-      const vol = await loadVolunteer(generateVolunteer(), true, true, [
-        'prealgebra',
-      ])
-      await loadVolunteerAvailability(vol.id, generateFullAvailability())
+      const vol = await loadVolunteer()
       const result = await getNextVolunteerToNotify({
         subject: 'prealgebra',
         lastNotified: faker.date.past(),
@@ -69,27 +67,8 @@ describe('VolunteerRepo', () => {
     })
 
     it('Returns the volunteer who was not recently notified', async () => {
-      const recentlyNotifiedVolunteer = await loadVolunteer(
-        generateVolunteer(),
-        true,
-        true,
-        ['prealgebra']
-      )
-      const expectedVolunteer = await loadVolunteer(
-        generateVolunteer(),
-        true,
-        true,
-        ['prealgebra']
-      )
-      await loadVolunteerAvailability(
-        recentlyNotifiedVolunteer.id,
-        generateFullAvailability()
-      )
-      await loadVolunteerAvailability(
-        expectedVolunteer.id,
-        generateFullAvailability()
-      )
-
+      const recentlyNotifiedVolunteer = await loadVolunteer()
+      const expectedVolunteer = await loadVolunteer()
       await loadNotification(
         // 2 hours old notification
         recentlyNotifiedVolunteer.id,
@@ -114,16 +93,8 @@ describe('VolunteerRepo', () => {
     })
 
     it('Returns the volunteer who is not disqualified', async () => {
-      const v1 = await loadVolunteer(generateVolunteer(), true, true, [
-        'prealgebra',
-      ])
-      const v2 = await loadVolunteer(generateVolunteer(), true, true, [
-        'prealgebra',
-      ])
-      await loadVolunteerAvailability(v1.id, generateFullAvailability())
-      await loadVolunteerAvailability(v2.id, generateFullAvailability())
-
-      console.log(`Created v1=${v1.email}/${v1.id} and v2=${v2.email}/${v2.id}`)
+      const v1 = await loadVolunteer()
+      const v2 = await loadVolunteer()
 
       const result = await getNextVolunteerToNotify({
         subject: 'prealgebra',
@@ -178,20 +149,37 @@ const generateVolunteer = (): CreateVolunteerPayload => {
   } as CreateVolunteerPayload
 }
 
-const loadVolunteer = async (
-  v: any,
-  onboarded = true,
-  approved = true,
-  certificationSubjects: string[] = []
-): Promise<CreatedVolunteer> => {
+const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
+  const options = {
+    approved: true,
+    onboarded: true,
+    banned: false,
+    deactivated: false,
+    certificationSubjects: ['prealgebra'],
+    withFullAvailability: true,
+    ...opts,
+  }
+  const v = generateVolunteer()
   const res = await createVolunteer(v)
-  if (onboarded) await updateVolunteerOnboarded(res.id)
-  if (approved) await updateVolunteerApproved(res.id)
-  if (certificationSubjects) {
-    for (let subj of certificationSubjects) {
+  await updateVolunteerOnboarded(res.id)
+  if (options.certificationSubjects) {
+    for (let subj of options.certificationSubjects) {
       await addVolunteerCertification(res.id, subj)
     }
   }
+  if (options.withFullAvailability) {
+    await loadVolunteerAvailability(res.id, generateFullAvailability())
+  }
+  await updateVolunteerForAdmin(res.id, {
+    email: res.email,
+    isVerified: true,
+    isBanned: options.banned,
+    isApproved: options.approved,
+    isDeactivated: options.deactivated,
+    firstName: undefined,
+    lastName: undefined,
+    volunteerPartnerOrg: undefined,
+  })
   return res
 }
 
