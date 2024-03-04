@@ -384,8 +384,8 @@ WITH student_sessions AS (
         sessions
         INNER JOIN users ON users.id = sessions.student_id
     WHERE
-        sessions.created_at >= :start !
-        AND sessions.created_at <= :end !
+        sessions.created_at >= :start!
+        AND sessions.created_at <= :end!
         AND sessions.ended_at IS NOT NULL
 ),
 session_ratings AS (
