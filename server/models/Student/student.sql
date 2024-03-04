@@ -357,15 +357,62 @@ WHERE
 
 
 /* @name getSessionReport */
+WITH student_sessions AS (
+    SELECT
+        sessions.id AS session_id,
+        sessions.created_at,
+        ended_at,
+        volunteer_joined_at,
+        student_id,
+        subject_id,
+        (
+            CASE WHEN sessions.volunteer_id IS NOT NULL THEN
+                'YES'
+            ELSE
+                'NO'
+            END) AS volunteer_joined,
+        (
+            CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
+                round(extract(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at) / 60), 1)
+            ELSE
+                NULL
+            END)::float AS wait_time_mins,
+        first_name,
+        last_name,
+        email
+    FROM
+        sessions
+        INNER JOIN users ON users.id = sessions.student_id
+    WHERE
+        sessions.created_at >= :start!
+        AND sessions.created_at <= :end!
+        AND sessions.ended_at IS NOT NULL
+),
+session_ratings AS (
+    SELECT
+        users_surveys.session_id,
+        survey_response_choices.score AS session_rating
+    FROM
+        users_surveys
+        INNER JOIN users_surveys_submissions ON users_surveys.id = users_surveys_submissions.user_survey_id
+        INNER JOIN survey_questions ON users_surveys_submissions.survey_question_id = survey_questions.id
+        INNER JOIN survey_response_choices ON users_surveys_submissions.survey_response_choice_id = survey_response_choices.id
+    WHERE
+        survey_questions.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
+)
 SELECT
-    sessions.id AS session_id,
-    sessions.created_at AS created_at,
-    sessions.ended_at AS ended_at,
+    student_sessions.session_id AS session_id,
+    student_sessions.created_at AS created_at,
+    student_sessions.ended_at AS ended_at,
+    student_sessions.volunteer_joined AS volunteer_joined,
+    student_sessions.volunteer_joined_at AS volunteer_joined_at,
+    student_sessions.wait_time_mins AS wait_time_mins,
+    student_sessions.first_name AS first_name,
+    student_sessions.last_name AS last_name,
+    student_sessions.email AS email,
+    session_ratings.session_rating AS session_rating,
     topics.name AS topic,
     subjects.name AS subject,
-    users.first_name AS first_name,
-    users.last_name AS last_name,
-    users.email AS email,
     student_partner_org_sites.name AS partner_site,
     (
         CASE WHEN partner_org_sponsor_org.name IS NOT NULL THEN
@@ -375,23 +422,13 @@ SELECT
         ELSE
             NULL
         END) AS sponsor_org,
-    (
-        CASE WHEN sessions.volunteer_id IS NOT NULL THEN
-            'YES'
-        ELSE
-            'NO'
-        END) AS volunteer_joined,
-    sessions.volunteer_joined_at AS volunteer_joined_at,
-    COALESCE(session_messages.total, 0)::int AS total_messages,
-    (
-        CASE WHEN sessions.volunteer_joined_at IS NOT NULL THEN
-            ROUND(EXTRACT(EPOCH FROM (sessions.volunteer_joined_at - sessions.created_at) / 60), 1)
-        ELSE
-            NULL
-        END)::float AS wait_time_mins
+    coalesce(messages.total, 0)::int AS total_messages
 FROM
-    student_profiles
-    JOIN users ON student_profiles.user_id = users.id
+    student_sessions
+    JOIN subjects ON student_sessions.subject_id = subjects.id
+    JOIN topics ON subjects.topic_id = topics.id
+    JOIN student_profiles ON student_profiles.user_id = student_sessions.student_id
+    LEFT JOIN session_ratings ON session_ratings.session_id = student_sessions.session_id
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
     LEFT JOIN student_partner_org_sites ON student_profiles.student_partner_org_site_id = student_partner_org_sites.id
     LEFT JOIN student_partner_orgs_sponsor_orgs ON student_profiles.student_partner_org_id = student_partner_orgs_sponsor_orgs.student_partner_org_id
@@ -399,7 +436,6 @@ FROM
     LEFT JOIN schools_sponsor_orgs ON student_profiles.school_id = schools_sponsor_orgs.school_id
     LEFT JOIN sponsor_orgs AS school_sponsor_org ON schools_sponsor_orgs.sponsor_org_id = school_sponsor_org.id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
-    JOIN sessions ON sessions.student_id = student_profiles.user_id
     LEFT JOIN LATERAL (
         SELECT
             session_id,
@@ -407,28 +443,22 @@ FROM
         FROM
             session_messages
         WHERE
-            session_id = sessions.id
+            session_id = student_sessions.session_id
         GROUP BY
-            session_id) AS session_messages ON TRUE
-    JOIN subjects ON sessions.subject_id = subjects.id
-    JOIN topics ON subjects.topic_id = topics.id
-WHERE
-    sessions.created_at >= :start!
-    AND sessions.created_at <= :end!
-    AND sessions.ended_at IS NOT NULL
-    AND ((:highSchoolId)::uuid IS NULL
-        OR student_profiles.school_id = :highSchoolId)
-    AND ((:studentPartnerOrg)::text IS NULL
-        OR student_partner_orgs.key = :studentPartnerOrg)
-    AND ((:studentPartnerSite)::text IS NULL
-        OR student_partner_org_sites.name = :studentPartnerSite)
-    AND ((:sponsorOrg)::text IS NULL
-        OR ((partner_org_sponsor_org.key IS NOT NULL
-                AND partner_org_sponsor_org.key = :sponsorOrg)
-            OR (school_sponsor_org.key IS NOT NULL
-                AND school_sponsor_org.key = :sponsorOrg)))
+            session_id) AS messages ON TRUE
+WHERE ((:highSchoolId)::uuid IS NULL
+    OR student_profiles.school_id = :highSchoolId)
+AND ((:studentPartnerOrg)::text IS NULL
+    OR student_partner_orgs.key = :studentPartnerOrg)
+AND ((:studentPartnerSite)::text IS NULL
+    OR student_partner_org_sites.name = :studentPartnerSite)
+AND ((:sponsorOrg)::text IS NULL
+    OR ((partner_org_sponsor_org.key IS NOT NULL
+            AND partner_org_sponsor_org.key = :sponsorOrg)
+        OR (school_sponsor_org.key IS NOT NULL
+            AND school_sponsor_org.key = :sponsorOrg)))
 ORDER BY
-    sessions.created_at ASC;
+    student_sessions.created_at ASC;
 
 
 /* @name getUsageReport */
