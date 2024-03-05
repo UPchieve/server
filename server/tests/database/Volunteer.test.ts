@@ -81,7 +81,7 @@ describe('VolunteerRepo', () => {
         lastNotified: new Date(),
         isPartner: false,
         highLevelSubjects: undefined,
-        disqualifiedVolunteers: [v1.id as Ulid],
+        disqualifiedVolunteers: [v1.id],
         specificPartner: undefined,
         favoriteVolunteers: undefined,
       })
@@ -169,6 +169,26 @@ describe('VolunteerRepo', () => {
       expect(result?.id).toEqual(v2.id)
     })
 
+    it('Returns the favorited volunteer who is available', async () => {
+      const v1 = await loadVolunteer()
+      const v2 = await loadVolunteer()
+
+      await addFavoriteVolunteer(studentId, v1.id)
+      await addFavoriteVolunteer(studentId, v2.id)
+
+      const result = await getNextVolunteerToNotify({
+        subject: 'prealgebra',
+        lastNotified: new Date(),
+        isPartner: false,
+        highLevelSubjects: undefined,
+        disqualifiedVolunteers: [v2.id],
+        specificPartner: undefined,
+        favoriteVolunteers: [v1.id, v2.id],
+      })
+      expect(result?.email).toEqual(v1.email)
+      expect(result?.id).toEqual(v1.id)
+    })
+
     it('Returns a partner volunteer when specificPartner is provided and isPartner=true', async () => {
       const partnerKey = 'health-co'
       const v1 = await loadVolunteer()
@@ -247,7 +267,7 @@ describe('VolunteerRepo', () => {
       })
       const v2 = await loadVolunteer()
       const result = await getNextVolunteerToNotify({
-        subject: 'chemistry',
+        subject: 'reading',
         lastNotified: new Date(),
         isPartner: false,
         highLevelSubjects: undefined,
