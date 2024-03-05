@@ -7,4 +7,4 @@ const mockedClient = mocked(PgClient)
 // @ts-ignore
 mockedClient.getClient.mockReturnValue(global.__TEST_DB_CLIENT__)
 // @ts-ignore
-mockedClient.getRoClient.mockReturnValue(global.__TEST_DB_CLIENT__) // @TODO Create a separate readonly client instead
+mockedClient.getRoClient.mockReturnValue(global.__TEST_DB_CLIENT__)

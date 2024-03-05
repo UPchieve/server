@@ -15,7 +15,7 @@ import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
-import { Pool, PoolClient } from 'pg'
+import { PoolClient } from 'pg'
 import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
@@ -1190,7 +1190,7 @@ export type CreatedVolunteer = VolunteerContactInfo & {
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload
 ): Promise<CreatedVolunteer> {
-  const client = await getClient()
+  const client = await getClient().connect()
   try {
     volunteerData.email = volunteerData.email.toLowerCase()
     const partnerOrg = volunteerData.volunteerPartnerOrg
@@ -1237,7 +1237,7 @@ export async function createVolunteer(
     if (!profileResult.length && makeRequired(profileResult[0]).ok)
       throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
-    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER)
+    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER, client)
     return {
       ...user,
       volunteerPartnerOrg: volunteerData.volunteerPartnerOrg,
@@ -1247,6 +1247,8 @@ export async function createVolunteer(
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoCreateError(err)
+  } finally {
+    client.release()
   }
 }
 export type VolunteerForTextResponse = {
@@ -1280,7 +1282,7 @@ export type VolunteerPartnerOrgByKey = {
 
 export async function getPartnerOrgByKey(
   partnerKey: string | undefined,
-  client: Pool
+  client: PoolClient
 ): Promise<VolunteerPartnerOrgByKey | undefined> {
   if (!partnerKey) return
   try {
@@ -1312,7 +1314,7 @@ export type AdminUpdateVolunteer = {
 async function adminUpdateVolunteerPartnerOrgInstance(
   volunteerId: Ulid,
   newPartnerOrgKey: string | undefined,
-  client: Pool
+  client: PoolClient
 ) {
   try {
     const newPartnerOrg = await getPartnerOrgByKey(newPartnerOrgKey, client)
@@ -1392,10 +1394,10 @@ export async function updateVolunteerForAdmin(
   userId: Ulid,
   update: AdminUpdateVolunteer
 ): Promise<void> {
-  const client = await getClient()
+  const client = await getClient().connect()
   try {
     const partnerOrgId = update.volunteerPartnerOrg
-      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg)
+      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg, client)
       : undefined
     await client.query('BEGIN')
     const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
@@ -1438,6 +1440,8 @@ export async function updateVolunteerForAdmin(
   } catch (err) {
     await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
+  } finally {
+    client.release()
   }
 }
 
