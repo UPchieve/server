@@ -9,7 +9,7 @@ import createNewAvailability from '../../utils/create-new-availability'
 import { VolunteerPartnerOrg } from '../../models/VolunteerPartnerOrg'
 import { StudentPartnerOrg } from '../../models/StudentPartnerOrg'
 import { School } from '../../models/School'
-import { GRADES } from '../../constants'
+import { DAYS, GRADES, HOURS } from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
 import {
   LegacySurvey,
@@ -53,6 +53,18 @@ export const buildAvailability = (overrides = {}): Availability => {
   const mergedAvailability = _.merge(availability, overrides)
 
   return mergedAvailability
+}
+
+export const buildFullAvailability = (): Availability => {
+  const fullAvailabilityDay = {}
+  for (let key of HOURS) {
+    Object.assign(fullAvailabilityDay, { [key]: true })
+  }
+  const result = {}
+  for (let key of DAYS) {
+    Object.assign(result, { [key]: { ...fullAvailabilityDay } })
+  }
+  return result as Availability
 }
 
 export const buildNotification = (overrides = {}) => {

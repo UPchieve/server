@@ -16,7 +16,11 @@ import {
 import moment from 'moment'
 import { getClient } from '../../db'
 import { insertSingleRow } from '../db-utils'
-import { buildNotification, buildSessionRow } from '../mocks/generate'
+import {
+  buildFullAvailability,
+  buildNotification,
+  buildSessionRow,
+} from '../mocks/generate'
 import { Ulid } from '../../models/pgUtils'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
@@ -131,10 +135,7 @@ describe('VolunteerRepo', () => {
       const currentAvailabilityDay = DAYS.find(
         d => d.toLowerCase().slice(0, 3) == currentDayOfWeek.toLowerCase()
       )!
-      const availability = omit(
-        generateFullAvailability(),
-        currentAvailabilityDay
-      )
+      const availability = omit(buildFullAvailability(), currentAvailabilityDay)
       await loadVolunteerAvailability(v1.id, availability as Availability)
 
       const result2 = await getNextVolunteerToNotify({
@@ -323,20 +324,6 @@ describe('VolunteerRepo', () => {
   })
 })
 
-const generateFullAvailability = (): Availability => {
-  // @TODO move to mocks/generate.ts
-  const fullAvailabilityDay = {}
-  for (let key of HOURS) {
-    Object.assign(fullAvailabilityDay, { [key]: true })
-  }
-
-  const result = {}
-  for (let key of DAYS) {
-    Object.assign(result, { [key]: { ...fullAvailabilityDay } })
-  }
-  return result as Availability
-}
-
 const loadVolunteerAvailability = async (
   volunteerId: string,
   availability: Availability
@@ -384,7 +371,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     }
   }
   if (options.withFullAvailability) {
-    await loadVolunteerAvailability(res.id, generateFullAvailability())
+    await loadVolunteerAvailability(res.id, buildFullAvailability())
   }
   await updateVolunteerForAdmin(res.id, {
     email: res.email,
