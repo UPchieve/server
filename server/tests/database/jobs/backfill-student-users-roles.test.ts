@@ -8,6 +8,10 @@ const ROSTER_SIGNUP_SOURCE_ID = 7
 const STUDENT_USER_ROLE_ID = 1
 
 describe('backfillStudentUsersRoles', () => {
+  beforeAll(async () => {
+    await client.query('DELETE FROM users_roles;')
+  })
+
   const APPROVED_PARTNER_SCHOOL_ID = '01859800-bc76-2674-709e-b08a177869f9'
   const APPROVED_PARTNER_SCHOOL_SPO_ID = '01859800-bc97-8891-3437-c4a01ae9d271'
   const ANOTHER_APPROVED_PARTNER_SCHOOL_ID =
@@ -47,7 +51,7 @@ describe('backfillStudentUsersRoles', () => {
 
     const before = await client.query(
       `
-      SELECT student_partner_org_id FROM student_profiles 
+      SELECT student_partner_org_id FROM student_profiles
       WHERE user_id IN ($1, $2, $3);
       `,
       [idStudent1, idStudent2, idStudent3]
@@ -59,7 +63,7 @@ describe('backfillStudentUsersRoles', () => {
 
     const after = await client.query(
       `
-      SELECT student_partner_org_id FROM student_profiles 
+      SELECT student_partner_org_id FROM student_profiles
       WHERE user_id IN ($1, $2, $3);
       `,
       [idStudent1, idStudent2, idStudent3]

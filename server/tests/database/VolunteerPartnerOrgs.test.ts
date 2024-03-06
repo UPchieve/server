@@ -1,7 +1,4 @@
-import { getClient } from '../../db'
 import { getVolunteerPartnerOrgIdByKey } from '../../models/VolunteerPartnerOrg'
-
-const client = getClient()
 
 test('getVolunteerPartnerOrgIdByKey when VPO with key exists', async () => {
   const actual = await getVolunteerPartnerOrgIdByKey('big-telecom')
