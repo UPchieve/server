@@ -17,6 +17,8 @@ import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
 import { extractUser } from '../extract-user'
 import config from '../../config'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import { createAccountAction } from '../../models/UserAction'
 
 class GoogleAuthRedirect {
   private static _baseRedirect: string
@@ -82,10 +84,19 @@ class GoogleAuthRedirect {
   }
 }
 
+async function trackLoggedIn(userId, ipAddress) {
+  await createAccountAction({
+    userId,
+    action: ACCOUNT_USER_ACTIONS.LOGGED_IN,
+    ipAddress,
+  })
+}
+
 export function routes(app: Express) {
   const router = Router()
 
   router.route('/logout').get(async function(req, res) {
+    const userId = req.user?.id
     req.session.destroy(() => {
       /* do nothing */
     })
@@ -96,6 +107,14 @@ export function routes(app: Express) {
     // in on their mobile device, for example.
 
     req.logout()
+
+    if (userId) {
+      await createAccountAction({
+        userId,
+        action: ACCOUNT_USER_ACTIONS.LOGGED_OUT,
+        ipAddress: req.ip,
+      })
+    }
     res.json({
       msg: 'You have been logged out',
     })
@@ -107,6 +126,7 @@ export function routes(app: Express) {
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     async function(req: Request, res: Response) {
       const legacyUser = await getLegacyUserObject(extractUser(req).id)
+      await trackLoggedIn(legacyUser.id, req.ip)
       res.json({ user: legacyUser })
     }
   )
@@ -232,6 +252,7 @@ export function routes(app: Express) {
         ip: req.ip,
       } as unknown)
       await req.asyncLogin(volunteer)
+      await trackLoggedIn(volunteer.id, req.ip)
       res.json({ user: volunteer })
     } catch (err) {
       resError(res, err)
@@ -245,6 +266,7 @@ export function routes(app: Express) {
         ip: req.ip,
       } as unknown)
       await req.asyncLogin(volunteer)
+      await trackLoggedIn(volunteer.id, req.ip)
       res.json({ user: volunteer })
     } catch (err) {
       resError(res, err)
