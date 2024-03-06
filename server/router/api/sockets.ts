@@ -496,8 +496,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     )
 
-    socket.on('disconnect', reason => {
-      logger.info(`Socket disconnected for reason: ${reason}`)
+    socket.on('disconnecting', reason => {
+      logger.info(`Socket disconnected: %o`, {
+        rooms: [...socket.rooms],
+        user: socket.request.user?.id,
+        reason,
+      })
     })
   })
 }
