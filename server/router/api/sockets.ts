@@ -33,7 +33,7 @@ import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
 
 // Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
-const DISCONNECT_DESCRIPTIONS = {
+const DISCONNECT_REASONS = {
   'server namespace disconnect': {
     isError: false,
     description:
@@ -541,18 +541,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     )
 
-    socket.on(
-      'disconnected',
-      (reason: keyof typeof DISCONNECT_DESCRIPTIONS) => {
-        const message = 'Socket disconnected: %o'
-        const { isError, description } = DISCONNECT_DESCRIPTIONS[reason]
-        const logData = {
-          user: socket.request.user?.id,
-          reason,
-          description,
-        }
-        isError ? logger.error(message, logData) : logger.info(message, logData)
+    socket.on('disconnect', (reason: keyof typeof DISCONNECT_REASONS) => {
+      const message = `Socket disconnected: %o`
+      const { isError, description } = DISCONNECT_REASONS[reason]
+      const logData = {
+        user: socket.request.user?.id,
+        reason,
+        description,
       }
-    )
+      isError ? logger.error(message, logData) : logger.info(message, logData)
+    })
   })
 }
