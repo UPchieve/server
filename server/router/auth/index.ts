@@ -11,7 +11,7 @@ import {
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
-import { asBoolean, asString } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 import { Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
@@ -84,7 +84,7 @@ class GoogleAuthRedirect {
   }
 }
 
-async function trackLoggedIn(userId, ipAddress) {
+async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
     userId,
     action: ACCOUNT_USER_ACTIONS.LOGGED_IN,
