@@ -310,16 +310,43 @@ describe('VolunteerRepo', () => {
     })
 
     it('Returns undefined when there is no suitable volunteer', async () => {
-      const volunteer = await loadVolunteer() // Certified in prealgebra
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
+      const opts = {
+        subject: 'reading',
         lastNotified: new Date(),
         isPartner: false,
         highLevelSubjects: undefined,
         disqualifiedVolunteers: undefined,
         specificPartner: undefined,
         favoriteVolunteers: undefined,
+      }
+      const runQuery = async (opts: any) => getNextVolunteerToNotify(opts)
+
+      // No certification in reading
+      await loadVolunteer()
+      // Certified but no availability
+      await loadVolunteer({
+        certificationSubjects: ['reading'],
+        withFullAvailability: false,
       })
+      // Must be approved, onboarded, and not banned
+      await loadVolunteer({
+        approved: false,
+        certificationSubjects: ['reading'],
+      })
+      await loadVolunteer({
+        onboarded: false,
+        certificationSubjects: ['reading'],
+      })
+      await loadVolunteer({ banned: true, certificationSubjects: ['reading'] })
+      expect(await runQuery(opts)).toBeUndefined()
+
+      // No eligible volunteer who is not disqualified
+      const volunteer = await loadVolunteer({
+        certificationSubjects: ['reading'],
+      })
+      expect(
+        await runQuery({ ...opts, disqualifiedVolunteers: [volunteer.id] })
+      ).toBeUndefined()
     })
   })
 })
