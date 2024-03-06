@@ -279,36 +279,6 @@ describe('VolunteerRepo', () => {
       expect(result).toBeUndefined()
     })
 
-    it('Returns a random volunteer when there are multiple candidates', async () => {
-      // 3 candidates
-      await loadVolunteer()
-      await loadVolunteer()
-      await loadVolunteer()
-      // Run the query 5 times
-      const results = []
-      for (let i = 0; i < 5; i++) {
-        results.push(
-          await getNextVolunteerToNotify({
-            subject: 'prealgebra',
-            lastNotified: new Date(),
-            isPartner: false,
-            highLevelSubjects: undefined,
-            disqualifiedVolunteers: undefined,
-            specificPartner: undefined,
-            favoriteVolunteers: undefined,
-          })
-        )
-      }
-      results.forEach(r => {
-        expect(r).toBeDefined()
-        expect(r).toHaveProperty('id')
-        expect(r).toHaveProperty('email')
-      })
-      // Expect more than 1 unique user to be returned if the randomization is working
-      const resultantIds = results.map(r => r!.id)
-      expect(new Set(resultantIds).size).toBeGreaterThan(1)
-    })
-
     it('Returns undefined when there is no suitable volunteer', async () => {
       const opts = {
         subject: 'reading',
@@ -347,6 +317,31 @@ describe('VolunteerRepo', () => {
       expect(
         await runQuery({ ...opts, disqualifiedVolunteers: [volunteer.id] })
       ).toBeUndefined()
+    })
+
+    it('Returns a random volunteer when there are multiple suitable candidates', async () => {
+      // Testing randomization here. There *is* a chance that the same volunteer is selected twice randomly,
+      // To mitigate the chances of that, this loads several volunteers and does multiple trials.
+      await loadVolunteer()
+      await loadVolunteer()
+      await loadVolunteer()
+      await loadVolunteer()
+      await loadVolunteer()
+      const runQuery = async () =>
+        await getNextVolunteerToNotify({
+          subject: 'prealgebra',
+          lastNotified: new Date(),
+          isPartner: false,
+          highLevelSubjects: undefined,
+          disqualifiedVolunteers: undefined,
+          specificPartner: undefined,
+          favoriteVolunteers: undefined,
+        })
+      const result1 = await runQuery()
+      const result2 = await runQuery()
+      expect(result1?.id).toBeDefined()
+      expect(result2?.id).toBeDefined()
+      expect(result1?.id).not.toEqual(result2?.id)
     })
   })
 })
