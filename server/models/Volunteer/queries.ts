@@ -1237,7 +1237,7 @@ export async function createVolunteer(
     if (!profileResult.length && makeRequired(profileResult[0]).ok)
       throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
-    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER)
+    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER, client)
     return {
       ...user,
       volunteerPartnerOrg: volunteerData.volunteerPartnerOrg,
@@ -1397,7 +1397,7 @@ export async function updateVolunteerForAdmin(
   const client = await getClient().connect()
   try {
     const partnerOrgId = update.volunteerPartnerOrg
-      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg)
+      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg, client)
       : undefined
     await client.query('BEGIN')
     const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
