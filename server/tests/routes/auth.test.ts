@@ -10,9 +10,14 @@ import {
 } from '../mocks/generate'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
 import { CreatedVolunteer } from '../../models/Volunteer'
+import * as UserAction from '../../models/UserAction'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService)
+
+jest.mock('../../models/UserAction')
+const mockedUserAction = mocked(UserAction)
 
 jest.mock('../../utils/auth-utils', () => ({
   ...(jest.requireActual('../../utils/auth-utils') as any),
@@ -235,6 +240,12 @@ describe('Test simple routes hit AuthService', () => {
     } = response
     expect(AuthService.registerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
+    expect(mockedUserAction.createAccountAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: ACCOUNT_USER_ACTIONS.LOGGED_IN,
+        userId: user.id,
+      })
+    )
     expect(user).toEqual(payload)
   })
 
@@ -248,6 +259,12 @@ describe('Test simple routes hit AuthService', () => {
     } = response
     expect(AuthService.registerPartnerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
+    expect(mockedUserAction.createAccountAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: ACCOUNT_USER_ACTIONS.LOGGED_IN,
+        userId: user.id,
+      })
+    )
     expect(user).toEqual(payload)
   })
 
