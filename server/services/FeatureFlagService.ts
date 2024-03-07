@@ -3,12 +3,14 @@ import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 
-async function isFeatureEnabled(featureFlagName: FEATURE_FLAGS, userId: Ulid) {
+async function isFeatureEnabled(
+  featureFlagName: FEATURE_FLAGS,
+  userId: Ulid
+): Promise<boolean | undefined> {
   return await timeLimit({
     promise: productClient.isFeatureEnabled(featureFlagName, userId),
-    waitInMs: 1000,
-    resolveWith: false,
-    timeReachedErrorMessage: `${featureFlagName} reached time limit of 1000`,
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'isFeatureEnabled' did not receive response for feature flag '${featureFlagName}'.`,
   })
 }
 
@@ -17,19 +19,17 @@ export async function getFeatureFlagPayload(
   userId: Ulid
 ) {
   return await timeLimit({
-    promise: productClient.isFeatureEnabled(featureFlagName, userId),
-    waitInMs: 1000,
-    resolveWith: false,
-    timeReachedErrorMessage: `${featureFlagName} reached time limit of 1000`,
+    promise: productClient.getFeatureFlagPayload(featureFlagName, userId),
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlagPayload' did not receive response for feature flag '${featureFlagName}'.`,
   })
 }
 
 export async function getAllFlagsForId(id: Ulid) {
   return await timeLimit({
     promise: productClient.getAllFlagsAndPayloads(id),
-    waitInMs: 1000,
-    resolveWith: { featureFlags: {}, featureFlagPayloads: {} },
-    timeReachedErrorMessage: `'getAllFlagsForId' reached time limit of 1000`,
+    fallbackReturnValue: { featureFlags: {}, featureFlagPayloads: {} },
+    timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
   })
 }
 
@@ -56,15 +56,10 @@ export async function getUsingOurPlatformFlag(userId: Ulid) {
 export async function getProcrastinationTextReminderCopy(
   userId: Ulid
 ): Promise<string | undefined> {
-  return await timeLimit({
-    promise: productClient.getFeatureFlagPayload(
-      FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
-      userId
-    ),
-    waitInMs: 1000,
-    resolveWith: undefined,
-    timeReachedErrorMessage: `getFeatureFlagPayload reached time limit of 1000`,
-  })
+  return productClient.getFeatureFlagPayload(
+    FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
+    userId
+  ) as Promise<string | undefined>
 }
 
 export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
@@ -104,8 +99,7 @@ export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
         },
       }
     ),
-    waitInMs: 1000,
-    resolveWith: false,
-    timeReachedErrorMessage: `getFeatureFlag for ${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY} reached time limit`,
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
   })
 }

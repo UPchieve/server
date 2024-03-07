@@ -17,7 +17,7 @@ export const client = isValidConfigToken(config.posthogToken)
       getFeatureFlagPayload: async () => '',
       getFeatureFlag: async () => '',
       getAllFlagsAndPayloads: async () => {
-        return { featureFlags: {}, featureFlagPayloads: {} }
+        return Promise.resolve({ featureFlags: {}, featureFlagPayloads: {} })
       },
       identify: async () => {
         /* no-op */
