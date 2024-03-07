@@ -8,7 +8,11 @@ import {
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
 } from '../constants'
-import { UserNotFoundError, NotAllowedError } from '../models/Errors'
+import {
+  UserNotFoundError,
+  NotAllowedError,
+  InputError,
+} from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
 import {
@@ -17,6 +21,7 @@ import {
   getUsersForAdminSearch,
   deleteUser,
   updateUserProfileById,
+  deleteUserPhoneInfo,
 } from '../models/User'
 import {
   UnsentReference,
@@ -404,10 +409,20 @@ export async function updateUserProfile(
   userId: Ulid,
   opts: {
     deactivated?: boolean
-    phone?: string
+    phone?: string | null
     smsConsent?: boolean
     mutedSubjectAlerts?: string[]
   }
 ) {
   await updateUserProfileById(userId, opts)
+}
+
+export async function deletePhoneFromAccount(
+  userId: Ulid,
+  isVolunteer: boolean
+) {
+  if (isVolunteer) {
+    throw new InputError('Cannot delete phone from volunteer account')
+  }
+  await deleteUserPhoneInfo(userId)
 }

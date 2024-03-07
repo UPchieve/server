@@ -778,6 +778,19 @@ RETURNING
     id AS ok;
 
 
+/* @name deletePhone */
+UPDATE
+    users
+SET
+    phone = NULL,
+    sms_consent = FALSE,
+    phone_verified = FALSE
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
+
+
 /*
  @name insertMutedUserSubjectAlerts
  @param mutedSubjectAlertIdsWithUserId -> ((userId, subjectId)...)
