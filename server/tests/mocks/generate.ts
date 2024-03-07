@@ -229,9 +229,9 @@ export async function buildSessionRow(
   }
 }
 
-export async function buildSession(
+export function buildSession(
   overrides: Partial<Session> & { studentId: Ulid }
-): Promise<Session> {
+): Session {
   return {
     id: getDbUlid(),
     hasWhiteboardDoc: true,

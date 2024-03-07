@@ -34,7 +34,7 @@ describe(Jobs.GenerateProgressReport, () => {
   test('Should generate and send progress report for a single session and an overview progress report via socket', async () => {
     socketMock.connected = true
     const userId = getDbUlid()
-    const session = await buildSession({
+    const session = buildSession({
       studentId: userId,
       subject: 'reading',
       timeTutored: 1000 * 60,
@@ -92,7 +92,7 @@ describe(Jobs.GenerateProgressReport, () => {
 
   test('Should let progress report errors bubble up for both single and group progress report analysis', async () => {
     socketMock.connected = true
-    const session = await buildSession({
+    const session = buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
       timeTutored: 1000 * 60,
@@ -126,7 +126,7 @@ describe(Jobs.GenerateProgressReport, () => {
   test('Should generate and send progress report for a single session and an overview progress report via http', async () => {
     socketMock.connected = false
     const userId = getDbUlid()
-    const session = await buildSession({
+    const session = buildSession({
       studentId: userId,
       subject: 'reading',
       timeTutored: 1000 * 60,
@@ -190,7 +190,7 @@ describe(Jobs.GenerateProgressReport, () => {
   })
 
   test('Should early exit if not a reading session', async () => {
-    const session = await buildSession({
+    const session = buildSession({
       studentId: getDbUlid(),
       subject: 'algebraOne',
     })
@@ -208,7 +208,7 @@ describe(Jobs.GenerateProgressReport, () => {
   })
 
   test('Should early exit if feature flag is false', async () => {
-    const session = await buildSession({
+    const session = buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
       timeTutored: 1000 * 60,
@@ -231,7 +231,7 @@ describe(Jobs.GenerateProgressReport, () => {
   })
 
   test('Should early exit if time tutored is not greater than session length', async () => {
-    const session = await buildSession({
+    const session = buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
     })

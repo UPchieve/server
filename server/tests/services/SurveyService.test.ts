@@ -28,7 +28,7 @@ describe('getContextSharingForVolunteer', () => {
   test('Should get session context sharing for volunteer', async () => {
     const mockedSurveyReponse = [buildPresessionSurveyResponse()]
     const mockTotalSessions = 2
-    const mockSession = await buildSession({ studentId: getDbUlid() })
+    const mockSession = buildSession({ studentId: getDbUlid() })
     mockedSurveyRepo.getPresessionSurveyResponse.mockResolvedValueOnce(
       mockedSurveyReponse
     )
