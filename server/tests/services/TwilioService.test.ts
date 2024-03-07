@@ -1,3 +1,8 @@
+import * as TwilioService from '../../services/TwilioService'
+import faker from 'faker'
+import { mockedCreateMessageResponse } from '../../__mocks__/twilio'
+import twilio from 'twilio'
+
 test.todo('postgres migration')
 /*import moment from 'moment'
 import 'moment-timezone'
@@ -375,3 +380,44 @@ describe('getAssociatedPartner', () => {
   })
 })
 */
+jest.mock('twilio')
+describe('TwilioService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  describe('sendTextMessage', () => {
+    const TEST_PHONE_NUMBER = faker.phone.phoneNumber('+###########')
+    const TEST_MESSAGE_TEXT = 'This is a test message'
+
+    it('On success, will return the message SID', async () => {
+      expect(
+        await TwilioService.sendTextMessage(
+          TEST_PHONE_NUMBER,
+          TEST_MESSAGE_TEXT
+        )
+      ).toEqual(mockedCreateMessageResponse.sid)
+    })
+
+    it('Will throw an error if there is no message SID', async () => {
+      ;(twilio().messages.create as jest.Mock).mockResolvedValue({
+        status: 'failed',
+      })
+      await expect(
+        TwilioService.sendTextMessage(TEST_PHONE_NUMBER, TEST_MESSAGE_TEXT)
+      ).rejects.toThrowError(
+        `Failed to send text message ${TEST_MESSAGE_TEXT} to ${TEST_PHONE_NUMBER}`
+      )
+    })
+  })
+
+  describe('notifyVolunteer', () => {
+    it.todo('Will record the notification in the DB with correct properties') // Make sure successful = false when failed
+    it.todo('Will log a message when the text message failed to send')
+  })
+
+  describe('sendFollowupText', () => {
+    it.todo('Will record the notification in the DB with correct properties') // Make sure successful = false when failed
+    it.todo('Will log a message when the text message failed to send')
+  })
+})
