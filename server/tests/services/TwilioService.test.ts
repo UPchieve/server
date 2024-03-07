@@ -2,6 +2,12 @@ import * as TwilioService from '../../services/TwilioService'
 import faker from 'faker'
 import { mockedCreateMessageResponse } from '../../__mocks__/twilio'
 import twilio from 'twilio'
+import * as SessionRepo from '../../models/Session'
+import { getDbUlid } from '../../models/pgUtils'
+import { mocked } from 'jest-mock'
+
+jest.mock('../../models/Session')
+const mockedSessionRepo = mocked(SessionRepo)
 
 test.todo('postgres migration')
 /*import moment from 'moment'
@@ -400,7 +406,7 @@ describe('TwilioService', () => {
     })
 
     it('Will throw an error if there is no message SID', async () => {
-      ;(twilio().messages.create as jest.Mock).mockResolvedValue({
+      ;(twilio().messages.create as jest.Mock).mockResolvedValueOnce({
         status: 'failed',
       })
       await expect(
@@ -417,7 +423,39 @@ describe('TwilioService', () => {
   })
 
   describe('sendFollowupText', () => {
-    it.todo('Will record the notification in the DB with correct properties') // Make sure successful = false when failed
-    it.todo('Will log a message when the text message failed to send')
+    it('Will record the notification in the DB with correct properties', async () => {
+      const sessionId = getDbUlid()
+      const volunteerId = getDbUlid()
+      const testPhone = faker.phone.phoneNumber('+##########')
+      await TwilioService.sendFollowupText(sessionId, volunteerId, testPhone)
+      expect(mockedSessionRepo.addSessionNotification).toHaveBeenCalledWith(
+        sessionId,
+        {
+          wasSuccessful: true,
+          messageId: mockedCreateMessageResponse.sid,
+          volunteer: volunteerId,
+          type: 'followup',
+          method: 'sms',
+          priorityGroup: 'follow-up',
+        }
+      )
+
+      // Message send fails => Record notification with undefined messageId and wasSuccessful = false
+      ;(twilio().messages.create as jest.Mock).mockResolvedValue({
+        status: 'failed',
+      })
+      await TwilioService.sendFollowupText(sessionId, volunteerId, testPhone)
+      expect(mockedSessionRepo.addSessionNotification).toHaveBeenCalledWith(
+        sessionId,
+        {
+          wasSuccessful: false,
+          messageId: undefined,
+          volunteer: volunteerId,
+          type: 'followup',
+          method: 'sms',
+          priorityGroup: 'follow-up',
+        }
+      )
+    })
   })
 })
