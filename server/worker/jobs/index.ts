@@ -51,6 +51,7 @@ import studentProcrastinationTextReminder from './studentProcrastinationTextRemi
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
+import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -65,6 +66,7 @@ export enum Jobs {
   EmailReferenceFollowup = 'EmailReferenceFollowup',
   EmailWaitingOnReferences = 'EmailWaitingOnReferences',
   EmailNiceToMeetYou = 'EmailNiceToMeetYou',
+  SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
   EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
@@ -184,6 +186,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailNiceToMeetYou,
     processor: emailNiceToMeetYou,
+  },
+  {
+    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
+    processor: spawnEmailWeeklyHourSummaryJobs,
   },
   {
     name: Jobs.EmailWeeklyHourSummary,
