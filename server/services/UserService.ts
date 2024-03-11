@@ -417,11 +417,12 @@ export async function updateUserProfile(
   await updateUserProfileById(userId, opts)
 }
 
-export async function deletePhoneFromAccount(
-  userId: Ulid,
-  isVolunteer: boolean
-) {
-  if (isVolunteer) {
+export async function deletePhoneFromAccount(userId: Ulid) {
+  const user = await getUserContactInfoById(userId)
+  if (!user) {
+    throw new UserNotFoundError('id', userId)
+  }
+  if (user.isVolunteer) {
     throw new InputError('Cannot delete phone from volunteer account')
   }
   await deleteUserPhoneInfo(userId)

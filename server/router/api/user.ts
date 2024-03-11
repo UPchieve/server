@@ -14,7 +14,7 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import { InputError, NotAllowedError } from '../../models/Errors'
+import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -72,10 +72,10 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.delete('/user/phone', async (req, res) => {
-    const user = extractUser(req)
+  router.delete('/user/:userId/phone', async (req, res) => {
+    const { userId } = req.params
     try {
-      await UserService.deletePhoneFromAccount(user.id, user.isVolunteer)
+      await UserService.deletePhoneFromAccount(userId)
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
