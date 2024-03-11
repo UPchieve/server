@@ -458,7 +458,7 @@ describe('UserService', () => {
         buildUserContactInfo({ id: userId, isVolunteer: true })
       )
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
-        'Cannot delete phone from volunteer account'
+        'Phone information is required for UPchieve volunteers'
       )
     })
 
@@ -466,7 +466,7 @@ describe('UserService', () => {
       const userId = getDbUlid()
       mockUserRepo.getUserContactInfoById.mockResolvedValue(undefined)
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
-        UserNotFoundError
+        'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
       )
     })
 

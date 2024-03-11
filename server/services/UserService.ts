@@ -420,10 +420,15 @@ export async function updateUserProfile(
 export async function deletePhoneFromAccount(userId: Ulid) {
   const user = await getUserContactInfoById(userId)
   if (!user) {
-    throw new UserNotFoundError('id', userId)
+    logger.error({ userId }, 'deletePhoneFromAccount failed to find user')
+    throw new Error(
+      'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
+    )
   }
   if (user.isVolunteer) {
-    throw new InputError('Cannot delete phone from volunteer account')
+    throw new InputError(
+      'Phone information is required for UPchieve volunteers'
+    )
   }
   await deleteUserPhoneInfo(userId)
 }
