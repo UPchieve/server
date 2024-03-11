@@ -642,7 +642,7 @@ export async function updateUserProfileById(
 
 export async function deleteUserPhoneInfo(
   userId: Ulid
-): Promise<IDeletePhoneResult> {
+): Promise<IDeletePhoneResult | undefined> {
   try {
     const result = await pgQueries.deletePhone.run(
       {

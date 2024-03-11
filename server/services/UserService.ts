@@ -409,7 +409,7 @@ export async function updateUserProfile(
   userId: Ulid,
   opts: {
     deactivated?: boolean
-    phone?: string | null
+    phone?: string
     smsConsent?: boolean
     mutedSubjectAlerts?: string[]
   }
