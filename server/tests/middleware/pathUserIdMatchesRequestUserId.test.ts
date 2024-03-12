@@ -15,7 +15,7 @@ describe('pathUserIdMatchesRequestUserIdMiddleware', () => {
     jest.resetAllMocks()
   })
 
-  const getRequest = (pathUserId: any | undefined, requestUser: any) => {
+  const getRequest = (pathUserId: any, requestUser: any) => {
     const request = new Request()
     request.params = { userId: pathUserId }
     return {
@@ -40,7 +40,7 @@ describe('pathUserIdMatchesRequestUserIdMiddleware', () => {
     [null, null],
     [undefined, undefined],
   ])(
-    'Logs an error message and throws an error if the user IDs do not match or either is undefined/null (%s vs. %s)',
+    'Passes error to next() if the user IDs do not match or either is undefined/null (%s vs. %s)',
     async (pathUserId, reqUser) => {
       const req = getRequest(pathUserId, reqUser)
       pathUserIdMatchesRequestUserId(req, res, mockNext)

@@ -12,6 +12,7 @@ import {
   UserNotFoundError,
   NotAllowedError,
   InputError,
+  DEFAULT_ERROR_MESSAGE,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
@@ -421,9 +422,7 @@ export async function deletePhoneFromAccount(userId: Ulid) {
   const user = await getUserContactInfoById(userId)
   if (!user) {
     logger.error({ userId }, 'deletePhoneFromAccount failed to find user')
-    throw new Error(
-      'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
-    )
+    throw new Error(DEFAULT_ERROR_MESSAGE)
   }
   if (user.isVolunteer) {
     throw new InputError(
