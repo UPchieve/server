@@ -1,5 +1,7 @@
 import { CustomError } from 'ts-custom-error'
 
+export const DEFAULT_ERROR_MESSAGE =
+  'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
 export class UserNotFoundError extends CustomError {
   constructor(attemptedParam: string, attemptedValue: string) {
     super(
