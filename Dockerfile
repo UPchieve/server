@@ -10,7 +10,7 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
 COPY package*.json ./
 RUN npm install
 
-COPY tsconfig*.json .
+COPY tsconfig*.json ./
 COPY server ./server
 COPY database ./database
 RUN npm run build:tsc
