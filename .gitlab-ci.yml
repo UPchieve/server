@@ -2,6 +2,10 @@
 #  - template: Auto-DevOps.gitlab-ci.yml
 
 cache:
+  # TODO: Try key as package-lock.json to speed up across branches.
+  # key:
+  #   files:
+  #       - package-lock.json
   key: $CI_COMMIT_REF_SLUG
   paths:
     - .npm
