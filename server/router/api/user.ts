@@ -14,7 +14,7 @@ import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
+import { InputError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
