@@ -414,8 +414,10 @@ import { mocked } from 'jest-mock'
 import request from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import * as UserRepo from '../../models/User/queries'
-import { buildStudent } from '../mocks/generate'
+import { buildStudent, buildUserContactInfo } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
+import { getDbUlid } from '../../models/pgUtils'
+import { UserNotFoundError } from '../../models/Errors'
 
 jest.mock('../../models/User/queries')
 
@@ -446,6 +448,35 @@ describe('UserService', () => {
         '123',
         req
       )
+    })
+  })
+
+  describe('deletePhoneFromAccount', () => {
+    it('Should throw an error if it is a volunteer account', async () => {
+      const userId = getDbUlid()
+      mockUserRepo.getUserContactInfoById.mockResolvedValue(
+        buildUserContactInfo({ id: userId, isVolunteer: true })
+      )
+      await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
+        'Phone information is required for UPchieve volunteers'
+      )
+    })
+
+    it('Should throw an error if the user cannot be found', async () => {
+      const userId = getDbUlid()
+      mockUserRepo.getUserContactInfoById.mockResolvedValue(undefined)
+      await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
+        'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
+      )
+    })
+
+    it('Should call deleteUserPhoneInfo', async () => {
+      const userId = getDbUlid()
+      mockUserRepo.getUserContactInfoById.mockResolvedValue(
+        buildUserContactInfo({ id: userId, isVolunteer: false })
+      )
+      await UserService.deletePhoneFromAccount(userId)
+      expect(mockUserRepo.deleteUserPhoneInfo).toHaveBeenCalledWith(userId)
     })
   })
 })
