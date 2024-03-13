@@ -15,8 +15,6 @@ import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
-import logger from '../../logger'
-import { pathUserIdMatchesRequestUserId } from '../../middleware/pathUserIdMatchesRequestUserId'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -75,12 +73,11 @@ export function routeUser(router: Router): void {
   })
 
   router.delete(
-    '/user/:userId/phone',
-    pathUserIdMatchesRequestUserId,
+    '/user/phone',
     async (req, res) => {
-      let { userId } = req.params
+      const user = extractUser(req)
       try {
-        await UserService.deletePhoneFromAccount(userId)
+        await UserService.deletePhoneFromAccount(user.id)
         res.sendStatus(200)
       } catch (err) {
         resError(res, err)
