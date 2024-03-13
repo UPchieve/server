@@ -15,7 +15,10 @@ import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
 import { CreateUserPayload, CreateUserResult, User } from './types'
-import { IUpdateUserVerifiedPhoneByIdResult } from './pg.queries'
+import {
+  IDeletePhoneResult,
+  IUpdateUserVerifiedPhoneByIdResult,
+} from './pg.queries'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -631,6 +634,23 @@ export async function updateUserProfileById(
         )
       }
     }
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function deleteUserPhoneInfo(
+  userId: Ulid
+): Promise<IDeletePhoneResult | undefined> {
+  try {
+    const result = await pgQueries.deletePhone.run(
+      {
+        userId,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

@@ -1,5 +1,10 @@
 import { getClient } from '../../db'
-import { createUser, getUserIdByEmail } from '../../models/User'
+import {
+  createUser,
+  deleteUserPhoneInfo,
+  getUserIdByEmail,
+} from '../../models/User'
+import faker from 'faker'
 
 const client = getClient()
 
@@ -23,4 +28,43 @@ test('createUser', async () => {
     user.email,
   ])
   expect(actual.rows.length).toBe(1)
+})
+
+test('deleteUserPhoneInfo', async () => {
+  const user = {
+    email: faker.internet.email().toLowerCase(),
+    firstName: 'Test',
+    lastName: 'McTest',
+    phone: faker.phone.phoneNumber('+###########'),
+    phoneVerified: true,
+    password: 'Pass123',
+  }
+  await createUser(user, client)
+  await client.query(`UPDATE users SET sms_consent = true WHERE email = $1`, [
+    user.email,
+  ])
+  var getUserResult = await client.query(
+    'SELECT * FROM users WHERE email = $1',
+    [user.email]
+  )
+  expect(getUserResult.rows[0]).toEqual(
+    expect.objectContaining({
+      email: user.email,
+      phone: user.phone,
+      phone_verified: user.phoneVerified,
+      sms_consent: true,
+    })
+  )
+  await deleteUserPhoneInfo(getUserResult.rows[0].id)
+  getUserResult = await client.query('SELECT * FROM users WHERE email = $1', [
+    user.email,
+  ])
+  expect(getUserResult.rows[0]).toEqual(
+    expect.objectContaining({
+      email: user.email,
+      phone: null,
+      phone_verified: false,
+      sms_consent: false,
+    })
+  )
 })

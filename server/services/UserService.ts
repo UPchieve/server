@@ -8,7 +8,12 @@ import {
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
 } from '../constants'
-import { UserNotFoundError, NotAllowedError } from '../models/Errors'
+import {
+  UserNotFoundError,
+  NotAllowedError,
+  InputError,
+  DEFAULT_ERROR_MESSAGE,
+} from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
 import {
@@ -17,6 +22,7 @@ import {
   getUsersForAdminSearch,
   deleteUser,
   updateUserProfileById,
+  deleteUserPhoneInfo,
 } from '../models/User'
 import {
   UnsentReference,
@@ -410,4 +416,18 @@ export async function updateUserProfile(
   }
 ) {
   await updateUserProfileById(userId, opts)
+}
+
+export async function deletePhoneFromAccount(userId: Ulid) {
+  const user = await getUserContactInfoById(userId)
+  if (!user) {
+    logger.error({ userId }, 'deletePhoneFromAccount failed to find user')
+    throw new Error(DEFAULT_ERROR_MESSAGE)
+  }
+  if (user.isVolunteer) {
+    throw new InputError(
+      'Phone information is required for UPchieve volunteers'
+    )
+  }
+  await deleteUserPhoneInfo(userId)
 }
