@@ -19,9 +19,9 @@ export async function getIpWhoIs(rawIpString: string) {
       : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
 
   try {
-    const { data } = await axios.get(ipWhoIs, {
+    const { data } = (await axios.get(ipWhoIs, {
       timeout: 1500,
-    })
+    })) as any
     return data
   } catch (err) {
     Sentry.captureException(err)

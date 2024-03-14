@@ -1,3 +1,9 @@
+import { mocked } from 'jest-mock'
+import axios, { AxiosResponse } from 'axios'
+import { Payload, sendData } from '../../worker/jobs/sendAssistmentsData'
+import { getDbUlid } from '../../models/pgUtils'
+import { getQuizScore } from '../../controllers/TrainingCtrl'
+
 test.todo('postgres migration')
 /*import axios from 'axios'
 import { mocked } from 'jest-mock';
@@ -273,3 +279,48 @@ describe('Test full job', () => {
   })
 })
 */
+
+jest.mock('axios')
+describe('sendAssistmentsData', () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
+  describe('sendData', () => {
+    let payload: any, params: any
+    beforeEach(() => {
+      params = {
+        assignmentXref: 'test1',
+        userXref: 'test2',
+      }
+      payload = {
+        studentId: '123',
+        assignmentId: '456',
+        problemId: '789',
+        session: getDbUlid(),
+      } as any
+    })
+    it('Does not throw an error if it gets back a 201', async () => {
+      const axiosPostMock = axios.post as jest.Mock
+      axiosPostMock.mockResolvedValue({
+        data: 'test data',
+        status: 201,
+      })
+      await expect(sendData(params, payload)).resolves.toBeUndefined()
+    })
+
+    it.each([401, 403, 404])(
+      'Throws an error if it gets back response code %s',
+      async statusCode => {
+        const axiosPostMock = axios.post as jest.Mock
+        axiosPostMock.mockResolvedValue({
+          data: 'test data',
+          status: statusCode,
+        })
+        await expect(sendData(params, payload)).rejects.toThrow(
+          `${statusCode}: "test data"`
+        )
+      }
+    )
+  })
+})
