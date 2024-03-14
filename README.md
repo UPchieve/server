@@ -221,3 +221,5 @@ You can run the worker queue locally as well as enqueue specific jobs:
 - To enqueue jobs locally, we use the script `server/scripts/testing-jobs.ts`
   - Simply edit the value of `jobToQueue` with the job you want
 - Then, in another terminal, run the script to enqueue the job: `npx ts-node server/scripts/testing-jobs.ts`
+- To connect your local Redis instance to Taskforce.sh, copy the [connection token here](https://taskforce.sh/account/token) then run the following command:
+  `npx taskforce --team "Engineering" -n "<your name> local" -t connection-token-goes-here`

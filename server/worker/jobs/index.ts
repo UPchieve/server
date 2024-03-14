@@ -411,27 +411,31 @@ EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 export const addJobProcessors = (queue: Queue): void => {
   try {
     map(jobProcessors, jobProcessor =>
-      queue.process(jobProcessor.name, job => {
-        newrelic
-          .startBackgroundTransaction(`job:${job.name}`, async () => {
-            const transaction = newrelic.getTransaction()
-            logger.info(`Processing job: ${job.name}`)
-            try {
-              await jobProcessor.processor(job)
-              logger.info(`Completed job: ${job.name}`)
-            } catch (error) {
-              logger.error(`Error processing job: ${job.name}\n${error}`)
-              newrelic.noticeError(error as Error)
-            } finally {
-              transaction.end()
-            }
-          })
-          .catch(error => {
-            logger.error(
-              `error in job processor newrelic transaction: ${error}`
-            )
-            newrelic.noticeError(error)
-          })
+      queue.process(jobProcessor.name, (job /*, done*/) => {
+        return new Promise<void>((res, rej) => {
+          newrelic
+            .startBackgroundTransaction(`job:${job.name}`, async () => {
+              const transaction = newrelic.getTransaction()
+              logger.info(`Processing job: ${job.name}`)
+              try {
+                await jobProcessor.processor(job)
+                logger.info(`Completed job: ${job.name}`)
+                res()
+              } catch (error) {
+                logger.error(`Error processing job: ${job.name}\n${error}`)
+                newrelic.noticeError(error as Error)
+                rej(error)
+              } finally {
+                transaction.end()
+              }
+            })
+            .catch(error => {
+              logger.error(
+                `error in job processor newrelic transaction: ${error}`
+              )
+              newrelic.noticeError(error)
+            })
+        })
       })
     )
   } catch (error) {
