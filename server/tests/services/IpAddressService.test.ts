@@ -19,8 +19,12 @@ describe('checkIpAddress', () => {
       status: 200, // Add other necessary properties to match AxiosResponse
       statusText: 'OK',
       headers: {},
-      config: {},
-    }
+      config: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    } as AxiosResponse
   }
 
   test('Should throw InputError on non-string IP address data type', async () => {
