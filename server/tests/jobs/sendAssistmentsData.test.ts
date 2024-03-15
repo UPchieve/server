@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios'
 import * as SendAssistmentsData from '../../worker/jobs/sendAssistmentsData'
 import { getDbUlid } from '../../models/pgUtils'
 import { AssistmentsError } from '../../models/Errors'
-import { log } from '../../worker/logger'
+import logger from '../../logger'
 
 test.todo('postgres migration')
 /*import axios from 'axios'
@@ -306,7 +306,7 @@ describe('sendAssistmentsData', () => {
       await expect(
         SendAssistmentsData.sendData(params, payload)
       ).resolves.toBeUndefined()
-      expect(log).toHaveBeenCalledWith(
+      expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining(
           `Successfully sent assistments data for session`
         )
@@ -344,7 +344,7 @@ describe('sendAssistmentsData', () => {
           undefined
         )
       )
-      expect(log).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         `Attempt to send assistments data failed, err=Test error`
       )
     })
