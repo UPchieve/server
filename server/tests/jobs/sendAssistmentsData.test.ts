@@ -324,9 +324,8 @@ describe('sendAssistmentsData', () => {
           SendAssistmentsData.sendData(params, payload)
         ).rejects.toThrow(
           new AssistmentsError(
-            `Request to send assistments data returned with status ${status}`,
-            false,
-            status
+            `Request to send assistments data was rejected with status ${status}`,
+            false
           )
         )
       }
@@ -340,8 +339,7 @@ describe('sendAssistmentsData', () => {
       ).rejects.toThrow(
         new AssistmentsError(
           'Encountered error while attempting to send Assistments data',
-          true,
-          undefined
+          true
         )
       )
       expect(logger.error).toHaveBeenCalledWith(

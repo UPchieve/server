@@ -144,9 +144,8 @@ export async function sendData(
   }
   const retry = ![401, 403, 404].includes(status)
   throw new AssistmentsError(
-    `Request to send assistments data returned with status ${status}`,
-    retry,
-    status
+    `Request to send assistments data was rejected with status ${status}`,
+    retry
   )
 }
 
@@ -161,11 +160,8 @@ export async function sendWrapper(
       numOfAttempts: 10,
       retry: (e: any, attemptNumber: number) => {
         logger.warn(
-          `AssistmentsData send attempt ${attemptNumber} failed with status=${
-            e instanceof AssistmentsError
-              ? (e as AssistmentsError).status
-              : 'undefined'
-          }`
+          { error: (e as Error).message, sessionId: payload.session.id },
+          'Failed to send assistments data'
         )
         return e instanceof AssistmentsError && e.retry
       },
