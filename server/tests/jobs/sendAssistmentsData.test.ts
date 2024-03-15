@@ -331,7 +331,7 @@ describe('sendAssistmentsData', () => {
       }
     )
 
-    it('Rethrows error as AssistmentsError and logs the error message caught errors', async () => {
+    it('When it catches an error, it rethrows it as an AssistmentsError and logs', async () => {
       const axiosPostMock = axios.post as jest.Mock
       axiosPostMock.mockRejectedValue(new Error('Test error'))
       await expect(
