@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import { backOff } from 'exponential-backoff'
 import { Job } from 'bull'
 import config from '../../config'
@@ -14,6 +14,7 @@ import {
 } from '../../models/Session'
 import { log } from '../logger'
 import { asString } from '../../utils/type-utils'
+import { AssistmentsError } from '../../models/Errors'
 
 interface PartMessage {
   contents: string
@@ -109,10 +110,11 @@ export async function sendData(
   params: Parameters,
   payload: Payload
 ): Promise<void> {
-  let status: string
+  let status: number | undefined
   let message: any
+  let res: AxiosResponse<any>
   try {
-    const res = await axios.post(
+    res = await axios.post(
       `${config.assistmentsBaseURL}/assignments/${params.assignmentXref}/exdata/${params.userXref}`,
       payload,
       {
@@ -120,20 +122,30 @@ export async function sendData(
           'Content-Type': 'application/json',
           Authorization: buildAuthHeader(),
         },
-        validateStatus: () => true, // always reolve the promise regardless of status code
+        validateStatus: () => true, // always resolve the promise regardless of status code
       }
     )
     message = res.data
-    status = res.status.toString()
+    status = res.status
   } catch (err) {
-    throw new Error(`Retry: ${(err as Error).message}`)
+    log(
+      `Attempt to send assistments data failed, err=${(err as Error).message}`
+    )
+    throw new AssistmentsError(
+      `Encountered error while attempting to send Assistments data`,
+      true
+    )
   }
-  const FAILS = ['401', '403', '404']
-  if (status === '201') {
-    /* do nothing */
-  } else if (FAILS.includes(status))
-    throw new Error(status + `: ${JSON.stringify(message)}`)
-  else throw new Error(`Retry: ${status}`) // assistments server error
+  if (status === 201) {
+    log(`Successfully sent assistments data for session ${payload.session.id}`)
+    return
+  }
+  const retry = ![401, 403, 404].includes(status)
+  throw new AssistmentsError(
+    `Request to send assistments data returned with status ${status}`,
+    retry,
+    status
+  )
 }
 
 export async function sendWrapper(
@@ -146,14 +158,14 @@ export async function sendWrapper(
       maxDelay: 2000,
       numOfAttempts: 10,
       retry: (e: any, attemptNumber: number) => {
-        log(`AssistmentsData send attempt ${attemptNumber} failed`)
-        if (e.message.includes('Retry')) {
-          log(e.message)
-          return true
-        } else {
-          log(`Stopping due to status ${e.message}`)
-          return false
-        }
+        log(
+          `AssistmentsData send attempt ${attemptNumber} failed with status=${
+            e instanceof AssistmentsError
+              ? (e as AssistmentsError).status
+              : 'undefined'
+          }`
+        )
+        return e instanceof AssistmentsError && e.retry
       },
     })
   } catch (err) {

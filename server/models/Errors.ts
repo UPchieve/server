@@ -113,3 +113,19 @@ export class MissingRecaptchaTokenError extends CustomError {
     )
   }
 }
+
+export class AssistmentsError extends CustomError {
+  message: string
+  retry: boolean
+  status: number | undefined
+  constructor(
+    message: string,
+    retry: boolean,
+    status: number | undefined = undefined
+  ) {
+    super()
+    this.message = message
+    this.retry = retry
+    this.status = status
+  }
+}
