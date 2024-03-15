@@ -73,6 +73,16 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
+-- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
+    'control',
+    'test'
+);
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
 --
 
@@ -2023,7 +2033,8 @@ CREATE TABLE upchieve.user_product_flags (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     in_gates_study boolean DEFAULT false NOT NULL,
-    fall_incentive_program boolean DEFAULT false NOT NULL
+    fall_incentive_program boolean DEFAULT false NOT NULL,
+    paid_tutors_pilot_group public.paid_tutors_pilot_groups
 );
 
 
@@ -2254,7 +2265,8 @@ CREATE TABLE upchieve.users_surveys (
     session_id uuid,
     survey_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    progress_report_id uuid
 );
 
 
@@ -3865,6 +3877,13 @@ CREATE INDEX legacy_availability_histories_user_id_recorded_at ON upchieve.legac
 
 
 --
+-- Name: notifications_sent_at_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX notifications_sent_at_idx ON upchieve.notifications USING btree (sent_at);
+
+
+--
 -- Name: notifications_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -5344,4 +5363,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20231109144205'),
     ('20231109145812'),
     ('20231211220614'),
-    ('20231221230720');
+    ('20231221230720'),
+    ('20240222161927'),
+    ('20240226144028');
