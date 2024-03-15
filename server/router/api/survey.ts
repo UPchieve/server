@@ -3,14 +3,16 @@ import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
-  getPresessionSurveyDefinition,
+  getSimpleSurveyDefinition,
   getPostsessionSurveyDefinition,
   getPostsessionSurveyResponse,
+  getProgressReportSurveyResponse,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
-  validateSaveUserSurveyAndSubmissions,
+  validateAndSaveSessionSurvey,
   parseUserRole,
+  validateAndSaveProgressReportSurvey,
 } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
@@ -43,7 +45,11 @@ export function routeSurvey(router: expressWs.Router): void {
       submissions,
     }
     try {
-      await validateSaveUserSurveyAndSubmissions(user.id, data as unknown)
+      await validateAndSaveSessionSurvey(
+        user.id,
+        asUlid(sessionId),
+        data as unknown
+      )
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
@@ -80,9 +86,9 @@ export function routeSurvey(router: expressWs.Router): void {
   router.get('/survey/presession', async (req, res) => {
     try {
       const { subject } = req.query
-      const survey = await getPresessionSurveyDefinition(
-        asString(subject),
-        'presession'
+      const survey = await getSimpleSurveyDefinition(
+        'presession',
+        asString(subject)
       )
       res.json(survey)
     } catch (error) {
@@ -126,6 +132,53 @@ export function routeSurvey(router: expressWs.Router): void {
         parsedRole
       )
       res.json(surveyResponse)
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/survey/progress-report', async function(req, res) {
+    try {
+      const survey = await getSimpleSurveyDefinition('progress-report')
+      res.json({ survey })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get(
+    '/survey/progress-report/:progressReportId/response',
+    async function(req, res) {
+      try {
+        const user = extractUser(req)
+        const progressReportId = asString(req.params.progressReportId)
+        const survey = await getProgressReportSurveyResponse(
+          user.id,
+          progressReportId
+        )
+        res.json({ survey })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
+  router.post('/survey/progress-report/save', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const { surveyId, surveyTypeId, progressReportId, submissions } = req.body
+      const data = {
+        surveyId,
+        progressReportId,
+        surveyTypeId,
+        submissions,
+      }
+      await validateAndSaveProgressReportSurvey(user.id, data as unknown)
+      const survey = await getProgressReportSurveyResponse(
+        user.id,
+        progressReportId
+      )
+      res.json({ survey })
     } catch (error) {
       resError(res, error)
     }

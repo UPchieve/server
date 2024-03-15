@@ -15,7 +15,7 @@ import {
   LegacySurvey,
   SurveyQuestionDefinition,
   PresessionSurveyResponseData,
-  StudentPresessionSurveyResponse,
+  SimpleSurveyResponse,
   UserSurvey,
   UserSurveySubmission,
 } from '../../models/Survey'
@@ -387,8 +387,8 @@ export const buildPresessionSurvey = (
 }
 
 export const buildPresessionSurveyResponse = (
-  overrides: Partial<StudentPresessionSurveyResponse> = {}
-): StudentPresessionSurveyResponse => {
+  overrides: Partial<SimpleSurveyResponse> = {}
+): SimpleSurveyResponse => {
   const survey = {
     displayLabel: 'Their goal:',
     response: 'Complete a homework assignment',

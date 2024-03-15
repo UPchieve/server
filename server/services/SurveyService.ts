@@ -3,7 +3,7 @@ import { getSessionById } from '../models/Session'
 import {
   getPresessionSurveyResponse,
   saveUserSurveyAndSubmissions,
-  StudentPresessionSurveyResponse,
+  SimpleSurveyResponse,
 } from '../models/Survey'
 import { getTotalSessionsByUserId } from '../models/User'
 import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
@@ -12,6 +12,7 @@ import {
   asEnum,
   asFactory,
   asNumber,
+  asOptional,
   asString,
 } from '../utils/type-utils'
 import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
@@ -31,14 +32,15 @@ export const asSaveUserSurveyAndSubmissions = asFactory<
   SaveSurveyAndSubmissions
 >({
   surveyId: asNumber,
-  sessionId: asString,
+  sessionId: asOptional(asString),
+  progressReportId: asOptional(asString),
   surveyTypeId: asNumber,
   submissions: asArray(asSurveySubmissions),
 })
 
 type VolunteerContextResponse = {
   totalStudentSessions: number
-  responses: StudentPresessionSurveyResponse[]
+  responses: SimpleSurveyResponse[]
 }
 
 export async function getContextSharingForVolunteer(
@@ -53,22 +55,35 @@ export async function getContextSharingForVolunteer(
   }
 }
 
-export async function validateSaveUserSurveyAndSubmissions(
-  userId: Ulid,
-  data: unknown
-): Promise<void> {
+async function saveUserSurvey(userId: Ulid, data: unknown): Promise<void> {
   const survey = asSaveUserSurveyAndSubmissions(data)
   const userSurvey = {
     surveyId: survey.surveyId,
     sessionId: survey.sessionId,
     surveyTypeId: survey.surveyTypeId,
+    progressReportId: survey.progressReportId,
   }
   // filter out questions the user didn't answer
   const submissions = survey.submissions.filter(
     resp => resp.responseChoiceId !== null
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
-  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, survey.sessionId)
+}
+
+export async function validateAndSaveSessionSurvey(
+  userId: Ulid,
+  sessionId: Ulid,
+  data: unknown
+) {
+  await saveUserSurvey(userId, data)
+  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, sessionId)
+}
+
+export async function validateAndSaveProgressReportSurvey(
+  userId: Ulid,
+  data: unknown
+) {
+  await saveUserSurvey(userId, data)
 }
 
 export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)

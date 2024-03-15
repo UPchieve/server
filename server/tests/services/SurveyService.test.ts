@@ -49,9 +49,12 @@ describe('getContextSharingForVolunteer', () => {
   })
 })
 
-describe('validateSaveUserSurveyAndSubmissions', () => {
+describe('validateAndSaveSessionSurvey', () => {
   test('Should throw InputError if user survey submissions are not an array', async () => {
-    const userSurvey = buildUserSurvey()
+    const sessionId = getDbUlid()
+    const userSurvey = buildUserSurvey({
+      sessionId,
+    })
     const submissions = buildUserSurveySubmission({
       responseChoiceId: 1,
       questionId: 1,
@@ -61,7 +64,7 @@ describe('validateSaveUserSurveyAndSubmissions', () => {
     const userId = getDbUlid()
 
     try {
-      await SurveyService.validateSaveUserSurveyAndSubmissions(userId, data)
+      await SurveyService.validateAndSaveSessionSurvey(userId, sessionId, data)
     } catch (err) {
       expect(err).toBeInstanceOf(InputError)
     }
@@ -72,7 +75,8 @@ describe('validateSaveUserSurveyAndSubmissions', () => {
   })
 
   test('Should validate and save a user survey and its submissions', async () => {
-    const userSurvey = buildUserSurvey()
+    const sessionId = getDbUlid()
+    const userSurvey = buildUserSurvey({ sessionId })
     const submissions = [
       buildUserSurveySubmission({ responseChoiceId: 1, questionId: 1 }),
       buildUserSurveySubmission({ responseChoiceId: 5, questionId: 5 }),
@@ -83,7 +87,11 @@ describe('validateSaveUserSurveyAndSubmissions', () => {
 
     mockedSurveyRepo.saveUserSurveyAndSubmissions.mockResolvedValueOnce()
 
-    await SurveyService.validateSaveUserSurveyAndSubmissions(userId, data)
+    await SurveyService.validateAndSaveSessionSurvey(
+      userId,
+      userSurvey.sessionId!,
+      data
+    )
     const expectedUserSurvey = {
       surveyId: data.surveyId,
       sessionId: data.sessionId,

@@ -75,7 +75,8 @@ export async function saveUserSurveyAndSubmissions(
       {
         surveyId: surveyData.surveyId,
         userId,
-        sessionId: surveyData.sessionId,
+        sessionId: surveyData.sessionId ?? undefined,
+        progressReportId: surveyData.progressReportId ?? undefined,
         surveyTypeId: surveyData.surveyTypeId,
       },
       getClient()
@@ -84,7 +85,10 @@ export async function saveUserSurveyAndSubmissions(
       throw new RepoCreateError('Error upserting user survey')
     }
 
-    const survey = makeRequired(result[0])
+    const survey = makeSomeOptional(result[0], [
+      'sessionId',
+      'progressReportId',
+    ])
     const errors: string[] = []
     for (const submission of submissions) {
       const result = await pgQueries.saveUserSurveySubmissions.run(
@@ -155,12 +159,12 @@ export async function getStudentsPresessionGoal(
   }
 }
 
-export async function getPresessionSurveyDefinition(
-  subjectName: string,
-  surveyType: SurveyType
+export async function getSimpleSurveyDefinition(
+  surveyType: SurveyType,
+  subjectName?: string
 ): Promise<SurveyQueryResponse> {
   try {
-    const result = await pgQueries.getPresessionSurveyDefinition.run(
+    const result = await pgQueries.getSimpleSurveyDefinition.run(
       { subjectName, surveyType },
       getClient()
     )
@@ -283,16 +287,17 @@ export function formatSurveyDefinition(
   }
 }
 
-export type StudentPresessionSurveyResponse = {
+export type SimpleSurveyResponse = {
   displayLabel: string
   response: string
   score: number
   displayOrder: number
+  displayImage?: string
 }
 
 export async function getPresessionSurveyResponse(
   sessionId: string
-): Promise<StudentPresessionSurveyResponse[]> {
+): Promise<SimpleSurveyResponse[]> {
   try {
     const result = await pgQueries.getPresessionSurveyResponse.run(
       { sessionId },
@@ -385,5 +390,22 @@ export async function deleteDuplicateUserSurveys(): Promise<void> {
     await pgQueries.deleteDuplicateUserSurveys.run(undefined, getClient())
   } catch (err) {
     throw new RepoDeleteError(err)
+  }
+}
+
+export async function getProgressReportSurveyResponse(
+  userId: Ulid,
+  progressReportId: Ulid
+): Promise<SimpleSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getProgressReportSurveyResponse.run(
+      { userId, progressReportId },
+      getClient()
+    )
+    if (result.length)
+      return result.map(row => makeSomeOptional(row, ['displayImage']))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

@@ -119,16 +119,14 @@ describe('/survey/presession?subject=', () => {
       surveyTypeId: 1,
       survey: [buildPresessionSurvey()],
     }
-    mockedSurveyRepo.getPresessionSurveyDefinition.mockImplementationOnce(
+    mockedSurveyRepo.getSimpleSurveyDefinition.mockImplementationOnce(
       async () => mockedSurvey
     )
     const response = await sendGet(
       GET_PRESESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
       payload
     )
-    expect(
-      mockedSurveyRepo.getPresessionSurveyDefinition
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledTimes(1)
     expect(response.body).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
@@ -160,10 +158,10 @@ describe(SAVE_USER_SURVEY, () => {
     const userSurvey = buildUserSurvey()
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
-    mockedSurveyService.validateSaveUserSurveyAndSubmissions.mockResolvedValueOnce()
+    mockedSurveyService.validateAndSaveSessionSurvey.mockResolvedValueOnce()
     const response = await sendPost(SAVE_USER_SURVEY, payload)
     expect(
-      mockedSurveyService.validateSaveUserSurveyAndSubmissions
+      mockedSurveyService.validateAndSaveSessionSurvey
     ).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
   })
@@ -173,12 +171,12 @@ describe(SAVE_USER_SURVEY, () => {
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
     const testError = new Error('Test error')
-    mockedSurveyService.validateSaveUserSurveyAndSubmissions.mockRejectedValueOnce(
+    mockedSurveyService.validateAndSaveSessionSurvey.mockRejectedValueOnce(
       testError
     )
     const response = await sendPost(SAVE_USER_SURVEY, payload)
     expect(
-      mockedSurveyService.validateSaveUserSurveyAndSubmissions
+      mockedSurveyService.validateAndSaveSessionSurvey
     ).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(500)
   })
