@@ -12,9 +12,9 @@ import {
   getSessionById,
   MessageForFrontend,
 } from '../../models/Session'
-import { log } from '../logger'
 import { asString } from '../../utils/type-utils'
 import { AssistmentsError } from '../../models/Errors'
+import logger from '../../logger'
 
 interface PartMessage {
   contents: string
@@ -128,7 +128,7 @@ export async function sendData(
     message = res.data
     status = res.status
   } catch (err) {
-    log(
+    logger.error(
       `Attempt to send assistments data failed, err=${(err as Error).message}`
     )
     throw new AssistmentsError(
@@ -137,7 +137,9 @@ export async function sendData(
     )
   }
   if (status === 201) {
-    log(`Successfully sent assistments data for session ${payload.session.id}`)
+    logger.info(
+      `Successfully sent assistments data for session ${payload.session.id}`
+    )
     return
   }
   const retry = ![401, 403, 404].includes(status)
@@ -158,7 +160,7 @@ export async function sendWrapper(
       maxDelay: 2000,
       numOfAttempts: 10,
       retry: (e: any, attemptNumber: number) => {
-        log(
+        logger.warn(
           `AssistmentsData send attempt ${attemptNumber} failed with status=${
             e instanceof AssistmentsError
               ? (e as AssistmentsError).status
