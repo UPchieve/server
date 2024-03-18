@@ -159,11 +159,9 @@ describe(SAVE_USER_SURVEY, () => {
     const userSurvey = buildUserSurvey()
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
-    mockedSurveyService.validateAndSaveSessionSurvey.mockResolvedValueOnce()
+    mockedSurveyService.saveUserSurvey.mockResolvedValueOnce()
     const response = await sendPost(SAVE_USER_SURVEY, payload)
-    expect(
-      mockedSurveyService.validateAndSaveSessionSurvey
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
   })
 
@@ -172,13 +170,9 @@ describe(SAVE_USER_SURVEY, () => {
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
     const testError = new Error('Test error')
-    mockedSurveyService.validateAndSaveSessionSurvey.mockRejectedValueOnce(
-      testError
-    )
+    mockedSurveyService.saveUserSurvey.mockRejectedValueOnce(testError)
     const response = await sendPost(SAVE_USER_SURVEY, payload)
-    expect(
-      mockedSurveyService.validateAndSaveSessionSurvey
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(500)
   })
 })
@@ -219,29 +213,5 @@ describe('/survey/progress-report/:progressReportId/response', () => {
     ).toHaveBeenCalledTimes(1)
     expect(response.body.survey).toEqual(mockedSurveyResponse)
     expect(response.status).toBe(200)
-  })
-})
-
-const SAVE_PROGRESS_REPORT = `/survey/progress-report/save`
-describe(SAVE_PROGRESS_REPORT, () => {
-  test('Should save progress report and its submissions', async () => {
-    const userSurvey = buildUserSurvey()
-    const submissions = [buildUserSurveySubmission()]
-    const payload = { ...userSurvey, submissions }
-    mockedSurveyService.saveUserSurvey.mockResolvedValueOnce()
-    const response = await sendPost(SAVE_PROGRESS_REPORT, payload)
-    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
-    expect(response.status).toBe(200)
-  })
-
-  test('Should catch and send error when user survey and submissions validation errors', async () => {
-    const userSurvey = buildUserSurvey()
-    const submissions = [buildUserSurveySubmission()]
-    const payload = { ...userSurvey, submissions }
-    const testError = new Error('Test error')
-    mockedSurveyService.saveUserSurvey.mockRejectedValueOnce(testError)
-    const response = await sendPost(SAVE_PROGRESS_REPORT, payload)
-    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
-    expect(response.status).toBe(500)
   })
 })

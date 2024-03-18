@@ -10,7 +10,6 @@ import {
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
-  validateAndSaveSessionSurvey,
   parseUserRole,
   saveUserSurvey,
 } from '../../services/SurveyService'
@@ -37,19 +36,22 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.post('/survey/save', async (req, res) => {
     const user = extractUser(req)
-    const { surveyId, sessionId, surveyTypeId, submissions } = req.body
+    const {
+      surveyId,
+      surveyTypeId,
+      sessionId,
+      progressReportId,
+      submissions,
+    } = req.body
     const data = {
       surveyId,
-      sessionId,
       surveyTypeId,
+      sessionId,
+      progressReportId,
       submissions,
     }
     try {
-      await validateAndSaveSessionSurvey(
-        user.id,
-        asUlid(sessionId),
-        data as unknown
-      )
+      await saveUserSurvey(user.id, data as unknown)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
@@ -162,21 +164,4 @@ export function routeSurvey(router: expressWs.Router): void {
       }
     }
   )
-
-  router.post('/survey/progress-report/save', async function(req, res) {
-    try {
-      const user = extractUser(req)
-      const { surveyId, surveyTypeId, progressReportId, submissions } = req.body
-      const data = {
-        surveyId,
-        progressReportId,
-        surveyTypeId,
-        submissions,
-      }
-      await saveUserSurvey(user.id, data as unknown)
-      res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
 }

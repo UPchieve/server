@@ -71,15 +71,8 @@ export async function saveUserSurvey(
     resp => resp.responseChoiceId !== null
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
-}
-
-export async function validateAndSaveSessionSurvey(
-  userId: Ulid,
-  sessionId: Ulid,
-  data: unknown
-) {
-  await saveUserSurvey(userId, data)
-  emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, sessionId)
+  if (userSurvey.sessionId)
+    emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
 }
 
 export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)
