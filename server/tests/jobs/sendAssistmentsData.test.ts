@@ -1,8 +1,8 @@
-import { mocked } from 'jest-mock'
 import axios, { AxiosResponse } from 'axios'
-import { Payload, sendData } from '../../worker/jobs/sendAssistmentsData'
+import * as SendAssistmentsData from '../../worker/jobs/sendAssistmentsData'
 import { getDbUlid } from '../../models/pgUtils'
-import { getQuizScore } from '../../controllers/TrainingCtrl'
+import { AssistmentsError } from '../../models/Errors'
+import logger from '../../logger'
 
 test.todo('postgres migration')
 /*import axios from 'axios'
@@ -282,45 +282,69 @@ describe('Test full job', () => {
 
 jest.mock('axios')
 describe('sendAssistmentsData', () => {
+  let payload: any, params: any
   beforeEach(() => {
     jest.resetAllMocks()
+    params = {
+      assignmentXref: 'test1',
+      userXref: 'test2',
+    }
+    payload = {
+      studentId: '123',
+      assignmentId: '456',
+      problemId: '789',
+      session: { id: getDbUlid() },
+    } as any
   })
 
   describe('sendData', () => {
-    let payload: any, params: any
-    beforeEach(() => {
-      params = {
-        assignmentXref: 'test1',
-        userXref: 'test2',
-      }
-      payload = {
-        studentId: '123',
-        assignmentId: '456',
-        problemId: '789',
-        session: getDbUlid(),
-      } as any
-    })
     it('Does not throw an error if it gets back a 201', async () => {
       const axiosPostMock = axios.post as jest.Mock
       axiosPostMock.mockResolvedValue({
-        data: 'test data',
         status: 201,
       })
-      await expect(sendData(params, payload)).resolves.toBeUndefined()
+      await expect(
+        SendAssistmentsData.sendData(params, payload)
+      ).resolves.toBeUndefined()
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `Successfully sent assistments data for session`
+        )
+      )
     })
 
     it.each([401, 403, 404])(
       'Throws an error if it gets back response code %s',
-      async statusCode => {
+      async status => {
         const axiosPostMock = axios.post as jest.Mock
         axiosPostMock.mockResolvedValue({
-          data: 'test data',
-          status: statusCode,
+          status,
         })
-        await expect(sendData(params, payload)).rejects.toThrow(
-          `${statusCode}: "test data"`
+        await expect(
+          SendAssistmentsData.sendData(params, payload)
+        ).rejects.toThrow(
+          new AssistmentsError(
+            `Request to send assistments data was rejected with status ${status}`,
+            false
+          )
         )
       }
     )
+
+    it('When it catches an error, it rethrows it as an AssistmentsError and logs', async () => {
+      const axiosPostMock = axios.post as jest.Mock
+      axiosPostMock.mockRejectedValue(new Error('Test error'))
+      await expect(
+        SendAssistmentsData.sendData(params, payload)
+      ).rejects.toThrow(
+        new AssistmentsError(
+          'Encountered error while attempting to send Assistments data',
+          true
+        )
+      )
+      expect(logger.error).toHaveBeenCalledWith(
+        `Attempt to send assistments data failed, err=Test error`
+      )
+    })
   })
 })
