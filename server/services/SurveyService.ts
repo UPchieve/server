@@ -55,7 +55,10 @@ export async function getContextSharingForVolunteer(
   }
 }
 
-async function saveUserSurvey(userId: Ulid, data: unknown): Promise<void> {
+export async function saveUserSurvey(
+  userId: Ulid,
+  data: unknown
+): Promise<void> {
   const survey = asSaveUserSurveyAndSubmissions(data)
   const userSurvey = {
     surveyId: survey.surveyId,
@@ -77,13 +80,6 @@ export async function validateAndSaveSessionSurvey(
 ) {
   await saveUserSurvey(userId, data)
   emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, sessionId)
-}
-
-export async function validateAndSaveProgressReportSurvey(
-  userId: Ulid,
-  data: unknown
-) {
-  await saveUserSurvey(userId, data)
 }
 
 export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)

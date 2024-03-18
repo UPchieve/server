@@ -228,11 +228,9 @@ describe(SAVE_PROGRESS_REPORT, () => {
     const userSurvey = buildUserSurvey()
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
-    mockedSurveyService.validateAndSaveProgressReportSurvey.mockResolvedValueOnce()
+    mockedSurveyService.saveUserSurvey.mockResolvedValueOnce()
     const response = await sendPost(SAVE_PROGRESS_REPORT, payload)
-    expect(
-      mockedSurveyService.validateAndSaveProgressReportSurvey
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
   })
 
@@ -241,13 +239,9 @@ describe(SAVE_PROGRESS_REPORT, () => {
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
     const testError = new Error('Test error')
-    mockedSurveyService.validateAndSaveProgressReportSurvey.mockRejectedValueOnce(
-      testError
-    )
+    mockedSurveyService.saveUserSurvey.mockRejectedValueOnce(testError)
     const response = await sendPost(SAVE_PROGRESS_REPORT, payload)
-    expect(
-      mockedSurveyService.validateAndSaveProgressReportSurvey
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(500)
   })
 })

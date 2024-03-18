@@ -12,7 +12,7 @@ import {
   getContextSharingForVolunteer,
   validateAndSaveSessionSurvey,
   parseUserRole,
-  validateAndSaveProgressReportSurvey,
+  saveUserSurvey,
 } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
@@ -173,7 +173,7 @@ export function routeSurvey(router: expressWs.Router): void {
         surveyTypeId,
         submissions,
       }
-      await validateAndSaveProgressReportSurvey(user.id, data as unknown)
+      await saveUserSurvey(user.id, data as unknown)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
