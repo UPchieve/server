@@ -25,9 +25,7 @@ import {
   UpsertUserResult,
   User,
 } from './types'
-import {
-  IDeletePhoneResult,
-} from './pg.queries'
+import { IDeletePhoneResult } from './pg.queries'
 
 export async function createUser(
   user: CreateUserPayload,

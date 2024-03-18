@@ -4,7 +4,7 @@ import {
   createUser,
   deleteUserPhoneInfo,
   getUserIdByEmail,
-  upsertUser
+  upsertUser,
 } from '../../models/User'
 
 const client = getClient()
