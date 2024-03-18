@@ -848,74 +848,6 @@ const deleteDuplicateUserSurveysIR: any = {"name":"deleteDuplicateUserSurveys","
 export const deleteDuplicateUserSurveys = new PreparedQuery<IDeleteDuplicateUserSurveysParams,IDeleteDuplicateUserSurveysResult>(deleteDuplicateUserSurveysIR);
 
 
-/** 'GetProgressReportSurveyDefinition' parameters type */
-export type IGetProgressReportSurveyDefinitionParams = void;
-
-/** 'GetProgressReportSurveyDefinition' return type */
-export interface IGetProgressReportSurveyDefinitionResult {
-  displayPriority: number;
-  questionId: number;
-  questionText: string | null;
-  questionType: string;
-  responseDisplayImage: string | null;
-  responseDisplayPriority: number;
-  responseId: number;
-  responseText: string;
-  surveyId: number;
-  surveyTypeId: number;
-}
-
-/** 'GetProgressReportSurveyDefinition' query type */
-export interface IGetProgressReportSurveyDefinitionQuery {
-  params: IGetProgressReportSurveyDefinitionParams;
-  result: IGetProgressReportSurveyDefinitionResult;
-}
-
-const getProgressReportSurveyDefinitionIR: any = {"name":"getProgressReportSurveyDefinition","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    sq.id AS question_id,\n    FORMAT(sq.question_text) AS question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id,\n    sub.response_text,\n    sub.response_display_priority,\n    sub.response_display_image,\n    surveys.id AS survey_id,\n    st.id AS survey_type_id\nFROM\n    surveys_context\n    JOIN surveys ON survey_id = surveys.id\n    JOIN survey_types ON surveys_context.survey_type_id = survey_types.id\n    LEFT JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN survey_types st ON st.id = surveys_context.survey_type_id\n    JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority,\n            display_image AS response_display_image\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE\nWHERE\n    st.name = 'progress-report'\nORDER BY\n    ssq.display_priority ASC","loc":{"a":17198,"b":18468,"line":461,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     sq.id AS question_id,
- *     FORMAT(sq.question_text) AS question_text,
- *     ssq.display_priority,
- *     qt.name AS question_type,
- *     sub.response_id,
- *     sub.response_text,
- *     sub.response_display_priority,
- *     sub.response_display_image,
- *     surveys.id AS survey_id,
- *     st.id AS survey_type_id
- * FROM
- *     surveys_context
- *     JOIN surveys ON survey_id = surveys.id
- *     JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
- *     LEFT JOIN subjects ON subject_id = subjects.id
- *     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
- *     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
- *     JOIN question_types qt ON qt.id = sq.question_type_id
- *     JOIN survey_types st ON st.id = surveys_context.survey_type_id
- *     JOIN LATERAL (
- *         SELECT
- *             id AS response_id,
- *             choice_text AS response_text,
- *             display_priority AS response_display_priority,
- *             display_image AS response_display_image
- *         FROM
- *             survey_questions_response_choices sqrc
- *             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
- *         WHERE
- *             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
- * WHERE
- *     st.name = 'progress-report'
- * ORDER BY
- *     ssq.display_priority ASC
- * ```
- */
-export const getProgressReportSurveyDefinition = new PreparedQuery<IGetProgressReportSurveyDefinitionParams,IGetProgressReportSurveyDefinitionResult>(getProgressReportSurveyDefinitionIR);
-
-
 /** 'GetProgressReportSurveyResponse' parameters type */
 export interface IGetProgressReportSurveyResponseParams {
   progressReportId: string;
@@ -938,7 +870,7 @@ export interface IGetProgressReportSurveyResponseQuery {
   result: IGetProgressReportSurveyResponseResult;
 }
 
-const getProgressReportSurveyResponseIR: any = {"name":"getProgressReportSurveyResponse","params":[{"name":"progressReportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18744,"b":18760,"line":507,"col":33}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":20019,"b":20025,"line":539,"col":22}]}}],"usedParamSet":{"progressReportId":true,"userId":true},"statement":{"body":"WITH latest_users_surveys AS (\n    SELECT\n        us.user_id,\n        us.progress_report_id,\n        MAX(us.created_at) AS latest_created_at\n    FROM\n        upchieve.users_surveys us\n    WHERE\n        us.progress_report_id = :progressReportId!\n    GROUP BY\n        us.user_id,\n        us.progress_report_id\n)\nSELECT\n    us.id AS user_survey_id,\n    FORMAT(sq.question_text) AS display_label,\n    (\n        CASE WHEN (src.choice_text = 'Other'\n            AND qt.name = 'free response') THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    upchieve.users_surveys us\n    INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id\n        AND us.progress_report_id = lus.progress_report_id\n        AND us.created_at = lus.latest_created_at\n    JOIN upchieve.survey_types st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.question_types qt ON qt.id = sq.question_type_id\nWHERE\n    st.name = 'progress-report'\n    AND us.user_id = :userId!\nORDER BY\n    ssq.display_priority ASC","loc":{"a":18517,"b":20063,"line":499,"col":0}}};
+const getProgressReportSurveyResponseIR: any = {"name":"getProgressReportSurveyResponse","params":[{"name":"progressReportId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":17423,"b":17439,"line":469,"col":33}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":18698,"b":18704,"line":501,"col":22}]}}],"usedParamSet":{"progressReportId":true,"userId":true},"statement":{"body":"WITH latest_users_surveys AS (\n    SELECT\n        us.user_id,\n        us.progress_report_id,\n        MAX(us.created_at) AS latest_created_at\n    FROM\n        upchieve.users_surveys us\n    WHERE\n        us.progress_report_id = :progressReportId!\n    GROUP BY\n        us.user_id,\n        us.progress_report_id\n)\nSELECT\n    us.id AS user_survey_id,\n    FORMAT(sq.question_text) AS display_label,\n    (\n        CASE WHEN (src.choice_text = 'Other'\n            AND qt.name = 'free response') THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    upchieve.users_surveys us\n    INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id\n        AND us.progress_report_id = lus.progress_report_id\n        AND us.created_at = lus.latest_created_at\n    JOIN upchieve.survey_types st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.question_types qt ON qt.id = sq.question_type_id\nWHERE\n    st.name = 'progress-report'\n    AND us.user_id = :userId!\nORDER BY\n    ssq.display_priority ASC","loc":{"a":17196,"b":18742,"line":461,"col":0}}};
 
 /**
  * Query generated from SQL:
