@@ -113,3 +113,13 @@ export class MissingRecaptchaTokenError extends CustomError {
     )
   }
 }
+
+export class AssistmentsError extends CustomError {
+  message: string
+  retry: boolean
+  constructor(message: string, retry: boolean) {
+    super()
+    this.message = message
+    this.retry = retry
+  }
+}
