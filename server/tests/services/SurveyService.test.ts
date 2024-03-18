@@ -5,7 +5,7 @@ import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import {
   buildSession,
-  buildPresessionSurveyResponse,
+  buildSimpleSurveyResponse,
   buildUserSurvey,
   buildUserSurveySubmission,
 } from '../mocks/generate'
@@ -26,7 +26,7 @@ beforeEach(async () => {
 
 describe('getContextSharingForVolunteer', () => {
   test('Should get session context sharing for volunteer', async () => {
-    const mockedSurveyReponse = [buildPresessionSurveyResponse()]
+    const mockedSurveyReponse = [buildSimpleSurveyResponse()]
     const mockTotalSessions = 2
     const mockSession = await buildSession({ studentId: getDbUlid() })
     mockedSurveyRepo.getPresessionSurveyResponse.mockResolvedValueOnce(

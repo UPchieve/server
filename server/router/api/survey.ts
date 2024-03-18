@@ -174,11 +174,7 @@ export function routeSurvey(router: expressWs.Router): void {
         submissions,
       }
       await validateAndSaveProgressReportSurvey(user.id, data as unknown)
-      const survey = await getProgressReportSurveyResponse(
-        user.id,
-        progressReportId
-      )
-      res.json({ survey })
+      res.sendStatus(200)
     } catch (error) {
       resError(res, error)
     }

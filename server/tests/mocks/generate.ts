@@ -348,7 +348,7 @@ export function buildPresessionLegacySurveyResponse(
   }
 }
 
-export const buildPresessionSurveyLegacy = (
+export const buildSimpleSurveyLegacy = (
   overrides: Partial<LegacySurvey> = {}
 ): LegacySurvey => {
   const survey = {
@@ -364,7 +364,7 @@ export const buildPresessionSurveyLegacy = (
   return survey
 }
 
-export const buildPresessionSurvey = (
+export const buildSimpleSurvey = (
   overrides: Partial<SurveyQuestionDefinition> = {}
 ): SurveyQuestionDefinition => {
   const survey = {
@@ -386,7 +386,7 @@ export const buildPresessionSurvey = (
   return survey
 }
 
-export const buildPresessionSurveyResponse = (
+export const buildSimpleSurveyResponse = (
   overrides: Partial<SimpleSurveyResponse> = {}
 ): SimpleSurveyResponse => {
   const survey = {
