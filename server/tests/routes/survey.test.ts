@@ -8,9 +8,9 @@ import * as SurveyService from '../../services/SurveyService'
 import { authPassport } from '../../utils/auth-utils'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import {
-  buildPresessionSurveyResponse,
-  buildPresessionSurvey,
-  buildPresessionSurveyLegacy,
+  buildSimpleSurveyResponse,
+  buildSimpleSurvey,
+  buildSimpleSurveyLegacy,
   buildUserContactInfo,
   buildUserSurvey,
   buildUserSurveySubmission,
@@ -57,12 +57,13 @@ beforeEach(async () => {
 })
 
 const sessionId = getDbUlid()
+const progressReportId = getDbUlid()
 
 const SAVE_PRESESSION_SURVEY = `/survey/presession/${sessionId}`
 describe('/survey/presession/:sessionId', () => {
   test('Should save the presession survey', async () => {
-    const payload = buildPresessionSurveyResponse()
-    const mockedSurvey = buildPresessionSurveyLegacy()
+    const payload = buildSimpleSurveyResponse()
+    const mockedSurvey = buildSimpleSurveyLegacy()
     mockedSurveyRepo.savePresessionSurvey.mockImplementationOnce(
       async () => mockedSurvey
     )
@@ -76,7 +77,7 @@ const GET_PRESESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
 describe('/survey/presession/:sessionId', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
-    const mockedSurvey = buildPresessionSurveyLegacy()
+    const mockedSurvey = buildSimpleSurveyLegacy()
     mockedSurveyRepo.getPresessionSurveyForFeedback.mockImplementationOnce(
       async () => mockedSurvey
     )
@@ -117,18 +118,16 @@ describe('/survey/presession?subject=', () => {
     const mockedSurvey = {
       surveyId: 1,
       surveyTypeId: 1,
-      survey: [buildPresessionSurvey()],
+      survey: [buildSimpleSurvey()],
     }
-    mockedSurveyRepo.getPresessionSurveyDefinition.mockImplementationOnce(
+    mockedSurveyRepo.getSimpleSurveyDefinition.mockImplementationOnce(
       async () => mockedSurvey
     )
     const response = await sendGet(
       GET_PRESESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
       payload
     )
-    expect(
-      mockedSurveyRepo.getPresessionSurveyDefinition
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledTimes(1)
     expect(response.body).toEqual(mockedSurvey)
     expect(response.status).toBe(200)
   })
@@ -136,10 +135,10 @@ describe('/survey/presession?subject=', () => {
 
 const GET_PRESESSION_SURVEY_RESPONSE = `/survey/presession/response/${sessionId}`
 describe('/survey/presession/response/:sessionId', () => {
-  test('Should get presession survey questions', async () => {
+  test('Should get presession survey responses', async () => {
     const payload = {}
     const mockedSurveyResponse = {
-      responses: [buildPresessionSurveyResponse()],
+      responses: [buildSimpleSurveyResponse()],
       totalStudentSessions: 1,
     }
     mockedSurveyService.getContextSharingForVolunteer.mockImplementationOnce(
@@ -160,11 +159,9 @@ describe(SAVE_USER_SURVEY, () => {
     const userSurvey = buildUserSurvey()
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
-    mockedSurveyService.validateSaveUserSurveyAndSubmissions.mockResolvedValueOnce()
+    mockedSurveyService.saveUserSurvey.mockResolvedValueOnce()
     const response = await sendPost(SAVE_USER_SURVEY, payload)
-    expect(
-      mockedSurveyService.validateSaveUserSurveyAndSubmissions
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
   })
 
@@ -173,13 +170,48 @@ describe(SAVE_USER_SURVEY, () => {
     const submissions = [buildUserSurveySubmission()]
     const payload = { ...userSurvey, submissions }
     const testError = new Error('Test error')
-    mockedSurveyService.validateSaveUserSurveyAndSubmissions.mockRejectedValueOnce(
-      testError
-    )
+    mockedSurveyService.saveUserSurvey.mockRejectedValueOnce(testError)
     const response = await sendPost(SAVE_USER_SURVEY, payload)
-    expect(
-      mockedSurveyService.validateSaveUserSurveyAndSubmissions
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(500)
+  })
+})
+
+const GET_PROGRESS_REPORT_SURVEY = `/survey/progress-report`
+describe(GET_PROGRESS_REPORT_SURVEY, () => {
+  test('Should get progress report survey questions', async () => {
+    const payload = {}
+    const mockedSurvey = {
+      surveyId: 1,
+      surveyTypeId: 1,
+      survey: [buildSimpleSurvey()],
+    }
+    mockedSurveyRepo.getSimpleSurveyDefinition.mockImplementationOnce(
+      async () => mockedSurvey
+    )
+    const response = await sendGet(GET_PROGRESS_REPORT_SURVEY, payload)
+    expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledTimes(1)
+    expect(response.body.survey).toEqual(mockedSurvey)
+    expect(response.status).toBe(200)
+  })
+})
+
+const GET_PROGRESS_REPORT_SURVEY_RESPONSE = `/survey/progress-report/${progressReportId}/response`
+describe('/survey/progress-report/:progressReportId/response', () => {
+  test('Should get progress report survey responses', async () => {
+    const payload = {}
+    const mockedSurveyResponse = [
+      buildSimpleSurveyResponse(),
+      buildSimpleSurveyResponse(),
+    ]
+    mockedSurveyRepo.getProgressReportSurveyResponse.mockImplementationOnce(
+      async () => mockedSurveyResponse
+    )
+    const response = await sendGet(GET_PROGRESS_REPORT_SURVEY_RESPONSE, payload)
+    expect(
+      mockedSurveyRepo.getProgressReportSurveyResponse
+    ).toHaveBeenCalledTimes(1)
+    expect(response.body.survey).toEqual(mockedSurveyResponse)
+    expect(response.status).toBe(200)
   })
 })

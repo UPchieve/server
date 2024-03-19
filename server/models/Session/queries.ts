@@ -25,7 +25,7 @@ import {
   getPresessionSurveyResponse,
   getPostsessionSurveyResponse,
   PostsessionSurveyResponse,
-  StudentPresessionSurveyResponse,
+  SimpleSurveyResponse,
   getSessionRating,
 } from '../Survey'
 import config from '../../config'
@@ -488,7 +488,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   endedBy?: Ulid
   feedbacks?: Feedback // need this to display legacy feedback from before context sharing
   surveyResponses: {
-    presessionSurvey: StudentPresessionSurveyResponse[]
+    presessionSurvey: SimpleSurveyResponse[]
     studentPostsessionSurvey: PostsessionSurveyResponse[]
     volunteerPostsessionSurvey: PostsessionSurveyResponse[]
   }

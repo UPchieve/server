@@ -1585,6 +1585,34 @@ paths:
       responses:
         '200':
           description: Responds with total number of sessions a student has and an array of their presession survey responses
+  /api/survey/progress-report:
+    get:
+      tags:
+        - survey
+      summary: Gets progress report survey
+      description: Gets progress report survey
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/progress-report/{progressReportId}/response:
+    get:
+      tags:
+        - survey
+      summary: Gets progress report survey response from student
+      description: Gets progress report survey response from student
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: progressReportId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ProgressReportId'
+      responses:
+        '200':
+          description: Responds with an array of their progress report survey responses
   /api/training/course/{courseKey}:
     get:
       tags:
@@ -2964,6 +2992,10 @@ components:
     Password:
       type: string
       example: "Password123"
+    ProgressReportId:
+      type: string
+      example: "018e3f90-a398-86b3-a620-a487087efe10"
+      format: uuid
     ScheduleDay:
       type: object
       properties:
