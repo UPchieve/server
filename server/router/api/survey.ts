@@ -3,14 +3,15 @@ import {
   savePresessionSurvey,
   getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
-  getPresessionSurveyDefinition,
+  getSimpleSurveyDefinition,
   getPostsessionSurveyDefinition,
   getPostsessionSurveyResponse,
+  getProgressReportSurveyResponse,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
-  validateSaveUserSurveyAndSubmissions,
   parseUserRole,
+  saveUserSurvey,
 } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
@@ -35,15 +36,22 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.post('/survey/save', async (req, res) => {
     const user = extractUser(req)
-    const { surveyId, sessionId, surveyTypeId, submissions } = req.body
+    const {
+      surveyId,
+      surveyTypeId,
+      sessionId,
+      progressReportId,
+      submissions,
+    } = req.body
     const data = {
       surveyId,
-      sessionId,
       surveyTypeId,
+      sessionId,
+      progressReportId,
       submissions,
     }
     try {
-      await validateSaveUserSurveyAndSubmissions(user.id, data as unknown)
+      await saveUserSurvey(user.id, data as unknown)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)
@@ -80,9 +88,9 @@ export function routeSurvey(router: expressWs.Router): void {
   router.get('/survey/presession', async (req, res) => {
     try {
       const { subject } = req.query
-      const survey = await getPresessionSurveyDefinition(
-        asString(subject),
-        'presession'
+      const survey = await getSimpleSurveyDefinition(
+        'presession',
+        asString(subject)
       )
       res.json(survey)
     } catch (error) {
@@ -130,4 +138,30 @@ export function routeSurvey(router: expressWs.Router): void {
       resError(res, error)
     }
   })
+
+  router.get('/survey/progress-report', async function(req, res) {
+    try {
+      const survey = await getSimpleSurveyDefinition('progress-report')
+      res.json({ survey })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get(
+    '/survey/progress-report/:progressReportId/response',
+    async function(req, res) {
+      try {
+        const user = extractUser(req)
+        const progressReportId = asString(req.params.progressReportId)
+        const survey = await getProgressReportSurveyResponse(
+          user.id,
+          progressReportId
+        )
+        res.json({ survey })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 }

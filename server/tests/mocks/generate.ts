@@ -15,7 +15,7 @@ import {
   LegacySurvey,
   SurveyQuestionDefinition,
   PresessionSurveyResponseData,
-  StudentPresessionSurveyResponse,
+  SimpleSurveyResponse,
   UserSurvey,
   UserSurveySubmission,
 } from '../../models/Survey'
@@ -348,7 +348,7 @@ export function buildPresessionLegacySurveyResponse(
   }
 }
 
-export const buildPresessionSurveyLegacy = (
+export const buildSimpleSurveyLegacy = (
   overrides: Partial<LegacySurvey> = {}
 ): LegacySurvey => {
   const survey = {
@@ -364,7 +364,7 @@ export const buildPresessionSurveyLegacy = (
   return survey
 }
 
-export const buildPresessionSurvey = (
+export const buildSimpleSurvey = (
   overrides: Partial<SurveyQuestionDefinition> = {}
 ): SurveyQuestionDefinition => {
   const survey = {
@@ -386,9 +386,9 @@ export const buildPresessionSurvey = (
   return survey
 }
 
-export const buildPresessionSurveyResponse = (
-  overrides: Partial<StudentPresessionSurveyResponse> = {}
-): StudentPresessionSurveyResponse => {
+export const buildSimpleSurveyResponse = (
+  overrides: Partial<SimpleSurveyResponse> = {}
+): SimpleSurveyResponse => {
   const survey = {
     displayLabel: 'Their goal:',
     response: 'Complete a homework assignment',

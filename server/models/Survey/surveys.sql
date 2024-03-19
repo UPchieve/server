@@ -21,12 +21,13 @@ ON CONFLICT (session_id)
 
 
 /* @name saveUserSurvey */
-INSERT INTO users_surveys (id, survey_id, user_id, session_id, survey_type_id, created_at, updated_at)
+INSERT INTO users_surveys (id, survey_id, user_id, session_id, progress_report_id, survey_type_id, created_at, updated_at)
 SELECT
     generate_ulid (),
     :surveyId!,
     :userId!,
-    :sessionId!,
+    :sessionId,
+    :progressReportId,
     :surveyTypeId!,
     NOW(),
     NOW()
@@ -41,6 +42,7 @@ ON CONFLICT (survey_id,
         survey_id,
         user_id,
         session_id,
+        progress_report_id,
         survey_type_id,
         created_at,
         updated_at;
@@ -92,7 +94,7 @@ WHERE
     AND sq.question_text = 'What is your primary goal for today''s session?';
 
 
-/* @name getPresessionSurveyDefinition */
+/* @name getSimpleSurveyDefinition */
 SELECT
     sq.id AS question_id,
     FORMAT(sq.question_text, subjects.display_name) AS question_text,
@@ -108,7 +110,7 @@ FROM
     surveys_context
     JOIN surveys ON survey_id = surveys.id
     JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
-    JOIN subjects ON subject_id = subjects.id
+    LEFT JOIN subjects ON subject_id = subjects.id
     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
     JOIN question_types qt ON qt.id = sq.question_type_id
@@ -125,8 +127,9 @@ FROM
         WHERE
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
 WHERE
-    subjects.name = :subjectName!
-    AND st.name = :surveyType!
+    st.name = :surveyType!
+    AND ((:subjectName)::text IS NULL
+        OR (:subjectName)::text = subjects.name)
 ORDER BY
     ssq.display_priority ASC;
 
@@ -452,4 +455,50 @@ WHERE id IN (
                 users_surveys) t
         WHERE
             t.row_num > 1);
+
+
+/* @name getProgressReportSurveyResponse */
+WITH latest_users_surveys AS (
+    SELECT
+        us.user_id,
+        us.progress_report_id,
+        MAX(us.created_at) AS latest_created_at
+    FROM
+        upchieve.users_surveys us
+    WHERE
+        us.progress_report_id = :progressReportId!
+    GROUP BY
+        us.user_id,
+        us.progress_report_id
+)
+SELECT
+    us.id AS user_survey_id,
+    FORMAT(sq.question_text) AS display_label,
+    (
+        CASE WHEN (src.choice_text = 'Other'
+            AND qt.name = 'free response') THEN
+            uss.open_response
+        ELSE
+            src.choice_text
+        END) AS response,
+    COALESCE(src.score, 0) AS score,
+    ssq.display_priority AS display_order,
+    src.display_image AS display_image
+FROM
+    upchieve.users_surveys us
+    INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id
+        AND us.progress_report_id = lus.progress_report_id
+        AND us.created_at = lus.latest_created_at
+    JOIN upchieve.survey_types st ON us.survey_type_id = st.id
+    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+    LEFT JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+    LEFT JOIN upchieve.surveys_survey_questions ssq ON us.survey_id = ssq.survey_id
+        AND uss.survey_question_id = ssq.survey_question_id
+    LEFT JOIN upchieve.question_types qt ON qt.id = sq.question_type_id
+WHERE
+    st.name = 'progress-report'
+    AND us.user_id = :userId!
+ORDER BY
+    ssq.display_priority ASC;
 
