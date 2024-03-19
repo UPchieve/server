@@ -127,22 +127,24 @@ ALTER TABLE upchieve.users_surveys
     DROP COLUMN IF NOT EXISTS progress_report_id;
 
 DELETE FROM upchieve.surveys
-WHERE upchieve.surveys.name = 'Progress Report Positive Rating Survey'
-    OR upchieve.surveys.name = 'Progress Report Negative Rating Survey'
-    OR upchieve.surveys.name = 'Progress Report Rating Survey';
+WHERE upchieve.surveys.name = 'Progress Report Rating Survey';
 
 DELETE FROM upchieve.survey_types
-WHERE upchieve.survey_types.name = 'progress-report' DELETE FROM upchieve.surveys_context USING upchieve.surveys
-    WHERE upchieve.surveys_context.survey_id = surveys.id
-        AND surveys.name IN ('Progress Report Rating Survey');
+WHERE upchieve.survey_types.name = 'progress-report';
+
+DELETE FROM upchieve.surveys_context USING upchieve.surveys
+WHERE upchieve.surveys_context.survey_id = surveys.id
+    AND surveys.name IN ('Progress Report Rating Survey');
 
 DELETE FROM upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
 WHERE question_text = 'Rate your analysis'
     OR question_text = 'What was the problem'
-    OR question_text = 'Tell us more about the issue or how we can improve' DELETE FROM upchieve.survey_questions_response_choices USING upchieve.surveys_survey_questions, upchieve.surveys
-    WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_survey_questions.id
-        AND upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
-        AND surveys.name IN ('Progress Report Rating Survey');
+    OR question_text = 'Tell us more about the issue or how we can improve';
+
+DELETE FROM upchieve.survey_questions_response_choices USING upchieve.surveys_survey_questions, upchieve.surveys
+WHERE upchieve.surveys_survey_questions.id = upchieve.surveys_survey_questions.id
+    AND upchieve.surveys_survey_questions.survey_id = upchieve.surveys.id
+    AND surveys.name IN ('Progress Report Rating Survey');
 
 DELETE FROM upchieve.survey_response_choices
 WHERE upchieve.survey_response_choices.choice_text IN ('Like', 'Dislike', 'Score''s too high', 'Score''s too low', 'My coach was bad', 'What you told me to do is not helpful', 'These aren''t the concepts I''m studying');
