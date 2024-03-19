@@ -1175,6 +1175,7 @@ acceptable_volunteers AS (
             (:disqualifiedVolunteers)::uuid[] IS NULL
             OR NOT users.id = ANY (:disqualifiedVolunteers))
 ),
+-- The above volunteers who also have the needed certs
 volunteers_with_needed_certification AS (
     SELECT
         userId
@@ -1218,6 +1219,20 @@ volunteers_with_needed_certification AS (
         (:highLevelSubjects)::text[] IS NULL
         OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
 ),
+-- The above volunteers who also have availability
+volunteers_with_availability AS (
+    SELECT
+        vwnc.userId
+    FROM
+        volunteers_with_needed_certification vwnc
+        JOIN availabilities ON userId = availabilities.user_id
+        JOIN weekdays ON weekdays.id = availabilities.weekday_id
+    WHERE
+        -- availabilities are all stored in EST so convert server time to EST to be safe
+        TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
+        AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
+        AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
+),
 candidates AS (
     SELECT
         vol.userId AS id,
@@ -1227,36 +1242,29 @@ candidates AS (
         email,
         volunteer_partner_orgs.key AS volunteer_partner_org
     FROM
-        volunteers_with_needed_certification vol
+        volunteers_with_availability vol
         JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId
-        JOIN availabilities ON vol.userId = availabilities.user_id
         JOIN users ON vol.userId = users.id
-        JOIN weekdays ON weekdays.id = availabilities.weekday_id
         LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    WHERE
-        -- availabilities are all stored in EST so convert server time to EST to be safe
-        TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
-        AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
-        AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
-        AND ( -- user is a favorite volunteer
-            (:favoriteVolunteers)::uuid[] IS NULL
-            OR users.id = ANY (:favoriteVolunteers))
-        AND ( -- user is partner or open
-            (:isPartner)::boolean IS NULL
-            OR (:isPartner IS FALSE
-                AND volunteer_profiles.volunteer_partner_org_id IS NULL)
-            OR (:isPartner IS TRUE
-                AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))
-        AND ((:specificPartner)::text IS NULL
-            OR volunteer_partner_orgs.key = :specificPartner)
-        AND NOT EXISTS (
-            SELECT
-                user_id
-            FROM
-                notifications
-            WHERE
-                user_id = users.id
-                AND sent_at >= :lastNotified))
+    WHERE ( -- user is a favorite volunteer
+        (:favoriteVolunteers)::uuid[] IS NULL
+        OR users.id = ANY (:favoriteVolunteers))
+    AND ( -- user is partner or open
+        (:isPartner)::boolean IS NULL
+        OR (:isPartner IS FALSE
+            AND volunteer_profiles.volunteer_partner_org_id IS NULL)
+        OR (:isPartner IS TRUE
+            AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))
+    AND ((:specificPartner)::text IS NULL
+        OR volunteer_partner_orgs.key = :specificPartner)
+    AND NOT EXISTS (
+        SELECT
+            user_id
+        FROM
+            notifications
+        WHERE
+            user_id = users.id
+            AND sent_at >= :lastNotified))
 SELECT
     *
 FROM
