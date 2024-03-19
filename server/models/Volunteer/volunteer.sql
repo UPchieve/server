@@ -1240,11 +1240,12 @@ candidates AS (
         last_name,
         phone,
         email,
-        volunteer_partner_orgs.key AS volunteer_partner_org
-    FROM
-        volunteers_with_availability vol
-        JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId
-        JOIN users ON vol.userId = users.id
+        volunteer_partner_orgs.key AS volunteer_partner_org,
+        row_number() OVER () AS rn
+FROM
+    volunteers_with_availability vol
+    JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId
+    JOIN users ON vol.userId = users.id
         LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     WHERE ( -- user is a favorite volunteer
         (:favoriteVolunteers)::uuid[] IS NULL
@@ -1264,13 +1265,31 @@ candidates AS (
             notifications
         WHERE
             user_id = users.id
-            AND sent_at >= :lastNotified))
+            AND sent_at >= :lastNotified)
+),
+row_count AS (
+    SELECT
+        max(rn) AS total_rows
+FROM
+    candidates
+),
+random_row AS (
+    SELECT
+        floor(random() * row_count.total_rows + 1) AS random_rn
+FROM
+    row_count
+)
 SELECT
     *
 FROM
     candidates
-ORDER BY
-    RANDOM()
+WHERE
+    rn = (
+        SELECT
+            random_rn
+        FROM
+            random_row
+        LIMIT 1)
 LIMIT 1;
 
 
