@@ -1163,9 +1163,13 @@ computed_subject_totals AS (
     GROUP BY
         subjects.name
 ),
-acceptable_volunteers AS (
+ready_to_tutor_volunteers AS (
     SELECT
-        users.id AS userId
+        users.id AS userId,
+        first_name,
+        last_name,
+        phone,
+        email
     FROM
         users
         JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -1182,9 +1186,13 @@ acceptable_volunteers AS (
 -- The above volunteers who also have the needed certs
 volunteers_with_needed_certification AS (
     SELECT
-        userId
+        userId,
+        first_name,
+        last_name,
+        phone,
+        email
     FROM
-        acceptable_volunteers
+        ready_to_tutor_volunteers
         LEFT JOIN LATERAL (
             SELECT
                 array_agg(sub_unlocked.subject)::text[] AS subjects
@@ -1226,7 +1234,11 @@ volunteers_with_needed_certification AS (
 -- The above volunteers who also have availability
 volunteers_with_availability AS (
     SELECT
-        vwnc.userId
+        vwnc.userId,
+        vwnc.first_name,
+        vwnc.last_name,
+        vwnc.phone,
+        vwnc.email
     FROM
         volunteers_with_needed_certification vwnc
         JOIN availabilities ON userId = availabilities.user_id
@@ -1240,20 +1252,19 @@ volunteers_with_availability AS (
 candidates AS (
     SELECT
         vol.userId AS id,
-        first_name,
-        last_name,
-        phone,
-        email,
+        vol.first_name,
+        vol.last_name,
+        vol.phone,
+        vol.email,
         volunteer_partner_orgs.key AS volunteer_partner_org,
         row_number() OVER () AS rn
 FROM
     volunteers_with_availability vol
     JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId
-    JOIN users ON vol.userId = users.id
         LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     WHERE ( -- user is a favorite volunteer
         (:favoriteVolunteers)::uuid[] IS NULL
-        OR users.id = ANY (:favoriteVolunteers))
+        OR vol.userId = ANY (:favoriteVolunteers))
     AND ( -- user is partner or open
         (:isPartner)::boolean IS NULL
         OR (:isPartner IS FALSE
@@ -1268,7 +1279,7 @@ FROM
         FROM
             notifications
         WHERE
-            user_id = users.id
+            user_id = vol.userId
             AND sent_at >= :lastNotified)
 ),
 row_count AS (
