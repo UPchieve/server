@@ -1146,6 +1146,8 @@ WITH subject_totals AS (
     FROM
         certification_subject_unlocks
         JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
+    WHERE
+        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))
     GROUP BY
         subjects.name
 ),
@@ -1156,6 +1158,8 @@ computed_subject_totals AS (
     FROM
         computed_subject_unlocks
         JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
+    WHERE
+        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))
     GROUP BY
         subjects.name
 ),
