@@ -1183,7 +1183,7 @@ ready_to_tutor_volunteers AS (
             (:disqualifiedVolunteers)::uuid[] IS NULL
             OR NOT users.id = ANY (:disqualifiedVolunteers))
 ),
--- The above volunteers who also have the needed certs
+-- The above volunteers, narrowed down to those who can tutor in the given subject
 volunteers_with_needed_certification AS (
     SELECT
         userId,
@@ -1231,7 +1231,7 @@ volunteers_with_needed_certification AS (
         (:highLevelSubjects)::text[] IS NULL
         OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
 ),
--- The above volunteers who also have availability
+-- The above volunteers, narrowed down to those with availability
 volunteers_with_availability AS (
     SELECT
         vwnc.userId,
