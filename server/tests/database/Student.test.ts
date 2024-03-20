@@ -1,6 +1,7 @@
 import {
   createStudentProfile,
   getStudentContactInfoById,
+  upsertStudentProfile,
 } from '../../models/Student/queries'
 import { Ulid } from 'id128'
 import faker from 'faker'
@@ -111,6 +112,74 @@ describe('createStudentProfile', () => {
     expect(actual.rows.length).toBe(1)
     const createdStudent = actual.rows[0]
     expect(createdStudent.grade_level_id).toBe(1)
+  })
+})
+
+describe('upsertStudentProfile', () => {
+  test('creates the student if did not exist', async () => {
+    const user = await createUser()
+    const student = {
+      userId: user.id,
+    }
+
+    const before = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(before.rows.length).toBe(0)
+
+    const returned = await upsertStudentProfile(student, client)
+    expect(returned.isCreated).toBe(true)
+
+    const after = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(after.rows.length).toBe(1)
+  })
+
+  test('updates the student if did exist', async () => {
+    const user = await createUser()
+    const student = {
+      userId: user.id,
+    }
+    await client.query('INSERT INTO student_profiles (user_id) VALUES($1)', [
+      user.id,
+    ])
+
+    const before = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(before.rows.length).toBe(1)
+
+    const GRADE_LEVEL_10_ID = 3
+    const COLLEGE_MENTORS_SPO_ID = '01859800-bbed-150a-2f52-f0856c633b63'
+    const COLLEGE_MENTORS_SPO_SITE_ID = '01859800-bc55-58ea-c1c8-0d8f14d3a1a6'
+    const updatedStudent = {
+      ...student,
+      gradeLevel: '10th',
+      zipCode: '00000',
+      schoolId: '01859800-bc76-7db0-734b-b567fa67a568',
+      studentPartnerOrg: 'college-mentors',
+      partnerSite: 'Brooklyn',
+    }
+
+    const returned = await upsertStudentProfile(updatedStudent, client)
+    expect(returned.isCreated).toBe(false)
+
+    const after = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(after.rows.length).toBe(1)
+    expect(after.rows[0].grade_level_id).toBe(GRADE_LEVEL_10_ID)
+    expect(after.rows[0].postal_code).toBe(updatedStudent.zipCode)
+    expect(after.rows[0].school_id).toBe(updatedStudent.schoolId)
+    expect(after.rows[0].student_partner_org_id).toBe(COLLEGE_MENTORS_SPO_ID)
+    expect(after.rows[0].student_partner_org_site_id).toBe(
+      COLLEGE_MENTORS_SPO_SITE_ID
+    )
   })
 })
 

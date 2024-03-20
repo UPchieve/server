@@ -35,6 +35,19 @@ export class RepoReadError extends CustomError {
   }
 }
 
+export class RepoUpsertError extends CustomError {
+  constructor(arg: unknown) {
+    if (arg instanceof RepoUpsertError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database upsert error: ${(arg as Error).message}`
+      super(msg)
+    }
+  }
+}
+
 export class RepoUpdateError extends CustomError {
   constructor(arg: unknown) {
     if (arg instanceof RepoUpdateError) return arg

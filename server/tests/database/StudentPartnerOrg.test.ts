@@ -3,6 +3,7 @@ import { Ulid } from 'id128'
 import { getClient } from '../../db'
 import {
   createUserStudentPartnerOrgInstance,
+  deactivateUserStudentPartnerOrgInstance,
   getStudentPartnerOrgByKey,
   getStudentPartnerOrgBySchoolId,
 } from '../../models/StudentPartnerOrg'
@@ -114,6 +115,42 @@ test('createUserStudentPartnerOrgInstance includes site if provided', async () =
   expect(spoi.deactivated_on).toBeNull()
   expect(spoi.created_at).toBeTruthy()
   expect(spoi.updated_at).toBeTruthy()
+})
+
+test('deactivateUserStudentPartnerOrgInstance adds deactivated_on if exists', async () => {
+  const user = await createUser()
+
+  const spoId = '01859800-bbed-150a-2f52-f0856c633b63' // "College Mentors"
+  const sposId = '01859800-bc55-cf29-d368-a659f5bae025' // "Oakland"
+  await createUserStudentPartnerOrgInstance(
+    {
+      userId: user.id,
+      studentPartnerOrgId: spoId,
+      studentPartnerOrgSiteId: sposId,
+    },
+    client
+  )
+
+  const before = await client.query(
+    'SELECT * FROM users_student_partner_orgs_instances WHERE user_id = $1',
+    [user.id]
+  )
+  expect(before.rows.length).toBe(1)
+  const beforeInstance = before.rows[0]
+  expect(beforeInstance.student_partner_org_id).toBe(
+    '01859800-bbed-150a-2f52-f0856c633b63'
+  )
+  expect(beforeInstance.deactivated_on).toBeNull()
+
+  await deactivateUserStudentPartnerOrgInstance(client, user.id, spoId)
+
+  const after = await client.query(
+    'SELECT * FROM users_student_partner_orgs_instances WHERE user_id = $1',
+    [user.id]
+  )
+  expect(after.rows.length).toBe(1)
+  const afterInstance = after.rows[0]
+  expect(afterInstance.deactivated_on).toBeTruthy()
 })
 
 async function createUser(

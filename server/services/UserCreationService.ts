@@ -67,10 +67,13 @@ export async function rosterPartnerStudents(
     passwordResetToken?: string
     proxyEmail?: string
   }[] = []
+  const updatedUsers: {
+    id: string
+    email: string
+  }[] = []
   const failedUsers: {
     email: string
     firstName: string
-    lastName: string
   }[] = []
 
   const signUpSource = await SignUpSourceRepo.getSignUpSourceByName(
@@ -102,7 +105,7 @@ export async function rosterPartnerStudents(
           signupSourceId: signUpSource?.id,
           verified: true,
         }
-        const user = await createUser(
+        const user = await upsertUser(
           userData,
           undefined,
           USER_ROLES.STUDENT,
@@ -116,15 +119,18 @@ export async function rosterPartnerStudents(
           schoolId,
           studentPartnerOrg: partnerKey,
         }
-        await createStudent(studentData, tc)
+        await upsertStudent(studentData, tc)
 
-        newUsers.push({ passwordResetToken, ...user })
+        if (user.isCreated) {
+          newUsers.push({ passwordResetToken, ...user })
+        } else {
+          updatedUsers.push(user)
+        }
       })
     } catch {
       failedUsers.push({
         email: student.email,
         firstName: student.firstName,
-        lastName: student.lastName,
       })
     }
   }
@@ -139,7 +145,7 @@ export async function rosterPartnerStudents(
     }
   }
 
-  return failedUsers
+  return { failed: failedUsers, updated: updatedUsers, created: newUsers }
 }
 
 export async function verifyStudentData(data: RegisterStudentPayload) {
@@ -189,7 +195,7 @@ export async function registerStudent(data: RegisterStudentPayload) {
       studentPartnerOrg: data.studentPartnerOrg,
       zipCode: data.zipCode,
     }
-    await createStudent(studentData, tc)
+    await upsertStudent(studentData, tc)
 
     if (useFedCred(data)) {
       await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
@@ -241,7 +247,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
       studentPartnerOrg: data.studentPartnerOrg,
       schoolId: spo?.schoolId,
     }
-    await createStudent(studentData, tc)
+    await upsertStudent(studentData, tc)
 
     if (hasFederatedCredential) {
       await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
@@ -257,63 +263,117 @@ async function createUser(
   tc: TransactionClient
 ) {
   const user = await UserRepo.createUser(userData, tc)
+  await createUserMetadata(user.id, ip, role, tc)
+  return user
+}
+
+async function upsertUser(
+  userData: UserRepo.CreateUserPayload,
+  ip: string | undefined,
+  role: USER_ROLES_TYPE,
+  tc: TransactionClient
+) {
+  const user = await UserRepo.upsertUser(userData, tc)
+
+  if (user.isCreated) {
+    await createUserMetadata(user.id, ip, role, tc)
+  }
+
+  return user
+}
+
+async function createUserMetadata(
+  userId: string,
+  ip: string | undefined,
+  role: USER_ROLES_TYPE,
+  tc: TransactionClient
+) {
   // TODO: Should any of these be moved to the listener?
   await Promise.all([
-    UserRepo.insertUserRoleByUserId(user.id, role, tc),
-    createUSMByUserId(user.id, tc),
-    createUPFByUserId(user.id, tc),
+    UserRepo.insertUserRoleByUserId(userId, role, tc),
+    createUSMByUserId(userId, tc),
+    createUPFByUserId(userId, tc),
     createAccountAction(
       {
         action: ACCOUNT_USER_ACTIONS.CREATED,
-        userId: user.id,
+        userId: userId,
         ipAddress: ip,
       },
       tc
     ),
   ])
-  return user
 }
 
-async function createStudent(
+async function upsertStudent(
   studentData: StudentRepo.CreateStudentProfilePayload,
   tc: TransactionClient
 ) {
-  if (studentData.schoolId) {
-    const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-      tc,
-      studentData.schoolId
-    )
-    await addUserStudentPartnerOrgInstance(spo)
-  }
+  const activeInstances = await StudentRepo.getActivePartnersForStudent(
+    studentData.userId,
+    tc
+  )
 
-  if (studentData.studentPartnerOrg) {
-    const spo = await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
-      tc,
-      studentData.studentPartnerOrg,
-      studentData.partnerSite
-    )
-    await addUserStudentPartnerOrgInstance(spo)
+  let spoOrgToAdd = studentData.studentPartnerOrg
+    ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
+        tc,
+        studentData.studentPartnerOrg
+      )
+    : null
+  let spoSchoolToAdd =
+    // Don't add a school student partner org from the school id if
+    // the non-school student partner org to add is that already school.
+    studentData.schoolId && spoOrgToAdd?.schoolId !== studentData.schoolId
+      ? await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+          tc,
+          studentData.schoolId
+        )
+      : null
 
-    if (spo?.schoolId && !studentData.schoolId) {
-      studentData.schoolId = spo.schoolId
-    }
-  }
-
-  await StudentRepo.createStudentProfile(studentData, tc)
-
-  async function addUserStudentPartnerOrgInstance(
-    spo?: GetStudentPartnerOrgResult
-  ) {
-    if (spo) {
-      await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
-        {
-          userId: studentData.userId,
-          studentPartnerOrgId: spo.partnerId,
-          studentPartnerOrgSiteId: spo.siteId,
-        },
-        tc
+  for (const a of activeInstances ?? []) {
+    if (spoOrgToAdd && spoOrgToAdd.partnerId === a.id) {
+      // The non-school student partner org we want to add for the student
+      // already has an active instance.
+      spoOrgToAdd = null
+    } else if (spoSchoolToAdd && spoSchoolToAdd.partnerId === a.id) {
+      // The school student partner org we want to add for the student
+      // already has an active instance.
+      spoSchoolToAdd = null
+    } else {
+      // This active instance doesn't match any of the ones we want to add
+      // for that student. We can deactivate it.
+      await StudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance(
+        tc,
+        studentData.userId,
+        a.id
       )
     }
+  }
+
+  if (spoOrgToAdd) {
+    await addUserStudentPartnerOrgInstance(spoOrgToAdd)
+  }
+
+  if (spoSchoolToAdd) {
+    await addUserStudentPartnerOrgInstance(spoSchoolToAdd)
+  }
+
+  if (spoOrgToAdd?.schoolId && !studentData.schoolId) {
+    studentData.schoolId = spoOrgToAdd.schoolId
+  }
+
+  await StudentRepo.upsertStudentProfile(studentData, tc)
+
+  async function addUserStudentPartnerOrgInstance(
+    spo: GetStudentPartnerOrgResult
+  ) {
+    await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
+      {
+        userId: studentData.userId,
+        studentPartnerOrgId: spo.partnerId,
+        studentPartnerOrgSiteId: spo.siteId,
+      },
+      tc
+    )
   }
 }
 

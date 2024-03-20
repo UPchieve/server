@@ -7,6 +7,16 @@ RETURNING
     id, email, first_name, proxy_email;
 
 
+/* @name upsertUser */
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+ON CONFLICT (email)
+    DO UPDATE SET
+        first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, referred_by = :referredBy, referral_code = :referralCode!, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource
+    RETURNING
+        id, email, first_name, proxy_email, (xmax = 0) AS is_created;
+
+
 /* @name getUserIdByEmail */
 SELECT
     id

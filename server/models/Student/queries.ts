@@ -7,6 +7,7 @@ import {
   RepoReadError,
   RepoTransactionError,
   RepoUpdateError,
+  RepoUpsertError,
 } from '../Errors'
 import {
   generateReferralCode,
@@ -555,6 +556,31 @@ export async function createStudentProfile(
   }
 }
 
+export async function upsertStudentProfile(
+  studentData: CreateStudentProfilePayload,
+  tc: TransactionClient
+) {
+  try {
+    const result = await pgQueries.upsertStudentProfile.run(
+      {
+        userId: studentData.userId,
+        college: studentData.college,
+        schoolId: studentData.schoolId,
+        postalCode: studentData.zipCode,
+        gradeLevel: studentData.gradeLevel,
+        partnerOrg: studentData.studentPartnerOrg,
+        partnerSite: studentData.partnerSite,
+      },
+      tc
+    )
+    if (!result.length)
+      throw new RepoUpsertError('upsertStudentProfile returned 0 rows.')
+    return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
+  } catch (err) {
+    throw new RepoUpsertError(err)
+  }
+}
+
 export async function createStudent(
   studentData: CreateStudentPayload
 ): Promise<CreatedStudent> {
@@ -848,12 +874,13 @@ export async function deleteSelfFavoritedVolunteers(): Promise<void> {
 }
 
 export async function getActivePartnersForStudent(
-  studentId: Ulid
+  studentId: Ulid,
+  tc?: TransactionClient
 ): Promise<StudentPartnerOrgInstance[] | undefined> {
   try {
     const result = await pgQueries.getPartnerOrgsByStudent.run(
       { studentId },
-      getClient()
+      tc ?? getClient()
     )
 
     if (result.length)
