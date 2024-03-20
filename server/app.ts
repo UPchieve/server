@@ -30,6 +30,7 @@ import {
   upgradeInsecureRequests,
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
+import { isDevEnvironment } from './utils/environments'
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
@@ -148,9 +149,14 @@ app.use((req, res, next): void => {
 app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
 
 // Swagger docs
-const swaggerDoc = fs.readFileSync(`${__dirname}/swagger/swagger.yaml`, 'utf8')
-const swaggerYaml = YAML.parse(swaggerDoc)
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
+if (isDevEnvironment()) {
+  const swaggerDoc = fs.readFileSync(
+    `${__dirname}/swagger/swagger.yaml`,
+    'utf8'
+  )
+  const swaggerYaml = YAML.parse(swaggerDoc)
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
+}
 
 // initialize Express WebSockets
 expressWs(app)
