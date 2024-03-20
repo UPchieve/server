@@ -9,16 +9,23 @@ import {
   getDbUlid,
   generateReferralCode,
 } from '../pgUtils'
-import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoReadError,
+  RepoUpdateError,
+  RepoUpsertError,
+} from '../Errors'
 import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
-import { CreateUserPayload, CreateUserResult, User } from './types'
 import {
-  IDeletePhoneResult,
-  IUpdateUserVerifiedPhoneByIdResult,
-} from './pg.queries'
+  CreateUserPayload,
+  CreateUserResult,
+  UpsertUserResult,
+  User,
+} from './types'
+import { IDeletePhoneResult } from './pg.queries'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -50,6 +57,39 @@ export async function createUser(
     return makeSomeOptional(result[0], ['proxyEmail'])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function upsertUser(
+  user: CreateUserPayload,
+  tc: TransactionClient
+): Promise<UpsertUserResult> {
+  try {
+    const id = getDbUlid()
+    const result = await pgQueries.upsertUser.run(
+      {
+        id,
+        email: user.email.toLowerCase(),
+        emailVerified: user.emailVerified ?? false,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        otherSignupSource: user.otherSignupSource,
+        password: user.password,
+        passwordResetToken: user.passwordResetToken,
+        phone: user.phone,
+        phoneVerified: user.phoneVerified ?? false,
+        proxyEmail: user.proxyEmail?.toLowerCase(),
+        referralCode: generateReferralCode(id),
+        referredBy: user.referredBy,
+        signupSourceId: user.signupSourceId,
+        verified: user.verified ?? false,
+      },
+      tc
+    )
+    if (!result.length) throw new RepoUpsertError('upsertUser returned 0 rows.')
+    return makeSomeOptional(result[0], ['proxyEmail'])
+  } catch (err) {
+    throw new RepoUpsertError(err)
   }
 }
 

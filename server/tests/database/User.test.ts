@@ -1,10 +1,11 @@
+import faker from 'faker'
 import { getClient } from '../../db'
 import {
   createUser,
   deleteUserPhoneInfo,
   getUserIdByEmail,
+  upsertUser,
 } from '../../models/User'
-import faker from 'faker'
 
 const client = getClient()
 
@@ -67,4 +68,64 @@ test('deleteUserPhoneInfo', async () => {
       sms_consent: false,
     })
   )
+})
+
+describe('upsertUser', () => {
+  test('creates the user if did not exist', async () => {
+    const user = {
+      email: 'create@upsert.com',
+      firstName: 'Create',
+      lastName: 'Upsert',
+      password: 'Pass123',
+      referralCode: '999',
+    }
+
+    const before = await client.query('SELECT * FROM users WHERE email = $1', [
+      user.email,
+    ])
+    expect(before.rows.length).toBe(0)
+
+    const returned = await upsertUser(user, client)
+    expect(returned.isCreated).toBe(true)
+
+    const after = await client.query('SELECT * FROM users WHERE email = $1', [
+      user.email,
+    ])
+    expect(after.rows.length).toBe(1)
+  })
+
+  test('updates the user if did exist', async () => {
+    const user = {
+      email: 'update@upsert.com',
+      firstName: 'Update',
+      lastName: 'Upsert',
+      password: 'Pass123',
+      phone: '1111111111',
+    }
+    await createUser(user, client)
+    const before = await client.query('SELECT * FROM users WHERE email = $1', [
+      user.email,
+    ])
+    expect(before.rows.length).toBe(1)
+
+    const updatedUser = {
+      ...user,
+      firstName: 'New First Name',
+      lastName: 'New Last Name',
+      password: '123Pass',
+      phone: '9999999999',
+    }
+
+    const returned = await upsertUser(updatedUser, client)
+    expect(returned.isCreated).toBe(false)
+
+    const after = await client.query('SELECT * FROM users WHERE email = $1', [
+      user.email,
+    ])
+    expect(after.rows.length).toBe(1)
+    expect(after.rows[0].first_name).toBe(updatedUser.firstName)
+    expect(after.rows[0].last_name).toBe(updatedUser.lastName)
+    expect(after.rows[0].password).toBe(updatedUser.password)
+    expect(after.rows[0].phone).toBe(updatedUser.phone)
+  })
 })
