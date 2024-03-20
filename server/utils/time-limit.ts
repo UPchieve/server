@@ -1,6 +1,6 @@
 import logger from '../logger'
 
-const DEFAULT_WAIT_IN_MS = 1000
+const DEFAULT_WAIT_IN_MS = 2000
 
 /*
   The `timeLimit` util provides a way to gracefully fallback to a default value
