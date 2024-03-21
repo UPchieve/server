@@ -17,22 +17,27 @@ export const timeLimit = async <ResolveWith>({
   timeLimitReachedErrorMessage: string
   waitInMs?: number
 }): Promise<ResolveWith> => {
-  try {
-    return await Promise.race([
-      new Promise<ResolveWith>(resolve =>
-        setTimeout(() => {
-          logger.error(
-            new Error(
-              `Time limit of ${waitInMs}ms reached. ${timeLimitReachedErrorMessage}`
-            )
+  let timeoutId: undefined | ReturnType<typeof setTimeout>
+  return await Promise.race([
+    new Promise<ResolveWith>(resolve => {
+      timeoutId = setTimeout(() => {
+        logger.error(
+          new Error(
+            `Time limit of ${waitInMs}ms reached. ${timeLimitReachedErrorMessage}`
           )
-          resolve(fallbackReturnValue)
-        }, waitInMs)
-      ),
-      promise,
-    ])
-  } catch (e) {
-    logger.error(new Error(`Passed in promise '${promise}' rejected with ${e}`))
-    return Promise.resolve(fallbackReturnValue)
-  }
+        )
+        resolve(fallbackReturnValue)
+      }, waitInMs)
+    }),
+    promise.catch(e => {
+      logger.error(
+        new Error(`${waitInMs} Passed in promise rejected with ${e}`)
+      )
+      return Promise.resolve(fallbackReturnValue)
+    }),
+  ]).finally(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+  })
 }
