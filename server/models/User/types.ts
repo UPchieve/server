@@ -48,3 +48,7 @@ export type CreateUserResult = Required<
   Pick<User, 'id' | 'firstName' | 'email'>
 > &
   Pick<User, 'proxyEmail'>
+
+export type UpsertUserResult = CreateUserResult & {
+  isCreated: boolean
+}

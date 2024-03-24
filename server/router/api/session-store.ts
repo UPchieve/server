@@ -3,6 +3,8 @@ import CreatePgStore from 'connect-pg-simple'
 import config from '../../config'
 import { Express } from 'express'
 import { getClient } from '../../db'
+import { csrfSync } from 'csrf-sync'
+import { getApiKeyFromHeader } from '../../utils/auth-utils'
 
 const PgStore = CreatePgStore(session)
 
@@ -24,6 +26,34 @@ export default function(app: Express) {
       },
     })
   )
+
+  // CSRF middleware - must be registered after session middleware
+  const { generateToken, csrfSynchronisedProtection } = csrfSync()
+
+  app.get('/api/csrftoken', (req, res) => {
+    const csrfToken = generateToken(req)
+    return res.json({ csrfToken })
+  })
+
+  app.use((req, res, next) => {
+    const exclusions = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/reset',
+      '/api-public/eligibility',
+      '/api-public/contact',
+      '/api/verify',
+    ]
+    const apiKey = getApiKeyFromHeader(req)
+    if (
+      exclusions.some(ex => req.url.indexOf(ex) !== -1) ||
+      (apiKey && apiKey === config.subwayApiCredentials)
+    ) {
+      next()
+    } else {
+      csrfSynchronisedProtection(req, res, next)
+    }
+  })
 
   return store
 }

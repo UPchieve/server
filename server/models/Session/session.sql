@@ -34,11 +34,13 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
+    user_product_flags.paid_tutors_pilot_group,
     session_count.total = 1 AS is_first_time_student,
     subjects.display_name AS subject_display_name
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
+    LEFT JOIN user_product_flags ON user_product_flags.user_id = sessions.student_id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN LATERAL (

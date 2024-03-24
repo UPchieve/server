@@ -11,7 +11,6 @@ import { resError } from '../res-error'
 import { Router } from 'express'
 import { asArray, asNumber, asString, asUlid } from '../../utils/type-utils'
 import { ProgressReportNotFoundError } from '../../services/Errors'
-import SocketService from '../../services/SocketService'
 
 export function routeProgressReports(router: Router): void {
   router.get('/progress-reports/sessions/:sessionId', async function(req, res) {
@@ -89,24 +88,6 @@ export function routeProgressReports(router: Router): void {
       const user = extractUser(req)
       const subjects = await getUnreadProgressReportOverviewSubjects(user.id)
       res.json({ subjects })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.post('/progress-reports/processed', async function(req, res) {
-    try {
-      const userId = asUlid(req.body.userId)
-      const sessionId = asUlid(req.body.sessionId)
-      const subject = asString(req.body.subject)
-      const report = req.body.report
-      if (!userId || !report) return
-      const socketService = SocketService.getInstance()
-      socketService.emitProgressReportProcessedToUser(userId, {
-        sessionId,
-        subject,
-        report,
-      })
     } catch (err) {
       resError(res, err)
     }

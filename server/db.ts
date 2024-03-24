@@ -27,18 +27,35 @@ export function buildReadOnlyClient(): Pool {
   })
 }
 
+export function buildAnalyticsClient(): Pool {
+  return new Pool({
+    // connectionString
+    host: config.postgresAnalyticsHost,
+    port: config.postgresPort,
+    user: config.postgresUser,
+    password: config.postgresPassword,
+    database: config.postgresDatabase,
+    ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
+  })
+}
+
 let client: Pool | undefined
 let roClient: Pool | undefined
+let analyticsClient: Pool | undefined
 
 export async function setupDbConnection() {
   getClient().on('error', err => console.error(`PG ERROR: ${err}`))
   getRoClient().on('error', err => console.error(`PG ERROR: ${err}`))
+  getAnalyticsClient().on('error', err => console.error(`PG ERROR: ${err}`))
 
   try {
     getClient()
       .connect()
       .then(v => v.release())
     getRoClient()
+      .connect()
+      .then(v => v.release())
+    getAnalyticsClient()
       .connect()
       .then(v => v.release())
   } catch (err) {
@@ -70,6 +87,13 @@ export function getRoClient(): Pool {
     roClient = buildReadOnlyClient()
   }
   return roClient
+}
+
+export function getAnalyticsClient(): Pool {
+  if (!analyticsClient) {
+    analyticsClient = buildAnalyticsClient()
+  }
+  return analyticsClient
 }
 
 export async function closeClient(): Promise<void> {

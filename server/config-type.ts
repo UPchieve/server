@@ -168,6 +168,7 @@ export const Config = Record({
   postgresHost: String,
   postgresRoHost: String,
   postgresPort: Number,
+  postgresAnalyticsHost: String,
   postgresUser: String,
   postgresPassword: String,
   postgresDatabase: String,
@@ -208,4 +209,6 @@ export const Config = Record({
   minSessionLength: Number,
 
   openAIApiKey: String,
+
+  subwayApiCredentials: String,
 })

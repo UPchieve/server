@@ -2,7 +2,11 @@
 #  - template: Auto-DevOps.gitlab-ci.yml
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  # TODO: Try key as package-lock.json to speed up across branches.
+  # key:
+  #   files:
+  #       - package-lock.json
+  key: $CI_COMMIT_REF_SLUG
   paths:
     - .npm
 
@@ -46,6 +50,22 @@ build:
         --publish
   rules:
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+build_docker:
+  stage: build
+  image: "docker:20.10.6"
+  when: manual
+  cache: []
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:20.10.6-dind
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build --tag "$IMAGE_TAG" .
+    - docker push "$IMAGE_TAG"
 
 testbackend:
   stage: test

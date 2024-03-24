@@ -257,6 +257,8 @@ const config: Static<typeof Config> = {
   redisPassword,
   postgresHost: process.env.SUBWAY_POSTGRES_HOST || 'localhost',
   postgresRoHost: process.env.SUBWAY_POSTGRES_RO_HOST || 'localhost',
+  postgresAnalyticsHost:
+    process.env.SUBWAY_POSTGRES_ANALYTICS_HOST || 'localhost',
   postgresPort: Number(process.env.SUBWAY_POSTGRES_PORT || 5432),
   postgresUser: process.env.SUBWAY_POSTGRES_USER || 'subway',
   postgresPassword: process.env.SUBWAY_POSTGRES_PASSWORD || 'Password123',
@@ -323,6 +325,7 @@ const config: Static<typeof Config> = {
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
   openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
+  subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
 }
 
 module.exports = config

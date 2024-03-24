@@ -25,7 +25,7 @@ import {
   getPresessionSurveyResponse,
   getPostsessionSurveyResponse,
   PostsessionSurveyResponse,
-  StudentPresessionSurveyResponse,
+  SimpleSurveyResponse,
   getSessionRating,
 } from '../Survey'
 import config from '../../config'
@@ -84,7 +84,9 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
       getClient()
     )
 
-    const sessions = result.map(v => makeSomeOptional(v, ['volunteer']))
+    const sessions = result.map(v =>
+      makeSomeOptional(v, ['volunteer', 'paidTutorsPilotGroup'])
+    )
     const oneMinuteAgo = moment().subtract(1, 'minutes')
 
     const fileteredSessions = sessions.filter(session => {
@@ -486,7 +488,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   endedBy?: Ulid
   feedbacks?: Feedback // need this to display legacy feedback from before context sharing
   surveyResponses: {
-    presessionSurvey: StudentPresessionSurveyResponse[]
+    presessionSurvey: SimpleSurveyResponse[]
     studentPostsessionSurvey: PostsessionSurveyResponse[]
     volunteerPostsessionSurvey: PostsessionSurveyResponse[]
   }
@@ -629,6 +631,7 @@ export type CurrentSession = {
   messages: MessageForFrontend[]
   endedAt?: Date
   toolType: string
+  docEditorVersion?: number
 }
 
 export type SessionInfoForUser = {

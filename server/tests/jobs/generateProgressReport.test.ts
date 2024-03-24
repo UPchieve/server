@@ -8,7 +8,10 @@ import { buildProgressReport, buildSession } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 import { Job } from 'bull'
 import { getSocket } from '../../worker/sockets'
+import axios from 'axios'
+import config from '../../config'
 
+jest.mock('axios')
 jest.mock('../../services/ProgressReportsService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Session')
@@ -28,7 +31,8 @@ describe(Jobs.GenerateProgressReport, () => {
     )
   })
 
-  test('Should generate a progress report for a single session and an overview progress report', async () => {
+  test('Should generate and send progress report for a single session and an overview progress report via socket', async () => {
+    socketMock.connected = true
     const userId = getDbUlid()
     const session = await buildSession({
       studentId: userId,
@@ -86,7 +90,8 @@ describe(Jobs.GenerateProgressReport, () => {
     )
   })
 
-  test('Should let errors bubble up for both single and group progress report analysis', async () => {
+  test('Should let progress report errors bubble up for both single and group progress report analysis', async () => {
+    socketMock.connected = true
     const session = await buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
@@ -116,6 +121,72 @@ describe(Jobs.GenerateProgressReport, () => {
     expect(
       mockedProgressReportsService.generateProgressReportForUser
     ).toHaveBeenCalledTimes(2)
+  })
+
+  test('Should generate and send progress report for a single session and an overview progress report via http', async () => {
+    socketMock.connected = false
+    const userId = getDbUlid()
+    const session = await buildSession({
+      studentId: userId,
+      subject: 'reading',
+      timeTutored: 1000 * 60,
+    })
+    const job = {
+      data: {
+        sessionId: session.id,
+      },
+    }
+    const reportOne = buildProgressReport()
+    const reportTwo = buildProgressReport()
+    const url = `http://localhost:3000/api/webhooks/progress-reports/processed`
+    // Mock the return value twice for double execution of a single and group analysis
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      reportOne
+    )
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      reportTwo
+    )
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+
+    await generateProgressReport(job as Job)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledTimes(2)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledWith(session.studentId, {
+      subject: session.subject,
+      sessionId: session.id,
+    })
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledWith(session.studentId, { subject: session.subject })
+    expect(axios.post).toHaveBeenCalledTimes(2)
+    expect(axios.post).toHaveBeenNthCalledWith(
+      1,
+      url,
+      {
+        userId,
+        sessionId: session.id,
+        subject: session.subject,
+        report: reportOne,
+      },
+      {
+        headers: { 'x-api-key': config.subwayApiCredentials },
+      }
+    )
+    expect(axios.post).toHaveBeenNthCalledWith(
+      2,
+      url,
+      {
+        userId,
+        subject: session.subject,
+        report: reportTwo,
+      },
+      {
+        headers: { 'x-api-key': config.subwayApiCredentials },
+      }
+    )
   })
 
   test('Should early exit if not a reading session', async () => {

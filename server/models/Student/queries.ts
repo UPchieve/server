@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg'
-import { getClient, getRoClient, TransactionClient } from '../../db'
+import { getAnalyticsClient, getClient, TransactionClient } from '../../db'
 import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
@@ -7,6 +7,7 @@ import {
   RepoReadError,
   RepoTransactionError,
   RepoUpdateError,
+  RepoUpsertError,
 } from '../Errors'
 import {
   generateReferralCode,
@@ -18,7 +19,6 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
-import { getSessionRating } from '../Survey'
 import { USER_ROLES } from '../../constants'
 import { insertUserRoleByUserId } from '../User'
 import {
@@ -556,6 +556,31 @@ export async function createStudentProfile(
   }
 }
 
+export async function upsertStudentProfile(
+  studentData: CreateStudentProfilePayload,
+  tc: TransactionClient
+) {
+  try {
+    const result = await pgQueries.upsertStudentProfile.run(
+      {
+        userId: studentData.userId,
+        college: studentData.college,
+        schoolId: studentData.schoolId,
+        postalCode: studentData.zipCode,
+        gradeLevel: studentData.gradeLevel,
+        partnerOrg: studentData.studentPartnerOrg,
+        partnerSite: studentData.partnerSite,
+      },
+      tc
+    )
+    if (!result.length)
+      throw new RepoUpsertError('upsertStudentProfile returned 0 rows.')
+    return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
+  } catch (err) {
+    throw new RepoUpsertError(err)
+  }
+}
+
 export async function createStudent(
   studentData: CreateStudentPayload
 ): Promise<CreatedStudent> {
@@ -722,28 +747,19 @@ export async function getSessionReport(
         start: query.start,
         end: query.end,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
 
-    const report = []
-
     if (result.length) {
-      for (const row of result) {
-        const session = makeSomeOptional(row, [
+      return result.map(r =>
+        makeSomeOptional(r, [
           'partnerSite',
-          'volunteerJoinedAt',
-          'sponsorOrg',
           'waitTimeMins',
+          'volunteerJoinedAt',
+          'sessionRating',
+          'sponsorOrg',
         ])
-        const sessionRating = await getSessionRating(
-          session.sessionId,
-          USER_ROLES.STUDENT
-        )
-        row.email = row.email.toLowerCase()
-        report.push({ ...session, sessionRating })
-      }
-
-      return report
+      )
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -797,7 +813,7 @@ export async function getUsageReport(
         sessionStart: query.sessionStart,
         sessionEnd: query.sessionEnd,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
 
     const report = []
@@ -858,12 +874,13 @@ export async function deleteSelfFavoritedVolunteers(): Promise<void> {
 }
 
 export async function getActivePartnersForStudent(
-  studentId: Ulid
+  studentId: Ulid,
+  tc?: TransactionClient
 ): Promise<StudentPartnerOrgInstance[] | undefined> {
   try {
     const result = await pgQueries.getPartnerOrgsByStudent.run(
       { studentId },
-      getClient()
+      tc ?? getClient()
     )
 
     if (result.length)

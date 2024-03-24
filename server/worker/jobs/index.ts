@@ -6,6 +6,7 @@ import logger from '../../logger'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
+import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
@@ -50,6 +51,7 @@ import studentProcrastinationTextReminder from './studentProcrastinationTextRemi
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
+import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -64,6 +66,7 @@ export enum Jobs {
   EmailReferenceFollowup = 'EmailReferenceFollowup',
   EmailWaitingOnReferences = 'EmailWaitingOnReferences',
   EmailNiceToMeetYou = 'EmailNiceToMeetYou',
+  SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
   EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
@@ -110,6 +113,7 @@ export enum Jobs {
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
+  BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
 
   // Delete scripts
   DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
@@ -182,6 +186,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailNiceToMeetYou,
     processor: emailNiceToMeetYou,
+  },
+  {
+    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
+    processor: spawnEmailWeeklyHourSummaryJobs,
   },
   {
     name: Jobs.EmailWeeklyHourSummary,
@@ -352,6 +360,10 @@ const jobProcessors: JobProcessor[] = [
     processor: backfillUpdateElapsedAvailability,
   },
   {
+    name: Jobs.BackfillStudentUsersRoles,
+    processor: backfillStudentUsersRoles,
+  },
+  {
     name: Jobs.DeleteSelfFavoritedVolunteers,
     processor: deleteSelfFavoritedVolunteers,
   },
@@ -399,27 +411,31 @@ EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 export const addJobProcessors = (queue: Queue): void => {
   try {
     map(jobProcessors, jobProcessor =>
-      queue.process(jobProcessor.name, job => {
-        newrelic
-          .startBackgroundTransaction(`job:${job.name}`, async () => {
-            const transaction = newrelic.getTransaction()
-            logger.info(`Processing job: ${job.name}`)
-            try {
-              await jobProcessor.processor(job)
-              logger.info(`Completed job: ${job.name}`)
-            } catch (error) {
-              logger.error(`Error processing job: ${job.name}\n${error}`)
-              newrelic.noticeError(error as Error)
-            } finally {
-              transaction.end()
-            }
-          })
-          .catch(error => {
-            logger.error(
-              `error in job processor newrelic transaction: ${error}`
-            )
-            newrelic.noticeError(error)
-          })
+      queue.process(jobProcessor.name, (job /*, done*/) => {
+        return new Promise<void>((res, rej) => {
+          newrelic
+            .startBackgroundTransaction(`job:${job.name}`, async () => {
+              const transaction = newrelic.getTransaction()
+              logger.info(`Processing job: ${job.name}`)
+              try {
+                await jobProcessor.processor(job)
+                logger.info(`Completed job: ${job.name}`)
+                res()
+              } catch (error) {
+                logger.error(`Error processing job: ${job.name}\n${error}`)
+                newrelic.noticeError(error as Error)
+                rej(error)
+              } finally {
+                transaction.end()
+              }
+            })
+            .catch(error => {
+              logger.error(
+                `error in job processor newrelic transaction: ${error}`
+              )
+              newrelic.noticeError(error)
+            })
+        })
       })
     )
   } catch (error) {

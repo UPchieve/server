@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg'
 import { getClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError } from '../Errors'
-import { makeRequired, makeSomeOptional } from '../pgUtils'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   CreateUserStudentPartnerOrgInstancePayload,
@@ -252,6 +252,26 @@ export async function deactivateStudentPartnerOrg(
   } catch (err) {
     throw new RepoReadError(
       `Failed to deactivate student partner org ${spoName}: ${err}`
+    )
+  }
+}
+
+export async function deactivateUserStudentPartnerOrgInstance(
+  tc: TransactionClient,
+  userId: Ulid,
+  studentPartnerOrgId: string
+) {
+  try {
+    await pgQueries.deactivateUserStudentPartnerOrgInstance.run(
+      {
+        userId,
+        spoId: studentPartnerOrgId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(
+      `Failed to deactivate instance of user ${userId} with student partner org ${studentPartnerOrgId}: ${err}`
     )
   }
 }

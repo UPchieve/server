@@ -22,9 +22,10 @@ export interface RecaptchaScoreResponse {
  * @constructor
  */
 export async function getScore(token: string): Promise<RecaptchaScoreResponse> {
-  return axios.post(
+  const res = (await axios.post(
     `https://www.google.com/recaptcha/api/siteverify?secret=${config.googleRecaptchaSecret}&response=${token}`
-  )
+  )) as any
+  return { data: res.data }
 }
 
 /**

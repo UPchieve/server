@@ -1,20 +1,36 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
+import { timeLimit } from '../utils/time-limit'
 
-async function isFeatureEnabled(featureFlagName: FEATURE_FLAGS, userId: Ulid) {
-  return productClient.isFeatureEnabled(featureFlagName, userId)
+async function isFeatureEnabled(
+  featureFlagName: FEATURE_FLAGS,
+  userId: Ulid
+): Promise<boolean | undefined> {
+  return await timeLimit({
+    promise: productClient.isFeatureEnabled(featureFlagName, userId),
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'isFeatureEnabled' did not receive response for feature flag '${featureFlagName}'.`,
+  })
 }
 
 export async function getFeatureFlagPayload(
   featureFlagName: FEATURE_FLAGS,
   userId: Ulid
 ) {
-  return productClient.isFeatureEnabled(featureFlagName, userId)
+  return await timeLimit({
+    promise: productClient.getFeatureFlagPayload(featureFlagName, userId),
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlagPayload' did not receive response for feature flag '${featureFlagName}'.`,
+  })
 }
 
 export async function getAllFlagsForId(id: Ulid) {
-  return productClient.getAllFlagsAndPayloads(id)
+  return await timeLimit({
+    promise: productClient.getAllFlagsAndPayloads(id),
+    fallbackReturnValue: { featureFlags: {}, featureFlagPayloads: {} },
+    timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
+  })
 }
 
 export function isChatBotEnabled() {
@@ -40,10 +56,10 @@ export async function getUsingOurPlatformFlag(userId: Ulid) {
 export async function getProcrastinationTextReminderCopy(
   userId: Ulid
 ): Promise<string | undefined> {
-  return (await productClient.getFeatureFlagPayload(
+  return productClient.getFeatureFlagPayload(
     FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
     userId
-  )) as string
+  ) as Promise<string | undefined>
 }
 
 export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
@@ -68,4 +84,22 @@ export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
 
 export async function getProgressReportsFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.PROGRESS_REPORTS, userId)
+}
+
+export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
+  userId: Ulid
+) {
+  return await timeLimit({
+    promise: productClient.getFeatureFlag(
+      FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY,
+      userId,
+      {
+        personProperties: {
+          paidTutorsPilotEligible: 'true',
+        },
+      }
+    ),
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
+  })
 }

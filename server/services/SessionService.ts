@@ -12,6 +12,7 @@ import {
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
+  SUBJECT_TYPES,
   USER_BAN_REASONS,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
@@ -40,7 +41,7 @@ import {
 } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
-import { asNumber, asString } from '../utils/type-utils'
+import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
@@ -53,7 +54,6 @@ import SocketService from './SocketService'
 import * as TwilioService from './TwilioService'
 import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
-import { LockError } from 'redlock'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
@@ -62,6 +62,8 @@ import {
   isChatBotEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
+import * as Y from 'yjs'
+import * as PaidTutorsPilotService from './PaidTutorsPilotService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -320,30 +322,55 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   }
 }
 
-export async function storeAndDeleteQuillDoc(
-  sessionId: Ulid,
-  retries: number = 0
-): Promise<void> {
-  let quillState: QuillDocService.QuillCacheState | undefined
-  try {
-    quillState = await QuillDocService.lockAndGetDocCacheState(sessionId)
-  } catch (error) {
-    if (error instanceof LockError && retries < 10)
-      return storeAndDeleteQuillDoc(sessionId, retries + 1)
-    else
-      logger.error(
-        `Failed to update and get document in the cache for session ${sessionId} - ${error}`
-      )
-    return
-  }
+async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
+  return await Number(await cache.get(`${sessionId}-doc-editor-version`))
+}
 
-  if (quillState) {
+async function setDocEditorVersion(
+  sessionId: Ulid,
+  value: string
+): Promise<void> {
+  return await cache.saveWithExpiration(
+    `${sessionId}-doc-editor-version`,
+    value
+  )
+}
+
+export async function addDocEditorVersionTo(
+  session: SessionRepo.CurrentSession
+): Promise<void> {
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    session.docEditorVersion = await getDocEditorVersion(session.id)
+  }
+}
+
+async function storeQuillDocV2(sessionId: Ulid) {
+  const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
+  const ydoc = new Y.Doc()
+  const text = ydoc.getText('quill')
+  for (const update of quillStateV2) {
+    Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
+  }
+  await SessionRepo.updateSessionQuillDoc(
+    sessionId,
+    // Ensure viewing the document in a recap works by matching existing sessions.quill_doc format
+    JSON.stringify({ ops: text.toDelta() })
+  )
+}
+
+export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
+  const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
+  const quillState = await QuillDocService.getQuillDocV1(sessionId)
+  if (quillStateV2.length) {
+    await storeQuillDocV2(sessionId)
+  } else if (quillState?.doc) {
     await SessionRepo.updateSessionQuillDoc(
       sessionId,
       JSON.stringify(quillState.doc)
     )
-    await QuillDocService.deleteDoc(sessionId)
   }
+
+  await QuillDocService.deleteDoc(sessionId)
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
@@ -502,12 +529,13 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     assignmentId,
     studentId,
     userAgent,
+    docEditorVersion,
   } = sessionUtils.asStartSessionData(data)
   const subject = Case.camel(sessionSubTopic)
   const topic = Case.camel(sessionType)
 
-  const isValid = await getSubjectAndTopic(subject, topic)
-  if (!isValid)
+  const subjectAndTopic = await getSubjectAndTopic(subject, topic)
+  if (!subjectAndTopic)
     throw new sessionUtils.StartSessionError(
       `Unable to start new session for the topic ${topic} and subject ${subject}`
     )
@@ -529,12 +557,20 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       'Student already has an active session'
     )
 
+  await PaidTutorsPilotService.bucketUser(userId, topic as SUBJECT_TYPES)
+
   const newSessionId = await SessionRepo.createSession(
     userId,
     // NOTE: sessionType and subtopic are kebab-case
     subject,
     user.banned
   )
+
+  if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
+    // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
+    // and looking for this value before it's set
+    await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
+  }
 
   const numProblemId = Number(problemId)
   if (numProblemId && assignmentId && studentId)
@@ -591,7 +627,11 @@ export async function checkSession(data: unknown) {
 }
 
 export async function currentSession(userId: Ulid) {
-  return await SessionRepo.getCurrentSessionByUserId(userId)
+  const session = await SessionRepo.getCurrentSessionByUserId(userId)
+  if (session) {
+    await addDocEditorVersionTo(session)
+  }
+  return session
 }
 
 export async function getRecapSessionForDms(userId: Ulid) {
@@ -832,10 +872,10 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
       await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
     }
   } catch (err) {
-    // if key missing do nothing - means chatbot is not active yet
-    if (err instanceof cache.KeyNotFoundError) return
     // TODO: cancel chatbot jobs here
-    logger.error(`Could not process message acitvity state, cancelling chatbot`)
+    logger.error(
+      `Could not process message acitvity state, cancelling chatbot ${err}`
+    )
   }
 }
 

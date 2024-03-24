@@ -72,6 +72,16 @@ export function routeUser(router: Router): void {
     }
   })
 
+  router.delete('/user/phone', async (req, res) => {
+    const user = extractUser(req)
+    try {
+      await UserService.deletePhoneFromAccount(user.id)
+      res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.delete('/user', async (req, res) => {
     try {
       const user = extractUser(req)

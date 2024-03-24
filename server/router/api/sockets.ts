@@ -32,6 +32,51 @@ import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
 
+// Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
+const DISCONNECT_REASONS = {
+  'server namespace disconnect': {
+    isError: false,
+    description:
+      'The socket was forcefully disconnected with socket.disconnect()',
+  },
+  'client namespace disconnect': {
+    isError: false,
+    description:
+      'The client has manually disconnected the socket using socket.disconnect()',
+  },
+  'server shutting down': {
+    isError: false,
+    description: 'The server is shutting down',
+  },
+  'ping timeout': {
+    isError: false,
+    description:
+      'The client did not send a PONG packet in the pingTimeout delay',
+  },
+  'transport close': {
+    isError: false,
+    description:
+      'The connection was closed (example: the user has lost connection, or the network was changed from WiFi to 4G)',
+  },
+  'transport error': {
+    isError: true,
+    description: 'The connection has encountered an error',
+  },
+  'parse error': {
+    isError: true,
+    description: 'The server has received an invalid packet from the client.',
+  },
+  'forced close': {
+    isError: true,
+    description: 'The server has received an invalid packet from the client.',
+  },
+  'forced server close': {
+    isError: false,
+    description:
+      'The client did not join a namespace in time (see the connectTimeout option) and was forcefully closed.',
+  },
+}
+
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
   logger.debug(`Attempted key: ${key}`)
@@ -43,7 +88,6 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
   socket.join(user.id.toString())
-  logger.debug('User connected to socket!')
 
   const latestSession = await SessionService.currentSession(user.id)
 
@@ -57,7 +101,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
-  const socketService = SocketService.getInstance(io)
+  const socketService = SocketService.getInstance()
 
   let chatbot: Ulid | undefined
 
@@ -108,10 +152,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     } = socket
 
     if (user) {
+      await handleUser(socket, user)
       const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
         user.id
       )
-      await handleUser(socket, user)
       if (!isRecapSocketUpdatesActive)
         await joinUserToSessionHistoryRooms(io, user.id)
     } else {
@@ -278,7 +322,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('list', () => {
+    socket.on('list', (_data, callback) => {
       newrelic.startWebTransaction(
         '/socket-io/list',
         () =>
@@ -286,6 +330,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               const sessions = await SessionRepo.getUnfulfilledSessions()
               socket.emit('sessions', sessions)
+              callback({
+                status: 200,
+                sessions,
+              })
               resolve()
             } catch (error) {
               reject(error)
@@ -404,6 +452,31 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
+    socket.on('requestQuillStateV2', async ({ sessionId }) => {
+      newrelic.startWebTransaction(
+        '/socket-io/requestQuillStateV2',
+        async () => {
+          const updates = await QuillDocService.getDocumentUpdates(sessionId)
+          socket.emit('quillStateV2', { updates })
+        }
+      )
+    })
+
+    socket.on(
+      'transmitQuillDeltaV2',
+      async ({ sessionId, update }: { sessionId: string; update: string }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/transmitQuillDeltaV2',
+          async () => {
+            await QuillDocService.addDocumentUpdate(sessionId, update)
+            socket
+              .to(getSessionRoom(sessionId))
+              .emit('partnerQuillDeltaV2', { update })
+          }
+        )
+      }
+    )
+
     socket.on('transmitQuillDelta', async ({ sessionId, delta }) => {
       newrelic.startWebTransaction(
         '/socket-io/transmitQuillDelta',
@@ -455,6 +528,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         newrelic.startWebTransaction(
           '/socket-io/progress-report:processed',
           () => {
+            logger.info(
+              `Socket event progress-report:processed received for user ${userId} for session ${sessionId}`
+            )
             socketService.emitProgressReportProcessedToUser(userId, {
               sessionId,
               subject,
@@ -465,8 +541,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     )
 
-    socket.on('disconnect', reason => {
-      logger.info(`Socket disconnected for reason: ${reason}`)
+    socket.on('disconnect', (reason: keyof typeof DISCONNECT_REASONS) => {
+      const message = `Socket disconnected: %o`
+      const { isError, description } = DISCONNECT_REASONS[reason]
+      const logData = {
+        user: socket.request.user?.id,
+        reason,
+        description,
+      }
+      isError ? logger.error(message, logData) : logger.info(message, logData)
     })
   })
 }

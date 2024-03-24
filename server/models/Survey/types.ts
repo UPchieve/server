@@ -1,7 +1,7 @@
 import { String } from 'aws-sdk/clients/cloudsearch'
 import { Ulid } from '../pgUtils'
 
-const SURVEY_TYPES = <const>['presession', 'postsession']
+const SURVEY_TYPES = <const>['presession', 'postsession', 'progress-report']
 export type SurveyType = typeof SURVEY_TYPES[number]
 
 export type PresessionSurveyResponseData = {
@@ -27,7 +27,8 @@ export type UserSurvey = {
   id: Ulid
   surveyId: number
   userId: Ulid
-  sessionId: Ulid
+  sessionId?: Ulid
+  progressReportId?: Ulid
   surveyTypeId: number
   createdAt: Date
   updatedAt: Date
@@ -35,7 +36,7 @@ export type UserSurvey = {
 
 export type SaveUserSurvey = Pick<
   UserSurvey,
-  'surveyId' | 'sessionId' | 'surveyTypeId'
+  'surveyId' | 'sessionId' | 'surveyTypeId' | 'progressReportId'
 >
 
 export type UserSurveySubmission = {

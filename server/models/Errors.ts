@@ -1,5 +1,7 @@
 import { CustomError } from 'ts-custom-error'
 
+export const DEFAULT_ERROR_MESSAGE =
+  'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
 export class UserNotFoundError extends CustomError {
   constructor(attemptedParam: string, attemptedValue: string) {
     super(
@@ -28,6 +30,19 @@ export class RepoReadError extends CustomError {
         typeof arg === 'string'
           ? arg
           : `Database read error: ${(arg as Error).message}`
+      super(msg)
+    }
+  }
+}
+
+export class RepoUpsertError extends CustomError {
+  constructor(arg: unknown) {
+    if (arg instanceof RepoUpsertError) return arg
+    else {
+      const msg =
+        typeof arg === 'string'
+          ? arg
+          : `Database upsert error: ${(arg as Error).message}`
       super(msg)
     }
   }
@@ -109,5 +124,15 @@ export class MissingRecaptchaTokenError extends CustomError {
     super(
       'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
     )
+  }
+}
+
+export class AssistmentsError extends CustomError {
+  message: string
+  retry: boolean
+  constructor(message: string, retry: boolean) {
+    super()
+    this.message = message
+    this.retry = retry
   }
 }

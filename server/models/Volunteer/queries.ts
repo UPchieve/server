@@ -1,4 +1,4 @@
-import { getClient, getRoClient } from '../../db'
+import { getAnalyticsClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -390,7 +390,7 @@ export async function getVolunteersForTelecomReport(
   try {
     const result = await pgQueries.getVolunteersForTelecomReport.run(
       { partnerOrg },
-      getRoClient()
+      getAnalyticsClient()
     )
     const rows = result.map(v => makeSomeOptional(v, ['volunteerPartnerOrg']))
     const quizzes = await getQuizzesForVolunteers(rows.map(v => v.id))
@@ -1237,7 +1237,7 @@ export async function createVolunteer(
     if (!profileResult.length && makeRequired(profileResult[0]).ok)
       throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
-    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER)
+    await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER, client)
     return {
       ...user,
       volunteerPartnerOrg: volunteerData.volunteerPartnerOrg,
@@ -1397,7 +1397,7 @@ export async function updateVolunteerForAdmin(
   const client = await getClient().connect()
   try {
     const partnerOrgId = update.volunteerPartnerOrg
-      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg)
+      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg, client)
       : undefined
     await client.query('BEGIN')
     const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
@@ -1574,7 +1574,7 @@ export async function getNextVolunteerToNotify(options: {
   try {
     const result = await pgQueries.getNextVolunteerToNotify.run(
       options,
-      getClient()
+      getRoClient()
     )
     if (!result.length) return
     return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
@@ -1679,11 +1679,6 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
 
 // TODO: break out anything that uses RO client into their own repo
 
-export interface VolunteersForAnalyticsReportBatch {
-  volunteers: VolunteersForAnalyticsReport[]
-  nextCursor: Ulid | null
-}
-
 /**
  * Get the next batch of volunteers for the analytics report.
  * Uses cursor pagination on user ID (ULID).
@@ -1695,7 +1690,7 @@ export async function getVolunteersForAnalyticsReport(
   associatedPartners: AssociatedPartnersAndSchools,
   pageSize: number,
   cursor: Ulid | null
-): Promise<VolunteersForAnalyticsReportBatch> {
+): Promise<VolunteersForAnalyticsReport[]> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
       {
@@ -1707,7 +1702,7 @@ export async function getVolunteersForAnalyticsReport(
         pageSize,
         cursor,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
 
     if (!result.length) {
@@ -1729,15 +1724,7 @@ export async function getVolunteersForAnalyticsReport(
         ),
       } as VolunteersForAnalyticsReport
     })
-    let nextCursor = null
-    if (volunteers.length > pageSize) {
-      nextCursor = volunteers.pop()?.userId
-    }
-
-    return {
-      volunteers,
-      nextCursor: nextCursor ?? null,
-    }
+    return volunteers
   } catch (err) {
     throw new RepoReadError(err)
   }
