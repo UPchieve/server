@@ -1,15 +1,18 @@
 import { Job } from 'bull'
-import { getSessionById, UserSessionsFilter } from '../../models/Session'
+import { getSessionById } from '../../models/Session'
 import { Ulid } from '../../models/pgUtils'
 import {
   generateProgressReportForUser,
   ProgressReport,
+  ProgressReportSessionFilter,
 } from '../../services/ProgressReportsService'
-import { getSocket } from '../sockets'
 import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
 import config from '../../config'
 import axios from 'axios'
-import { ProgressReportStatuses } from '../../models/ProgressReports'
+import {
+  ProgressReportAnalysisTypes,
+  ProgressReportStatuses,
+} from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
 
@@ -22,6 +25,7 @@ type ProgressReportPayload = {
   sessionId?: Ulid
   subject: string
   report: Partial<ProgressReport>
+  analysisType: ProgressReportAnalysisTypes
 }
 
 async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
@@ -43,7 +47,7 @@ async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
 
 async function generateAndEmitProgressReport(
   userId: Ulid,
-  reportOptions: UserSessionsFilter
+  reportOptions: ProgressReportSessionFilter
 ) {
   let report: Partial<ProgressReport>
   let reportGenerationError
@@ -64,10 +68,7 @@ async function generateAndEmitProgressReport(
     ...reportOptions,
     report,
   }
-  const socket = getSocket()
-  if (socket.connected) socket.emit('progress-report:processed', data)
-  else await sendProgressReport(userId, data)
-
+  await sendProgressReport(userId, data)
   if (reportGenerationError) throw reportGenerationError
 }
 
@@ -84,14 +85,15 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
   )
     return
   const tasks = [
-    // Single session analysis
     generateAndEmitProgressReport(session.studentId, {
       sessionId: session.id,
       subject: session.subject,
+      analysisType: 'single',
     }),
-    // Group session analysis
     generateAndEmitProgressReport(session.studentId, {
       subject: session.subject,
+      end: session.endedAt,
+      analysisType: 'group',
     }),
   ]
 

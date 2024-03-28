@@ -5,6 +5,7 @@ import {
   ProgressReportAnalysisTypes,
   ProgressReportInfo,
 } from '../../models/ProgressReports'
+import { UserSessionsFilter } from '../../models/Session'
 
 export type ProgressReportSession = {
   reportId: Ulid
@@ -46,4 +47,8 @@ export type ProgressReportConcept = {
 export type ProgressReport = ProgressReportInfo & {
   summary: ProgressReportSummary
   concepts: ProgressReportConcept[]
+}
+
+export type ProgressReportSessionFilter = UserSessionsFilter & {
+  analysisType: ProgressReportAnalysisTypes
 }
