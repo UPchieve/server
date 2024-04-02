@@ -709,33 +709,47 @@ const updateProgressReportsReadAtByReportIdsIR: any = {"name":"updateProgressRep
 export const updateProgressReportsReadAtByReportIds = new PreparedQuery<IUpdateProgressReportsReadAtByReportIdsParams,IUpdateProgressReportsReadAtByReportIdsResult>(updateProgressReportsReadAtByReportIdsIR);
 
 
-/** 'GetUnreadProgressReportOverviewSubjectsByUserId' parameters type */
-export interface IGetUnreadProgressReportOverviewSubjectsByUserIdParams {
+/** 'GetProgressReportOverviewSubjectStatsByUserId' parameters type */
+export interface IGetProgressReportOverviewSubjectStatsByUserIdParams {
   userId: string;
 }
 
-/** 'GetUnreadProgressReportOverviewSubjectsByUserId' return type */
-export interface IGetUnreadProgressReportOverviewSubjectsByUserIdResult {
+/** 'GetProgressReportOverviewSubjectStatsByUserId' return type */
+export interface IGetProgressReportOverviewSubjectStatsByUserIdResult {
+  hasUnreadReports: boolean | null;
+  latestReportCreatedAt: Date | null;
+  overallGrade: number | null;
   subject: string;
+  totalUnreadReports: number | null;
 }
 
-/** 'GetUnreadProgressReportOverviewSubjectsByUserId' query type */
-export interface IGetUnreadProgressReportOverviewSubjectsByUserIdQuery {
-  params: IGetUnreadProgressReportOverviewSubjectsByUserIdParams;
-  result: IGetUnreadProgressReportOverviewSubjectsByUserIdResult;
+/** 'GetProgressReportOverviewSubjectStatsByUserId' query type */
+export interface IGetProgressReportOverviewSubjectStatsByUserIdQuery {
+  params: IGetProgressReportOverviewSubjectStatsByUserIdParams;
+  result: IGetProgressReportOverviewSubjectStatsByUserIdResult;
 }
 
-const getUnreadProgressReportOverviewSubjectsByUserIdIR: any = {"name":"getUnreadProgressReportOverviewSubjectsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11051,"b":11057,"line":313,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    subjects.name AS subject\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\n    AND progress_reports.read_at IS NULL\nGROUP BY\n    subjects.name","loc":{"a":10491,"b":11230,"line":303,"col":0}}};
+const getProgressReportOverviewSubjectStatsByUserIdIR: any = {"name":"getProgressReportOverviewSubjectStatsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":11505,"b":11511,"line":323,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    subjects.name AS subject,\n    SUM(\n        CASE WHEN progress_reports.read_at IS NULL THEN\n            1\n        ELSE\n            0\n        END)::int AS total_unread_reports,\n    BOOL_OR(progress_reports.read_at IS NULL) AS has_unread_reports,\n    MAX(progress_reports.created_at) AS latest_report_created_at,\n    MAX(progress_report_summaries.overall_grade) AS overall_grade\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_summaries ON progress_reports.id = progress_report_summaries.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\nGROUP BY\n    subjects.name\nORDER BY\n    latest_report_created_at DESC","loc":{"a":10489,"b":11686,"line":303,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     subjects.name AS subject
+ *     subjects.name AS subject,
+ *     SUM(
+ *         CASE WHEN progress_reports.read_at IS NULL THEN
+ *             1
+ *         ELSE
+ *             0
+ *         END)::int AS total_unread_reports,
+ *     BOOL_OR(progress_reports.read_at IS NULL) AS has_unread_reports,
+ *     MAX(progress_reports.created_at) AS latest_report_created_at,
+ *     MAX(progress_report_summaries.overall_grade) AS overall_grade
  * FROM
  *     progress_reports
  *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
  *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *     JOIN progress_report_summaries ON progress_reports.id = progress_report_summaries.progress_report_id
  *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
  *     JOIN sessions ON progress_report_sessions.session_id = sessions.id
  *     JOIN subjects ON sessions.subject_id = subjects.id
@@ -743,11 +757,60 @@ const getUnreadProgressReportOverviewSubjectsByUserIdIR: any = {"name":"getUnrea
  *     progress_reports.user_id = :userId!
  *     AND progress_report_analysis_types.name = 'group'
  *     AND progress_report_statuses.name = 'complete'
- *     AND progress_reports.read_at IS NULL
  * GROUP BY
  *     subjects.name
+ * ORDER BY
+ *     latest_report_created_at DESC
  * ```
  */
-export const getUnreadProgressReportOverviewSubjectsByUserId = new PreparedQuery<IGetUnreadProgressReportOverviewSubjectsByUserIdParams,IGetUnreadProgressReportOverviewSubjectsByUserIdResult>(getUnreadProgressReportOverviewSubjectsByUserIdIR);
+export const getProgressReportOverviewSubjectStatsByUserId = new PreparedQuery<IGetProgressReportOverviewSubjectStatsByUserIdParams,IGetProgressReportOverviewSubjectStatsByUserIdResult>(getProgressReportOverviewSubjectStatsByUserIdIR);
+
+
+/** 'GetLatestProgressReportOverviewSubjectByUserId' parameters type */
+export interface IGetLatestProgressReportOverviewSubjectByUserIdParams {
+  userId: string;
+}
+
+/** 'GetLatestProgressReportOverviewSubjectByUserId' return type */
+export interface IGetLatestProgressReportOverviewSubjectByUserIdResult {
+  name: string;
+}
+
+/** 'GetLatestProgressReportOverviewSubjectByUserId' query type */
+export interface IGetLatestProgressReportOverviewSubjectByUserIdQuery {
+  params: IGetLatestProgressReportOverviewSubjectByUserIdParams;
+  result: IGetLatestProgressReportOverviewSubjectByUserIdResult;
+}
+
+const getLatestProgressReportOverviewSubjectByUserIdIR: any = {"name":"getLatestProgressReportOverviewSubjectByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12284,"b":12290,"line":346,"col":40},{"a":12720,"b":12726,"line":354,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    subjects.name\nFROM\n    progress_reports\n    JOIN (\n        SELECT\n            progress_report_sessions.progress_report_id,\n            progress_report_sessions.session_id\n        FROM\n            progress_report_sessions\n            JOIN progress_reports ON progress_report_sessions.progress_report_id = progress_reports.id\n            JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        WHERE\n            progress_reports.user_id = :userId!\n            AND progress_report_analysis_types.name = 'group'\n        ORDER BY\n            progress_report_sessions.created_at DESC\n        LIMIT 1) AS latest_progress_report_session ON progress_reports.id = latest_progress_report_session.progress_report_id\n    JOIN sessions ON latest_progress_report_session.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!","loc":{"a":11750,"b":12726,"line":333,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name
+ * FROM
+ *     progress_reports
+ *     JOIN (
+ *         SELECT
+ *             progress_report_sessions.progress_report_id,
+ *             progress_report_sessions.session_id
+ *         FROM
+ *             progress_report_sessions
+ *             JOIN progress_reports ON progress_report_sessions.progress_report_id = progress_reports.id
+ *             JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *         WHERE
+ *             progress_reports.user_id = :userId!
+ *             AND progress_report_analysis_types.name = 'group'
+ *         ORDER BY
+ *             progress_report_sessions.created_at DESC
+ *         LIMIT 1) AS latest_progress_report_session ON progress_reports.id = latest_progress_report_session.progress_report_id
+ *     JOIN sessions ON latest_progress_report_session.session_id = sessions.id
+ *     JOIN subjects ON sessions.subject_id = subjects.id
+ * WHERE
+ *     progress_reports.user_id = :userId!
+ * ```
+ */
+export const getLatestProgressReportOverviewSubjectByUserId = new PreparedQuery<IGetLatestProgressReportOverviewSubjectByUserIdParams,IGetLatestProgressReportOverviewSubjectByUserIdResult>(getLatestProgressReportOverviewSubjectByUserIdIR);
 
 

@@ -12,6 +12,7 @@ import {
   ProgressReportConceptRow,
   ProgressReportSummaryRow,
   ProgressReportSessionPaginated,
+  ProgressReportOverviewSubjectStat,
 } from './types'
 
 export async function insertProgressReport(
@@ -367,19 +368,37 @@ export async function updateProgressReportsReadAtByReportIds(
   }
 }
 
-export async function getUnreadProgressReportOverviewSubjectsByUserId(
+export async function getProgressReportOverviewSubjectStatsByUserId(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<string[]> {
+): Promise<ProgressReportOverviewSubjectStat[]> {
   try {
-    const result = await pgQueries.getUnreadProgressReportOverviewSubjectsByUserId.run(
+    const result = await pgQueries.getProgressReportOverviewSubjectStatsByUserId.run(
       {
         userId,
       },
       tc ?? getClient()
     )
-    if (result.length) return result.map(row => makeRequired(row).subject)
+    if (result.length) return result.map(row => makeRequired(row))
     return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestProgressReportOverviewSubjectByUserId(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<string> {
+  try {
+    const result = await pgQueries.getLatestProgressReportOverviewSubjectByUserId.run(
+      {
+        userId,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return makeRequired(result[0]).name
+    return ''
   } catch (err) {
     throw new RepoReadError(err)
   }

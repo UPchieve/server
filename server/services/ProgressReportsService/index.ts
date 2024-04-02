@@ -22,8 +22,10 @@ import {
   getProgressReportSessionsForSubjectByPagination,
   getLatestProgressReportIdBySubject,
   updateProgressReportsReadAtByReportIds,
-  getUnreadProgressReportOverviewSubjectsByUserId,
   getAllProgressReportIdsByUserIdAndSubject,
+  getProgressReportOverviewSubjectStatsByUserId,
+  ProgressReportOverviewSubjectStat,
+  getLatestProgressReportOverviewSubjectByUserId,
 } from '../../models/ProgressReports'
 import {
   UserSessionsWithMessages,
@@ -491,8 +493,14 @@ export async function readProgressReportsByIds(
   await updateProgressReportsReadAtByReportIds(reportIds)
 }
 
-export async function getUnreadProgressReportOverviewSubjects(
+export async function getProgressReportOverviewSubjectStats(
   userId: Ulid
-): Promise<string[]> {
-  return await getUnreadProgressReportOverviewSubjectsByUserId(userId)
+): Promise<ProgressReportOverviewSubjectStat[]> {
+  return await getProgressReportOverviewSubjectStatsByUserId(userId)
+}
+
+export async function getLatestProgressReportOverviewSubject(
+  userId: Ulid
+): Promise<string> {
+  return await getLatestProgressReportOverviewSubjectByUserId(userId)
 }

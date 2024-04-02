@@ -70,3 +70,11 @@ export type ProgressReportSessionPaginated = {
   subject: string
   createdAt: Date
 }
+
+export type ProgressReportOverviewSubjectStat = {
+  subject: string
+  totalUnreadReports: number
+  hasUnreadReports: boolean
+  overallGrade: number
+  latestReportCreatedAt: Date
+}
