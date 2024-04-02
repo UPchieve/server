@@ -7,7 +7,6 @@ import * as SessionRepo from '../../models/Session'
 import { buildProgressReport, buildSession } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 import { Job } from 'bull'
-import { getSocket } from '../../worker/sockets'
 import axios from 'axios'
 import config from '../../config'
 
@@ -21,77 +20,15 @@ const mockedFeatureFlagService = mocked(FeatureFlagService)
 const mockedSessionRepo = mocked(SessionRepo)
 
 describe(Jobs.GenerateProgressReport, () => {
-  let socketMock: any
-
   beforeEach(async () => {
     jest.resetAllMocks()
-    socketMock = getSocket()
+    jest.clearAllMocks()
     mockedFeatureFlagService.getProgressReportsFeatureFlag.mockResolvedValue(
       true
     )
   })
 
-  test('Should generate and send progress report for a single session and an overview progress report via socket', async () => {
-    socketMock.connected = true
-    const userId = getDbUlid()
-    const session = await buildSession({
-      studentId: userId,
-      subject: 'reading',
-      timeTutored: 1000 * 60,
-    })
-    const job = {
-      data: {
-        sessionId: session.id,
-      },
-    }
-    const reportOne = buildProgressReport()
-    const reportTwo = buildProgressReport()
-    // Mock the return value twice for double execution of a single and group analysis
-    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
-      reportOne
-    )
-    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
-      reportTwo
-    )
-    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
-
-    await generateProgressReport(job as Job)
-    expect(
-      mockedProgressReportsService.generateProgressReportForUser
-    ).toHaveBeenCalledTimes(2)
-    expect(
-      mockedProgressReportsService.generateProgressReportForUser
-    ).toHaveBeenCalledWith(session.studentId, {
-      subject: session.subject,
-      sessionId: session.id,
-    })
-    expect(
-      mockedProgressReportsService.generateProgressReportForUser
-    ).toHaveBeenCalledWith(session.studentId, { subject: session.subject })
-    expect(socketMock.emit).toHaveBeenCalledTimes(2)
-    expect(socketMock.emit).toHaveBeenNthCalledWith(
-      1,
-      'progress-report:processed',
-      {
-        userId,
-        sessionId: session.id,
-        subject: session.subject,
-        report: reportOne,
-      }
-    )
-    expect(socketMock.emit).toHaveBeenNthCalledWith(
-      2,
-      'progress-report:processed',
-      {
-        userId,
-        subject: session.subject,
-        report: reportTwo,
-      }
-    )
-  })
-
   test('Should let progress report errors bubble up for both single and group progress report analysis', async () => {
-    socketMock.connected = true
     const session = await buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
@@ -124,12 +61,12 @@ describe(Jobs.GenerateProgressReport, () => {
   })
 
   test('Should generate and send progress report for a single session and an overview progress report via http', async () => {
-    socketMock.connected = false
     const userId = getDbUlid()
     const session = await buildSession({
       studentId: userId,
       subject: 'reading',
       timeTutored: 1000 * 60,
+      endedAt: new Date(),
     })
     const job = {
       data: {
@@ -157,10 +94,15 @@ describe(Jobs.GenerateProgressReport, () => {
     ).toHaveBeenCalledWith(session.studentId, {
       subject: session.subject,
       sessionId: session.id,
+      analysisType: 'single',
     })
     expect(
       mockedProgressReportsService.generateProgressReportForUser
-    ).toHaveBeenCalledWith(session.studentId, { subject: session.subject })
+    ).toHaveBeenCalledWith(session.studentId, {
+      subject: session.subject,
+      end: session.endedAt,
+      analysisType: 'group',
+    })
     expect(axios.post).toHaveBeenCalledTimes(2)
     expect(axios.post).toHaveBeenNthCalledWith(
       1,
@@ -170,6 +112,7 @@ describe(Jobs.GenerateProgressReport, () => {
         sessionId: session.id,
         subject: session.subject,
         report: reportOne,
+        analysisType: 'single',
       },
       {
         headers: { 'x-api-key': config.subwayApiCredentials },
@@ -182,6 +125,8 @@ describe(Jobs.GenerateProgressReport, () => {
         userId,
         subject: session.subject,
         report: reportTwo,
+        analysisType: 'group',
+        end: expect.anything(),
       },
       {
         headers: { 'x-api-key': config.subwayApiCredentials },

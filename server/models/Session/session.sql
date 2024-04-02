@@ -1190,10 +1190,10 @@ FROM
     JOIN topics ON topics.id = subjects.topic_id
 WHERE (sessions.student_id = :userId!
     OR sessions.volunteer_id = :userId!)
-AND ((:start)::date IS NULL
-    OR sessions.created_at >= (:start)::date)
-AND ((:end)::date IS NULL
-    OR sessions.created_at <= (:end)::date)
+AND ((:start)::timestamptz IS NULL
+    OR sessions.created_at >= (:start)::timestamptz)
+AND ((:end)::timestamptz IS NULL
+    OR sessions.created_at <= (:end)::timestamptz)
 AND ((:subject)::text IS NULL
     OR subjects.name = (:subject!)::text)
 AND (:sessionId::uuid IS NULL
