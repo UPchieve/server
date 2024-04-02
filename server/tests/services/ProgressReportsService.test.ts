@@ -10,6 +10,7 @@ import {
   buildMessageForFrontend,
   buildProgressReportSummaryRow,
   buildProgressReportConceptRow,
+  buildProgressReportOverviewSubjectStat,
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS } from '../../constants'
@@ -383,5 +384,46 @@ describe('generateProgressReportForUser', () => {
       userId,
       'pending'
     )
+  })
+})
+
+describe('getProgressReportOverviewSubjectStats', () => {
+  test('Should return progress report overview subject stats', async () => {
+    const data = buildProgressReportOverviewSubjectStat()
+    const mockedData = [data]
+    mockedProgressReportsRepo.getProgressReportOverviewSubjectStatsByUserId.mockResolvedValueOnce(
+      mockedData
+    )
+    const result = await ProgressReportsService.getProgressReportOverviewSubjectStats(
+      userId
+    )
+
+    expect(mockedData).toMatchObject(result)
+    expect(
+      mockedProgressReportsRepo.getProgressReportOverviewSubjectStatsByUserId
+    ).toHaveBeenCalled()
+    expect(
+      mockedProgressReportsRepo.getProgressReportOverviewSubjectStatsByUserId
+    ).toHaveBeenCalledWith(userId)
+  })
+})
+
+describe('getLatestProgressReportOverviewSubject', () => {
+  test('Should return the subject for the latest progress report overview', async () => {
+    const subject = 'algebraOne'
+    mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId.mockResolvedValueOnce(
+      subject
+    )
+    const result = await ProgressReportsService.getLatestProgressReportOverviewSubject(
+      userId
+    )
+
+    expect(subject).toEqual(result)
+    expect(
+      mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId
+    ).toHaveBeenCalled()
+    expect(
+      mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId
+    ).toHaveBeenCalledWith(userId)
   })
 })

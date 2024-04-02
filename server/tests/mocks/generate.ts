@@ -30,6 +30,7 @@ import {
 } from '../../services/ProgressReportsService'
 import {
   ProgressReportConceptRow,
+  ProgressReportOverviewSubjectStat,
   ProgressReportStatuses,
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
@@ -553,4 +554,17 @@ export const buildTestVolunteerForAnalyticsReport = (overrides = {}) => {
     totalUniqueStudentsHelpedWithinRange: 5,
     ...overrides,
   } as VolunteersForAnalyticsReport
+}
+
+export function buildProgressReportOverviewSubjectStat(
+  overrides: Partial<ProgressReportOverviewSubjectStat> = {}
+): ProgressReportOverviewSubjectStat {
+  return {
+    subject: 'algebraOne',
+    totalUnreadReports: 1,
+    hasUnreadReports: false,
+    overallGrade: 80,
+    latestReportCreatedAt: new Date(),
+    ...overrides,
+  }
 }
