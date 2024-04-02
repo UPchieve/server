@@ -24,7 +24,7 @@ function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
       await shutDownSocketServer()
       logger.info('socket server closed')
 
-      await productClient.shutdownAsync()
+      await productClient.shutdown()
       logger.info('shutting down posthog')
 
       // allow time for events to finish processing and making db calls before exiting
