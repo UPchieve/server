@@ -78,6 +78,7 @@ export interface RegisterStudentPayload {
   lastName: string
   password?: string
   parentGuardianEmail?: string
+  partnerSite?: string
   profileId?: string
   referredByCode?: string
   schoolId?: string
@@ -95,6 +96,7 @@ export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   lastName: asString,
   password: asOptional(asString),
   parentGuardianEmail: asOptional(asString),
+  partnerSite: asOptional(asString),
   profileId: asOptional(asString),
   referredByCode: asOptional(asString),
   schoolId: asOptional(asString),
