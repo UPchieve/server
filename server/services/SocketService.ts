@@ -6,6 +6,7 @@ import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { addDocEditorVersionTo } from './SessionService'
+import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 
 class SocketService {
   private static instance: SocketService
@@ -74,10 +75,11 @@ class SocketService {
       report: ProgressReport
       subject: string
       sessionId?: Ulid
+      analysisType: ProgressReportAnalysisTypes
     }
   ) {
     // The overall progress report is ready
-    if (!data.sessionId)
+    if (data.analysisType === 'group')
       this.io.to(userId).emit('progress-report:processed:overview', data)
     // A single progress report is ready
     else this.io.to(userId).emit('progress-report:processed:session', data)

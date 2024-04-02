@@ -41,6 +41,7 @@ import {
   ProgressReportDetail,
   ProgressReportSummary,
   ProgressReportConcept,
+  ProgressReportSessionFilter,
 } from './types'
 import { openai } from '../BotsService'
 import QueueService from '../QueueService'
@@ -83,7 +84,8 @@ function formatSessionsForBotPrompt(
 export async function saveProgressReport(
   userId: Ulid,
   sessionIds: Ulid[],
-  data: ProgressReport
+  data: ProgressReport,
+  analysisType: ProgressReportAnalysisTypes
 ) {
   let reportId: Ulid = ''
   try {
@@ -103,11 +105,8 @@ export async function saveProgressReport(
     reportId = await insertProgressReport(userId, 'pending')
 
     await runInTransaction(async (tc: TransactionClient) => {
-      const reportType: ProgressReportAnalysisTypes =
-        sessionIds.length > 1 ? 'group' : 'single'
-
       for (const sessionId of sessionIds) {
-        await insertProgressReportSession(reportId, sessionId, reportType, tc)
+        await insertProgressReportSession(reportId, sessionId, analysisType, tc)
       }
 
       const reportSummaryId = await insertProgressReportSummary(
@@ -159,7 +158,7 @@ export async function getSessionsToAnalyzeForProgressReport(
 
 export async function generateProgressReportForUser(
   userId: Ulid,
-  filter: UserSessionsFilter
+  filter: ProgressReportSessionFilter
 ): Promise<ProgressReport> {
   const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
   const botPrompt = formatSessionsForBotPrompt(sessions)
@@ -169,7 +168,12 @@ export async function generateProgressReportForUser(
     debug: botReport,
   })
   const sessionIds = sessions.map(s => s.id)
-  const reportId = await saveProgressReport(userId, sessionIds, botReport)
+  const reportId = await saveProgressReport(
+    userId,
+    sessionIds,
+    botReport,
+    filter.analysisType
+  )
   if (!reportId)
     throw new Error(
       `Failed to save a progress report for sessions ${sessionIds.join(
