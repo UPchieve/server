@@ -343,6 +343,36 @@ describe('VolunteerRepo', () => {
       expect(result2?.id).toBeDefined()
       expect(result1?.id).not.toEqual(result2?.id)
     })
+
+    describe('Notifying for subjects with computed unlocks', () => {
+      it('Should return a user who has ALL OF the needed certs for the subject with computed unlocks', async () => {
+        // In computed_subject_unlocks, subject #21 (integratedMathOne) can be unlocked by having ALL OF
+        // certifications 2, 3, and 16 (statistics, geometry, and algebraOne).
+        // A user should have to have ALL OF these to be able to tutor in that subject.
+        const runQuery = async () => {
+          return await getNextVolunteerToNotify({
+            subject: 'integratedMathOne',
+            lastNotified: new Date(),
+            isPartner: false,
+            highLevelSubjects: undefined,
+            disqualifiedVolunteers: undefined,
+            specificPartner: undefined,
+            favoriteVolunteers: undefined,
+          })
+        }
+        const volWithOneCert = await loadVolunteer({
+          certificationSubjects: ['statistics'],
+        })
+        const res1 = await runQuery()
+        expect(res1).toBeUndefined()
+
+        const volWithAllCerts = await loadVolunteer({
+          certificationSubjects: ['statistics', 'geometry', 'algebraOne'],
+        })
+        const res2 = await runQuery()
+        expect(res2?.id).toEqual(volWithAllCerts.id)
+      })
+    })
   })
 })
 
