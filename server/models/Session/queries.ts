@@ -84,28 +84,17 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
       getClient()
     )
 
-    const sessions = result.map(v =>
-      makeSomeOptional(v, ['volunteer', 'paidTutorsPilotGroup'])
-    )
-    const oneMinuteAgo = moment().subtract(1, 'minutes')
-
-    const fileteredSessions = sessions.filter(session => {
-      const isNewStudent = session.isFirstTimeStudent
-      const wasSessionCreatedAMinuteAgo = moment(oneMinuteAgo).isBefore(
-        session.createdAt
-      )
-      // Don't show new students' sessions for a minute (they often cancel immediately)
-      if (isNewStudent && wasSessionCreatedAMinuteAgo) return false
-      return true
+    return result.map(session => {
+      const s = makeSomeOptional(session, ['volunteer', 'paidTutorsPilotGroup'])
+      return {
+        ...s,
+        _id: s.id,
+        student: {
+          firstname: s.studentFirstName,
+          isTestUser: s.studentTestUser,
+        },
+      }
     })
-    return fileteredSessions.map(v => ({
-      ...v,
-      _id: v.id,
-      student: {
-        firstname: v.studentFirstName,
-        isTestUser: v.studentTestUser,
-      },
-    }))
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -25,7 +25,7 @@ export const client = isValidConfigToken(config.posthogToken)
       capture: async () => {
         /* no-op */
       },
-      shutdownAsync: async () => {
+      shutdown: async () => {
         /* no-op */
       },
     }
