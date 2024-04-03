@@ -4,15 +4,19 @@ import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as ProgressReportsRepo from '../../models/ProgressReports'
 import * as SessionRepo from '../../models/Session'
+import * as StudentRepo from '../../models/Student'
+import * as SubjectsRepo from '../../models/Subjects'
 import {
   buildProgressReport,
   buildUserSession,
   buildMessageForFrontend,
   buildProgressReportSummaryRow,
   buildProgressReportConceptRow,
+  buildStudent,
+  buildSubjectAndTopic,
 } from '../mocks/generate'
 import { logError } from '../../logger'
-import { EVENTS } from '../../constants'
+import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { openai } from '../../services/BotsService'
 
 jest.mock('openai', () => {
@@ -30,10 +34,14 @@ jest.mock('openai', () => {
 jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/ProgressReports')
 jest.mock('../../models/Session')
+jest.mock('../../models/Student')
+jest.mock('../../models/Subjects')
 jest.mock('../../logger')
 
 const mockedProgressReportsRepo = mocked(ProgressReportsRepo)
 const mockedSessionRepo = mocked(SessionRepo)
+const mockedStudentRepo = mocked(StudentRepo)
+const mockedSubjectRepo = mocked(SubjectsRepo)
 
 const userId: Ulid = getDbUlid()
 const session = buildUserSession({
@@ -41,6 +49,7 @@ const session = buildUserSession({
   volunteerId: getDbUlid(),
 })
 const mockedProgressReport = buildProgressReport()
+const mockPrompt = `This is a test prompt for a {{gradeLevel}} student. Please respond with {{responseInstructions}}`
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -65,12 +74,13 @@ describe('saveProgressReport', () => {
       )}`
     )
     await expect(
-      ProgressReportsService.saveProgressReport(
+      ProgressReportsService.saveProgressReport({
         userId,
         sessionIds,
-        mockedProgressReport,
-        'single'
-      )
+        data: mockedProgressReport,
+        analysisType: 'single',
+        promptId: 1,
+      })
     ).rejects.toThrow(error)
   })
 
@@ -85,12 +95,13 @@ describe('saveProgressReport', () => {
       )}`
     )
     await expect(
-      ProgressReportsService.saveProgressReport(
+      ProgressReportsService.saveProgressReport({
         userId,
         sessionIds,
-        mockedProgressReport,
-        'single'
-      )
+        data: mockedProgressReport,
+        analysisType: 'single',
+        promptId: 1,
+      })
     ).rejects.toThrow(error)
   })
 
@@ -98,6 +109,7 @@ describe('saveProgressReport', () => {
     const reportId = getDbUlid()
     const reportSummaryId = getDbUlid()
     const reportConceptId = getDbUlid()
+    const promptId = 1
 
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)
     mockedProgressReportsRepo.insertProgressReportSummary.mockResolvedValue(
@@ -107,15 +119,17 @@ describe('saveProgressReport', () => {
       reportConceptId
     )
 
-    await ProgressReportsService.saveProgressReport(
+    await ProgressReportsService.saveProgressReport({
       userId,
-      [session.id],
-      mockedProgressReport,
-      'single'
-    )
+      sessionIds: [session.id],
+      data: mockedProgressReport,
+      analysisType: 'single',
+      promptId,
+    })
     expect(mockedProgressReportsRepo.insertProgressReport).toHaveBeenCalledWith(
       userId,
-      'pending'
+      'pending',
+      promptId
     )
 
     expect(
@@ -153,12 +167,13 @@ describe('saveProgressReport', () => {
       mockedProgressReportsRepo.updateProgressReportStatus
     ).toHaveBeenCalledWith(reportId, 'complete')
 
-    await ProgressReportsService.saveProgressReport(
+    await ProgressReportsService.saveProgressReport({
       userId,
-      [session.id],
-      mockedProgressReport,
-      'group'
-    )
+      sessionIds: [session.id],
+      data: mockedProgressReport,
+      analysisType: 'group',
+      promptId: 1,
+    })
 
     expect(
       mockedProgressReportsRepo.insertProgressReportSession
@@ -182,12 +197,13 @@ describe('saveProgressReport', () => {
     )
 
     await expect(
-      ProgressReportsService.saveProgressReport(
+      ProgressReportsService.saveProgressReport({
         userId,
-        [session.id],
-        mockedProgressReport,
-        'single'
-      )
+        sessionIds: [session.id],
+        data: mockedProgressReport,
+        analysisType: 'single',
+        promptId: 1,
+      })
     ).rejects.toThrow()
     expect(
       mockedProgressReportsRepo.updateProgressReportStatus
@@ -304,6 +320,21 @@ describe('generateProgressReportForUser', () => {
     const conceptRow = buildProgressReportConceptRow()
     const sessions = [session]
     const sessionsWithMessages = createSessionsWithMessages(sessions)
+    const student = buildStudent()
+    const mockActivePrompt = {
+      id: 1,
+      prompt: mockPrompt,
+    }
+    mockedStudentRepo.getStudentProfileByUserId.mockResolvedValueOnce({
+      ...student,
+      userId: student.id,
+    })
+    mockedSubjectRepo.getSubjectAndTopic.mockResolvedValueOnce(
+      buildSubjectAndTopic()
+    )
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
+      mockActivePrompt
+    )
     mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValue(
       [summaryRow]
     )
@@ -381,7 +412,71 @@ describe('generateProgressReportForUser', () => {
     // Use this as a proxy to tell if saveProgressReport was called
     expect(mockedProgressReportsRepo.insertProgressReport).toHaveBeenCalledWith(
       userId,
-      'pending'
+      'pending',
+      mockActivePrompt.id
     )
+  })
+})
+
+describe('hasActiveSubjectPrompt', () => {
+  test('Should return false if there is no prompt or an error is thrown', async () => {
+    const mockError = 'Error'
+    const mockActivePrompt = {
+      id: 1,
+      prompt: '',
+    }
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockRejectedValueOnce(
+      mockError
+    )
+    const resultOne = await ProgressReportsService.hasActiveSubjectPrompt(
+      'algebraOne'
+    )
+    expect(resultOne).toBeFalsy()
+
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
+      mockActivePrompt
+    )
+    const resultTwo = await ProgressReportsService.hasActiveSubjectPrompt(
+      'reading'
+    )
+    expect(resultTwo).toBeFalsy()
+  })
+
+  test('Should return true when a prompt is received', async () => {
+    const mockActivePrompt = {
+      id: 1,
+      prompt: 'Prompt',
+    }
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
+      mockActivePrompt
+    )
+    const result = await ProgressReportsService.hasActiveSubjectPrompt(
+      'reading'
+    )
+    expect(result).toBeTruthy()
+  })
+})
+
+describe('getActivePromptWithTemplateReplacement', () => {
+  test('Should return a system prompt and replace placeholders', async () => {
+    const student = buildStudent()
+    const mockActivePrompt = {
+      id: 1,
+      prompt: mockPrompt,
+    }
+    const subject = buildSubjectAndTopic()
+    const expectedPrompt = `This is a test prompt for a ${student.currentGrade} student. Please respond with ${PROGRESS_REPORT_JSON_INSTRUCTIONS}`
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
+      mockActivePrompt
+    )
+    mockedStudentRepo.getStudentProfileByUserId.mockResolvedValueOnce({
+      ...student,
+      userId: student.id,
+    })
+    const result = await ProgressReportsService.getActiveSubjectPromptWithTemplateReplacement(
+      student.id,
+      subject
+    )
+    expect(expectedPrompt).toBe(result.prompt)
   })
 })

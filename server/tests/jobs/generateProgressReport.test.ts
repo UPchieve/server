@@ -45,6 +45,9 @@ describe(Jobs.GenerateProgressReport, () => {
     const errorTwo = `Error in group session report: ${errorMessageTwo}`
     const expectedErrors = [errorOne, errorTwo]
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      true
+    )
     mockedProgressReportsService.generateProgressReportForUser.mockRejectedValueOnce(
       errorMessageOne
     )
@@ -73,6 +76,9 @@ describe(Jobs.GenerateProgressReport, () => {
         sessionId: session.id,
       },
     }
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      true
+    )
     const reportOne = buildProgressReport()
     const reportTwo = buildProgressReport()
     const url = `http://localhost:3000/api/webhooks/progress-reports/processed`
@@ -134,16 +140,16 @@ describe(Jobs.GenerateProgressReport, () => {
     )
   })
 
-  test('Should early exit if not a reading session', async () => {
-    const session = await buildSession({
-      studentId: getDbUlid(),
-      subject: 'algebraOne',
-    })
+  test('Should early exit if no prompt for subject session', async () => {
+    const session = await buildSession({ studentId: getDbUlid() })
     const job = {
       data: {
         sessionId: session.id,
       },
     }
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      false
+    )
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
 
     await generateProgressReport(job as Job)
@@ -164,6 +170,9 @@ describe(Jobs.GenerateProgressReport, () => {
       },
     }
 
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      true
+    )
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
     mockedFeatureFlagService.getProgressReportsFeatureFlag.mockResolvedValue(
       false
