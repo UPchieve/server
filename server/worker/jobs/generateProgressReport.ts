@@ -3,6 +3,7 @@ import { getSessionById } from '../../models/Session'
 import { Ulid } from '../../models/pgUtils'
 import {
   generateProgressReportForUser,
+  hasActiveSubjectPrompt,
   ProgressReport,
   ProgressReportSessionFilter,
 } from '../../services/ProgressReportsService'
@@ -75,11 +76,12 @@ async function generateAndEmitProgressReport(
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {
   const sessionId = asUlid(job.data.sessionId)
   const session = await getSessionById(sessionId)
+  const isSubjectPromptActive = await hasActiveSubjectPrompt(session.subject)
   const isProgressReportsActive = await getProgressReportsFeatureFlag(
     session.studentId
   )
   if (
-    session.subject !== 'reading' ||
+    !isSubjectPromptActive ||
     !isProgressReportsActive ||
     session.timeTutored < config.minSessionLength
   )
