@@ -253,6 +253,60 @@ describe('rosterPartnerStudents', () => {
   })
 
   describe('creates and/or deactivates studentPartnerOrg instance', () => {
+    test('gets the active non-school and school partners with the correct parameters', async () => {
+      const USER_ID = 'userId555'
+      const PARTNER_ID = 'partner-id'
+      const PARTNER_KEY = 'partner-key'
+      const SITE_ID = 'site-id'
+      const SCHOOL_ID = 'school-id'
+
+      const rosterStudent = {
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        gradeLevel: '9',
+        lastName: faker.name.lastName(),
+        proxyEmail: faker.internet.email(),
+      }
+      mockedUserRepo.upsertUser.mockResolvedValue({
+        id: USER_ID,
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        proxyEmail: undefined,
+        isCreated: true,
+      })
+      mockedStudentRepo.getActivePartnersForStudent.mockResolvedValue(undefined)
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId.mockResolvedValue(
+        undefined
+      )
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey.mockResolvedValue({
+        partnerId: PARTNER_ID,
+        partnerKey: PARTNER_KEY,
+        partnerName: 'partner-name',
+        siteId: SITE_ID,
+      })
+
+      await rosterPartnerStudents(
+        [rosterStudent],
+        SCHOOL_ID,
+        PARTNER_KEY,
+        SITE_ID
+      )
+
+      expect(
+        mockedStudentRepo.getActivePartnersForStudent
+      ).toHaveBeenCalledWith(USER_ID, expect.toBeTransactionClient())
+      expect(
+        mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId
+      ).toHaveBeenCalledWith(expect.toBeTransactionClient(), SCHOOL_ID)
+      expect(
+        mockedStudentPartnerOrgRepo.getStudentPartnerOrgByKey
+      ).toHaveBeenCalledWith(
+        expect.toBeTransactionClient(),
+        PARTNER_KEY,
+        SITE_ID
+      )
+    })
+
     test('creates non-school partner org instance when none active', async () => {
       const USER_ID = 'userId000'
       const NEW_PARTNER_ID = 'new-partner-id'
