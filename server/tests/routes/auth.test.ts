@@ -31,6 +31,7 @@ jest.mock('../../utils/auth-utils', () => ({
     }),
   },
 }))
+jest.mock('../../router/auth/passport-auth-middleware')
 
 const US_IP_ADDRESS = '161.185.160.93'
 const AUTH_ROUTE = '/auth'
