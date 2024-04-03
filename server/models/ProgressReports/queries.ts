@@ -12,11 +12,13 @@ import {
   ProgressReportConceptRow,
   ProgressReportSummaryRow,
   ProgressReportSessionPaginated,
+  ProgressReportPrompt,
 } from './types'
 
 export async function insertProgressReport(
   userId: Ulid,
   status: ProgressReportStatuses,
+  promptId: number,
   tc?: TransactionClient
 ): Promise<Ulid> {
   try {
@@ -25,6 +27,7 @@ export async function insertProgressReport(
         id: getDbUlid(),
         userId,
         status,
+        promptId,
       },
       tc ?? getClient()
     )
@@ -380,6 +383,31 @@ export async function getUnreadProgressReportOverviewSubjectsByUserId(
     )
     if (result.length) return result.map(row => makeRequired(row).subject)
     return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getActiveSubjectPromptBySubjectName(
+  subject: string,
+  tc?: TransactionClient
+): Promise<ProgressReportPrompt> {
+  try {
+    const result = await pgQueries.getActiveSubjectPromptBySubjectName.run(
+      { subject },
+      tc ?? getClient()
+    )
+    if (result.length) {
+      const data = makeRequired(result[0])
+      if (!data.prompt)
+        throw new RepoReadError(
+          `getActivePromptBySubjectName: Empty progress report prompt for ${subject}`
+        )
+      else return data
+    } else
+      throw new RepoReadError(
+        `getActivePromptBySubjectName: No active progress report prompt found for subject ${subject}`
+      )
   } catch (err) {
     throw new RepoReadError(err)
   }

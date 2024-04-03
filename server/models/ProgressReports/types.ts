@@ -70,3 +70,8 @@ export type ProgressReportSessionPaginated = {
   subject: string
   createdAt: Date
 }
+
+export type ProgressReportPrompt = {
+  id: number
+  prompt: string
+}
