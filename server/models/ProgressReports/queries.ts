@@ -401,7 +401,7 @@ export async function getActiveSubjectPromptBySubjectName(
       const data = makeRequired(result[0])
       if (!data.prompt)
         throw new RepoReadError(
-          `getActivePromptBySubjectName: Empty progress report prompt for ${subject}`
+          `getActivePromptBySubjectName: Empty progress report prompt for subject ${subject}`
         )
       else return data
     } else
