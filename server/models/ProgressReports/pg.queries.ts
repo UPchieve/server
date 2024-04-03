@@ -789,3 +789,39 @@ const getActiveSubjectPromptBySubjectNameIR: any = {"name":"getActiveSubjectProm
 export const getActiveSubjectPromptBySubjectName = new PreparedQuery<IGetActiveSubjectPromptBySubjectNameParams,IGetActiveSubjectPromptBySubjectNameResult>(getActiveSubjectPromptBySubjectNameIR);
 
 
+/** 'MigrateProgressReportPromptIds' parameters type */
+export type IMigrateProgressReportPromptIdsParams = void;
+
+/** 'MigrateProgressReportPromptIds' return type */
+export type IMigrateProgressReportPromptIdsResult = void;
+
+/** 'MigrateProgressReportPromptIds' query type */
+export interface IMigrateProgressReportPromptIdsQuery {
+  params: IMigrateProgressReportPromptIdsParams;
+  result: IMigrateProgressReportPromptIdsResult;
+}
+
+const migrateProgressReportPromptIdsIR: any = {"name":"migrateProgressReportPromptIds","params":[],"usedParamSet":{},"statement":{"body":"UPDATE\n    progress_reports\nSET\n    prompt_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        progress_report_prompts.id\n    FROM\n        progress_report_prompts\n        JOIN subjects ON subjects.id = progress_report_prompts.subject_id\n    WHERE\n        subjects.name = 'reading'\n        AND progress_report_prompts.active IS TRUE) AS subquery","loc":{"a":11592,"b":11950,"line":335,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     progress_reports
+ * SET
+ *     prompt_id = subquery.id,
+ *     updated_at = NOW()
+ * FROM (
+ *     SELECT
+ *         progress_report_prompts.id
+ *     FROM
+ *         progress_report_prompts
+ *         JOIN subjects ON subjects.id = progress_report_prompts.subject_id
+ *     WHERE
+ *         subjects.name = 'reading'
+ *         AND progress_report_prompts.active IS TRUE) AS subquery
+ * ```
+ */
+export const migrateProgressReportPromptIds = new PreparedQuery<IMigrateProgressReportPromptIdsParams,IMigrateProgressReportPromptIdsResult>(migrateProgressReportPromptIdsIR);
+
+
