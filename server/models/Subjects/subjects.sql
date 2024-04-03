@@ -11,7 +11,8 @@ FROM
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE
     subjects.name = :subject!
-    AND topics.name = :topic!;
+    AND ((:topic)::text IS NULL
+        OR topics.name = (:topic)::text);
 
 
 /* @name getSubjects */
