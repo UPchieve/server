@@ -1,6 +1,7 @@
 import { messaging } from 'firebase-admin'
 import { Session } from '../models/Session'
 import Case from 'case'
+import { isDevEnvironment } from '../utils/environments'
 
 async function sendToUser(
   title: string,
@@ -8,6 +9,11 @@ async function sendToUser(
   data: { path: string },
   tokens: string[]
 ) {
+  // prevent errors in local dev when we are not testing firebase
+  if (isDevEnvironment() && !process.env.SUBWAY_FIREBASE_PROJECT_ID) {
+    return
+  }
+
   return await messaging().sendMulticast({
     tokens, // can also send to a topic (group of people)
     // ios and android process data a little differently, so setup separate objects for each
