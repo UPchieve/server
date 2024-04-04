@@ -412,11 +412,3 @@ export async function getActiveSubjectPromptBySubjectName(
     throw new RepoReadError(err)
   }
 }
-
-export async function migrateProgressReportPromptIds(): Promise<void> {
-  try {
-    await pgQueries.migrateProgressReportPromptIds.run(undefined, getClient())
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
