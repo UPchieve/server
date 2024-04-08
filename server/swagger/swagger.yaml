@@ -2954,7 +2954,7 @@ paths:
         '200':
           description: |
             - Gets a list of subjects with progress report overview stats
-  /api//progress-reports/overview/latest/subject:
+  /api/progress-reports/overview/latest/subject:
     get:
       tags:
         - progress-reports

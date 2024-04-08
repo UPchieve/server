@@ -379,8 +379,7 @@ export async function getProgressReportOverviewSubjectStatsByUserId(
       },
       tc ?? getClient()
     )
-    if (result.length) return result.map(row => makeRequired(row))
-    return []
+    return result.map(row => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -389,7 +388,7 @@ export async function getProgressReportOverviewSubjectStatsByUserId(
 export async function getLatestProgressReportOverviewSubjectByUserId(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<string> {
+): Promise<string | undefined> {
   try {
     const result = await pgQueries.getLatestProgressReportOverviewSubjectByUserId.run(
       {
@@ -398,7 +397,6 @@ export async function getLatestProgressReportOverviewSubjectByUserId(
       tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0]).name
-    return ''
   } catch (err) {
     throw new RepoReadError(err)
   }

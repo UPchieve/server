@@ -501,6 +501,6 @@ export async function getProgressReportOverviewSubjectStats(
 
 export async function getLatestProgressReportOverviewSubject(
   userId: Ulid
-): Promise<string> {
+): Promise<string | undefined> {
   return await getLatestProgressReportOverviewSubjectByUserId(userId)
 }

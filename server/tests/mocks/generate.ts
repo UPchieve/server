@@ -562,7 +562,7 @@ export function buildProgressReportOverviewSubjectStat(
   return {
     subject: 'algebraOne',
     totalUnreadReports: 1,
-    hasUnreadReports: false,
+    hasUnreadReports: true,
     overallGrade: 80,
     latestReportCreatedAt: new Date(),
     ...overrides,
