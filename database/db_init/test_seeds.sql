@@ -1576,6 +1576,15 @@ COPY upchieve.progress_report_analysis_types (id, name, created_at, updated_at) 
 
 
 --
+-- Data for Name: progress_report_prompts; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_prompts (id, subject_id, prompt, active, created_at, updated_at) FROM stdin;
+1	25	Analyze transcripts from a series of high school reading tutoring sessions involving the same student. \n    Predict the topics for the student's next quiz and assess their likely performance. \n    Highlight the areas where the student is expected to excel, \n    based on the dialogue and editor content provided in each session. \n    The format of the transcripts is:\n\n    Session:\n    [hh:mm:ss] Tutor: {message}\n    [hh:mm:ss] Student: {message}\n\n    Editor:\n    {editorContent}\n\n    The editor content is a JSON representation of a Quill Editor document in Quill's Delta format. \n    The Delta format is a series of operations applied to the document. \n    Both the student and the tutor can commit operations. You will not know the author of an operation, \n    although you can assume that students insert the early original content into the document; \n    tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; \n    and students may make additional edits to respond to the tutor's feedback. \n\n    {{responseInstructions}}	t	2024-04-03 19:27:41.970126+00	2024-04-03 19:27:41.970126+00
+\.
+
+
+--
 -- Data for Name: progress_report_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -1591,7 +1600,7 @@ COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM s
 -- Data for Name: progress_reports; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at, read_at) FROM stdin;
+COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at, read_at, prompt_id) FROM stdin;
 \.
 
 
@@ -3914,6 +3923,13 @@ SELECT pg_catalog.setval('upchieve.progress_report_focus_areas_id_seq', 2, true)
 --
 
 SELECT pg_catalog.setval('upchieve.progress_report_info_types_id_seq', 2, true);
+
+
+--
+-- Name: progress_report_prompts_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.progress_report_prompts_id_seq', 1, true);
 
 
 --

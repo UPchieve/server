@@ -846,6 +846,40 @@ ALTER SEQUENCE upchieve.progress_report_info_types_id_seq OWNED BY upchieve.prog
 
 
 --
+-- Name: progress_report_prompts; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.progress_report_prompts (
+    id integer NOT NULL,
+    subject_id integer NOT NULL,
+    prompt text NOT NULL,
+    active boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: progress_report_prompts_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_prompts_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_prompts_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_prompts_id_seq OWNED BY upchieve.progress_report_prompts.id;
+
+
+--
 -- Name: progress_report_sessions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -929,7 +963,8 @@ CREATE TABLE upchieve.progress_reports (
     status_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    read_at timestamp with time zone
+    read_at timestamp with time zone,
+    prompt_id integer
 );
 
 
@@ -2528,6 +2563,13 @@ ALTER TABLE ONLY upchieve.progress_report_info_types ALTER COLUMN id SET DEFAULT
 
 
 --
+-- Name: progress_report_prompts id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_prompts ALTER COLUMN id SET DEFAULT nextval('upchieve.progress_report_prompts_id_seq'::regclass);
+
+
+--
 -- Name: progress_report_statuses id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3070,6 +3112,14 @@ ALTER TABLE ONLY upchieve.progress_report_info_types
 
 ALTER TABLE ONLY upchieve.progress_report_info_types
     ADD CONSTRAINT progress_report_info_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: progress_report_prompts progress_report_prompts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_prompts
+    ADD CONSTRAINT progress_report_prompts_pkey PRIMARY KEY (id);
 
 
 --
@@ -3856,6 +3906,13 @@ CREATE INDEX "IDX_session_expire" ON auth.session USING btree (expire);
 
 
 --
+-- Name: availabilities_weekday_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX availabilities_weekday_id_idx ON upchieve.availabilities USING btree (weekday_id);
+
+
+--
 -- Name: availability_histories_user_id_recorded_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -3902,6 +3959,20 @@ CREATE INDEX progress_report_concept_details_concept_id ON upchieve.progress_rep
 --
 
 CREATE INDEX progress_report_concepts_progress_report_id ON upchieve.progress_report_concepts USING btree (progress_report_id);
+
+
+--
+-- Name: progress_report_prompt_subject_id_active; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX progress_report_prompt_subject_id_active ON upchieve.progress_report_prompts USING btree (subject_id, active);
+
+
+--
+-- Name: progress_report_prompt_unique_active_subject_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX progress_report_prompt_unique_active_subject_id ON upchieve.progress_report_prompts USING btree (subject_id) WHERE active;
 
 
 --
@@ -4353,6 +4424,14 @@ ALTER TABLE ONLY upchieve.progress_report_concepts
 
 
 --
+-- Name: progress_report_prompts progress_report_prompts_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_report_prompts
+    ADD CONSTRAINT progress_report_prompts_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
 -- Name: progress_report_sessions progress_report_sessions_progress_report_analysis_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4406,6 +4485,14 @@ ALTER TABLE ONLY upchieve.progress_report_summary_details
 
 ALTER TABLE ONLY upchieve.progress_report_summary_details
     ADD CONSTRAINT progress_report_summary_details_progress_report_summary_id_fkey FOREIGN KEY (progress_report_summary_id) REFERENCES upchieve.progress_report_summaries(id);
+
+
+--
+-- Name: progress_reports progress_reports_prompt_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.progress_reports
+    ADD CONSTRAINT progress_reports_prompt_id_fkey FOREIGN KEY (prompt_id) REFERENCES upchieve.progress_report_prompts(id);
 
 
 --
@@ -5365,4 +5452,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20231211220614'),
     ('20231221230720'),
     ('20240222161927'),
-    ('20240226144028');
+    ('20240226144028'),
+    ('20240320184030'),
+    ('20240403012341');
