@@ -42,6 +42,7 @@ export default function(app: Express) {
     },
     allowEIO3: true,
   })
+  // Set up Socket IO admin UI
   instrument(io, {
     mode: isProductionEnvironment() ? 'production' : 'development',
     readonly: isProductionEnvironment(),
