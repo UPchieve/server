@@ -50,7 +50,7 @@ export function resError(
 
     if (config.NODE_ENV === 'production' && status === 500)
       Sentry.captureException(err)
-      logError(err as Error)
+    logError(err as Error)
 
     res.status(status).json({
       err: message || err.message,
