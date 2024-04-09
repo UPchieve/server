@@ -23,6 +23,8 @@ export default function(app: Express) {
       cookie: {
         httpOnly: false,
         maxAge: config.sessionCookieMaxAge,
+        sameSite: 'lax',
+        secure: 'auto',
       },
     })
   )
