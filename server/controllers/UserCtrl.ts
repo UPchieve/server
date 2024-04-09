@@ -11,6 +11,7 @@ import { Certifications } from '../models/Volunteer'
 import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { emitter } from '../services/EventsService'
+import { logError } from '../logger'
 import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
 
 export async function checkReferral(
@@ -24,6 +25,7 @@ export async function checkReferral(
       if (user) return user.id
     } catch (error) {
       captureException(error)
+      logError(error as Error)
     }
   }
 }
@@ -63,6 +65,7 @@ async function createStudent(
     await USMRepo.createUSMByUserId(student.id)
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   // Create a UPF object for this new user
@@ -70,6 +73,7 @@ async function createStudent(
     await UPFRepo.createUPFByUserId(student.id)
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   try {
@@ -80,12 +84,14 @@ async function createStudent(
     })
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   try {
     await createContact(student.id)
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, student.id)
@@ -107,6 +113,7 @@ export async function createVolunteer(
     await USMRepo.createUSMByUserId(volunteer.id)
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   // Create a UPF object for this new user
@@ -114,6 +121,7 @@ export async function createVolunteer(
     await UPFRepo.createUPFByUserId(volunteer.id)
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   try {
@@ -124,6 +132,7 @@ export async function createVolunteer(
     })
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   try {
@@ -131,6 +140,7 @@ export async function createVolunteer(
     await createContact(volunteer.id)
   } catch (err) {
     captureException(err)
+    logError(err as Error)
   }
 
   // needs to return id and partner org for frontend
