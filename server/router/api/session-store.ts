@@ -21,10 +21,10 @@ export default function(app: Express) {
       secret: config.sessionSecret,
       store: store,
       cookie: {
-        httpOnly: false,
-        maxAge: config.sessionCookieMaxAge,
         sameSite: 'lax',
         secure: 'auto',
+        httpOnly: false,
+        maxAge: config.sessionCookieMaxAge,
       },
     })
   )

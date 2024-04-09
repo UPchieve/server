@@ -9,6 +9,7 @@ import logger from './logger'
 import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
 import { Express } from 'express'
 import SocketService from './services/SocketService'
+import { isDevEnvironment } from './utils/environments'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = (app: Express) => {
@@ -37,6 +38,8 @@ export default function(app: Express) {
     cookie: {
       name: 'subway-io',
       httpOnly: false,
+      sameSite: 'lax',
+      secure: !isDevEnvironment(),
     },
     allowEIO3: true,
   })
