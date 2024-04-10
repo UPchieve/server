@@ -51,6 +51,7 @@ import studentProcrastinationTextReminder from './studentProcrastinationTextRemi
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
+import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 
 export enum Jobs {
@@ -127,6 +128,7 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpsertSchools = 'UpsertSchools',
+  MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
 
   // Eng Tooling Scripts
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
@@ -391,6 +393,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateBasicAccessViews,
     processor: updateBasicAccessViews,
+  },
+  {
+    name: Jobs.MigrateProgressReportPromptIds,
+    processor: migrateProgressReportPromptIds,
   },
 ]
 
