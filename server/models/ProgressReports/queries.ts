@@ -429,28 +429,3 @@ export async function getActiveSubjectPromptBySubjectName(
     throw new RepoReadError(err)
   }
 }
-
-export async function getActiveSubjectPromptBySubjectName(
-  subject: string,
-  tc?: TransactionClient
-): Promise<ProgressReportPrompt> {
-  try {
-    const result = await pgQueries.getActiveSubjectPromptBySubjectName.run(
-      { subject },
-      tc ?? getClient()
-    )
-    if (result.length) {
-      const data = makeRequired(result[0])
-      if (!data.prompt)
-        throw new RepoReadError(
-          `getActivePromptBySubjectName: Empty progress report prompt for subject ${subject}`
-        )
-      else return data
-    } else
-      throw new RepoReadError(
-        `getActivePromptBySubjectName: No active progress report prompt found for subject ${subject}`
-      )
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
