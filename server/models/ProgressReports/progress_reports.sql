@@ -1,9 +1,10 @@
 /* @name insertProgressReport */
-INSERT INTO progress_reports (id, user_id, status_id)
+INSERT INTO progress_reports (id, user_id, status_id, prompt_id)
 SELECT
     :id!,
     :userId!,
-    subquery.id
+    subquery.id,
+    :promptId!
 FROM (
     SELECT
         id
@@ -346,4 +347,16 @@ FROM
     JOIN subjects ON sessions.subject_id = subjects.id
 WHERE
     progress_reports.user_id = :userId!;
+
+
+/* @name getActiveSubjectPromptBySubjectName */
+SELECT
+    progress_report_prompts.id,
+    prompt
+FROM
+    progress_report_prompts
+    JOIN subjects ON progress_report_prompts.subject_id = subjects.id
+WHERE
+    subjects.name = :subject!
+    AND progress_report_prompts.active IS TRUE;
 

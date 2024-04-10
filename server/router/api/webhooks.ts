@@ -12,7 +12,7 @@ export function routeWebhooks(router: Router): void {
     async function(req, res) {
       try {
         const userId = asUlid(req.body.userId)
-        const sessionId = asUlid(req.body.sessionId)
+        const sessionId = req.body.sessionId
         const subject = asString(req.body.subject)
         const analysisType = asString(
           req.body.analysisType

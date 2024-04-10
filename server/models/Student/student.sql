@@ -773,3 +773,17 @@ SELECT
 FROM
     deleted_rows;
 
+
+/* @name getStudentProfileByUserId */
+SELECT
+    student_profiles.user_id,
+    grade_levels.name AS grade_level,
+    users.created_at,
+    users.updated_at
+FROM
+    student_profiles
+    JOIN users ON student_profiles.user_id = users.id
+    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+WHERE
+    student_profiles.user_id = :userId!;
+

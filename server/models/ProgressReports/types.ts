@@ -76,3 +76,8 @@ export type ProgressReportOverviewUnreadStat = {
   subject: string
   totalUnreadReports: number
 }
+
+export type ProgressReportPrompt = {
+  id: number
+  prompt: string
+}

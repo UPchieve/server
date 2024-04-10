@@ -22,7 +22,7 @@ import { asBoolean, asNumber, asString } from '../../utils/type-utils'
 
 export async function getSubjectAndTopic(
   subject: string,
-  topic: string
+  topic?: string
 ): Promise<SubjectAndTopic | undefined> {
   try {
     const result = await pgQueries.getSubjectAndTopic.run(

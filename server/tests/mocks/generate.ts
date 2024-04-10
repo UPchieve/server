@@ -36,6 +36,7 @@ import {
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
 import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
+import { SubjectAndTopic } from '../../models/Subjects'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -161,6 +162,7 @@ export function buildStudent(overrides: Partial<AppStudent> = {}): AppStudent {
     zipCode: '11201',
     schoolId: getDbUlid(),
     currentGrade: GRADES.EIGHTH,
+    gradeLevel: GRADES.EIGHTH,
     signupSourceId: 1,
     studentPartnerOrg: '',
     studentPartnerSite: '',
@@ -577,4 +579,18 @@ export function buildProgressReportOverviewSubjectStat(
     latestReportCreatedAt: new Date(),
     ...overrides,
   }
+}
+
+export const buildSubjectAndTopic = (
+  overrides: Partial<SubjectAndTopic> = {}
+): SubjectAndTopic => {
+  const subject = {
+    subjectName: 'algebraOne',
+    subjectDisplayName: 'Algebra 1',
+    topicName: 'math',
+    topicDisplayName: 'Math',
+    toolType: 'whiteboard',
+    ...overrides,
+  }
+  return subject
 }
