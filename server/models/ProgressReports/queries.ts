@@ -12,6 +12,7 @@ import {
   ProgressReportConceptRow,
   ProgressReportSummaryRow,
   ProgressReportSessionPaginated,
+  ProgressReportOverviewUnreadStat,
   ProgressReportPrompt,
 } from './types'
 
@@ -370,19 +371,60 @@ export async function updateProgressReportsReadAtByReportIds(
   }
 }
 
-export async function getUnreadProgressReportOverviewSubjectsByUserId(
+export async function getProgressReportOverviewUnreadStatsByUserId(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<string[]> {
+): Promise<ProgressReportOverviewUnreadStat[]> {
   try {
-    const result = await pgQueries.getUnreadProgressReportOverviewSubjectsByUserId.run(
+    const result = await pgQueries.getProgressReportOverviewUnreadStatsByUserId.run(
       {
         userId,
       },
       tc ?? getClient()
     )
-    if (result.length) return result.map(row => makeRequired(row).subject)
-    return []
+    return result.map(row => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestProgressReportOverviewSubjectByUserId(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<string | undefined> {
+  try {
+    const result = await pgQueries.getLatestProgressReportOverviewSubjectByUserId.run(
+      {
+        userId,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return makeRequired(result[0]).name
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getActiveSubjectPromptBySubjectName(
+  subject: string,
+  tc?: TransactionClient
+): Promise<ProgressReportPrompt> {
+  try {
+    const result = await pgQueries.getActiveSubjectPromptBySubjectName.run(
+      { subject },
+      tc ?? getClient()
+    )
+    if (result.length) {
+      const data = makeRequired(result[0])
+      if (!data.prompt)
+        throw new RepoReadError(
+          `getActivePromptBySubjectName: Empty progress report prompt for subject ${subject}`
+        )
+      else return data
+    } else
+      throw new RepoReadError(
+        `getActivePromptBySubjectName: No active progress report prompt found for subject ${subject}`
+      )
   } catch (err) {
     throw new RepoReadError(err)
   }

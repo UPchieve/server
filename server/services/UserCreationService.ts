@@ -190,7 +190,7 @@ export async function registerStudent(data: RegisterStudentPayload) {
       college: data.college,
       userId: user.id,
       gradeLevel: data.gradeLevel,
-      partnerSite: data.studentPartnerSite,
+      partnerSite: data.partnerSite,
       schoolId: data.schoolId,
       studentPartnerOrg: data.studentPartnerOrg,
       zipCode: data.zipCode,
@@ -316,7 +316,8 @@ async function upsertStudent(
   let spoOrgToAdd = studentData.studentPartnerOrg
     ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
         tc,
-        studentData.studentPartnerOrg
+        studentData.studentPartnerOrg,
+        studentData.partnerSite
       )
     : null
   let spoSchoolToAdd =
