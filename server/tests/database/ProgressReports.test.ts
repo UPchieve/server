@@ -15,7 +15,6 @@ import {
   getProgressReportByReportId,
   getProgressReportSummariesForMany,
   getProgressReportConceptsByReportId,
-  getProgressReportOverviewUnreadStatsByUserId,
 } from '../../models/ProgressReports'
 import {
   ProgressReportConcept,
