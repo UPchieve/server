@@ -58,3 +58,17 @@ export type ProgressReportOverviewSubjectStat = ProgressReportOverviewUnreadStat
   overallGrade: number
   latestReportCreatedAt: Date
 }
+
+export type ProgressReportPromptTemplateVariables = {
+  responseInstructions: string
+  gradeLevel?: string
+  subjectDisplayName?: string
+}
+
+export type SaveProgressReportOptions = {
+  userId: Ulid
+  sessionIds: Ulid[]
+  data: ProgressReport
+  analysisType: ProgressReportAnalysisTypes
+  promptId: number
+}
