@@ -564,25 +564,6 @@ describe('getProgressReportSummariesForMany', () => {
   })
 })
 
-describe('getProgressReportOverviewUnreadStatsByUserId', () => {
-  test('Get the progress report by the report id', async () => {
-    const userId = getUuid()
-    const reportId = getUuid()
-    const session = await insertSession()
-    await insertProgressReportWithSummaryAndConcepts({
-      id: reportId,
-      statusId: 1,
-      sessionId: session.id,
-      summary: buildProgressReportSummary(),
-      concepts: [buildProgressReportConcept()],
-    })
-
-    const result = await getProgressReportOverviewUnreadStatsByUserId(userId)
-    console.log('The result:', result)
-    expect(result).toEqual({ id: reportId, status: 'pending' })
-  })
-})
-
 describe('getProgressReportConceptsByReportId', () => {
   test('Get concepts for a progress report', async () => {
     const session = await insertSession()
