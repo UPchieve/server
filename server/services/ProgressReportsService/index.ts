@@ -22,8 +22,9 @@ import {
   getProgressReportSessionsForSubjectByPagination,
   getLatestProgressReportIdBySubject,
   updateProgressReportsReadAtByReportIds,
-  getUnreadProgressReportOverviewSubjectsByUserId,
   getAllProgressReportIdsByUserIdAndSubject,
+  getLatestProgressReportOverviewSubjectByUserId,
+  getProgressReportOverviewUnreadStatsByUserId,
 } from '../../models/ProgressReports'
 import {
   UserSessionsWithMessages,
@@ -42,6 +43,7 @@ import {
   ProgressReportSummary,
   ProgressReportConcept,
   ProgressReportSessionFilter,
+  ProgressReportOverviewSubjectStat,
 } from './types'
 import { openai } from '../BotsService'
 import QueueService from '../QueueService'
@@ -491,8 +493,33 @@ export async function readProgressReportsByIds(
   await updateProgressReportsReadAtByReportIds(reportIds)
 }
 
-export async function getUnreadProgressReportOverviewSubjects(
+export async function getProgressReportOverviewSubjectStats(
   userId: Ulid
-): Promise<string[]> {
-  return await getUnreadProgressReportOverviewSubjectsByUserId(userId)
+): Promise<ProgressReportOverviewSubjectStat[]> {
+  const stats = []
+  const unreadStats = await getProgressReportOverviewUnreadStatsByUserId(userId)
+  for (const unread of unreadStats) {
+    const report = await getLatestProgressReportIdBySubject(
+      userId,
+      unread.subject,
+      'group'
+    )
+    if (!report) continue
+    const summary = await getProgressReportSummary(report.id)
+    const data: ProgressReportOverviewSubjectStat = {
+      ...unread,
+      overallGrade: summary.overallGrade,
+      latestReportCreatedAt: report.createdAt,
+    }
+    stats.push(data)
+  }
+  return stats.sort((a, b) =>
+    b.latestReportCreatedAt > a.latestReportCreatedAt ? 1 : -1
+  )
+}
+
+export async function getLatestProgressReportOverviewSubject(
+  userId: Ulid
+): Promise<string | undefined> {
+  return await getLatestProgressReportOverviewSubjectByUserId(userId)
 }

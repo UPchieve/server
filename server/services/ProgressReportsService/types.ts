@@ -4,6 +4,7 @@ import {
   ProgressReportInfoTypes,
   ProgressReportAnalysisTypes,
   ProgressReportInfo,
+  ProgressReportOverviewUnreadStat,
 } from '../../models/ProgressReports'
 import { UserSessionsFilter } from '../../models/Session'
 
@@ -51,4 +52,9 @@ export type ProgressReport = ProgressReportInfo & {
 
 export type ProgressReportSessionFilter = UserSessionsFilter & {
   analysisType: ProgressReportAnalysisTypes
+}
+
+export type ProgressReportOverviewSubjectStat = ProgressReportOverviewUnreadStat & {
+  overallGrade: number
+  latestReportCreatedAt: Date
 }
