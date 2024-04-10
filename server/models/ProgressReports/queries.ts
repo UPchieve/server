@@ -12,7 +12,7 @@ import {
   ProgressReportConceptRow,
   ProgressReportSummaryRow,
   ProgressReportSessionPaginated,
-  ProgressReportOverviewSubjectStat,
+  ProgressReportOverviewUnreadStat,
 } from './types'
 
 export async function insertProgressReport(
@@ -368,12 +368,12 @@ export async function updateProgressReportsReadAtByReportIds(
   }
 }
 
-export async function getProgressReportOverviewSubjectStatsByUserId(
+export async function getProgressReportOverviewUnreadStatsByUserId(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<ProgressReportOverviewSubjectStat[]> {
+): Promise<ProgressReportOverviewUnreadStat[]> {
   try {
-    const result = await pgQueries.getProgressReportOverviewSubjectStatsByUserId.run(
+    const result = await pgQueries.getProgressReportOverviewUnreadStatsByUserId.run(
       {
         userId,
       },

@@ -15,6 +15,7 @@ export type ProgressReportInfoTypes = 'recommendation' | 'reason'
 export type ProgressReportInfo = {
   id: Ulid
   status: ProgressReportStatuses
+  createdAt: Date
   readAt?: Date
 }
 
@@ -71,10 +72,7 @@ export type ProgressReportSessionPaginated = {
   createdAt: Date
 }
 
-export type ProgressReportOverviewSubjectStat = {
+export type ProgressReportOverviewUnreadStat = {
   subject: string
   totalUnreadReports: number
-  hasUnreadReports: boolean
-  overallGrade: number
-  latestReportCreatedAt: Date
 }

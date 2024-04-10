@@ -11,6 +11,7 @@ import {
   buildProgressReportSummaryRow,
   buildProgressReportConceptRow,
   buildProgressReportOverviewSubjectStat,
+  buildProgressReportOverviewUnreadStat,
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS } from '../../constants'
@@ -389,10 +390,21 @@ describe('generateProgressReportForUser', () => {
 
 describe('getProgressReportOverviewSubjectStats', () => {
   test('Should return progress report overview subject stats', async () => {
-    const data = buildProgressReportOverviewSubjectStat()
+    const unreadStat = buildProgressReportOverviewUnreadStat()
+    const mockedReport = buildProgressReport()
+    const data = buildProgressReportOverviewSubjectStat({ ...unreadStat })
     const mockedData = [data]
-    mockedProgressReportsRepo.getProgressReportOverviewSubjectStatsByUserId.mockResolvedValueOnce(
-      mockedData
+    const summaryRow = buildProgressReportSummaryRow({
+      overallGrade: data.overallGrade,
+    })
+    mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId.mockResolvedValueOnce(
+      [unreadStat]
+    )
+    mockedProgressReportsRepo.getLatestProgressReportIdBySubject.mockResolvedValueOnce(
+      mockedReport
+    )
+    mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValueOnce(
+      [summaryRow]
     )
     const result = await ProgressReportsService.getProgressReportOverviewSubjectStats(
       userId
@@ -400,11 +412,17 @@ describe('getProgressReportOverviewSubjectStats', () => {
 
     expect(mockedData).toMatchObject(result)
     expect(
-      mockedProgressReportsRepo.getProgressReportOverviewSubjectStatsByUserId
+      mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId
     ).toHaveBeenCalled()
     expect(
-      mockedProgressReportsRepo.getProgressReportOverviewSubjectStatsByUserId
+      mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId
     ).toHaveBeenCalledWith(userId)
+    expect(
+      mockedProgressReportsRepo.getLatestProgressReportIdBySubject
+    ).toHaveBeenCalled()
+    expect(
+      mockedProgressReportsRepo.getProgressReportSummariesForMany
+    ).toHaveBeenCalled()
   })
 })
 

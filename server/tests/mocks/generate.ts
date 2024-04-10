@@ -27,10 +27,11 @@ import {
   ProgressReportDetail,
   ProgressReportSummary,
   ProgressReportConcept,
+  ProgressReportOverviewSubjectStat,
 } from '../../services/ProgressReportsService'
 import {
   ProgressReportConceptRow,
-  ProgressReportOverviewSubjectStat,
+  ProgressReportOverviewUnreadStat,
   ProgressReportStatuses,
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
@@ -525,6 +526,7 @@ export const buildProgressReport = (
     status: 'complete' as ProgressReportStatuses,
     summary: buildProgressReportSummary(),
     concepts: [buildProgressReportConcept()],
+    createdAt: new Date(),
     ...overrides,
   }
   return report
@@ -556,13 +558,21 @@ export const buildTestVolunteerForAnalyticsReport = (overrides = {}) => {
   } as VolunteersForAnalyticsReport
 }
 
+export function buildProgressReportOverviewUnreadStat(
+  overrides: Partial<ProgressReportOverviewUnreadStat> = {}
+): ProgressReportOverviewUnreadStat {
+  return {
+    subject: 'algebraOne',
+    totalUnreadReports: 1,
+    ...overrides,
+  }
+}
+
 export function buildProgressReportOverviewSubjectStat(
   overrides: Partial<ProgressReportOverviewSubjectStat> = {}
 ): ProgressReportOverviewSubjectStat {
   return {
-    subject: 'algebraOne',
-    totalUnreadReports: 1,
-    hasUnreadReports: true,
+    ...buildProgressReportOverviewUnreadStat(),
     overallGrade: 80,
     latestReportCreatedAt: new Date(),
     ...overrides,

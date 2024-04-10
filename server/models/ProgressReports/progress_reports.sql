@@ -56,13 +56,13 @@ SELECT
         SELECT
             id
         FROM
-            upchieve.progress_report_focus_areas
+            progress_report_focus_areas
         WHERE
             name = :focusArea!), (
         SELECT
             id
         FROM
-            upchieve.progress_report_info_types
+            progress_report_info_types
         WHERE
             name = :infoType!)
 RETURNING
@@ -79,13 +79,13 @@ SELECT
         SELECT
             id
         FROM
-            upchieve.progress_report_focus_areas
+            progress_report_focus_areas
         WHERE
             name = :focusArea!), (
         SELECT
             id
         FROM
-            upchieve.progress_report_info_types
+            progress_report_info_types
         WHERE
             name = :infoType!)
 RETURNING
@@ -94,7 +94,7 @@ RETURNING
 
 /* @name updateProgressReportStatus */
 UPDATE
-    upchieve.progress_reports
+    progress_reports
 SET
     status_id = subquery.id,
     updated_at = NOW()
@@ -102,7 +102,7 @@ FROM (
     SELECT
         id
     FROM
-        upchieve.progress_report_statuses
+        progress_report_statuses
     WHERE
         name = :status!) AS subquery
 WHERE
@@ -115,6 +115,7 @@ RETURNING
 SELECT
     progress_reports.id,
     progress_report_statuses.name AS status,
+    progress_reports.created_at,
     progress_reports.read_at
 FROM
     progress_reports
@@ -134,6 +135,7 @@ ORDER BY
 SELECT
     progress_reports.id,
     progress_report_statuses.name AS status,
+    progress_reports.created_at,
     progress_reports.read_at
 FROM
     progress_reports
@@ -269,6 +271,7 @@ ORDER BY
 SELECT
     progress_reports.id,
     progress_report_statuses.name AS status,
+    progress_reports.created_at,
     progress_reports.read_at
 FROM
     progress_reports
@@ -299,23 +302,16 @@ RETURNING
     progress_reports.id AS ok;
 
 
-/* @name getProgressReportOverviewSubjectStatsByUserId */
+/* @name getProgressReportOverviewUnreadStatsByUserId */
 SELECT
     subjects.name AS subject,
-    SUM(
-        CASE WHEN progress_reports.read_at IS NULL THEN
-            1
-        ELSE
-            0
-        END)::int AS total_unread_reports,
-    BOOL_OR(progress_reports.read_at IS NULL) AS has_unread_reports,
-    MAX(progress_reports.created_at) AS latest_report_created_at,
-    MAX(progress_report_summaries.overall_grade) AS overall_grade
+    COUNT(DISTINCT CASE WHEN progress_reports.read_at IS NULL THEN
+            progress_reports.id
+        END)::int AS total_unread_reports
 FROM
     progress_reports
     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
-    JOIN progress_report_summaries ON progress_reports.id = progress_report_summaries.progress_report_id
     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
     JOIN sessions ON progress_report_sessions.session_id = sessions.id
     JOIN subjects ON sessions.subject_id = subjects.id
@@ -324,9 +320,7 @@ WHERE
     AND progress_report_analysis_types.name = 'group'
     AND progress_report_statuses.name = 'complete'
 GROUP BY
-    subjects.name
-ORDER BY
-    latest_report_created_at DESC;
+    subjects.name;
 
 
 /* @name getLatestProgressReportOverviewSubjectByUserId */
