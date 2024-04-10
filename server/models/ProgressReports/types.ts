@@ -15,6 +15,7 @@ export type ProgressReportInfoTypes = 'recommendation' | 'reason'
 export type ProgressReportInfo = {
   id: Ulid
   status: ProgressReportStatuses
+  createdAt: Date
   readAt?: Date
 }
 
@@ -69,6 +70,11 @@ export type ProgressReportSessionPaginated = {
   topicIconLink: string
   subject: string
   createdAt: Date
+}
+
+export type ProgressReportOverviewUnreadStat = {
+  subject: string
+  totalUnreadReports: number
 }
 
 export type ProgressReportPrompt = {

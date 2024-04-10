@@ -12,6 +12,8 @@ import {
   buildMessageForFrontend,
   buildProgressReportSummaryRow,
   buildProgressReportConceptRow,
+  buildProgressReportOverviewSubjectStat,
+  buildProgressReportOverviewUnreadStat,
   buildStudent,
   buildSubjectAndTopic,
 } from '../mocks/generate'
@@ -415,6 +417,64 @@ describe('generateProgressReportForUser', () => {
       'pending',
       mockActivePrompt.id
     )
+  })
+})
+
+describe('getProgressReportOverviewSubjectStats', () => {
+  test('Should return progress report overview subject stats', async () => {
+    const unreadStat = buildProgressReportOverviewUnreadStat()
+    const mockedReport = buildProgressReport()
+    const data = buildProgressReportOverviewSubjectStat({ ...unreadStat })
+    const mockedData = [data]
+    const summaryRow = buildProgressReportSummaryRow({
+      overallGrade: data.overallGrade,
+    })
+    mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId.mockResolvedValueOnce(
+      [unreadStat]
+    )
+    mockedProgressReportsRepo.getLatestProgressReportIdBySubject.mockResolvedValueOnce(
+      mockedReport
+    )
+    mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValueOnce(
+      [summaryRow]
+    )
+    const result = await ProgressReportsService.getProgressReportOverviewSubjectStats(
+      userId
+    )
+
+    expect(mockedData).toMatchObject(result)
+    expect(
+      mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId
+    ).toHaveBeenCalled()
+    expect(
+      mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId
+    ).toHaveBeenCalledWith(userId)
+    expect(
+      mockedProgressReportsRepo.getLatestProgressReportIdBySubject
+    ).toHaveBeenCalled()
+    expect(
+      mockedProgressReportsRepo.getProgressReportSummariesForMany
+    ).toHaveBeenCalled()
+  })
+})
+
+describe('getLatestProgressReportOverviewSubject', () => {
+  test('Should return the subject for the latest progress report overview', async () => {
+    const subject = 'algebraOne'
+    mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId.mockResolvedValueOnce(
+      subject
+    )
+    const result = await ProgressReportsService.getLatestProgressReportOverviewSubject(
+      userId
+    )
+
+    expect(subject).toEqual(result)
+    expect(
+      mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId
+    ).toHaveBeenCalled()
+    expect(
+      mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId
+    ).toHaveBeenCalledWith(userId)
   })
 })
 

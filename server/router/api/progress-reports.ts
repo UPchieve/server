@@ -4,7 +4,8 @@ import {
   getProgressReportsForSubjectPaginated,
   getProgressReportSummariesBySubject,
   readProgressReportsByIds,
-  getUnreadProgressReportOverviewSubjects,
+  getProgressReportOverviewSubjectStats,
+  getLatestProgressReportOverviewSubject,
 } from '../../services/ProgressReportsService'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -83,11 +84,24 @@ export function routeProgressReports(router: Router): void {
     }
   })
 
-  router.get('/progress-reports/unread', async function(req, res) {
+  router.get('/progress-reports/overview/stats', async function(req, res) {
     try {
       const user = extractUser(req)
-      const subjects = await getUnreadProgressReportOverviewSubjects(user.id)
-      res.json({ subjects })
+      const result = await getProgressReportOverviewSubjectStats(user.id)
+      res.json(result)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/progress-reports/overview/latest/subject', async function(
+    req,
+    res
+  ) {
+    try {
+      const user = extractUser(req)
+      const subject = await getLatestProgressReportOverviewSubject(user.id)
+      res.json(subject)
     } catch (err) {
       resError(res, err)
     }
