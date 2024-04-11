@@ -19,70 +19,7 @@ import { extractUser } from '../extract-user'
 import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
-
-class GoogleAuthRedirect {
-  private static _baseRedirect: string
-
-  private static getBaseRedirect() {
-    if (!this._baseRedirect) {
-      let protocol
-      if (config.NODE_ENV === 'dev') {
-        protocol = 'http'
-      } else {
-        protocol = 'https'
-      }
-      this._baseRedirect = `${protocol}://${config.client.host}`
-    }
-
-    return this._baseRedirect
-  }
-
-  static get successRedirect() {
-    return this.getBaseRedirect()
-  }
-
-  static get loginFailureRedirect() {
-    return `${this.getBaseRedirect()}/login?400=true`
-  }
-
-  static registerFailureRedirect(
-    studentData: StudentDataParams,
-    errMsg?: string
-  ) {
-    const params = new URLSearchParams({
-      error: errMsg ?? '',
-    })
-    if (studentData.email) {
-      params.append('email', studentData.email)
-    }
-    if (studentData.highSchoolId) {
-      params.append('highSchoolId', studentData.highSchoolId)
-    }
-    if (studentData.zipCode) {
-      params.append('zipCode', studentData.zipCode)
-    }
-    if (studentData.currentGrade) {
-      params.append('currentGrade', studentData.currentGrade)
-    }
-    if (studentData.studentPartnerOrg) {
-      params.append('partner', studentData.studentPartnerOrg)
-    }
-    return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
-  }
-
-  static registerPartnerStudentFailureRedirect(
-    studentData: StudentDataParams,
-    errMsg?: string
-  ) {
-    const params = new URLSearchParams({
-      sso: 'google',
-      error: errMsg ?? '',
-    })
-    return `${this.getBaseRedirect()}/signup/student/${
-      studentData.studentPartnerOrg
-    }?${params.toString()}`
-  }
-}
+import { AuthRedirect } from './auth-redirect'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
@@ -135,8 +72,8 @@ export function routes(app: Express) {
 
   router.route('/oauth2/redirect/google/login').get(
     passport.authenticate('google-login', {
-      successRedirect: GoogleAuthRedirect.successRedirect,
-      failureRedirect: GoogleAuthRedirect.loginFailureRedirect,
+      successRedirect: AuthRedirect.successRedirect,
+      failureRedirect: AuthRedirect.loginFailureRedirect,
     })
   )
 
@@ -156,12 +93,10 @@ export function routes(app: Express) {
         const studentData = (req.session as any).studentData
         delete (req.session as any).studentData
         if (user) {
-          res.redirect(GoogleAuthRedirect.successRedirect)
+          res.redirect(AuthRedirect.successRedirect)
           await req.asyncLogin(user)
         } else {
-          res.redirect(
-            GoogleAuthRedirect.registerFailureRedirect(studentData, info)
-          )
+          res.redirect(AuthRedirect.registerFailureRedirect(studentData, info))
         }
       })(req, res)
     })
@@ -181,11 +116,11 @@ export function routes(app: Express) {
         const studentData = (req.session as any).studentData
         delete (req.session as any).studentData
         if (user) {
-          res.redirect(GoogleAuthRedirect.successRedirect)
+          res.redirect(AuthRedirect.successRedirect)
           await req.asyncLogin(user)
         } else {
           res.redirect(
-            GoogleAuthRedirect.registerPartnerStudentFailureRedirect(
+            AuthRedirect.registerPartnerStudentFailureRedirect(
               studentData,
               info
             )
