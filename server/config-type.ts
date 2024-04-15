@@ -125,6 +125,8 @@ export const Config = Record({
   apiPort: Number,
   socketsPort: Number,
   socketApiKey: String,
+  socketIOAdminUsername: String,
+  socketIOAdminPassword: String,
   customVolunteerPartnerOrgs: Array(String),
   priorityMatchingPartnerOrgs: Array(String),
   priorityMatchingSponsorOrgs: Array(String),
