@@ -63,6 +63,7 @@
     "@pgtyped/query": "^0.13.0",
     "@sendgrid/mail": "^6.4.0",
     "@sentry/node": "^5.30.0",
+    "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-adapter": "^7.2.0",
     "aws-sdk": "^2.695.0",
     "axios": "^1.6.8",

@@ -223,3 +223,7 @@ You can run the worker queue locally as well as enqueue specific jobs:
 - Then, in another terminal, run the script to enqueue the job: `npx ts-node server/scripts/testing-jobs.ts`
 - To connect your local Redis instance to Taskforce.sh, copy the [connection token here](https://taskforce.sh/account/token) then run the following command:
   `npx taskforce --team "Engineering" -n "<your name> local" -t connection-token-goes-here`
+
+## Socket IO Admin UI
+
+You can visualize the state of the application's sockets using the [Socket IO Admin UI](https://socket.io/docs/v4/admin-ui/). In non-development environments, you will need to authenticate to view the UI. See 1Pass for login instructions.
