@@ -1,9 +1,10 @@
 /* @name insertProgressReport */
-INSERT INTO progress_reports (id, user_id, status_id)
+INSERT INTO progress_reports (id, user_id, status_id, prompt_id)
 SELECT
     :id!,
     :userId!,
-    subquery.id
+    subquery.id,
+    :promptId!
 FROM (
     SELECT
         id
@@ -56,13 +57,13 @@ SELECT
         SELECT
             id
         FROM
-            upchieve.progress_report_focus_areas
+            progress_report_focus_areas
         WHERE
             name = :focusArea!), (
         SELECT
             id
         FROM
-            upchieve.progress_report_info_types
+            progress_report_info_types
         WHERE
             name = :infoType!)
 RETURNING
@@ -79,13 +80,13 @@ SELECT
         SELECT
             id
         FROM
-            upchieve.progress_report_focus_areas
+            progress_report_focus_areas
         WHERE
             name = :focusArea!), (
         SELECT
             id
         FROM
-            upchieve.progress_report_info_types
+            progress_report_info_types
         WHERE
             name = :infoType!)
 RETURNING
@@ -94,7 +95,7 @@ RETURNING
 
 /* @name updateProgressReportStatus */
 UPDATE
-    upchieve.progress_reports
+    progress_reports
 SET
     status_id = subquery.id,
     updated_at = NOW()
@@ -102,7 +103,7 @@ FROM (
     SELECT
         id
     FROM
-        upchieve.progress_report_statuses
+        progress_report_statuses
     WHERE
         name = :status!) AS subquery
 WHERE
@@ -115,6 +116,7 @@ RETURNING
 SELECT
     progress_reports.id,
     progress_report_statuses.name AS status,
+    progress_reports.created_at,
     progress_reports.read_at
 FROM
     progress_reports
@@ -134,6 +136,7 @@ ORDER BY
 SELECT
     progress_reports.id,
     progress_report_statuses.name AS status,
+    progress_reports.created_at,
     progress_reports.read_at
 FROM
     progress_reports
@@ -269,6 +272,7 @@ ORDER BY
 SELECT
     progress_reports.id,
     progress_report_statuses.name AS status,
+    progress_reports.created_at,
     progress_reports.read_at
 FROM
     progress_reports
@@ -299,9 +303,12 @@ RETURNING
     progress_reports.id AS ok;
 
 
-/* @name getUnreadProgressReportOverviewSubjectsByUserId */
+/* @name getProgressReportOverviewUnreadStatsByUserId */
 SELECT
-    subjects.name AS subject
+    subjects.name AS subject,
+    COUNT(DISTINCT CASE WHEN progress_reports.read_at IS NULL THEN
+            progress_reports.id
+        END)::int AS total_unread_reports
 FROM
     progress_reports
     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
@@ -313,7 +320,43 @@ WHERE
     progress_reports.user_id = :userId!
     AND progress_report_analysis_types.name = 'group'
     AND progress_report_statuses.name = 'complete'
-    AND progress_reports.read_at IS NULL
 GROUP BY
     subjects.name;
+
+
+/* @name getLatestProgressReportOverviewSubjectByUserId */
+SELECT
+    subjects.name
+FROM
+    progress_reports
+    JOIN (
+        SELECT
+            progress_report_sessions.progress_report_id,
+            progress_report_sessions.session_id
+        FROM
+            progress_report_sessions
+            JOIN progress_reports ON progress_report_sessions.progress_report_id = progress_reports.id
+            JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+        WHERE
+            progress_reports.user_id = :userId!
+            AND progress_report_analysis_types.name = 'group'
+        ORDER BY
+            progress_report_sessions.created_at DESC
+        LIMIT 1) AS latest_progress_report_session ON progress_reports.id = latest_progress_report_session.progress_report_id
+    JOIN sessions ON latest_progress_report_session.session_id = sessions.id
+    JOIN subjects ON sessions.subject_id = subjects.id
+WHERE
+    progress_reports.user_id = :userId!;
+
+
+/* @name getActiveSubjectPromptBySubjectName */
+SELECT
+    progress_report_prompts.id,
+    prompt
+FROM
+    progress_report_prompts
+    JOIN subjects ON progress_report_prompts.subject_id = subjects.id
+WHERE
+    subjects.name = :subject!
+    AND progress_report_prompts.active IS TRUE;
 

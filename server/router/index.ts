@@ -18,6 +18,7 @@ import * as TwimlRouter from './twiml'
 import { Server } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import { getAllFlagsForId } from '../services/FeatureFlagService'
+import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
 
 export default function(app: Express, io: Server) {
   logger.info('initializing server routing')
@@ -27,6 +28,7 @@ export default function(app: Express, io: Server) {
 
   // initialize passport AFTER session store (https://stackoverflow.com/a/30882574)
   authPassport.setupPassport()
+  addPassportAuthMiddleware()
   app.use(passport.initialize())
   app.use(passport.session())
 

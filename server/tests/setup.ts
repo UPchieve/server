@@ -1,7 +1,8 @@
 jest.mock('ioredis', () => require('ioredis-mock/jest'))
-
+jest.mock('yjs')
 jest.mock('posthog-node')
 jest.mock('openai')
+jest.mock('yjs')
 jest.mock('../services/AnalyticsService')
 jest.mock('../services/FeatureFlagService')
 

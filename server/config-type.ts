@@ -206,6 +206,10 @@ export const Config = Record({
   googleRecaptchaSecret: String,
   googleRecaptchaThreshold: Number,
 
+  // Clever
+  cleverClientId: String,
+  cleverClientSecret: String,
+
   minSessionLength: Number,
 
   openAIApiKey: String,

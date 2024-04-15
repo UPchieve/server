@@ -322,6 +322,9 @@ const config: Static<typeof Config> = {
     ? 0.5
     : Number(process.env.GOOGLE_RECAPTCHA_THRESHOLD),
 
+  cleverClientId: process.env.CLEVER_CLIENT_ID || 'bogus',
+  cleverClientSecret: process.env.CLEVER_CLIENT_SECRET || 'bogus',
+
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
   openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',

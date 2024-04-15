@@ -1689,3 +1689,43 @@ const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicate
 export const deleteDuplicateStudentVolunteerFavorites = new PreparedQuery<IDeleteDuplicateStudentVolunteerFavoritesParams,IDeleteDuplicateStudentVolunteerFavoritesResult>(deleteDuplicateStudentVolunteerFavoritesIR);
 
 
+/** 'GetStudentProfileByUserId' parameters type */
+export interface IGetStudentProfileByUserIdParams {
+  userId: string;
+}
+
+/** 'GetStudentProfileByUserId' return type */
+export interface IGetStudentProfileByUserIdResult {
+  createdAt: Date;
+  gradeLevel: string;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'GetStudentProfileByUserId' query type */
+export interface IGetStudentProfileByUserIdQuery {
+  params: IGetStudentProfileByUserIdParams;
+  result: IGetStudentProfileByUserIdResult;
+}
+
+const getStudentProfileByUserIdIR: any = {"name":"getStudentProfileByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23525,"b":23531,"line":788,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    student_profiles.user_id,\n    grade_levels.name AS grade_level,\n    users.created_at,\n    users.updated_at\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\nWHERE\n    student_profiles.user_id = :userId!","loc":{"a":23209,"b":23531,"line":778,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     student_profiles.user_id,
+ *     grade_levels.name AS grade_level,
+ *     users.created_at,
+ *     users.updated_at
+ * FROM
+ *     student_profiles
+ *     JOIN users ON student_profiles.user_id = users.id
+ *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+ * WHERE
+ *     student_profiles.user_id = :userId!
+ * ```
+ */
+export const getStudentProfileByUserId = new PreparedQuery<IGetStudentProfileByUserIdParams,IGetStudentProfileByUserIdResult>(getStudentProfileByUserIdIR);
+
+
