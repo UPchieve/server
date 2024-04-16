@@ -15,6 +15,7 @@ import {
   getProgressReportByReportId,
   getProgressReportSummariesForMany,
   getProgressReportConceptsByReportId,
+  getActiveSubjectPromptBySubjectName,
 } from '../../models/ProgressReports'
 import {
   ProgressReportConcept,
@@ -198,13 +199,25 @@ async function getProgressReport(
   return result
 }
 
+type ProgressReportPromptRow = {
+  id: number
+  prompt: string
+  subjectId: number
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+async function insertProgressReportPromptRow(data: ProgressReportPromptRow) {
+  return await insertSingleRow('progress_report_prompts', data, client)
+}
+
 beforeAll(async () => {
   const user = await insertUser()
   userId = user.id
 })
 
 beforeEach(async () => {
-  reportId = await insertProgressReport(userId, 'pending', client)
+  reportId = await insertProgressReport(userId, 'pending', 1, client)
 })
 
 describe('insertProgressReport', () => {
@@ -224,7 +237,7 @@ describe('insertProgressReport', () => {
   ]
   statuses.forEach(status => {
     test(`Creates progress report with ${status} status`, async () => {
-      const reportId = await insertProgressReport(userId, status, client)
+      const reportId = await insertProgressReport(userId, status, 1, client)
       const actual = await getProgressReport(reportId, status)
       expect(actual.rows).toHaveLength(1)
     })
@@ -606,5 +619,52 @@ describe('getProgressReportConceptsByReportId', () => {
   test('Should return an empty array when no concepts are found from a report ID', async () => {
     const result = await getProgressReportConceptsByReportId(getUuid())
     expect(result).toHaveLength(0)
+  })
+})
+
+describe('getActiveSubjectPromptBySubjectName', () => {
+  test('Throws an error for an empty prompt that has an active row', async () => {
+    const subject = 'prealgebra'
+    const data = {
+      id: 1000,
+      prompt: '',
+      active: true,
+      subjectId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    await insertProgressReportPromptRow(data)
+
+    await expect(async () => {
+      await getActiveSubjectPromptBySubjectName(subject)
+    }).rejects.toThrow(
+      `getActivePromptBySubjectName: Empty progress report prompt for subject ${subject}`
+    )
+  })
+
+  test('Throws an error for when no prompt is found for subject', async () => {
+    const subject = 'fake-subject'
+    await expect(async () => {
+      await getActiveSubjectPromptBySubjectName(subject)
+    }).rejects.toThrow(
+      `getActivePromptBySubjectName: No active progress report prompt found for subject ${subject}`
+    )
+  })
+
+  test('Should get the active subject prompt', async () => {
+    const subject = 'algebraOne'
+    const data = {
+      id: 1001,
+      prompt: 'Test prompt',
+      active: true,
+      subjectId: 2,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    await insertProgressReportPromptRow(data)
+
+    const result = await getActiveSubjectPromptBySubjectName(subject)
+    expect(result.id).toEqual(data.id)
+    expect(result.prompt).toEqual(data.prompt)
   })
 })

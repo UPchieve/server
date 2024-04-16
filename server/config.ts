@@ -178,6 +178,10 @@ const config: Static<typeof Config> = {
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
+  socketIOAdminUsername: process.env.SUBWAY_SOCKET_IO_ADMIN_USERNAME || 'bogus',
+
+  socketIOAdminPassword: process.env.SUBWAY_SOCKET_IO_ADMIN_PASSWORD || 'bogus',
+
   customVolunteerPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'big-telecom'
   ).split(','),
@@ -321,6 +325,9 @@ const config: Static<typeof Config> = {
   )
     ? 0.5
     : Number(process.env.GOOGLE_RECAPTCHA_THRESHOLD),
+
+  cleverClientId: process.env.CLEVER_CLIENT_ID || 'bogus',
+  cleverClientSecret: process.env.CLEVER_CLIENT_SECRET || 'bogus',
 
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 

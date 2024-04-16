@@ -9,6 +9,8 @@ import logger from './logger'
 import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
 import { Express } from 'express'
 import SocketService from './services/SocketService'
+import { instrument } from '@socket.io/admin-ui'
+import { isDevEnvironment, isProductionEnvironment } from './utils/environments'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = (app: Express) => {
@@ -39,6 +41,18 @@ export default function(app: Express) {
       httpOnly: false,
     },
     allowEIO3: true,
+  })
+  // Set up Socket IO admin UI
+  instrument(io, {
+    mode: isProductionEnvironment() ? 'production' : 'development',
+    readonly: isProductionEnvironment(),
+    auth: !isDevEnvironment()
+      ? {
+          type: 'basic',
+          username: config.socketIOAdminUsername,
+          password: config.socketIOAdminPassword,
+        }
+      : false,
   })
   if (process.env.NODE_ENV === 'test') return io
 

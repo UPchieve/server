@@ -27,13 +27,16 @@ import {
   ProgressReportDetail,
   ProgressReportSummary,
   ProgressReportConcept,
+  ProgressReportOverviewSubjectStat,
 } from '../../services/ProgressReportsService'
 import {
   ProgressReportConceptRow,
+  ProgressReportOverviewUnreadStat,
   ProgressReportStatuses,
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
 import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
+import { SubjectAndTopic } from '../../models/Subjects'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -159,6 +162,7 @@ export function buildStudent(overrides: Partial<AppStudent> = {}): AppStudent {
     zipCode: '11201',
     schoolId: getDbUlid(),
     currentGrade: GRADES.EIGHTH,
+    gradeLevel: GRADES.EIGHTH,
     signupSourceId: 1,
     studentPartnerOrg: '',
     studentPartnerSite: '',
@@ -524,6 +528,7 @@ export const buildProgressReport = (
     status: 'complete' as ProgressReportStatuses,
     summary: buildProgressReportSummary(),
     concepts: [buildProgressReportConcept()],
+    createdAt: new Date(),
     ...overrides,
   }
   return report
@@ -553,4 +558,39 @@ export const buildTestVolunteerForAnalyticsReport = (overrides = {}) => {
     totalUniqueStudentsHelpedWithinRange: 5,
     ...overrides,
   } as VolunteersForAnalyticsReport
+}
+
+export function buildProgressReportOverviewUnreadStat(
+  overrides: Partial<ProgressReportOverviewUnreadStat> = {}
+): ProgressReportOverviewUnreadStat {
+  return {
+    subject: 'algebraOne',
+    totalUnreadReports: 1,
+    ...overrides,
+  }
+}
+
+export function buildProgressReportOverviewSubjectStat(
+  overrides: Partial<ProgressReportOverviewSubjectStat> = {}
+): ProgressReportOverviewSubjectStat {
+  return {
+    ...buildProgressReportOverviewUnreadStat(),
+    overallGrade: 80,
+    latestReportCreatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export const buildSubjectAndTopic = (
+  overrides: Partial<SubjectAndTopic> = {}
+): SubjectAndTopic => {
+  const subject = {
+    subjectName: 'algebraOne',
+    subjectDisplayName: 'Algebra 1',
+    topicName: 'math',
+    topicDisplayName: 'Math',
+    toolType: 'whiteboard',
+    ...overrides,
+  }
+  return subject
 }

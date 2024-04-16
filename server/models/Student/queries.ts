@@ -25,6 +25,7 @@ import {
   CreatedStudent,
   CreateStudentPayload,
   CreateStudentProfilePayload,
+  Student,
   StudentContactInfo,
 } from './types'
 
@@ -975,5 +976,23 @@ export async function deleteDuplicateStudentVolunteerFavorites(
     )
   } catch (error) {
     throw new RepoUpdateError(error)
+  }
+}
+
+export async function getStudentProfileByUserId(
+  userId: Ulid
+): Promise<Student> {
+  try {
+    const result = await pgQueries.getStudentProfileByUserId.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeSomeOptional(result[0], ['gradeLevel'])
+    else
+      throw new RepoReadError(
+        `getStudentProfileByUserId: Could not find student with user id ${userId}`
+      )
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
