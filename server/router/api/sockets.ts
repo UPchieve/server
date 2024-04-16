@@ -572,7 +572,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         rooms: getRooms(),
         currentSession: socket.data.currentSession ?? undefined,
       }
-      logger.debug(analyticsData, `Socket connection event: ${eventName}`)
+      logger.info(analyticsData, `Socket connection event: ${eventName}`)
     })
   })
 }
