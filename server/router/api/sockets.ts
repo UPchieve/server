@@ -31,7 +31,6 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
-import { currentSession } from '../../services/SessionService'
 
 // Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
 const DISCONNECT_REASONS = {
@@ -80,13 +79,10 @@ const DISCONNECT_REASONS = {
 
 const connectionEvents = [
   'connect',
-  'connection',
   'disconnect',
-  'disconnection',
   'reconnect',
-  'reconnection',
   'reconnect_attempt',
-  'reconnection_attempt',
+  'leave',
   'join',
 ]
 
@@ -126,7 +122,6 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
         docEditorVersion: latestSession.docEditorVersion,
       }
     : undefined
-  logger.debug(`JAMIE - socket data is ${JSON.stringify(socket.data)}`)
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -562,17 +557,18 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       isError ? logger.error(message, logData) : logger.info(message, logData)
     })
 
-    socket.prependAny((eventName, args) => {
-      if (!connectionEvents.includes(eventName)) return
-      const getRooms = () => {
-        return Array.from(socket.rooms).map(r => r)
-      }
+    // Log socket connection-related events for analytics
+    // This should to be registered at the end of the listener chain
+    const logSocketConnectionInfo = (event: string) => {
       const analyticsData = {
         user: socket.data.user ?? undefined,
-        rooms: getRooms(),
+        rooms: Array.from(socket.rooms),
         currentSession: socket.data.currentSession ?? undefined,
       }
-      logger.info(analyticsData, `Socket connection event: ${eventName}`)
+      logger.info(analyticsData, `Socket connection event: ${event}`)
+    }
+    connectionEvents.forEach(event => {
+      socket.addListener(event, () => logSocketConnectionInfo(event))
     })
   })
 }
