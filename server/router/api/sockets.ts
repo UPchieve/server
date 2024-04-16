@@ -31,6 +31,7 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
+import { currentSession } from '../../services/SessionService'
 
 // Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
 const DISCONNECT_REASONS = {
@@ -77,6 +78,18 @@ const DISCONNECT_REASONS = {
   },
 }
 
+const connectionEvents = [
+  'connect',
+  'connection',
+  'disconnect',
+  'disconnection',
+  'reconnect',
+  'reconnection',
+  'reconnect_attempt',
+  'reconnection_attempt',
+  'join',
+]
+
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
   logger.debug(`Attempted key: ${key}`)
@@ -98,6 +111,22 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
   }
 
   if (user && user.isVolunteer) socket.join('volunteers')
+
+  // Attach props to socket.data for analytics
+  socket.data.user = {
+    id: user.id,
+    isVolunteer: user.isVolunteer,
+  }
+  socket.data.currentSession = latestSession
+    ? {
+        id: latestSession.id,
+        subject: latestSession.type,
+        subTopic: latestSession.subTopic,
+        toolType: latestSession.toolType,
+        docEditorVersion: latestSession.docEditorVersion,
+      }
+    : undefined
+  logger.debug(`JAMIE - socket data is ${JSON.stringify(socket.data)}`)
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -531,6 +560,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         description,
       }
       isError ? logger.error(message, logData) : logger.info(message, logData)
+    })
+
+    socket.prependAny((eventName, args) => {
+      if (!connectionEvents.includes(eventName)) return
+      const getRooms = () => {
+        return Array.from(socket.rooms).map(r => r)
+      }
+      const analyticsData = {
+        user: socket.data.user ?? undefined,
+        rooms: getRooms(),
+        currentSession: socket.data.currentSession ?? undefined,
+      }
+      logger.debug(analyticsData, `Socket connection event: ${eventName}`)
     })
   })
 }
