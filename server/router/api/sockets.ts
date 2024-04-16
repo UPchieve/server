@@ -19,6 +19,7 @@ import * as SessionRepo from '../../models/Session/queries'
 import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import {
+  getLogSocketConnectionEventsFeatureFlag,
   getRecapSocketUpdatesFeatureFlag,
   isChatBotEnabled,
 } from '../../services/FeatureFlagService'
@@ -80,8 +81,10 @@ const DISCONNECT_REASONS = {
 const connectionEvents = [
   'connect',
   'disconnect',
-  'reconnect',
-  'reconnect_attempt',
+  'client_reconnect',
+  'client_reconnect_attempt',
+  'client_connect_error',
+  'client_reconnect_error',
   'leave',
   'join',
 ]
@@ -108,20 +111,12 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 
   if (user && user.isVolunteer) socket.join('volunteers')
 
-  // Attach props to socket.data for analytics
+  // Attach info to socket.data for analytics
   socket.data.user = {
     id: user.id,
     isVolunteer: user.isVolunteer,
   }
-  socket.data.currentSession = latestSession
-    ? {
-        id: latestSession.id,
-        subject: latestSession.type,
-        subTopic: latestSession.subTopic,
-        toolType: latestSession.toolType,
-        docEditorVersion: latestSession.docEditorVersion,
-      }
-    : undefined
+  socket.data.currentSession = latestSession ? latestSession.id : undefined
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -559,16 +554,28 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     // Log socket connection-related events for analytics
     // This should to be registered at the end of the listener chain
-    const logSocketConnectionInfo = (event: string) => {
-      const analyticsData = {
-        user: socket.data.user ?? undefined,
-        rooms: Array.from(socket.rooms),
-        currentSession: socket.data.currentSession ?? undefined,
+    const logSocketConnectionInfo = async (event: string) => {
+      const loggingEnabled = await getLogSocketConnectionEventsFeatureFlag(
+        socket.request.user?.id as Ulid
+      )
+      if (!loggingEnabled) return
+      try {
+        // @TODO To save currentSession on socket.data, or nah?
+        const currentSession = await SessionService.currentSession(
+          socket.data.user.id
+        )
+        const analyticsData = {
+          user: socket.data.user ?? undefined,
+          rooms: Array.from(socket.rooms),
+          currentSession,
+        }
+        logger.info(analyticsData, `Socket connection event: ${event}`)
+      } catch (err) {
+        logger.error('Failed to log socket connection info', err)
       }
-      logger.info(analyticsData, `Socket connection event: ${event}`)
     }
     connectionEvents.forEach(event => {
-      socket.addListener(event, () => logSocketConnectionInfo(event))
+      socket.addListener(event, async () => logSocketConnectionInfo(event))
     })
   })
 }

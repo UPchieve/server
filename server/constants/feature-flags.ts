@@ -11,4 +11,5 @@ export enum FEATURE_FLAGS {
   ALLOW_DMS_TO_PARTNER_STUDENTS = 'allow-dms-to-partner-students',
   PROGRESS_REPORTS = 'progress-reports',
   PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY = 'paid-tutors-pilot-student-eligibility',
+  LOG_SOCKET_CONNECTION_EVENTS = 'log-socket-connection-events',
 }
