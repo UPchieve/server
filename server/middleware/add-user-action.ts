@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { captureException } from '@sentry/node'
+import { logError } from '../logger'
 import { extractUser } from '../router/extract-user'
 import * as UserActionRepo from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, QUIZ_USER_ACTIONS } from '../constants'
@@ -22,6 +23,7 @@ export async function addUserAction(
         })
       } catch (err) {
         captureException(err)
+        logError(err as Error)
       }
     }
 
@@ -36,6 +38,7 @@ export async function addUserAction(
         })
       } catch (err) {
         captureException(err)
+        logError(err as Error)
       }
     }
 
@@ -48,6 +51,7 @@ export async function addUserAction(
         })
       } catch (err) {
         captureException(err)
+        logError(err as Error)
       }
     }
   }
