@@ -161,6 +161,27 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
   })
 
+  const logSocketConnectionInfo = async (event: string, socket: SocketUser) => {
+    const loggingEnabled = await getLogSocketConnectionEventsFeatureFlag(
+      socket.request.user?.id as Ulid
+    )
+    if (!loggingEnabled) return
+    try {
+      // @TODO To save currentSession on socket.data, or nah?
+      const currentSession = await SessionService.currentSession(
+        socket.data.user.id
+      )
+      const analyticsData = {
+        user: socket.data.user ?? undefined,
+        rooms: Array.from(socket.rooms),
+        currentSession,
+      }
+      logger.info(analyticsData, `Socket connection event: ${event}`)
+    } catch (err) {
+      logger.error('Failed to log socket connection info', err)
+    }
+  }
+
   // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function(socket: SocketUser) {
     const {
@@ -172,6 +193,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
+      await logSocketConnectionInfo('connection', socket)
       const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
         user.id
       )
@@ -554,28 +576,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     // Log socket connection-related events for analytics
     // This should to be registered at the end of the listener chain
-    const logSocketConnectionInfo = async (event: string) => {
-      const loggingEnabled = await getLogSocketConnectionEventsFeatureFlag(
-        socket.request.user?.id as Ulid
-      )
-      if (!loggingEnabled) return
-      try {
-        // @TODO To save currentSession on socket.data, or nah?
-        const currentSession = await SessionService.currentSession(
-          socket.data.user.id
-        )
-        const analyticsData = {
-          user: socket.data.user ?? undefined,
-          rooms: Array.from(socket.rooms),
-          currentSession,
-        }
-        logger.info(analyticsData, `Socket connection event: ${event}`)
-      } catch (err) {
-        logger.error('Failed to log socket connection info', err)
-      }
-    }
     connectionEvents.forEach(event => {
-      socket.addListener(event, async () => logSocketConnectionInfo(event))
+      socket.prependListener(event, async () =>
+        logSocketConnectionInfo(event, socket)
+      )
     })
   })
 }
