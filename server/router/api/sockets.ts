@@ -19,7 +19,6 @@ import * as SessionRepo from '../../models/Session/queries'
 import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import {
-  getLogSocketConnectionEventsFeatureFlag,
   getRecapSocketUpdatesFeatureFlag,
   isChatBotEnabled,
 } from '../../services/FeatureFlagService'
@@ -32,6 +31,7 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
+import { logSocketConnectionInfo } from '../../utils/log-socket-connection-info'
 
 // Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
 const DISCONNECT_REASONS = {
@@ -110,13 +110,6 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
   }
 
   if (user && user.isVolunteer) socket.join('volunteers')
-
-  // Attach info to socket.data for analytics
-  socket.data.user = {
-    id: user.id,
-    isVolunteer: user.isVolunteer,
-  }
-  socket.data.currentSession = latestSession ? latestSession.id : undefined
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -161,27 +154,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
   })
 
-  const logSocketConnectionInfo = async (event: string, socket: SocketUser) => {
-    const loggingEnabled = await getLogSocketConnectionEventsFeatureFlag(
-      socket.request.user?.id as Ulid
-    )
-    if (!loggingEnabled) return
-    try {
-      // @TODO To save currentSession on socket.data, or nah?
-      const currentSession = await SessionService.currentSession(
-        socket.data.user.id
-      )
-      const analyticsData = {
-        user: socket.data.user ?? undefined,
-        rooms: Array.from(socket.rooms),
-        currentSession,
-      }
-      logger.info(analyticsData, `Socket connection event: ${event}`)
-    } catch (err) {
-      logger.error('Failed to log socket connection info', err)
-    }
-  }
-
   // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function(socket: SocketUser) {
     const {
@@ -193,7 +165,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
-      await logSocketConnectionInfo('connection', socket)
+      await logSocketConnectionInfo('connection', socket) // Log the initial connection
       const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
         user.id
       )
@@ -575,7 +547,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     // Log socket connection-related events for analytics
-    // This should to be registered at the end of the listener chain
     connectionEvents.forEach(event => {
       socket.prependListener(event, async () =>
         logSocketConnectionInfo(event, socket)
