@@ -16,7 +16,7 @@ import {
 } from '../../utils/zwibblerDecoder'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
-  Sentry.captureMessage(
+  logger.error(
     `Unimplemented Zwibbler message type ${messageType} called in session ${sessionId}`
   )
 }
