@@ -5,8 +5,9 @@ import * as AuthService from '../../services/AuthService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   authPassport,
+  isSupportedSsoProvider,
   registerStudentValidator,
-  StudentDataParams,
+  SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
@@ -68,8 +69,46 @@ export function routes(app: Express) {
     }
   )
 
-  router.route('/login/google').get(passport.authenticate('google-login'))
+  router.route('/sso').get((req, res) => {
+    const provider = req.query.provider as string
+    const isLogin = req.query.isLogin === 'true'
+    if (!provider || !isSupportedSsoProvider(provider)) {
+      res.redirect(AuthRedirect.failureRedirect(isLogin))
+      return
+    }
+    if (!isLogin) {
+      ;(req.session as SessionWithSsoData).studentData = {
+        ...req.query,
+        ip: req.ip,
+      }
+    }
+    ;(req.session as SessionWithSsoData).provider = provider
+    ;(req.session as SessionWithSsoData).isLogin = isLogin
+    const strategy = provider
+    passport.authenticate(strategy)(req, res)
+  })
+  // Redirect URI for SSO providers.
+  router.route('/oauth2/redirect').get((req, res) => {
+    const { provider, isLogin, studentData } = req.session as SessionWithSsoData
+    if (!provider || !isSupportedSsoProvider(provider)) {
+      res.redirect(AuthRedirect.failureRedirect(isLogin ?? false, studentData))
+      return
+    }
+    const strategy = provider
+    passport.authenticate(strategy, async function(_err, user, errorMsg) {
+      if (user) {
+        res.redirect(AuthRedirect.successRedirect)
+        await req.asyncLogin(user)
+      } else {
+        res.redirect(
+          AuthRedirect.failureRedirect(isLogin ?? false, studentData, errorMsg)
+        )
+      }
+    })(req, res)
+  })
 
+  // == Remove after high-line clean-up.
+  router.route('/login/google').get(passport.authenticate('google-login'))
   router.route('/oauth2/redirect/google/login').get(
     passport.authenticate('google-login', {
       successRedirect: AuthRedirect.successRedirect,
@@ -128,6 +167,7 @@ export function routes(app: Express) {
         }
       })(req, res)
     })
+  // == End remove.
 
   router.route('/register/checkcred').post(async function(req, res) {
     try {

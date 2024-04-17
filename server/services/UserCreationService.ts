@@ -115,9 +115,9 @@ export async function rosterPartnerStudents(
         const studentData = {
           userId: user.id,
           gradeLevel: parseInt(student.gradeLevel).toFixed(0) + 'th',
-          partnerSite,
           schoolId,
-          studentPartnerOrg: partnerKey,
+          studentPartnerOrgKey: partnerKey,
+          studentPartnerOrgSiteName: partnerSite,
         }
         await upsertStudent(studentData, tc)
 
@@ -177,22 +177,26 @@ export async function registerStudent(data: RegisterStudentPayload) {
       emailVerified: useFedCred(data),
       firstName: data.firstName,
       lastName: data.lastName,
+      otherSignupSource: data.otherSignupSource,
       password: usePassword(data)
         ? await hashPassword(data.password)
         : undefined,
       passwordResetToken,
       referredBy: await getReferredBy(data.referredByCode),
+      signupSourceId: data.signupSourceId,
       verified: useFedCred(data),
     }
     const user = await createUser(userData, data.ip, USER_ROLES.STUDENT, tc)
 
+    // == Remove after high-line clean-up.
     const studentData = {
       college: data.college,
       userId: user.id,
-      gradeLevel: data.gradeLevel,
-      partnerSite: data.partnerSite,
-      schoolId: data.schoolId,
-      studentPartnerOrg: data.studentPartnerOrg,
+      gradeLevel: data.currentGrade ?? data.gradeLevel,
+      schoolId: data.highSchoolId ?? data.schoolId,
+      studentPartnerOrgKey: data.studentPartnerOrg ?? data.studentPartnerOrgKey,
+      studentPartnerOrgSiteName:
+        data.partnerSite ?? data.studentPartnerOrgSiteName,
       zipCode: data.zipCode,
     }
     await upsertStudent(studentData, tc)
@@ -223,6 +227,7 @@ export async function registerStudent(data: RegisterStudentPayload) {
   }
 }
 
+// == Remove after high-line clean-up.
 export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
   let user
   await runInTransaction(async (tc: TransactionClient) => {
@@ -244,7 +249,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
     const spo = await getStudentPartnerOrgByKey(tc, data.studentPartnerOrg)
     const studentData = {
       userId: user.id,
-      studentPartnerOrg: data.studentPartnerOrg,
+      studentPartnerOrgKey: data.studentPartnerOrg,
       schoolId: spo?.schoolId,
     }
     await upsertStudent(studentData, tc)
@@ -255,6 +260,7 @@ export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
   })
   return user
 }
+// == End remove.
 
 async function createUser(
   userData: UserRepo.CreateUserPayload,
@@ -313,11 +319,11 @@ async function upsertStudent(
     tc
   )
 
-  let spoOrgToAdd = studentData.studentPartnerOrg
+  let spoOrgToAdd = studentData.studentPartnerOrgKey
     ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
         tc,
-        studentData.studentPartnerOrg,
-        studentData.partnerSite
+        studentData.studentPartnerOrgKey,
+        studentData.studentPartnerOrgSiteName
       )
     : null
   let spoSchoolToAdd =

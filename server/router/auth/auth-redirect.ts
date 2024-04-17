@@ -22,6 +22,33 @@ export class AuthRedirect {
     return this.getBaseRedirect()
   }
 
+  static failureRedirect(
+    isLogin: boolean,
+    studentData: Partial<RegisterStudentPayload> = {},
+    errorMsg?: string
+  ) {
+    if (isLogin) {
+      return this.loginFailureRedirect
+    }
+
+    delete studentData.ip
+    delete studentData.issuer
+    delete studentData.password
+    delete studentData.profileId
+
+    const params = new URLSearchParams({
+      error: errorMsg ?? '',
+    })
+    for (const key of Object.keys(studentData)) {
+      const value = studentData[key as keyof RegisterStudentPayload]
+      if (value) params.append(key, value.toString())
+    }
+
+    return (
+      this.getBaseRedirect() + '/sign-up/student/account?' + params.toString()
+    )
+  }
+
   static get loginFailureRedirect() {
     return `${this.getBaseRedirect()}/login?400=true`
   }
