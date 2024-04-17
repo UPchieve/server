@@ -127,7 +127,7 @@ export const Config = Record({
   socketApiKey: String,
   socketIOAdminUsername: String,
   socketIOAdminPassword: String,
-  socketIOAdminUIDevelopmentMode: Boolean,
+  socketIOAdminUIMode: String,
   socketIOAdminUIReadOnly: Boolean,
   customVolunteerPartnerOrgs: Array(String),
   priorityMatchingPartnerOrgs: Array(String),

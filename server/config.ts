@@ -2,6 +2,8 @@
 
 import { Static } from 'runtypes'
 import { Config } from './config-type'
+import { trim } from 'lodash'
+import { lower } from 'case'
 
 let redisConnectionString: string
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
@@ -20,6 +22,14 @@ const bannedServiceProviders = bannedServiceProviderList.split(',')
 let nodeEnv = process.env.NODE_ENV
 if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
+}
+
+const stringToBoolean = (
+  strVal: string | undefined,
+  fallback: boolean
+): boolean => {
+  if (!strVal) return fallback
+  return trim(lower(strVal)) === 'true'
 }
 
 const config: Static<typeof Config> = {
@@ -182,11 +192,13 @@ const config: Static<typeof Config> = {
 
   socketIOAdminPassword: process.env.SUBWAY_SOCKET_IO_ADMIN_PASSWORD || 'bogus',
 
-  socketIOAdminUIDevelopmentMode:
-    Boolean(process.env.SUBWAY_SOCKET_IO_ADMIN_UI_DEVELOPMENT_MODE) || false,
+  socketIOAdminUIMode:
+    process.env.SUBWAY_SOCKET_IO_ADMIN_UI_MODE || 'production',
 
-  socketIOAdminUIReadOnly:
-    Boolean(process.env.SUBWAY_SOCKET_IO_ADMIN_UI_READONLY) || true,
+  socketIOAdminUIReadOnly: stringToBoolean(
+    process.env.SUBWAY_SOCKET_IO_ADMIN_UI_READONLY,
+    true
+  ),
 
   customVolunteerPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'big-telecom'
