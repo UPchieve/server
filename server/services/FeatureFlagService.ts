@@ -5,31 +5,36 @@ import { timeLimit } from '../utils/time-limit'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
-  userId: Ulid
+  userId: Ulid,
+  waitInMs?: number
 ): Promise<boolean | undefined> {
   return await timeLimit({
     promise: productClient.isFeatureEnabled(featureFlagName, userId),
     fallbackReturnValue: false,
     timeLimitReachedErrorMessage: `Posthog: 'isFeatureEnabled' did not receive response for feature flag '${featureFlagName}'.`,
+    waitInMs,
   })
 }
 
 export async function getFeatureFlagPayload(
   featureFlagName: FEATURE_FLAGS,
-  userId: Ulid
+  userId: Ulid,
+  waitInMs?: number
 ) {
   return await timeLimit({
     promise: productClient.getFeatureFlagPayload(featureFlagName, userId),
     fallbackReturnValue: false,
     timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlagPayload' did not receive response for feature flag '${featureFlagName}'.`,
+    waitInMs,
   })
 }
 
-export async function getAllFlagsForId(id: Ulid) {
+export async function getAllFlagsForId(id: Ulid, waitInMs?: number) {
   return await timeLimit({
     promise: productClient.getAllFlagsAndPayloads(id),
     fallbackReturnValue: { featureFlags: {}, featureFlagPayloads: {} },
     timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
+    waitInMs,
   })
 }
 
@@ -82,8 +87,15 @@ export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
 }
 
-export async function getProgressReportsFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.PROGRESS_REPORTS, userId)
+export async function getProgressReportsFeatureFlag(
+  userId: Ulid,
+  waitInMs?: number
+) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.PROGRESS_REPORTS,
+    userId,
+    waitInMs
+  )
 }
 
 export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
