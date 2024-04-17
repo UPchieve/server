@@ -1,5 +1,4 @@
 import { trim } from 'lodash'
-import { lower } from 'case'
 
 /**
  * Casts the given string to a boolean
