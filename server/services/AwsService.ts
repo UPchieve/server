@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk'
 import * as Sentry from '@sentry/node'
 import config from '../config'
+import { logError } from '../logger'
 
 const s3 = new AWS.S3({
   accessKeyId: config.awsS3.accessKeyId,
@@ -25,6 +26,7 @@ export async function getObject(
     return objectUrl
   } catch (error) {
     Sentry.captureException(error)
+    logError(error as Error)
     return ''
   }
 }
@@ -44,6 +46,7 @@ export async function getPhotoIdUploadUrl(
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
+    logError(error as Error)
     return ''
   }
 }
@@ -59,6 +62,7 @@ export async function getPhotoIdUrl(photoIdS3Key: string): Promise<string> {
     return photoUrl
   } catch (error) {
     Sentry.captureException(error)
+    logError(error as Error)
     return ''
   }
 }
@@ -78,6 +82,7 @@ export async function getSessionPhotoUploadUrl(
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
+    logError(error as Error)
     return ''
   }
 }

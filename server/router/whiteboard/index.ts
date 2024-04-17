@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node'
 import express, { Express } from 'express'
 import { KeyNotFoundError } from '../../cache'
-import logger from '../../logger'
+import logger, { logError } from '../../logger'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
 import * as WhiteboardService from '../../services/WhiteboardService'
@@ -339,6 +339,7 @@ export function routes(app: Express): void {
           )
         } catch (error) {
           Sentry.captureException(error)
+          logError(error as Error)
           return wsClient.send(
             encode({
               messageType: MessageType.ERROR,
@@ -362,6 +363,7 @@ export function routes(app: Express): void {
       res.sendStatus(200)
     } catch (err) {
       Sentry.captureException(err)
+      logError(err as Error)
       next(err)
     }
   })

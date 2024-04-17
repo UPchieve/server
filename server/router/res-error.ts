@@ -11,7 +11,7 @@ import {
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
 import { StartSessionError } from '../utils/session-utils'
-import logger from '../logger'
+import logger, { logError } from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { ExistingUserError } from '../services/EligibilityService'
 
@@ -50,6 +50,7 @@ export function resError(
 
     if (config.NODE_ENV === 'production' && status === 500)
       Sentry.captureException(err)
+    logError(err as Error)
 
     res.status(status).json({
       err: message || err.message,

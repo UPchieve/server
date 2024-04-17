@@ -5,6 +5,7 @@ import {
   getIpByRawString,
   insertIpByRawString,
 } from '../models/IpAddress'
+import { logError } from '../logger'
 import { NotAllowedError } from '../models/Errors'
 import { asString } from '../utils/type-utils'
 import net from 'net'
@@ -25,6 +26,7 @@ export async function getIpWhoIs(rawIpString: string) {
     return data
   } catch (err) {
     Sentry.captureException(err)
+    logError(err as Error)
     // TODO: should we just throw here?
     return {}
   }
