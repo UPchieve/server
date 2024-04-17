@@ -182,6 +182,12 @@ const config: Static<typeof Config> = {
 
   socketIOAdminPassword: process.env.SUBWAY_SOCKET_IO_ADMIN_PASSWORD || 'bogus',
 
+  socketIOAdminUIDevelopmentMode:
+    Boolean(process.env.SUBWAY_SOCKET_IO_ADMIN_UI_DEVELOPMENT_MODE) || false,
+
+  socketIOAdminUIReadOnly:
+    Boolean(process.env.SUBWAY_SOCKET_IO_ADMIN_UI_READONLY) || true,
+
   customVolunteerPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'big-telecom'
   ).split(','),
