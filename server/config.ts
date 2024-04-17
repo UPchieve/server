@@ -2,8 +2,7 @@
 
 import { Static } from 'runtypes'
 import { Config } from './config-type'
-import { trim } from 'lodash'
-import { lower } from 'case'
+import { stringToBoolean } from './utils/string-to-boolean'
 
 let redisConnectionString: string
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
@@ -22,14 +21,6 @@ const bannedServiceProviders = bannedServiceProviderList.split(',')
 let nodeEnv = process.env.NODE_ENV
 if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev'
-}
-
-const stringToBoolean = (
-  strVal: string | undefined,
-  fallback: boolean
-): boolean => {
-  if (!strVal) return fallback
-  return trim(lower(strVal)) === 'true'
 }
 
 const config: Static<typeof Config> = {
@@ -196,8 +187,7 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_SOCKET_IO_ADMIN_UI_MODE || 'production',
 
   socketIOAdminUIReadOnly: stringToBoolean(
-    process.env.SUBWAY_SOCKET_IO_ADMIN_UI_READONLY,
-    true
+    process.env.SUBWAY_SOCKET_IO_ADMIN_UI_READONLY || 'true'
   ),
 
   customVolunteerPartnerOrgs: (
