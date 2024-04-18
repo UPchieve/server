@@ -103,10 +103,3 @@ export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
     timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
   })
 }
-
-export async function getLogSocketConnectionEventsFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.LOG_SOCKET_CONNECTION_EVENTS,
-    userId
-  )
-}
