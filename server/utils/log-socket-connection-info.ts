@@ -1,23 +1,34 @@
 import { SocketUser } from '../router/extract-user'
 import { Ulid } from '../models/pgUtils'
-import * as SessionService from '../services/SessionService'
 import logger from '../logger'
+import { DISCONNECT_REASONS } from '../router/api/sockets'
 
 export const logSocketConnectionInfo = async (
   event: string,
-  socket: SocketUser
+  socket: SocketUser,
+  args?: any
 ) => {
   const userId = socket.request.user?.id as Ulid
+  const disconnectReason =
+    event === 'disconnect' || event === 'disconnection'
+      ? DISCONNECT_REASONS[args as keyof typeof DISCONNECT_REASONS]
+      : undefined
 
   try {
     const analyticsData = {
+      eventName: event,
+      disconnectReason: disconnectReason?.description,
+      disconnectIsError: disconnectReason?.isError,
       user: {
         id: userId,
         isVolunteer: socket.request.user?.isVolunteer,
       },
       rooms: Array.from(socket.rooms),
     }
-    logger.info(analyticsData, `Socket connection event: ${event}`) // If the message format changes, please update the Parsing Rule in NewRelic
+    const message = `Socket connection event: ${event}`
+    disconnectReason?.isError
+      ? logger.error(analyticsData, message)
+      : logger.info(analyticsData, message)
   } catch (err) {
     logger.error(
       err,

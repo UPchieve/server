@@ -34,7 +34,7 @@ import { extractSocketUser, SocketUser } from '../extract-user'
 import { logSocketConnectionInfo } from '../../utils/log-socket-connection-info'
 
 // Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
-const DISCONNECT_REASONS = {
+export const DISCONNECT_REASONS = {
   'server namespace disconnect': {
     isError: false,
     description:
@@ -535,21 +535,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('disconnect', (reason: keyof typeof DISCONNECT_REASONS) => {
-      const message = `Socket disconnected: %o`
-      const { isError, description } = DISCONNECT_REASONS[reason]
-      const logData = {
-        user: socket.request.user?.id,
-        reason,
-        description,
-      }
-      isError ? logger.error(message, logData) : logger.info(message, logData)
-    })
-
     // Log socket connection-related events for analytics
     connectionEvents.forEach(event => {
-      socket.prependListener(event, async () =>
-        logSocketConnectionInfo(event, socket)
+      socket.prependListener(event, async args =>
+        logSocketConnectionInfo(event, socket, args)
       )
     })
   })
