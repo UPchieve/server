@@ -31,51 +31,10 @@ import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser, SocketUser } from '../extract-user'
-
-// Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
-const DISCONNECT_REASONS = {
-  'server namespace disconnect': {
-    isError: false,
-    description:
-      'The socket was forcefully disconnected with socket.disconnect()',
-  },
-  'client namespace disconnect': {
-    isError: false,
-    description:
-      'The client has manually disconnected the socket using socket.disconnect()',
-  },
-  'server shutting down': {
-    isError: false,
-    description: 'The server is shutting down',
-  },
-  'ping timeout': {
-    isError: false,
-    description:
-      'The client did not send a PONG packet in the pingTimeout delay',
-  },
-  'transport close': {
-    isError: false,
-    description:
-      'The connection was closed (example: the user has lost connection, or the network was changed from WiFi to 4G)',
-  },
-  'transport error': {
-    isError: true,
-    description: 'The connection has encountered an error',
-  },
-  'parse error': {
-    isError: true,
-    description: 'The server has received an invalid packet from the client.',
-  },
-  'forced close': {
-    isError: true,
-    description: 'The server has received an invalid packet from the client.',
-  },
-  'forced server close': {
-    isError: false,
-    description:
-      'The client did not join a namespace in time (see the connectTimeout option) and was forcefully closed.',
-  },
-}
+import {
+  connectionEvents,
+  logSocketConnectionInfo,
+} from '../../utils/log-socket-connection-info'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -153,6 +112,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
+      await logSocketConnectionInfo('connection', socket) // Log the initial connection
       const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
         user.id
       )
@@ -522,15 +482,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('disconnect', (reason: keyof typeof DISCONNECT_REASONS) => {
-      const message = `Socket disconnected: %o`
-      const { isError, description } = DISCONNECT_REASONS[reason]
-      const logData = {
-        user: socket.request.user?.id,
-        reason,
-        description,
-      }
-      isError ? logger.error(message, logData) : logger.info(message, logData)
+    // Log socket connection-related events for analytics
+    connectionEvents.forEach(event => {
+      socket.prependListener(event, args =>
+        logSocketConnectionInfo(event, socket, args)
+      )
     })
   })
 }
