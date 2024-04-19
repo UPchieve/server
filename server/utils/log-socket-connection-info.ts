@@ -76,10 +76,6 @@ const CLIENT_DISCONNECT_REASONS = {
   },
 }
 
-type CLIENT_CONNECT_ERROR_REASONS =
-  | 'The low-level connection cannot be established (temporary failure)'
-  | 'The connection was denied by the server in a middleware function'
-
 export const connectionEvents = [
   'connect',
   'disconnect',
@@ -109,12 +105,14 @@ export const logSocketConnectionInfo = (
           args as keyof typeof CLIENT_DISCONNECT_REASONS
         ]
       : undefined
+  const errorMessage = event.indexOf('error') >= 0 ? args : undefined
 
   try {
     const analyticsData = {
       eventName: event,
       disconnectReason: disconnectReason?.description,
       disconnectIsError: disconnectReason?.isError,
+      errorMessage,
       user: {
         id: userId,
         isVolunteer: socket.request.user?.isVolunteer,
@@ -122,7 +120,7 @@ export const logSocketConnectionInfo = (
       rooms: Array.from(socket.rooms),
     }
     const message = `Socket connection event: ${event}`
-    disconnectReason?.isError
+    disconnectReason?.isError || errorMessage
       ? logger.error(analyticsData, message)
       : logger.info(analyticsData, message)
   } catch (err) {
