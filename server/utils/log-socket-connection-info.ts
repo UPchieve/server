@@ -1,9 +1,64 @@
 import { SocketUser } from '../router/extract-user'
 import { Ulid } from '../models/pgUtils'
 import logger from '../logger'
-import { DISCONNECT_REASONS } from '../router/api/sockets'
 
-export const logSocketConnectionInfo = async (
+// Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
+const DISCONNECT_REASONS = {
+  'server namespace disconnect': {
+    isError: false,
+    description:
+      'The socket was forcefully disconnected with socket.disconnect()',
+  },
+  'client namespace disconnect': {
+    isError: false,
+    description:
+      'The client has manually disconnected the socket using socket.disconnect()',
+  },
+  'server shutting down': {
+    isError: false,
+    description: 'The server is shutting down',
+  },
+  'ping timeout': {
+    isError: false,
+    description:
+      'The client did not send a PONG packet in the pingTimeout delay',
+  },
+  'transport close': {
+    isError: false,
+    description:
+      'The connection was closed (example: the user has lost connection, or the network was changed from WiFi to 4G)',
+  },
+  'transport error': {
+    isError: true,
+    description: 'The connection has encountered an error',
+  },
+  'parse error': {
+    isError: true,
+    description: 'The server has received an invalid packet from the client.',
+  },
+  'forced close': {
+    isError: true,
+    description: 'The server has received an invalid packet from the client.',
+  },
+  'forced server close': {
+    isError: false,
+    description:
+      'The client did not join a namespace in time (see the connectTimeout option) and was forcefully closed.',
+  },
+}
+
+export const connectionEvents = [
+  'connect',
+  'disconnect',
+  'client_reconnect',
+  'client_reconnect_attempt',
+  'client_connect_error',
+  'client_reconnect_error',
+  'leave',
+  'join',
+]
+
+export const logSocketConnectionInfo = (
   event: string,
   socket: SocketUser,
   args?: any
