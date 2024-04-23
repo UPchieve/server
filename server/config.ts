@@ -2,6 +2,7 @@
 
 import { Static } from 'runtypes'
 import { Config } from './config-type'
+import { stringToBoolean } from './utils/string-to-boolean'
 
 let redisConnectionString: string
 const redisHost = process.env.SUBWAY_REDIS_HOST || 'localhost'
@@ -182,6 +183,13 @@ const config: Static<typeof Config> = {
 
   socketIOAdminPassword: process.env.SUBWAY_SOCKET_IO_ADMIN_PASSWORD || 'bogus',
 
+  socketIOAdminUIMode:
+    process.env.SUBWAY_SOCKET_IO_ADMIN_UI_MODE || 'production',
+
+  socketIOAdminUIReadOnly: stringToBoolean(
+    process.env.SUBWAY_SOCKET_IO_ADMIN_UI_READONLY || 'true'
+  ),
+
   customVolunteerPartnerOrgs: (
     process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'big-telecom'
   ).split(','),
@@ -267,7 +275,9 @@ const config: Static<typeof Config> = {
   postgresUser: process.env.SUBWAY_POSTGRES_USER || 'subway',
   postgresPassword: process.env.SUBWAY_POSTGRES_PASSWORD || 'Password123',
   postgresDatabase: process.env.SUBWAY_POSTGRES_DB || 'upchieve',
-  postgresRequireSSL: Boolean(process.env.SUBWAY_POSTGRES_REQUIRE_SSL || false),
+  postgresRequireSSL: stringToBoolean(
+    process.env.SUBWAY_POSTGRES_REQUIRE_SSL || 'false'
+  ),
   firebase: {
     projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012',
   },
