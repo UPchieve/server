@@ -44,8 +44,11 @@ export default function(app: Express) {
   })
   // Set up Socket IO admin UI
   instrument(io, {
-    mode: isProductionEnvironment() ? 'production' : 'development',
-    readonly: isProductionEnvironment(),
+    mode:
+      config.socketIOAdminUIMode === 'development'
+        ? 'development'
+        : 'production', // options are development or production
+    readonly: config.socketIOAdminUIReadOnly,
     auth: !isDevEnvironment()
       ? {
           type: 'basic',
