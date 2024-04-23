@@ -5,5 +5,9 @@ import { trim } from 'lodash'
  * @param stringVal
  */
 export function stringToBoolean(stringVal: string): boolean {
-  return trim(stringVal.toLowerCase()) === 'true'
+  const val = trim(stringVal.toLowerCase())
+  if (!['true', 'false'].includes(val)) {
+    throw new Error("Given string needs to resemble 'true' or 'false'")
+  }
+  return val === 'true'
 }
