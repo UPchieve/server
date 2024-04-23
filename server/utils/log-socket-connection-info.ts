@@ -3,7 +3,7 @@ import { Ulid } from '../models/pgUtils'
 import logger from '../logger'
 
 // Taken from https://socket.io/docs/v4/server-socket-instance/#disconnect
-const DISCONNECT_REASONS = {
+const SERVER_DISCONNECT_REASONS = {
   'server namespace disconnect': {
     isError: false,
     description:
@@ -47,6 +47,35 @@ const DISCONNECT_REASONS = {
   },
 }
 
+// Taken from https://socket.io/docs/v4/client-socket-instance/#disconnect
+const CLIENT_DISCONNECT_REASONS = {
+  'io server disconnect': {
+    isError: false,
+    description:
+      'The server has forcefully disconnected the socket with socket.disconnect()',
+  },
+  'io client disconnect': {
+    isError: false,
+    description:
+      'The socket was manually disconnected using socket.disconnect()',
+  },
+  'ping timeout': {
+    isError: false,
+    description:
+      'The server did not send a PING within the pingInterval + pingTimeout range',
+  },
+  'transport close': {
+    isError: false,
+    description:
+      'The connection was closed (example: the user has lost connection, or the network was changed from WiFi to 4G)',
+  },
+  'transport error': {
+    isError: true,
+    description:
+      'The connection has encountered an error (example: the server was killed during a HTTP long-polling cycle)',
+  },
+}
+
 export const connectionEvents = [
   'connect',
   'disconnect',
@@ -54,6 +83,8 @@ export const connectionEvents = [
   'client_reconnect_attempt',
   'client_connect_error',
   'client_reconnect_error',
+  'client_connect',
+  'client_disconnect',
   'leave',
   'join',
 ]
@@ -66,14 +97,22 @@ export const logSocketConnectionInfo = (
   const userId = socket.request.user?.id as Ulid
   const disconnectReason =
     event === 'disconnect' || event === 'disconnection'
-      ? DISCONNECT_REASONS[args as keyof typeof DISCONNECT_REASONS]
+      ? SERVER_DISCONNECT_REASONS[
+          args as keyof typeof SERVER_DISCONNECT_REASONS
+        ]
+      : event === 'client_disconnect'
+      ? CLIENT_DISCONNECT_REASONS[
+          args as keyof typeof CLIENT_DISCONNECT_REASONS
+        ]
       : undefined
+  const errorMessage = event.indexOf('error') >= 0 ? args : undefined
 
   try {
     const analyticsData = {
       eventName: event,
       disconnectReason: disconnectReason?.description,
       disconnectIsError: disconnectReason?.isError,
+      errorMessage,
       user: {
         id: userId,
         isVolunteer: socket.request.user?.isVolunteer,
@@ -81,7 +120,7 @@ export const logSocketConnectionInfo = (
       rooms: Array.from(socket.rooms),
     }
     const message = `Socket connection event: ${event}`
-    disconnectReason?.isError
+    disconnectReason?.isError || errorMessage
       ? logger.error(analyticsData, message)
       : logger.info(analyticsData, message)
   } catch (err) {
