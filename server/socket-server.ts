@@ -10,7 +10,7 @@ import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
 import { Express } from 'express'
 import SocketService from './services/SocketService'
 import { instrument } from '@socket.io/admin-ui'
-import { isDevEnvironment, isProductionEnvironment } from './utils/environments'
+import { isDevEnvironment } from './utils/environments'
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = (app: Express) => {

@@ -14,6 +14,8 @@ import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
 import { buildAppLink } from '../../utils/link-builders'
+import { isDevEnvironment, isE2eEnvironment } from '../../utils/environments'
+import logger from '../../logger'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -151,6 +153,10 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
 }
 
 export async function sendReset(email: string, token: string): Promise<void> {
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug('Skipping sendReset')
+    return
+  }
   const url = `https://${config.client.host}/setpassword?token=${token}`
 
   const overrides = {
