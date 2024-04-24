@@ -1,6 +1,6 @@
 version: "3.2"
 services:
-  postgres:
+  postgres-e2e:
     container_name: postgres-e2e
     hostname: postgres
     ports:
@@ -23,7 +23,7 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
-  redis:
+  redis-e2e:
     container_name: redis-e2e
     hostname: redis
     ports:
