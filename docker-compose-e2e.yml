@@ -19,10 +19,10 @@ services:
       - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "postgres"]
-      interval: 1m30s
+      interval: 3s
       timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 2s
   redis-e2e:
     container_name: redis-e2e
     hostname: redis
