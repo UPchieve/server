@@ -29,22 +29,4 @@ services:
     ports:
       - "5501:6379"
     image: redis:6.2.1
-  pgadmin:
-    container_name: pgadmin-e2e
-    image: dpage/pgadmin4
-    depends_on:
-      - postgres
-    entrypoint: >
-      /bin/sh -c "
-      mkdir -m 700 /var/lib/pgadmin/storage/admin_upchieve.org;
-      chown -R pgadmin:pgadmin /var/lib/pgadmin/storage/admin_upchieve.org;
-      cp -prv /pgpassfile /var/lib/pgadmin/storage/admin_upchieve.org/;
-      chmod 600 /var/lib/pgadmin/storage/admin_upchieve.org/pgpassfile;
-      /entrypoint.sh
-      "
-    ports:
-      - "81:80"
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@upchieve.org
-      - PGADMIN_DEFAULT_PASSWORD=Password123
-    restart: unless-stopped
+
