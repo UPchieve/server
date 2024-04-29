@@ -67,9 +67,9 @@ export type StudentContactInfo = {
 export type CreateStudentProfilePayload = {
   college?: string
   gradeLevel?: string
-  partnerSite?: string
   schoolId?: Ulid
-  studentPartnerOrg?: string
+  studentPartnerOrgKey?: string
+  studentPartnerOrgSiteName?: string
   userId: Ulid
   zipCode?: string
 }

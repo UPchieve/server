@@ -63,7 +63,7 @@ describe('createStudentProfile', () => {
 
     const student = {
       userId: user.id,
-      studentPartnerOrg: 'school-helpers',
+      studentPartnerOrgKey: 'school-helpers',
     }
     const result = await createStudentProfile(student, client)
     expect(result.userId).toBe(user.id)
@@ -81,8 +81,8 @@ describe('createStudentProfile', () => {
 
     const student = {
       userId: user.id,
-      studentPartnerOrg: 'college-mentors',
-      partnerSite: 'Denver',
+      studentPartnerOrgKey: 'college-mentors',
+      studentPartnerOrgSiteName: 'Denver',
     }
     const result = await createStudentProfile(student, client)
     expect(result.userId).toBe(user.id)
@@ -161,8 +161,8 @@ describe('upsertStudentProfile', () => {
       gradeLevel: '10th',
       zipCode: '00000',
       schoolId: '01859800-bc76-7db0-734b-b567fa67a568',
-      studentPartnerOrg: 'college-mentors',
-      partnerSite: 'Brooklyn',
+      studentPartnerOrgKey: 'college-mentors',
+      studentPartnerOrgSiteName: 'Brooklyn',
     }
 
     const returned = await upsertStudentProfile(updatedStudent, client)

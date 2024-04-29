@@ -871,7 +871,7 @@ describe('registerStudent', () => {
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
       password: 'Password123!',
-      studentPartnerOrg: PARTNER_ORG.key,
+      studentPartnerOrgKey: PARTNER_ORG.key,
     }
     mockedUserRepo.createUser.mockResolvedValue({
       id: USER_ID,
@@ -885,9 +885,9 @@ describe('registerStudent', () => {
       {
         college: undefined,
         gradeLevel: undefined,
-        partnerSite: undefined,
         schoolId: PARTNER_ORG.schoolId,
-        studentPartnerOrg: PARTNER_ORG.key,
+        studentPartnerOrgKey: PARTNER_ORG.key,
+        studentPartnerOrgSiteName: undefined,
         userId: USER_ID,
         zipCode: undefined,
       },

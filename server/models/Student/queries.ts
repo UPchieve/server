@@ -544,8 +544,8 @@ export async function createStudentProfile(
         schoolId: studentData.schoolId,
         postalCode: studentData.zipCode,
         gradeLevel: studentData.gradeLevel,
-        partnerOrg: studentData.studentPartnerOrg,
-        partnerSite: studentData.partnerSite,
+        partnerOrg: studentData.studentPartnerOrgKey,
+        partnerSite: studentData.studentPartnerOrgSiteName,
       },
       tc
     )
@@ -569,8 +569,8 @@ export async function upsertStudentProfile(
         schoolId: studentData.schoolId,
         postalCode: studentData.zipCode,
         gradeLevel: studentData.gradeLevel,
-        partnerOrg: studentData.studentPartnerOrg,
-        partnerSite: studentData.partnerSite,
+        partnerOrg: studentData.studentPartnerOrgKey,
+        partnerSite: studentData.studentPartnerOrgSiteName,
       },
       tc
     )
