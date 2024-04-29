@@ -2,14 +2,89 @@ import { Request } from 'express'
 import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as GoogleStrategy } from 'passport-google-oidc'
+import CleverStrategy from './clever-strategy'
 import { getFederatedCredential } from '../../models/FederatedCredential/queries'
 import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
 import {
   registerStudent,
   createPartnerStudent,
 } from '../../services/UserCreationService'
-import { SessionWithStudentData, verifyPassword } from '../../utils/auth-utils'
+import {
+  RegisterStudentPayload,
+  SessionWithSsoData,
+  SessionWithStudentData,
+  verifyPassword,
+} from '../../utils/auth-utils'
 import config from '../../config'
+
+async function passportLoginUser(
+  profileId: string,
+  issuer: string,
+  done: Function
+) {
+  try {
+    const existingFedCred = await getFederatedCredential(profileId, issuer)
+    if (!existingFedCred) {
+      return done(null, false)
+    }
+
+    return done(null, { id: existingFedCred.userId })
+  } catch (error) {
+    return done(error)
+  }
+}
+
+async function passportRegisterUser(
+  profile: passport.Profile,
+  issuer: string,
+  providerName: string,
+  done: Function,
+  data?: Partial<RegisterStudentPayload>
+) {
+  try {
+    const existingFedCred = await getFederatedCredential(profile.id, issuer)
+    if (existingFedCred) {
+      return done(
+        null,
+        false,
+        `${providerName} account already used with another UPchieve account.`
+      )
+    }
+
+    const firstName = profile.name?.givenName
+    const lastName = profile.name?.familyName
+    const email = profile.emails?.[0]?.value
+    if (!firstName || !lastName || !email) {
+      return done(null, false)
+    }
+
+    const existingUser = await getUserIdByEmail(email)
+    if (existingUser) {
+      return done(
+        null,
+        false,
+        `Account with ${providerName} email already exists.`
+      )
+    }
+
+    if (!data) {
+      return done(null, false, 'Internal Error: Please try again.')
+    }
+
+    const studentData = {
+      email,
+      firstName,
+      issuer,
+      lastName,
+      profileId: profile.id,
+      ...data,
+    }
+    const student = await registerStudent(studentData)
+    return done(null, student)
+  } catch (err) {
+    return done(err)
+  }
+}
 
 export function addPassportAuthMiddleware() {
   passport.use(
@@ -49,6 +124,66 @@ export function addPassportAuthMiddleware() {
     )
   )
 
+  passport.use(
+    'google',
+    new GoogleStrategy(
+      {
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: '/auth/oauth2/redirect',
+        scope: ['profile', 'email'],
+        prompt: 'select_account',
+        passReqToCallback: true,
+      },
+      async function(
+        req: Request,
+        issuer: string,
+        profile: passport.Profile,
+        done: Function
+      ) {
+        const { isLogin } = req.session as SessionWithSsoData
+        if (isLogin) {
+          return passportLoginUser(profile.id, issuer, done)
+        } else {
+          const { studentData } = req.session as SessionWithSsoData
+          return passportRegisterUser(
+            profile,
+            issuer,
+            'Google',
+            done,
+            studentData
+          )
+        }
+      }
+    )
+  )
+
+  passport.use(
+    'clever',
+    new CleverStrategy({ callbackURL: '/auth/oauth2/redirect' }, async function(
+      req: Request,
+      _accessToken: string,
+      _refreshToken: string,
+      profile: passport.Profile & { issuer: string },
+      done: Function
+    ) {
+      const { isLogin } = req.session as SessionWithSsoData
+      if (isLogin) {
+        return passportLoginUser(profile.id, profile.issuer, done)
+      } else {
+        const { studentData } = req.session as SessionWithSsoData
+        return passportRegisterUser(
+          profile,
+          profile.issuer,
+          'Clever',
+          done,
+          studentData
+        )
+      }
+    })
+  )
+
+  // == Remove after high-line clean-up.
   passport.use(
     'google-login',
     new GoogleStrategy(
@@ -142,7 +277,7 @@ export function addPassportAuthMiddleware() {
             lastName,
             profileId: profile.id,
             schoolId: session.studentData.highSchoolId,
-            studentPartnerOrg: session.studentData.studentPartnerOrg,
+            studentPartnerOrgKey: session.studentData.studentPartnerOrg,
             referredByCode: session.studentData.referredByCode,
             verified: true,
             zipCode: session.studentData.zipCode,
@@ -156,7 +291,6 @@ export function addPassportAuthMiddleware() {
     )
   )
 
-  // TODO: Remove in favour of `google-register-student`.
   passport.use(
     'google-register-partner-student',
     new GoogleStrategy(

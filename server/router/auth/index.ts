@@ -5,8 +5,9 @@ import * as AuthService from '../../services/AuthService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   authPassport,
+  isSupportedSsoProvider,
   registerStudentValidator,
-  StudentDataParams,
+  SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
@@ -19,70 +20,7 @@ import { extractUser } from '../extract-user'
 import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
-
-class GoogleAuthRedirect {
-  private static _baseRedirect: string
-
-  private static getBaseRedirect() {
-    if (!this._baseRedirect) {
-      let protocol
-      if (config.NODE_ENV === 'dev') {
-        protocol = 'http'
-      } else {
-        protocol = 'https'
-      }
-      this._baseRedirect = `${protocol}://${config.client.host}`
-    }
-
-    return this._baseRedirect
-  }
-
-  static get successRedirect() {
-    return this.getBaseRedirect()
-  }
-
-  static get loginFailureRedirect() {
-    return `${this.getBaseRedirect()}/login?400=true`
-  }
-
-  static registerFailureRedirect(
-    studentData: StudentDataParams,
-    errMsg?: string
-  ) {
-    const params = new URLSearchParams({
-      error: errMsg ?? '',
-    })
-    if (studentData.email) {
-      params.append('email', studentData.email)
-    }
-    if (studentData.highSchoolId) {
-      params.append('highSchoolId', studentData.highSchoolId)
-    }
-    if (studentData.zipCode) {
-      params.append('zipCode', studentData.zipCode)
-    }
-    if (studentData.currentGrade) {
-      params.append('currentGrade', studentData.currentGrade)
-    }
-    if (studentData.studentPartnerOrg) {
-      params.append('partner', studentData.studentPartnerOrg)
-    }
-    return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
-  }
-
-  static registerPartnerStudentFailureRedirect(
-    studentData: StudentDataParams,
-    errMsg?: string
-  ) {
-    const params = new URLSearchParams({
-      sso: 'google',
-      error: errMsg ?? '',
-    })
-    return `${this.getBaseRedirect()}/signup/student/${
-      studentData.studentPartnerOrg
-    }?${params.toString()}`
-  }
-}
+import { AuthRedirect } from './auth-redirect'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
@@ -131,12 +69,50 @@ export function routes(app: Express) {
     }
   )
 
-  router.route('/login/google').get(passport.authenticate('google-login'))
+  router.route('/sso').get((req, res) => {
+    const provider = req.query.provider as string
+    const isLogin = req.query.isLogin === 'true'
+    if (!provider || !isSupportedSsoProvider(provider)) {
+      res.redirect(AuthRedirect.failureRedirect(isLogin))
+      return
+    }
+    if (!isLogin) {
+      ;(req.session as SessionWithSsoData).studentData = {
+        ...req.query,
+        ip: req.ip,
+      }
+    }
+    ;(req.session as SessionWithSsoData).provider = provider
+    ;(req.session as SessionWithSsoData).isLogin = isLogin
+    const strategy = provider
+    passport.authenticate(strategy)(req, res)
+  })
+  // Redirect URI for SSO providers.
+  router.route('/oauth2/redirect').get((req, res) => {
+    const { provider, isLogin, studentData } = req.session as SessionWithSsoData
+    if (!provider || !isSupportedSsoProvider(provider)) {
+      res.redirect(AuthRedirect.failureRedirect(isLogin ?? false, studentData))
+      return
+    }
+    const strategy = provider
+    passport.authenticate(strategy, async function(_err, user, errorMsg) {
+      if (user) {
+        res.redirect(AuthRedirect.successRedirect)
+        await req.asyncLogin(user)
+      } else {
+        res.redirect(
+          AuthRedirect.failureRedirect(isLogin ?? false, studentData, errorMsg)
+        )
+      }
+    })(req, res)
+  })
 
+  // == Remove after high-line clean-up.
+  router.route('/login/google').get(passport.authenticate('google-login'))
   router.route('/oauth2/redirect/google/login').get(
     passport.authenticate('google-login', {
-      successRedirect: GoogleAuthRedirect.successRedirect,
-      failureRedirect: GoogleAuthRedirect.loginFailureRedirect,
+      successRedirect: AuthRedirect.successRedirect,
+      failureRedirect: AuthRedirect.loginFailureRedirect,
     })
   )
 
@@ -156,12 +132,10 @@ export function routes(app: Express) {
         const studentData = (req.session as any).studentData
         delete (req.session as any).studentData
         if (user) {
-          res.redirect(GoogleAuthRedirect.successRedirect)
+          res.redirect(AuthRedirect.successRedirect)
           await req.asyncLogin(user)
         } else {
-          res.redirect(
-            GoogleAuthRedirect.registerFailureRedirect(studentData, info)
-          )
+          res.redirect(AuthRedirect.registerFailureRedirect(studentData, info))
         }
       })(req, res)
     })
@@ -181,11 +155,11 @@ export function routes(app: Express) {
         const studentData = (req.session as any).studentData
         delete (req.session as any).studentData
         if (user) {
-          res.redirect(GoogleAuthRedirect.successRedirect)
+          res.redirect(AuthRedirect.successRedirect)
           await req.asyncLogin(user)
         } else {
           res.redirect(
-            GoogleAuthRedirect.registerPartnerStudentFailureRedirect(
+            AuthRedirect.registerPartnerStudentFailureRedirect(
               studentData,
               info
             )
@@ -193,6 +167,7 @@ export function routes(app: Express) {
         }
       })(req, res)
     })
+  // == End remove.
 
   router.route('/register/checkcred').post(async function(req, res) {
     try {
