@@ -14,6 +14,8 @@ import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
 import { buildAppLink } from '../../utils/link-builders'
+import { isDevEnvironment, isE2eEnvironment } from '../../utils/environments'
+import logger from '../../logger'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -74,6 +76,11 @@ async function sendEmail(
   dynamicData: any,
   overrides: any = {}
 ): Promise<void> {
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug('Skipping sendEmail')
+    return
+  }
+
   const msg = {
     to: toEmail,
     from: {
