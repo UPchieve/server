@@ -343,6 +343,8 @@ const config: Static<typeof Config> = {
 
   openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
   subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
+  subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',
+  subwayAIVisionApiKey: process.env.SUBWAY_VISION_AI_API_KEY || 'bogus',
 }
 
 module.exports = config
