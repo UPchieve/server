@@ -76,6 +76,11 @@ async function sendEmail(
   dynamicData: any,
   overrides: any = {}
 ): Promise<void> {
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug('Skipping sendEmail')
+    return
+  }
+
   const msg = {
     to: toEmail,
     from: {
@@ -153,10 +158,6 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
 }
 
 export async function sendReset(email: string, token: string): Promise<void> {
-  if (isDevEnvironment() || isE2eEnvironment()) {
-    logger.debug('Skipping sendReset')
-    return
-  }
   const url = `https://${config.client.host}/setpassword?token=${token}`
 
   const overrides = {
