@@ -97,10 +97,10 @@ export function routes(app: Express) {
     const strategy = provider
     passport.authenticate(strategy, async function(_err, user, errorMsg) {
       if (user) {
-        res.redirect(AuthRedirect.successRedirect)
         await req.asyncLogin(user)
+        return res.redirect(AuthRedirect.successRedirect)
       } else {
-        res.redirect(
+        return res.redirect(
           AuthRedirect.failureRedirect(isLogin ?? false, studentData, errorMsg)
         )
       }
