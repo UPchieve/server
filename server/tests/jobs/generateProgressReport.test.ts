@@ -9,13 +9,11 @@ import { getDbUlid } from '../../models/pgUtils'
 import { Job } from 'bull'
 import axios from 'axios'
 import config from '../../config'
-import fs from 'fs/promises'
 
 jest.mock('axios')
 jest.mock('../../services/ProgressReportsService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Session')
-jest.mock('fs/promises')
 
 const mockedProgressReportsService = mocked(ProgressReportsService)
 const mockedFeatureFlagService = mocked(FeatureFlagService)
@@ -140,7 +138,6 @@ describe(Jobs.GenerateProgressReport, () => {
         headers: { 'x-api-key': config.subwayApiCredentials },
       }
     )
-    expect(fs.rm).toHaveBeenCalledTimes(1)
   })
 
   test('Should early exit if no prompt for subject session', async () => {

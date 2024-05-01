@@ -1,4 +1,3 @@
-import * as fs from 'fs'
 import createImageAnalysisClient, {
   ImageAnalysisClient,
   isUnexpected,
@@ -15,9 +14,8 @@ const client: ImageAnalysisClient = createImageAnalysisClient(
 )
 
 async function analyzeImageBuffer(
-  filePath: string
+  imageBuffer: Buffer
 ): Promise<ImageAnalysisResultOutput> {
-  const imageBuffer: Buffer = fs.readFileSync(filePath)
   const features: string[] = ['Read']
   const result = await client.path('/imageanalysis:analyze').post({
     body: imageBuffer,
@@ -44,10 +42,10 @@ async function getTextFromImageReadResult(
 }
 
 export async function getTextFromImageAnalysis(
-  imagePath: string
+  imageBuffer: Buffer
 ): Promise<string> {
   try {
-    const response = await analyzeImageBuffer(imagePath)
+    const response = await analyzeImageBuffer(imageBuffer)
     return getTextFromImageReadResult(response.readResult)
   } catch (error) {
     logger.error(

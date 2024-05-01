@@ -60,7 +60,6 @@ import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
 import Delta from 'quill-delta'
 import { convertBase64ToImage } from '../../utils/convert-base-to-image'
 import { getTextFromImageAnalysis } from '../VisionService'
-import config from '../../config'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -88,12 +87,9 @@ async function formatTranscriptAndEditor(
    **/
   let imageText = ''
   if (session.quillDoc) {
-    const filePaths = await saveImagesAndGetFilePaths(
-      session.id,
-      session.quillDoc
-    )
-    if (filePaths.length > 0)
-      imageText = await getProgressReportImageText(filePaths)
+    const docImages = await getDocumentEditorImages(session.quillDoc)
+    if (docImages.length > 0)
+      imageText = await getProgressReportImageText(docImages)
   }
 
   return `
@@ -131,25 +127,22 @@ function extractBase64ImagesFromQuillDoc(deltaJson: string): string[] {
   return base64Images
 }
 
-async function saveImagesAndGetFilePaths(sessionId: Ulid, quillDoc: string) {
-  const filePaths = []
+async function getDocumentEditorImages(quillDoc: string): Promise<Buffer[]> {
+  const buffers = []
   const base64Images: string[] = extractBase64ImagesFromQuillDoc(quillDoc)
-  for (const [index, base64Image] of base64Images.entries()) {
-    const outputPath = `${
-      config.fileWorkRootPath
-    }/${sessionId}/doc/images/${index + 1}`
-    const filePath = await convertBase64ToImage(base64Image, outputPath)
-    filePaths.push(filePath)
+  for (const base64Image of base64Images) {
+    const outputBuffer = await convertBase64ToImage(base64Image)
+    buffers.push(outputBuffer)
   }
-  return filePaths
+  return buffers
 }
 
 async function getProgressReportImageText(
-  filePaths: string[]
+  imageBuffers: Buffer[]
 ): Promise<string> {
   let progressReportContext = ''
-  for (const path of filePaths) {
-    progressReportContext += await getTextFromImageAnalysis(path)
+  for (const image of imageBuffers) {
+    progressReportContext += await getTextFromImageAnalysis(image)
   }
   return progressReportContext
 }
