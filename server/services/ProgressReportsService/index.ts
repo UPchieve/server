@@ -53,7 +53,10 @@ import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 export * from './types'
 import { ProgressReportNotFoundError } from '../Errors'
-import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
+import {
+  getProgressReportVisionAIFeatureFlag,
+  getProgressReportsFeatureFlag,
+} from '../FeatureFlagService'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
@@ -86,7 +89,10 @@ async function formatTranscriptAndEditor(
    *
    **/
   let imageText = ''
-  if (session.quillDoc) {
+  const isVisionActive = await getProgressReportVisionAIFeatureFlag(
+    session.studentId
+  )
+  if (isVisionActive && session.quillDoc) {
     const docImages = await getDocumentEditorImages(session.quillDoc)
     if (docImages.length > 0)
       imageText = await getProgressReportImageText(docImages)
