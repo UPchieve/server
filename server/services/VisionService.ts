@@ -7,11 +7,37 @@ import createImageAnalysisClient, {
 import { AzureKeyCredential } from '@azure/core-auth'
 import logger from '../logger'
 import config from '../config'
+import { isValidConfigToken } from '../utils/environments'
 
-const client: ImageAnalysisClient = createImageAnalysisClient(
-  config.subwayAIVisionEndpoint,
-  new AzureKeyCredential(config.subwayAIVisionApiKey)
+const client: ImageAnalysisClient = isValidConfigToken(
+  config.subwayAIVisionApiKey
 )
+  ? createImageAnalysisClient(
+      config.subwayAIVisionEndpoint,
+      new AzureKeyCredential(config.subwayAIVisionApiKey)
+    )
+  : createMockImageAnalysisClient()
+
+function createMockImageAnalysisClient(): ImageAnalysisClient {
+  return ({
+    path: () => ({
+      post: async () => ({
+        status: '200',
+        body: {
+          captionResult: {},
+          denseCaptionsResult: {},
+          metadata: {},
+          modelVersion: '',
+          objectResult: {},
+          peopleResult: {},
+          readResult: {},
+          smartCropsResult: {},
+          tagsResult: {},
+        },
+      }),
+    }),
+  } as unknown) as ImageAnalysisClient
+}
 
 async function analyzeImageBuffer(
   imageBuffer: Buffer

@@ -7,3 +7,7 @@ export function isDevEnvironment() {
 export function isProductionEnvironment() {
   return config.NODE_ENV === 'production'
 }
+
+export function isValidConfigToken(token: string) {
+  return token !== 'bogus'
+}
