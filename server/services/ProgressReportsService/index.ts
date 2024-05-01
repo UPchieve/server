@@ -57,6 +57,10 @@ import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
+import Delta from 'quill-delta'
+import { convertBase64ToImage } from '../../utils/convert-base-to-image'
+import { getTextFromImageAnalysis } from '../VisionService'
+import config from '../../config'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -67,11 +71,29 @@ function formatTranscriptMessage(
   }\n`
 }
 
-function formatTranscriptAndEditor(session: UserSessionsWithMessages): string {
+async function formatTranscriptAndEditor(
+  session: UserSessionsWithMessages
+): Promise<string> {
   let transcript = ''
   for (const message of session.messages) {
     const userType = message.user === session.studentId ? 'Student' : 'Tutor'
     transcript += formatTranscriptMessage(message, userType)
+  }
+  const quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
+  /**
+   *
+   * Note: This should be optimized since we will be extracting texts from
+   * images that we've processed before when making group progress reports
+   *
+   **/
+  let imageText = ''
+  if (session.quillDoc) {
+    const filePaths = await saveImagesAndGetFilePaths(
+      session.id,
+      session.quillDoc
+    )
+    if (filePaths.length > 0)
+      imageText = await getProgressReportImageText(filePaths)
   }
 
   return `
@@ -79,8 +101,57 @@ function formatTranscriptAndEditor(session: UserSessionsWithMessages): string {
     ${transcript}
 
     Editor:
-    ${session.quillDoc}
+    ${quillDoc}
+
+    Image Text:
+    ${imageText}
     `
+}
+
+export function removeImageInsertsFromQuillDoc(
+  jsonString: string | undefined
+): string {
+  if (!jsonString) return ''
+  const document: Delta = JSON.parse(jsonString)
+  const filteredOps = document.ops.filter(
+    op => op.insert && typeof op.insert === 'string'
+  )
+  document.ops = filteredOps
+  return JSON.stringify(document)
+}
+
+function extractBase64ImagesFromQuillDoc(deltaJson: string): string[] {
+  const document: Delta = JSON.parse(deltaJson)
+  const base64Images: string[] = document.ops
+    .filter(
+      op => op.insert && typeof op.insert === 'object' && 'image' in op.insert
+    )
+    .map(op => (op.insert as { image: string }).image)
+    .filter(src => src.startsWith('data:image'))
+  return base64Images
+}
+
+async function saveImagesAndGetFilePaths(sessionId: Ulid, quillDoc: string) {
+  const filePaths = []
+  const base64Images: string[] = extractBase64ImagesFromQuillDoc(quillDoc)
+  for (const [index, base64Image] of base64Images.entries()) {
+    const outputPath = `${
+      config.fileWorkRootPath
+    }/${sessionId}/doc/images/${index + 1}`
+    const filePath = await convertBase64ToImage(base64Image, outputPath)
+    filePaths.push(filePath)
+  }
+  return filePaths
+}
+
+async function getProgressReportImageText(
+  filePaths: string[]
+): Promise<string> {
+  let progressReportContext = ''
+  for (const path of filePaths) {
+    progressReportContext += await getTextFromImageAnalysis(path)
+  }
+  return progressReportContext
 }
 
 function replaceSubjectPromptVariables(
@@ -142,13 +213,20 @@ export async function hasActiveSubjectPrompt(
   }
 }
 
-function formatSessionsForBotPrompt(
+async function formatSessionsForBotPrompt(
   sessions: UserSessionsWithMessages[],
   toolType: TOOL_TYPES
-): string {
-  if (toolType === TOOL_TYPES.DOCUMENT_EDITOR)
-    return sessions.map(formatTranscriptAndEditor).join('\n')
-  else return ''
+): Promise<string> {
+  if (toolType === TOOL_TYPES.DOCUMENT_EDITOR) {
+    const results = await Promise.allSettled(
+      sessions.map(formatTranscriptAndEditor)
+    )
+    const formattedSessions = results
+      .filter(result => result.status === 'fulfilled')
+      .map(result => (result as PromiseFulfilledResult<string>).value)
+      .join('\n')
+    return formattedSessions
+  } else return ''
 }
 
 export async function saveProgressReport({
@@ -237,7 +315,7 @@ export async function generateProgressReportForUser(
       `generateProgressReportForUser: No subject named ${filter.subject} found`
     )
   const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
-  const botPrompt = formatSessionsForBotPrompt(
+  const botPrompt = await formatSessionsForBotPrompt(
     sessions,
     subjectData.toolType as TOOL_TYPES
   )

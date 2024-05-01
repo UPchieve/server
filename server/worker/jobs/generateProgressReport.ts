@@ -16,6 +16,8 @@ import {
 } from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
+import fs from 'fs/promises'
+import { logError } from '../logger'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -112,6 +114,11 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
         }`
     )
 
+  try {
+    await fs.rm(`${config.fileWorkRootPath}/${session.id}`, { recursive: true })
+  } catch (error) {
+    logError(error as Error)
+  }
   if (errors.length) {
     throw new Error(errors.join('\n'))
   }
