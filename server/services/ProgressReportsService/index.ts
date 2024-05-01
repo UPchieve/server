@@ -105,10 +105,10 @@ async function formatTranscriptAndEditor(
 }
 
 export function removeImageInsertsFromQuillDoc(
-  jsonString: string | undefined
+  quillDoc: string | undefined
 ): string {
-  if (!jsonString) return ''
-  const document: Delta = JSON.parse(jsonString)
+  if (!quillDoc) return ''
+  const document: Delta = JSON.parse(quillDoc)
   const filteredOps = document.ops.filter(
     op => op.insert && typeof op.insert === 'string'
   )
@@ -116,8 +116,8 @@ export function removeImageInsertsFromQuillDoc(
   return JSON.stringify(document)
 }
 
-function extractBase64ImagesFromQuillDoc(deltaJson: string): string[] {
-  const document: Delta = JSON.parse(deltaJson)
+function extractBase64ImagesFromQuillDoc(quillDoc: string): string[] {
+  const document: Delta = JSON.parse(quillDoc)
   const base64Images: string[] = document.ops
     .filter(
       op => op.insert && typeof op.insert === 'object' && 'image' in op.insert
@@ -128,23 +128,23 @@ function extractBase64ImagesFromQuillDoc(deltaJson: string): string[] {
 }
 
 async function getDocumentEditorImages(quillDoc: string): Promise<Buffer[]> {
-  const buffers = []
+  const imageBuffers = []
   const base64Images: string[] = extractBase64ImagesFromQuillDoc(quillDoc)
   for (const base64Image of base64Images) {
     const outputBuffer = await convertBase64ToImage(base64Image)
-    buffers.push(outputBuffer)
+    imageBuffers.push(outputBuffer)
   }
-  return buffers
+  return imageBuffers
 }
 
 async function getProgressReportImageText(
   imageBuffers: Buffer[]
 ): Promise<string> {
-  let progressReportContext = ''
+  let imageText = ''
   for (const image of imageBuffers) {
-    progressReportContext += await getTextFromImageAnalysis(image)
+    imageText += await getTextFromImageAnalysis(image)
   }
-  return progressReportContext
+  return imageText
 }
 
 function replaceSubjectPromptVariables(
