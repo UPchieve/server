@@ -1,5 +1,6 @@
 import config from './config'
 import { PostHog } from 'posthog-node'
+import { isValidConfigToken } from './utils/environments'
 
 const ONE_MINUTE_IN_MS = 1000 * 60
 
@@ -29,7 +30,3 @@ export const client = isValidConfigToken(config.posthogToken)
         /* no-op */
       },
     }
-
-function isValidConfigToken(token: string) {
-  return token !== 'bogus'
-}

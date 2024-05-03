@@ -59,6 +59,8 @@
     "lint:sql:check"
   ],
   "dependencies": {
+    "@azure-rest/ai-vision-image-analysis": "^1.0.0-beta.2",
+    "@azure/core-auth": "^1.7.2",
     "@azure/identity": "^1.2.3",
     "@azure/storage-blob": "^12.12.0",
     "@pgtyped/cli": "^0.13.0",
@@ -112,6 +114,7 @@
     "quill-delta": "^4.2.2",
     "redlock": "^4.2.0",
     "runtypes": "^4.2.0",
+    "sharp": "^0.33.3",
     "socket.io": "^4.5.4",
     "socket.io-client": "^4.7.2",
     "swagger-ui-express": "^4.1.6",
