@@ -219,4 +219,6 @@ export const Config = Record({
   openAIApiKey: String,
 
   subwayApiCredentials: String,
+  subwayAIVisionEndpoint: String,
+  subwayAIVisionApiKey: String,
 })
