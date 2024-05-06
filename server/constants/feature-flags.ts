@@ -10,5 +10,6 @@ export enum FEATURE_FLAGS {
   SMS_VERIFICATION = 'sms-verification',
   ALLOW_DMS_TO_PARTNER_STUDENTS = 'allow-dms-to-partner-students',
   PROGRESS_REPORTS = 'progress-reports',
+  PROGRESS_REPORTS_VISION_AI = 'progress-reports-vision-ai',
   PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY = 'paid-tutors-pilot-student-eligibility',
 }

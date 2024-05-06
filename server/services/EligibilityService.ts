@@ -2,18 +2,11 @@ import * as UserCtrl from '../controllers/UserCtrl'
 import { getSchoolById } from '../models/School/queries'
 import { getZipCodeByZipCode } from '../models/ZipCode/queries'
 import {
-  deleteIneligibleStudent,
   getIneligibleStudentByEmail,
   insertIneligibleStudent,
 } from '../models/IneligibleStudent/queries'
 import { getUserIdByEmail } from '../models/User/queries'
-import {
-  asBoolean,
-  asFactory,
-  asString,
-  asEnum,
-  asOptional,
-} from '../utils/type-utils'
+import { asFactory, asString, asEnum, asOptional } from '../utils/type-utils'
 import { GRADES } from '../constants'
 import { CustomError } from 'ts-custom-error'
 import { School } from '../models/School'
@@ -21,20 +14,24 @@ import { ZipCode } from '../models/ZipCode'
 import config from '../config'
 
 type CheckEligibilityPayload = {
-  schoolUpchieveId?: string
-  zipCode: string
   email: string
+  gradeLevel?: GRADES
   referredByCode?: string
+  schoolId?: string
+  zipCode: string
+  // == Remove after high-line clean-up.
   currentGrade?: GRADES
-  useNewSchoolsEligibility?: boolean
+  schoolUpchieveId?: string
 }
 const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
-  schoolUpchieveId: asOptional(asString),
-  zipCode: asString,
   email: asString,
+  gradeLevel: asOptional(asEnum(GRADES)),
   referredByCode: asOptional(asString),
+  schoolId: asOptional(asString),
+  zipCode: asString,
+  // == Remove after high-line clean-up.
   currentGrade: asOptional(asEnum(GRADES)),
-  useNewSchoolsEligibility: asOptional(asBoolean),
+  schoolUpchieveId: asOptional(asString),
 })
 
 type CheckEligibilityResponse = {
@@ -50,11 +47,14 @@ export async function checkEligibility(
   payload: unknown
 ): Promise<CheckEligibilityResponse> {
   const {
-    schoolUpchieveId,
-    zipCode: zipCodeInput,
     email,
+    gradeLevel,
     referredByCode,
+    schoolId,
+    zipCode: zipCodeInput,
+    // == Remove after high-line clean-up.
     currentGrade,
+    schoolUpchieveId,
   } = asCheckEligibilityPayload(payload)
 
   if (email) {
@@ -62,7 +62,9 @@ export async function checkEligibility(
     if (existingUser) throw new ExistingUserError()
   }
 
-  const isCollegeStudent = currentGrade === GRADES.COLLEGE
+  // == Remove after high-line clean-up.
+  const isCollegeStudent =
+    currentGrade === GRADES.COLLEGE || gradeLevel === GRADES.COLLEGE
 
   if (email) {
     const existingIneligible = await getIneligibleStudentByEmail(email)
@@ -71,9 +73,11 @@ export async function checkEligibility(
     }
   }
 
-  const school = schoolUpchieveId
-    ? await getSchoolById(schoolUpchieveId)
-    : undefined
+  // == Remove after high-line clean-up.
+  const school =
+    schoolUpchieveId || schoolId
+      ? await getSchoolById(schoolUpchieveId ?? schoolId ?? '')
+      : undefined
   const zipCode = zipCodeInput
     ? await getZipCodeByZipCode(zipCodeInput)
     : undefined
@@ -90,7 +94,8 @@ export async function checkEligibility(
         email,
         school?.id,
         zipCodeInput,
-        currentGrade,
+        // == Remove after high-line clean-up.
+        currentGrade ?? gradeLevel,
         referredBy,
         ip
       )

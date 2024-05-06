@@ -127,6 +127,8 @@ export const Config = Record({
   socketApiKey: String,
   socketIOAdminUsername: String,
   socketIOAdminPassword: String,
+  socketIOAdminUIMode: String,
+  socketIOAdminUIReadOnly: Boolean,
   customVolunteerPartnerOrgs: Array(String),
   priorityMatchingPartnerOrgs: Array(String),
   priorityMatchingSponsorOrgs: Array(String),
@@ -217,4 +219,6 @@ export const Config = Record({
   openAIApiKey: String,
 
   subwayApiCredentials: String,
+  subwayAIVisionEndpoint: String,
+  subwayAIVisionApiKey: String,
 })

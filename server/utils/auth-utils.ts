@@ -46,54 +46,65 @@ export const asCredentialData = asFactory<CredentialData>({
   password: asString,
 })
 
-export interface SessionWithStudentData extends session.Session {
-  studentData?: StudentDataParams
-}
-export interface StudentDataParams {
-  email?: string
-  highSchoolId?: string
-  zipCode?: string
-  currentGrade?: string
-  referredByCode?: string | undefined
-  ip?: string
-  studentPartnerOrg?: string
+export interface SessionWithSsoData extends session.Session {
+  isLogin?: boolean
+  provider?: string
+  studentData?: Partial<RegisterStudentPayload>
 }
 
+// == Remove after high-line clean-up.
+export interface SessionWithStudentData extends session.Session {
+  studentData?: Partial<RegisterStudentPayload>
+}
+// == End remove.
+
 export interface RegisterStudentPayload {
-  college?: string
   email: string
   firstName: string
   gradeLevel?: string
   ip?: string
   issuer?: string
   lastName: string
+  otherSignupSource?: string
   password?: string
   parentGuardianEmail?: string
-  partnerSite?: string
   profileId?: string
   referredByCode?: string
+  signupSourceId?: number
   schoolId?: string
-  studentPartnerOrg?: string
-  studentPartnerSite?: string
+  studentPartnerOrgKey?: string
+  studentPartnerOrgSiteName?: string
   zipCode?: string
+  // == Remove after high-line clean-up.
+  college?: string
+  currentGrade?: string
+  highSchoolId?: string
+  partnerSite?: string
+  studentPartnerOrg?: string
 }
 export const registerStudentValidator = asFactory<RegisterStudentPayload>({
-  college: asOptional(asString),
   email: asString,
   firstName: asString,
   gradeLevel: asOptional(asEnum(GRADES)),
   ip: asOptional(asString),
   issuer: asOptional(asString),
   lastName: asString,
+  otherSignupSource: asOptional(asString),
   password: asOptional(asString),
   parentGuardianEmail: asOptional(asString),
-  partnerSite: asOptional(asString),
   profileId: asOptional(asString),
   referredByCode: asOptional(asString),
   schoolId: asOptional(asString),
-  studentPartnerOrg: asOptional(asString),
-  studentPartnerSite: asOptional(asString),
+  signupSourceId: asOptional(asNumber),
+  studentPartnerOrgKey: asOptional(asString),
+  studentPartnerOrgSiteName: asOptional(asString),
   zipCode: asOptional(asString),
+  // TODO: Remove after high-line clean-up.
+  college: asOptional(asString),
+  currentGrade: asOptional(asEnum(GRADES)),
+  highSchoolId: asOptional(asString),
+  partnerSite: asOptional(asString),
+  studentPartnerOrg: asOptional(asString),
 })
 export interface RegisterStudentWithPasswordPayload
   extends Omit<
@@ -301,6 +312,11 @@ export function verifyPassword(
 export function getApiKeyFromHeader(req: Request) {
   const apiKey = req.headers['x-api-key'] ?? null
   return apiKey
+}
+
+export function isSupportedSsoProvider(provider?: string) {
+  if (!provider) return false
+  return provider === 'google' || provider === 'clever'
 }
 
 // Passport functions

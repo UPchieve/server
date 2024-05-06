@@ -1,4 +1,5 @@
 import { logger } from '@sentry/utils'
+import { logError } from './logger'
 import { Pool, PoolClient } from 'pg'
 import config from './config'
 
@@ -60,6 +61,7 @@ export async function setupDbConnection() {
       .then(v => v.release())
   } catch (err) {
     logger.error(`Could not connect to db with error ${err}`)
+    logError(err as Error)
     process.exit(1)
   }
 }
@@ -71,6 +73,7 @@ export async function connect(): Promise<void> {
       .then(v => v.release())
   } catch (err) {
     logger.error(`Could not connect to db with error ${err}`)
+    logError(err as Error)
     process.exit(1)
   }
 }

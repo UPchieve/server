@@ -94,7 +94,7 @@ export function routes(app: Express) {
       res.sendStatus(200)
     } catch (err) {
       Sentry.captureException(err)
-      res.sendStatus(500)
+      resError(res, err)
     }
   })
 
@@ -109,7 +109,7 @@ export function routes(app: Express) {
       res.sendStatus(200)
     } catch (err) {
       Sentry.captureException(err)
-      res.sendStatus(500)
+      resError(res, err)
     }
   })
 
@@ -149,7 +149,7 @@ export function routes(app: Express) {
         })
     } catch (err) {
       Sentry.captureException(err)
-      res.sendStatus(500)
+      resError(res, err)
     }
   })
 

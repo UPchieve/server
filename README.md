@@ -61,7 +61,7 @@ On Linux systems you may need to install [`docker-compose` manually](https://doc
 
 1. Run the following command to start the containers
 ```shell
-$ docker-compose up -d
+$ docker-compose --profile dev up -d
 ```
 2. Confirm PostgreSQL is running and the database is properly seeded by making a query in a DB admin tool
     - connect via `$ psql --host 127.0.0.1 --port 5432 --username admin --dbname upchieve` and password `Password123` OR
@@ -69,7 +69,7 @@ $ docker-compose up -d
 
 When you want to stop and remove the containers, run:
 ```shell
-$ docker-compose down
+$ docker-compose --profile dev down
 ```
 
 ### Prepare to run the server

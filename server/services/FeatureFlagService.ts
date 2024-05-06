@@ -98,6 +98,13 @@ export async function getProgressReportsFeatureFlag(
   )
 }
 
+export async function getProgressReportVisionAIFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.PROGRESS_REPORTS_VISION_AI,
+    userId
+  )
+}
+
 export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
   userId: Ulid
 ) {

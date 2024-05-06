@@ -1,6 +1,7 @@
 version: "3.2"
 services:
     postgres:
+        profiles: ["dev"]
         hostname: postgres
         ports:
             - "5432:5432"
@@ -10,7 +11,7 @@ services:
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
         volumes:
-            # SQL files mounted to entrypoint folder are run in alphabetical order 
+            # SQL files mounted to entrypoint folder are run in alphabetical order
             - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
             - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
             - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
@@ -23,6 +24,7 @@ services:
             retries: 5
             start_period: 30s
     redis:
+        profiles: ["dev"]
         hostname: redis
         ports:
             - "6379:6379"
@@ -30,6 +32,7 @@ services:
         volumes:
             - ./redis-volume:/data
     pgadmin:
+        profiles: ["dev"]
         image: dpage/pgadmin4
         depends_on:
             - postgres
@@ -50,3 +53,34 @@ services:
             - ./pgadmin/pgpassfile:/pgpassfile
             - ./pgadmin/servers.json:/pgadmin4/servers.json
         restart: unless-stopped
+    postgres-e2e:
+      profiles: ["e2e"]
+      container_name: postgres-e2e
+      hostname: postgres
+      ports:
+        - "5500:5432"
+      image: postgres:14
+      environment:
+        - POSTGRES_DB=upchieve
+        - POSTGRES_USER=admin
+        - POSTGRES_PASSWORD=Password123
+      volumes:
+        # SQL files mounted to entrypoint folder are run in alphabetical order
+        - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+        - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
+        - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
+        - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+        - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+      healthcheck:
+        test: [ "CMD", "pg_isready", "-h", "postgres" ]
+        interval: 3s
+        timeout: 30s
+        retries: 5
+        start_period: 2s
+    redis-e2e:
+      profiles: ["e2e"]
+      container_name: redis-e2e
+      hostname: redis
+      ports:
+        - "5501:6379"
+      image: redis:6.2.1
