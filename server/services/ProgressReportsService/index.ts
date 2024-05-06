@@ -90,7 +90,8 @@ async function formatTranscriptAndEditor(
    **/
   let imageText = ''
   const isVisionActive = await getProgressReportVisionAIFeatureFlag(
-    session.studentId
+    session.studentId,
+    1000 * 5
   )
   if (isVisionActive && session.quillDoc) {
     const docImages = await getDocumentEditorImages(session.quillDoc)

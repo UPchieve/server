@@ -98,10 +98,14 @@ export async function getProgressReportsFeatureFlag(
   )
 }
 
-export async function getProgressReportVisionAIFeatureFlag(userId: Ulid) {
+export async function getProgressReportVisionAIFeatureFlag(
+  userId: Ulid,
+  waitInMs?: number
+) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.PROGRESS_REPORTS_VISION_AI,
-    userId
+    userId,
+    waitInMs
   )
 }
 
