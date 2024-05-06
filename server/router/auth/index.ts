@@ -35,16 +35,16 @@ export function routes(app: Express) {
 
   router.route('/logout').get(async function(req, res) {
     const userId = req.user?.id
-    req.session.destroy(() => {
-      /* do nothing */
+    // Don't destroy the session on logout
+    // Passport 0.6.0+ handles regenerating the session on logout/login
+    await req.logout(err => {
+      if (err) {
+        logger.error(`Error occurred during logout: ${err}`)
+        req.session.destroy(err => {
+          if (err) logger.error(`Error occurred during session destroy: ${err}`)
+        })
+      }
     })
-
-    // We do not remove all sessions from the database when users log out
-    // because we have lots of students who share multiple devices. They may
-    // want to log out of a laptop they share with a sibling, but stay logged
-    // in on their mobile device, for example.
-
-    req.logout()
 
     if (userId) {
       await createAccountAction({
