@@ -87,25 +87,19 @@ export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
 }
 
-export async function getProgressReportsFeatureFlag(
-  userId: Ulid,
-  waitInMs?: number
-) {
+export async function getProgressReportsFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.PROGRESS_REPORTS,
     userId,
-    waitInMs
+    1000 * 5
   )
 }
 
-export async function getProgressReportVisionAIFeatureFlag(
-  userId: Ulid,
-  waitInMs?: number
-) {
+export async function getProgressReportVisionAIFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.PROGRESS_REPORTS_VISION_AI,
     userId,
-    waitInMs
+    1000 * 5
   )
 }
 

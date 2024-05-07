@@ -78,8 +78,7 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
   const session = await getSessionById(sessionId)
   const isSubjectPromptActive = await hasActiveSubjectPrompt(session.subject)
   const isProgressReportsActive = await getProgressReportsFeatureFlag(
-    session.studentId,
-    1000 * 5
+    session.studentId
   )
   if (
     !isSubjectPromptActive ||
