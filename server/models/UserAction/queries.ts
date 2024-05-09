@@ -85,8 +85,13 @@ export async function upsertIpAddress(
   tc: TransactionClient
 ): Promise<Ulid> {
   try {
-    const result = await pgQueries.upsertIpAddress.run({ ip }, tc)
-    if (!result.length) throw new Error('Error upserting IP address')
+    let result = await pgQueries.upsertIpAddress.run({ ip }, tc)
+    if (result.length === 0) {
+      result = await pgQueries.getIpAddressByIp.run({ ip }, tc)
+    }
+    if (!result.length) {
+      throw new Error(`Error upserting IP address: ${ip}`)
+    }
     return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoUpdateError(err)
