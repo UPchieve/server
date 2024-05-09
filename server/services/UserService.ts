@@ -294,7 +294,8 @@ export async function adminUpdateUser(data: unknown) {
     throw new UserNotFoundError('id', userId)
   }
   const { isVolunteer } = userBeforeUpdate
-  const isUpdatedEmail = userBeforeUpdate.email !== email
+  const trimmedEmail = email.trim()
+  const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
 
   // Remove the contact associated with the previous email from SendGrid
   if (isUpdatedEmail) {
@@ -313,7 +314,7 @@ export async function adminUpdateUser(data: unknown) {
   const update = {
     firstName,
     lastName,
-    email,
+    email: trimmedEmail,
     isVerified,
     isBanned,
     isDeactivated,
