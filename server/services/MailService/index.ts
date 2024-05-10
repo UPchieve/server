@@ -28,6 +28,10 @@ const options = {
 
 // TODO: properly type the sendgrid responses https://sendgrid.api-docs.io/v3.0/contacts/search-contacts
 async function putContact(data: any): Promise<any> {
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug('Skipping putContact')
+    return
+  }
   return await axios.put(
     'https://api.sendgrid.com/v3/marketing/contacts',
     data,
