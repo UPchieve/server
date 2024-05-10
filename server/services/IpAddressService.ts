@@ -11,13 +11,20 @@ import { asString } from '../utils/type-utils'
 import net from 'net'
 import { cleanIpString } from '../utils/clean-ip-string'
 import config from '../config'
+import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 
 export async function getIpWhoIs(rawIpString: string) {
+  if (isE2eEnvironment()) {
+    return {
+      data: {
+        success: true,
+      },
+    }
+  }
   const ipString = cleanIpString(rawIpString)
-  const ipWhoIs =
-    config.NODE_ENV === 'dev'
-      ? `http://free.ipwhois.io/json/${ipString}`
-      : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
+  const ipWhoIs = isDevEnvironment()
+    ? `http://free.ipwhois.io/json/${ipString}`
+    : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
 
   try {
     const { data } = (await axios.get(ipWhoIs, {
