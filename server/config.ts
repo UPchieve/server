@@ -18,13 +18,8 @@ const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
 const bannedServiceProviders = bannedServiceProviderList.split(',')
 
-let nodeEnv = process.env.NODE_ENV
-if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
-  nodeEnv = 'dev'
-}
-
 const config: Static<typeof Config> = {
-  NODE_ENV: nodeEnv,
+  NODE_ENV: process.env.NODE_ENV || 'dev',
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'http://localhost:8080',
