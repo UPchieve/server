@@ -10,6 +10,7 @@
     "build:database": "docker build -t subway-postgres .",
     "dev:backend": "ts-node-dev -r dotenv/config -P tsconfig.server.json --watch server --transpile-only server/main",
     "e2e:backend": "DOTENV_CONFIG_PATH=.env.e2e ts-node-dev -r dotenv/config -P tsconfig.server.json --watch server --transpile-only server/main",
+    "e2e:destroy": "docker-compose --profile e2e -v down",
     "e2e:create": "docker-compose --profile e2e -v down && docker-compose --profile e2e up -d",
     "dev:worker": "ts-node-dev -P tsconfig.server.json --watch server --transpile-only server/worker",
     "lint": "npm run lint:backend:dry",
