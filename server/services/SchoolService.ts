@@ -26,7 +26,8 @@ type SchoolForFrontend = {
 
 // search for schools by name
 export async function search(query: string): Promise<SchoolForFrontend[]> {
-  const results = await SchoolRepo.schoolSearch(query)
+  const q = query.substring(0, 70) // avoid prohibitively long queries for performance reasons
+  const results = await SchoolRepo.schoolSearch(q)
 
   return results
     .sort((s1: SchoolRepo.School, s2: SchoolRepo.School) => {
