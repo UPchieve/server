@@ -1,9 +1,10 @@
 import pino from 'pino'
 import config from './config'
 import newrelic from 'newrelic'
+import { isDevEnvironment, isE2eEnvironment } from './utils/environments'
 
 const logger =
-  config.NODE_ENV !== 'dev'
+  !isDevEnvironment() && !isE2eEnvironment()
     ? pino({
         level: config.logLevel,
       })
