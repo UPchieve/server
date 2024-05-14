@@ -4,11 +4,7 @@ import * as VolunteerRepo from '../../models/Volunteer/queries'
 import { mocked } from 'jest-mock'
 import * as TwilioService from '../../services/TwilioService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
-import {
-  buildStudent,
-  buildSession,
-  buildVolunteer,
-} from '../mocks/generate'
+import { buildStudent, buildSession, buildVolunteer } from '../mocks/generate'
 
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -34,7 +30,6 @@ const buildStudentAndSessionForMutedSubjects = async () => {
   return session
 }
 
-
 beforeEach(async () => {
   jest.resetAllMocks()
 })
@@ -43,16 +38,20 @@ describe('Muted subjects tests', () => {
   test('Notifies volunteer if subject is not muted', async () => {
     const volunteer = buildVolunteer()
     const session = await buildStudentAndSessionForMutedSubjects()
-    mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(
+      volunteer
+    )
     const notifiedVolunteerId = await TwilioService.notifyVolunteer(session)
 
     expect(notifiedVolunteerId!).toEqual(volunteer.id)
   })
 
   test('Does not notify volunteer for muted subject', async () => {
-    const volunteer = buildVolunteer({mutedSubjectAlerts: ['algebraOne']})
+    const volunteer = buildVolunteer({ mutedSubjectAlerts: ['algebraOne'] })
     const session = await buildStudentAndSessionForMutedSubjects()
-    mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(volunteer)
+    mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(
+      volunteer
+    )
     mockedVolunteerRepo.checkIfVolunteerMutedSubject.mockResolvedValue(true)
     const notifiedVolunteerId = await TwilioService.notifyVolunteer(session)
 
