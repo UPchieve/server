@@ -43,6 +43,7 @@ export default function(app: Express) {
       '/api-public/eligibility',
       '/api-public/contact',
       '/api/verify',
+      '/api/session/current',
     ]
     const apiKey = getApiKeyFromHeader(req)
     if (
