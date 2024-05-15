@@ -557,8 +557,8 @@ FROM
     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN (
         SELECT
-            array_agg(subjects_unlocked.subject) AS subjects,
-            array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_cert IS TRUE) AS active_subjects
+            array_agg(DISTINCT subjects_unlocked.subject) AS subjects,
+            array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_cert IS TRUE) AS active_subjects
         FROM (
             SELECT
                 subjects.name AS subject,
