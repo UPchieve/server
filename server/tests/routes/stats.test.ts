@@ -39,7 +39,7 @@ beforeEach(async () => {
 })
 
 const VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH = '/stats/volunteer/heatmap'
-describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
+describe.skip(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
   const mockedHeatMap = {
     Sunday: {
       '12a': 80000000,

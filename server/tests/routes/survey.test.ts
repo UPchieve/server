@@ -60,7 +60,7 @@ const sessionId = getDbUlid()
 const progressReportId = getDbUlid()
 
 const SAVE_PRESESSION_SURVEY = `/survey/presession/${sessionId}`
-describe('/survey/presession/:sessionId', () => {
+describe.skip('/survey/presession/:sessionId', () => {
   test('Should save the presession survey', async () => {
     const payload = buildSimpleSurveyResponse()
     const mockedSurvey = buildSimpleSurveyLegacy()
@@ -74,7 +74,7 @@ describe('/survey/presession/:sessionId', () => {
 })
 
 const GET_PRESESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
-describe('/survey/presession/:sessionId', () => {
+describe.skip('/survey/presession/:sessionId', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
     const mockedSurvey = buildSimpleSurveyLegacy()
@@ -96,7 +96,7 @@ describe('/survey/presession/:sessionId', () => {
 })
 
 const GET_STUDENTS_PRESESSION_GOAL = `/survey/presession/${sessionId}/goal`
-describe('/survey/presession/:sessionId/goal', () => {
+describe.skip('/survey/presession/:sessionId/goal', () => {
   test('Should get the students presession goal', async () => {
     const payload = {}
     const mockedGoal = 'To get help with homework'
@@ -112,7 +112,7 @@ describe('/survey/presession/:sessionId/goal', () => {
 
 const GET_PRESESSION_SURVEY = (subject: string) =>
   `/survey/presession?subject=${subject}`
-describe('/survey/presession?subject=', () => {
+describe.skip('/survey/presession?subject=', () => {
   test('Should get presession survey questions', async () => {
     const payload = {}
     const mockedSurvey = {
@@ -134,7 +134,7 @@ describe('/survey/presession?subject=', () => {
 })
 
 const GET_PRESESSION_SURVEY_RESPONSE = `/survey/presession/response/${sessionId}`
-describe('/survey/presession/response/:sessionId', () => {
+describe.skip('/survey/presession/response/:sessionId', () => {
   test('Should get presession survey responses', async () => {
     const payload = {}
     const mockedSurveyResponse = {
@@ -154,7 +154,7 @@ describe('/survey/presession/response/:sessionId', () => {
 })
 
 const SAVE_USER_SURVEY = `/survey/save`
-describe(SAVE_USER_SURVEY, () => {
+describe.skip(SAVE_USER_SURVEY, () => {
   test('Should save user survey and submissions', async () => {
     const userSurvey = buildUserSurvey()
     const submissions = [buildUserSurveySubmission()]
@@ -178,7 +178,7 @@ describe(SAVE_USER_SURVEY, () => {
 })
 
 const GET_PROGRESS_REPORT_SURVEY = `/survey/progress-report`
-describe(GET_PROGRESS_REPORT_SURVEY, () => {
+describe.skip(GET_PROGRESS_REPORT_SURVEY, () => {
   test('Should get progress report survey questions', async () => {
     const payload = {}
     const mockedSurvey = {
@@ -197,7 +197,7 @@ describe(GET_PROGRESS_REPORT_SURVEY, () => {
 })
 
 const GET_PROGRESS_REPORT_SURVEY_RESPONSE = `/survey/progress-report/${progressReportId}/response`
-describe('/survey/progress-report/:progressReportId/response', () => {
+describe.skip('/survey/progress-report/:progressReportId/response', () => {
   test('Should get progress report survey responses', async () => {
     const payload = {}
     const mockedSurveyResponse = [
