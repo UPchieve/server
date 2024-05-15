@@ -95,13 +95,17 @@ export function routes(app: Express) {
       return
     }
     const strategy = provider
-    passport.authenticate(strategy, async function(_err, user, errorMsg) {
+    passport.authenticate(strategy, async function(
+      _err: any,
+      user: any,
+      info: any
+    ) {
       if (user) {
         await req.asyncLogin(user)
         return res.redirect(AuthRedirect.successRedirect)
       } else {
         return res.redirect(
-          AuthRedirect.failureRedirect(isLogin ?? false, studentData, errorMsg)
+          AuthRedirect.failureRedirect(isLogin ?? false, studentData, info)
         )
       }
     })(req, res)
@@ -125,9 +129,9 @@ export function routes(app: Express) {
     .route('/oauth2/redirect/google/register/student')
     .get(function(req, res) {
       passport.authenticate('google-register-student', async function(
-        _err,
-        user,
-        info
+        _err: any,
+        user: any,
+        info: any
       ) {
         const studentData = (req.session as any).studentData
         delete (req.session as any).studentData
@@ -148,9 +152,9 @@ export function routes(app: Express) {
     .route('/oauth2/redirect/google/register/partner-student')
     .get(function(req, res) {
       passport.authenticate('google-register-partner-student', async function(
-        _err,
-        user,
-        info
+        _err: any,
+        user: any,
+        info: any
       ) {
         const studentData = (req.session as any).studentData
         delete (req.session as any).studentData
@@ -352,7 +356,15 @@ export function routes(app: Express) {
       // if account with given email exists then try to destroy its sessions
       if (userId) {
         await AuthService.deleteAllUserSessions(userId)
-        req.logout()
+        await req.logout(err => {
+          if (err) {
+            logger.error(`Error occurred during logout: ${err}`)
+            req.session.destroy(err => {
+              if (err)
+                logger.error(`Error occurred during session destroy: ${err}`)
+            })
+          }
+        })
       }
       res.status(200).json({
         msg:
