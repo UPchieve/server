@@ -40,9 +40,13 @@ export function routes(app: Express) {
     await req.logout(err => {
       if (err) {
         logger.error(`Error occurred during logout: ${err}`)
-        req.session.destroy(err => {
-          if (err) logger.error(`Error occurred during session destroy: ${err}`)
-        })
+        if (req.session) {
+          req.session.destroy(err => {
+            logger.error(
+              `Error occurred while destroying session on logout: ${err}`
+            )
+          })
+        }
       }
     })
 
@@ -359,10 +363,6 @@ export function routes(app: Express) {
         await req.logout(err => {
           if (err) {
             logger.error(`Error occurred during logout: ${err}`)
-            req.session.destroy(err => {
-              if (err)
-                logger.error(`Error occurred during session destroy: ${err}`)
-            })
           }
         })
       }
