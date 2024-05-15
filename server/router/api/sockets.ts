@@ -489,12 +489,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     /**
-     * 
+     *
      * Send a `ready` event to the client after event handlers
      * have been registered on the socket. We're using this to determine
      * that the socket connection with the client has been established and
      * is ready to receive events from the client
-     * 
+     *
      */
     socket.emit('ready')
   })
