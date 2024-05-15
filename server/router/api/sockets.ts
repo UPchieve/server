@@ -248,7 +248,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         () =>
           new Promise<void>(async (resolve, reject) => {
             if (!data || !data.sessionId) {
-              socket.emit('redirect')
               resolve()
               return
             }
@@ -488,5 +487,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         logSocketConnectionInfo(event, socket, args)
       )
     })
+
+    /**
+     * 
+     * Send a `ready` event to the client after event handlers
+     * have been registered on the socket. We're using this to determine
+     * that the socket connection with the client has been established and
+     * is ready to receive events from the client
+     * 
+     */
+    socket.emit('ready')
   })
 }
