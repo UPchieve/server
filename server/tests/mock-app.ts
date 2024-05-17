@@ -26,8 +26,9 @@ export function mockApp(): express.Express {
 export function mockPassportMiddleware(
   getUser: () => UserContactInfo,
   login?: (arg1: Express.User, arg2?: any) => Promise<unknown>,
-  logout?: () => void,
-  destroy?: Function
+  isAuthenticated?: () => boolean,
+  logout?: () => Promise<void>,
+  destroy?: () => () => Promise<void>
 ) {
   return (
     req: express.Request,
@@ -35,12 +36,14 @@ export function mockPassportMiddleware(
     next: express.NextFunction
   ): void => {
     req.user = getUser()
+    req.isAuthenticated = isAuthenticated || jest.fn().mockReturnValue(true)
     req.asyncLogin = login || jest.fn()
     req.logout = logout || jest.fn()
     req.session = {
       // @ts-expect-error: mocking a partial express session
       destroy: destroy || jest.fn(),
     }
+    req.destroy = destroy || jest.fn()
     next()
   }
 }

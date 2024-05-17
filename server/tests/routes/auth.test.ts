@@ -40,10 +40,19 @@ const app = mockApp()
 
 const mockGetUser = () => buildUserContactInfo()
 const mockLogin = jest.fn()
+const mockIsAuthenticated = jest.fn().mockResolvedValue(true)
 const mockLogout = jest.fn()
 const mockDestroy = jest.fn()
 
-app.use(mockPassportMiddleware(mockGetUser, mockLogin, mockLogout, mockDestroy))
+app.use(
+  mockPassportMiddleware(
+    mockGetUser,
+    mockLogin,
+    mockIsAuthenticated,
+    mockLogout,
+    mockDestroy
+  )
+)
 
 AuthRouter.routes(app)
 
@@ -165,8 +174,8 @@ describe('Test router logic', () => {
       body: { msg },
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
-    expect(mockDestroy).toHaveBeenCalledTimes(1)
     expect(mockLogout).toBeCalledTimes(1)
+    expect(mockDestroy).toHaveBeenCalledTimes(2)
     expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
     expect(msg).toEqual(
       'If an account with this email address exists then we will send a password reset email'
@@ -258,6 +267,7 @@ describe('Test simple routes hit AuthService', () => {
     const {
       body: { user },
     } = response
+    expect(response.status).toEqual(200)
     expect(AuthService.registerPartnerVolunteer).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
     expect(mockedUserAction.createAccountAction).toHaveBeenCalledWith(
