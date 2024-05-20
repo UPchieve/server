@@ -9,12 +9,12 @@ CREATE TABLE IF NOT EXISTS upchieve.censored_session_messages (
     message text,
     session_id uuid NOT NULL REFERENCES upchieve.sessions (id),
     censored_by moderation_system NOT NULL,
-    created_at timestamp NOT NULL
+    sent_at timestamp NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS censored_messages_session_id ON upchieve.censored_session_messages (session_id);
 
-CREATE INDEX IF NOT EXISTS censored_messages_created_at ON upchieve.censored_session_messages (created_at);
+CREATE INDEX IF NOT EXISTS censored_messages_sent_at ON upchieve.censored_session_messages (sent_at);
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.censored_session_messages;
