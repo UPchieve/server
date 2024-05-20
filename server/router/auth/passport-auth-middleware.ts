@@ -34,8 +34,8 @@ async function passportRegisterUser(
   profile: passport.Profile,
   issuer: string,
   providerName: string,
-  done: Function,
-  data?: Partial<RegisterStudentPayload>
+  data: Partial<RegisterStudentPayload> = {},
+  done: Function
 ) {
   try {
     const existingFedCred = await getFederatedCredential(profile.id, issuer)
@@ -61,10 +61,6 @@ async function passportRegisterUser(
         false,
         `Account with ${providerName} email already exists.`
       )
-    }
-
-    if (!data) {
-      return done(null, false, 'Internal Error: Please try again.')
     }
 
     const studentData = {
@@ -146,8 +142,8 @@ export function addPassportAuthMiddleware() {
             profile,
             issuer,
             'Google',
-            done,
-            studentData
+            studentData,
+            done
           )
         }
       }
@@ -163,7 +159,7 @@ export function addPassportAuthMiddleware() {
       profile: passport.Profile & { issuer: string },
       done: Function
     ) {
-      const { isLogin } = req.session as SessionWithSsoData
+      const isLogin = (req.session as SessionWithSsoData)?.isLogin ?? true
       if (isLogin) {
         return passportLoginUser(profile.id, profile.issuer, done)
       } else {
@@ -172,8 +168,8 @@ export function addPassportAuthMiddleware() {
           profile,
           profile.issuer,
           'Clever',
-          done,
-          studentData
+          studentData,
+          done
         )
       }
     })
