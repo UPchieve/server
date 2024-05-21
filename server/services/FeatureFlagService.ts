@@ -120,3 +120,7 @@ export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
     timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
   })
 }
+
+export async function getAiModerationFeatureFlag(userId: Ulid): Promise<any> {
+  return await isFeatureEnabled(FEATURE_FLAGS.AI_MODERATION, userId)
+}
