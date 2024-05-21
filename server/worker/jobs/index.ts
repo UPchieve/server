@@ -132,6 +132,9 @@ export enum Jobs {
 
   // Eng Tooling Scripts
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
+
+  // Moderation
+  ModerateSessionMessage = 'ModerateSessionMessage',
 }
 
 // register new job processors here
@@ -397,6 +400,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MigrateProgressReportPromptIds,
     processor: migrateProgressReportPromptIds,
+  },
+  {
+    name: Jobs.ModerateSessionMessage,
+    processor: moderateSessionMessage,
   },
 ]
 
