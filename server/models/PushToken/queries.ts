@@ -1,6 +1,6 @@
 import { PushToken } from './types'
 import { RepoCreateError, RepoReadError, RepoDeleteError } from '../Errors'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 
@@ -23,6 +23,7 @@ export async function createPushTokenByUserId(
   token: string
 ): Promise<PushToken> {
   try {
+    // TODO: Gracefully handle attempting to insert a duplicate token for a user.
     const result = await pgQueries.createPushTokenByUserId.run(
       { id: getDbUlid(), userId, token },
       getClient()
@@ -34,9 +35,12 @@ export async function createPushTokenByUserId(
   }
 }
 
-export async function deleteDuplicatePushTokens(): Promise<void> {
+export async function deletePushTokensForUser(
+  userId: Ulid,
+  tc: TransactionClient
+) {
   try {
-    await pgQueries.deleteDuplicatePushTokens.run(undefined, getClient())
+    await pgQueries.deletePushTokensForUser.run({ userId }, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
   }
