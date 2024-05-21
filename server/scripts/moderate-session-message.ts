@@ -4,11 +4,13 @@ import { openai } from '../services/BotsService'
 import { Job } from 'bull'
 import logger from '../logger'
 
-interface ModerationSessionMessageJobData {
+export interface ModerationSessionMessageJobData {
   sessionId: string
   senderId: Ulid
   message: string
   isVolunteer: boolean
+  sentAt: Date
+  censoredSessionMessageId: Ulid
 }
 
 /**
