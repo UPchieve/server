@@ -65,3 +65,29 @@ const insertFederatedCredentialIR: any = {"name":"insertFederatedCredential","pa
 export const insertFederatedCredential = new PreparedQuery<IInsertFederatedCredentialParams,IInsertFederatedCredentialResult>(insertFederatedCredentialIR);
 
 
+/** 'DeleteFederatedCredentialsForUser' parameters type */
+export interface IDeleteFederatedCredentialsForUserParams {
+  userId: string;
+}
+
+/** 'DeleteFederatedCredentialsForUser' return type */
+export type IDeleteFederatedCredentialsForUserResult = void;
+
+/** 'DeleteFederatedCredentialsForUser' query type */
+export interface IDeleteFederatedCredentialsForUserQuery {
+  params: IDeleteFederatedCredentialsForUserParams;
+  result: IDeleteFederatedCredentialsForUserResult;
+}
+
+const deleteFederatedCredentialsForUserIR: any = {"name":"deleteFederatedCredentialsForUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":360,"b":366,"line":18,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM federated_credentials\nWHERE user_id = :userId!","loc":{"a":309,"b":366,"line":17,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM federated_credentials
+ * WHERE user_id = :userId!
+ * ```
+ */
+export const deleteFederatedCredentialsForUser = new PreparedQuery<IDeleteFederatedCredentialsForUserParams,IDeleteFederatedCredentialsForUserResult>(deleteFederatedCredentialsForUserIR);
+
+
