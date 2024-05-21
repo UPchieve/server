@@ -53,6 +53,7 @@ import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
+import moderateSessionMessage from '../../scripts/moderate-session-message'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
