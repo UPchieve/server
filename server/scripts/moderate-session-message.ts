@@ -5,18 +5,17 @@ import { Job } from 'bull'
 import logger from '../logger'
 
 interface ModerationSessionMessageJobData {
-  // sessionId: string // @TODO
+  sessionId: string
   senderId: Ulid
   message: string
-  isVolunteer: boolean // @TODO get from req.
+  isVolunteer: boolean
 }
 
 /**
  * Sends the given message to OpenAI to get back a moderation decision
  * and reason.
- * Also responsible for logging reasons to NR and storing the moderation
- * decision in the DB.
- * @param message - The session message to moderate
+ * Also logs the decision reason(s) to NR and stores the moderation
+ * decision in the DB under censored_session_messages.
  */
 export default async function moderateSessionMessage(
   job: Job<ModerationSessionMessageJobData>
@@ -41,15 +40,28 @@ export default async function moderateSessionMessage(
           content: wrapMessageInXmlTags(job.data.message, job.data.isVolunteer),
         },
       ],
-      stream: false,
       response_format: { type: 'json_object' },
     })
 
-    // @TODO write result to db.
+    // @TODO write result to db?
+    // @TODO Log results to NR in a good format
+    const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
+    logger.info(
+      {
+        sessionId: job.data.sessionId,
+        senderId: job.data.senderId,
+        isVolunteer: job.data.isVolunteer,
+        censoredSessionMessageId: '', // @TODO
+        sentAt: '', // @TODO
+        isClean: decision?.appropriate,
+        reasons: decision?.reasons,
+      },
+      'AI moderation result'
+    )
   } catch (err) {
     logger.error(
       { error: err, senderId: job.data.senderId },
-      `Error while moderating AI session`
+      `Error while moderating session message`
     )
   }
 }
