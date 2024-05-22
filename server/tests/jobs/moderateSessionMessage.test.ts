@@ -31,12 +31,14 @@ describe('Moderate session message', () => {
     mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(true)
     jobData = {
       data: {
-        sessionId: getDbUlid(),
-        senderId: getDbUlid(),
-        message: 'test message',
-        isVolunteer: false,
-        sentAt: new Date(),
-        censoredSessionMessageId: getDbUlid(),
+        censoredSessionMessage: {
+          sessionId: getDbUlid(),
+          senderId: getDbUlid(),
+          message: 'test message',
+          sentAt: new Date(),
+          id: getDbUlid(),
+        },
+        isVolunteer: true,
       },
     } as Job<ModerationSessionMessageJobData>
   })
@@ -58,13 +60,18 @@ describe('Moderate session message', () => {
     expect(openai.chat.completions.create).toHaveBeenCalled()
     expect(logger.info).toHaveBeenCalledWith(
       {
-        sessionId: jobData.data.sessionId,
-        senderId: jobData.data.senderId,
-        isVolunteer: jobData.data.isVolunteer,
-        censoredSessionMessageId: jobData.data.censoredSessionMessageId,
-        sentAt: jobData.data.sentAt,
-        isClean: true,
-        reasons: [],
+        censoredSessionMessage: {
+          sessionId: jobData.data.censoredSessionMessage.sessionId,
+          senderId: jobData.data.censoredSessionMessage.senderId,
+          id: jobData.data.censoredSessionMessage.id,
+          sentAt: jobData.data.censoredSessionMessage.sentAt,
+          message: jobData.data.censoredSessionMessage.message,
+        },
+        decision: {
+          isClean: true,
+          reasons: [],
+          moderatorVersion: 'openai_v1',
+        },
       },
       'AI moderation result'
     )

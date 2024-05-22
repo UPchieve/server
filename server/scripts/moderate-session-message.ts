@@ -5,12 +5,14 @@ import { Job } from 'bull'
 import logger from '../logger'
 
 export interface ModerationSessionMessageJobData {
-  sessionId: string
-  senderId: Ulid
-  message: string
+  censoredSessionMessage: {
+    sessionId: string
+    senderId: Ulid
+    message: string
+    sentAt: Date
+    id: Ulid
+  }
   isVolunteer: boolean
-  sentAt: Date
-  censoredSessionMessageId: Ulid
 }
 
 /**
@@ -22,7 +24,7 @@ export default async function moderateSessionMessage(
   job: Job<ModerationSessionMessageJobData>
 ) {
   const aiModerationIsEnabled = await getAiModerationFeatureFlag(
-    job.data.senderId
+    job.data.censoredSessionMessage.senderId
   )
   if (!aiModerationIsEnabled) {
     return
@@ -34,11 +36,14 @@ export default async function moderateSessionMessage(
       messages: [
         {
           role: 'system',
-          content: MODERATION_PROMPT,
+          content: MODERATION_PROMPT_V1,
         },
         {
           role: 'user',
-          content: wrapMessageInXmlTags(job.data.message, job.data.isVolunteer),
+          content: wrapMessageInXmlTags(
+            job.data.censoredSessionMessage.message,
+            job.data.isVolunteer
+          ),
         },
       ],
       response_format: { type: 'json_object' },
@@ -46,18 +51,20 @@ export default async function moderateSessionMessage(
 
     const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
     const logData = {
-      sessionId: job.data.sessionId,
-      senderId: job.data.senderId,
-      isVolunteer: job.data.isVolunteer,
-      censoredSessionMessageId: job.data.censoredSessionMessageId,
-      sentAt: job.data.sentAt,
-      isClean: decision.appropriate,
-      reasons: decision.reasons,
+      censoredSessionMessage: job.data.censoredSessionMessage,
+      decision: {
+        isClean: decision.appropriate,
+        reasons: decision.reasons,
+        moderatorVersion: MODERATION_VERSION,
+      },
     }
     logger.info(logData, 'AI moderation result')
   } catch (err) {
     logger.error(
-      { error: err, senderId: job.data.senderId },
+      {
+        error: err,
+        censoredSessionMessageId: job.data.censoredSessionMessage.id,
+      },
       `Error while moderating session message`
     )
   }
@@ -74,7 +81,9 @@ const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
-const MODERATION_PROMPT = `
+const MODERATION_VERSION = 'openai_v1'
+
+const MODERATION_PROMPT_V1 = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
 When flagging a message, consider just the message in the XML tag.
