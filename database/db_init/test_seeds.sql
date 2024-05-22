@@ -143,6 +143,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 1	student	2023-01-09 19:27:36.719114+00	2023-01-09 19:27:36.719114+00
 2	volunteer	2023-01-09 19:27:36.721354+00	2023-01-09 19:27:36.721354+00
 3	admin	2023-01-09 19:27:36.723095+00	2023-01-09 19:27:36.723095+00
+4	teacher	2024-05-22 19:06:35.585806+00	2024-05-22 19:06:35.585806+00
 \.
 
 
@@ -4099,7 +4100,7 @@ SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
 -- Name: user_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 4, true);
 
 
 --
