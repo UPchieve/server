@@ -45,21 +45,17 @@ export default async function moderateSessionMessage(
       response_format: { type: 'json_object' },
     })
 
-    // @TODO write result to db?
-    // @TODO Log results to NR in a good format
     const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
-    logger.info(
-      {
-        sessionId: job.data.sessionId,
-        senderId: job.data.senderId,
-        isVolunteer: job.data.isVolunteer,
-        censoredSessionMessageId: '', // @TODO
-        sentAt: '', // @TODO
-        isClean: decision?.appropriate,
-        reasons: decision?.reasons,
-      },
-      'AI moderation result'
-    )
+    const logData = {
+      sessionId: job.data.sessionId,
+      senderId: job.data.senderId,
+      isVolunteer: job.data.isVolunteer,
+      censoredSessionMessageId: job.data.censoredSessionMessageId,
+      sentAt: job.data.sentAt,
+      isClean: decision.appropriate,
+      reasons: decision.reasons,
+    }
+    logger.info(logData, 'AI moderation result')
   } catch (err) {
     logger.error(
       { error: err, senderId: job.data.senderId },
@@ -68,6 +64,9 @@ export default async function moderateSessionMessage(
   }
 }
 
+/**
+ * Enclose the given message in <student></student> or <tutor></tutor> tags.
+ */
 const wrapMessageInXmlTags = (
   message: string,
   isVolunteer: boolean
