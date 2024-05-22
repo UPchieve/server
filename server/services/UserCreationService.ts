@@ -35,6 +35,7 @@ import {
   linkParentGuardianToStudent,
 } from '../models/ParentGuardian'
 import { InputError } from '../models/Errors'
+import { createTeacher } from '../models/Teacher'
 
 export interface RosterStudentPayload {
   email: string
@@ -385,10 +386,33 @@ async function upsertStudent(
   }
 }
 
-export async function registerTeacher(_data: RegisterTeacherPayload) {
-  // TODO: Implement.
+export async function registerTeacher(data: RegisterTeacherPayload) {
+  checkEmail(data.email)
+  checkNames(data.firstName, data.lastName)
+  checkPassword(data.password)
+  await checkUser(data.email)
+
+  const newTeacher = await runInTransaction(async (tc: TransactionClient) => {
+    const userData = {
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      // TODO: Include signup source?
+      password: await hashPassword(data.password),
+    }
+    const user = await createUser(userData, data.ip, USER_ROLES.TEACHER, tc)
+
+    const teacherData = {
+      userId: user.id,
+      schoolId: data.schoolId,
+    }
+    await createTeacher(teacherData, tc)
+
+    return user
+  })
+
   return {
-    id: '',
+    ...newTeacher,
     isAdmin: false,
     isVolunteer: false,
   }
