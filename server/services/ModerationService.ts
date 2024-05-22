@@ -58,7 +58,7 @@ export async function moderateMessage({
       })
       logData.censoredSessionMessage = censoredSessionMessage
     }
-    logger.info(logData)
+    logger.info(logData, 'Session message was censored')
   }
 
   return isClean
