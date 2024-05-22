@@ -3,6 +3,8 @@ import {
   CENSORED_BY,
   createCensoredMessage,
 } from '../models/CensoredSessionMessage'
+import QueueService from './QueueService'
+import { Jobs } from '../worker/jobs'
 export interface ModerateMessageOptions {
   content: string
 }
@@ -24,6 +26,7 @@ export async function moderateMessage({
   message,
   senderId,
   sessionId,
+  isVolunteer,
 }: {
   message: string
   senderId: string
@@ -36,6 +39,7 @@ export async function moderateMessage({
     ['safety', SAFETY_RESTRICTION_REGEX.test(message)],
   ].filter(([, test]) => test)
   const isClean = failedTests.length === 0
+
   if (!isClean) {
     const reasons = failedTests.map(([reason]) => reason)
     let logData = {
@@ -57,6 +61,10 @@ export async function moderateMessage({
         censoredBy: CENSORED_BY.regex,
       })
       logData.censoredSessionMessage = censoredSessionMessage
+      await QueueService.add(Jobs.ModerateSessionMessage, {
+        censoredSessionMessage,
+        isVolunteer,
+      })
     }
     logger.info(logData, 'Session message was censored')
   }
