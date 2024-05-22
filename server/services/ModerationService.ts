@@ -1,3 +1,8 @@
+import logger from '../logger'
+import {
+  CENSORED_BY,
+  createCensoredMessage,
+} from '../models/CensoredSessionMessage'
 export interface ModerateMessageOptions {
   content: string
 }
@@ -15,11 +20,46 @@ const PROFANITY_REGEX = /\b(4r5e|5h1t|5hit|a55s|ass-fucker|assfucker|assfukka|a_
 const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/i
 
 // Returns whether message is clean
-export function moderateMessage(message: string): boolean {
-  return !(
-    EMAIL_REGEX.test(message) ||
-    PHONE_REGEX.test(message) ||
-    PROFANITY_REGEX.test(message) ||
-    SAFETY_RESTRICTION_REGEX.test(message)
-  )
+export async function moderateMessage({
+  message,
+  senderId,
+  sessionId,
+}: {
+  message: string
+  senderId: string
+  sessionId?: string
+}): Promise<boolean> {
+  const failedTests = [
+    ['email', EMAIL_REGEX.test(message)],
+    ['phone', PHONE_REGEX.test(message)],
+    ['profanity', PROFANITY_REGEX.test(message)],
+    ['safety', SAFETY_RESTRICTION_REGEX.test(message)],
+  ].filter(([, test]) => test)
+  const isClean = failedTests.length === 0
+  if (!isClean) {
+    const reasons = failedTests.map(([reason]) => reason)
+    let logData = {
+      censoredSessionMessage: {
+        id: 'NONE: THIS CAME FROM AN OLD CLIENT',
+        message,
+        senderId,
+        sessionId: 'NONE: THIS CAME FROM AN OLD CLIENT',
+        censoredBy: CENSORED_BY.regex,
+      },
+      reasons,
+    }
+    /* Old high-line mid town clients will not send up sessionId */
+    if (sessionId) {
+      const censoredSessionMessage = await createCensoredMessage({
+        senderId,
+        message,
+        sessionId,
+        censoredBy: CENSORED_BY.regex,
+      })
+      logData.censoredSessionMessage = censoredSessionMessage
+    }
+    logger.info(logData, 'Session message was censored')
+  }
+
+  return isClean
 }
