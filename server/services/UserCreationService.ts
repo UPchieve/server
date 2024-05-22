@@ -10,6 +10,7 @@ import {
   RegisterStudentWithFedCredPayload,
   RegisterStudentWithPasswordPayload,
   RegisterStudentWithPGPayload,
+  RegisterTeacherPayload,
 } from '../utils/auth-utils'
 import { sendReset, sendRosterStudentSetPasswordEmail } from './MailService'
 import * as UserRepo from '../models/User'
@@ -381,6 +382,15 @@ async function upsertStudent(
       },
       tc
     )
+  }
+}
+
+export async function registerTeacher(_data: RegisterTeacherPayload) {
+  // TODO: Implement.
+  return {
+    id: '',
+    isAdmin: false,
+    isVolunteer: false,
   }
 }
 

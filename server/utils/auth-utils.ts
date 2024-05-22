@@ -202,6 +202,23 @@ export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   timezone: asOptional(asString),
 })
 
+export interface RegisterTeacherPayload {
+  email: string
+  firstName: string
+  ip: string
+  lastName: string
+  password: string
+  schoolId?: string
+}
+export const registerTeacherValidator = asFactory<RegisterTeacherPayload>({
+  email: asString,
+  firstName: asString,
+  ip: asString,
+  lastName: asString,
+  password: asString,
+  schoolId: asOptional(asString),
+})
+
 export interface ResetConfirmData {
   email: string
   password: string
