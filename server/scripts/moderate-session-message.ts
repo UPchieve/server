@@ -16,8 +16,7 @@ export interface ModerationSessionMessageJobData {
 /**
  * Sends the given message to OpenAI to get back a moderation decision
  * and reason.
- * Also logs the decision reason(s) to NR and stores the moderation
- * decision in the DB under censored_session_messages.
+ * Also logs the decision reason(s) to NR.
  */
 export default async function moderateSessionMessage(
   job: Job<ModerationSessionMessageJobData>
