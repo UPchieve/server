@@ -62,14 +62,21 @@ export async function moderateMessage({
       })
       logData.censoredSessionMessage = censoredSessionMessage
 
-      await QueueService.add(
-        Jobs.ModerateSessionMessage,
-        {
+      try {
+        await QueueService.add(
+          Jobs.ModerateSessionMessage,
+          {
+            censoredSessionMessage,
+            isVolunteer,
+          },
+          { removeOnComplete: true, removeOnFail: true }
+        )
+      } catch (err) {
+        logger.error(
           censoredSessionMessage,
-          isVolunteer,
-        },
-        { removeOnComplete: true, removeOnFail: true }
-      )
+          `Failed to enqueue job ${Jobs.ModerateSessionMessage}`
+        )
+      }
     }
     logger.info(logData, 'Session message was censored')
   }
