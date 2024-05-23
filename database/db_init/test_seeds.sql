@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
--- Dumped by pg_dump version 14.10 (Homebrew)
+-- Dumped from database version 14.11 (Debian 14.11-1.pgdg120+2)
+-- Dumped by pg_dump version 14.11 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -236,6 +236,14 @@ COPY upchieve.availabilities (id, user_id, weekday_id, available_start, availabl
 --
 
 COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, available_end, timezone, recorded_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at) FROM stdin;
 \.
 
 

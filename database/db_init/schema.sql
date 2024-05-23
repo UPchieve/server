@@ -73,6 +73,25 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
+-- Name: ban_types; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.ban_types AS ENUM (
+    'shadow',
+    'complete'
+);
+
+
+--
+-- Name: moderation_system; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.moderation_system AS ENUM (
+    'regex'
+);
+
+
+--
 -- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -266,6 +285,20 @@ CREATE SEQUENCE upchieve.ban_reasons_id_seq
 --
 
 ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
+
+
+--
+-- Name: censored_session_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.censored_session_messages (
+    id uuid NOT NULL,
+    sender_id uuid NOT NULL,
+    message text,
+    session_id uuid NOT NULL,
+    censored_by public.moderation_system NOT NULL,
+    sent_at timestamp with time zone NOT NULL
+);
 
 
 --
@@ -2755,6 +2788,14 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 
 --
+-- Name: censored_session_messages censored_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_session_messages
+    ADD CONSTRAINT censored_session_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: certification_subject_unlocks certification_subject_unlocks_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3920,6 +3961,20 @@ CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability
 
 
 --
+-- Name: censored_messages_sent_at; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX censored_messages_sent_at ON upchieve.censored_session_messages USING btree (sent_at);
+
+
+--
+-- Name: censored_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX censored_messages_session_id ON upchieve.censored_session_messages USING btree (session_id);
+
+
+--
 -- Name: feedbacks_session_id_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4157,6 +4212,22 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 ALTER TABLE ONLY upchieve.availability_histories
     ADD CONSTRAINT availability_histories_weekday_id_fkey FOREIGN KEY (weekday_id) REFERENCES upchieve.weekdays(id);
+
+
+--
+-- Name: censored_session_messages censored_session_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_session_messages
+    ADD CONSTRAINT censored_session_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: censored_session_messages censored_session_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_session_messages
+    ADD CONSTRAINT censored_session_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -5454,4 +5525,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240222161927'),
     ('20240226144028'),
     ('20240320184030'),
-    ('20240403012341');
+    ('20240403012341'),
+    ('20240517164134'),
+    ('20240521195415');
