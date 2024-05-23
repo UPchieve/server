@@ -21,18 +21,17 @@ import { logError } from '../../logger'
 import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { openai } from '../../services/BotsService'
 
-jest.mock('openai', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
+jest.mock('../../services/BotsService', () => {
+  return {
+    openai: {
       chat: {
         completions: {
-          create: jest.fn().mockResolvedValue({}),
+          create: jest.fn(),
         },
       },
-    }
-  })
+    },
+  }
 })
-
 jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/ProgressReports')
 jest.mock('../../models/Session')
@@ -357,13 +356,13 @@ describe('generateProgressReportForUser', () => {
       reportId
     )
     const progressReport = buildProgressReport({
-      id: reportId,
-      summary,
-      concepts,
-    })
-    // This is smelly. There should be a proper mock for this
-    // This uses the types defined in OpenAI
-    jest.spyOn(openai.chat.completions, 'create').mockResolvedValue({
+        id: reportId,
+        summary,
+        concepts,
+      })
+      // This is smelly. There should be a proper mock for this
+      // This uses the types defined in OpenAI
+    ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
       id: getDbUlid(),
       choices: [
         {

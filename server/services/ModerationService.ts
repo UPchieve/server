@@ -3,6 +3,8 @@ import {
   CENSORED_BY,
   createCensoredMessage,
 } from '../models/CensoredSessionMessage'
+import QueueService from './QueueService'
+import { Jobs } from '../worker/jobs'
 export interface ModerateMessageOptions {
   content: string
 }
@@ -23,10 +25,12 @@ const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/i
 export async function moderateMessage({
   message,
   senderId,
+  isVolunteer,
   sessionId,
 }: {
   message: string
   senderId: string
+  isVolunteer: boolean
   sessionId?: string
 }): Promise<boolean> {
   const failedTests = [
@@ -57,6 +61,22 @@ export async function moderateMessage({
         censoredBy: CENSORED_BY.regex,
       })
       logData.censoredSessionMessage = censoredSessionMessage
+
+      try {
+        await QueueService.add(
+          Jobs.ModerateSessionMessage,
+          {
+            censoredSessionMessage,
+            isVolunteer,
+          },
+          { removeOnComplete: true, removeOnFail: true }
+        )
+      } catch (err) {
+        logger.error(
+          censoredSessionMessage,
+          `Failed to enqueue job ${Jobs.ModerateSessionMessage}`
+        )
+      }
     }
     logger.info(logData, 'Session message was censored')
   }
