@@ -580,7 +580,8 @@ FROM
                     GROUP BY
                         subjects.name) AS subject_certs ON subject_certs.name = subjects.name
                 WHERE
-                    users.id = :userId! AND certifications.active = true
+                    users.id = :userId!
+                    AND certifications.active = TRUE
                 GROUP BY
                     subjects.name,
                     subject_certs.total,
