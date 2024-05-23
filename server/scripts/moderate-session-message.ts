@@ -120,5 +120,5 @@ where 'message' is the message provided between XML tags, 'appropriate' is a dec
 <exceptions>
 - Links to common text-based collaboration tools (like Google Docs) that are shared for the purpose of reviewing school assignments
 - Direct quotes from literature
-- Profanity that is likely just a typo, such as "shit" instead of "shirt". In this event, prefer flagging the message as appropriate instead of inappropriate.
+- Profanity that is likely just a typo, such as "shit" instead of "shirt". In this event, prefer flagging the message as appropriate instead of inappropriate if and only if the context of the message indicates it was likely a mistake.
 </exceptions>`
