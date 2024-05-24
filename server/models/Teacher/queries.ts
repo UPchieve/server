@@ -6,7 +6,7 @@ import * as pgQueries from './pg.queries'
 export async function createTeacher(
   data: CreateTeacherPayload,
   tc: TransactionClient
-): Promise<any> {
+): Promise<void> {
   try {
     await pgQueries.createTeacherProfile.run(
       {
