@@ -15,7 +15,7 @@ import {
   RepoUpdateError,
   RepoUpsertError,
 } from '../Errors'
-import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
+import { USER_BAN_REASONS, USER_ROLES_TYPE, USER_BAN_TYPES } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
@@ -143,7 +143,7 @@ export type UserContactInfo = {
   volunteerPartnerOrg?: string
   studentPartnerOrg?: string
   lastActivityAt?: Date
-  banned: boolean
+  banType?: USER_BAN_TYPES
   deactivated: boolean
   approved?: boolean
 }
@@ -163,6 +163,7 @@ export async function getUserContactInfoById(
         'approved',
         'lastActivityAt',
         'phone',
+        'banType'
       ])
       ret.email = ret.email.toLowerCase()
       return ret

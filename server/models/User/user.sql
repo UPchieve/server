@@ -42,7 +42,7 @@ SELECT
     users.id,
     first_name,
     email,
-    banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -70,6 +70,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+    LEFT JOIN banned_users ON banned_users.user_id = users.id
 WHERE
     users.id = :id!
 LIMIT 1;
