@@ -240,6 +240,14 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 
 
 --
+-- Data for Name: banned_users; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.banned_users (id, user_id, ban_type, created_at, updated_at, ban_reason_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -3579,6 +3587,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 18	32	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 19	33	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 21	\N	5	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
+\.
+
+
+--
+-- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
 \.
 
 

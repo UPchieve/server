@@ -288,6 +288,20 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 
 
 --
+-- Name: banned_users; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.banned_users (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    ban_type public.ban_types NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone,
+    ban_reason_id integer
+);
+
+
+--
 -- Name: censored_session_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1927,6 +1941,18 @@ ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWA
 
 
 --
+-- Name: teacher_profiles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.teacher_profiles (
+    user_id uuid NOT NULL,
+    school_id uuid,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2788,6 +2814,14 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 
 --
+-- Name: banned_users banned_users_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.banned_users
+    ADD CONSTRAINT banned_users_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: censored_session_messages censored_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3628,6 +3662,14 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_profiles teacher_profiles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_profiles
+    ADD CONSTRAINT teacher_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
 -- Name: tool_types tool_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4212,6 +4254,22 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 ALTER TABLE ONLY upchieve.availability_histories
     ADD CONSTRAINT availability_histories_weekday_id_fkey FOREIGN KEY (weekday_id) REFERENCES upchieve.weekdays(id);
+
+
+--
+-- Name: banned_users banned_users_ban_reason_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.banned_users
+    ADD CONSTRAINT banned_users_ban_reason_id_fkey FOREIGN KEY (ban_reason_id) REFERENCES upchieve.ban_reasons(id);
+
+
+--
+-- Name: banned_users banned_users_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.banned_users
+    ADD CONSTRAINT banned_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -5079,6 +5137,22 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_profiles teacher_profiles_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_profiles
+    ADD CONSTRAINT teacher_profiles_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: teacher_profiles teacher_profiles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_profiles
+    ADD CONSTRAINT teacher_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: user_actions user_actions_ip_address_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5527,4 +5601,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240320184030'),
     ('20240403012341'),
     ('20240517164134'),
-    ('20240521195415');
+    ('20240521195415'),
+    ('20240522182235'),
+    ('20240523195240');
