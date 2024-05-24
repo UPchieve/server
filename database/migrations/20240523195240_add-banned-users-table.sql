@@ -1,18 +1,18 @@
 -- migrate:up
-CREATE TYPE ban_types AS ENUM (
+CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
     'complete'
 );
 
 CREATE TABLE IF NOT EXISTS upchieve.banned_users (
-    id uuid PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES upchieve.users (id),
+    user_id uuid PRIMARY KEY NOT NULL REFERENCES upchieve.users (id),
     ban_type ban_types NOT NULL,
+    ban_reason_id integer REFERENCES upchieve.ban_reasons (id),
     created_at timestamp NOT NULL,
-    updated_at timestamp,
-    ban_reason_id integer REFERENCES upchieve.ban_reasons (id))
+    updated_at timestamp
+)
+
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.banned_users;
 
-DROP TYPE IF EXISTS ban_types;
-
+DROP TYPE IF EXISTS upchieve.ban_types;

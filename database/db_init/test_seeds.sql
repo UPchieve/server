@@ -243,7 +243,7 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 -- Data for Name: banned_users; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.banned_users (id, user_id, ban_type, created_at, updated_at, ban_reason_id) FROM stdin;
+COPY upchieve.banned_users (user_id, ban_type, ban_reason_id, created_at, updated_at) FROM stdin;
 \.
 
 

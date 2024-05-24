@@ -102,6 +102,16 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 
 
 --
+-- Name: ban_types; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.ban_types AS ENUM (
+    'shadow',
+    'complete'
+);
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
 --
 
@@ -292,12 +302,11 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 --
 
 CREATE TABLE upchieve.banned_users (
-    id uuid NOT NULL,
     user_id uuid NOT NULL,
     ban_type public.ban_types NOT NULL,
+    ban_reason_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone,
-    ban_reason_id integer
+    updated_at timestamp without time zone
 );
 
 
@@ -2818,7 +2827,7 @@ ALTER TABLE ONLY upchieve.ban_reasons
 --
 
 ALTER TABLE ONLY upchieve.banned_users
-    ADD CONSTRAINT banned_users_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT banned_users_pkey PRIMARY KEY (user_id);
 
 
 --
