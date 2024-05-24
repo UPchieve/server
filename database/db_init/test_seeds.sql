@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
--- Dumped by pg_dump version 14.10 (Homebrew)
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 14.11 (Ubuntu 14.11-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -236,6 +236,14 @@ COPY upchieve.availabilities (id, user_id, weekday_id, available_start, availabl
 --
 
 COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, available_end, timezone, recorded_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at) FROM stdin;
 \.
 
 
@@ -3571,6 +3579,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 18	32	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 19	33	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 21	\N	5	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
+\.
+
+
+--
+-- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
 \.
 
 
