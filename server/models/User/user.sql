@@ -298,25 +298,26 @@ RETURNING
 
 
 /* @name updateUserBanById */
-UPDATE
-    users
-SET
-    banned = subquery.banned,
-    ban_reason_id = subquery.ban_reason_id,
-    updated_at = NOW()
+INSERT INTO banned_users (user_id, ban_type, ban_reason_id, created_at)
+SELECT
+    :userId!,
+    :banType!,
+    subquery.id,
+    NOW()
 FROM (
     SELECT
-        TRUE AS banned,
-        id AS ban_reason_id
+        id
     FROM
         ban_reasons
     WHERE
-        name = :banReason!) AS subquery
-WHERE
-    id = :userId!
+        ban_reasons.name = :banReason!) AS subquery
+ON CONFLICT(user_id)
+     DO UPDATE SET
+        ban_type = EXCLUDED.ban_type,
+        ban_reason_id = EXCLUDED.ban_reason_id,
+        created_at = EXCLUDED.created_at
 RETURNING
-    id AS ok;
-
+    user_id AS ok;
 
 /* @name getUserForAdminUpdate */
 SELECT
