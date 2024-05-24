@@ -490,8 +490,8 @@ SELECT
         ELSE
             FALSE
         END) AS is_admin,
-    users.banned AS is_banned,
-    ban_reasons.name AS ban_reason,
+    ban_types.ban_type AS ban_type,
+    ban_types.name AS ban_reason,
     users.test_user AS is_test_user,
     FALSE AS is_fake_user,
     users.deactivated AS is_deactivated,
@@ -552,7 +552,6 @@ FROM
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
-    LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN (
@@ -646,6 +645,13 @@ FROM
             JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
         WHERE
             muted_users_subject_alerts.user_id = :userId!) AS muted_users_subject_alerts_agg ON TRUE
+    LEFT JOIN (
+		    SELECT 
+			      ban_type, name
+		    FROM 
+			      upchieve.banned_users
+		        LEFT JOIN upchieve.ban_reasons ON ban_reasons.id = banned_users.ban_reason_id
+		    WHERE user_id = :userId!) as ban_types ON true
 WHERE
     users.id = :userId!;
 

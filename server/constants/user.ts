@@ -155,3 +155,9 @@ export const USER_ROLES = <const>{
   ADMIN: 'admin',
 }
 export type USER_ROLES_TYPE = ExtractValues<typeof USER_ROLES>
+
+export const USER_BANS  = <const>{
+  COMPLETE: 'complete',
+  SHADOW: 'shadow'
+}
+export type USER_BAN_TYPES = ExtractValues<typeof USER_BANS>

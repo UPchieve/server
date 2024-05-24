@@ -1,5 +1,5 @@
 import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
-import { GRADES, USER_BAN_REASONS } from '../../constants'
+import { GRADES, USER_BAN_REASONS, USER_BAN_TYPES } from '../../constants'
 import {
   Certifications,
   Reference,
@@ -34,7 +34,7 @@ export type LegacyUserModel = {
   college?: string
   isVolunteer: boolean
   isAdmin: boolean
-  isBanned: boolean
+  banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
   isTestUser: boolean
   isFakeUser: boolean
@@ -89,7 +89,6 @@ export async function getLegacyUserObject(
       'isAdmin',
       'isVolunteer',
       'isTestUser',
-      'isBanned',
       'isDeactivated',
       'referralCode',
       'type',
