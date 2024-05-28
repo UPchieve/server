@@ -363,9 +363,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm valid reset', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
     const token = '0123456789abcdef0123456789abcdef'
     const newPassword = 'Password456'
 
@@ -409,9 +407,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via bad token', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
 
     const payload = {
       email: user.email,
@@ -428,7 +424,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via unlisted token', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(undefined)
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(undefined)
 
     const payload = {
       email: user.email,
@@ -445,9 +441,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via unmatched token', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
 
     const payload = {
       email: 'different email',
@@ -464,9 +458,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm mismatch passwords', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
 
     const payload = {
       email: 'different email',

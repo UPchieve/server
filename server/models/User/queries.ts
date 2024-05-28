@@ -254,27 +254,18 @@ export async function getUserForPassport(
   }
 }
 
-// getUserByResetToken
-export async function getUserContactInfoByResetToken(
+export async function getUserByResetToken(
   resetToken: string
-): Promise<UserContactInfo | undefined> {
+): Promise<{ id: Ulid; email: string } | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoByResetToken.run(
+    const result = await pgQueries.getUserByResetToken.run(
       { resetToken },
       getClient()
     )
-    if (result.length) {
-      const ret = makeSomeOptional(result[0], [
-        'volunteerPartnerOrg',
-        'studentPartnerOrg',
-        'approved',
-        'lastActivityAt',
-        'phone',
-        'banType',
-      ])
-      ret.email = ret.email.toLowerCase()
-      return ret
+    if (result.length > 1) {
+      throw new RepoReadError('More than one user with reset token.')
     }
+    return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }

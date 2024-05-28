@@ -2,7 +2,7 @@ import validator from 'validator'
 
 import {
   getUserForPassport,
-  getUserContactInfoByResetToken,
+  getUserByResetToken,
   updateUserResetTokenById,
   updateUserPasswordById,
   getUserIdByEmail,
@@ -317,7 +317,7 @@ export async function confirmReset(data: unknown): Promise<void> {
   if (password !== reenteredPassword)
     throw new ResetError('The passwords you entered do not match')
 
-  const user = await getUserContactInfoByResetToken(token)
+  const user = await getUserByResetToken(token)
 
   if (!user)
     throw new LookupError('No account found with provided password reset token')
