@@ -149,9 +149,11 @@ export enum GRADES {
   OTHER = 'Other',
 }
 
+// TODO: Just make this an enum instead.
 export const USER_ROLES = <const>{
   STUDENT: 'student',
   VOLUNTEER: 'volunteer',
   ADMIN: 'admin',
+  TEACHER: 'teacher',
 }
 export type USER_ROLES_TYPE = ExtractValues<typeof USER_ROLES>
