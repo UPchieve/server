@@ -7,6 +7,7 @@ import {
   authPassport,
   isSupportedSsoProvider,
   registerStudentValidator,
+  registerTeacherValidator,
   SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
@@ -189,6 +190,20 @@ export function routes(app: Express) {
         await req.asyncLogin(student)
       }
       return res.json({ user: student })
+    } catch (e) {
+      resError(res, e)
+    }
+  })
+
+  router.route('/register/teacher').post(async function(req, res) {
+    try {
+      const data = registerTeacherValidator({
+        ...req.body,
+        ip: req.ip,
+      })
+      const teacher = await UserCreationService.registerTeacher(data)
+      await req.asyncLogin(teacher)
+      return res.json({ user: teacher })
     } catch (e) {
       resError(res, e)
     }
