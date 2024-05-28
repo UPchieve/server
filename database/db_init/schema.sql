@@ -92,6 +92,17 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 
 
 --
+-- Name: user_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.user_type AS ENUM (
+    'student',
+    'volunteer',
+    'teacher'
+);
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
 --
 
@@ -5554,4 +5565,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240403012341'),
     ('20240517164134'),
     ('20240521195415'),
-    ('20240522182235');
+    ('20240522182235'),
+    ('20240528200000');
