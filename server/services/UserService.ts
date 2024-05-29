@@ -7,6 +7,7 @@ import {
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
+  USER_BAN_TYPES,
 } from '../constants'
 import {
   UserNotFoundError,
@@ -239,7 +240,8 @@ interface AdminUpdate {
   partnerOrg?: string
   partnerSite?: string
   isVerified: boolean
-  isBanned: boolean
+  // isBanned: boolean
+  banType?: string
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
@@ -253,7 +255,8 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
-  isBanned: asBoolean,
+  // isBanned: asBoolean,
+  banType: asOptional(asString),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
@@ -282,7 +285,8 @@ export async function adminUpdateUser(data: unknown) {
     partnerOrg,
     partnerSite,
     isVerified,
-    isBanned,
+    // isBanned,
+    banType,
     isDeactivated,
     isApproved,
     inGatesStudy,
@@ -306,10 +310,10 @@ export async function adminUpdateUser(data: unknown) {
   const userBeforeUpdateIsBanned = userBeforeUpdate.banType == 'complete'
 
   // if unbanning student, also unban their IP addresses
-  if (!isVolunteer && userBeforeUpdateIsBanned && !isBanned)
+  if (!isVolunteer && userBeforeUpdateIsBanned && banType !== 'complete')
     await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
-  if (!userBeforeUpdateIsBanned && isBanned)
+  if (!userBeforeUpdateIsBanned && banType == 'complete')
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'admin')
 
@@ -318,14 +322,14 @@ export async function adminUpdateUser(data: unknown) {
     lastName,
     email: trimmedEmail,
     isVerified,
-    isBanned,
+    banType,
     isDeactivated,
     isApproved,
     volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
     studentPartnerOrg: !isVolunteer && partnerOrg ? partnerOrg : undefined,
     partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
     inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
-    banReason: isBanned ? 'admin' : undefined,
+    banReason: banType !== undefined ? 'admin' : undefined,
     partnerSchool: !isVolunteer && partnerSchool ? partnerSchool : undefined,
   }
 
