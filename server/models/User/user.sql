@@ -275,29 +275,6 @@ RETURNING
     id AS ok;
 
 
-/* @name getUserForAdminUpdate */
-SELECT
-    users.id,
-    banned,
-    ban_type,
-    email,
-    deactivated,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    student_partner_orgs.name AS student_partner_org
-FROM
-    users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
-WHERE
-    users.id = :userId!;
-
-
 /* @name getUsersForAdminSearch */
 SELECT
     users.id,

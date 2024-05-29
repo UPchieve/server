@@ -299,7 +299,6 @@ export async function adminUpdateUser(data: unknown) {
     inGatesStudy,
     partnerSchool,
   } = asAdminUpdate(data)
-  // replaced by UserRepo.getUserForAdminUpdate
   const userBeforeUpdate = await getUserContactInfoById(userId)
 
   if (!userBeforeUpdate) {
