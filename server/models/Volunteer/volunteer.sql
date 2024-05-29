@@ -235,8 +235,9 @@ FROM
             subjects.name, CTE.total) AS subjects_unlocked ON TRUE
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN availabilities ON availabilities.user_id = users.id
+    LEFT JOIN banned_users ON banned_users.user_id = users.id
 WHERE
-    users.banned IS FALSE
+    banned_users.user_id IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
