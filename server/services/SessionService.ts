@@ -547,7 +547,9 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       'Volunteers cannot create new sessions'
     )
 
-  if (user.banned)
+  const studentIsBanned = user.banType == USER_BAN_TYPES.COMPLETE
+
+  if (studentIsBanned)
     throw new sessionUtils.StartSessionError(
       'Banned students cannot request a new session'
     )
@@ -564,7 +566,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     userId,
     // NOTE: sessionType and subtopic are kebab-case
     subject,
-    user.banned
+    studentIsBanned
   )
 
   if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
@@ -590,7 +592,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       )
     }
 
-  if (!user.banned) {
+  if (user.banType !== USER_BAN_TYPES.COMPLETE) {
     await beginRegularNotifications(newSessionId)
   }
 
