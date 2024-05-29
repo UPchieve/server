@@ -367,10 +367,11 @@ FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN banned_users ON banned_users.user_id = users.id
 WHERE
     users.last_activity_at >= :start!
     AND users.last_activity_at < :end!
-    AND users.banned IS FALSE
+    AND banned_users.user_id IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE;
