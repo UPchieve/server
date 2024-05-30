@@ -404,7 +404,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
   const options = {
     approved: true,
     onboarded: true,
-    banned: false,
+    banType: undefined,
     deactivated: false,
     certificationSubjects: ['prealgebra'],
     withFullAvailability: true,
@@ -428,7 +428,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
   await updateVolunteerForAdmin(res.id, {
     email: res.email,
     isVerified: true,
-    isBanned: options.banned,
+    banType: options.banType,
     isApproved: options.approved,
     isDeactivated: options.deactivated,
     firstName: undefined,
