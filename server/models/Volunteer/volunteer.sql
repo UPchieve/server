@@ -12,7 +12,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.id = :userId!
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 
@@ -31,7 +31,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.id = ANY (:userIds!)
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 
@@ -52,7 +52,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.last_activity_at < :startDate!
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
@@ -74,7 +74,7 @@ FROM
 WHERE (users.id::uuid = :userId
     OR users.mongo_id::text = :mongoUserId)
 AND volunteer_profiles.onboarded IS TRUE
-AND users.banned IS FALSE
+AND users.ban_type IS NULL
 AND users.deactivated IS FALSE
 AND users.test_user IS FALSE;
 
@@ -102,7 +102,7 @@ WHERE (users.id::uuid = :userId
     OR users.mongo_id::text = :mongoUserId)
 AND volunteer_profiles.onboarded IS TRUE
 AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
-AND users.banned IS FALSE
+AND users.ban_type IS NULL
 AND users.deactivated IS FALSE
 AND total_sessions.total > 0
 AND users.test_user IS FALSE;
@@ -124,7 +124,7 @@ FROM
     LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id
 WHERE (volunteer_partner_orgs.id IS NULL
     OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)
-AND users.banned IS FALSE
+AND users.ban_type IS NULL
 AND users.deactivated IS FALSE
 AND users.test_user IS FALSE
 GROUP BY
@@ -183,7 +183,7 @@ WHERE
     volunteer_partner_orgs.key = ANY (:targetPartnerOrgs!)
     AND volunteer_profiles.onboarded IS TRUE
     AND volunteer_profiles.approved IS TRUE
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
 GROUP BY
@@ -229,7 +229,7 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN availabilities ON availabilities.user_id = users.id
 WHERE
-    users.banned IS FALSE
+    users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
@@ -255,7 +255,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     volunteer_partner_orgs.key = :partnerOrg!
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
@@ -361,7 +361,7 @@ FROM
 WHERE
     users.last_activity_at >= :start!
     AND users.last_activity_at < :end!
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE;
@@ -774,7 +774,7 @@ FROM
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
-    users.banned IS FALSE
+    users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND users.created_at >= :start!
@@ -795,7 +795,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
 WHERE
-    users.banned IS FALSE
+    users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
@@ -818,7 +818,7 @@ FROM
     LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    users.banned IS FALSE
+    users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_reference_statuses.name = 'sent'
@@ -951,7 +951,7 @@ FROM
     JOIN volunteer_references ON volunteer_references.user_id = users.id
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
-    users.banned IS FALSE
+    users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_reference_statuses.name = 'sent'
@@ -1012,7 +1012,7 @@ SET
     last_name = COALESCE(:lastName, last_name),
     email = :email!,
     verified = :isVerified!,
-    banned = :isBanned!,
+    ban_type = :ban_type,
     deactivated = :isDeactivated!
 WHERE
     users.id = :userId!
@@ -1038,7 +1038,7 @@ INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, 
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
-    id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at;
+    id, email, first_name, last_name, phone, ban_type, test_user, deactivated, created_at;
 
 
 /* @name createUserVolunteerPartnerOrgInstance */
@@ -1175,7 +1175,7 @@ ready_to_tutor_volunteers AS (
         JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     WHERE
         test_user IS FALSE
-        AND banned IS FALSE
+        AND ban_type IS NULL
         AND deactivated IS FALSE
         AND volunteer_profiles.onboarded IS TRUE
         AND volunteer_profiles.approved IS TRUE
@@ -1431,7 +1431,7 @@ FROM
                 JOIN subjects ON sub_unlocked.subject = subjects.name) AS computed_subjects_unlocked ON computed_subjects_unlocked.user_id = users.id
 WHERE
     test_user IS FALSE
-    AND banned IS FALSE
+    AND ban_type IS NULL
     AND deactivated IS FALSE
     AND NOT users.id = ANY (:excludedIds!)
 AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
