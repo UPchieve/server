@@ -24,6 +24,7 @@ import {
   CreateUserResult,
   UpsertUserResult,
   User,
+  UserRole,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 
@@ -146,6 +147,18 @@ export type UserContactInfo = {
   banned: boolean
   deactivated: boolean
   approved?: boolean
+}
+
+export async function getUserRolesById(
+  id: Ulid,
+  tc: TransactionClient
+): Promise<UserRole[]> {
+  try {
+    const result = await pgQueries.getUserRolesById.run({ id }, tc)
+    return result.map(row => makeRequired(row).name as UserRole)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
 
 export async function getUserContactInfoById(
