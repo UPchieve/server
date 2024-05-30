@@ -490,7 +490,7 @@ SELECT
         ELSE
             FALSE
         END) AS is_admin,
-    users.banned AS is_banned,
+    users.banType as ban_type,
     ban_reasons.name AS ban_reason,
     users.test_user AS is_test_user,
     FALSE AS is_fake_user,
