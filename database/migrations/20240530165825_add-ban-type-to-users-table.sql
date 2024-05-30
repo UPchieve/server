@@ -10,5 +10,6 @@ ALTER TABLE upchieve.users
 -- migrate:down
 ALTER TABLE upchieve.users
     DROP COLUMN IF EXISTS ban_type;
-    
+
 DROP TYPE IF EXISTS upchieve.ban_types;
+
