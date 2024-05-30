@@ -2,7 +2,7 @@ import { Pgid, Ulid } from '../pgUtils'
 
 export type User = {
   id: Ulid
-  banned: boolean
+  banType?: string
   banReasonId?: Pgid
   deactivated: boolean
   firstName: string

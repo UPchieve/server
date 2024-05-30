@@ -28,7 +28,7 @@ export interface VolunteerRegistrationForm extends RegistrationForm {
 export type AppUser = {
   firstname: string
   lastname: string
-  isBanned: boolean
+  banType?: string
   isDeactivated: boolean
   isTestUser: boolean
   isAdmin: boolean
