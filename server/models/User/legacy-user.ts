@@ -90,7 +90,6 @@ export async function getLegacyUserObject(
       'isAdmin',
       'isVolunteer',
       'isTestUser',
-      'isBanned',
       'isDeactivated',
       'referralCode',
       'type',
