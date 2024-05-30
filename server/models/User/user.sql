@@ -42,7 +42,7 @@ SELECT
     users.id,
     first_name,
     email,
-    banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -80,7 +80,7 @@ SELECT
     users.id,
     first_name,
     email,
-    banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -142,7 +142,7 @@ SELECT
     users.id,
     first_name,
     email,
-    banned,
+    ban_type
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -320,7 +320,7 @@ RETURNING
 /* @name getUserForAdminUpdate */
 SELECT
     users.id,
-    banned,
+    ban_type,
     email,
     deactivated,
     (
@@ -424,7 +424,7 @@ SELECT
     volunteer_profiles.city,
     volunteer_profiles.state,
     users.verified,
-    users.banned AS is_banned,
+    users.ban_type AS ban_type,
     user_product_flags.gates_qualified AS in_gates_study,
     grade_levels.name AS current_grade,
     student_partner_org_sites.name AS partner_site,
@@ -658,7 +658,7 @@ SELECT
     email,
     sms_consent,
     phone_verified,
-    banned,
+    ban_type
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -854,7 +854,7 @@ SELECT
     email,
     users.created_at AS created_at,
     test_user AS is_test_user,
-    banned AS is_banned,
+    ban_type AS ban_type,
     deactivated AS is_deactivated,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
