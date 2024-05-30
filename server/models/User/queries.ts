@@ -15,7 +15,7 @@ import {
   RepoUpdateError,
   RepoUpsertError,
 } from '../Errors'
-import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
+import { USER_BAN_REASONS, USER_BAN_TYPES, USER_ROLES_TYPE } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
@@ -143,7 +143,7 @@ export type UserContactInfo = {
   volunteerPartnerOrg?: string
   studentPartnerOrg?: string
   lastActivityAt?: Date
-  banned: boolean
+  banType?: USER_BAN_TYPES
   deactivated: boolean
   approved?: boolean
 }
@@ -546,7 +546,7 @@ export async function getUserForAdminDetail(
 
 export type UserForCreateSendGridContact = UserContactInfo & {
   lastName: string
-  banned: boolean
+  banType?: USER_BAN_TYPES
   testUser: boolean
   isVolunteer: boolean
   isAdmin: boolean
@@ -724,7 +724,7 @@ export type ReportedUser = {
   email: string
   createdAt: Date
   isTestUser: boolean
-  isBanned: boolean
+  banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isVolunteer: boolean
   studentPartnerOrg?: string
