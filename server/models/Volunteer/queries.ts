@@ -14,7 +14,7 @@ import { getAvailabilityForVolunteer } from '../Availability'
 import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
-import { PHOTO_ID_STATUS, USER_ROLES } from '../../constants'
+import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
 import { PoolClient } from 'pg'
 import {
   AssociatedPartnersAndSchools,
@@ -1183,7 +1183,7 @@ export type CreatedVolunteer = VolunteerContactInfo & {
   createdAt: Date
   isVolunteer: boolean
   isAdmin: boolean
-  banned: boolean
+  banType?: USER_BAN_TYPES
   signupSourceId?: number
   otherSignupSource?: string
 }
@@ -1306,7 +1306,7 @@ export type AdminUpdateVolunteer = {
   email: string
   volunteerPartnerOrg: string | undefined
   isVerified: boolean
-  isBanned: boolean
+  banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isApproved: boolean | undefined
 }
@@ -1407,7 +1407,7 @@ export async function updateVolunteerForAdmin(
         lastName: update.lastName,
         email: update.email.toLowerCase(),
         isVerified: update.isVerified,
-        isBanned: update.isBanned,
+        ban_type: update.banType,
         isDeactivated: update.isDeactivated,
       },
       client
