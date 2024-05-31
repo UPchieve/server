@@ -1,7 +1,7 @@
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { makeRequired, Ulid } from '../pgUtils'
-import { RepoReadError, RepoUpdateError } from '../Errors'
+import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 
 export async function getFederatedCredential(id: string, issuer: string) {
   try {
@@ -31,5 +31,16 @@ export async function insertFederatedCredential(
     )
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function deleteFederatedCredentialsForUser(
+  userId: Ulid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.deleteFederatedCredentialsForUser.run({ userId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
