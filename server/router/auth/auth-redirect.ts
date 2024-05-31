@@ -24,11 +24,12 @@ export class AuthRedirect {
 
   static failureRedirect(
     isLogin: boolean,
+    provider: string,
     studentData: Partial<RegisterStudentPayload> = {},
     errorMsg?: string
   ) {
     if (isLogin) {
-      return this.loginFailureRedirect
+      return this.loginFailureRedirect(provider)
     }
 
     delete studentData.ip
@@ -49,7 +50,11 @@ export class AuthRedirect {
     )
   }
 
-  static get loginFailureRedirect() {
-    return `${this.getBaseRedirect()}/login?400=true`
+  static loginFailureRedirect(provider: string) {
+    const params = new URLSearchParams({
+      400: 'true',
+      provider: provider ?? '',
+    })
+    return this.getBaseRedirect() + '/login?' + params.toString()
   }
 }

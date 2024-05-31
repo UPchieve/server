@@ -72,9 +72,9 @@ export function routes(app: Express) {
 
   router.route('/sso').get((req, res) => {
     const provider = req.query.provider as string
-    const isLogin = req.query.isLogin === 'true'
+    const isLogin = req.query.isLogin === 'true' ?? true
     if (!provider || !isSupportedSsoProvider(provider)) {
-      res.redirect(AuthRedirect.failureRedirect(isLogin))
+      res.redirect(AuthRedirect.failureRedirect(isLogin, provider ?? ''))
       return
     }
     if (!isLogin) {
@@ -90,9 +90,13 @@ export function routes(app: Express) {
   })
   // Redirect URI for SSO providers.
   router.route('/oauth2/redirect').get((req, res) => {
-    const { provider, isLogin, studentData } = req.session as SessionWithSsoData
+    const {
+      provider = req.headers.referer?.includes('clever') ? 'clever' : '',
+      isLogin = true,
+      studentData,
+    } = req.session as SessionWithSsoData
     if (!provider || !isSupportedSsoProvider(provider)) {
-      res.redirect(AuthRedirect.failureRedirect(isLogin ?? false, studentData))
+      res.redirect(AuthRedirect.failureRedirect(isLogin, provider, studentData))
       return
     }
     const strategy = provider
@@ -101,8 +105,9 @@ export function routes(app: Express) {
         await req.asyncLogin(user)
         return res.redirect(AuthRedirect.successRedirect)
       } else {
+        req.logout()
         return res.redirect(
-          AuthRedirect.failureRedirect(isLogin ?? false, studentData, errorMsg)
+          AuthRedirect.failureRedirect(isLogin, provider, studentData, errorMsg)
         )
       }
     })(req, res)

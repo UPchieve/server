@@ -6,6 +6,7 @@ import {
   VerifyFunctionWithRequest,
 } from 'passport-oauth2'
 import config from '../../config'
+import logger from '../../logger'
 
 interface ICleverMeResponse {
   type: 'user'
@@ -100,7 +101,7 @@ export default class CleverStrategy extends OAuth2Strategy {
 
       return done(null, profile)
     } catch (error) {
-      // TODO: Log error.
+      logger.error(error, 'Error getting Clever user profile.')
       done(error as Error)
     }
   }
