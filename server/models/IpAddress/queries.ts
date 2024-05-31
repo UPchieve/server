@@ -11,7 +11,6 @@ import {
 } from '../pgUtils'
 import { cleanIpString } from '../../utils/clean-ip-string'
 import { IP_ADDRESS_STATUS } from '../../constants'
-import { String } from 'aws-sdk/clients/appstream'
 
 export async function getIpByRawString(
   ip: string

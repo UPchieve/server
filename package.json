@@ -60,6 +60,8 @@
     "lint:sql:check"
   ],
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.588.0",
+    "@aws-sdk/s3-request-presigner": "^3.588.0",
     "@azure-rest/ai-vision-image-analysis": "^1.0.0-beta.2",
     "@azure/core-auth": "^1.7.2",
     "@azure/identity": "^1.2.3",
@@ -70,7 +72,6 @@
     "@sentry/node": "^5.30.0",
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-adapter": "^7.2.0",
-    "aws-sdk": "^2.695.0",
     "axios": "^1.6.8",
     "base64url": "^3.0.1",
     "bcrypt": "^5.0.1",
