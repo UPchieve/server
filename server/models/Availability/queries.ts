@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
 
@@ -12,10 +12,16 @@ import {
   AvailabilityHistory,
   AvailabilitySnapshot,
 } from './types'
-import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoDeleteError,
+  RepoReadError,
+  RepoUpdateError,
+} from '../Errors'
 import { PoolClient } from 'pg'
 import { isPgId } from '../../utils/type-utils'
 
+// TODO: Move out any of the following functions that aren't actually queries.
 function createNewAvailability(): Availability {
   const availability: Partial<Availability> = {}
 
@@ -312,16 +318,16 @@ export async function clearAvailabilityForVolunteer(
   }
 }
 
-export async function saveLegacyAvailability(
+export async function deleteAvailabilityHistoryForVolunteer(
   userId: Ulid,
-  availability: any
-): Promise<void> {
+  tc: TransactionClient
+) {
   try {
-    const result = await pgQueries.saveLegacyAvailability.run(
-      { id: getDbUlid(), userId, availability },
-      getClient()
-    )
+    await Promise.all([
+      pgQueries.deleteAvailabilityHistoriesForUser.run({ userId }, tc),
+      pgQueries.deleteLegacyAvailabilityHistoriesForUser.run({ userId }, tc),
+    ])
   } catch (err) {
-    throw new RepoCreateError(err)
+    throw new RepoDeleteError(err)
   }
 }
