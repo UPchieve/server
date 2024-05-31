@@ -7,6 +7,7 @@ import {
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
+  USER_BAN_TYPES,
 } from '../constants'
 import {
   UserNotFoundError,
@@ -39,6 +40,7 @@ import {
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
   asBoolean,
+  asEnum,
   asFactory,
   asNumber,
   asOptional,
@@ -239,7 +241,7 @@ interface AdminUpdate {
   partnerOrg?: string
   partnerSite?: string
   isVerified: boolean
-  isBanned: boolean
+  banType?: string
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
@@ -253,12 +255,12 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
-  isBanned: asBoolean,
+  banType: asOptional(asString),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
   partnerSchool: asOptional(asString),
-})
+})                                                                                                                                                                                      
 
 export async function flagForDeletion(user: UserContactInfo) {
   try {
@@ -282,7 +284,7 @@ export async function adminUpdateUser(data: unknown) {
     partnerOrg,
     partnerSite,
     isVerified,
-    isBanned,
+    banType,
     isDeactivated,
     isApproved,
     inGatesStudy,
@@ -303,11 +305,15 @@ export async function adminUpdateUser(data: unknown) {
     if (contact) MailService.deleteContact(contact.id)
   }
 
+  const userBeforeUpdateIsBanned =
+    userBeforeUpdate.banType == USER_BAN_TYPES.COMPLETE
+  const isBanned = banType == USER_BAN_TYPES.COMPLETE
+
   // if unbanning student, also unban their IP addresses
-  if (!isVolunteer && userBeforeUpdate.banned && !isBanned)
+  if (!isVolunteer && userBeforeUpdateIsBanned && !isBanned)
     await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
-  if (!userBeforeUpdate.banned && isBanned)
+  if (!userBeforeUpdateIsBanned && isBanned)
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'admin')
 
@@ -316,7 +322,7 @@ export async function adminUpdateUser(data: unknown) {
     lastName,
     email: trimmedEmail,
     isVerified,
-    isBanned,
+    banType,
     isDeactivated,
     isApproved,
     volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
