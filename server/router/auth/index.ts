@@ -108,68 +108,6 @@ export function routes(app: Express) {
     })(req, res)
   })
 
-  // == Remove after high-line clean-up.
-  router.route('/login/google').get(passport.authenticate('google-login'))
-  router.route('/oauth2/redirect/google/login').get(
-    passport.authenticate('google-login', {
-      successRedirect: AuthRedirect.successRedirect,
-      failureRedirect: AuthRedirect.loginFailureRedirect,
-    })
-  )
-
-  router.route('/register/google/student').get(function(req, res) {
-    ;(req.session as any).studentData = req.query
-    ;(req.session as any).studentData.ip = req.ip
-    passport.authenticate('google-register-student')(req, res)
-  })
-  router
-    .route('/oauth2/redirect/google/register/student')
-    .get(function(req, res) {
-      passport.authenticate('google-register-student', async function(
-        _err,
-        user,
-        info
-      ) {
-        const studentData = (req.session as any).studentData
-        delete (req.session as any).studentData
-        if (user) {
-          res.redirect(AuthRedirect.successRedirect)
-          await req.asyncLogin(user)
-        } else {
-          res.redirect(AuthRedirect.registerFailureRedirect(studentData, info))
-        }
-      })(req, res)
-    })
-
-  router.route('/register/google/partner-student').get(function(req, res) {
-    ;(req.session as any).studentData = req.query
-    passport.authenticate('google-register-partner-student')(req, res)
-  })
-  router
-    .route('/oauth2/redirect/google/register/partner-student')
-    .get(function(req, res) {
-      passport.authenticate('google-register-partner-student', async function(
-        _err,
-        user,
-        info
-      ) {
-        const studentData = (req.session as any).studentData
-        delete (req.session as any).studentData
-        if (user) {
-          res.redirect(AuthRedirect.successRedirect)
-          await req.asyncLogin(user)
-        } else {
-          res.redirect(
-            AuthRedirect.registerPartnerStudentFailureRedirect(
-              studentData,
-              info
-            )
-          )
-        }
-      })(req, res)
-    })
-  // == End remove.
-
   router.route('/register/checkcred').post(async function(req, res) {
     try {
       const checked = await AuthService.checkCredential(req.body as unknown)
@@ -195,6 +133,42 @@ export function routes(app: Express) {
     }
   })
 
+  // == Remove once midtown clean-up.
+  router.route('/register/student/open').post(async function(req, res) {
+    try {
+      const data = registerStudentValidator({
+        ...req.body,
+        gradeLevel: req.body.currentGrade,
+        schoolId: req.body.highSchoolId,
+        ip: req.ip,
+      })
+      const student = await UserCreationService.registerStudent(data)
+      await req.asyncLogin(student)
+      return res.json({ user: student })
+    } catch (e) {
+      resError(res, e)
+    }
+  })
+
+  // == Remove once midtown clean-up.
+  router.route('/register/student/partner').post(async function(req, res) {
+    try {
+      const data = registerStudentValidator({
+        ...req.body,
+        gradeLevel: req.body.currentGrade,
+        schoolId: req.body.highSchoolId,
+        studentPartnerOrgKey: req.body.studentPartnerOrg,
+        studentPartnerOrgSiteName: req.body.partnerSite,
+        ip: req.ip,
+      })
+      const student = await UserCreationService.registerStudent(data)
+      await req.asyncLogin(student)
+      return res.json({ user: student })
+    } catch (e) {
+      resError(res, e)
+    }
+  })
+
   router.route('/register/teacher').post(async function(req, res) {
     try {
       const data = registerTeacherValidator({
@@ -206,32 +180,6 @@ export function routes(app: Express) {
       return res.json({ user: teacher })
     } catch (e) {
       resError(res, e)
-    }
-  })
-
-  router.route('/register/student/open').post(async function(req, res) {
-    try {
-      const student = await AuthService.registerOpenStudent({
-        ...req.body,
-        ip: req.ip,
-      } as unknown)
-      await req.asyncLogin(student)
-      res.json({ user: student })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.route('/register/student/partner').post(async function(req, res) {
-    try {
-      const student = await AuthService.registerPartnerStudent({
-        ...req.body,
-        ip: req.ip,
-      } as unknown)
-      await req.asyncLogin(student)
-      res.json({ user: student })
-    } catch (err) {
-      resError(res, err)
     }
   })
 

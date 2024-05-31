@@ -23,10 +23,7 @@ import * as SignUpSourceRepo from '../models/SignUpSource'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES_TYPE } from '../constants/user'
 import { STUDENT_EVENTS, USER_EVENTS, USER_ROLES } from '../constants'
 import { emitter } from './EventsService'
-import {
-  getStudentPartnerOrgByKey,
-  GetStudentPartnerOrgResult,
-} from '../models/StudentPartnerOrg'
+import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
 import { insertFederatedCredential } from '../models/FederatedCredential'
 import { checkIpAddress, checkUser } from './AuthService'
 import { verifyEligibility } from './EligibilityService'
@@ -157,7 +154,7 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
   if (usePassword(data)) {
     checkPassword(data.password)
   }
-  if (!data.studentPartnerOrg) {
+  if (!data.studentPartnerOrgKey) {
     await verifyEligibility(data.zipCode, data.schoolId)
   }
   if (data.ip) {
@@ -190,15 +187,12 @@ export async function registerStudent(data: RegisterStudentPayload) {
     }
     const user = await createUser(userData, data.ip, USER_ROLES.STUDENT, tc)
 
-    // == Remove after high-line clean-up.
     const studentData = {
-      college: data.college,
       userId: user.id,
-      gradeLevel: data.currentGrade ?? data.gradeLevel,
-      schoolId: data.highSchoolId ?? data.schoolId,
-      studentPartnerOrgKey: data.studentPartnerOrg ?? data.studentPartnerOrgKey,
-      studentPartnerOrgSiteName:
-        data.partnerSite ?? data.studentPartnerOrgSiteName,
+      gradeLevel: data.gradeLevel,
+      schoolId: data.schoolId,
+      studentPartnerOrgKey: data.studentPartnerOrgKey,
+      studentPartnerOrgSiteName: data.studentPartnerOrgSiteName,
       zipCode: data.zipCode,
     }
     await upsertStudent(studentData, tc)
@@ -228,41 +222,6 @@ export async function registerStudent(data: RegisterStudentPayload) {
     isVolunteer: false,
   }
 }
-
-// == Remove after high-line clean-up.
-export async function createPartnerStudent(data: CreateStudentFedCredPayload) {
-  let user
-  await runInTransaction(async (tc: TransactionClient) => {
-    if (!data.studentPartnerOrg) {
-      throw new Error('Student Partner Org key unexpectedly null.')
-    }
-
-    const hasFederatedCredential = !!data.profileId && !!data.issuer
-
-    const userData = {
-      email: data.email,
-      emailVerified: hasFederatedCredential,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      verified: hasFederatedCredential,
-    }
-    user = await createUser(userData, undefined, USER_ROLES.STUDENT, tc)
-
-    const spo = await getStudentPartnerOrgByKey(tc, data.studentPartnerOrg)
-    const studentData = {
-      userId: user.id,
-      studentPartnerOrgKey: data.studentPartnerOrg,
-      schoolId: spo?.schoolId,
-    }
-    await upsertStudent(studentData, tc)
-
-    if (hasFederatedCredential) {
-      await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
-    }
-  })
-  return user
-}
-// == End remove.
 
 async function createUser(
   userData: UserRepo.CreateUserPayload,
