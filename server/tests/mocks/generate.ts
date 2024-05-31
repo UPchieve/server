@@ -101,7 +101,7 @@ export function buildUserContactInfo(
     volunteerPartnerOrg: undefined,
     studentPartnerOrg: undefined,
     lastActivityAt: new Date(),
-    banned: false,
+    banType: undefined,
     deactivated: false,
     ...overrides,
   }
