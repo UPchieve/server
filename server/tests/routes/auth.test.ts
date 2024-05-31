@@ -3,6 +3,7 @@ import { mocked } from 'jest-mock'
 import { CreatedStudent } from '../../models/Student'
 import * as AuthRouter from '../../router/auth'
 import * as AuthService from '../../services/AuthService'
+import * as UserCreationService from '../../services/UserCreationService'
 import {
   buildStudentPartnerOrg,
   buildUserContactInfo,
@@ -18,6 +19,9 @@ const mockedAuthService = mocked(AuthService)
 
 jest.mock('../../models/UserAction')
 const mockedUserAction = mocked(UserAction)
+
+jest.mock('../../services/UserCreationService')
+const mockedUserCreationService = mocked(UserCreationService)
 
 jest.mock('../../utils/auth-utils', () => ({
   ...(jest.requireActual('../../utils/auth-utils') as any),
@@ -203,30 +207,21 @@ describe('Test simple routes hit AuthService', () => {
     expect(checked).toBeTruthy()
   })
 
-  test('Route /register/student/open', async () => {
-    const payload = {}
+  test('Route /register/student', async () => {
+    const payload = {
+      email: 'email@email.com',
+      firstName: 'First',
+      lastName: 'Last',
+      password: 'Password123',
+    }
     const result = { id: '123' } as CreatedStudent
-    mockedAuthService.registerOpenStudent.mockResolvedValueOnce(result)
-    const response = await sendPost('/register/student/open', payload)
+    mockedUserCreationService.registerStudent.mockResolvedValueOnce(result)
+    const response = await sendPost('/register/student', payload)
 
     const {
       body: { user },
     } = response
-    expect(AuthService.registerOpenStudent).toHaveBeenCalledTimes(1)
-    expect(mockLogin).toHaveBeenCalledTimes(1)
-    expect(user).toEqual(result)
-  })
-
-  test('Route /register/student/partner', async () => {
-    const payload = {}
-    const result = { id: '123' } as CreatedStudent
-    mockedAuthService.registerPartnerStudent.mockResolvedValueOnce(result)
-    const response = await sendPost('/register/student/partner', payload)
-
-    const {
-      body: { user },
-    } = response
-    expect(AuthService.registerPartnerStudent).toHaveBeenCalledTimes(1)
+    expect(UserCreationService.registerStudent).toHaveBeenCalledTimes(1)
     expect(mockLogin).toHaveBeenCalledTimes(1)
     expect(user).toEqual(result)
   })

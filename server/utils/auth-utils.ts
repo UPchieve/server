@@ -52,12 +52,6 @@ export interface SessionWithSsoData extends session.Session {
   studentData?: Partial<RegisterStudentPayload>
 }
 
-// == Remove after high-line clean-up.
-export interface SessionWithStudentData extends session.Session {
-  studentData?: Partial<RegisterStudentPayload>
-}
-// == End remove.
-
 export interface RegisterStudentPayload {
   email: string
   firstName: string
@@ -75,12 +69,6 @@ export interface RegisterStudentPayload {
   studentPartnerOrgKey?: string
   studentPartnerOrgSiteName?: string
   zipCode?: string
-  // == Remove after high-line clean-up.
-  college?: string
-  currentGrade?: string
-  highSchoolId?: string
-  partnerSite?: string
-  studentPartnerOrg?: string
 }
 export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   email: asString,
@@ -99,12 +87,6 @@ export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   studentPartnerOrgKey: asOptional(asString),
   studentPartnerOrgSiteName: asOptional(asString),
   zipCode: asOptional(asString),
-  // TODO: Remove after high-line clean-up.
-  college: asOptional(asString),
-  currentGrade: asOptional(asEnum(GRADES)),
-  highSchoolId: asOptional(asString),
-  partnerSite: asOptional(asString),
-  studentPartnerOrg: asOptional(asString),
 })
 export interface RegisterStudentWithPasswordPayload
   extends Omit<

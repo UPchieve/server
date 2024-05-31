@@ -21,10 +21,8 @@ import {
   VolunteerPartnerOrgForRegistration,
 } from '../models/VolunteerPartnerOrg'
 import {
-  getStudentPartnerOrgForRegistrationByKey,
   getStudentPartnerOrgs,
   getFullStudentPartnerOrgByKey,
-  StudentPartnerOrgForRegistration,
   StudentPartnerOrg,
   getStudentPartnerOrgKeyByCode,
 } from '../models/StudentPartnerOrg'
@@ -32,8 +30,6 @@ import { SponsorOrg, getSponsorOrgs } from '../models/SponsorOrg'
 
 import {
   asCredentialData,
-  asOpenStudentRegData,
-  asPartnerStudentRegData,
   asVolunteerRegData,
   asPartnerVolunteerRegData,
   asResetConfirmData,
@@ -55,9 +51,7 @@ import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
-import config from '../config'
 import { FederatedCredential } from '../models/FederatedCredential'
-import { verifyEligibility } from './EligibilityService'
 
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -77,8 +71,6 @@ export async function checkIpAddress(ip: string): Promise<void> {
  * Other services should throw their own custom error types that'll get
  * caught by the generic error handler in the router
  */
-
-// TODO: effective logging
 
 // Registration handlers
 // Handles /register/checkcred route
@@ -101,142 +93,6 @@ export async function checkUser(email: string) {
   if (user) {
     throw new LookupError('The email address you entered is already in use')
   }
-}
-
-// Handles /register/student/open route
-export async function registerOpenStudent(
-  data: unknown
-): Promise<StudentRepo.CreatedStudent> {
-  const {
-    ip,
-    email,
-    password,
-    highSchoolId: highSchoolUpchieveId,
-    zipCode,
-    terms,
-    referredByCode,
-    firstName,
-    lastName,
-    currentGrade,
-    signupSourceId,
-    otherSignupSource,
-  } = asOpenStudentRegData(data)
-
-  await Promise.all([
-    checkCredential({ email, password }),
-    checkIpAddress(ip),
-    checkNames(firstName, lastName),
-    checkEmail(email),
-  ])
-
-  if (!terms) {
-    throw new RegistrationError('Must accept the user agreement')
-  }
-
-  if (!(await verifyEligibility(zipCode, highSchoolUpchieveId))) {
-    throw new RegistrationError('Not eligible.')
-  }
-
-  const referredBy = await getReferredBy(referredByCode)
-
-  const studentData = {
-    firstName: firstName.trim(),
-    lastName: lastName.trim(),
-    email,
-    zipCode,
-    approvedHighschool: highSchoolUpchieveId,
-    referredBy,
-    password,
-    currentGrade,
-    signupSourceId,
-    otherSignupSource,
-  }
-
-  const student = await UserCtrl.createStudentWithPassword(studentData, ip)
-  return student
-}
-
-// Handles /register/student/partner route
-export async function registerPartnerStudent(
-  data: unknown
-): Promise<StudentRepo.CreatedStudent> {
-  const {
-    ip,
-    email,
-    password,
-    studentPartnerOrg,
-    partnerUserId,
-    highSchoolId: highSchoolUpchieveId,
-    zipCode,
-    terms,
-    referredByCode,
-    firstName,
-    lastName,
-    college,
-    partnerSite,
-    currentGrade,
-    signupSourceId,
-    otherSignupSource,
-  } = asPartnerStudentRegData(data)
-
-  await Promise.all([
-    checkCredential({ email, password }),
-    checkNames(firstName, lastName),
-    checkEmail(email),
-  ])
-
-  if (!terms) {
-    throw new RegistrationError('Must accept the user agreement')
-  }
-
-  let studentPartnerManifest: StudentPartnerOrgForRegistration
-  try {
-    studentPartnerManifest = await getStudentPartnerOrgForRegistrationByKey(
-      studentPartnerOrg
-    )
-  } catch (err) {
-    throw new RegistrationError('Invalid student partner organization')
-  }
-
-  let school: School | undefined
-  if (highSchoolUpchieveId) {
-    school = await getSchoolById(highSchoolUpchieveId)
-  } else if (studentPartnerManifest.schoolSignupRequired && !college) {
-    throw new RegistrationError(
-      'Student partner organization requires school, but none provided'
-    )
-  }
-
-  let referredBy: Ulid | undefined
-  if (referredByCode) referredBy = await getReferredBy(referredByCode)
-
-  const studentData = {
-    firstName: firstName.trim(),
-    lastName: lastName.trim(),
-    email,
-    zipCode,
-    studentPartnerOrg,
-    partnerUserId,
-    partnerSite,
-    approvedHighschool: school?.id,
-    college,
-    isVolunteer: false,
-    verified: false,
-    referredBy,
-    password,
-    currentGrade,
-    signupSourceId:
-      studentPartnerOrg === config.customManualStudentPartnerOrg
-        ? signupSourceId
-        : undefined,
-    otherSignupSource:
-      studentPartnerOrg === config.customManualStudentPartnerOrg
-        ? otherSignupSource
-        : undefined,
-  }
-
-  const student = await UserCtrl.createStudentWithPassword(studentData, ip)
-  return student
 }
 
 // Handles /register/volunteer/open route
