@@ -142,7 +142,7 @@ SELECT
     users.id,
     first_name,
     email,
-    ban_type
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -658,7 +658,7 @@ SELECT
     email,
     sms_consent,
     phone_verified,
-    ban_type
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
