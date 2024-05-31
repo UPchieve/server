@@ -161,7 +161,7 @@ SET
     last_name = COALESCE(:lastName, last_name),
     email = :email!,
     verified = :verified!,
-    banned = :banned!,
+    ban_type = :ban_type!,
     deactivated = :deactivated!,
     updated_at = NOW()
 WHERE
@@ -258,7 +258,7 @@ INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, email_v
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
-    id, first_name, last_name, email, verified, banned, test_user, deactivated, created_at;
+    id, first_name, last_name, email, verified, ban_type, test_user, deactivated, created_at;
 
 
 /* @name createStudentProfile */

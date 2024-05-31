@@ -19,7 +19,7 @@ import {
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
-import { USER_ROLES } from '../../constants'
+import { USER_BAN_TYPES, USER_ROLES } from '../../constants'
 import { insertUserRoleByUserId } from '../User'
 import {
   CreatedStudent,
@@ -303,7 +303,7 @@ export type AdminUpdateStudent = {
   studentPartnerOrg: string | undefined
   partnerSite: string | undefined
   isVerified: boolean
-  isBanned: boolean
+  banType: string | undefined
   isDeactivated: boolean
   inGatesStudy: boolean | undefined
   partnerSchool: string | undefined
@@ -494,7 +494,7 @@ export async function adminUpdateStudent(
         lastName: update.lastName,
         email: update.email.toLowerCase(),
         verified: update.isVerified,
-        banned: update.isBanned,
+        ban_type: update.banType as USER_BAN_TYPES,
         deactivated: update.isDeactivated,
       },
       transactionClient
@@ -680,7 +680,7 @@ export async function createStudent(
         firstName: user.firstName,
         lastname: user.lastName,
         email: user.email.toLowerCase(),
-        isBanned: user.banned,
+        banType: user.banType,
         isDeactivated: user.deactivated,
         isTestUser: user.testUser,
         isAdmin: false,
