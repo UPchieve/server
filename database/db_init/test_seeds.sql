@@ -151,7 +151,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id) FROM stdin;
+COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, student_ban_type) FROM stdin;
 \.
 
 
