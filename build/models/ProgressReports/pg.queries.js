@@ -1,0 +1,389 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getUnreadProgressReportOverviewSubjectsByUserId = exports.updateProgressReportsReadAtByReportIds = exports.getLatestProgressReportIdBySubject = exports.getAllProgressReportIdsByUserIdAndSubject = exports.getProgressReportSessionsForSubjectByPagination = exports.getProgressReportConceptsByReportId = exports.getProgressReportSummariesForMany = exports.getProgressReportByReportId = exports.getProgressReportInfoBySessionId = exports.updateProgressReportStatus = exports.insertProgressReportConceptDetail = exports.insertProgressReportSummaryDetail = exports.insertProgressReportConcept = exports.insertProgressReportSummary = exports.insertProgressReportSession = exports.insertProgressReport = void 0;
+/** Types generated for queries found in "server/models/ProgressReports/progress_reports.sql" */
+const query_1 = require("@pgtyped/query");
+const insertProgressReportIR = { "name": "insertProgressReport", "params": [{ "name": "id", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 99, "b": 101, "line": 4, "col": 5 }] } }, { "name": "userId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 109, "b": 115, "line": 5, "col": 5 }] } }, { "name": "status", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 231, "b": 237, "line": 13, "col": 16 }] } }], "usedParamSet": { "id": true, "userId": true, "status": true }, "statement": { "body": "INSERT INTO progress_reports (id, user_id, status_id)\nSELECT\n    :id!,\n    :userId!,\n    subquery.id\nFROM (\n    SELECT\n        id\n    FROM\n        progress_report_statuses\n    WHERE\n        name = :status!) AS subquery\nRETURNING\n    id", "loc": { "a": 33, "b": 267, "line": 2, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO progress_reports (id, user_id, status_id)
+ * SELECT
+ *     :id!,
+ *     :userId!,
+ *     subquery.id
+ * FROM (
+ *     SELECT
+ *         id
+ *     FROM
+ *         progress_report_statuses
+ *     WHERE
+ *         name = :status!) AS subquery
+ * RETURNING
+ *     id
+ * ```
+ */
+exports.insertProgressReport = new query_1.PreparedQuery(insertProgressReportIR);
+const insertProgressReportSessionIR = { "name": "insertProgressReportSession", "params": [{ "name": "reportId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 428, "b": 436, "line": 21, "col": 5 }] } }, { "name": "sessionId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 444, "b": 453, "line": 22, "col": 5 }] } }, { "name": "analysisType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 575, "b": 587, "line": 30, "col": 16 }] } }], "usedParamSet": { "reportId": true, "sessionId": true, "analysisType": true }, "statement": { "body": "INSERT INTO progress_report_sessions (progress_report_id, session_id, progress_report_analysis_type_id)\nSELECT\n    :reportId!,\n    :sessionId!,\n    subquery.id\nFROM (\n    SELECT\n        id\n    FROM\n        progress_report_analysis_types\n    WHERE\n        name = :analysisType!) AS subquery\nRETURNING\n    progress_report_id AS ok", "loc": { "a": 312, "b": 639, "line": 19, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO progress_report_sessions (progress_report_id, session_id, progress_report_analysis_type_id)
+ * SELECT
+ *     :reportId!,
+ *     :sessionId!,
+ *     subquery.id
+ * FROM (
+ *     SELECT
+ *         id
+ *     FROM
+ *         progress_report_analysis_types
+ *     WHERE
+ *         name = :analysisType!) AS subquery
+ * RETURNING
+ *     progress_report_id AS ok
+ * ```
+ */
+exports.insertProgressReportSession = new query_1.PreparedQuery(insertProgressReportSessionIR);
+const insertProgressReportSummaryIR = { "name": "insertProgressReportSummary", "params": [{ "name": "id", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 784, "b": 786, "line": 37, "col": 13 }] } }, { "name": "reportId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 790, "b": 798, "line": 37, "col": 19 }] } }, { "name": "summary", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 802, "b": 809, "line": 37, "col": 31 }] } }, { "name": "overallGrade", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 813, "b": 825, "line": 37, "col": 42 }] } }], "usedParamSet": { "id": true, "reportId": true, "summary": true, "overallGrade": true }, "statement": { "body": "INSERT INTO progress_report_summaries (id, progress_report_id, summary, overall_grade)\n    VALUES (:id!, :reportId!, :summary!, :overallGrade!)\nRETURNING\n    id", "loc": { "a": 684, "b": 843, "line": 36, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO progress_report_summaries (id, progress_report_id, summary, overall_grade)
+ *     VALUES (:id!, :reportId!, :summary!, :overallGrade!)
+ * RETURNING
+ *     id
+ * ```
+ */
+exports.insertProgressReportSummary = new query_1.PreparedQuery(insertProgressReportSummaryIR);
+const insertProgressReportConceptIR = { "name": "InsertProgressReportConcept", "params": [{ "name": "id", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 989, "b": 991, "line": 44, "col": 13 }] } }, { "name": "name", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 995, "b": 999, "line": 44, "col": 19 }] } }, { "name": "description", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1003, "b": 1014, "line": 44, "col": 27 }] } }, { "name": "grade", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1018, "b": 1023, "line": 44, "col": 42 }] } }, { "name": "reportId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1027, "b": 1035, "line": 44, "col": 51 }] } }], "usedParamSet": { "id": true, "name": true, "description": true, "grade": true, "reportId": true }, "statement": { "body": "INSERT INTO progress_report_concepts (id, name, description, grade, progress_report_id)\n    VALUES (:id!, :name!, :description!, :grade!, :reportId!)\nRETURNING\n    id", "loc": { "a": 888, "b": 1053, "line": 43, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO progress_report_concepts (id, name, description, grade, progress_report_id)
+ *     VALUES (:id!, :name!, :description!, :grade!, :reportId!)
+ * RETURNING
+ *     id
+ * ```
+ */
+exports.insertProgressReportConcept = new query_1.PreparedQuery(insertProgressReportConceptIR);
+const insertProgressReportSummaryDetailIR = { "name": "insertProgressReportSummaryDetail", "params": [{ "name": "id", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1263, "b": 1265, "line": 52, "col": 5 }] } }, { "name": "content", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1273, "b": 1280, "line": 53, "col": 5 }] } }, { "name": "reportSummaryId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1288, "b": 1303, "line": 54, "col": 5 }] } }, { "name": "focusArea", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1438, "b": 1447, "line": 61, "col": 20 }] } }, { "name": "infoType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1578, "b": 1586, "line": 67, "col": 20 }] } }], "usedParamSet": { "id": true, "content": true, "reportSummaryId": true, "focusArea": true, "infoType": true }, "statement": { "body": "INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportSummaryId!,\n    (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_focus_areas\n        WHERE\n            name = :focusArea!), (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_info_types\n        WHERE\n            name = :infoType!)\nRETURNING\n    id", "loc": { "a": 1104, "b": 1604, "line": 50, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id)
+ * SELECT
+ *     :id!,
+ *     :content!,
+ *     :reportSummaryId!,
+ *     (
+ *         SELECT
+ *             id
+ *         FROM
+ *             upchieve.progress_report_focus_areas
+ *         WHERE
+ *             name = :focusArea!), (
+ *         SELECT
+ *             id
+ *         FROM
+ *             upchieve.progress_report_info_types
+ *         WHERE
+ *             name = :infoType!)
+ * RETURNING
+ *     id
+ * ```
+ */
+exports.insertProgressReportSummaryDetail = new query_1.PreparedQuery(insertProgressReportSummaryDetailIR);
+const insertProgressReportConceptDetailIR = { "name": "insertProgressReportConceptDetail", "params": [{ "name": "id", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1814, "b": 1816, "line": 75, "col": 5 }] } }, { "name": "content", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1824, "b": 1831, "line": 76, "col": 5 }] } }, { "name": "reportConceptId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1839, "b": 1854, "line": 77, "col": 5 }] } }, { "name": "focusArea", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 1989, "b": 1998, "line": 84, "col": 20 }] } }, { "name": "infoType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 2129, "b": 2137, "line": 90, "col": 20 }] } }], "usedParamSet": { "id": true, "content": true, "reportConceptId": true, "focusArea": true, "infoType": true }, "statement": { "body": "INSERT INTO progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportConceptId!,\n    (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_focus_areas\n        WHERE\n            name = :focusArea!), (\n        SELECT\n            id\n        FROM\n            upchieve.progress_report_info_types\n        WHERE\n            name = :infoType!)\nRETURNING\n    id", "loc": { "a": 1655, "b": 2155, "line": 73, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id)
+ * SELECT
+ *     :id!,
+ *     :content!,
+ *     :reportConceptId!,
+ *     (
+ *         SELECT
+ *             id
+ *         FROM
+ *             upchieve.progress_report_focus_areas
+ *         WHERE
+ *             name = :focusArea!), (
+ *         SELECT
+ *             id
+ *         FROM
+ *             upchieve.progress_report_info_types
+ *         WHERE
+ *             name = :infoType!)
+ * RETURNING
+ *     id
+ * ```
+ */
+exports.insertProgressReportConceptDetail = new query_1.PreparedQuery(insertProgressReportConceptDetailIR);
+const updateProgressReportStatusIR = { "name": "updateProgressReportStatus", "params": [{ "name": "status", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 2398, "b": 2404, "line": 107, "col": 16 }] } }, { "name": "reportId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 2452, "b": 2460, "line": 109, "col": 27 }] } }], "usedParamSet": { "status": true, "reportId": true }, "statement": { "body": "UPDATE\n    upchieve.progress_reports\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        upchieve.progress_report_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    progress_reports.id = :reportId!\nRETURNING\n    progress_reports.id AS ok", "loc": { "a": 2199, "b": 2500, "line": 96, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     upchieve.progress_reports
+ * SET
+ *     status_id = subquery.id,
+ *     updated_at = NOW()
+ * FROM (
+ *     SELECT
+ *         id
+ *     FROM
+ *         upchieve.progress_report_statuses
+ *     WHERE
+ *         name = :status!) AS subquery
+ * WHERE
+ *     progress_reports.id = :reportId!
+ * RETURNING
+ *     progress_reports.id AS ok
+ * ```
+ */
+exports.updateProgressReportStatus = new query_1.PreparedQuery(updateProgressReportStatusIR);
+const getProgressReportInfoBySessionIdIR = { "name": "getProgressReportInfoBySessionId", "params": [{ "name": "userId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 3130, "b": 3136, "line": 126, "col": 32 }] } }, { "name": "sessionId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 3161, "b": 3170, "line": 127, "col": 23 }] } }, { "name": "analysisType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 3219, "b": 3231, "line": 128, "col": 47 }] } }], "usedParamSet": { "userId": true, "sessionId": true, "analysisType": true }, "statement": { "body": "SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\n    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND sessions.id = :sessionId!\n    AND progress_report_analysis_types.name = :analysisType!\nORDER BY\n    progress_reports.created_at DESC", "loc": { "a": 2550, "b": 3277, "line": 115, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     progress_reports.id,
+ *     progress_report_statuses.name AS status,
+ *     progress_reports.read_at
+ * FROM
+ *     progress_reports
+ *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *     JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id
+ *     LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ * WHERE
+ *     progress_reports.user_id = :userId!
+ *     AND sessions.id = :sessionId!
+ *     AND progress_report_analysis_types.name = :analysisType!
+ * ORDER BY
+ *     progress_reports.created_at DESC
+ * ```
+ */
+exports.getProgressReportInfoBySessionId = new query_1.PreparedQuery(getProgressReportInfoBySessionIdIR);
+const getProgressReportByReportIdIR = { "name": "getProgressReportByReportId", "params": [{ "name": "reportId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 3581, "b": 3589, "line": 142, "col": 27 }] } }], "usedParamSet": { "reportId": true }, "statement": { "body": "SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\nWHERE\n    progress_reports.id = :reportId!", "loc": { "a": 3322, "b": 3589, "line": 134, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     progress_reports.id,
+ *     progress_report_statuses.name AS status,
+ *     progress_reports.read_at
+ * FROM
+ *     progress_reports
+ *     JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id
+ * WHERE
+ *     progress_reports.id = :reportId!
+ * ```
+ */
+exports.getProgressReportByReportId = new query_1.PreparedQuery(getProgressReportByReportIdIR);
+const getProgressReportSummariesForManyIR = { "name": "getProgressReportSummariesForMany", "params": [{ "name": "reportIds", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 5284, "b": 5293, "line": 175, "col": 57 }] } }], "usedParamSet": { "reportIds": true }, "statement": { "body": "SELECT\n    progress_report_summaries.id,\n    progress_report_summaries.summary,\n    progress_report_summaries.overall_grade,\n    progress_report_summary_details.id AS detail_id,\n    progress_report_summary_details.content,\n    progress_report_focus_areas.name AS focus_area,\n    progress_report_info_types.name AS info_type,\n    progress_report_summaries.progress_report_id AS report_id,\n    progress_reports.read_at AS report_read_at,\n    progress_report_summaries.created_at,\n    latest_session_for_summary.created_at AS session_created_at\nFROM\n    progress_report_summaries\n    JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id\n    JOIN progress_report_info_types ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id\n    JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id\n    JOIN progress_reports ON progress_report_summaries.progress_report_id = progress_reports.id\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN (\n        SELECT\n            progress_report_id,\n            MAX(sessions.created_at) AS created_at\n        FROM\n            progress_report_sessions\n            JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        GROUP BY\n            progress_report_id) AS latest_session_for_summary ON progress_report_summaries.progress_report_id = latest_session_for_summary.progress_report_id\nWHERE\n    progress_report_summaries.progress_report_id = ANY (:reportIds!)\n    AND progress_report_statuses.name = 'complete'\nORDER BY\n    progress_report_summaries.created_at DESC", "loc": { "a": 3640, "b": 5400, "line": 146, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     progress_report_summaries.id,
+ *     progress_report_summaries.summary,
+ *     progress_report_summaries.overall_grade,
+ *     progress_report_summary_details.id AS detail_id,
+ *     progress_report_summary_details.content,
+ *     progress_report_focus_areas.name AS focus_area,
+ *     progress_report_info_types.name AS info_type,
+ *     progress_report_summaries.progress_report_id AS report_id,
+ *     progress_reports.read_at AS report_read_at,
+ *     progress_report_summaries.created_at,
+ *     latest_session_for_summary.created_at AS session_created_at
+ * FROM
+ *     progress_report_summaries
+ *     JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id
+ *     JOIN progress_report_info_types ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id
+ *     JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
+ *     JOIN progress_reports ON progress_report_summaries.progress_report_id = progress_reports.id
+ *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *     JOIN (
+ *         SELECT
+ *             progress_report_id,
+ *             MAX(sessions.created_at) AS created_at
+ *         FROM
+ *             progress_report_sessions
+ *             JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *         GROUP BY
+ *             progress_report_id) AS latest_session_for_summary ON progress_report_summaries.progress_report_id = latest_session_for_summary.progress_report_id
+ * WHERE
+ *     progress_report_summaries.progress_report_id = ANY (:reportIds!)
+ *     AND progress_report_statuses.name = 'complete'
+ * ORDER BY
+ *     progress_report_summaries.created_at DESC
+ * ```
+ */
+exports.getProgressReportSummariesForMany = new query_1.PreparedQuery(getProgressReportSummariesForManyIR);
+const getProgressReportConceptsByReportIdIR = { "name": "getProgressReportConceptsByReportId", "params": [{ "name": "reportId", "required": false, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 6636, "b": 6643, "line": 202, "col": 51 }] } }], "usedParamSet": { "reportId": true }, "statement": { "body": "SELECT\n    progress_report_concepts.id,\n    progress_report_concepts.name,\n    progress_report_concepts.description,\n    progress_report_concepts.grade,\n    progress_report_concept_details.id AS detail_id,\n    progress_report_concept_details.content,\n    progress_report_focus_areas.name AS focus_area,\n    progress_report_info_types.name AS info_type,\n    progress_report_concepts.progress_report_id AS report_id,\n    progress_reports.read_at AS report_read_at,\n    progress_report_concepts.created_at\nFROM\n    progress_report_concepts\n    JOIN progress_report_concept_details ON progress_report_concepts.id = progress_report_concept_details.progress_report_concept_id\n    JOIN progress_report_focus_areas ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id\n    JOIN progress_report_info_types ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id\n    JOIN progress_reports ON progress_report_concepts.progress_report_id = progress_reports.id\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\nWHERE\n    progress_report_concepts.progress_report_id = :reportId\n    AND progress_report_statuses.name = 'complete'", "loc": { "a": 5453, "b": 6694, "line": 182, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     progress_report_concepts.id,
+ *     progress_report_concepts.name,
+ *     progress_report_concepts.description,
+ *     progress_report_concepts.grade,
+ *     progress_report_concept_details.id AS detail_id,
+ *     progress_report_concept_details.content,
+ *     progress_report_focus_areas.name AS focus_area,
+ *     progress_report_info_types.name AS info_type,
+ *     progress_report_concepts.progress_report_id AS report_id,
+ *     progress_reports.read_at AS report_read_at,
+ *     progress_report_concepts.created_at
+ * FROM
+ *     progress_report_concepts
+ *     JOIN progress_report_concept_details ON progress_report_concepts.id = progress_report_concept_details.progress_report_concept_id
+ *     JOIN progress_report_focus_areas ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id
+ *     JOIN progress_report_info_types ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id
+ *     JOIN progress_reports ON progress_report_concepts.progress_report_id = progress_reports.id
+ *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ * WHERE
+ *     progress_report_concepts.progress_report_id = :reportId
+ *     AND progress_report_statuses.name = 'complete'
+ * ```
+ */
+exports.getProgressReportConceptsByReportId = new query_1.PreparedQuery(getProgressReportConceptsByReportIdIR);
+const getProgressReportSessionsForSubjectByPaginationIR = { "name": "getProgressReportSessionsForSubjectByPagination", "params": [{ "name": "userId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 7499, "b": 7505, "line": 222, "col": 32 }] } }, { "name": "subject", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 7532, "b": 7539, "line": 223, "col": 25 }] } }, { "name": "analysisType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 7588, "b": 7600, "line": 224, "col": 47 }] } }, { "name": "limit", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 7868, "b": 7873, "line": 235, "col": 8 }] } }, { "name": "offset", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 7890, "b": 7896, "line": 235, "col": 30 }] } }], "usedParamSet": { "userId": true, "subject": true, "analysisType": true, "limit": true, "offset": true }, "statement": { "body": "SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\nGROUP BY\n    sessions.id,\n    subjects.display_name,\n    topics.name,\n    topics.icon_link\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int", "loc": { "a": 6759, "b": 7902, "line": 207, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at AS created_at,
+ *     subjects.display_name AS subject,
+ *     topics.name AS topic,
+ *     topics.icon_link AS topic_icon_link
+ * FROM
+ *     progress_reports
+ *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *     JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *     JOIN subjects ON sessions.subject_id = subjects.id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ * WHERE
+ *     progress_reports.user_id = :userId!
+ *     AND subjects.name = :subject!
+ *     AND progress_report_analysis_types.name = :analysisType!
+ *     AND progress_report_statuses.name = 'complete'
+ *     AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
+ *     AND NOW()
+ * GROUP BY
+ *     sessions.id,
+ *     subjects.display_name,
+ *     topics.name,
+ *     topics.icon_link
+ * ORDER BY
+ *     sessions.created_at DESC
+ * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ * ```
+ */
+exports.getProgressReportSessionsForSubjectByPagination = new query_1.PreparedQuery(getProgressReportSessionsForSubjectByPaginationIR);
+const getAllProgressReportIdsByUserIdAndSubjectIR = { "name": "getAllProgressReportIdsByUserIdAndSubject", "params": [{ "name": "userId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 8973, "b": 8979, "line": 255, "col": 36 }] } }, { "name": "subject", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 9010, "b": 9017, "line": 256, "col": 29 }] } }, { "name": "analysisType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 9070, "b": 9082, "line": 257, "col": 51 }] } }], "usedParamSet": { "userId": true, "subject": true, "analysisType": true }, "statement": { "body": "SELECT\n    grouped_reports.id\nFROM (\n    SELECT\n        progress_reports.id,\n        progress_reports.created_at,\n        STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) AS session_group,\n        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num\n    FROM\n        progress_reports\n        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    WHERE\n        progress_reports.user_id = :userId!\n        AND subjects.name = :subject!\n        AND progress_report_analysis_types.name = :analysisType!\n        AND progress_report_statuses.name = 'complete'\n    GROUP BY\n        progress_reports.id,\n        progress_reports.created_at) AS grouped_reports\nWHERE\n    grouped_reports.row_num = 1\nORDER BY\n    grouped_reports.created_at DESC", "loc": { "a": 7961, "b": 9318, "line": 239, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     grouped_reports.id
+ * FROM (
+ *     SELECT
+ *         progress_reports.id,
+ *         progress_reports.created_at,
+ *         STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) AS session_group,
+ *         ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num
+ *     FROM
+ *         progress_reports
+ *         JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *         JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *         JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *         LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *         LEFT JOIN subjects ON sessions.subject_id = subjects.id
+ *     WHERE
+ *         progress_reports.user_id = :userId!
+ *         AND subjects.name = :subject!
+ *         AND progress_report_analysis_types.name = :analysisType!
+ *         AND progress_report_statuses.name = 'complete'
+ *     GROUP BY
+ *         progress_reports.id,
+ *         progress_reports.created_at) AS grouped_reports
+ * WHERE
+ *     grouped_reports.row_num = 1
+ * ORDER BY
+ *     grouped_reports.created_at DESC
+ * ```
+ */
+exports.getAllProgressReportIdsByUserIdAndSubject = new query_1.PreparedQuery(getAllProgressReportIdsByUserIdAndSubjectIR);
+const getLatestProgressReportIdBySubjectIR = { "name": "getLatestProgressReportIdBySubject", "params": [{ "name": "userId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 10000, "b": 10006, "line": 281, "col": 32 }] } }, { "name": "subject", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 10033, "b": 10040, "line": 282, "col": 25 }] } }, { "name": "analysisType", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 10089, "b": 10101, "line": 283, "col": 47 }] } }], "usedParamSet": { "userId": true, "subject": true, "analysisType": true }, "statement": { "body": "SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\nORDER BY\n    progress_reports.created_at DESC\nLIMIT 1", "loc": { "a": 9370, "b": 10206, "line": 269, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     progress_reports.id,
+ *     progress_report_statuses.name AS status,
+ *     progress_reports.read_at
+ * FROM
+ *     progress_reports
+ *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *     JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *     JOIN subjects ON sessions.subject_id = subjects.id
+ * WHERE
+ *     progress_reports.user_id = :userId!
+ *     AND subjects.name = :subject!
+ *     AND progress_report_analysis_types.name = :analysisType!
+ *     AND progress_report_statuses.name = 'complete'
+ * ORDER BY
+ *     progress_reports.created_at DESC
+ * LIMIT 1
+ * ```
+ */
+exports.getLatestProgressReportIdBySubject = new query_1.PreparedQuery(getLatestProgressReportIdBySubjectIR);
+const updateProgressReportsReadAtByReportIdsIR = { "name": "updateProgressReportsReadAtByReportIds", "params": [{ "name": "reportIds", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 10376, "b": 10385, "line": 297, "col": 32 }] } }], "usedParamSet": { "reportIds": true }, "statement": { "body": "UPDATE\n    progress_reports\nSET\n    read_at = NOW(),\n    updated_at = NOW()\nWHERE\n    progress_reports.id = ANY (:reportIds!)\nRETURNING\n    progress_reports.id AS ok", "loc": { "a": 10262, "b": 10426, "line": 291, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     progress_reports
+ * SET
+ *     read_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     progress_reports.id = ANY (:reportIds!)
+ * RETURNING
+ *     progress_reports.id AS ok
+ * ```
+ */
+exports.updateProgressReportsReadAtByReportIds = new query_1.PreparedQuery(updateProgressReportsReadAtByReportIdsIR);
+const getUnreadProgressReportOverviewSubjectsByUserIdIR = { "name": "getUnreadProgressReportOverviewSubjectsByUserId", "params": [{ "name": "userId", "required": true, "transform": { "type": "scalar" }, "codeRefs": { "used": [{ "a": 11051, "b": 11057, "line": 313, "col": 32 }] } }], "usedParamSet": { "userId": true }, "statement": { "body": "SELECT\n    subjects.name AS subject\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\n    AND progress_reports.read_at IS NULL\nGROUP BY\n    subjects.name", "loc": { "a": 10491, "b": 11230, "line": 303, "col": 0 } } };
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name AS subject
+ * FROM
+ *     progress_reports
+ *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *     JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *     JOIN subjects ON sessions.subject_id = subjects.id
+ * WHERE
+ *     progress_reports.user_id = :userId!
+ *     AND progress_report_analysis_types.name = 'group'
+ *     AND progress_report_statuses.name = 'complete'
+ *     AND progress_reports.read_at IS NULL
+ * GROUP BY
+ *     subjects.name
+ * ```
+ */
+exports.getUnreadProgressReportOverviewSubjectsByUserId = new query_1.PreparedQuery(getUnreadProgressReportOverviewSubjectsByUserIdIR);

@@ -1,0 +1,41 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.listeners = void 0;
+const events_1 = require("../../constants/events");
+const SessionService = __importStar(require("../SessionService"));
+const register_1 = __importDefault(require("./register"));
+function listeners() {
+    (0, register_1.default)(events_1.SESSION_EVENTS.SESSION_ENDED, SessionService.processSessionReported, 'processSessionReported');
+    (0, register_1.default)(events_1.SESSION_EVENTS.SESSION_ENDED, SessionService.processAssistmentsSession, 'processAssistmentsSession');
+    (0, register_1.default)(events_1.SESSION_EVENTS.SESSION_ENDED, SessionService.processSessionEditors, 'processSessionEditors');
+    (0, register_1.default)(events_1.SESSION_EVENTS.SESSION_FLAGS_SET, SessionService.processCalculateMetrics, 'processCalculateMetrics');
+    (0, register_1.default)(events_1.SESSION_EVENTS.SESSION_METRICS_CALCULATED, SessionService.processEmailVolunteer, 'processEmailVolunteer');
+    (0, register_1.default)(events_1.SESSION_EVENTS.SESSION_METRICS_CALCULATED, SessionService.processFirstSessionCongratsEmail, 'processFirstSessionCongratsEmail');
+}
+exports.listeners = listeners;
