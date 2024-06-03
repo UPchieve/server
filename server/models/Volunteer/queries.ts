@@ -1184,6 +1184,7 @@ export type CreatedVolunteer = VolunteerContactInfo & {
   isVolunteer: boolean
   isAdmin: boolean
   banned: boolean
+  banType?: USER_BAN_TYPES
   signupSourceId?: number
   otherSignupSource?: string
 }
