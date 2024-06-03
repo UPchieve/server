@@ -92,6 +92,16 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 
 
 --
+-- Name: ban_types; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.ban_types AS ENUM (
+    'shadow',
+    'complete'
+);
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: upchieve; Owner: -
 --
 
@@ -2196,7 +2206,8 @@ CREATE TABLE upchieve.users (
     sms_consent boolean DEFAULT false NOT NULL,
     mongo_id character varying(24),
     other_signup_source text,
-    proxy_email text
+    proxy_email text,
+    ban_type upchieve.ban_types
 );
 
 
@@ -5554,4 +5565,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240403012341'),
     ('20240517164134'),
     ('20240521195415'),
-    ('20240522182235');
+    ('20240522182235'),
+    ('20240530165825');
