@@ -236,6 +236,7 @@ FROM
     LEFT JOIN availabilities ON availabilities.user_id = users.id
 WHERE
     users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
