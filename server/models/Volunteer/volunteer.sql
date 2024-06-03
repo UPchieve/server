@@ -1447,6 +1447,7 @@ FROM
 WHERE
     test_user IS FALSE
     AND banned IS FALSE
+    AND ban_type IS NULL
     AND deactivated IS FALSE
     AND NOT users.id = ANY (:excludedIds!)
 AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
