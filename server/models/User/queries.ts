@@ -190,6 +190,7 @@ export async function getUserContactInfoByReferralCode(
         'approved',
         'lastActivityAt',
         'phone',
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
