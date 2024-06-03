@@ -73,16 +73,6 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: ban_types; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.ban_types AS ENUM (
-    'shadow',
-    'complete'
-);
-
-
---
 -- Name: moderation_system; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -295,19 +285,6 @@ CREATE SEQUENCE upchieve.ban_reasons_id_seq
 --
 
 ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
-
-
---
--- Name: banned_users; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.banned_users (
-    user_id uuid NOT NULL,
-    ban_type public.ban_types NOT NULL,
-    ban_reason_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone
-);
 
 
 --
@@ -2824,14 +2801,6 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 
 --
--- Name: banned_users banned_users_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.banned_users
-    ADD CONSTRAINT banned_users_pkey PRIMARY KEY (user_id);
-
-
---
 -- Name: censored_session_messages censored_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4267,22 +4236,6 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 
 --
--- Name: banned_users banned_users_ban_reason_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.banned_users
-    ADD CONSTRAINT banned_users_ban_reason_id_fkey FOREIGN KEY (ban_reason_id) REFERENCES upchieve.ban_reasons(id);
-
-
---
--- Name: banned_users banned_users_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.banned_users
-    ADD CONSTRAINT banned_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
-
-
---
 -- Name: censored_session_messages censored_session_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5613,5 +5566,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240517164134'),
     ('20240521195415'),
     ('20240522182235'),
-    ('20240523195240'),
     ('20240530165825');
