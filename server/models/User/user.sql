@@ -303,12 +303,11 @@ RETURNING
 UPDATE
     users
 SET
-    banned = subquery.banned,
+    ban_type = :banType!,
     ban_reason_id = subquery.ban_reason_id,
     updated_at = NOW()
 FROM (
     SELECT
-        TRUE AS banned,
         id AS ban_reason_id
     FROM
         ban_reasons

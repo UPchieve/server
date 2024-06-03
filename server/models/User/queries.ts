@@ -371,10 +371,10 @@ export async function updateUserLastActivityById(
   }
 }
 
-export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
+export async function banUserById(userId: Ulid, banType: USER_BAN_TYPES, banReason: USER_BAN_REASONS) {
   try {
     const result = await pgQueries.updateUserBanById.run(
-      { userId, banReason },
+      { userId, banType, banReason },
       getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
