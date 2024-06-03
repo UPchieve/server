@@ -145,6 +145,7 @@ SELECT
     first_name,
     email,
     banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE

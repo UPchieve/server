@@ -253,6 +253,7 @@ export async function getUserContactInfoByResetToken(
         'approved',
         'lastActivityAt',
         'phone',
+        'banType'
       ])
       ret.email = ret.email.toLowerCase()
       return ret
