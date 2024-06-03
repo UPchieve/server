@@ -142,7 +142,11 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     ? session.studentId
     : session.volunteerId
   if (isBanReason) {
-    await UserRepo.banUserById(reportedUser, USER_BAN_TYPES.COMPLETE, USER_BAN_REASONS.SESSION_REPORTED)
+    await UserRepo.banUserById(
+      reportedUser,
+      USER_BAN_TYPES.COMPLETE,
+      USER_BAN_REASONS.SESSION_REPORTED
+    )
     await createAccountAction({
       userId: reportedUser,
       action: ACCOUNT_USER_ACTIONS.BANNED,

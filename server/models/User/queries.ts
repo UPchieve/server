@@ -15,7 +15,11 @@ import {
   RepoUpdateError,
   RepoUpsertError,
 } from '../Errors'
-import { USER_BAN_REASONS, USER_BAN_TYPES, USER_ROLES_TYPE } from '../../constants'
+import {
+  USER_BAN_REASONS,
+  USER_BAN_TYPES,
+  USER_ROLES_TYPE,
+} from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
@@ -253,7 +257,7 @@ export async function getUserContactInfoByResetToken(
         'approved',
         'lastActivityAt',
         'phone',
-        'banType'
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -371,7 +375,11 @@ export async function updateUserLastActivityById(
   }
 }
 
-export async function banUserById(userId: Ulid, banType: USER_BAN_TYPES, banReason: USER_BAN_REASONS) {
+export async function banUserById(
+  userId: Ulid,
+  banType: USER_BAN_TYPES,
+  banReason: USER_BAN_REASONS
+) {
   try {
     const result = await pgQueries.updateUserBanById.run(
       { userId, banType, banReason },
