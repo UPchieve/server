@@ -1025,6 +1025,7 @@ SET
     last_name = COALESCE(:lastName, last_name),
     email = :email!,
     verified = :isVerified!,
+    ban_type = :banType,
     banned = :isBanned!,
     deactivated = :isDeactivated!
 WHERE

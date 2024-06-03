@@ -40,6 +40,7 @@ import {
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
   asBoolean,
+  asEnum,
   asFactory,
   asNumber,
   asOptional,
@@ -241,7 +242,7 @@ interface AdminUpdate {
   partnerSite?: string
   isVerified: boolean
   isBanned: boolean
-  banType?: string
+  banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
@@ -256,7 +257,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
   isBanned: asBoolean,
-  banType: asOptional(asString),
+  banType: asOptional(asEnum(USER_BAN_TYPES)),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
