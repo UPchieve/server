@@ -106,6 +106,7 @@ WHERE (users.id::uuid = :userId
 AND volunteer_profiles.onboarded IS TRUE
 AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
 AND users.banned IS FALSE
+AND users.ban_type IS NULL
 AND users.deactivated IS FALSE
 AND total_sessions.total > 0
 AND users.test_user IS FALSE;
