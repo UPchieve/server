@@ -861,6 +861,7 @@ SELECT
     users.created_at AS created_at,
     test_user AS is_test_user,
     banned AS is_banned,
+    ban_type,
     deactivated AS is_deactivated,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN

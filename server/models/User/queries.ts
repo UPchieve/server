@@ -731,6 +731,7 @@ export type ReportedUser = {
   createdAt: Date
   isTestUser: boolean
   isBanned: boolean
+  banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isVolunteer: boolean
   studentPartnerOrg?: string
@@ -751,6 +752,7 @@ export async function getReportedUser(
       const ret = makeSomeOptional(result[0], [
         'studentPartnerOrg',
         'volunteerPartnerOrg',
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
