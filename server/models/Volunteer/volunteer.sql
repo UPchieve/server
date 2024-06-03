@@ -189,6 +189,7 @@ WHERE
     AND volunteer_profiles.onboarded IS TRUE
     AND volunteer_profiles.approved IS TRUE
     AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
 GROUP BY
