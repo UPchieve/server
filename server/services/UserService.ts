@@ -7,6 +7,7 @@ import {
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
+  USER_BAN_TYPES,
 } from '../constants'
 import {
   UserNotFoundError,
@@ -240,6 +241,7 @@ interface AdminUpdate {
   partnerSite?: string
   isVerified: boolean
   isBanned: boolean
+  banType?: string
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
@@ -254,6 +256,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
   isBanned: asBoolean,
+  banType: asOptional(asString),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
@@ -283,6 +286,7 @@ export async function adminUpdateUser(data: unknown) {
     partnerSite,
     isVerified,
     isBanned,
+    banType,
     isDeactivated,
     isApproved,
     inGatesStudy,
@@ -317,6 +321,7 @@ export async function adminUpdateUser(data: unknown) {
     email: trimmedEmail,
     isVerified,
     isBanned,
+    banType,
     isDeactivated,
     isApproved,
     volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
