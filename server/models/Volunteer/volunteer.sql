@@ -12,7 +12,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.id = :userId!
-    AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE;
 
