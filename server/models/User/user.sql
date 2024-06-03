@@ -664,6 +664,7 @@ SELECT
     sms_consent,
     phone_verified,
     banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
