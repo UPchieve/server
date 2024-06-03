@@ -370,6 +370,7 @@ WHERE
     users.last_activity_at >= :start!
     AND users.last_activity_at < :end!
     AND users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE;
