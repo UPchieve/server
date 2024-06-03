@@ -323,6 +323,7 @@ RETURNING
 SELECT
     users.id,
     banned,
+    ban_type,
     email,
     deactivated,
     (
