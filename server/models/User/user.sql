@@ -428,6 +428,7 @@ SELECT
     volunteer_profiles.state,
     users.verified,
     users.banned AS is_banned,
+    users.ban_type AS ban_type,
     user_product_flags.gates_qualified AS in_gates_study,
     grade_levels.name AS current_grade,
     student_partner_org_sites.name AS partner_site,
