@@ -77,6 +77,7 @@ WHERE (users.id::uuid = :userId
     OR users.mongo_id::text = :mongoUserId)
 AND volunteer_profiles.onboarded IS TRUE
 AND users.banned IS FALSE
+AND users.ban_type IS NULL
 AND users.deactivated IS FALSE
 AND users.test_user IS FALSE;
 
