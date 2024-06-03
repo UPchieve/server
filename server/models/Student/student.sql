@@ -163,6 +163,7 @@ SET
     email = :email!,
     verified = :verified!,
     banned = :banned!,
+    ban_type = :banType,
     deactivated = :deactivated!,
     updated_at = NOW()
 WHERE
