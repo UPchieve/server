@@ -27,6 +27,7 @@ FROM
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     banned IS FALSE
+    AND (ban_type != 'shadow' OR ban_type IS NULL)
     AND deactivated IS FALSE
     AND test_user IS FALSE
     AND (users.id::uuid = :userId
