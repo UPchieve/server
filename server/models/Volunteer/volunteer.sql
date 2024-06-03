@@ -1190,6 +1190,7 @@ ready_to_tutor_volunteers AS (
     WHERE
         test_user IS FALSE
         AND banned IS FALSE
+        AND ban_type IS NULL
         AND deactivated IS FALSE
         AND volunteer_profiles.onboarded IS TRUE
         AND volunteer_profiles.approved IS TRUE
