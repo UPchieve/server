@@ -830,6 +830,7 @@ FROM
     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
 WHERE
     users.banned IS FALSE
+    AND users.ban_type IS NULL
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_reference_statuses.name = 'sent'
