@@ -619,6 +619,7 @@ export type CurrentSession = {
   volunteerJoinedAt?: Date
   messages: MessageForFrontend[]
   endedAt?: Date
+  endedBy?: Ulid
   toolType: string
   docEditorVersion?: number
 }
@@ -773,6 +774,7 @@ export async function getCurrentSessionBySessionId(
       'volunteerJoinedAt',
       'volunteerId',
       'endedAt',
+      'endedBy',
     ])
     const messages = await getMessagesForFrontend(session.id, client)
     const userResult = await pgQueries.getCurrentSessionUser.run(
