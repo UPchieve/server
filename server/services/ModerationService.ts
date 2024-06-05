@@ -13,9 +13,6 @@ import {
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import { langfuse } from './LangfuseService'
-export interface ModerateMessageOptions {
-  content: string
-}
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -29,6 +26,9 @@ const PROFANITY_REGEX = /\b(4r5e|5h1t|5hit|a55s|ass-fucker|assfucker|assfukka|a_
 // Restrict access to have sessions on third party platforms
 const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 
+const LF_TRACE_NAME = 'moderateSessionMessage'
+const LF_GENERATION_NAME = 'getModerationDecision'
+
 export async function createChatCompletion({
   censoredSessionMessage,
   isVolunteer,
@@ -40,12 +40,12 @@ export async function createChatCompletion({
   try {
     const gen = langfuse
       .trace({
-        name: 'moderateMessage', // @TODO there's like 3 names (trace name, generation name, prompt name) - best way to name these?
+        name: LF_TRACE_NAME,
         sessionId: censoredSessionMessage.sessionId,
       })
       .generation({
         // @TODO promptName and promptVersion
-        name: 'getSessionMessageModerationDecision',
+        name: LF_GENERATION_NAME,
         model,
         input: { censoredSessionMessage, isVolunteer },
       })
@@ -67,7 +67,6 @@ export async function createChatCompletion({
       response_format: { type: 'json_object' },
     })
 
-    // @TODO What happens if I don't manually end the generation, i.e. due to error and no handling?
     gen.end({
       output: chatCompletion,
     })
