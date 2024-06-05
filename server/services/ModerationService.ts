@@ -12,6 +12,7 @@ import {
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
+import { langfuse } from './LangfuseService'
 export interface ModerateMessageOptions {
   content: string
 }
@@ -35,9 +36,21 @@ export async function createChatCompletion({
   censoredSessionMessage: CensoredSessionMessage
   isVolunteer: boolean
 }) {
+  const model = 'gpt-4o'
   try {
+    const gen = langfuse
+      .trace({
+        name: 'moderateMessage', // @TODO there's like 3 names (trace name, generation name, prompt name) - best way to name these?
+        sessionId: censoredSessionMessage.sessionId,
+      })
+      .generation({
+        // @TODO promptName and promptVersion
+        name: 'getSessionMessageModerationDecision',
+        model,
+        input: { censoredSessionMessage, isVolunteer },
+      })
     const chatCompletion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model,
       messages: [
         {
           role: 'system',
@@ -52,6 +65,11 @@ export async function createChatCompletion({
         },
       ],
       response_format: { type: 'json_object' },
+    })
+
+    // @TODO What happens if I don't manually end the generation, i.e. due to error and no handling?
+    gen.end({
+      output: chatCompletion,
     })
 
     const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
