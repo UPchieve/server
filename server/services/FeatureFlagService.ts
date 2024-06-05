@@ -120,7 +120,30 @@ export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
     timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
   })
 }
-
-export async function getAiModerationFeatureFlag(userId: Ulid): Promise<any> {
-  return await isFeatureEnabled(FEATURE_FLAGS.AI_MODERATION, userId)
+export enum AI_MODERATION_STATE {
+  disabled = 'disabled',
+  targeted = 'targeted',
+  notTargeted = 'notTargeted',
+}
+export async function getAiModerationFeatureFlag(
+  userId: Ulid
+): Promise<keyof typeof AI_MODERATION_STATE> {
+  return timeLimit({
+    promise: new Promise(async r => {
+      const result = await productClient.getFeatureFlag(
+        FEATURE_FLAGS.AI_MODERATION,
+        userId
+      )
+      if (result === 'targeted') {
+        r(AI_MODERATION_STATE.targeted)
+      } else if (result === 'notTargeted') {
+        r(AI_MODERATION_STATE.notTargeted)
+      } else {
+        r(AI_MODERATION_STATE.disabled)
+      }
+    }),
+    fallbackReturnValue: AI_MODERATION_STATE.disabled,
+    timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
+    waitInMs: 2000,
+  })
 }
