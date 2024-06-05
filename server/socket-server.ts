@@ -20,11 +20,7 @@ const createServer = (app: Express) => {
 export default function(app: Express) {
   const server = createServer(app)
 
-  const port =
-    process.env.NODE_ENV === 'test'
-      ? // TODO: utilize the superagent port
-        4000 + Math.floor(Math.random() * 5000) + 1
-      : config.socketsPort
+  const port = config.socketsPort
 
   server.listen(port)
 
@@ -57,7 +53,6 @@ export default function(app: Express) {
         }
       : false,
   })
-  if (process.env.NODE_ENV === 'test') return io
 
   io.adapter(createAdapter(socketIoPubClient, socketIoSubClient))
   // Instantiate the SocketService singleton
