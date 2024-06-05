@@ -16,6 +16,14 @@ export function isStagingEnvironment() {
   return config.NODE_ENV === 'staging'
 }
 
+export function isHttpsEnvironment() {
+  return isStagingEnvironment() || isProductionEnvironment()
+}
+
+export function getEnvironmentProtocol() {
+  return isHttpsEnvironment() ? 'https' : 'http'
+}
+
 export function isValidConfigToken(token: string) {
   return token !== 'bogus'
 }

@@ -16,7 +16,10 @@ import {
 } from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
-import { isDevEnvironment } from '../../utils/environments'
+import {
+  getEnvironmentProtocol,
+  isDevEnvironment,
+} from '../../utils/environments'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -31,7 +34,7 @@ type ProgressReportPayload = {
 }
 
 async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
-  const protocol = isDevEnvironment() ? 'http' : 'https'
+  const protocol = getEnvironmentProtocol()
   const port = isDevEnvironment() ? `:${config.apiPort}` : ''
   const url = `${protocol}://${config.clusterServerAddress}${port}/api/webhooks/progress-reports/processed`
   try {
