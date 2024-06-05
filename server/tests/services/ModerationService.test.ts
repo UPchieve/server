@@ -3,6 +3,7 @@ import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
+import { langfuse } from '../../services/LangfuseService'
 
 jest.mock('../../models/CensoredSessionMessage')
 jest.mock('../../services/BotsService', () => {

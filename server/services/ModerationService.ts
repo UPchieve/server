@@ -13,7 +13,7 @@ import {
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import { getPrompt, langfuse, LangfusePromptNameEnum } from './LangfuseService'
-import { TextPromptClient } from 'langfuse-core'
+import { ChatPromptClient } from 'langfuse-core'
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -39,9 +39,9 @@ export async function createChatCompletion({
 }) {
   const model = 'gpt-4o'
   try {
-    const systemPrompt: TextPromptClient | undefined = await getPrompt(
+    const systemPrompt: ChatPromptClient | undefined = (await getPrompt(
       LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
-    )
+    )) as ChatPromptClient | undefined
     const gen = langfuse
       .trace({
         name: LF_TRACE_NAME,
@@ -63,8 +63,7 @@ export async function createChatCompletion({
         {
           role: 'system',
           content:
-            systemPrompt?.promptResponse.prompt[0]['content'] ??
-            FALLBACK_MODERATION_PROMPT,
+            systemPrompt?.prompt[0].content ?? FALLBACK_MODERATION_PROMPT,
         },
         {
           role: 'user',

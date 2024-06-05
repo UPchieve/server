@@ -1,7 +1,7 @@
 import { Langfuse } from 'langfuse-node'
 import config from '../config'
 import { timeLimit } from '../utils/time-limit'
-import { TextPromptClient } from 'langfuse-core'
+import { ChatPromptClient, TextPromptClient } from 'langfuse-core'
 
 const label = config.NODE_ENV // @TODO Update me: This is fine while testing locally ('dev'), but this won't work for stg/prod
 
@@ -19,7 +19,7 @@ export enum LangfusePromptNameEnum {
 export async function getPrompt(
   promptName: string,
   cacheTtlSeconds = 120
-): Promise<TextPromptClient | undefined> {
+): Promise<ChatPromptClient | TextPromptClient | undefined> {
   return await timeLimit({
     promise: langfuse.getPrompt(promptName, undefined, {
       cacheTtlSeconds,
