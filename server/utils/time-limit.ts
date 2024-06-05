@@ -13,10 +13,10 @@ export const timeLimit = async <ResolveWith>({
   waitInMs = DEFAULT_WAIT_IN_MS,
 }: {
   promise: Promise<ResolveWith>
-  fallbackReturnValue: ResolveWith
+  fallbackReturnValue: any
   timeLimitReachedErrorMessage: string
   waitInMs?: number
-}): Promise<ResolveWith> => {
+}): Promise<any> => {
   let timeoutId: undefined | ReturnType<typeof setTimeout>
   return await Promise.race([
     new Promise<ResolveWith>(resolve => {

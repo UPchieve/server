@@ -12,7 +12,8 @@ import {
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
-import { langfuse } from './LangfuseService'
+import { getPrompt, langfuse, LangfusePromptNameEnum } from './LangfuseService'
+import { TextPromptClient } from 'langfuse-core'
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -38,23 +39,32 @@ export async function createChatCompletion({
 }) {
   const model = 'gpt-4o'
   try {
+    const systemPrompt: TextPromptClient | undefined = await getPrompt(
+      LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
+    )
     const gen = langfuse
       .trace({
         name: LF_TRACE_NAME,
         sessionId: censoredSessionMessage.sessionId,
       })
       .generation({
-        // @TODO promptName and promptVersion
         name: LF_GENERATION_NAME,
         model,
         input: { censoredSessionMessage, isVolunteer },
       })
+    if (systemPrompt) {
+      // Attach the LF prompt object if available to associate all AI generations made with this prompt
+      gen.update({ prompt: systemPrompt })
+    }
+
     const chatCompletion = await openai.chat.completions.create({
       model,
       messages: [
         {
           role: 'system',
-          content: MODERATION_PROMPT,
+          content:
+            systemPrompt?.promptResponse.prompt[0]['content'] ??
+            FALLBACK_MODERATION_PROMPT,
         },
         {
           role: 'user',
@@ -220,7 +230,7 @@ export const wrapMessageInXmlTags = (
 }
 
 export const MODERATION_VERSION = 'openai_v2'
-export const MODERATION_PROMPT = `
+export const FALLBACK_MODERATION_PROMPT = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
 When flagging a message, consider just the message in the XML tag.
