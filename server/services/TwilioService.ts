@@ -31,12 +31,18 @@ import {
   getProcrastinationTextReminderCopy,
   getMutedSubjectAlertsFlag,
 } from './FeatureFlagService'
+import {
+  isDevEnvironment,
+  isProductionEnvironment,
+  isStagingEnvironment,
+} from '../utils/environments'
 
-const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
+const protocol =
+  isStagingEnvironment() || isProductionEnvironment() ? 'https' : 'http'
 const apiRoot =
-  config.NODE_ENV === 'production'
-    ? `https://${config.host}/twiml`
-    : `http://${config.host}/twiml`
+  isStagingEnvironment() || isProductionEnvironment()
+    ? `${protocol}://${config.host}/twiml`
+    : `${protocol}://${config.host}/twiml`
 
 const twilioClient =
   config.accountSid && config.authToken

@@ -1,4 +1,8 @@
 import config from './config'
+import {
+  isProductionEnvironment,
+  isStagingEnvironment,
+} from './utils/environments'
 
 // really great csp docs: https://content-security-policy.com/
 // helmet docs: https://helmetjs.github.io/
@@ -89,7 +93,7 @@ export const connectSrc = [
   `https://${config.host}`,
 ]
 
-if (config.NODE_ENV !== 'production') {
+if (!isProductionEnvironment() && !isStagingEnvironment()) {
   connectSrc.push('http://localhost:3000')
   connectSrc.push('http://localhost:3001')
   connectSrc.push('ws://localhost:3001')
@@ -114,7 +118,7 @@ export const objectSrc = ["'none'"]
 export const scriptSrcAttr = ["'none'"]
 export const styleSrc = ["'self'", 'https:', "'unsafe-inline'"]
 export let upgradeInsecureRequests: string[] | null
-if (config.NODE_ENV === 'production') {
+if (isProductionEnvironment() || isStagingEnvironment()) {
   upgradeInsecureRequests = []
 } else {
   upgradeInsecureRequests = null

@@ -10,6 +10,7 @@ import logger from '../../logger'
 import path from 'path'
 import { asString } from '../../utils/type-utils'
 import * as QuestionRepo from '../../models/Question'
+import { isDevEnvironment } from '../../utils/environments'
 
 const edu = express()
 edu.set('view engine', 'ejs')
@@ -17,9 +18,8 @@ edu.set('views', path.join(__dirname, '../../views'))
 edu.set('layout', 'layouts/edu')
 edu.use(expressLayouts)
 edu.locals = {
-  homeLink: config.NODE_ENV === 'dev' ? 'http://localhost:3000' : '/',
-  frontEndRoot:
-    config.NODE_ENV === 'dev' ? new URL('http://localhost:3000') : null,
+  homeLink: isDevEnvironment() ? 'http://localhost:3000' : '/',
+  frontEndRoot: isDevEnvironment() ? new URL('http://localhost:3000') : null,
 }
 
 // GET /edu

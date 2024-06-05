@@ -14,6 +14,10 @@ import { StartSessionError } from '../utils/session-utils'
 import logger, { logError } from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { ExistingUserError } from '../services/EligibilityService'
+import {
+  isProductionEnvironment,
+  isStagingEnvironment,
+} from '../utils/environments'
 
 export function resError(
   res: Response,
@@ -48,7 +52,7 @@ export function resError(
     // unknown error
     else status = 500
 
-    if (config.NODE_ENV === 'production' && status === 500)
+    if ((isProductionEnvironment() || isStagingEnvironment()) && status === 500)
       Sentry.captureException(err)
     logError(err as Error)
 

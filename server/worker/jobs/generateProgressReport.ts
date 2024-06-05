@@ -16,6 +16,7 @@ import {
 } from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
+import { isDevEnvironment } from '../../utils/environments'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -30,8 +31,8 @@ type ProgressReportPayload = {
 }
 
 async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
-  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
-  const port = config.NODE_ENV === 'dev' ? `:${config.apiPort}` : ''
+  const protocol = isDevEnvironment() ? 'http' : 'https'
+  const port = isDevEnvironment() ? `:${config.apiPort}` : ''
   const url = `${protocol}://${config.clusterServerAddress}${port}/api/webhooks/progress-reports/processed`
   try {
     await axios.post(url, data, {

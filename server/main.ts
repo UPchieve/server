@@ -7,6 +7,7 @@ import { registerListeners } from './services/listeners'
 import { serverSetup } from './server-setup'
 import { registerGracefulShutdownListeners } from './graceful-shutdown'
 import { getClient, setupDbConnection } from './db'
+import { isDevEnvironment } from './utils/environments'
 
 async function main() {
   try {
@@ -24,7 +25,7 @@ async function main() {
   })
 
   // avoid conflict with development tools that allow for restarts when a file changes
-  if (rawConfig.NODE_ENV !== 'dev') {
+  if (isDevEnvironment()) {
     serverSetup(server)
     registerGracefulShutdownListeners(server, getClient(), io)
   }

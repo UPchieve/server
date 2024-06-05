@@ -1,5 +1,6 @@
 import config from '../../config'
 import { RegisterStudentPayload } from '../../utils/auth-utils'
+import { isDevEnvironment } from '../../utils/environments'
 
 export class AuthRedirect {
   private static _baseRedirect: string
@@ -7,7 +8,7 @@ export class AuthRedirect {
   private static getBaseRedirect() {
     if (!this._baseRedirect) {
       let protocol
-      if (config.NODE_ENV === 'dev') {
+      if (isDevEnvironment()) {
         protocol = 'http'
       } else {
         protocol = 'https'

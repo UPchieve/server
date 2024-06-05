@@ -120,7 +120,7 @@ app.use(
   cors({
     origin: originRegex,
     credentials: true,
-    exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined,
+    exposedHeaders: isDevEnvironment() ? ['Date'] : undefined,
   })
 )
 // for now, send directive to never cache to prevent Zwibbler issues

@@ -12,6 +12,10 @@ export function isProductionEnvironment() {
   return config.NODE_ENV === 'production'
 }
 
+export function isStagingEnvironment() {
+  return config.NODE_ENV === 'staging'
+}
+
 export function isValidConfigToken(token: string) {
   return token !== 'bogus'
 }
