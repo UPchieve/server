@@ -3,11 +3,22 @@ import config from '../config'
 import { timeLimit } from '../utils/time-limit'
 import { ChatPromptClient, TextPromptClient } from 'langfuse-core'
 
-export const langfuse: Langfuse = new Langfuse({
-  secretKey: config.langfuseSecretKey,
-  publicKey: config.langfusePublicKey,
-  baseUrl: config.langfuseBaseUrl,
-})
+export function getClient() {
+  if (!client) {
+    client = createClient()
+  }
+  return client
+}
+
+const createClient = (): Langfuse => {
+  return new Langfuse({
+    secretKey: config.langfuseSecretKey,
+    publicKey: config.langfusePublicKey,
+    baseUrl: config.langfuseBaseUrl,
+  })
+}
+
+let client = createClient()
 
 export enum LangfusePromptNameEnum {
   GET_SESSION_MESSAGE_MODERATION_DECISION = 'get-session-message-moderation-decision',
@@ -18,7 +29,7 @@ export async function getPrompt(
   cacheTtlSeconds = 120
 ): Promise<ChatPromptClient | TextPromptClient | undefined> {
   return await timeLimit({
-    promise: langfuse.getPrompt(promptName, undefined, {
+    promise: getClient().getPrompt(promptName, undefined, {
       cacheTtlSeconds,
     }),
     fallbackReturnValue: undefined,

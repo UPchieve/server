@@ -12,8 +12,10 @@ import {
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
-import { getPrompt, langfuse, LangfusePromptNameEnum } from './LangfuseService'
+import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
+import { LangfusePromptNameEnum } from './LangfuseService'
+
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -38,25 +40,24 @@ export async function createChatCompletion({
   isVolunteer: boolean
 }) {
   const model = 'gpt-4o'
-  try {
-    const systemPrompt = await getPrompt(
-      LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
-    )
-    const gen = langfuse
-      .trace({
-        name: LF_TRACE_NAME,
-        sessionId: censoredSessionMessage.sessionId,
-      })
-      .generation({
-        name: LF_GENERATION_NAME,
-        model,
-        input: { censoredSessionMessage, isVolunteer },
-      })
-    if (systemPrompt) {
-      // Attach the LF prompt object if available to associate all AI generations made with this prompt
-      gen.update({ prompt: systemPrompt })
-    }
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    sessionId: censoredSessionMessage.sessionId,
+  })
 
+  const promptName =
+    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
+  let systemPrompt = await LangfuseService.getPrompt(promptName)
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model,
+    input: { censoredSessionMessage, isVolunteer },
+  })
+  if (systemPrompt) {
+    // Attach the LF prompt object if available to associate all AI generations made with this prompt
+    gen.update({ prompt: systemPrompt })
+  }
+  try {
     const chatCompletion = await openai.chat.completions.create({
       model,
       messages: [
@@ -90,6 +91,7 @@ export async function createChatCompletion({
         moderatorVersion: MODERATION_VERSION,
       },
     }
+    // @TODO: Eventually remove me from NR
     logger.info(logData, 'AI moderation result')
     return decision
   } catch (err) {
