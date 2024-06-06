@@ -3,13 +3,10 @@ import config from '../config'
 import { timeLimit } from '../utils/time-limit'
 import { ChatPromptClient, TextPromptClient } from 'langfuse-core'
 
-const label = config.NODE_ENV // @TODO Update me: This is fine while testing locally ('dev'), but this won't work for stg/prod
-
 export const langfuse: Langfuse = new Langfuse({
   secretKey: config.langfuseSecretKey,
   publicKey: config.langfusePublicKey,
   baseUrl: config.langfuseBaseUrl,
-  release: label,
 })
 
 export enum LangfusePromptNameEnum {
@@ -23,10 +20,9 @@ export async function getPrompt(
   return await timeLimit({
     promise: langfuse.getPrompt(promptName, undefined, {
       cacheTtlSeconds,
-      label,
     }),
     fallbackReturnValue: undefined,
-    timeLimitReachedErrorMessage: `Time limit reached when fetching Langfuse prompt ${promptName}. Will use fallback prompt.`,
+    timeLimitReachedErrorMessage: `Time limit reached when fetching Langfuse prompt ${promptName}`,
     waitInMs: 1000,
   })
 }
