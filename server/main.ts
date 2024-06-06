@@ -25,7 +25,7 @@ async function main() {
   })
 
   // avoid conflict with development tools that allow for restarts when a file changes
-  if (isDevEnvironment()) {
+  if (!isDevEnvironment()) {
     serverSetup(server)
     registerGracefulShutdownListeners(server, getClient(), io)
   }

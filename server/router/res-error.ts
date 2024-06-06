@@ -52,9 +52,13 @@ export function resError(
     // unknown error
     else status = 500
 
-    if ((isProductionEnvironment() || isStagingEnvironment()) && status === 500)
+    if (
+      (isProductionEnvironment() || isStagingEnvironment()) &&
+      status === 500
+    ) {
       Sentry.captureException(err)
-    logError(err as Error)
+      logError(err as Error)
+    }
 
     res.status(status).json({
       err: message || err.message,

@@ -1,18 +1,13 @@
 import { io } from 'socket.io-client'
 import config from '../config'
 import logger from '../logger'
-import { isDevEnvironment } from '../utils/environments'
+import { getEnvironmentProtocol, isDevEnvironment } from '../utils/environments'
 
 /*
  * transport/upgrade options: https://github.com/socketio/socket.io-client/issues/1097
  */
 
-let protocol
-if (isDevEnvironment()) {
-  protocol = 'http'
-} else {
-  protocol = 'https'
-}
+const protocol = getEnvironmentProtocol()
 
 const port = isDevEnvironment() ? `:${config.socketsPort}` : ''
 const socketUri = `${protocol}://${config.clusterServerAddress}${port}`
