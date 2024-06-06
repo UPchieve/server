@@ -1068,6 +1068,7 @@ export async function getSessionsForAdminFilter(
         'volunteerEmail',
         'volunteerFirstName',
         'volunteerIsBanned',
+        'volunteerBanType',
         'volunteerTestUser',
         'volunteerTotalPastSessions',
         'reviewReasons',
@@ -1087,12 +1088,14 @@ export async function getSessionsForAdminFilter(
         session.volunteerFirstName &&
         session.volunteerEmail &&
         !!session.volunteerIsBanned &&
+        !!session.volunteerBanType &&
         !!session.volunteerTestUser &&
         !!session.volunteerTotalPastSessions
       ) {
         volunteer = {
           firstname: session.volunteerFirstName,
           isBanned: session.volunteerIsBanned,
+          banType: session.volunteerBanType,
           isTestUser: session.volunteerTestUser,
           totalPastSessions: session.volunteerTotalPastSessions,
         }
@@ -1102,6 +1105,7 @@ export async function getSessionsForAdminFilter(
       const student = {
         firstname: session.studentFirstName,
         isBanned: session.studentIsBanned,
+        banType: session.studentBanType,
         isTestUser: session.studentTestUser,
         totalPastSessions: session.studentTotalPastSessions,
       }

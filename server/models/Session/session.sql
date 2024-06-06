@@ -848,11 +848,13 @@ SELECT
     students.first_name AS student_first_name,
     students.email AS student_email,
     students.banned AS student_is_banned,
+    students.ban_type AS student_ban_type,
     students.test_user AS student_test_user,
     student_sessions.total AS student_total_past_sessions,
     volunteers.first_name AS volunteer_first_name,
     volunteers.email AS volunteer_email,
     volunteers.banned AS volunteer_is_banned,
+    volunteers.ban_type AS volunteer_ban_type,
     volunteers.test_user AS volunteer_test_user,
     volunteer_sessions.total AS volunteer_total_past_sessions,
     review_reasons.review_reasons
@@ -874,6 +876,7 @@ FROM
             id,
             email,
             banned,
+            ban_type,
             test_user
         FROM
             users
@@ -885,6 +888,7 @@ FROM
             id,
             email,
             banned,
+            ban_type,
             test_user
         FROM
             users
