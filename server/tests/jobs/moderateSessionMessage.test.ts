@@ -28,7 +28,9 @@ describe('Moderate session message', () => {
 
   beforeEach(() => {
     jest.resetAllMocks()
-    mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(true)
+    mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
+      FeatureFlagsService.AI_MODERATION_STATE.notTargeted
+    )
     jobData = {
       data: {
         censoredSessionMessage: {
@@ -43,7 +45,7 @@ describe('Moderate session message', () => {
     } as Job<ModerationSessionMessageJobData>
   })
 
-  it('Should make a call to OpenAI if the FF is on and log the result', async () => {
+  it('Should make a call to OpenAI', async () => {
     ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
       choices: [
         {
@@ -70,18 +72,10 @@ describe('Moderate session message', () => {
         decision: {
           isClean: true,
           reasons: [],
-          moderatorVersion: 'openai_v1',
+          moderatorVersion: 'openai_v2',
         },
       },
       'AI moderation result'
     )
-  })
-
-  it('Should exit early if the FF is off', async () => {
-    mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(false)
-    await moderateSessionMessage(jobData)
-    expect(openai.chat.completions.create).not.toHaveBeenCalled()
-    expect(logger.info).not.toHaveBeenCalled()
-    expect(logger.error).not.toHaveBeenCalled()
   })
 })

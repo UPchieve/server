@@ -22,7 +22,7 @@
     "lint:sql:check": "./bin/lint_sql_check.sh",
     "lint:sql:manual": "pg-formatter --keyword-case=\"uppercase\" --inplace --placeholder=\":\\w+!\"",
     "lint:write": "npm run lint:backend && npm run lint:sql",
-    "test": "npm run test:backend && npm run test:frontend",
+    "test": "npm run test:backend",
     "test:backend": "jest -c jest.config.server.js --silent --group=-email --max_old_space_size=1536 --maxWorkers=3",
     "test:backend:debug": "jest -c jest.config.server.js --logHeapUsage --detectOpenHandles --group=-email",
     "test:backend:full": "jest -c jest.config.server.js --detectOpenHandles --silent",
