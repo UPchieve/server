@@ -26,6 +26,7 @@ import { PoolClient } from 'pg'
 import {
   CreateUserPayload,
   CreateUserResult,
+  ReportedUser,
   UpsertUserResult,
   User,
   UserRole,
@@ -685,21 +686,6 @@ export async function getUserVerificationInfoById(
   } catch (err) {
     throw new RepoReadError(err)
   }
-}
-
-export type ReportedUser = {
-  id: Ulid
-  firstName: string
-  lastName: string
-  email: string
-  createdAt: Date
-  isTestUser: boolean
-  isBanned: boolean
-  banType?: USER_BAN_TYPES
-  isDeactivated: boolean
-  isVolunteer: boolean
-  studentPartnerOrg?: string
-  volunteerPartnerOrg?: string
 }
 
 export async function getReportedUser(

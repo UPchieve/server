@@ -96,3 +96,19 @@ export type UserForAdmin = {
   userType: UserRole
   createdAt: Date
 }
+
+export type ReportedUser = Pick<
+User,
+'id' |
+'firstName' |
+'lastName' |
+'email' |
+'createdAt'
+> & {
+  isBanned: boolean
+  isDeactivated: boolean
+  isTestUser: boolean
+  isVolunteer: boolean
+  studentPartnerOrg?: string
+  volunteerPartnerOrg?: string
+}
