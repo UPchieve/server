@@ -429,7 +429,9 @@ SELECT
     session_review_reason.review_reasons,
     session_photo.photos,
     sessions.to_review,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    sessions.student_id,
+    sessions.volunteer_id
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -481,39 +483,6 @@ WHERE
     user_actions.session_id = :sessionId!
     AND user_actions.action = 'REQUESTED SESSION'
 LIMIT 1;
-
-
-/* @name getUserForSessionAdminView */
-SELECT
-    users.id,
-    first_name AS firstname,
-    users.created_at,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    past_sessions.total AS past_sessions
-FROM
-    users
-    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
-    LEFT JOIN sessions ON sessions.student_id = users.id
-        OR sessions.volunteer_id = users.id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(sessions.id ORDER BY sessions.created_at) AS total
-        FROM
-            sessions
-        WHERE
-            student_id = users.id
-            OR volunteer_id = users.id) AS past_sessions ON TRUE
-WHERE
-    sessions.id = :sessionId!
-GROUP BY
-    users.id,
-    volunteer_profiles.user_id,
-    past_sessions.total;
 
 
 /* @name getSessionMessagesForFrontend */
@@ -650,24 +619,30 @@ WHERE
     sessions.id = :sessionId;
 
 
-/* @name getCurrentSessionUser */
+/* @name getSessionUsers */
 SELECT
+    users.created_at,
     users.id,
     users.first_name AS firstname,
-    users.first_name AS first_name,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NULL THEN
-            FALSE
-        ELSE
-            TRUE
-        END) AS is_volunteer
+    users.first_name,
+    past_sessions.total AS past_sessions
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN sessions ON sessions.student_id = users.id
         OR sessions.volunteer_id = users.id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS total
+        FROM
+            sessions
+        WHERE
+            student_id = users.id
+            OR volunteer_id = users.id) AS past_sessions ON TRUE
 WHERE
-    sessions.id = :sessionId!;
+    sessions.id = :sessionId!
+GROUP BY
+    users.id,
+    past_sessions.total;
 
 
 /* @name getLatestSessionByStudentId */
