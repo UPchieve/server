@@ -687,6 +687,7 @@ export async function createStudent(
         isTestUser: user.testUser,
         isAdmin: false,
         isVolunteer: false,
+        userType: 'student',
         verified: user.verified,
         createdAt: user.createdAt,
         currentGrade: profile.gradeLevel,

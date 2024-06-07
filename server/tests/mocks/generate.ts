@@ -142,6 +142,7 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
     isTestUser: userRow.testUser,
     isAdmin: false,
     isVolunteer: false,
+    userType: 'student',
     ...overrides,
   }
 }
@@ -181,7 +182,6 @@ export function buildVolunteer(
     ...buildUser({ isVolunteer: true }),
     volunteerPartnerOrg: '',
     phone: getPhoneNumber(),
-
     ...overrides,
   }
 }

@@ -1,6 +1,6 @@
 import { GRADES } from '../constants'
 import { Ulid } from '../models/pgUtils'
-import { User } from '../models/User'
+import { User, UserRole } from '../models/User'
 
 export interface RegistrationForm {
   firstName: string
@@ -34,6 +34,7 @@ export type AppUser = {
   isTestUser: boolean
   isAdmin: boolean
   isVolunteer: boolean
+  userType: UserRole
 } & User
 
 export type AppStudent = {

@@ -23,7 +23,7 @@ import {
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
 import { getProgress } from '../../utils/training-courses'
-import { insertUserRoleByUserId } from '../User'
+import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
 
@@ -1187,6 +1187,7 @@ export type CreatedVolunteer = VolunteerContactInfo & {
   banType?: USER_BAN_TYPES
   signupSourceId?: number
   otherSignupSource?: string
+  userType: UserRole
 }
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload
@@ -1243,6 +1244,7 @@ export async function createVolunteer(
       ...user,
       volunteerPartnerOrg: volunteerData.volunteerPartnerOrg,
       isVolunteer: true,
+      userType: 'volunteer',
       isAdmin: false,
     }
   } catch (err) {
