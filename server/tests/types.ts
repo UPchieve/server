@@ -25,6 +25,7 @@ export interface VolunteerRegistrationForm extends RegistrationForm {
   volunteerPartnerOrg?: string
 }
 
+// TODO: Use actual type definitions.
 export type AppUser = {
   firstname: string
   lastname: string
