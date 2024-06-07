@@ -20,6 +20,9 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
+import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
+import * as UserRolesService from '../../services/UserRolesService'
+import { UserRole } from './types'
 
 export type LegacyUserModel = {
   // pg
@@ -34,6 +37,7 @@ export type LegacyUserModel = {
   phone?: string
   college?: string
   isVolunteer: boolean
+  userType: UserRole
   isAdmin: boolean
   isBanned: boolean
   banType?: USER_BAN_TYPES
@@ -120,12 +124,13 @@ export async function getLegacyUserObject(
     const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
     const studentUser: any = {}
-    if (!baseUser.isVolunteer) {
+    const userType = (await UserRolesService.getUserRolesById(userId)).userType
+    if (isStudentUserType(userType)) {
       studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
         baseUser.id
       )
     }
-    if (baseUser.isVolunteer) {
+    if (isVolunteerUserType(userType)) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
@@ -167,7 +172,7 @@ export async function getLegacyUserObject(
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
     const final = _.merge(
-      { _id: baseUser.id },
+      { _id: baseUser.id, userType },
       baseUser,
       volunteerUser,
       studentUser,

@@ -428,6 +428,12 @@ SELECT
             FALSE
         END) AS is_volunteer,
     (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            'volunteer'
+        ELSE
+            'student'
+        END) AS TYPE,
+    (
         CASE WHEN admin_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
@@ -442,12 +448,6 @@ SELECT
     users.last_activity_at AS last_activity_at,
     users.referral_code AS referral_code,
     users.referred_by AS referred_by,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            'volunteer'
-        ELSE
-            'student'
-        END) AS TYPE,
     volunteer_profiles.onboarded AS is_onboarded,
     volunteer_profiles.approved AS is_approved,
     volunteer_partner_orgs.key AS volunteer_partner_org,

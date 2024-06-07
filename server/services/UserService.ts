@@ -53,16 +53,16 @@ import {
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
+import * as UserRolesService from './UserRolesService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
-import * as UserRolesService from './UserRolesService'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
 
   // Approved volunteer
-  if (user.isVolunteer && user.isApproved) {
+  if (isVolunteerUserType(user.userType) && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
