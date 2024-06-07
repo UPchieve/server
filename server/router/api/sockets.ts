@@ -334,11 +334,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
-            if (
-              source === 'recap' &&
-              dbUser?.banType == USER_BAN_TYPES.COMPLETE
-            )
-              return resolve()
+            if (source === 'recap' && !!dbUser?.banType) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {

@@ -309,10 +309,10 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   // if unbanning student, also unban their IP addresses
-  if (!isVolunteer && userBeforeUpdate.banned && !isBanned)
+  if (!isVolunteer && userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE && banType !== USER_BAN_TYPES.COMPLETE)
     await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
-  if (!userBeforeUpdate.banned && isBanned)
+  if (userBeforeUpdate.banType !== USER_BAN_TYPES.COMPLETE && banType === USER_BAN_TYPES.COMPLETE)
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'admin')
 
