@@ -1,4 +1,3 @@
-import { String } from 'aws-sdk/clients/cloudsearch'
 import { Ulid } from '../pgUtils'
 
 const SURVEY_TYPES = <const>['presession', 'postsession', 'progress-report']
@@ -64,7 +63,7 @@ export type SurveyQuestionDefinition = {
   questionId: string
   questionText: string
   displayPriority: number
-  questionType: String
+  questionType: string
   responses: SurveyResponseDefinition[]
 }
 
