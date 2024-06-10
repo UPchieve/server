@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -100,11 +100,14 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
   }
 }
 
-export async function getSessionById(sessionId: Ulid): Promise<Session> {
+export async function getSessionById(
+  sessionId: Ulid,
+  tc?: TransactionClient
+): Promise<Session> {
   try {
     const result = await pgQueries.getSessionById.run(
       { sessionId },
-      getClient()
+      tc ?? getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
     return makeSomeOptional(result[0], [
@@ -825,12 +828,13 @@ export async function getLatestSessionByStudentId(
 
 export async function updateSessionVolunteerById(
   sessionId: Ulid,
-  volunteerId: Ulid
+  volunteerId: Ulid,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateSessionVolunteerById.run(
       { sessionId, volunteerId },
-      getClient()
+      tc ?? getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
@@ -1156,12 +1160,13 @@ export async function updateSessionReviewReasonsById(
 
 export async function updateSessionFailedJoinsById(
   sessionId: Ulid,
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.insertSessionFailedJoin.run(
       { sessionId, userId },
-      getClient()
+      tc ?? getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')

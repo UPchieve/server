@@ -149,8 +149,11 @@ interface SessionActionParams {
   operatingSystemVersion?: string
 }
 
-export async function createSessionAction(params: SessionActionParams) {
-  const client = await getClient().connect()
+export async function createSessionAction(
+  params: SessionActionParams,
+  tc?: TransactionClient
+) {
+  const client = tc ?? getClient()
   try {
     let ip = undefined
     if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
@@ -175,8 +178,6 @@ export async function createSessionAction(params: SessionActionParams) {
       throw new Error('insertion of session user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
