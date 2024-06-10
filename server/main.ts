@@ -31,7 +31,7 @@ async function main() {
 }
 
 try {
-  main()
+  
 } catch (err) {
   logger.error(err as Error)
   process.exit(1)
