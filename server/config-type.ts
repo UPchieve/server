@@ -221,4 +221,9 @@ export const Config = Record({
   subwayApiCredentials: String,
   subwayAIVisionEndpoint: String,
   subwayAIVisionApiKey: String,
+
+  // Langfuse
+  langfuseSecretKey: String,
+  langfusePublicKey: String,
+  langfuseBaseUrl: String,
 })

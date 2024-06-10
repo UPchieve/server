@@ -12,9 +12,10 @@ import {
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
-export interface ModerateMessageOptions {
-  content: string
-}
+import * as LangfuseService from './LangfuseService'
+import { TextPromptClient } from 'langfuse-core'
+import { LangfusePromptNameEnum } from './LangfuseService'
+
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -28,6 +29,9 @@ const PROFANITY_REGEX = /\b(4r5e|5h1t|5hit|a55s|ass-fucker|assfucker|assfukka|a_
 // Restrict access to have sessions on third party platforms
 const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 
+const LF_TRACE_NAME = 'moderateSessionMessage'
+const LF_GENERATION_NAME = 'getModerationDecision'
+
 export async function createChatCompletion({
   censoredSessionMessage,
   isVolunteer,
@@ -35,13 +39,33 @@ export async function createChatCompletion({
   censoredSessionMessage: CensoredSessionMessage
   isVolunteer: boolean
 }) {
+  const model = 'gpt-4o'
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    sessionId: censoredSessionMessage.sessionId,
+  })
+
+  const promptName =
+    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
+  let systemPrompt = await LangfuseService.getPrompt(promptName)
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model,
+    input: { censoredSessionMessage, isVolunteer },
+  })
+  if (systemPrompt) {
+    // Attach the LF prompt object if available to associate all AI generations made with this prompt
+    gen.update({ prompt: systemPrompt })
+  }
   try {
     const chatCompletion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model,
       messages: [
         {
           role: 'system',
-          content: MODERATION_PROMPT,
+          content:
+            (systemPrompt as TextPromptClient)?.prompt ??
+            FALLBACK_MODERATION_PROMPT,
         },
         {
           role: 'user',
@@ -54,6 +78,10 @@ export async function createChatCompletion({
       response_format: { type: 'json_object' },
     })
 
+    gen.end({
+      output: chatCompletion,
+    })
+
     const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
     const logData = {
       censoredSessionMessage,
@@ -63,6 +91,7 @@ export async function createChatCompletion({
         moderatorVersion: MODERATION_VERSION,
       },
     }
+    // @TODO: Eventually remove me from NR
     logger.info(logData, 'AI moderation result')
     return decision
   } catch (err) {
@@ -204,7 +233,7 @@ export const wrapMessageInXmlTags = (
 }
 
 export const MODERATION_VERSION = 'openai_v2'
-export const MODERATION_PROMPT = `
+export const FALLBACK_MODERATION_PROMPT = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
 When flagging a message, consider just the message in the XML tag.
