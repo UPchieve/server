@@ -19,7 +19,7 @@ type CheckEligibilityPayload = {
   referredByCode?: string
   schoolId?: string
   zipCode: string
-  // == Remove after high-line clean-up.
+  // == Remove after midtown clean-up.
   currentGrade?: GRADES
   schoolUpchieveId?: string
 }
@@ -29,7 +29,7 @@ const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   referredByCode: asOptional(asString),
   schoolId: asOptional(asString),
   zipCode: asString,
-  // == Remove after high-line clean-up.
+  // == Remove after midtown clean-up.
   currentGrade: asOptional(asEnum(GRADES)),
   schoolUpchieveId: asOptional(asString),
 })
@@ -52,7 +52,7 @@ export async function checkEligibility(
     referredByCode,
     schoolId,
     zipCode: zipCodeInput,
-    // == Remove after high-line clean-up.
+    // == Remove after midtown clean-up.
     currentGrade,
     schoolUpchieveId,
   } = asCheckEligibilityPayload(payload)
@@ -62,9 +62,9 @@ export async function checkEligibility(
     if (existingUser) throw new ExistingUserError()
   }
 
-  // == Remove after high-line clean-up.
+  // == Remove after midtown clean-up.
   const isCollegeStudent =
-    currentGrade === GRADES.COLLEGE || gradeLevel === GRADES.COLLEGE
+    gradeLevel === GRADES.COLLEGE || currentGrade === GRADES.COLLEGE
 
   if (email) {
     const existingIneligible = await getIneligibleStudentByEmail(email)
@@ -73,10 +73,10 @@ export async function checkEligibility(
     }
   }
 
-  // == Remove after high-line clean-up.
+  // == Remove after midtown clean-up.
   const school =
-    schoolUpchieveId || schoolId
-      ? await getSchoolById(schoolUpchieveId ?? schoolId ?? '')
+    schoolId || schoolUpchieveId
+      ? await getSchoolById(schoolId ?? schoolUpchieveId ?? '')
       : undefined
   const zipCode = zipCodeInput
     ? await getZipCodeByZipCode(zipCodeInput)
@@ -94,8 +94,8 @@ export async function checkEligibility(
         email,
         school?.id,
         zipCodeInput,
-        // == Remove after high-line clean-up.
-        currentGrade ?? gradeLevel,
+        // == Remove after midtown clean-up
+        gradeLevel ?? currentGrade,
         referredBy,
         ip
       )

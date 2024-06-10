@@ -77,37 +77,29 @@ const createPushTokenByUserIdIR: any = {"name":"createPushTokenByUserId","params
 export const createPushTokenByUserId = new PreparedQuery<ICreatePushTokenByUserIdParams,ICreatePushTokenByUserIdResult>(createPushTokenByUserIdIR);
 
 
-/** 'DeleteDuplicatePushTokens' parameters type */
-export type IDeleteDuplicatePushTokensParams = void;
-
-/** 'DeleteDuplicatePushTokens' return type */
-export type IDeleteDuplicatePushTokensResult = void;
-
-/** 'DeleteDuplicatePushTokens' query type */
-export interface IDeleteDuplicatePushTokensQuery {
-  params: IDeleteDuplicatePushTokensParams;
-  result: IDeleteDuplicatePushTokensResult;
+/** 'DeletePushTokensForUser' parameters type */
+export interface IDeletePushTokensForUserParams {
+  userId: string;
 }
 
-const deleteDuplicatePushTokensIR: any = {"name":"deleteDuplicatePushTokens","params":[],"usedParamSet":{},"statement":{"body":"DELETE FROM push_tokens\nWHERE id IN (\n        SELECT\n            id\n        FROM (\n            SELECT\n                id,\n                ROW_NUMBER() OVER (PARTITION BY user_id, token ORDER BY id) AS row_num\n            FROM\n                push_tokens) t\n        WHERE\n            t.row_num > 1)","loc":{"a":427,"b":723,"line":22,"col":0}}};
+/** 'DeletePushTokensForUser' return type */
+export type IDeletePushTokensForUserResult = void;
+
+/** 'DeletePushTokensForUser' query type */
+export interface IDeletePushTokensForUserQuery {
+  params: IDeletePushTokensForUserParams;
+  result: IDeletePushTokensForUserResult;
+}
+
+const deletePushTokensForUserIR: any = {"name":"deletePushTokensForUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":466,"b":472,"line":23,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM push_tokens\nWHERE user_id = :userId!","loc":{"a":425,"b":472,"line":22,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM push_tokens
- * WHERE id IN (
- *         SELECT
- *             id
- *         FROM (
- *             SELECT
- *                 id,
- *                 ROW_NUMBER() OVER (PARTITION BY user_id, token ORDER BY id) AS row_num
- *             FROM
- *                 push_tokens) t
- *         WHERE
- *             t.row_num > 1)
+ * WHERE user_id = :userId!
  * ```
  */
-export const deleteDuplicatePushTokens = new PreparedQuery<IDeleteDuplicatePushTokensParams,IDeleteDuplicatePushTokensResult>(deleteDuplicatePushTokensIR);
+export const deletePushTokensForUser = new PreparedQuery<IDeletePushTokensForUserParams,IDeletePushTokensForUserResult>(deletePushTokensForUserIR);
 
 

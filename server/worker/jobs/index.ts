@@ -8,7 +8,6 @@ import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunte
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
-import deleteDuplicatePushTokens from '../../scripts/delete-duplicate-push-tokens'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -53,6 +52,7 @@ import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
+import moderateSessionMessage from '../../scripts/moderate-session-message'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -117,7 +117,6 @@ export enum Jobs {
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
 
   // Delete scripts
-  DeleteDuplicatePushTokens = 'DeleteDuplicatePushTokens',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -132,6 +131,9 @@ export enum Jobs {
 
   // Eng Tooling Scripts
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
+
+  // Moderation
+  ModerateSessionMessage = 'ModerateSessionMessage',
 }
 
 // register new job processors here
@@ -350,10 +352,6 @@ const jobProcessors: JobProcessor[] = [
     processor: sendWeeklyHourSummaryApology,
   },
   {
-    name: Jobs.DeleteDuplicatePushTokens,
-    processor: deleteDuplicatePushTokens,
-  },
-  {
     name: Jobs.DeleteDuplicateUserSurveys,
     processor: deleteDuplicateUserSurveys,
   },
@@ -397,6 +395,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MigrateProgressReportPromptIds,
     processor: migrateProgressReportPromptIds,
+  },
+  {
+    name: Jobs.ModerateSessionMessage,
+    processor: moderateSessionMessage,
   },
 ]
 

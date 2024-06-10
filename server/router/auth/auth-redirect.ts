@@ -24,11 +24,12 @@ export class AuthRedirect {
 
   static failureRedirect(
     isLogin: boolean,
+    provider: string,
     studentData: Partial<RegisterStudentPayload> = {},
     errorMsg?: string
   ) {
     if (isLogin) {
-      return this.loginFailureRedirect
+      return this.loginFailureRedirect(provider)
     }
 
     delete studentData.ip
@@ -37,7 +38,7 @@ export class AuthRedirect {
     delete studentData.profileId
 
     const params = new URLSearchParams({
-      error: errorMsg ?? '',
+      error: errorMsg ?? 'Unknown server error.',
     })
     for (const key of Object.keys(studentData)) {
       const value = studentData[key as keyof RegisterStudentPayload]
@@ -49,45 +50,11 @@ export class AuthRedirect {
     )
   }
 
-  static get loginFailureRedirect() {
-    return `${this.getBaseRedirect()}/login?400=true`
-  }
-
-  static registerFailureRedirect(
-    studentData: Partial<RegisterStudentPayload>,
-    errMsg?: string
-  ) {
+  static loginFailureRedirect(provider: string) {
     const params = new URLSearchParams({
-      error: errMsg ?? '',
+      400: 'true',
+      provider: provider ?? '',
     })
-    if (studentData.email) {
-      params.append('email', studentData.email)
-    }
-    if (studentData.highSchoolId) {
-      params.append('highSchoolId', studentData.highSchoolId)
-    }
-    if (studentData.zipCode) {
-      params.append('zipCode', studentData.zipCode)
-    }
-    if (studentData.currentGrade) {
-      params.append('currentGrade', studentData.currentGrade)
-    }
-    if (studentData.studentPartnerOrg) {
-      params.append('partner', studentData.studentPartnerOrg)
-    }
-    return `${this.getBaseRedirect()}/sign-up/student/account?${params.toString()}`
-  }
-
-  static registerPartnerStudentFailureRedirect(
-    studentData: Partial<RegisterStudentPayload>,
-    errMsg?: string
-  ) {
-    const params = new URLSearchParams({
-      sso: 'google',
-      error: errMsg ?? '',
-    })
-    return `${this.getBaseRedirect()}/signup/student/${
-      studentData.studentPartnerOrg
-    }?${params.toString()}`
+    return this.getBaseRedirect() + '/login?' + params.toString()
   }
 }

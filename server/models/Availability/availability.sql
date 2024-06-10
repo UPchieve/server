@@ -194,23 +194,14 @@ RETURNING
     user_id AS ok;
 
 
-/* @name saveLegacyAvailability */
-INSERT INTO legacy_availability_histories (id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)
-SELECT
-    :id!,
-    :userId!,
-    availabilities.timezone,
-    NOW(),
-    :availability!,
-    NOW(),
-    NOW()
-FROM
-    availabilities
-WHERE
-    user_id = :userId!
-LIMIT 1
-RETURNING
-    id AS ok;
+/* @name deleteAvailabilityHistoriesForUser */
+DELETE FROM availability_histories
+WHERE user_id = :userId!;
+
+
+/* @name deleteLegacyAvailabilityHistoriesForUser */
+DELETE FROM legacy_availability_histories
+WHERE user_id = :userId!;
 
 
 /* @name getAvailabilityForVolunteerByDate */

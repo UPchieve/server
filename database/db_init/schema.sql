@@ -73,12 +73,31 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
+-- Name: moderation_system; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.moderation_system AS ENUM (
+    'regex'
+);
+
+
+--
 -- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
     'control',
     'test'
+);
+
+
+--
+-- Name: ban_types; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.ban_types AS ENUM (
+    'shadow',
+    'complete'
 );
 
 
@@ -266,6 +285,20 @@ CREATE SEQUENCE upchieve.ban_reasons_id_seq
 --
 
 ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
+
+
+--
+-- Name: censored_session_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.censored_session_messages (
+    id uuid NOT NULL,
+    sender_id uuid NOT NULL,
+    message text,
+    session_id uuid NOT NULL,
+    censored_by public.moderation_system NOT NULL,
+    sent_at timestamp with time zone NOT NULL
+);
 
 
 --
@@ -1894,6 +1927,18 @@ ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWA
 
 
 --
+-- Name: teacher_profiles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.teacher_profiles (
+    user_id uuid NOT NULL,
+    school_id uuid,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2161,7 +2206,8 @@ CREATE TABLE upchieve.users (
     sms_consent boolean DEFAULT false NOT NULL,
     mongo_id character varying(24),
     other_signup_source text,
-    proxy_email text
+    proxy_email text,
+    ban_type upchieve.ban_types
 );
 
 
@@ -2752,6 +2798,14 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 ALTER TABLE ONLY upchieve.ban_reasons
     ADD CONSTRAINT ban_reasons_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: censored_session_messages censored_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_session_messages
+    ADD CONSTRAINT censored_session_messages_pkey PRIMARY KEY (id);
 
 
 --
@@ -3587,6 +3641,14 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_profiles teacher_profiles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_profiles
+    ADD CONSTRAINT teacher_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
 -- Name: tool_types tool_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3920,6 +3982,20 @@ CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability
 
 
 --
+-- Name: censored_messages_sent_at; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX censored_messages_sent_at ON upchieve.censored_session_messages USING btree (sent_at);
+
+
+--
+-- Name: censored_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX censored_messages_session_id ON upchieve.censored_session_messages USING btree (session_id);
+
+
+--
 -- Name: feedbacks_session_id_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4157,6 +4233,22 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 ALTER TABLE ONLY upchieve.availability_histories
     ADD CONSTRAINT availability_histories_weekday_id_fkey FOREIGN KEY (weekday_id) REFERENCES upchieve.weekdays(id);
+
+
+--
+-- Name: censored_session_messages censored_session_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_session_messages
+    ADD CONSTRAINT censored_session_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: censored_session_messages censored_session_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_session_messages
+    ADD CONSTRAINT censored_session_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -5008,6 +5100,22 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_profiles teacher_profiles_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_profiles
+    ADD CONSTRAINT teacher_profiles_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: teacher_profiles teacher_profiles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_profiles
+    ADD CONSTRAINT teacher_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: user_actions user_actions_ip_address_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5454,4 +5562,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240222161927'),
     ('20240226144028'),
     ('20240320184030'),
-    ('20240403012341');
+    ('20240403012341'),
+    ('20240517164134'),
+    ('20240521195415'),
+    ('20240522182235'),
+    ('20240530165825');

@@ -79,10 +79,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send true when a fresh high school student signs up', async () => {
     const payload = {
-      schoolUpchieveId: school.id,
+      schoolId: school.id,
       zipCode: '11201',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 
@@ -101,10 +101,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should throw when reused user email signs up', async () => {
     const payload = {
-      schoolUpchieveId: school.id,
+      schoolId: school.id,
       zipCode: '11201',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 
@@ -120,10 +120,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send false when reused ineligible email signs up', async () => {
     const payload = {
-      schoolUpchieveId: school.id,
+      schoolId: school.id,
       zipCode: '11201',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 
@@ -142,10 +142,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send true when a fresh student with approved zip but unapproved HS signs up', async () => {
     const payload = {
-      schoolUpchieveId: unapprovedSchool.id,
+      schoolId: unapprovedSchool.id,
       zipCode: '11201',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 
@@ -164,10 +164,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send true when a fresh student with unapproved zip but approved HS signs up', async () => {
     const payload = {
-      schoolUpchieveId: school.id,
+      schoolId: school.id,
       zipCode: '00000',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 
@@ -188,10 +188,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send false when fresh email with unapproved zip and school signs up', async () => {
     const payload = {
-      schoolUpchieveId: unapprovedSchool.id,
+      schoolId: unapprovedSchool.id,
       zipCode: '00000',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 
@@ -212,10 +212,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send false when fresh college student signs up', async () => {
     const payload = {
-      schoolUpchieveId: school.id,
+      schoolId: school.id,
       zipCode: '11201',
       email: student.email,
-      currentGrade: GRADES.COLLEGE,
+      gradeLevel: GRADES.COLLEGE,
       referredBy,
     }
 
@@ -235,10 +235,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
   test('Should send false if is already ineligible with a school', async () => {
     const payload = {
-      schoolUpchieveId: school.id,
+      schoolId: school.id,
       zipCode: '00000',
       email: student.email,
-      currentGrade: GRADES.TENTH,
+      gradeLevel: GRADES.TENTH,
       referredBy,
     }
 

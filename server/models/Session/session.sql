@@ -628,6 +628,14 @@ SELECT
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
+    (
+        CASE WHEN user_roles.name = 'volunteer' THEN
+            sessions.volunteer_id
+        WHEN user_roles.name = 'student' THEN
+            sessions.student_id
+        ELSE
+            NULL
+        END) AS ended_by,
     tool_types.name AS tool_type
 FROM
     sessions
@@ -635,6 +643,7 @@ FROM
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
+    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
 WHERE
     sessions.id = :sessionId;
 

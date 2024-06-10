@@ -10,8 +10,10 @@ import { asString, asUlid, asBoolean } from '../../utils/type-utils'
 import {
   checkEligibility,
   checkZipCode,
+  verifyEligibility,
 } from '../../services/EligibilityService'
 import { getStudentSignupSources } from '../../services/StudentService'
+import { InputError } from '../../models/Errors'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -21,6 +23,19 @@ export function routes(app: Express) {
     try {
       const result = await checkEligibility(req.ip, req.body as unknown)
       return res.json(result)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/check/teacher').get(async (req, res) => {
+    try {
+      const schoolId = req.query.schoolId
+      if (!schoolId) {
+        throw new InputError('School ID must be provided.')
+      }
+      const isEligible = await verifyEligibility(undefined, asString(schoolId))
+      return res.json({ isEligible })
     } catch (err) {
       resError(res, err)
     }

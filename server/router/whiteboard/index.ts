@@ -14,6 +14,7 @@ import {
   Message,
   MessageType,
 } from '../../utils/zwibblerDecoder'
+import WebSocket from 'ws'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
   logger.error(
@@ -23,6 +24,18 @@ const captureUnimplemented = (sessionId: string, messageType: string): void => {
 
 const whiteboardChannel = 'whiteboard/'
 const wsEmitter = new WebSocketEmitter(whiteboardChannel, { encoder: encode })
+
+function sendErrorDocument(wsClient: WebSocket, error: Error) {
+  logError(error)
+  return wsClient.send(
+    encode({
+      messageType: MessageType.ERROR,
+      errorCode: DecodeError.DOES_NOT_EXIST,
+      more: 0,
+      description: 'does not exist',
+    })
+  )
+}
 
 const messageHandlers: {
   [type in MessageType]: ({
@@ -279,78 +292,46 @@ export function routes(app: Express): void {
     next()
   })
 
-  router.ws('/admin/:sessionId', function(wsClient, req) {
+  router.ws('/admin/:sessionId', async function(wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
-
-    wsClient.on('message', async rawMessage => {
-      const message = decode(rawMessage as Uint8Array)
-
-      if (message.messageType === MessageType.INIT) {
-        try {
-          // Active session's document
-          let document: string | undefined
-          try {
-            document = await WhiteboardService.getDoc(asUlid(sessionId))
-          } catch (err) {
-            if (!(err instanceof KeyNotFoundError)) throw err
-          }
-          // Get the completed session's whiteboard document from storage
-          if (!document)
-            document = await WhiteboardService.getDocFromStorage(sessionId)
-          return wsClient.send(
-            encode({
-              messageType: MessageType.APPEND,
-              offset: 0,
-              data: document,
-              more: 0,
-            })
-          )
-        } catch (error) {
-          if (!(error instanceof KeyNotFoundError)) throw error
-        }
+    try {
+      let document: string | undefined
+      try {
+        document = await WhiteboardService.getDoc(asUlid(sessionId))
+      } catch (err) {
+        if (!(err instanceof KeyNotFoundError)) throw err
       }
-    })
+      if (!document)
+        document = await WhiteboardService.getDocFromStorage(sessionId)
+      return wsClient.send(
+        encode({
+          messageType: MessageType.APPEND,
+          offset: 0,
+          data: document,
+          more: 0,
+        })
+      )
+    } catch (error) {
+      if (!(error instanceof KeyNotFoundError))
+        return sendErrorDocument(wsClient, error as Error)
+    }
   })
 
-  router.ws('/recap/:sessionId', function(wsClient, req) {
+  router.ws('/recap/:sessionId', async function(wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
-    let initialized = false
-
-    // Allow 5 seconds for the server to respond to an INIT message otherwise
-    // we'll close the socket connection to allow for Zwibbler to retry connecting
-    setTimeout(() => {
-      if (!initialized) wsClient.close()
-    }, 5 * 1000)
-
-    wsClient.on('message', async rawMessage => {
-      const message = decode(rawMessage as Uint8Array)
-      if (message.messageType === MessageType.INIT) {
-        try {
-          initialized = true
-          // Get the completed session's whiteboard document from storage for session recap
-          const document = await WhiteboardService.getDocFromStorage(sessionId)
-          return wsClient.send(
-            encode({
-              messageType: MessageType.APPEND,
-              offset: 0,
-              data: document,
-              more: 0,
-            })
-          )
-        } catch (error) {
-          Sentry.captureException(error)
-          logError(error as Error)
-          return wsClient.send(
-            encode({
-              messageType: MessageType.ERROR,
-              errorCode: DecodeError.DOES_NOT_EXIST,
-              more: 0,
-              description: 'does not exist',
-            })
-          )
-        }
-      }
-    })
+    try {
+      const document = await WhiteboardService.getDocFromStorage(sessionId)
+      return wsClient.send(
+        encode({
+          messageType: MessageType.APPEND,
+          offset: 0,
+          data: document,
+          more: 0,
+        })
+      )
+    } catch (error) {
+      return sendErrorDocument(wsClient, error as Error)
+    }
   })
 
   router.route('/reset').post(async function(req, res, next) {

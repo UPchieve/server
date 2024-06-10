@@ -340,6 +340,11 @@ const config: Static<typeof Config> = {
   subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
   subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',
   subwayAIVisionApiKey: process.env.SUBWAY_VISION_AI_API_KEY || 'bogus',
+
+  // Langfuse
+  langfuseSecretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY || 'bogus',
+  langfusePublicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY || 'bogus',
+  langfuseBaseUrl: 'https://us.cloud.langfuse.com',
 }
 
 module.exports = config

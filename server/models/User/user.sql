@@ -1,3 +1,14 @@
+/* @name getUserRolesById */
+SELECT
+    user_roles.name
+FROM
+    users
+    LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
+WHERE
+    users.id = :id!;
+
+
 /* @name createUser */
 INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
     VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
@@ -581,6 +592,7 @@ FROM
                         subjects.name) AS subject_certs ON subject_certs.name = subjects.name
                 WHERE
                     users.id = :userId!
+                    AND certifications.active = TRUE
                 GROUP BY
                     subjects.name,
                     subject_certs.total,

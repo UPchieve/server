@@ -5,14 +5,10 @@ import { Strategy as GoogleStrategy } from 'passport-google-oidc'
 import CleverStrategy from './clever-strategy'
 import { getFederatedCredential } from '../../models/FederatedCredential/queries'
 import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
-import {
-  registerStudent,
-  createPartnerStudent,
-} from '../../services/UserCreationService'
+import { registerStudent } from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
   SessionWithSsoData,
-  SessionWithStudentData,
   verifyPassword,
 } from '../../utils/auth-utils'
 import config from '../../config'
@@ -38,8 +34,8 @@ async function passportRegisterUser(
   profile: passport.Profile,
   issuer: string,
   providerName: string,
-  done: Function,
-  data?: Partial<RegisterStudentPayload>
+  data: Partial<RegisterStudentPayload> = {},
+  done: Function
 ) {
   try {
     const existingFedCred = await getFederatedCredential(profile.id, issuer)
@@ -65,10 +61,6 @@ async function passportRegisterUser(
         false,
         `Account with ${providerName} email already exists.`
       )
-    }
-
-    if (!data) {
-      return done(null, false, 'Internal Error: Please try again.')
     }
 
     const studentData = {
@@ -150,8 +142,8 @@ export function addPassportAuthMiddleware() {
             profile,
             issuer,
             'Google',
-            done,
-            studentData
+            studentData,
+            done
           )
         }
       }
@@ -167,7 +159,7 @@ export function addPassportAuthMiddleware() {
       profile: passport.Profile & { issuer: string },
       done: Function
     ) {
-      const { isLogin } = req.session as SessionWithSsoData
+      const isLogin = (req.session as SessionWithSsoData)?.isLogin ?? true
       if (isLogin) {
         return passportLoginUser(profile.id, profile.issuer, done)
       } else {
@@ -176,187 +168,10 @@ export function addPassportAuthMiddleware() {
           profile,
           profile.issuer,
           'Clever',
-          done,
-          studentData
+          studentData,
+          done
         )
       }
     })
-  )
-
-  // == Remove after high-line clean-up.
-  passport.use(
-    'google-login',
-    new GoogleStrategy(
-      {
-        clientID: config.googleClientId,
-        clientSecret: config.googleClientSecret,
-        callbackURL: '/auth/oauth2/redirect/google/login',
-        scope: ['email'],
-        prompt: 'select_account',
-      },
-      async function(
-        issuer: string,
-        profile: passport.Profile,
-        done: Function
-      ) {
-        try {
-          const existingFedCred = await getFederatedCredential(
-            profile.id,
-            issuer
-          )
-          if (!existingFedCred) {
-            return done(null, false)
-          }
-
-          return done(null, { id: existingFedCred.userId })
-        } catch (error) {
-          return done(error)
-        }
-      }
-    )
-  )
-
-  passport.use(
-    'google-register-student',
-    new GoogleStrategy(
-      {
-        clientID: config.googleClientId,
-        clientSecret: config.googleClientSecret,
-        callbackURL: '/auth/oauth2/redirect/google/register/student',
-        passReqToCallback: true,
-        scope: ['profile', 'email'],
-        prompt: 'select_account',
-      },
-      async function(
-        req: Request,
-        issuer: string,
-        profile: passport.Profile,
-        done: Function
-      ) {
-        try {
-          const existingFedCred = await getFederatedCredential(
-            profile.id,
-            issuer
-          )
-          if (existingFedCred) {
-            return done(
-              null,
-              false,
-              'Google account already used with another UPchieve account.'
-            )
-          }
-
-          const firstName = profile.name?.givenName
-          const lastName = profile.name?.familyName
-          const email = profile.emails?.[0]?.value
-          if (!firstName || !lastName || !email) {
-            return done(null, false)
-          }
-
-          const existingUser = await getUserIdByEmail(email)
-          if (existingUser) {
-            return done(
-              null,
-              false,
-              'Account with Google email already exists.'
-            )
-          }
-
-          const session = req.session as SessionWithStudentData
-          if (!session.studentData) {
-            return done(null, false)
-          }
-
-          const data = {
-            email,
-            emailVerified: true,
-            firstName,
-            gradeLevel: session.studentData.currentGrade,
-            ip: session.studentData.ip,
-            issuer,
-            lastName,
-            profileId: profile.id,
-            schoolId: session.studentData.highSchoolId,
-            studentPartnerOrgKey: session.studentData.studentPartnerOrg,
-            referredByCode: session.studentData.referredByCode,
-            verified: true,
-            zipCode: session.studentData.zipCode,
-          }
-          const student = await registerStudent(data)
-          return done(null, student)
-        } catch (err) {
-          return done(err)
-        }
-      }
-    )
-  )
-
-  passport.use(
-    'google-register-partner-student',
-    new GoogleStrategy(
-      {
-        clientID: config.googleClientId,
-        clientSecret: config.googleClientSecret,
-        callbackURL: '/auth/oauth2/redirect/google/register/partner-student',
-        passReqToCallback: true,
-        scope: ['profile', 'email'],
-        prompt: 'select_account',
-      },
-      async function(
-        req: Request,
-        issuer: string,
-        profile: passport.Profile,
-        done: Function
-      ) {
-        try {
-          const existingFedCred = await getFederatedCredential(
-            profile.id,
-            issuer
-          )
-          if (existingFedCred) {
-            return done(
-              null,
-              false,
-              'Google account already associated with an account.'
-            )
-          }
-
-          const firstName = profile.name?.givenName
-          const lastName = profile.name?.familyName
-          const email = profile.emails?.[0]?.value
-          if (!firstName || !lastName || !email) {
-            return done(null, false)
-          }
-
-          const existingUser = await getUserIdByEmail(email)
-          if (existingUser) {
-            return done(
-              null,
-              false,
-              'Account with Google email already exists.'
-            )
-          }
-
-          const session = req.session as SessionWithStudentData
-          if (!session.studentData) {
-            return done(null, false)
-          }
-
-          const student = await createPartnerStudent({
-            email,
-            firstName,
-            lastName,
-            gradeLevel: session.studentData.currentGrade,
-            studentPartnerOrg: session.studentData.studentPartnerOrg,
-            profileId: profile.id,
-            issuer,
-          })
-
-          return done(null, student)
-        } catch (err) {
-          return done(err)
-        }
-      }
-    )
   )
 }

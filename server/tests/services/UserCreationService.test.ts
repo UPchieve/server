@@ -10,12 +10,14 @@ import * as UserActionRepo from '../../models/UserAction'
 import * as FedCredRepo from '../../models/FederatedCredential'
 import * as MailService from '../../services/MailService'
 import * as EligibilityService from '../../services/EligibilityService'
+import * as IpAddressService from '../../services/IpAddressService'
 import {
   registerStudent,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
 import { hashPassword, verifyPassword } from '../../utils/auth-utils'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES } from '../../constants'
+import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../models/Student/queries')
@@ -26,6 +28,7 @@ jest.mock('../../models/UserProductFlags/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/FederatedCredential/queries')
 jest.mock('../../services/MailService')
+jest.mock('../../services/IpAddressService')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedStudentRepo = mocked(StudentRepo)
@@ -36,6 +39,7 @@ const mockedUPFRepo = mocked(UPFRepo)
 const mockedUserActionRepo = mocked(UserActionRepo)
 const mockedFedCredRepo = mocked(FedCredRepo)
 const mockedMailService = mocked(MailService)
+const mockedIpAddressService = mocked(IpAddressService)
 jest.spyOn(EligibilityService, 'verifyEligibility').mockResolvedValue(true)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7
@@ -787,7 +791,7 @@ describe('registerStudent', () => {
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
       password: 'Password123!',
-      studentPartnerOrg: PARTNER_ORG.key,
+      studentPartnerOrgKey: PARTNER_ORG.key,
     }
     mockedUserRepo.createUser.mockResolvedValue({
       id: USER_ID,
@@ -831,7 +835,7 @@ describe('registerStudent', () => {
       firstName: faker.name.firstName(),
       lastName: faker.name.lastName(),
       password: 'Password123!',
-      studentPartnerOrg: PARTNER_ORG.key,
+      studentPartnerOrgKey: PARTNER_ORG.key,
     }
     mockedUserRepo.createUser.mockResolvedValue({
       id: USER_ID,
@@ -896,5 +900,49 @@ describe('registerStudent', () => {
     expect(
       mockedStudentPartnerOrgRepo.createUserStudentPartnerOrgInstance
     ).toHaveBeenCalledTimes(1)
+  })
+
+  test('throws if user with email already exists', async () => {
+    mockedUserRepo.getUserIdByEmail.mockResolvedValue(
+      'id-of-user-that-already-exists'
+    )
+    await expect(
+      registerStudent({
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      })
+    ).rejects.toThrow(
+      new LookupError('The email address you entered is already in use')
+    )
+  })
+
+  test('throws if no authentication method provided', async () => {
+    mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
+    await expect(
+      registerStudent({
+        email: faker.internet.email(),
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      })
+    ).rejects.toThrow(new InputError('No authentication method provided.'))
+  })
+
+  test('throws if non-US ip', async () => {
+    mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
+    mockedIpAddressService.getIpWhoIs.mockResolvedValue({
+      country_code: 'RU',
+      org: 'example',
+    })
+    await expect(
+      registerStudent({
+        email: faker.internet.email(),
+        ip: faker.internet.ip(),
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+      })
+    ).rejects.toThrow(
+      new NotAllowedError('Cannot register from an international IP address')
+    )
   })
 })
