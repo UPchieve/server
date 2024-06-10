@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.11 (Homebrew)
+-- Dumped by pg_dump version 14.12 (Ubuntu 14.12-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3588,6 +3588,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 --
 
 COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at) FROM stdin;
 \.
 
 
