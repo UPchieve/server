@@ -23,3 +23,17 @@ FROM
 WHERE
     user_id = :userId!;
 
+
+/* @name getTeacherClassByClassCode */
+SELECT
+    user_id,
+    name,
+    code,
+    active,
+    created_at,
+    updated_at
+FROM
+    teacher_classes
+WHERE
+    code = :code!;
+
