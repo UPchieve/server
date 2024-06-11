@@ -1,3 +1,5 @@
+import * as http from 'http'
+import { Socket } from 'net'
 import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
 import timeout from 'connect-timeout'
@@ -158,12 +160,24 @@ if (isDevEnvironment()) {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 }
 
-// initialize Express WebSockets
-expressWs(app)
-
-// Start socket server
-export const io = socketServer(app)
-
+export const server = http.createServer(app)
+// Initialize Express WebSockets.
+const wsInstance = expressWs(app, server)
+// Initialize socket-io.
+export const io = socketServer(server)
+// Manually upgrade the WebSocket and socket.io connections.
+server.removeAllListeners('upgrade')
+server.on('upgrade', (request, socket, head) => {
+  const pathname = request.url
+  if (pathname?.startsWith('/socket.io/')) {
+    io.engine.handleUpgrade(request, socket, head)
+  } else {
+    const wss = wsInstance.getWss()
+    wss.handleUpgrade(request, socket as Socket, head, ws => {
+      wss.emit('connection', ws, request)
+    })
+  }
+})
 // Load server router
 router(app, io)
 
