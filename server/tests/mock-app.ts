@@ -1,8 +1,6 @@
 import bodyParser from 'body-parser'
 import express from 'express'
-import { Server } from 'socket.io'
 import { UserContactInfo } from '../models/User'
-import socketServer from '../socket-server'
 
 export function defaultErrorHandler(
   err: Error & { httpStatus: number },
@@ -47,13 +45,4 @@ export function mockPassportMiddleware(
 
 export function mockRouter() {
   return express.Router()
-}
-
-/**
- * Creates a socket server attached to the given app. When used in tests call
- * socketServer.close() during afterAll()
- * @param app express app to attach socket server to
- */
-export function mockSocketServer(app: express.Express): Server {
-  return socketServer(app)
 }
