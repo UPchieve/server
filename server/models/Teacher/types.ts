@@ -17,3 +17,8 @@ export type TeacherClass = {
   createdAt: Date
   updatedAt: Date
 }
+
+export type CreateTeacherClassPayload = Omit<
+  TeacherClass,
+  'active' | 'createdAt' | 'updatedAt'
+>
