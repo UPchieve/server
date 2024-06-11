@@ -28,3 +28,45 @@ const createTeacherProfileIR: any = {"name":"createTeacherProfile","params":[{"n
 export const createTeacherProfile = new PreparedQuery<ICreateTeacherProfileParams,ICreateTeacherProfileResult>(createTeacherProfileIR);
 
 
+/** 'GetTeacherClassesByUserId' parameters type */
+export interface IGetTeacherClassesByUserIdParams {
+  userId: string;
+}
+
+/** 'GetTeacherClassesByUserId' return type */
+export interface IGetTeacherClassesByUserIdResult {
+  active: boolean;
+  code: string;
+  createdAt: Date;
+  name: string;
+  updatedAt: Date;
+  userId: string | null;
+}
+
+/** 'GetTeacherClassesByUserId' query type */
+export interface IGetTeacherClassesByUserIdQuery {
+  params: IGetTeacherClassesByUserIdParams;
+  result: IGetTeacherClassesByUserIdResult;
+}
+
+const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":324,"b":330,"line":17,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    user_id = :userId!","loc":{"a":195,"b":330,"line":7,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id,
+ *     name,
+ *     code,
+ *     active,
+ *     created_at,
+ *     updated_at
+ * FROM
+ *     teacher_classes
+ * WHERE
+ *     user_id = :userId!
+ * ```
+ */
+export const getTeacherClassesByUserId = new PreparedQuery<IGetTeacherClassesByUserIdParams,IGetTeacherClassesByUserIdResult>(getTeacherClassesByUserIdIR);
+
+
