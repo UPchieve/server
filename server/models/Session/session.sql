@@ -34,6 +34,7 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
+    users.ban_type AS student_ban_type,
     user_product_flags.paid_tutors_pilot_group,
     session_count.total = 1 AS is_first_time_student,
     subjects.display_name AS subject_display_name
@@ -55,6 +56,7 @@ WHERE
     AND sessions.ended_at IS NULL
     AND sessions.created_at > :start!
     AND users.banned IS FALSE
+    AND users.ban_type IS DISTINCT FROM 'complete'
 ORDER BY
     sessions.created_at;
 
