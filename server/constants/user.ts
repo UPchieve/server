@@ -94,6 +94,12 @@ export const USER_BAN_REASONS = <const>{
 }
 export type USER_BAN_REASONS = ExtractValues<typeof USER_BAN_REASONS>
 
+export const USER_BAN_TYPES = <const>{
+  COMPLETE: 'complete',
+  SHADOW: 'shadow',
+}
+export type USER_BAN_TYPES = ExtractValues<typeof USER_BAN_TYPES>
+
 export const IP_ADDRESS_STATUS = <const>{
   OK: 'OK',
   BANNED: 'BANNED',

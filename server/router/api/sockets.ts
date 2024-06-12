@@ -11,7 +11,12 @@ import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import * as cache from '../../cache'
 import config from '../../config'
-import { EVENTS, FEATURE_FLAGS, SESSION_ACTIVITY_KEY } from '../../constants'
+import {
+  EVENTS,
+  FEATURE_FLAGS,
+  SESSION_ACTIVITY_KEY,
+  USER_BAN_TYPES,
+} from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
@@ -329,7 +334,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
-            if (source === 'recap' && dbUser?.banned) return resolve()
+            if (source === 'recap' && !!dbUser?.banType) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {
