@@ -15,7 +15,11 @@ import {
   RepoUpdateError,
   RepoUpsertError,
 } from '../Errors'
-import { USER_BAN_REASONS, USER_ROLES_TYPE } from '../../constants'
+import {
+  USER_BAN_REASONS,
+  USER_BAN_TYPES,
+  USER_ROLES_TYPE,
+} from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
 import { PoolClient } from 'pg'
@@ -145,6 +149,7 @@ export type UserContactInfo = {
   studentPartnerOrg?: string
   lastActivityAt?: Date
   banned: boolean
+  banType?: USER_BAN_TYPES
   deactivated: boolean
   approved?: boolean
 }
@@ -176,6 +181,7 @@ export async function getUserContactInfoById(
         'approved',
         'lastActivityAt',
         'phone',
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -201,6 +207,7 @@ export async function getUserContactInfoByReferralCode(
         'approved',
         'lastActivityAt',
         'phone',
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -263,6 +270,7 @@ export async function getUserContactInfoByResetToken(
         'approved',
         'lastActivityAt',
         'phone',
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -380,10 +388,14 @@ export async function updateUserLastActivityById(
   }
 }
 
-export async function banUserById(userId: Ulid, banReason: USER_BAN_REASONS) {
+export async function banUserById(
+  userId: Ulid,
+  banType: USER_BAN_TYPES,
+  banReason: USER_BAN_REASONS
+) {
   try {
     const result = await pgQueries.updateUserBanById.run(
-      { userId, banReason },
+      { userId, banType, banReason },
       getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
@@ -560,6 +572,7 @@ export async function getUserForAdminDetail(
 export type UserForCreateSendGridContact = UserContactInfo & {
   lastName: string
   banned: boolean
+  banType?: USER_BAN_TYPES
   testUser: boolean
   isVolunteer: boolean
   isAdmin: boolean
@@ -589,6 +602,7 @@ export async function getUserToCreateSendGridContact(
       'passedUpchieve101',
       'lastActivityAt',
       'studentGradeLevel',
+      'banType',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -738,6 +752,7 @@ export type ReportedUser = {
   createdAt: Date
   isTestUser: boolean
   isBanned: boolean
+  banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isVolunteer: boolean
   studentPartnerOrg?: string
@@ -758,6 +773,7 @@ export async function getReportedUser(
       const ret = makeSomeOptional(result[0], [
         'studentPartnerOrg',
         'volunteerPartnerOrg',
+        'banType',
       ])
       ret.email = ret.email.toLowerCase()
       return ret

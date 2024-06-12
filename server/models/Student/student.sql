@@ -27,6 +27,7 @@ FROM
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     banned IS FALSE
+    AND (ban_type IS DISTINCT FROM 'complete')
     AND deactivated IS FALSE
     AND test_user IS FALSE
     AND (users.id::uuid = :userId
@@ -162,6 +163,7 @@ SET
     email = :email!,
     verified = :verified!,
     banned = :banned!,
+    ban_type = :banType,
     deactivated = :deactivated!,
     updated_at = NOW()
 WHERE
@@ -258,7 +260,7 @@ INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, email_v
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
-    id, first_name, last_name, email, verified, banned, test_user, deactivated, created_at;
+    id, first_name, last_name, email, verified, banned, ban_type, test_user, deactivated, created_at;
 
 
 /* @name createStudentProfile */
