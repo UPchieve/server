@@ -1,12 +1,15 @@
 -- migrate:up
 ALTER TABLE upchieve.sessions
-ADD COLUMN shadowbanned boolean;
+    ADD COLUMN shadowbanned boolean;
 
-UPDATE upchieve.sessions
-SET shadowbanned = TRUE
-WHERE student_banned = TRUE;
+UPDATE
+    upchieve.sessions
+SET
+    shadowbanned = TRUE
+WHERE
+    student_banned = TRUE;
 
 -- migrate:down
 ALTER TABLE upchieve.sessions
-DROP COLUMN shadowbanned;
+    DROP COLUMN shadowbanned;
 
