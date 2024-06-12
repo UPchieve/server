@@ -344,7 +344,7 @@ const config: Static<typeof Config> = {
   // Langfuse
   langfuseSecretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY || 'bogus',
   langfusePublicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY || 'bogus',
-  langfuseBaseUrl: 'https://us.cloud.langfuse.com',
+  langfuseBaseUrl: process.env.SUBWAY_LANGFUSE_BASEURL || 'bogus',
 }
 
 module.exports = config
