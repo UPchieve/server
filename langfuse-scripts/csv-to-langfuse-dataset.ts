@@ -35,7 +35,11 @@ async function uploadDataset({
   datasetName: string
   records: Array<Record>
 }) {
-  const langfuse = new Langfuse()
+  const langfuse = new Langfuse({
+    secretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY,
+    publicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY,
+    baseUrl: process.env.SUBWAY_LANGFUSE_BASEURL,
+  })
   let processed = 0
   const failures: Array<{ record: Record; error: unknown }> = []
   for (const { message, type, reasons, appropriate } of records) {
