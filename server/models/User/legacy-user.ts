@@ -76,6 +76,7 @@ export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
   const client = await getClient().connect()
+  console.log('**************')
   try {
     const baseResult = await pgQueries.getLegacyUser.run({ userId }, client)
     if (!baseResult.length)
@@ -117,6 +118,7 @@ export async function getLegacyUserObject(
     }, {})
     const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
+    console.log('*****base user', baseUser)
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []

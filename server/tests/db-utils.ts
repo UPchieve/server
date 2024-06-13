@@ -55,7 +55,10 @@ export async function insertSingleRow<T extends { [key: string]: any }>(
     values.push(entries[i][1])
   }
   const query = `INSERT INTO ${table} (${keyString}) VALUES (${valueString}) RETURNING ${keyString};`
+  console.log('*****query', query)
+  console.log('*****client', client)
   const result = await client.query(query, values)
+  console.log('*****result', result)
   if (result.rows[0]) return camelCaseKeys(result.rows[0])
   throw new Error(`Inserting into ${table} failed`)
 }
