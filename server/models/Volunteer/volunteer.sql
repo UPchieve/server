@@ -1053,7 +1053,7 @@ INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, 
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
-    id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at;
+    id, email, first_name, last_name, phone, banned, test_user, deactivated, created_at;
 
 
 /* @name createUserVolunteerPartnerOrgInstance */
