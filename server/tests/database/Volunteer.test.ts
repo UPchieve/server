@@ -409,6 +409,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     certificationSubjects: ['prealgebra'],
     withFullAvailability: true,
     partner: undefined,
+    banType: undefined,
     ...opts,
   }
   const v = generateVolunteer()
@@ -434,6 +435,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     firstName: undefined,
     lastName: undefined,
     volunteerPartnerOrg: options.partner,
+    banType: options.banType,
   })
   return res
 }

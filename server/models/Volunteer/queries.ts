@@ -1211,7 +1211,7 @@ export async function createVolunteer(
     )
     if (!userResult.length && makeRequired(userResult[0]).id)
       throw new Error('Insert query did not return new row')
-    const user = makeRequired(userResult[0])
+    const user = makeSomeOptional(userResult[0], ['banType'])
     const profileResult = await pgQueries.createVolunteerProfile.run(
       {
         userId: user.id,
