@@ -16,7 +16,7 @@ if [[ -n "$2" ]]
 then
   port=$2
 else
-  echo -n "Please enter a port (3000 for REST or 3001 for socket traffic): "
+  echo -n "Please enter a port (3000 for REST and socket traffic): "
   read -r port
 fi
 echo "Intercepting port $port"

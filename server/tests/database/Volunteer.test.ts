@@ -435,7 +435,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     firstName: undefined,
     lastName: undefined,
     volunteerPartnerOrg: options.partner,
-    banType: options.banType
+    banType: options.banType,
   })
   return res
 }
