@@ -134,79 +134,94 @@ describe('upsertUser', () => {
     expect(after.rows[0].password).toBe(updatedUser.password)
     expect(after.rows[0].phone).toBe(updatedUser.phone)
   })
+})
 
-  test('bans user by id with a complete ban type', async () => {
-    const user = {
-      email: 'bantype@complete.com',
-      firstName: 'Ban',
-      lastName: 'Complete',
-      password: 'Pass123',
-      phone: '1111111111',
-    }
-    await createUser(user, client)
-    const before = await client.query('SELECT * FROM users WHERE email = $1', [
-      user.email,
-    ])
-    expect(before.rows[0].ban_type).toBe(null)
+describe('complete ban on ban users by id', () => {
+   test('bans user by id with a complete ban type', async () => {
+     const user = {
+       email: 'bantype@complete.com',
+       firstName: 'Ban',
+       lastName: 'Complete',
+       password: 'Pass123',
+       phone: '1111111111',
+     }
+     await createUser(user, client)
+     const before = await client.query('SELECT * FROM users WHERE email = $1', [
+       user.email,
+     ])
+     expect(before.rows[0].ban_type).toBe(null)
 
-    await banUserById(before.rows[0].id, USER_BAN_TYPES.COMPLETE, USER_BAN_REASONS.SESSION_REPORTED)
-    const after = await client.query('SELECT * FROM users WHERE email = $1', [
-      user.email
-    ])
-    expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
-  })
+     await banUserById(
+       before.rows[0].id,
+       USER_BAN_TYPES.COMPLETE,
+       USER_BAN_REASONS.SESSION_REPORTED
+     )
+     const after = await client.query('SELECT * FROM users WHERE email = $1', [
+       user.email,
+     ])
+     expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
+   })
 
-  test('bans user by id when reporting a session', async () => {
-  const volunteer =  await createVolunteer({
-    email: faker.internet.email(),
-    password: 'Password!123', // pragma: allowlist secret
-    phone: faker.phone.phoneNumber('+###########'),
-    firstName: 'Volunteer',
-    lastName: "Test",
-    referredBy: undefined,
-    timezone: 'EST',
-    volunteerPartnerOrg: undefined,
-  })
-    const upsertedVolunteer = await client.query('SELECT * FROM upchieve.users WHERE email = $1', [
-      volunteer.email,
-    ])
+   test('bans user by id when reporting a session', async () => {
+     const volunteer = {
+       email: 'volunteer@bantype.com',
+       firstName: 'Volunteer',
+       lastName: 'Test',
+       password: 'Pass123',
+       phone: '1111111111',
+     }
+     await createUser(volunteer, client)
+     const upsertedVolunteer = await client.query(
+       'SELECT * FROM upchieve.users WHERE email = $1',
+       [volunteer.email]
+     )
 
-    const student = {
-      email: 'bantype@complete.com',
-      firstName: 'Ban',
-      lastName: 'Complete',
-      password: 'Pass123',
-      phone: '1111111112',
-      isVolunteer: false,
-    }
-    await createUser(student, client)
-    const before = await client.query('SELECT * FROM upchieve.users WHERE email = $1', [
-      student.email,
-    ])
-    console.log('****before', before.rows[0])
-    expect(before.rows[0].ban_type).toBe(null)
+     const student = {
+       email: 'studentban@complete.com',
+       firstName: 'Ban',
+       lastName: 'Complete',
+       password: 'Pass123',
+       phone: '1111111112',
+     }
+     await createUser(student, client)
+     const before = await client.query(
+       'SELECT * FROM upchieve.users WHERE email = $1',
+       [student.email]
+     )
+     expect(before.rows[0].ban_type).toBe(null)
 
-    const session = await insertSingleRow(
-      'sessions',
-      await buildSessionRow({ studentId: before.rows[0].id, volunteerId: upsertedVolunteer.rows[0].id }, client),
-      client
-    )
+     const session = await insertSingleRow(
+       'sessions',
+       await buildSessionRow(
+         {
+           studentId: before.rows[0].id,
+           volunteerId: upsertedVolunteer.rows[0].id,
+         },
+         client
+       ),
+       client
+     )
 
-    const sessionId = session.id
-    const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
-    const reportMessage = 'User was rude'
-    const source = 'recap'
+     const sessionId = session.id
+     const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
+     const reportMessage = 'User was rude'
+     const source = 'recap'
 
-    await reportSession(upsertedVolunteer.rows[0], {
-      sessionId,
-      reportReason,
-      reportMessage,
-      source,
-    })
+     await reportSession(
+       { ...upsertedVolunteer.rows[0], isVolunteer: true },
+       {
+         sessionId,
+         reportReason,
+         reportMessage,
+         source,
+       }
+     )
 
-    const after = await client.query('SELECT * FROM upchieve.users WHERE email = $1', [
-      student.email
-    ])
-    console.log('*****after', after.rows[0])
-  })
+     const after = await client.query(
+       'SELECT * FROM upchieve.users WHERE email = $1',
+       [student.email]
+     )
+
+     expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
+   })
 })

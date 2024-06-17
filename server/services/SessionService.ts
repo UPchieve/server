@@ -141,12 +141,8 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   const reportedUser = reportedBy.isVolunteer
     ? session.studentId
     : session.volunteerId
-  console.log('****ban reason', isBanReason)
-  console.log('*****reportedBy.isVolunteer', reportedBy.isVolunteer)
-  console.log('*****reported User', reportedUser)
-  console.log('****student id', session.studentId)
+
   if (isBanReason) {
-    console.log('****inside is ban reason')
     await UserRepo.banUserById(
       reportedUser,
       USER_BAN_TYPES.COMPLETE,
