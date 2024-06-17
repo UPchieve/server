@@ -394,10 +394,12 @@ export async function banUserById(
   banReason: USER_BAN_REASONS
 ) {
   try {
+    console.log('****in ban user function')
     const result = await pgQueries.updateUserBanById.run(
       { userId, banType, banReason },
       getClient()
     )
+    console.log('***ban result', result)
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
