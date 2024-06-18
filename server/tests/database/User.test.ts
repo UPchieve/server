@@ -11,9 +11,10 @@ import { SESSION_REPORT_REASON, USER_BAN_REASONS, USER_BAN_TYPES } from '../../c
 import { reportSession } from '../../services/SessionService'
 import { buildSessionRow } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
-import { createVolunteer } from '../../models/Volunteer'
+import { adminUpdateUser } from '../../services/UserService'
 
 const client = getClient()
+jest.mock('../../services/MailService')
 
 test('Make a connection', async () => {
   const result = await getUserIdByEmail('student@upchieve.org')
@@ -136,7 +137,55 @@ describe('upsertUser', () => {
   })
 })
 
-describe('complete ban on ban users by id', () => {
+describe('admin update user', () => {
+  test('change ban type to complete when updating user from admin', async () => {
+    const student = {
+      email: 'adminupdate@ban.com',
+      firstName: 'Ban',
+      lastName: 'Complete',
+      password: 'Pass123',
+      phone: '1111111113',
+    }
+    await createUser(student, client)
+
+    const before = await client.query(
+      'SELECT * FROM upchieve.users WHERE email = $1',
+      [student.email]
+    )
+
+    expect(before.rows[0].ban_type).toBe(null)
+    const data = {
+      userId: before.rows[0].id,
+      banType: USER_BAN_TYPES.COMPLETE,
+      email: before.rows[0].email,
+      isVerified: true,
+      isBanned: false,
+      isDeactivated: false,
+      inGatesStudy: false,
+      isVolunteer: false,
+    }
+
+    await client.query(
+      'INSERT INTO user_product_flags (user_id, created_at, updated_at) VALUES ($1, NOW(), NOW())',
+      [data.userId]
+    )
+
+    await client.query('INSERT INTO student_profiles (user_id) VALUES($1)', [
+      data.userId,
+    ])
+
+    await adminUpdateUser(data)
+
+    const after = await client.query(
+      'SELECT * FROM upchieve.users WHERE email = $1',
+      [student.email]
+    )
+
+    expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
+  })
+})
+
+describe('ban type users tests', () => {
    test('bans user by id with a complete ban type', async () => {
      const user = {
        email: 'bantype@complete.com',
