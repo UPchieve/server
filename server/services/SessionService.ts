@@ -141,7 +141,6 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   const reportedUser = reportedBy.isVolunteer
     ? session.studentId
     : session.volunteerId
-
   if (isBanReason) {
     await UserRepo.banUserById(
       reportedUser,
