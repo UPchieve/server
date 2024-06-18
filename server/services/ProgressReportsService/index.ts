@@ -351,7 +351,7 @@ export async function generateProgressReportForUser(
 }
 
 const LF_TRACE_NAME = 'progresReport'
-const LF_GENERATION_NAME = 'getProressReportResult'
+const LF_GENERATION_NAME = 'getProgressReportResult'
 const MODEL = 'gpt-4o'
 export async function generateProgressReport(
   userId: Ulid,
