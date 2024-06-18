@@ -1187,9 +1187,9 @@ FROM
 WHERE
     sessions.id = :sessionId!
     AND ((students.banned IS TRUE
-            OR students.ban_type IS DISTINCT FROM 'complete')
+            OR students.ban_type = 'complete')
         OR (volunteers.banned IS TRUE
-            OR volunteers.ban_type IS DISTINCT FROM 'complete'))
+            OR volunteers.ban_type = 'complete'))
 LIMIT 1;
 
 
