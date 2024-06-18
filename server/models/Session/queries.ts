@@ -11,7 +11,11 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import { Session, UserSessionStats, UserSessionsFilter } from './types'
 import 'moment-timezone'
-import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
+import {
+  USER_BAN_TYPES,
+  USER_ROLES,
+  USER_SESSION_METRICS,
+} from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
 import { PoolClient } from 'pg'
@@ -64,6 +68,7 @@ export type UnfulfilledSessions = {
   student: {
     firstname: string
     isTestUser: boolean
+    isShadowBanned: boolean
   }
   subTopic: string
   createdAt: Date
@@ -92,6 +97,7 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
         student: {
           firstname: s.studentFirstName,
           isTestUser: s.studentTestUser,
+          isShadowBanned: s.studentBanType === USER_BAN_TYPES.SHADOW,
         },
       }
     })
