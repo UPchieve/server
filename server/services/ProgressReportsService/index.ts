@@ -350,7 +350,7 @@ export async function generateProgressReportForUser(
   return report
 }
 
-const LF_TRACE_NAME = 'progresReport'
+const LF_TRACE_NAME = 'progressReport'
 const LF_GENERATION_NAME = 'getProgressReportResult'
 const MODEL = 'gpt-4o'
 export async function generateProgressReport(
