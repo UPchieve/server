@@ -28,11 +28,12 @@ describe('reportSession', () => {
     const reportMessage = 'User was rude'
     const source = 'recap'
     const user = buildVolunteer()
-    const session = await buildSession({ studentId: 'studentId', volunteerId: user.id})
+    const session = await buildSession({
+      studentId: 'studentId',
+      volunteerId: user.id,
+    })
 
-    mockSessionRepo.getSessionById.mockImplementationOnce(
-      async () => session
-    )
+    mockSessionRepo.getSessionById.mockImplementationOnce(async () => session)
 
     const sessionId = session.id
     mockSessionRepo.updateSessionReported.mockResolvedValue()
@@ -45,7 +46,7 @@ describe('reportSession', () => {
     }
 
     await SessionService.reportSession(user, data)
-    
+
     //Verify that the user was banned with the COMPLETE type
     expect(UserRepo.banUserById).toHaveBeenCalledWith(
       'studentId',

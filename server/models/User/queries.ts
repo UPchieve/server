@@ -398,7 +398,7 @@ export async function banUserById(
       { userId, banType, banReason },
       getClient()
     )
-    
+
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
