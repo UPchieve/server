@@ -364,7 +364,7 @@ export async function generateProgressReport(
   })
 
   const gen = t.generation({
-    name: LF_TRACE_NAME,
+    name: LF_GENERATION_NAME,
     model: MODEL,
     input: botPrompt,
   })
