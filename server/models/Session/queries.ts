@@ -1077,6 +1077,8 @@ export async function getSessionsForAdminFilter(
         'volunteerTestUser',
         'volunteerTotalPastSessions',
         'reviewReasons',
+        'studentBanType',
+        'volunteerBanType'
       ])
     )
     const sessionsInfo = sessions.map(async session => {
