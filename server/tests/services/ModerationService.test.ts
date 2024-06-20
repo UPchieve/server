@@ -7,7 +7,9 @@ import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
+import logger from '../../logger'
 
+jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
 jest.mock('../../services/BotsService', () => {
   return {
@@ -97,25 +99,33 @@ describe('ModerationService', () => {
   describe('AI moderation', () => {
     const mockedFeatureFlagService = mocked(FeatureFlagsService)
     const mockedCensoredSessionMessage = mocked(CensoredSessionMessage)
+    let censoredSessionMessage: any
+    let mockOpenAiMessageContent: any
 
     beforeEach(() => {
-      mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue({
+      censoredSessionMessage = {
         id: '123',
         censoredBy: 'regex',
         sentAt: new Date(),
         senderId,
         sessionId,
         message: 'test-message',
-      })
+      }
+      mockOpenAiMessageContent = {
+        appropriate: true,
+        reasons: {
+          failures: {},
+        },
+        message: 'test-message',
+      }
+      mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue(
+        censoredSessionMessage
+      )
       ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
         choices: [
           {
             message: {
-              content: JSON.stringify({
-                appropriate: true,
-                reasons: [],
-                message: 'test-message',
-              }),
+              content: JSON.stringify(mockOpenAiMessageContent),
             },
           },
         ],
@@ -227,90 +237,117 @@ describe('ModerationService', () => {
       ).toStrictEqual({ failures: {} })
     })
 
-    test('It calls OpenAI with the prompt from Langfuse', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.targeted
-      )
-      mockLangfuseService.getPrompt.mockResolvedValue({
-        prompt: 'test-prompt',
-      } as any)
-      await moderateMessage({
-        message: badMessage,
-        senderId,
-        isVolunteer,
-        sessionId,
-      })
-      expect(openai.chat.completions.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            {
-              role: 'system',
-              content: 'test-prompt',
-            },
-          ]),
-        })
-      )
-    })
-
-    test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.targeted
-      )
-      mockLangfuseService.getPrompt.mockResolvedValue(undefined)
-
-      await moderateMessage({
-        message: badMessage,
-        senderId,
-        sessionId,
-        isVolunteer,
-      })
-      expect(openai.chat.completions.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            {
-              role: 'system',
-              content: FALLBACK_MODERATION_PROMPT,
-            },
-          ]),
-        })
-      )
-    })
-
-    test.each([true, false])(
-      "The LF generation is/n't updated with the prompt when it can/'t be retrieved",
-      async lfPromptReturned => {
+    describe('createChatCompletion', () => {
+      test('It calls OpenAI with the prompt from Langfuse', async () => {
         mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
           FeatureFlagsService.AI_MODERATION_STATE.targeted
         )
-        const mockGenerationUpdate = jest.fn()
-        mockLangfuseService.getClient.mockReturnValue({
-          trace: jest.fn().mockReturnValue({
-            generation: jest.fn().mockReturnValue({
-              update: mockGenerationUpdate,
-              end: jest.fn(),
-            }),
-          }),
+        mockLangfuseService.getPrompt.mockResolvedValue({
+          prompt: 'test-prompt',
         } as any)
+        await moderateMessage({
+          message: badMessage,
+          senderId,
+          isVolunteer,
+          sessionId,
+        })
+        expect(openai.chat.completions.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            messages: expect.arrayContaining([
+              {
+                role: 'system',
+                content: 'test-prompt',
+              },
+            ]),
+          })
+        )
+      })
 
-        const prompt = lfPromptReturned
-          ? { prompt: 'test-prompt-success' }
-          : undefined
-        const updateShouldBeCalled = !!prompt
-        mockLangfuseService.getPrompt.mockResolvedValue(prompt as any)
+      test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
+        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
+          FeatureFlagsService.AI_MODERATION_STATE.targeted
+        )
+        mockLangfuseService.getPrompt.mockResolvedValue(undefined)
 
         await moderateMessage({
           message: badMessage,
-          sessionId,
           senderId,
+          sessionId,
           isVolunteer,
         })
-        expect(LangfuseService.getPrompt).toHaveBeenCalled()
-        expect(LangfuseService.getClient).toHaveBeenCalled()
-        const expectation = updateShouldBeCalled
-          ? () => expect(mockGenerationUpdate).toHaveBeenCalled()
-          : expect(mockGenerationUpdate).not.toHaveBeenCalled
-        expectation()
-      }
-    )
+        expect(openai.chat.completions.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            messages: expect.arrayContaining([
+              {
+                role: 'system',
+                content: FALLBACK_MODERATION_PROMPT,
+              },
+            ]),
+          })
+        )
+      })
+
+      test.each([true, false])(
+        "The LF generation is/n't updated with the prompt when it can/'t be retrieved",
+        async lfPromptReturned => {
+          mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
+            FeatureFlagsService.AI_MODERATION_STATE.targeted
+          )
+          const mockGenerationUpdate = jest.fn()
+          mockLangfuseService.getClient.mockReturnValue({
+            trace: jest.fn().mockReturnValue({
+              generation: jest.fn().mockReturnValue({
+                update: mockGenerationUpdate,
+                end: jest.fn(),
+              }),
+            }),
+          } as any)
+
+          const prompt = lfPromptReturned
+            ? {
+                prompt: 'test-prompt-content',
+                name: 'moderation-prompt',
+                version: 1,
+              }
+            : undefined
+          const updateShouldBeCalled = !!prompt
+          mockLangfuseService.getPrompt.mockResolvedValue(prompt as any)
+
+          await moderateMessage({
+            message: badMessage,
+            sessionId,
+            senderId,
+            isVolunteer,
+          })
+          expect(LangfuseService.getPrompt).toHaveBeenCalled()
+          expect(LangfuseService.getClient).toHaveBeenCalled()
+
+          const expectation = updateShouldBeCalled
+            ? () => {
+                expect(mockGenerationUpdate).toHaveBeenCalled()
+                expect(logger.info).toHaveBeenCalledWith(
+                  expect.objectContaining({
+                    decision: expect.objectContaining({
+                      promptUsed: 'moderation-prompt-1',
+                    }),
+                  }),
+                  'AI moderation result'
+                )
+              }
+            : () => {
+                expect(mockGenerationUpdate).not.toHaveBeenCalled()
+                expect(logger.info).toHaveBeenCalledWith(
+                  expect.objectContaining({
+                    decision: expect.objectContaining({
+                      promptUsed: 'FALLBACK',
+                    }),
+                  }),
+                  'AI moderation result'
+                )
+              }
+          expectation()
+        }
+      )
+    })
   })
 })

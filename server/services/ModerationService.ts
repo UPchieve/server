@@ -40,6 +40,7 @@ export async function createChatCompletion({
   isVolunteer: boolean
 }) {
   const model = 'gpt-4o'
+  let promptUsed = 'FALLBACK'
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     sessionId: censoredSessionMessage.sessionId,
@@ -56,6 +57,7 @@ export async function createChatCompletion({
   if (systemPrompt) {
     // Attach the LF prompt object if available to associate all AI generations made with this prompt
     gen.update({ prompt: systemPrompt })
+    promptUsed = `${systemPrompt.name}-${systemPrompt.version}`
   }
   try {
     const chatCompletion = await openai.chat.completions.create({
@@ -88,7 +90,7 @@ export async function createChatCompletion({
       decision: {
         isClean: decision.appropriate,
         reasons: decision.reasons,
-        moderatorVersion: MODERATION_VERSION,
+        promptUsed,
       },
     }
     // @TODO: Eventually remove me from NR
@@ -232,7 +234,6 @@ export const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
-export const MODERATION_VERSION = 'openai_v2'
 export const FALLBACK_MODERATION_PROMPT = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
