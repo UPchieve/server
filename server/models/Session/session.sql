@@ -34,6 +34,7 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
+    users.ban_type AS student_ban_type,
     user_product_flags.paid_tutors_pilot_group,
     session_count.total = 1 AS is_first_time_student,
     subjects.display_name AS subject_display_name
@@ -55,7 +56,7 @@ WHERE
     AND sessions.ended_at IS NULL
     AND sessions.created_at > :start!
     AND users.banned IS FALSE
-    AND users.ban_type IS NULL
+    AND users.ban_type IS DISTINCT FROM 'complete'
 ORDER BY
     sessions.created_at;
 
@@ -790,7 +791,7 @@ FROM
             notifications.user_id = users.id) AS notification_count ON TRUE
 WHERE
     users.banned IS FALSE
-    AND users.ban_type IS NULL
+    AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND session_count.total = 0
@@ -1185,10 +1186,10 @@ FROM
     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
 WHERE
     sessions.id = :sessionId!
-    AND (students.banned IS TRUE
-        OR volunteers.banned IS TRUE)
-    AND (students.ban_type = 'complete'
-        OR volunteers.ban_type = 'complete')
+    AND ((students.banned IS TRUE
+            OR students.ban_type = 'complete')
+        OR (volunteers.banned IS TRUE
+            OR volunteers.ban_type = 'complete'))
 LIMIT 1;
 
 

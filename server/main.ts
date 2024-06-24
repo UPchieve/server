@@ -1,7 +1,7 @@
 import 'newrelic'
 import rawConfig from './config'
 import { Config } from './config-type'
-import app, { io } from './app'
+import { io, server } from './app'
 import logger from './logger'
 import { registerListeners } from './services/listeners'
 import { serverSetup } from './server-setup'
@@ -19,7 +19,7 @@ async function main() {
   registerListeners()
 
   const port = rawConfig.apiPort
-  const server = app.listen(port, () => {
+  server.listen(port, () => {
     logger.info('api server listening on port ' + port)
   })
 

@@ -1,13 +1,20 @@
-import AWS from 'aws-sdk'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3,
+  ObjectCannedACL,
+} from '@aws-sdk/client-s3'
 import * as Sentry from '@sentry/node'
 import config from '../config'
 import { logError } from '../logger'
 
-const s3 = new AWS.S3({
-  accessKeyId: config.awsS3.accessKeyId,
-  secretAccessKey: config.awsS3.secretAccessKey,
+const s3 = new S3({
+  credentials: {
+    accessKeyId: config.awsS3.accessKeyId,
+    secretAccessKey: config.awsS3.secretAccessKey,
+  },
   region: config.awsS3.region,
-  signatureVersion: 'v4',
 })
 
 // TODO: we should error or return undefined instead of empty string on failure
@@ -22,7 +29,10 @@ export async function getObject(
   }
 
   try {
-    const objectUrl = await s3.getSignedUrlPromise('getObject', signedUrlParams)
+    const objectUrl = await getSignedUrl(
+      s3,
+      new GetObjectCommand(signedUrlParams)
+    )
     return objectUrl
   } catch (error) {
     Sentry.captureException(error)
@@ -37,12 +47,17 @@ export async function getPhotoIdUploadUrl(
   const signedUrlParams = {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,
-    Expires: 60 * 60, // link expiration
-    ACL: 'bucket-owner-full-control',
+    ACL: ObjectCannedACL.bucket_owner_full_control,
   }
 
   try {
-    const uploadUrl = await s3.getSignedUrlPromise('putObject', signedUrlParams)
+    const uploadUrl = await getSignedUrl(
+      s3,
+      new PutObjectCommand(signedUrlParams),
+      {
+        expiresIn: 60 * 60, // link expiration
+      }
+    )
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
@@ -58,7 +73,10 @@ export async function getPhotoIdUrl(photoIdS3Key: string): Promise<string> {
   }
 
   try {
-    const photoUrl = await s3.getSignedUrlPromise('getObject', signedUrlParams)
+    const photoUrl = await getSignedUrl(
+      s3,
+      new GetObjectCommand(signedUrlParams)
+    )
     return photoUrl
   } catch (error) {
     Sentry.captureException(error)
@@ -73,12 +91,17 @@ export async function getSessionPhotoUploadUrl(
   const signedUrlParams = {
     Bucket: config.awsS3.sessionPhotoBucket,
     Key: sessionPhotoS3Key,
-    Expires: 60 * 60, // link expiration
-    ACL: 'bucket-owner-full-control',
+    ACL: ObjectCannedACL.bucket_owner_full_control,
   }
 
   try {
-    const uploadUrl = await s3.getSignedUrlPromise('putObject', signedUrlParams)
+    const uploadUrl = await getSignedUrl(
+      s3,
+      new PutObjectCommand(signedUrlParams),
+      {
+        expiresIn: 60 * 60, // link expiration
+      }
+    )
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)

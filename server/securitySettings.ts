@@ -91,9 +91,6 @@ export const connectSrc = [
 
 if (config.NODE_ENV !== 'production') {
   connectSrc.push('http://localhost:3000')
-  connectSrc.push('http://localhost:3001')
-  connectSrc.push('ws://localhost:3001')
-  connectSrc.push('http://localhost:3002')
 }
 
 export const defaultSrc = [

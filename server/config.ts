@@ -170,7 +170,7 @@ const config: Static<typeof Config> = {
     host: process.env.SUBWAY_CLIENT_HOST || 'localhost:8080',
   },
   apiPort: Number(process.env.SUBWAY_API_PORT) || 3000,
-  socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
+  socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3000,
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
@@ -340,6 +340,11 @@ const config: Static<typeof Config> = {
   subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
   subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',
   subwayAIVisionApiKey: process.env.SUBWAY_VISION_AI_API_KEY || 'bogus',
+
+  // Langfuse
+  langfuseSecretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY || 'bogus',
+  langfusePublicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY || 'bogus',
+  langfuseBaseUrl: process.env.SUBWAY_LANGFUSE_BASEURL || 'bogus',
 }
 
 module.exports = config

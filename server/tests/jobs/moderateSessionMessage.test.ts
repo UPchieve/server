@@ -72,7 +72,7 @@ describe('Moderate session message', () => {
         decision: {
           isClean: true,
           reasons: [],
-          moderatorVersion: 'openai_v2',
+          promptUsed: 'FALLBACK',
         },
       },
       'AI moderation result'

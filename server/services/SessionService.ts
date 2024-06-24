@@ -14,6 +14,7 @@ import {
   SESSION_USER_ACTIONS,
   SUBJECT_TYPES,
   USER_BAN_REASONS,
+  USER_BAN_TYPES,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -141,7 +142,11 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     ? session.studentId
     : session.volunteerId
   if (isBanReason) {
-    await UserRepo.banUserById(reportedUser, USER_BAN_REASONS.SESSION_REPORTED)
+    await UserRepo.banUserById(
+      reportedUser,
+      USER_BAN_TYPES.COMPLETE,
+      USER_BAN_REASONS.SESSION_REPORTED
+    )
     await createAccountAction({
       userId: reportedUser,
       action: ACCOUNT_USER_ACTIONS.BANNED,
@@ -546,7 +551,9 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       'Volunteers cannot create new sessions'
     )
 
-  if (user.banned)
+  const userBanned = user.banType === USER_BAN_TYPES.COMPLETE
+
+  if (user.banned || userBanned)
     throw new sessionUtils.StartSessionError(
       'Banned students cannot request a new session'
     )
@@ -563,7 +570,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     userId,
     // NOTE: sessionType and subtopic are kebab-case
     subject,
-    user.banned
+    userBanned
   )
 
   if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
@@ -589,7 +596,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       )
     }
 
-  if (!user.banned) {
+  if (!user.banned || !userBanned) {
     await beginRegularNotifications(newSessionId)
   }
 

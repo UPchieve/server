@@ -54,6 +54,7 @@ SELECT
     first_name,
     email,
     banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -92,6 +93,7 @@ SELECT
     first_name,
     email,
     banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -154,6 +156,7 @@ SELECT
     first_name,
     email,
     banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -312,6 +315,7 @@ UPDATE
     users
 SET
     banned = subquery.banned,
+    ban_type = :banType!,
     ban_reason_id = subquery.ban_reason_id,
     updated_at = NOW()
 FROM (
@@ -332,6 +336,7 @@ RETURNING
 SELECT
     users.id,
     banned,
+    ban_type,
     email,
     deactivated,
     (
@@ -436,6 +441,7 @@ SELECT
     volunteer_profiles.state,
     users.verified,
     users.banned AS is_banned,
+    users.ban_type AS ban_type,
     user_product_flags.gates_qualified AS in_gates_study,
     grade_levels.name AS current_grade,
     student_partner_org_sites.name AS partner_site,
@@ -502,6 +508,7 @@ SELECT
             FALSE
         END) AS is_admin,
     users.banned AS is_banned,
+    users.ban_type AS ban_type,
     ban_reasons.name AS ban_reason,
     users.test_user AS is_test_user,
     FALSE AS is_fake_user,
@@ -670,6 +677,7 @@ SELECT
     sms_consent,
     phone_verified,
     banned,
+    ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE
@@ -866,6 +874,7 @@ SELECT
     users.created_at AS created_at,
     test_user AS is_test_user,
     banned AS is_banned,
+    ban_type,
     deactivated AS is_deactivated,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
