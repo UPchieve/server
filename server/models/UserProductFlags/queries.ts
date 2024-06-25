@@ -116,23 +116,6 @@ export async function updateSentInactiveNinetyDayEmail(
   }
 }
 
-export async function updateFallIncentiveProgram(
-  userId: Ulid,
-  status: boolean
-): Promise<void> {
-  try {
-    const result = await pgQueries.updateFallIncentiveProgram.run(
-      { userId, status },
-      getClient()
-    )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
 export async function updatePaidTutorsPilotGroup(
   userId: Ulid,
   group: 'test' | 'control'
