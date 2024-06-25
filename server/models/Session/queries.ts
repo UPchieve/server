@@ -90,11 +90,7 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
     )
 
     return result.map(session => {
-      const s = makeSomeOptional(session, [
-        'volunteer',
-        'paidTutorsPilotGroup',
-        'studentBanType',
-      ])
+      const s = makeSomeOptional(session, ['volunteer', 'studentBanType'])
       return {
         ...s,
         _id: s.id,
