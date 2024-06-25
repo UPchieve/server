@@ -570,7 +570,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     userId,
     // NOTE: sessionType and subtopic are kebab-case
     subject,
-    userBanned
+    user.banType === USER_BAN_TYPES.SHADOW
   )
 
   if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
