@@ -599,11 +599,11 @@ export async function getSessionByIdWithStudentAndVolunteer(
 export async function createSession(
   studentId: Ulid,
   subject: string,
-  studentBanned: boolean
+  shadowbanned: boolean
 ): Promise<Ulid> {
   try {
     const result = await pgQueries.createSession.run(
-      { id: getDbUlid(), studentId, subject, studentBanned },
+      { id: getDbUlid(), studentId, subject, shadowbanned },
       getClient()
     )
     return makeRequired(result[0]).id
