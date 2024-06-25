@@ -49,7 +49,7 @@ import {
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import logger from '../logger'
-import { createAccountAction } from '../models/UserAction'
+import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 
 export async function parseUser(baseUser: UserContactInfo) {
@@ -322,6 +322,19 @@ export async function adminUpdateUser(data: unknown) {
   )
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'admin')
+
+  //track shadow bans
+  if (
+    userBeforeUpdate.banType !== USER_BAN_TYPES.SHADOW &&
+    banType === USER_BAN_TYPES.SHADOW
+  ) {
+    await createAdminAction(ACCOUNT_USER_ACTIONS.SHADOW_BANNED, userId)
+  }
+
+  //track reversing shadow bans
+  if (userBeforeUpdate.banType === USER_BAN_TYPES.SHADOW && !banType) {
+    await createAdminAction(ACCOUNT_USER_ACTIONS.UNSHADOW_BANNED, userId)
+  }
 
   const update = {
     firstName,
