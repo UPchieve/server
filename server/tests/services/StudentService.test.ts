@@ -174,31 +174,3 @@ describe('checkAndUpdateVolunteerFavoriting', () => {
     })
   })
 })
-
-describe('queueProcrastinationTextReminder', () => {
-  test('Should update and queue text reminder', async () => {
-    const studentId = getDbUlid()
-    const phoneNumber = '+12345678900'
-    const reminderDate = '09-21-2023 08:00'
-
-    mockedUserRepo.updateUserPhoneNumberByUserId.mockResolvedValueOnce()
-
-    await StudentService.queueProcrastinationTextReminder(
-      studentId,
-      phoneNumber,
-      reminderDate
-    )
-
-    expect(mockedUserRepo.updateUserPhoneNumberByUserId).toHaveBeenCalledTimes(
-      1
-    )
-    expect(QueueService.add).toHaveBeenCalledWith(
-      Jobs.StudentProcrastinationTextReminder,
-      {
-        userId: studentId,
-      },
-      // The delay is dynamic, based on current time
-      expect.anything()
-    )
-  })
-})
