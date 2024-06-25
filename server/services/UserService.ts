@@ -332,7 +332,7 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   //track reversing shadow bans
-  if (userBeforeUpdate.banType === USER_BAN_TYPES.SHADOW && banType === null) {
+  if (userBeforeUpdate.banType === USER_BAN_TYPES.SHADOW && !banType) {
     await createAdminAction(ACCOUNT_USER_ACTIONS.UNSHADOWBANNED, userId)
   }
 
