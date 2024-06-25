@@ -532,12 +532,12 @@ ORDER BY
 
 
 /* @name createSession */
-INSERT INTO sessions (id, student_id, subject_id, student_banned, created_at, updated_at)
+INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
 SELECT
     :id!,
     :studentId!,
     subjects.id,
-    :studentBanned!,
+    :shadowbanned!,
     NOW(),
     NOW()
 FROM
