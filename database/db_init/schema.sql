@@ -1498,7 +1498,8 @@ CREATE TABLE upchieve.sessions (
     time_tutored bigint DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    shadowbanned boolean
 );
 
 
@@ -5566,4 +5567,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240517164134'),
     ('20240521195415'),
     ('20240522182235'),
-    ('20240530165825');
+    ('20240530165825'),
+    ('20240612180331');
