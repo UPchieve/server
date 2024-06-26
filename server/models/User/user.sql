@@ -330,7 +330,6 @@ RETURNING
 /* @name getUserForAdminUpdate */
 SELECT
     users.id,
-    banned,
     ban_type,
     email,
     deactivated,
