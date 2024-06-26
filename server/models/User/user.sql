@@ -500,7 +500,6 @@ SELECT
         ELSE
             FALSE
         END) AS is_admin,
-    users.banned AS is_banned,
     users.ban_type AS ban_type,
     ban_reasons.name AS ban_reason,
     users.test_user AS is_test_user,

@@ -34,7 +34,6 @@ export type LegacyUserModel = {
   college?: string
   isVolunteer: boolean
   isAdmin: boolean
-  isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
   isTestUser: boolean
@@ -90,7 +89,6 @@ export async function getLegacyUserObject(
       'isAdmin',
       'isVolunteer',
       'isTestUser',
-      'isBanned',
       'isDeactivated',
       'referralCode',
       'type',
