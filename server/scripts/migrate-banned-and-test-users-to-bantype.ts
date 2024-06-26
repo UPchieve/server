@@ -26,23 +26,3 @@ export default async function main() {
     logError(e as Error)
   }
 }
-
-// export async function migrate(tc: db.TransactionClient) {
-//   await tc.query(`
-//     UPDATE
-//         users
-//     SET
-//         ban_type = 'complete'
-//         WHERE banned = TRUE;
-
-//     UPDATE 
-//         users
-//     SET 
-//         ban_type = 'shadow'
-//     WHERE
-//         test_user = TRUE
-//         AND email NOT LIKE '%@upchieve.org'
-//         AND banned = FALSE;
-//     `)
-//     log('Successfully updated banned an test users to ban types')
-// }
