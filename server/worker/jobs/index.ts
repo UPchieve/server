@@ -53,6 +53,7 @@ import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import moderateSessionMessage from '../../scripts/moderate-session-message'
+import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -128,6 +129,7 @@ export enum Jobs {
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpsertSchools = 'UpsertSchools',
   MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
+  MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
 
   // Eng Tooling Scripts
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
@@ -400,6 +402,10 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.ModerateSessionMessage,
     processor: moderateSessionMessage,
   },
+  {
+    name: Jobs.MigrateBannedAndTestUsersToBanType,
+    processor: migrateBannedAndTestUsersToBanType,
+  }
 ]
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
