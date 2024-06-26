@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "allowUmdGlobalAccess": true,
+    "outDir": "build",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "target":"es2019",
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "lib":[
+      "es2020", "dom"
+    ]
+  },
+  "exclude": [
+    "node_modules/",
+    "build/",
+    "src/",
+    "tests/",
+    "dist/",
+    "public/",
+    "./*.js",
+    "./*.json",
+    "bin/",
+    ".*/"
+  ],
+  "ts-node": {
+    "files": true
+  }
+}
