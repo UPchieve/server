@@ -148,7 +148,6 @@ export type UserContactInfo = {
   volunteerPartnerOrg?: string
   studentPartnerOrg?: string
   lastActivityAt?: Date
-  banned: boolean
   banType?: USER_BAN_TYPES
   deactivated: boolean
   approved?: boolean
