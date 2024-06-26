@@ -1308,7 +1308,6 @@ export type AdminUpdateVolunteer = {
   volunteerPartnerOrg: string | undefined
   isVerified: boolean
   banType: USER_BAN_TYPES | undefined
-  isBanned: boolean
   isDeactivated: boolean
   isApproved: boolean | undefined
 }
@@ -1410,7 +1409,6 @@ export async function updateVolunteerForAdmin(
         email: update.email.toLowerCase(),
         isVerified: update.isVerified,
         banType: update.banType,
-        isBanned: update.isBanned,
         isDeactivated: update.isDeactivated,
       },
       client
