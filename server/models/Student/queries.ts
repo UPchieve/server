@@ -680,7 +680,7 @@ export async function createStudent(
         firstName: user.firstName,
         lastname: user.lastName,
         email: user.email.toLowerCase(),
-        isBanned: user.banned,
+        banType: user.banType,
         isDeactivated: user.deactivated,
         isTestUser: user.testUser,
         isAdmin: false,

@@ -259,7 +259,7 @@ INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, email_v
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
-    id, first_name, last_name, email, verified, banned, ban_type, test_user, deactivated, created_at;
+    id, first_name, last_name, email, verified, ban_type, test_user, deactivated, created_at;
 
 
 /* @name createStudentProfile */
