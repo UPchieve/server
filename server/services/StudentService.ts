@@ -118,31 +118,3 @@ export async function adminGetActivePartnersForStudent(
 ): Promise<StudentPartnerOrgInstance[] | undefined> {
   return await StudentRepo.getActivePartnersForStudent(studentId)
 }
-
-export const queueProcrastinationTextReminder = async (
-  studentId: Ulid,
-  phoneNumber: string,
-  reminderDate: string
-): Promise<void> => {
-  await updateUserPhoneNumberByUserId(studentId, phoneNumber)
-
-  const utcReminderDate = moment(reminderDate, 'MM-DD-YYYY HH:mm a').tz('GMT')
-  const diffInMilliseconds = utcReminderDate.diff(moment().utc())
-
-  await QueueService.add(
-    Jobs.StudentProcrastinationTextReminder,
-    { userId: studentId },
-    {
-      delay: diffInMilliseconds,
-      removeOnComplete: true,
-      removeOnFail: true,
-    }
-  )
-  AnalyticsService.captureEvent(
-    studentId,
-    EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_QUEUED,
-    {
-      event: EVENTS.STUDENT_PROCRASTINATION_PREVENTION_REMINDER_QUEUED,
-    }
-  )
-}

@@ -260,42 +260,6 @@ const updateSentInactiveNinetyDayEmailIR: any = {"name":"updateSentInactiveNinet
 export const updateSentInactiveNinetyDayEmail = new PreparedQuery<IUpdateSentInactiveNinetyDayEmailParams,IUpdateSentInactiveNinetyDayEmailResult>(updateSentInactiveNinetyDayEmailIR);
 
 
-/** 'UpdateFallIncentiveProgram' parameters type */
-export interface IUpdateFallIncentiveProgramParams {
-  status: boolean;
-  userId: string;
-}
-
-/** 'UpdateFallIncentiveProgram' return type */
-export interface IUpdateFallIncentiveProgramResult {
-  ok: string;
-}
-
-/** 'UpdateFallIncentiveProgram' query type */
-export interface IUpdateFallIncentiveProgramQuery {
-  params: IUpdateFallIncentiveProgramParams;
-  result: IUpdateFallIncentiveProgramResult;
-}
-
-const updateFallIncentiveProgramIR: any = {"name":"updateFallIncentiveProgram","params":[{"name":"status","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1924,"b":1930,"line":99,"col":30}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1977,"b":1983,"line":102,"col":15}]}}],"usedParamSet":{"status":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    fall_incentive_program = :status!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1860,"b":2011,"line":96,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     user_product_flags
- * SET
- *     fall_incentive_program = :status!,
- *     updated_at = NOW()
- * WHERE
- *     user_id = :userId!
- * RETURNING
- *     user_id AS ok
- * ```
- */
-export const updateFallIncentiveProgram = new PreparedQuery<IUpdateFallIncentiveProgramParams,IUpdateFallIncentiveProgramResult>(updateFallIncentiveProgramIR);
-
-
 /** 'UpdatePaidTutorsPilotGroup' parameters type */
 export interface IUpdatePaidTutorsPilotGroupParams {
   group: paid_tutors_pilot_groups;
@@ -313,7 +277,7 @@ export interface IUpdatePaidTutorsPilotGroupQuery {
   result: IUpdatePaidTutorsPilotGroupResult;
 }
 
-const updatePaidTutorsPilotGroupIR: any = {"name":"updatePaidTutorsPilotGroup","params":[{"name":"group","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2120,"b":2125,"line":111,"col":31}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2172,"b":2178,"line":114,"col":15}]}}],"usedParamSet":{"group":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    paid_tutors_pilot_group = :group!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":2055,"b":2206,"line":108,"col":0}}};
+const updatePaidTutorsPilotGroupIR: any = {"name":"updatePaidTutorsPilotGroup","params":[{"name":"group","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1925,"b":1930,"line":99,"col":31}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1977,"b":1983,"line":102,"col":15}]}}],"usedParamSet":{"group":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    paid_tutors_pilot_group = :group!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1860,"b":2011,"line":96,"col":0}}};
 
 /**
  * Query generated from SQL:

@@ -92,18 +92,6 @@ RETURNING
     user_id AS ok;
 
 
-/* @name updateFallIncentiveProgram */
-UPDATE
-    user_product_flags
-SET
-    fall_incentive_program = :status!,
-    updated_at = NOW()
-WHERE
-    user_id = :userId!
-RETURNING
-    user_id AS ok;
-
-
 /* @name updatePaidTutorsPilotGroup */
 UPDATE
     user_product_flags
