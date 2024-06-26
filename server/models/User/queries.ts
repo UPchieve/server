@@ -570,7 +570,6 @@ export async function getUserForAdminDetail(
 
 export type UserForCreateSendGridContact = UserContactInfo & {
   lastName: string
-  banned: boolean
   banType?: USER_BAN_TYPES
   testUser: boolean
   isVolunteer: boolean
