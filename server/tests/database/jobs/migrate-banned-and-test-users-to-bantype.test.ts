@@ -6,7 +6,6 @@ import migrateBannedAndTestUsersToBanType from '../../../scripts/migrate-banned-
 const client = getClient()
 
 describe('migrateBannedAndTestUsersToBanType', () => {
-
   test('banned users have a ban type of complete', async () => {
     const bannedUser = await createUser(true, false, faker.internet.email())
     expect(bannedUser.banned).toBeTruthy()
@@ -23,7 +22,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
     const testUser = await createUser(false, true, faker.internet.email())
     expect(testUser.test_user).toBeTruthy()
     expect(testUser.ban_type).toEqual(null)
-    
+
     await migrateBannedAndTestUsersToBanType()
 
     const userShadowBan = await getUser(testUser.id)
@@ -58,7 +57,11 @@ describe('migrateBannedAndTestUsersToBanType', () => {
   })
 })
 
-async function createUser(isBanned: boolean, isTestUser: boolean, email: string) {
+async function createUser(
+  isBanned: boolean,
+  isTestUser: boolean,
+  email: string
+) {
   const testUser = await client.query(
     `
     INSERT INTO users (id, first_name, last_name, email, test_user, banned, referral_code)
@@ -72,7 +75,7 @@ async function createUser(isBanned: boolean, isTestUser: boolean, email: string)
       email,
       isTestUser,
       isBanned,
-      faker.random.alphaNumeric(6)
+      faker.random.alphaNumeric(6),
     ]
   )
 

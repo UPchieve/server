@@ -405,7 +405,7 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MigrateBannedAndTestUsersToBanType,
     processor: migrateBannedAndTestUsersToBanType,
-  }
+  },
 ]
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
