@@ -55,7 +55,6 @@ WHERE
     sessions.volunteer_id IS NULL
     AND sessions.ended_at IS NULL
     AND sessions.created_at > :start!
-    AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
 ORDER BY
     sessions.created_at;
