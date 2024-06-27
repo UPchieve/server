@@ -1,0 +1,816 @@
+{
+  "assistments_data": [
+    "id",
+    "problem_id",
+    "assignment_id",
+    "student_id",
+    "session_id",
+    "sent",
+    "created_at",
+    "updated_at"
+  ],
+  "associated_partners ": [
+    "id",
+    "key",
+    "volunteer_partner_org_id",
+    "student_partner_org_id",
+    "student_sponsor_org_id",
+    "created_at",
+    "updated_at"
+  ],
+  "availabilities": [
+    "id",
+    "user_id",
+    "weekday_id",
+    "available_start",
+    "available_end",
+    "timezone",
+    "created_at",
+    "updated_at"
+  ],
+  "availability_histories": [
+    "id",
+    "user_id",
+    "weekday_id",
+    "available_start",
+    "available_end",
+    "timezone",
+    "recorded_at",
+    "created_at",
+    "updated_at"
+  ],
+  "ban_reasons": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "certification_subject_unlocks": [
+    "subject_id",
+    "certification_id",
+    "created_at",
+    "updated_at"
+  ],
+  "certifications": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at",
+    "active"
+  ],
+  "cities": [
+    "id",
+    "name",
+    "us_state_code",
+    "created_at",
+    "updated_at"
+  ],
+  "computed_subject_unlocks": [
+    "subject_id",
+    "certification_id",
+    "created_at",
+    "updated_at"
+  ],
+  "contact_form_submissions": [
+    "id",
+    "user_id",
+    "message",
+    "topic",
+    "created_at",
+    "updated_at"
+  ],
+  "feedbacks": [
+    "id",
+    "topic_id",
+    "subject_id",
+    "user_role_id",
+    "session_id",
+    "student_tutoring_feedback",
+    "student_counseling_feedback",
+    "volunteer_feedback",
+    "comment",
+    "user_id",
+    "legacy_feedbacks",
+    "created_at",
+    "updated_at"
+  ],
+  "grade_levels": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "ineligible_students": [
+    "id",
+    "postal_code",
+    "school_id",
+    "grade_level_id",
+    "created_at",
+    "updated_at",
+    "referred_by"
+  ],
+  "legacy_availability_histories": [
+    "id",
+    "user_id",
+    "timezone",
+    "recorded_at",
+    "legacy_availability",
+    "created_at",
+    "updated_at"
+  ],
+  "notification_methods": [
+    "id",
+    "method",
+    "created_at",
+    "updated_at"
+  ],
+  "notification_priority_groups": [
+    "id",
+    "name",
+    "priority",
+    "created_at",
+    "updated_at"
+  ],
+  "notification_types": [
+    "id",
+    "type",
+    "created_at",
+    "updated_at"
+  ],
+  "notifications": [
+    "id",
+    "user_id",
+    "sent_at",
+    "type_id",
+    "method_id",
+    "priority_group_id",
+    "successful",
+    "session_id",
+    "message_carrier_id",
+    "created_at",
+    "updated_at"
+  ],
+  "parents_guardians": [
+    "id",
+    "created_at",
+    "updated_at"
+  ],
+  "parents_guardians_students": [
+    "parents_guardians_id",
+    "students_id"
+  ],
+  "photo_id_statuses": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "postal_codes": [
+    "code",
+    "us_state_code",
+    "income",
+    "location",
+    "created_at",
+    "updated_at",
+    "cbsa_income",
+    "state_income"
+  ],
+  "pre_session_surveys": [
+    "id",
+    "response_data",
+    "session_id",
+    "user_id",
+    "created_at",
+    "updated_at"
+  ],
+  "question_tags": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "question_types": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "quiz_certification_grants": [
+    "quiz_id",
+    "certification_id",
+    "created_at",
+    "updated_at"
+  ],
+  "quiz_questions": [
+    "id",
+    "question_text",
+    "possible_answers",
+    "correct_answer",
+    "quiz_subcategory_id",
+    "image_source",
+    "created_at",
+    "updated_at"
+  ],
+  "quiz_review_materials": [
+    "id",
+    "quiz_id",
+    "title",
+    "pdf",
+    "image",
+    "created_at",
+    "updated_at"
+  ],
+  "quiz_subcategories": [
+    "id",
+    "name",
+    "quiz_id",
+    "created_at",
+    "updated_at"
+  ],
+  "quizzes": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at",
+    "active",
+    "questions_per_subcategory"
+  ],
+  "report_reasons": [
+    "id",
+    "reason",
+    "created_at",
+    "updated_at"
+  ],
+  "required_email_domains": [
+    "id",
+    "domain",
+    "volunteer_partner_org_id",
+    "created_at",
+    "updated_at"
+  ],
+  "school_nces_metadata": [
+    "school_id",
+    "created_at",
+    "updated_at",
+    "school_year",
+    "fipst",
+    "statename",
+    "st",
+    "sch_name",
+    "lea_name",
+    "state_agency_no",
+    "\"union\"",
+    "st_leaid",
+    "leaid",
+    "st_schid",
+    "ncessch",
+    "schid",
+    "mstreet1",
+    "mstreet2",
+    "mstreet3",
+    "mcity",
+    "mstate",
+    "mzip",
+    "mzip4",
+    "lstreet1",
+    "lstreet2",
+    "lstreet3",
+    "lcity",
+    "lzip",
+    "lzip4",
+    "phone",
+    "website",
+    "sy_status",
+    "sy_status_text",
+    "updated_status",
+    "updated_status_text",
+    "effective_date",
+    "sch_type",
+    "sch_type_text",
+    "recon_status",
+    "out_of_state_flag",
+    "charter_text",
+    "chartauth1",
+    "chartauthn1",
+    "chartauth2",
+    "chartauthn2",
+    "nogrades",
+    "g_pk_offered",
+    "g_kg_offered",
+    "g_1_offered",
+    "g_2_offered",
+    "g_3_offered",
+    "g_4_offered",
+    "g_5_offered",
+    "g_6_offered",
+    "g_7_offered",
+    "g_8_offered",
+    "g_9_offered",
+    "g_10_offered",
+    "g_11_offered",
+    "g_12_offered",
+    "g_13_offered",
+    "g_ug_offered",
+    "g_ae_offered",
+    "gslo",
+    "gshi",
+    "level",
+    "igoffered",
+    "is_school_wide_title1",
+    "is_title1_eligible",
+    "national_school_lunch_program",
+    "total_students",
+    "nslp_direct_certification",
+    "frl_eligible"
+  ],
+  "schools": [
+    "id",
+    "name",
+    "approved",
+    "partner",
+    "city_id",
+    "created_at",
+    "updated_at"
+  ],
+  "schools_sponsor_orgs": [
+    "school_id",
+    "sponsor_org_id",
+    "created_at",
+    "updated_at"
+  ],
+  "schools_sponsor_orgs_instances": [
+    "school_id",
+    "sponsor_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "session_failed_joins": [
+    "session_id",
+    "user_id",
+    "created_at",
+    "updated_at"
+  ],
+  "session_flags": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "session_messages": [
+    "id",
+    "sender_id",
+    "contents",
+    "session_id",
+    "created_at",
+    "updated_at"
+  ],
+  "session_photos": [
+    "session_id",
+    "photo_key",
+    "created_at",
+    "updated_at"
+  ],
+  "session_reports": [
+    "id",
+    "report_reason_id",
+    "report_message",
+    "reporting_user_id",
+    "session_id",
+    "reported_user_id",
+    "created_at",
+    "updated_at"
+  ],
+  "session_review_reasons": [
+    "session_id",
+    "session_flag_id",
+    "created_at",
+    "updated_at"
+  ],
+  "sessions": [
+    "id",
+    "student_id",
+    "volunteer_id",
+    "subject_id",
+    "has_whiteboard_doc",
+    "quill_doc",
+    "volunteer_joined_at",
+    "ended_at",
+    "ended_by_role_id",
+    "reviewed",
+    "to_review",
+    "student_banned",
+    "time_tutored",
+    "created_at",
+    "updated_at"
+  ],
+  "sessions_session_flags": [
+    "session_id",
+    "session_flag_id",
+    "created_at",
+    "updated_at"
+  ],
+  "signup_sources": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "sponsor_orgs": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at",
+    "key"
+  ],
+  "sponsor_orgs_upchieve_instances": [
+    "id",
+    "sponsor_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "sponsor_orgs_volunteer_partner_orgs_instances": [
+    "sponsor_org_id",
+    "volunteer_partner_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "student_favorite_volunteers": [
+    "student_id",
+    "volunteer_id",
+    "created_at",
+    "updated_at"
+  ],
+  "student_partner_org_sites": [
+    "id",
+    "name",
+    "student_partner_org_id",
+    "created_at",
+    "updated_at"
+  ],
+  "student_partner_orgs": [
+    "id",
+    "key",
+    "name",
+    "signup_code",
+    "high_school_signup",
+    "college_signup",
+    "school_signup_required",
+    "created_at",
+    "updated_at",
+    "school_id"
+  ],
+  "student_partner_orgs_sponsor_orgs": [
+    "student_partner_org_id",
+    "sponsor_org_id",
+    "created_at",
+    "updated_at"
+  ],
+  "student_partner_orgs_sponsor_orgs_instances": [
+    "student_partner_org_id",
+    "sponsor_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "student_partner_orgs_upchieve_instances": [
+    "id",
+    "student_partner_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "student_partner_orgs_volunteer_partner_orgs_instances": [
+    "student_partner_org_id",
+    "volunteer_partner_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "student_profiles": [
+    "user_id",
+    "college",
+    "school_id",
+    "postal_code",
+    "grade_level_id",
+    "student_partner_org_user_id",
+    "student_partner_org_id",
+    "student_partner_org_site_id",
+    "created_at",
+    "updated_at"
+  ],
+  "subjects": [
+    "id",
+    "name",
+    "display_name",
+    "display_order",
+    "topic_id",
+    "tool_type_id",
+    "created_at",
+    "updated_at",
+    "active"
+  ],
+  "survey_questions": [
+    "id",
+    "question_type_id",
+    "question_text",
+    "created_at",
+    "updated_at",
+    "response_display_text",
+    "replacement_column_1",
+    "replacement_column_2"
+  ],
+  "survey_questions_question_tags": [
+    "id",
+    "survey_question_id",
+    "question_tag_id",
+    "created_at",
+    "updated_at"
+  ],
+  "survey_questions_response_choices": [
+    "response_choice_id",
+    "display_priority",
+    "created_at",
+    "updated_at",
+    "surveys_survey_question_id"
+  ],
+  "survey_response_choices": [
+    "id",
+    "score",
+    "choice_text",
+    "created_at",
+    "updated_at",
+    "display_image"
+  ],
+  "survey_types": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "surveys": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at",
+    "role_id"
+  ],
+  "surveys_context": [
+    "survey_id",
+    "subject_id",
+    "survey_type_id",
+    "created_at",
+    "updated_at"
+  ],
+  "surveys_survey_questions": [
+    "id",
+    "survey_id",
+    "survey_question_id",
+    "display_priority",
+    "created_at",
+    "updated_at"
+  ],
+  "tool_types": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "topics": [
+    "id",
+    "name",
+    "icon_link",
+    "color",
+    "dashboard_order",
+    "display_name",
+    "created_at",
+    "updated_at",
+    "training_order"
+  ],
+  "training_courses": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at",
+    "display_name"
+  ],
+  "us_states": [
+    "code",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "user_actions": [
+    "id",
+    "user_id",
+    "session_id",
+    "action_type",
+    "action",
+    "device",
+    "browser",
+    "browser_version",
+    "operating_system",
+    "operating_system_version",
+    "quiz_subcategory",
+    "quiz_category",
+    "created_at",
+    "updated_at",
+    "reference_email",
+    "volunteer_id",
+    "ban_reason"
+  ],
+  "user_product_flags": [
+    "user_id",
+    "sent_ready_to_coach_email",
+    "sent_hour_summary_intro_email",
+    "sent_inactive_thirty_day_email",
+    "sent_inactive_sixty_day_email",
+    "sent_inactive_ninety_day_email",
+    "gates_qualified",
+    "created_at",
+    "updated_at",
+    "in_gates_study",
+    "fall_incentive_program"
+  ],
+  "user_roles": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "user_session_metrics": [
+    "user_id",
+    "absent_student",
+    "absent_volunteer",
+    "low_session_rating_from_coach",
+    "low_session_rating_from_student",
+    "low_coach_rating_from_student",
+    "reported",
+    "only_looking_for_answers",
+    "rude_or_inappropriate",
+    "comment_from_student",
+    "comment_from_volunteer",
+    "has_been_unmatched",
+    "has_had_technical_issues",
+    "created_at",
+    "updated_at",
+    "personal_identifying_info",
+    "graded_assignment",
+    "coach_uncomfortable",
+    "student_crisis"
+  ],
+  "users": [
+    "id",
+    "verified",
+    "email_verified",
+    "phone_verified",
+    "deactivated",
+    "last_activity_at",
+    "referral_code",
+    "referred_by",
+    "test_user",
+    "banned",
+    "ban_reason_id",
+    "time_tutored",
+    "signup_source_id",
+    "created_at",
+    "updated_at",
+    "sms_consent",
+    "other_signup_source"
+  ],
+  "users_certifications": [
+    "user_id",
+    "certification_id",
+    "created_at",
+    "updated_at"
+  ],
+  "users_quizzes": [
+    "user_id",
+    "quiz_id",
+    "attempts",
+    "passed",
+    "created_at",
+    "updated_at"
+  ],
+  "users_roles": [
+    "user_id",
+    "role_id",
+    "created_at",
+    "updated_at"
+  ],
+  "users_student_partner_orgs_instances": [
+    "user_id",
+    "student_partner_org_id",
+    "student_partner_org_site_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at",
+    "student_partner_org_user_id"
+  ],
+  "volunteer_profiles": [
+    "user_id",
+    "volunteer_partner_org_id",
+    "timezone",
+    "approved",
+    "onboarded",
+    "photo_id_s3_key",
+    "photo_id_status",
+    "linkedin_url",
+    "college",
+    "company",
+    "languages",
+    "experience",
+    "city",
+    "state",
+    "country",
+    "created_at",
+    "updated_at",
+    "total_volunteer_hours",
+    "elapsed_availability"
+  ],
+  "users_surveys": [
+    "id",
+    "survey_id",
+    "user_id",
+    "session_id",
+    "survey_type_id",
+    "created_at",
+    "updated_at"
+  ],
+  "users_surveys_submissions": [
+    "user_survey_id",
+    "survey_question_id",
+    "survey_response_choice_id",
+    "open_response",
+    "created_at",
+    "updated_at"
+  ],
+  "users_training_courses": [
+    "user_id",
+    "training_course_id",
+    "complete",
+    "progress",
+    "completed_materials",
+    "created_at",
+    "updated_at"
+  ],
+  "users_volunteer_partner_orgs_instances": [
+    "user_id",
+    "volunteer_partner_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "volunteer_occupations": [
+    "user_id",
+    "occupation",
+    "created_at",
+    "updated_at"
+  ],
+  "volunteer_partner_orgs": [
+    "id",
+    "key",
+    "name",
+    "receive_weekly_hour_summary_email",
+    "created_at",
+    "updated_at"
+  ],
+  "volunteer_partner_orgs_upchieve_instances": [
+    "id",
+    "volunteer_partner_org_id",
+    "deactivated_on",
+    "created_at",
+    "updated_at"
+  ],
+  "volunteer_reference_statuses": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "volunteer_references": [
+    "id",
+    "user_id",
+    "status_id",
+    "sent_at",
+    "affiliation",
+    "relationship_length",
+    "patient",
+    "positive_role_model",
+    "agreeable_and_approachable",
+    "communicates_effectively",
+    "rejection_reason",
+    "additional_info",
+    "created_at",
+    "updated_at",
+    "trustworthy_with_children"
+  ],
+  "weekdays": [
+    "id",
+    "day",
+    "created_at",
+    "updated_at"
+  ]
+}
