@@ -136,7 +136,6 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
     ...userRow,
     firstname: userRow.firstName,
     lastname: userRow.lastName,
-    isBanned: userRow.banned,
     isDeactivated: userRow.deactivated,
     isTestUser: userRow.testUser,
     isAdmin: false,
