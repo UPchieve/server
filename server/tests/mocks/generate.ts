@@ -208,7 +208,7 @@ export type SessionRow = {
   endedByRoleId?: number
   reviewed: boolean
   toReview: boolean
-  studentBanned: boolean
+  shadowbanned: boolean
   timeTutored: number
   createdAt: Date
   updatedAt: Date
@@ -225,7 +225,7 @@ export async function buildSessionRow(
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,
-    studentBanned: false,
+    shadowbanned: false,
     timeTutored: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -244,7 +244,7 @@ export async function buildSession(
     timeTutored: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
-    studentBanned: false,
+    shadowbanned: false,
     topic: 'math',
     subject: 'algebraOne',
     reported: false,

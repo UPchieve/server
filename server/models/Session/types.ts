@@ -14,7 +14,7 @@ export type Session = {
   endedByRole?: string
   reviewed: boolean
   toReview: boolean
-  studentBanned?: boolean
+  shadowbanned?: boolean
   timeTutored: number
   createdAt: Date
   updatedAt: Date
