@@ -61,7 +61,6 @@ export async function parseUser(baseUser: UserContactInfo) {
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
 
-  console.log('****user', user)
   // Student or unapproved volunteer
   return user
 }
