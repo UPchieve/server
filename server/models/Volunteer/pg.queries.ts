@@ -2446,7 +2446,6 @@ export interface ICreateVolunteerUserParams {
 
 /** 'CreateVolunteerUser' return type */
 export interface ICreateVolunteerUserResult {
-  banned: boolean;
   banType: ban_types | null;
   createdAt: Date;
   deactivated: boolean;

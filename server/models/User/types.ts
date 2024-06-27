@@ -1,10 +1,11 @@
+import { USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
 
 export type UserRole = 'volunteer' | 'student' | 'teacher' | 'admin'
 
 export type User = {
   id: Ulid
-  banned: boolean
+  banType?: USER_BAN_TYPES
   banReasonId?: Pgid
   deactivated: boolean
   firstName: string

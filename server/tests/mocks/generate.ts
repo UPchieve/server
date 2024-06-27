@@ -120,12 +120,12 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
     password: 'Password123',
     firstName: getFirstName(),
     lastName: getLastName(),
-    banned: false,
     testUser: false,
     deactivated: false,
     referralCode: 'ABC',
     createdAt: new Date(),
     updatedAt: new Date(),
+    banType: undefined,
     ...overrides,
   }
 }

@@ -1183,7 +1183,6 @@ export type CreatedVolunteer = VolunteerContactInfo & {
   createdAt: Date
   isVolunteer: boolean
   isAdmin: boolean
-  banned: boolean
   banType?: USER_BAN_TYPES
   signupSourceId?: number
   otherSignupSource?: string
