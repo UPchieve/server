@@ -35,6 +35,7 @@ export type LegacyUserModel = {
   isVolunteer: boolean
   isAdmin: boolean
   banType?: USER_BAN_TYPES
+  isBanned: boolean
   banReason?: USER_BAN_REASONS
   isTestUser: boolean
   isFakeUser: boolean
@@ -156,9 +157,15 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser, {
-      sessionStats,
-    })
+    const final = _.merge(
+      { _id: baseUser.id },
+      baseUser,
+      volunteerUser,
+      { isBanned: baseUser.banType === 'complete' },
+      {
+        sessionStats,
+      }
+    )
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)
