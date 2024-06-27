@@ -34,8 +34,8 @@ export type LegacyUserModel = {
   college?: string
   isVolunteer: boolean
   isAdmin: boolean
-  banType?: USER_BAN_TYPES
   isBanned: boolean
+  banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
   isTestUser: boolean
   isFakeUser: boolean
