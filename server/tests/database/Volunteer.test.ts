@@ -307,7 +307,10 @@ describe('VolunteerRepo', () => {
         onboarded: false,
         certificationSubjects: ['reading'],
       })
-      await loadVolunteer({ banType: 'complete', certificationSubjects: ['reading'] })
+      await loadVolunteer({
+        banType: 'complete',
+        certificationSubjects: ['reading'],
+      })
       expect(await runQuery(opts)).toBeUndefined()
 
       // No eligible volunteer who is not disqualified
