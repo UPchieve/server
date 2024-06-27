@@ -1,0 +1,3196 @@
+openapi: 3.0.3
+info:
+  description: |
+    UPchieve backend API
+    [http://swagger.io](http://swagger.io) or on
+    [irc.freenode.net, #swagger](http://swagger.io/irc/).
+  version: "1.1.0"
+  title: UPchieve
+  contact:
+    email: tech@upchieve.org
+  license:
+    name: Non-Profit Open Software License 3.0
+    url: 'https://gitlab.com/upchieve/subway/-/blob/main/LICENSE'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/upchieveorg/subway/1.0.0
+  - url: 'https://app.upchieve.org/v1'
+  - url: http://localhost:3000
+tags:
+  - name: authorization
+    description: Authentication and authorization actions to validate user
+  - name: calendar
+    description: Things to do with calendar and scheduling
+  - name: contact
+    description: How to handle sending contact forms
+  - name: education
+    description: Edu admin actions
+  - name: eligibility
+    description: Handling eligibility of schools, students and volunteers
+  - name: feedback
+    description: Actions on gathering session feedback
+  - name: moderate message
+    description: In session message moderation
+  - name: notification
+    description: Handling push notifications
+  - name: reference
+    description: Submitting and getting references
+  - name: referral
+    description: Handling referral codes
+  - name: reports
+    description: Actions on gathering and setting session feedback
+  - name: session
+    description: Session management
+  - name: students
+    description: Actions taken on or for a student user
+  - name: survey
+    description: Gathering and submitting surveys
+  - name: training
+    description: Actions for executing training
+  - name: twilio
+    description: Endpoints only used by Twilio API
+  - name: utility
+    description: Infrastructure/Metadata
+  - name: user
+    description: Actions taken on users
+  - name: verification
+    description: Validates user actions
+  - name: volunteers
+    description: Actions taken on volunteers
+  - name: whiteboard
+    description: Actions for whiteboard section
+paths:
+  /healthz:
+    get:
+      tags:
+        - utility
+      summary: Healthcheck and Metadata
+      operationId: healthcheck
+      description: |
+        Confirms the service is up and provides data like the version
+      responses:
+        '200':
+          description: successful health check
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Healthcheck'
+                example:
+                  version: "2.0.0"
+  /api/csrftoken:
+    get:
+      tags:
+        - authorization
+      summary: Generates csrf token
+      description: |
+        - Generates csrf token
+      responses:
+        '200':
+          description: Returns a json with `csrfToken`
+          content:
+            applicaton/json:
+              schema:
+                type: object
+                properties:
+                  csrfToken:
+                    $ref: '#/components/schemas/CSRFToken'
+                required:
+                  - csrfToken
+              example:
+                csrfToken: "FbmhS8I9-A4qxdtGylFSAfwM71GQBXOnUCOM"
+        '403':
+          description: |
+            - Request is unauthorized for non-upchieve users
+            - CSRF token does not match
+  /auth/login:
+    post:
+      tags:
+        - authorization
+      summary: Validates user email and password for login
+      description: |
+        Authenticates the user and grants a session if credentials are correct for login
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/EmailPassword'
+        required: true
+      responses:
+        '200':
+          description: >
+            Authenticates the user with a session if credentials are correct and returns a user object. 
+            The session ID is returned in a cookie named `connect.sid` which should be provided in subsequent requests that use cookie authentication. 
+        '401':
+          description: Unsuccessful authentication of user credentials
+  /auth/logout:
+    get:
+      tags:
+        - authorization
+      summary: User logout
+      description: |
+        Removes the user's current session.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User is logged out and session is ended
+          content:
+            application/json:
+              example:
+                msg: "You have been logged out"
+  /auth/register/checkcred:
+    post:
+      tags:
+        - authorization
+      summary: Validate user credentials for registration
+      description: |
+        Check whether the credential user entered is valid. (first step of registration) The server will check for email duplications and validate the password.
+      security:
+        - cookieAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/EmailPassword'
+        required: true
+      responses:
+        '200':
+          description: Email is not already in use and password is validated
+        '409':
+          description: Email already exists
+        '422':
+          description: Email/password not provided or password is not valid
+  /auth/register/student/open:
+    post:
+      tags:
+        - authorization
+      summary: Register new open student account
+      description: |
+        Creates a new account for a student from given parameters in request body
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/UserRegistrationPrototype'
+                - type: object
+                  properties:
+                    highSchoolId:
+                      type: string
+                    signupSourceId:
+                      type: number
+                    currentGrade:
+                      type: string
+                  required:
+                    - highSchoolId
+                    - currentGrade
+            example:
+              email: newuser.test@upchieve.com
+              password: Password123
+              firstName: Foo
+              lastName: Bar
+              phone: '+19999999999'
+              terms: true
+              highSchoolId: 0184e98d-a67e-094a-3624-3fef08d5dcf6
+              currentGrade: 9th
+      responses:
+        '200':
+          description: Successful student registration and log in
+        '403':
+          description: |
+            A 403 is generated when the backend identifies the request IP
+            as coming from a non-US IP
+        '422':
+          description: |
+            - False value for term agreement
+            - Email or password are invalid
+            - If an account with this email already exists
+            - If your high school isn't approved
+            - If any of the parameters are missing
+        '500':
+          description: Server error
+  /auth/register/student/partner:
+    post:
+      tags:
+        - authorization
+      summary: Register new partner student account
+      description: |
+        Creates a new account for a student from given parameters in request body
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/UserRegistrationPrototype'
+                - type: object
+                  properties:
+                    studentPartnerOrg:
+                      type: string
+                    partnerUserId:
+                      type: string
+                    partnerSite:
+                      type: string
+                    highschoolId:
+                      $ref: '#/components/schemas/SchoolId'
+                    college:
+                      type: string
+                  required:
+                    - studentPartnerOrg
+                    - highSchoolId
+            example:
+              email: newuser.test@upchieve.com
+              password: Password123
+              firstName: Foo
+              lastName: Bar
+              phone: '+19999999999'
+              terms: true
+              studentPartnerOrg: college-mentors
+              highSchoolId: 0184e98d-a67e-094a-3624-3fef08d5dcf6
+      responses:
+        '200':
+          description: Successful student registration and log in
+        '422':
+          description: |
+            - False value for term agreement
+            - Email or password are invalid
+            - If an account with this email already exists
+            - If any partner information isn't valid
+            - If any of the parameters are missing
+        '500':
+          description: Server error
+  /auth/register/volunteer/open:
+    post:
+      tags:
+        - authorization
+      summary: Register new open volunteer account
+      description: |
+        Creates an open volunteer account
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationPrototype'
+            example:
+              email: newuser.test@upchieve.com
+              password: Password123
+              firstName: Foo
+              lastName: Bar
+              phone: '+19999999999'
+              terms: true
+      responses:
+        '200':
+          description: Successful volunteer registration and log in
+        '422':
+          description: |
+            Any of the following can generate status code 422:
+             - Missing value for term agreement
+             - Missing email or password
+             - Invalid password
+  /auth/register/volunteer/partner:
+    post:
+      tags:
+        - authorization
+      summary: Register new partner volunteer account
+      description: |
+        Creates a partner volunteer account
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/UserRegistrationPrototype'
+                - type: object
+                  properties:
+                    volunteerPartnerOrg:
+                      type: string
+                    partnerUserId:
+                      type: string
+                    highSchoolId:
+                      $ref: '#/components/schemas/SchoolId'
+                    partnerSite:
+                      type: string
+                    college:
+                      type: string
+                    signupSourceId:
+                      type: number
+                  required:
+                    - volunteerPartnerOrg
+            examples:
+              volunteer:
+                value:
+                  email: newuser.test@upchieve.com
+                  password: Password123
+                  firstName: Foo
+                  lastName: Bar
+                  phone: '+19999999999'
+                  terms: true
+                  volunteerPartnerOrg: health-co
+              volunteerReferred:
+                value:
+                  email: newuser.text@upchieve.com
+                  password: Password123
+                  firstName: Foo
+                  lastName: Bar
+                  phone: '+19999999999'
+                  terms: true
+                  volunteerPartnerOrg: health-co
+                  referredByCode: bogus
+      responses:
+        '200':
+          description: Successful volunteer registration and log in
+        '422':
+          description: |
+            Any of the following can generate status code 422:
+             - Missing value for term agreement
+             - Missing email or password
+             - Invalid password
+             - Invalid volunteer Partner
+             - Invalid partner domain
+  /auth/partner/volunteer:
+    get:
+      tags:
+        - authorization
+      summary: Get partner manifest for volunteer sign-up
+      description: |
+        Confirms partner id from link and return partner manifest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerId
+          in: query
+          description: key of volunteer partner org
+          schema:
+            type: string
+            example: "health-co"
+      responses:
+        '200':
+          description: Returns a volunteer partner manifest object
+        '404':
+          description: No manifest found for volunteer partner id
+  /auth/partner/student:
+    get:
+      tags:
+        - authorization
+      summary: Get partner manifest for student sign-up
+      description: |
+        Confirms partner id from link and return partner manifest
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerId
+          in: query
+          description: 'key of student partner org'
+          schema:
+            type: string
+            example: 'college-mentors'
+      responses:
+        '200':
+          description: Returns a student partner manifest object
+        '404':
+          description: No manifest found for student partner id
+  /auth/reset/send:
+    post:
+      tags:
+        - authorization
+      summary: Requests a password reset email
+      description: |
+        Sends an email to verify the current user with unique hash. The email provided
+        will overwrite the user record's email, in the event that the two do not match.
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        description: Object is created after a form is correctly completed
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  email:
+                    $ref: '#/components/schemas/Email'
+      responses:
+        '200':
+          description: Request successful and password reset instructions sent
+        '422':
+          description: Missing email for password reset
+  /auth/reset/confirm:
+    post:
+      tags:
+        - authorization
+      summary: Password verification
+      description: |
+        Confirms new password during reset
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  email:
+                    $ref: '#/components/schemas/Email'
+                  password:
+                    $ref: "#/components/schemas/Password"
+                  newpassword:
+                    $ref: "#/components/schemas/Password"
+                  token:
+                    type: string
+                    example: '12345678123456781234567812345678'
+      responses:
+        '200':
+          description: Token is accepted and password is changed
+        '422':
+          description: |
+            The following will generate status code 422:
+            - No token given in request body
+            - Missing email or password
+            - Must reenter password
+            - Passwords do not match
+  /auth/partner/student/code:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves student partner key
+      description: Retrieves `studentPartnerKey` for a `signupCode`
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerSignupCode
+          in: query
+          required: true
+          schema:
+            type: string
+            example: 'MENTORS'
+      responses:
+        '200':
+          description: Returns object with `studentPartnerKey`
+  /auth/partner/student-partners:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves a list of student partners
+      description: |
+        - For admin only
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an array of all student partners
+  /auth/partner/volunteer-partners:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves a list of volunteer partners
+      description: |
+        - For admin only
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an array of all volunteer partners
+  /auth/partner/sponsor-orgs:
+    get:
+      tags:
+        - authorization
+      summary: Retrieves a list of sponsor orgs
+      description: |
+        - For admin only
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an array of all sponsor orgs
+  /api/calendar/save:
+    post:
+      tags:
+        - calendar
+      summary: Creates a schedule
+      description: |
+        Makes a schedule based on availability
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                availability:
+                  type: object
+                  properties:
+                    Friday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Monday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Saturday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Sunday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Tuesday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Thursday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                    Wednesday:
+                      $ref: "#/components/schemas/ScheduleDay"
+                tz:
+                  $ref: "#/components/schemas/TZ"
+      responses:
+        '200':
+          description: Schedule is saved
+  /api/calendar/clear:
+    post:
+      tags:
+        - calendar
+      summary: Available in backend tests only
+      description: |
+        Removed all preset schedule on calendar
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tz:
+                  $ref: "#/components/schemas/TZ"
+      responses:
+        '200':
+          description: Schedule is cleared
+        '422':
+          description: Invalid arguments
+  /api/feedback:
+    get:
+      tags:
+        - feedback
+      summary: Retrieve feedback information
+      description: Returns feedback from given session ID and user type in query params
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/SessionId"
+        - name: userType
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserType"
+      responses:
+        '200':
+          description: Returns an object of feedback details
+  /api/moderate/message:
+    post:
+      tags:
+        - moderate message
+      summary: Moderates messages
+      description: |
+        Check if message sent is appropriate language
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Returns a boolean object that determines whether message is clean or not
+  /api/product-flags:
+    get:
+      tags:
+        - user
+      summary: Get public user product flag(s)
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns public user product flag(s)
+  /api/push-token/save:
+    post:
+      tags:
+        - notification
+      summary: Saves token
+      description: |
+        Saves push token for notifications
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Empty response with OK status code
+  /api/reports/session-report:
+    get:
+      tags:
+        - reports
+      summary: Retrieves session report
+      description: |
+        - Admin only
+        - Return all reports from session complete
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: joinedAfter
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2020
+        - name: joinedBefore
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2021
+        - name: sessionRangeFrom
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2020
+        - name: sessionRangeTo
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2021
+        - name: highSchoolId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/SchoolId'
+          example: 0184e98d-a67e-094a-3624-3fef08d5dcf6
+        - name: studentPartnerOrg
+          in: query
+          required: true
+          schema:
+            type: string
+          example: college-mentors
+      responses:
+        '200':
+          description: Returns an object with an array of sessions
+  /api/reports/usage-report:
+    get:
+      tags:
+        - reports
+      summary: Retrieves usage report
+      description: |
+        - Admin only
+        - Retrieves usage report
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: joinedAfter
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2020
+        - name: joinedBefore
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2021
+        - name: sessionRangeFrom
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2020
+        - name: sessionRangeTo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: highSchoolId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/SchoolId'
+          example: 01-01-2021
+        - name: studentPartnerOrg
+          in: query
+          required: true
+          schema:
+            type: string
+          example: college-mentors
+      responses:
+        '200':
+          description: Returns an object with a list of student usage reports
+  /api/reports/volunteer-telecom-report:
+    get:
+      tags:
+        - reports
+      summary: Retrieves volunteer partner reports
+      description: |
+        - Admin only
+        - Retrieves volunteer partner reports
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: partnerOrg
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an object (data) with an array of volunteer partner reports
+  /api/reports/partner-analytics-report:
+    get:
+      tags:
+        - reports
+      summary: Downloads a corporate partner analytics report
+      description: |
+        - Admin only
+        - Downloads a corporate partner analytics report
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: partnerOrg
+          in: query
+          required: true
+          schema:
+            type: string
+          example: health-co
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2020
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2021
+      responses:
+        '201':
+          description: An excel sheet is created and automatically downloaded
+        '403':
+          description: Unauthorized for non-admin users
+        '422':
+          description: No data found or bad input from the query params
+        '500':
+          description: Internal server error
+  /api/session/new:
+    post:
+      tags:
+        - session
+      summary: Starts a new session
+      description: |
+        Submits details to establish and create a session ID
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionType:
+                  $ref: '#/components/schemas/SessionType'
+                sessionSubTopic:
+                  $ref: '#/components/schemas/SessionSubTopic'
+      responses:
+        '200':
+          description: Returns an object with a session Id
+        '500':
+          description: |
+            - If request for new session is from volunteer
+            - Bad json request body
+  /api/session/current:
+    post:
+      tags:
+        - session
+      summary: Looks for a current session in progress
+      description: |
+        Looks for current session in progress and retrieve details on session
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                is_volunteer:
+                  $ref: '#/components/schemas/IsVolunteer'
+      responses:
+        '200':
+          description: Returns an object (data) with session details and the current session Id
+        '404':
+          description: No current session
+  /api/session/latest:
+    post:
+      tags:
+        - session
+      summary: Retrieves latest session
+      description: |
+        Checks and retreieves the latest completed session
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: Returns an object (data) with the details of the latest completed session and session Id
+        '404':
+          description: No latest session
+  /api/session/check:
+    post:
+      tags:
+        - session
+      summary: Checks for existing session
+      description: |
+        Checks session based on sessionId; if there is a session in progress use that session
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns the session id confirming the session existss
+        '404':
+          description: No session found
+  /api/session/end:
+    post:
+      tags:
+        - session
+      summary: Ends a session
+      description: |
+        End the current session in progress
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns the session id confirming the session has ended
+        '404':
+          description: No session found
+  /api/sessions:
+    get:
+      tags:
+        - session
+      summary: Get all sessions
+      description: |
+        - Admin only
+        - Retrieves all session completed by user
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+          required: true
+        - name: showBannedUsers
+          in: query
+          required: true
+          schema:
+            type: string
+          example: true
+        - name: showTestUsers
+          in: query
+          required: true
+          schema:
+            type: string
+          example: true
+        - name: sessionActivityFrom
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2020
+        - name: sessionActivityTo
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 01-01-2021
+        - name: minMessagesSent
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 0
+        - name: minSessionLength
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 0
+        - name: studentRating
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 3
+        - name: volunteerRating
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 3
+        - name: firstTimeStudent
+          in: query
+          required: true
+          schema:
+            type: string
+          example: true
+        - name: firstTimeVolunteer
+          in: query
+          required: true
+          schema:
+            type: string
+          example: true
+        - name: isReported
+          in: query
+          required: true
+          schema:
+            type: string
+          example: true
+      responses:
+        '200':
+          description: Returns an object with a list of session objects
+  /api/session/review:
+    get:
+      tags:
+        - session
+      summary: Retrieves session report
+      description: |
+        - Admin only
+        - Retrieves session report
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: users
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns a object with a list of sessions and page location
+  /api/session/{sessionId}:
+    get:
+      tags:
+        - session
+      summary: Retrieves a session ID
+      description: |
+        - Admin only
+        - Retrieves a session ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a session object
+    put:
+      tags:
+        - session
+      summary: Updates session
+      description: Updates session
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reviewed:
+                  type: boolean
+                toReview:
+                  type: boolean
+      responses:
+        '200':
+          description: Returns OK message when session has been updated
+  /api/session/{sessionId}/admin:
+    get:
+      tags:
+        - session
+      summary: Retrieves session details
+      description: |
+        - Admin only
+        - Retrieves session details of specific session id for admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a object with details on the specified session
+  /api/session/{sessionId}/notifications:
+    get:
+      tags:
+        - session
+      summary: Retrieves session notifications
+      description: |
+        - Admin only
+        - Retrieves a list of session notifications that were sent
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns a object with a list of notifications for specified session
+  /api/session/{sessionId}/photo-url:
+    get:
+      tags:
+        - session
+      summary: Retrieves an image url
+      description: Retrieves an upload url to upload image in the session
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns an object with assigned image url and upload url
+  /api/session/{sessionId}/report:
+    post:
+      tags:
+        - session
+      summary: Reports a session
+      description: Sends details for reporting a session.
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reportReason:
+                  type: string
+                  enum:
+                    - 'This student was extremely rude or inappropriate'
+                    - 'I am worried for the immediate safety of this student'
+                reportMessage:
+                  type: string
+      responses:
+        '200':
+          description: Report has been submitted for the session
+        '401':
+          description: |
+            - Missing session ID or session
+            - Missing volunteer
+            - Missing user ID
+  /api/session/{sessionId}/timed-out:
+    post:
+      tags:
+        - session
+      summary: Times out a session
+      description: Sets a session time out after 15 or 45 minutes in session
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timeout:
+                  type: integer
+      responses:
+        '200':
+          description: Session has timed out
+  /api/sessions/history:
+    get:
+      tags:
+        - session
+      summary: gets session history
+      description: gets a paginated list of sessions for session history
+      security:
+        - cookieAuth: []
+      parameters: 
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns an object with a paginated list of sessions for session history
+  /api/sessions/history/total:
+    get:
+      tags:
+        - session
+      summary: gets total session history
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an object with total session history
+  /api/sessions/{sessionId}/recap:
+    get:
+      tags:
+        - session
+      summary: gets session recap
+      description: gets details of a session for session recap
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Returns an object with the session's details for session recap
+  /api/stats/volunteer/heatmap:
+    get:
+      tags:
+        - reports
+      summary: Gets a heat map of student wait times
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns a heat map of student wait times
+  /api/students/favorite-volunteers/{volunteerId}:
+    get:
+      tags:
+        - students
+      summary: Checks if the student has the volunteer favorited
+      description: |
+        - Students only
+        - Checks if the student has the volunteer favorited
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: volunteerId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VolunteerId'
+          example: 0184e98d-a6b1-537e-59a7-97cf1e07a6dd
+      responses:
+        '200':
+          description: Boolean returned to indicate if the student has the volunteer favorited or not
+    post:
+      tags: 
+        - students
+      summary: Updates the volunteer's favorited status
+      description: |
+        - Students only
+        - Deletes the student's favorited volunteer if unfavorited
+        - Adds the student's favorited volunteer if favorited
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters: 
+        - name: volunteerId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VolunteerId'
+          example: 0184e98d-a6b1-537e-59a7-97cf1e07a6dd
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - isFavorite
+              properties:
+                isFavorite:
+                  $ref: '#/components/schemas/IsFavorite'
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+      responses: 
+        '200': 
+          description: |
+            - Successfully updated the volunteer's favorited status
+            - Returns a boolean indicating if the volunteer is now favorited or not for this student
+          content: 
+            applicaton/json: 
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/IsFavorite'
+              example:
+                isFavorite: true
+        '400': 
+          description: |
+            - Favorite volunteer limit reached
+            - Student cannot favorite any more volunteers
+  /api/students/favorite-volunteers:
+    get:
+      tags:
+        - students
+      summary: Gets students favorite volunteers
+      description: |
+        - Students only
+        - Gets students favorite volunteers
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns an object with a list volunteers that are favorited by the student and if there are more rows in the database
+  /api/students/remaining-favorite-volunteers:
+    get:
+      tags:
+        - students
+      summary: Number of remaining volunteers to favorite
+      description: |
+        - Students only
+        - Retrieves number of remaining volunteers a student is allowed to favorite
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Responds with number of remaining volunteers a student is allowed to favorite
+  /api/students/partners/active:
+    get:
+      tags:
+        - students
+      summary: Retrieves the active partner orgs that a student has
+      description: |
+        - Admin only
+        - Retrieves the active partner orgs that a student has
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: student
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/StudentId"
+      responses:
+        '200':
+          description: Responds with a list of active partner orgs
+  /api/survey/presession/{sessionId}:
+    get:
+      tags:
+        - survey
+      summary: Gets presession survey
+      description: Gets presession survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Responds with an object of the survey
+    post:
+      tags:
+        - survey
+      summary:  Sends answers to survey
+      description: Sends answers to survey
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                responseData:
+                  type: object
+                  properties:
+                    primary-goal:
+                      type: object
+                      properties:
+                        answer:
+                          type: string
+                          example: 'test-prep'
+                    topic-understanding:
+                      type: object
+                      properties:
+                        answer:
+                          type: integer
+                          example: 1
+      responses:
+        '200':
+          description: OK
+  /api/survey/presession/{sessionId}/goal:
+    get:
+      tags:
+        - survey
+      summary: Gets the student's presession goal
+      description: Gets the student's presession goal
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Responds with an object containing the student's goal
+  /api/survey/save:
+    post:
+      tags:
+        - survey
+      summary:  Sends user survey and user survey answers to be saved
+      description: Sends user survey and user survey answers to be saved
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                surveyId:
+                  type: integer
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+                surveyTypeId:
+                  type: number
+                submissions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      questionId:
+                        type: integer
+                      responseChoiceId:
+                        type: integer
+                      openResponse:
+                        type: string
+            example:
+              surveyId: 1
+              sessionId: "0185b6f7-5847-97b5-f5be-d1026b926862"
+              surveyTypeId: 1
+              submissions:
+                - questionId: 1
+                  responseChoiceId: 1
+                  openResponse: Some response
+      responses:
+        '200':
+          description: OK
+  /api/survey/presession:
+    get:
+      tags:
+        - survey
+      summary: Gets presession survey
+      description: Gets presession survey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: subject
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/postsession:
+    get:
+      tags:
+        - survey
+      summary: Gets postsession survey
+      description: Gets postsession survey
+      security:
+        - cookieAuth: []
+      parameters:
+      - name: sessionId
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/SessionId'
+      - name: role
+        description: Should be 'student', 'volunteer' or 'admin'
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: ['student', 'volunteer', 'admin']
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/postsession/response:
+    get:
+      tags:
+        - survey
+      summary: Gets postsession survey response
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+        - name: role
+          description: Should be 'student', 'volunteer' or 'admin'
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ['student', 'volunteer', 'admin']
+      responses:
+        '200':
+          description: Returns a survey response object
+  /api/survey/presession/response/{sessionId}:
+    get:
+      tags:
+        - survey
+      summary: Gets presession survey response from student
+      description: Gets presession survey response from student
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SessionId'
+      responses:
+        '200':
+          description: Responds with total number of sessions a student has and an array of their presession survey responses
+  /api/survey/progress-report:
+    get:
+      tags:
+        - survey
+      summary: Gets progress report survey
+      description: Gets progress report survey
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Responds with an object of the survey with the survey questions and response choices
+  /api/survey/progress-report/{progressReportId}/response:
+    get:
+      tags:
+        - survey
+      summary: Gets progress report survey response from student
+      description: Gets progress report survey response from student
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: progressReportId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ProgressReportId'
+      responses:
+        '200':
+          description: Responds with an array of their progress report survey responses
+  /api/training/course/{courseKey}:
+    get:
+      tags:
+        - training
+      summary:  Retrieves course details
+      description: Retrieves course details based on given coursekey
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseKey
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourseKey'
+      responses:
+        '200':
+          description: OK
+  /api/training/course/{courseKey}/progress:
+    post:
+      tags:
+        - training
+      summary:  Sends information to get progress on course
+      description: Sends for progress details based on given material key and course key
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: courseKey
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CourseKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                materialKey:
+                  type: string
+                  example: '31rgp3'
+      responses:
+        '200':
+          description: Responds with object detailing progress section and if the course has been completed
+  /api/training/questions:
+    post:
+      tags:
+        - training
+      summary:  Requests for questions for training
+      description: Sends a request for given category questions
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  $ref: "#/components/schemas/Category"
+      responses:
+        '200':
+          description: Responds with an object of a list of question/answer objects
+  /api/training/review/{category}:
+    get:
+      tags:
+        - training
+      summary:  Retrieve review materials
+      description: Sets category for retrieving review materials
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Category"
+      responses:
+        '200':
+          description: Responds with an object of a list of review materials
+  /api/training/score:
+    post:
+      tags:
+        - training
+      summary:  Sends answers from quiz
+      description: Sends answers from training quiz and returns a score
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  $ref: '#/components/schemas/Category'
+                idAnswerMap:
+                  type: object
+                  additionalProperties: true
+            example:
+              category: geometry
+              idAnswerMap:
+                31: 'a'
+                32: 'a'
+                33: 'a'
+                34: 'a'
+                35: 'a'
+                36: 'a'
+      responses:
+        '200':
+          description: Responds with an object of the quiz score calculation
+  /api/user:
+    get:
+      tags:
+        - user
+      summary:  Retrieves a user profile
+      description: |
+        - Admin only
+        - Retrieves user details using authenticated req.user object
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Responds with user details object
+        '401':
+          description: User isn't authenticated
+    put:
+      tags:
+        - user
+      summary:  Updates a user profile
+      description: Accepts a request body with fields mapping to profile fields to update for the currently authenticated user
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: +12125554444
+                isDeactivated:
+                  type: boolean
+                mutedSubjectAlerts:
+                  type: array
+                  items:
+                    type: string
+                  example: ['algebraOne', 'biology']
+      responses:
+        '200':
+          description: OK, user profile is updated
+    delete:
+      tags:
+        - user
+      summary: Flags a user account for deletion
+      description: |
+        Appends 'deactivated' to a user's email so they can no
+        longer log in. Staff can search for emails with that append
+        to go through a manual deletion process.
+      security:
+        - cookieAuth: [ ]
+        - csrfTokenAuth: []
+      responses:
+        '200':
+          description: Account deletion request was successful
+  /api/user/{userId}:
+    get:
+      tags:
+        - user
+      summary:  Retrieves a user profile
+      description: |
+        - Admin only
+        - Retrieves a user profile based on given userID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns a sanitized public user record for a user with the given id.
+    put:
+      tags:
+        - user
+      summary:  Updates a user profile
+      description: |
+        - Admin only
+        - Updates a user profile based on given userID
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                partnerOrg:
+                  type: string
+                partnerSite:
+                  type: string
+                isVerified:
+                  type: boolean
+                isBanned:
+                  type: boolean
+                isDeactivated:
+                  type: boolean
+                isApproved:
+                  type: boolean
+            example:
+              firstName: Student
+              lastName: UPchieve
+              email: student1@upchieve.org
+              partnerOrg: approved-partner-school
+              partnerSite: Mars
+              isDeactivated: false
+              isVerified: true
+              isBanned: false
+              inGatesStudy: false
+      responses:
+        '200':
+          description: OK; Record is updated
+  /api/user/email/{userEmail}:
+    get:
+      tags:
+        - user
+      summary: Get userId from user email
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: userEmail
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Email'
+      responses:
+        '200':
+          description: Returns userId
+  /api/user/referred-friends:
+    get:
+      tags:
+        - user
+      summary: Retrieves a list of referred friends
+      description: Retrieves a list of referred friends with given req.user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns an object with a list of referred friends
+  /api/user/volunteer-approval/background-information:
+    post:
+      tags:
+        - user
+      summary: Submits background information
+      description: Accepts volunteer's background information
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                occupation:
+                  type: string
+                experience:
+                  type: string
+                company:
+                  type: string
+                college:
+                  type: string
+                linkedInUrl:
+                  type: string
+                languages:
+                  type: string
+                country:
+                  type: string
+                state:
+                  type: string
+                city:
+                  type: string
+            example:
+              occupation:
+                - Carpenter
+                - Pilot
+              experience:
+                Carpenter: A bit
+              company: Foo Inc.
+              college: Foo University
+              linkedInUrl: NA
+              languages:
+                - Italian
+                - Spanish
+              country: USA
+              state: CO
+              city: Denver
+      responses:
+        '200':
+          description: OK; Volunteer data accepted
+  /api/user/volunteer-approval/photo-url:
+    get:
+      tags:
+        - user
+      summary: Retrieves photo upload url
+      description: Retrieves photo upload url
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Will return an object with a boolean value if url is generated successfully or not
+            - Return an object with `success: false` or `success: true` with url
+  /api/user/volunteer-approval/reference:
+    post:
+      tags:
+        - reference
+      summary: Submits information for reference
+      description: Submits information for reference
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                referenceFirstName:
+                  type: string
+                referenceLastName:
+                  type: string
+                referenceEmail:
+                  type: string
+            example:
+              referenceFirstName: Reference
+              referenceLastName: Provider
+              referenceEmail: referenceprovider.test@upchieve.org
+      responses:
+        '200':
+          description: OK; Reference accepted
+  /api/user/volunteer-approval/reference/delete:
+    post:
+      tags:
+        - reference
+      summary: Removes reference
+      description: Remove reference from given reference email address
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                referenceEmail:
+                  type: string
+                  example: referenceprovider.test@upchieve.org
+      responses:
+        '200':
+          description: OK; deleted
+  /api/users:
+    get:
+      tags:
+        - user
+      summary: Retrieves a list of users
+      description: |
+        - Admin only
+        - Gets a list of users from given parameters
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+          required: false
+        - name: userId
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UserId'
+        - name: firstName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Email'
+        - name: partnerOrg
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: highSchool
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns and object of users and page marker
+  /api/verify/send:
+    post:
+      tags:
+        - verification
+      summary: Sends verication email
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                sendTo:
+                  $ref: '#/components/schemas/Email'
+                verificationMethod:
+                  enum: ['sms', 'emaill']
+            example:
+              sendTo: student1@upchieve.org
+              verificationMethod: 'email'
+      responses:
+        '200':
+          description: Verification email sent
+        '404':
+          description: Server unable to locate verification service
+        '429':
+          description: Too many attempts
+        '422':
+          description: |
+            Invalid arguments
+            User with verification number/address already exists
+  /api/verify/confirm:
+    post:
+      tags:
+        - verification
+      summary: Confirms verification
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                sendTo:
+                  $ref: '#/components/schemas/Email'
+                verificationMethod:
+                  enum: ['sms', 'emaill']
+            example:
+              sendTo: student1@upchieve.org
+              verificationMethod: 'email'
+              verificationCode: 123456
+      responses:
+        '200':
+          description: Verification completed, success status in payload
+        '422':
+          description: Invalid argument
+  /api/volunteers/availability/{certifiedSubject}:
+    get:
+      tags:
+        - volunteers
+      summary: Gets a map of volunteer availability
+      description: |
+        - Admin only
+        -  Gets a map of volunteer availabilities by given certified subject
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: certifiedSubject
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Returns an object of aggregated volunteer availabilities by user id
+  /api/volunteers/hours-last-updated:
+    get:
+      tags:
+        - volunteers
+      summary: Get last updated date for volunteer hours
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Returns last updated date for volunteer hours
+  /api/volunteers/review:
+    get:
+      tags:
+        - volunteers
+      summary: Gets volunteer details by page
+      description: |
+        - Admin only
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns an object of volunteers, paginated
+  /api/volunteers/review/{id}:
+    post:
+      tags:
+        - volunteers
+      summary: Submits volunteer details by given id
+      description: |
+        - Admin only
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters: 
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VolunteerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photoIdStatus:
+                  type: string
+                  example: Some status
+                referencesStatusMap:
+                  type: object
+                  additionalProperties: true
+                  example:
+                    0184e98d-a6b1-a48a-d42f-24e5fd5d9811: rejected
+      responses:
+        '200':
+          description: OK
+  /api-public/contact/send:
+    post:
+      tags:
+        - contact
+      summary: Sends contact form
+      description: |
+        - This is where contact form submissions are sent
+        - Submits given response data and sends contact form via email service
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  $ref: '#/components/schemas/UserId'
+                userEmail:
+                  $ref: '#/components/schemas/Email'
+                topic:
+                  type: string
+                message:
+                  type: string
+            example:
+              userId: '018597ec-1ab1-a9da-b66b-df318ef6be4c'
+              userEmail: 'student1@upchieve.org'
+              topic: 'General question'
+              message: 'Can I get help with coding?'
+      responses:
+        '200':
+          description: Contact form saved in db and sent
+        '400':
+          description: Invalid data was sent in the request
+        '500':
+          description: Internal server error
+  /api-public/eligibility/ip-check:
+    get:
+      tags:
+        - eligibility
+      summary: |
+        Checks if a student's ip is from a region we allow. The server should check this from the headers or
+        from the express request object
+      responses:
+        '200':
+          description: IP is from an allowed region
+        '403':
+          description: IP is not from an allowed region
+        '500':
+          description: Internal server error
+  /api-public/eligibility/check:
+    post:
+      tags:
+        - eligibility
+      summary: Checks if student is eligible
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schoolUpchieveId:
+                  type: string
+                  example: 0184e98d-a67e-8e66-9cf4-5bfe1bdca094
+                zipCode:
+                  type: string
+                  example: 01013
+                email:
+                  type: string
+                  example: newuser.test@upchieve.org
+                referredByCode:
+                  type: string
+                  example: bogus
+      responses:
+        '200':
+          description: Returns an object with boolean `isEligible`
+        '422':
+          description: Returned if email already in use
+  /api-public/eligibility/check-zip-code/{zipCode}:
+    get:
+      tags:
+        - eligibility
+      summary: Checks is zip code is valid US postal code
+      parameters:
+        - name: zipCode
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 01012
+      responses:
+        '200':
+          description: Returns an isValidZipCode boolean indicating if a provided zip code is valid
+  /api-public/eligibility/school/search:
+    get:
+      tags:
+        - eligibility
+      summary: Checks if student is eligible
+      parameters:
+        - name: q
+          description: School name
+          in: query
+          required: true
+          schema:
+            type: string
+          example: Approved School
+      responses:
+        '200':
+          description: Returns an object of school results
+  /api-public/eligibility/school/{schoolId}:
+    get:
+      tags:
+        - eligibility
+      summary:  Gets an eligible school
+      description: |
+        - Admin only
+        - Checks eligibility of school from given school id
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: schoolId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SchoolId'
+          example: 0184e98d-a67e-094a-3624-3fef08d5dcf6
+      responses:
+        '200':
+          description: Returns an object with school details
+    put:
+      tags:
+        - eligibility
+      summary: Updates school eligibility
+      description: |
+        - Admin only
+        - Updates school based on given school id
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: schoolId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/SchoolId'
+          example: 0184e98d-a67e-8e66-9cf4-5bfe1bdca094
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  city:
+                    type: string
+                  state:
+                    type: string
+                  zipCode:
+                    type: string
+                  isApproved:
+                    type: boolean
+              example:
+                name: Approved School
+                city: Denver
+                state: CO
+                zipCode: '80014'
+                isApproved: true
+      responses:
+        '200':
+          description: OK
+  /api-public/eligibility/schools:
+    get:
+      tags:
+        - eligibility
+      summary:  Gets eligible schools
+      description: |
+        - Admin only
+        - Gets a list of all eligible schools
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns an array of school objects
+  /api-public/eligibility/school/approval:
+    post:
+      tags:
+        - eligibility
+      summary:  Approves school
+      description: |
+        - Admin only
+        - Sets approval for eligible with given school id
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schoolId:
+                  $ref: '#/components/schemas/SchoolId'
+                  example: 0184e98d-a67e-8e66-9cf4-5bfe1bdca094
+                isApproved:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+  /api-public/eligibility/school/partner:
+    post:
+      tags:
+        - eligibility
+      summary:  Approves partner status
+      description: |
+        - Admin only
+        - Sets partner status for eligible with given school id
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schoolId:
+                  $ref: '#/components/schemas/SchoolId'
+                  example: 0184e98d-a67e-8e66-9cf4-5bfe1bdca094
+                isPartner:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+  /api-public/eligibility/ineligible-students:
+    get:
+      tags:
+        - eligibility
+      summary:  Gets ineligible students
+      description: |
+        - Admin only
+        - Gets a list of all ineligible students
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Returns an object with a paginated list of ineligible students
+  /api-public/eligibility/signup-sources/students:
+    get:
+      tags:
+        - eligibility
+      summary: Gets student signup sources
+      description: |
+        - Gets a list of student signup sources
+      responses:
+        '200':
+          description: Returns an list of student signup sources
+  /api-public/eligibility/zip-codes/{zipCode}:
+    get:
+      tags:
+        - eligibility
+      summary: Checks an eligible zipcode
+      description: |
+        - Admin only
+        - Checks eligibility based on given zipcode
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: zipCode
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 01012
+      responses:
+        '200':
+          description: Returns an object with zipcode details
+  /api-public/reference/{referenceId}:
+    get:
+      tags:
+        - reference
+      summary: Gets reference
+      description: |
+        - Gets reference based on given id
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: referenceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: User not found
+  /api-public/reference/{referenceId}/submit:
+    post:
+      tags:
+        - reference
+      summary:  Creates new reference
+      description: |
+        - Admin only
+        - Submits new reference based on submitted form information
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: referenceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                affiliation:
+                  type: string
+                relationshipLength:
+                  type: string
+                rejectionReason:
+                  type: string
+                additionalInfo:
+                  type: string
+                patient:
+                  $ref: '#/components/schemas/IntegerBoolean'
+                positiveRoleModel:
+                  $ref: '#/components/schemas/IntegerBoolean'
+                agreeableAndApproachable:
+                  $ref: '#/components/schemas/IntegerBoolean'
+                communicatesEffectively:
+                  $ref: '#/components/schemas/IntegerBoolean'
+                trustworthyWithChildren:
+                  $ref: '#/components/schemas/IntegerBoolean'
+              example:
+                affiliation: Some Affiliation
+                relationshipLength: Some Relationship Length
+                rejectionReason: Some Reason
+                additionalInfo: Some Info
+                patient: 1
+                positiveRoleModel: 1
+                agreeableAndApproachable: 1
+                communicatesEffectively: 1
+                trustworthyWithChildren: 1
+      responses:
+        '200':
+          description: OK
+  /api-public/referral/{referralCode}:
+    get:
+      tags:
+        - referral
+      summary: Gets referral
+      description: |
+        - Gets referral based on given code
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: referralCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an object of user details
+  /whiteboard/reset:
+    post:
+      tags:
+        - whiteboard
+      summary:  Resets whiteboard
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  $ref: '#/components/schemas/SessionId'
+                  example: 0185accc-81f4-96ed-eb3e-f9e3067b4328
+      responses:
+        '200':
+          description: OK
+  /edu:
+    get:
+      tags:
+        - education
+      summary:  Gets web page of all courses
+      description: |
+        - Returns information of course categories and subcategories
+        - Categories link to questions
+      security:
+        - cookieAuth: []
+      responses:
+        '304':
+          description: Responds with view of categories and subcategories
+  /edu/questions:
+    get:
+      tags:
+        - education
+      summary:  Gets web page of questions
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+          example: algebraOne
+        - name: subcategory
+          in: query
+          required: false
+          schema:
+            type: string
+          example: factoring
+      responses:
+        '304':
+          description: Responds with questions view
+    post:
+      tags:
+        - education
+      summary: Creates a question in edu admin
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: object
+                  properties:
+                    category:
+                      type: string
+                    correctAnswer:
+                      type: string
+                    imageSrc:
+                      type: string
+                    questionText:
+                      type: string
+                    subcategory:
+                      type: string
+                    possibleAnswers:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          txt:
+                            type: string
+                          val:
+                            type: string
+      responses:
+        '200':
+          description: Returns with object of created question
+  /edu/questions/new:
+    get:
+      tags:
+        - education
+      summary:  Gets web page with new question form
+      security:
+        - cookieAuth: []
+      responses:
+        '304':
+          description: |
+            - Responds with view of new question form
+            - Routes to `edu/questions/new`
+  /edu/categoryquestions:
+    post:
+      tags:
+        - education
+      summary:  Gets details for category specific questions
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                skip:
+                  type: integer
+                limit:
+                  type: integer
+            example:
+              category: algebraOne
+              skip: 0
+              limit: 10
+      responses:
+        '200':
+          description: Returns object with questions of given category
+  /edu/questions/{id}:
+    put:
+      tags:
+        - education
+      summary: Updates a question
+      description: Submits details for question update
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: object
+                  properties:
+                    category:
+                      type: string
+                    subcategory:
+                      type: string
+                    correctAnswer:
+                      type: string
+                    questionText:
+                      type: string
+                    possibleAnswers:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          txt:
+                            type: string
+                          val:
+                            type: string
+            example:
+              question:
+                category: algebraOne
+                subcategory: factoring
+                correctAnswer: d
+                questionText: Do you enjoy factoring polynomials? 
+                possibleAnswers:
+                  - txt: Yes. 
+                    val: a
+                  - txt: No. 
+                    val: b
+                  - txt: Sometimes. 
+                    val: c
+                  - txt: It's what drives me. 
+                    val: d
+      responses:
+        '200':
+          description: Returns object of updated question
+    delete:
+      tags:
+        - education
+      summary: Deletes a question from given id
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Returns question that is deleted
+  /twiml/message/{message}:
+    post:
+      tags:
+        - twilio
+      summary:  Text to speech conversion
+      description: |
+        - When message text is sent, Twilio will call this endpoint
+        - This endpoints sets TwiML instructions for text to speech conversation
+        - Converts text message to voice message
+        - Responds with TwiML containing the decoded message text and the configured voice for the text-to-speech conversion
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      parameters:
+        - name: message
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns TwiML in text/xml
+  /twiml/incoming-sms:
+    post:
+      tags:
+        - twilio
+      summary:  Twilio SMS messages
+      description: |
+        - Handles SMS messages sent to Twilio numbers
+        - Twilio calls this endpoint to generate a message response
+        - Server will send a TwiML message
+      security:
+        - cookieAuth: []
+        - csrfTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Body:
+                  type: string
+                  example: yes
+                From:
+                  type: string
+                  example: '+12125551217'
+      responses:
+        '200':
+          description: |
+            Sends message (see types below) and returns object with content type of xml
+            - Message with session url (successful)
+            - No session found
+            - Volunteer already joined session
+            - Student ended/cancelled their session
+        '404':
+          description: Missing phone number
+  /api/subjects:
+    get:
+      tags:
+        - subjects
+      summary:  Gets all subjects to hydrate the client
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Sends subjects for the client to display for users
+  /api/subjects/training:
+    get:
+      tags:
+        - subjects
+      summary:  Gets all training for the volunteer
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            Sends training for the volunteer to display the training material
+  /api/subjects/is-valid:
+    get:
+      tags:
+        - subjects
+      summary: Checks if a subject and topic are a valid pair
+      parameters:
+        - name: subject
+          in: query
+          schema:
+            type: string
+          required: true
+          example: prealgebra
+        - name: topic
+          in: query
+          schema:
+            type: string
+          required: true
+          example: math
+      security:
+        - cookieAuth: []
+      responses:
+  /api/progress-reports/sessions/:sessionId:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets a progress report for a given session
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Gets a progress report for a given session
+            - 200 if no progress report is found
+  /api/progress-reports/subjects/:subject:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets a list of progress reports for a given subject
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Gets a paginated list of session progress reports to allow students to see their analysis on a subject
+  /api/progress-reports/summaries/:subject:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets a list of progress report summaries for a subject
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Used to chart a student's progress overtime for a subject
+  /api/progress-reports/summaries/:subject/latest:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets the latest progress report summary for a subject
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Used to show the student's current strengths and practice areas in a subject
+  /api/progress-reports/overview/stats:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets progress report overview subject stats 
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Gets a list of subjects with progress report overview stats
+  /api/progress-reports/overview/latest/subject:
+    get:
+      tags:
+        - progress-reports
+      summary: Gets the subject from the student's latest progress report overview
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: |
+            - Subject name from the student's latest progress report overview
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        nullable: true
+      example: 1
+  schemas:
+    AvailableHour:
+      type: boolean
+      example: true
+    Category:
+      type: string
+      example: 'geometry'
+    CourseKey:
+      type: string
+      example: 'upchieve101'
+    CSRFToken:
+      type: string
+      example: 'FbmhS8I9-A4qxdtGylFSAfwM71GQBXOnUCOM'
+    Email:
+      type: string
+      example: student1@upchieve.org
+    Healthcheck:
+      type: object
+      required:
+        - version
+      properties:
+        version:
+          type: string
+    IntegerBoolean:
+      type: integer
+      description: 1 represents true, and 0 false
+      enum: [0, 1, null]
+      example: 1
+    IsVolunteer:
+      type: boolean
+      example: false
+    IsFavorite: 
+      type: boolean
+      example: true
+    Password:
+      type: string
+      example: "Password123"
+    ProgressReportId:
+      type: string
+      example: "018e3f90-a398-86b3-a620-a487087efe10"
+      format: uuid
+    ScheduleDay:
+      type: object
+      properties:
+        1a:
+          $ref: "#/components/schemas/UnavailableHour"
+        1p:
+          $ref: "#/components/schemas/UnavailableHour"
+        2a:
+          $ref: "#/components/schemas/UnavailableHour"
+        2p:
+          $ref: "#/components/schemas/UnavailableHour"
+        3a:
+          $ref: "#/components/schemas/UnavailableHour"
+        3p:
+          $ref: "#/components/schemas/AvailableHour"
+        4a:
+          $ref: "#/components/schemas/UnavailableHour"
+        4p:
+          $ref: "#/components/schemas/AvailableHour"
+        5a:
+          $ref: "#/components/schemas/UnavailableHour"
+        5p:
+          $ref: "#/components/schemas/AvailableHour"
+        6a:
+          $ref: "#/components/schemas/UnavailableHour"
+        6p:
+          $ref: "#/components/schemas/AvailableHour"
+        7a:
+          $ref: "#/components/schemas/UnavailableHour"
+        7p:
+          $ref: "#/components/schemas/UnavailableHour"
+        8a:
+          $ref: "#/components/schemas/UnavailableHour"
+        8p:
+          $ref: "#/components/schemas/UnavailableHour"
+        9a:
+          $ref: "#/components/schemas/UnavailableHour"
+        9p:
+          $ref: "#/components/schemas/UnavailableHour"
+        10a:
+          $ref: "#/components/schemas/UnavailableHour"
+        10p:
+          $ref: "#/components/schemas/UnavailableHour"
+        11a:
+          $ref: "#/components/schemas/UnavailableHour"
+        11p:
+          $ref: "#/components/schemas/UnavailableHour"
+        12a:
+          $ref: "#/components/schemas/UnavailableHour"
+        12p:
+          $ref: "#/components/schemas/UnavailableHour"
+    SchoolId:
+      type: string
+      format: uuid
+      example: "0184e98d-a67e-094a-3624-3fef08d5dcf6"
+    SessionId:
+      type: string
+      example: "01855690-e838-000d-96aa-6c0f840f88b6"
+      format: uuid
+    SessionSubTopic:
+      type: string
+      example: 'algebraOne'
+    SessionType:
+      type: string
+      example: "math"
+    StudentId:
+      type: string
+      example: "018597ec-1ab1-a9da-b66b-df318ef6be4c"
+      format: uuid
+    TZ:
+      type: string
+      example: "US/Arizona"
+    UnavailableHour:
+      type: boolean
+      example: false
+    UserId:
+      type: string
+      example: "018597ec-1ab1-a9da-b66b-df318ef6be4c"
+    UserType:
+      type: string
+      example: "volunteer"
+    VolunteerId:
+      type: string
+      example: "0184e98d-a6b1-a48a-d42f-24e5fd5d98ae"
+      format: uuid
+    VolunteerIdList:
+      type: array
+      items:
+        $ref: '#/components/schemas/VolunteerId'
+    UserRegistrationPrototype:
+      type: object
+      properties:
+        email:
+          $ref: '#/components/schemas/Email'
+        password:
+          $ref: '#/components/schemas/Password'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        terms:
+          type: boolean
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+        - phone
+        - terms 
+  requestBodies:
+    EmailPassword:
+      description: |
+        Test users are taken from `database/db_init/test_seeds.sql`
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email: 
+                $ref: '#/components/schemas/Email'
+              password:
+                $ref: '#/components/schemas/Password'
+          examples:
+            student1:
+              value:
+                email: student1@upchieve.org
+                password: Password123
+            student2:
+              value:
+                email: student2@upchieve.org
+                password: Password123
+            student3:
+              value:
+                email: student3@upchieve.org
+                password: Password123
+            volunteer1:
+              value:
+                email: volunteer1@upchieve.org
+                password: Password123
+            volunteer2:
+              value:
+                email: volunteer2@upchieve.org
+                password: Password123
+            volunteer3:
+              value:
+                email: volunteer3@upchieve.org
+                password: Password123
+            volunteer4:
+              value:
+                email: volunteer4@upchieve.org
+                password: Password123
+            volunteer5:
+              value:
+                email: volunteer5@upchieve.org
+                password: Password123
+            volunteer6:
+              summary: volunteer6 (admin)
+              value:
+                email: volunteer6@upchieve.org
+                password: Password123
+            bogus:
+              description: Non-existent user
+              value:
+                email: bogususer.test@upchieve.org
+                password: Password123
+  securitySchemes:
+      cookieAuth:
+        type: apiKey
+        in: cookie
+        name: connect.sid
+      csrfTokenAuth:
+        type: apiKey
+        in: header
+        name: X-CSRF-TOKEN
