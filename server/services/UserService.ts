@@ -7,6 +7,7 @@ import {
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
+  USER_BAN_TYPES,
 } from '../constants'
 import {
   UserNotFoundError,
@@ -39,6 +40,7 @@ import {
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
   asBoolean,
+  asEnum,
   asFactory,
   asNumber,
   asOptional,
@@ -47,7 +49,7 @@ import {
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import logger from '../logger'
-import { createAccountAction } from '../models/UserAction'
+import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 
 export async function parseUser(baseUser: UserContactInfo) {
@@ -240,6 +242,7 @@ interface AdminUpdate {
   partnerSite?: string
   isVerified: boolean
   isBanned: boolean
+  banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
@@ -254,6 +257,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
   isBanned: asBoolean,
+  banType: asOptional(asEnum(USER_BAN_TYPES)),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
@@ -283,6 +287,7 @@ export async function adminUpdateUser(data: unknown) {
     partnerSite,
     isVerified,
     isBanned,
+    banType,
     isDeactivated,
     isApproved,
     inGatesStudy,
@@ -304,12 +309,32 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   // if unbanning student, also unban their IP addresses
-  if (!isVolunteer && userBeforeUpdate.banned && !isBanned)
+  if (
+    !isVolunteer &&
+    userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE &&
+    banType !== USER_BAN_TYPES.COMPLETE
+  )
     await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
-  if (!userBeforeUpdate.banned && isBanned)
+  if (
+    userBeforeUpdate.banType !== USER_BAN_TYPES.COMPLETE &&
+    banType === USER_BAN_TYPES.COMPLETE
+  )
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'admin')
+
+  //track shadow bans
+  if (
+    userBeforeUpdate.banType !== USER_BAN_TYPES.SHADOW &&
+    banType === USER_BAN_TYPES.SHADOW
+  ) {
+    await createAdminAction(ACCOUNT_USER_ACTIONS.SHADOW_BANNED, userId)
+  }
+
+  //track reversing shadow bans
+  if (userBeforeUpdate.banType === USER_BAN_TYPES.SHADOW && !banType) {
+    await createAdminAction(ACCOUNT_USER_ACTIONS.UNSHADOW_BANNED, userId)
+  }
 
   const update = {
     firstName,
@@ -317,6 +342,7 @@ export async function adminUpdateUser(data: unknown) {
     email: trimmedEmail,
     isVerified,
     isBanned,
+    banType,
     isDeactivated,
     isApproved,
     volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,

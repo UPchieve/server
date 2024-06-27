@@ -11,7 +11,11 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import { Session, UserSessionStats, UserSessionsFilter } from './types'
 import 'moment-timezone'
-import { USER_ROLES, USER_SESSION_METRICS } from '../../constants'
+import {
+  USER_BAN_TYPES,
+  USER_ROLES,
+  USER_SESSION_METRICS,
+} from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
 import { PoolClient } from 'pg'
@@ -64,6 +68,7 @@ export type UnfulfilledSessions = {
   student: {
     firstname: string
     isTestUser: boolean
+    isShadowBanned: boolean
   }
   subTopic: string
   createdAt: Date
@@ -85,13 +90,18 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
     )
 
     return result.map(session => {
-      const s = makeSomeOptional(session, ['volunteer', 'paidTutorsPilotGroup'])
+      const s = makeSomeOptional(session, [
+        'volunteer',
+        'paidTutorsPilotGroup',
+        'studentBanType',
+      ])
       return {
         ...s,
         _id: s.id,
         student: {
           firstname: s.studentFirstName,
           isTestUser: s.studentTestUser,
+          isShadowBanned: s.studentBanType === USER_BAN_TYPES.SHADOW,
         },
       }
     })
@@ -592,11 +602,11 @@ export async function getSessionByIdWithStudentAndVolunteer(
 export async function createSession(
   studentId: Ulid,
   subject: string,
-  studentBanned: boolean
+  shadowbanned: boolean
 ): Promise<Ulid> {
   try {
     const result = await pgQueries.createSession.run(
-      { id: getDbUlid(), studentId, subject, studentBanned },
+      { id: getDbUlid(), studentId, subject, shadowbanned },
       getClient()
     )
     return makeRequired(result[0]).id
@@ -1075,6 +1085,8 @@ export async function getSessionsForAdminFilter(
         'volunteerTestUser',
         'volunteerTotalPastSessions',
         'reviewReasons',
+        'studentBanType',
+        'volunteerBanType',
       ])
     )
     const sessionsInfo = sessions.map(async session => {

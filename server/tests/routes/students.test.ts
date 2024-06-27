@@ -201,29 +201,3 @@ describe(FAVORITE_VOLUNTEERS_PATH, () => {
     expect(response.status).toBe(422)
   })
 })
-
-const REMINDERS_TEXT_PATH = '/students/reminders/text'
-describe(REMINDERS_TEXT_PATH, () => {
-  const payload = {
-    phone: '+12345678900',
-    reminderDate: '09-21-2023 08:00',
-  }
-
-  test('Update phone number and queue procrasination reminder text', async () => {
-    mockedStudentService.queueProcrastinationTextReminder.mockResolvedValueOnce()
-    const response = await sendPost(REMINDERS_TEXT_PATH, payload)
-
-    expect(response.status).toBe(200)
-  })
-
-  test('Handle error thrown during queueing procrastination text reminder', async () => {
-    mockedStudentService.queueProcrastinationTextReminder.mockImplementationOnce(
-      async () => {
-        throw new RepoUpdateError('Insert query did not return ok')
-      }
-    )
-    const response = await sendPost(REMINDERS_TEXT_PATH, payload)
-
-    expect(response.status).toBe(500)
-  })
-})

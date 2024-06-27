@@ -46,7 +46,6 @@ import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import updateGradeLevel from './updateGradeLevel'
-import studentProcrastinationTextReminder from './studentProcrastinationTextReminder'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
@@ -99,7 +98,6 @@ export enum Jobs {
   SendFollowupText = 'SendFollowupText',
   Chatbot = 'Chatbot',
   UpdateGradeLevel = 'UpdateGradeLevel',
-  StudentProcrastinationTextReminder = 'StudentProcrastinationTextReminder',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   GenerateProgressReport = 'GenerateProgressReport',
 
@@ -306,10 +304,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateGradeLevel,
     processor: updateGradeLevel,
-  },
-  {
-    name: Jobs.StudentProcrastinationTextReminder,
-    processor: studentProcrastinationTextReminder,
   },
   {
     name: Jobs.SendSessionRecapMessageNotification,
