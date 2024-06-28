@@ -57,7 +57,6 @@ async function sgDeleteContact(contactId: string): Promise<any> {
 
 const SG_CUSTOM_FIELDS = {
   isBanned: 'e3_T',
-  banType: 'e5_T',
   isTestUser: 'e4_T',
   isVolunteer: 'e6_T',
   isAdmin: 'e7_T',
@@ -1248,9 +1247,6 @@ export async function createContact(userId: Ulid): Promise<any> {
   const contactListId = user.isVolunteer
     ? config.sendgrid.contactList.volunteers
     : config.sendgrid.contactList.students
-
-  if (user.banType)
-    customFields[SG_CUSTOM_FIELDS.banType] = String(user.banType)
 
   if (user.isVolunteer) {
     const volunteer = user
