@@ -1246,6 +1246,8 @@ export async function createContact(userId: Ulid): Promise<any> {
     ? config.sendgrid.contactList.volunteers
     : config.sendgrid.contactList.students
 
+  if (user.banType) customFields[SG_CUSTOM_FIELDS.banType] = String(user.banType)
+
   if (user.isVolunteer) {
     const volunteer = user
     customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
@@ -1259,10 +1261,6 @@ export async function createContact(userId: Ulid): Promise<any> {
         await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
       ).key
     }
-
-    if (volunteer.banType === 'complete') {
-      customFields[SG_CUSTOM_FIELDS.banType] = volunteer.banType
-    }
   } else {
     const student = user
     if (student.studentGradeLevel)
@@ -1274,9 +1272,6 @@ export async function createContact(userId: Ulid): Promise<any> {
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
         await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
       ).key
-    }
-    if (student.banType) {
-      customFields[SG_CUSTOM_FIELDS.banType] = student.banType
     }
   }
 
