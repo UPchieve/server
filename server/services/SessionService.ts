@@ -688,13 +688,11 @@ export async function joinSession(
   const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
   const userAgent = socket.request?.headers['user-agent']
   const ipAddress = socket.handshake?.address
-
-  await runInTransaction(async (tc: TransactionClient) => {
+  const result = await runInTransaction(async (tc: TransactionClient) => {
     const session = await SessionRepo.getSessionById(sessionId, tc)
-
     if (session.endedAt) {
       await SessionRepo.updateSessionFailedJoinsById(session.id, user.id, tc)
-      throw new Error('Session has ended')
+      return { error: 'Session has ended' }
     }
 
     if (
@@ -703,7 +701,7 @@ export async function joinSession(
       session.studentId !== user.id
     ) {
       await SessionRepo.updateSessionFailedJoinsById(session.id, user.id, tc)
-      throw new Error(`A student cannot join another student's session`)
+      return { error: `A student cannot join another student's session` }
     }
 
     if (
@@ -712,7 +710,7 @@ export async function joinSession(
       session.volunteerId !== user.id
     ) {
       SessionRepo.updateSessionFailedJoinsById(session.id, user.id, tc)
-      throw new Error('A volunteer has already joined the session')
+      return { error: 'A volunteer has already joined the session' }
     }
 
     const isInitialVolunteerJoin = user.isVolunteer && !session.volunteerId
@@ -770,6 +768,8 @@ export async function joinSession(
       })
     }
   })
+
+  if (result?.error) throw new Error(result.error)
 }
 
 // TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
