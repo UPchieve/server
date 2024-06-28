@@ -1246,7 +1246,8 @@ export async function createContact(userId: Ulid): Promise<any> {
     ? config.sendgrid.contactList.volunteers
     : config.sendgrid.contactList.students
 
-  if (user.banType) customFields[SG_CUSTOM_FIELDS.banType] = String(user.banType)
+  if (user.banType)
+    customFields[SG_CUSTOM_FIELDS.banType] = String(user.banType)
 
   if (user.isVolunteer) {
     const volunteer = user
