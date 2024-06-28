@@ -8,6 +8,7 @@ import {
   SESSION_REPORT_REASON,
   USER_BAN_REASONS,
   TRAINING,
+  USER_BAN_TYPES,
 } from '../../constants'
 import { getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
@@ -1234,7 +1235,7 @@ export async function sendSessionRecapMessage(
 export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
   const customFields = {
-    [SG_CUSTOM_FIELDS.isBanned]: String(user.banned),
+    [SG_CUSTOM_FIELDS.isBanned]: String(user.banType === USER_BAN_TYPES.COMPLETE),
     [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
     [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
     [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
