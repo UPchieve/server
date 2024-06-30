@@ -5,7 +5,7 @@ UPchieve API Server and Worker
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
-[Contributing Guide](CONTRIBUTING.md)
+[Contributing Guide](https://gitlab.com/groups/upchieve/-/wikis/1-Community-Development)
 
 ## GITLAB
 NOTE: Active development on this project has moved to https://gitlab.com/upchieve/subway, no more pushes should go straight to the Github repo.
