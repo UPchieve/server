@@ -19,6 +19,7 @@ import {
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
+import { getUsersLatestSubjectsByUserId } from './'
 
 export type LegacyUserModel = {
   // pg
@@ -71,6 +72,7 @@ export type LegacyUserModel = {
   // student
   gradeLevel: GRADES
   schoolName: string
+  latestRequestedSubjects?: string[]
 }
 
 export async function getLegacyUserObject(
@@ -117,6 +119,12 @@ export async function getLegacyUserObject(
     }, {})
     const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
+    const studentUser: any = {}
+    if (!baseUser.isVolunteer) {
+      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
+        baseUser.id
+      )
+    }
     if (baseUser.isVolunteer) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
@@ -162,6 +170,7 @@ export async function getLegacyUserObject(
       { _id: baseUser.id },
       baseUser,
       volunteerUser,
+      studentUser,
       { isBanned: baseUser.banType === 'complete' },
       {
         sessionStats,
