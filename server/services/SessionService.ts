@@ -688,88 +688,81 @@ export async function joinSession(
   const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
   const userAgent = socket.request?.headers['user-agent']
   const ipAddress = socket.handshake?.address
-  const result = await runInTransaction(async (tc: TransactionClient) => {
-    const session = await SessionRepo.getSessionById(sessionId, tc)
-    if (session.endedAt) {
-      await SessionRepo.updateSessionFailedJoinsById(session.id, user.id, tc)
-      return { error: 'Session has ended' }
-    }
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session.endedAt) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error('Session has ended')
+  }
 
-    if (
-      !user.isVolunteer &&
-      session.studentId &&
-      session.studentId !== user.id
-    ) {
-      await SessionRepo.updateSessionFailedJoinsById(session.id, user.id, tc)
-      return { error: `A student cannot join another student's session` }
-    }
+  if (!user.isVolunteer && session.studentId && session.studentId !== user.id) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error(`A student cannot join another student's session`)
+  }
 
-    if (
-      user.isVolunteer &&
-      session.volunteerId &&
-      session.volunteerId !== user.id
-    ) {
-      SessionRepo.updateSessionFailedJoinsById(session.id, user.id, tc)
-      return { error: 'A volunteer has already joined the session' }
-    }
+  if (
+    user.isVolunteer &&
+    session.volunteerId &&
+    session.volunteerId !== user.id
+  ) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error('A volunteer has already joined the session')
+  }
 
-    const isInitialVolunteerJoin = user.isVolunteer && !session.volunteerId
-    if (isInitialVolunteerJoin) {
-      await SessionRepo.updateSessionVolunteerById(session.id, user.id, tc)
-      await createSessionAction(
-        {
-          userId: user.id,
-          sessionId: session.id,
-          ...getUserAgentInfo(userAgent ? userAgent : ''),
-          ipAddress,
-          action: SESSION_USER_ACTIONS.JOINED,
-        },
-        tc
-      )
-
-      captureEvent(user.id, EVENTS.SESSION_JOINED, {
-        event: EVENTS.SESSION_JOINED,
-        sessionId: session.id,
-        joinedFrom: joinedFrom || '',
-      })
-
-      captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
-        event: EVENTS.SESSION_MATCHED,
-        sessionId: session.id,
-      })
-
-      const pushTokens = await getPushTokensByUserId(session.studentId, tc)
-      if (pushTokens && pushTokens.length > 0) {
-        const tokens = pushTokens.map((token: PushToken) => token.token)
-        await PushTokenService.sendVolunteerJoined(session as Session, tokens)
+  const isInitialVolunteerJoin = user.isVolunteer && !session.volunteerId
+  if (isInitialVolunteerJoin) {
+    const result = await runInTransaction(async (tc: TransactionClient) => {
+      try {
+        await SessionRepo.updateSessionVolunteerById(session.id, user.id, tc)
+      } catch (err) {
+        return { error: 'A volunteer has already joined the session' }
       }
-    }
+    })
+    if (result?.error) throw new Error(result.error)
+    await createSessionAction({
+      userId: user.id,
+      sessionId: session.id,
+      ...getUserAgentInfo(userAgent ? userAgent : ''),
+      ipAddress,
+      action: SESSION_USER_ACTIONS.JOINED,
+    })
 
-    // After 30 seconds of the this.createdAt, we can assume the user is
-    // rejoining the session instead of joining for the first time
-    const thirtySecondsElapsed = 1000 * 30
-    if (
-      !isInitialVolunteerJoin &&
-      session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
-    ) {
-      await createSessionAction(
-        {
-          userId: user.id,
-          sessionId: session.id,
-          ...getUserAgentInfo(userAgent ? userAgent : ''),
-          ipAddress,
-          action: SESSION_USER_ACTIONS.REJOINED,
-        },
-        tc
-      )
-      captureEvent(user.id, EVENTS.SESSION_REJOINED, {
-        event: EVENTS.SESSION_REJOINED,
-        sessionId: session.id,
-      })
-    }
-  })
+    captureEvent(user.id, EVENTS.SESSION_JOINED, {
+      event: EVENTS.SESSION_JOINED,
+      sessionId: session.id,
+      joinedFrom: joinedFrom || '',
+    })
 
-  if (result?.error) throw new Error(result.error)
+    captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
+      event: EVENTS.SESSION_MATCHED,
+      sessionId: session.id,
+    })
+
+    const pushTokens = await getPushTokensByUserId(session.studentId)
+    if (pushTokens && pushTokens.length > 0) {
+      const tokens = pushTokens.map((token: PushToken) => token.token)
+      await PushTokenService.sendVolunteerJoined(session as Session, tokens)
+    }
+  }
+
+  // After 30 seconds of the this.createdAt, we can assume the user is
+  // rejoining the session instead of joining for the first time
+  const thirtySecondsElapsed = 1000 * 30
+  if (
+    !isInitialVolunteerJoin &&
+    session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
+  ) {
+    await createSessionAction({
+      userId: user.id,
+      sessionId: session.id,
+      ...getUserAgentInfo(userAgent ? userAgent : ''),
+      ipAddress,
+      action: SESSION_USER_ACTIONS.REJOINED,
+    })
+    captureEvent(user.id, EVENTS.SESSION_REJOINED, {
+      event: EVENTS.SESSION_REJOINED,
+      sessionId: session.id,
+    })
+  }
 }
 
 // TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment

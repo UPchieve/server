@@ -5,13 +5,12 @@ import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
 
 export async function getPushTokensByUserId(
-  userId: Ulid,
-  tc?: TransactionClient
+  userId: Ulid
 ): Promise<PushToken[]> {
   try {
     const result = await pgQueries.getPushTokensByUserId.run(
       { userId },
-      tc ?? getClient()
+      getClient()
     )
     return result.map(v => makeRequired(v))
   } catch (err) {

@@ -110,14 +110,11 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
   }
 }
 
-export async function getSessionById(
-  sessionId: Ulid,
-  tc?: TransactionClient
-): Promise<Session> {
+export async function getSessionById(sessionId: Ulid): Promise<Session> {
   try {
     const result = await pgQueries.getSessionById.run(
       { sessionId },
-      tc ?? getClient()
+      getClient()
     )
     if (!result.length) throw new RepoReadError('Session not found')
     return makeSomeOptional(result[0], [
@@ -846,7 +843,7 @@ export async function updateSessionVolunteerById(
       { sessionId, volunteerId },
       tc ?? getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
+    if (!result.length || !makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
@@ -1172,13 +1169,12 @@ export async function updateSessionReviewReasonsById(
 
 export async function updateSessionFailedJoinsById(
   sessionId: Ulid,
-  userId: Ulid,
-  tc?: TransactionClient
+  userId: Ulid
 ): Promise<void> {
   try {
     const result = await pgQueries.insertSessionFailedJoin.run(
       { sessionId, userId },
-      tc ?? getClient()
+      getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
