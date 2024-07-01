@@ -123,7 +123,7 @@ export async function getSessionById(sessionId: Ulid): Promise<Session> {
       'volunteerJoinedAt',
       'endedAt',
       'endedByRole',
-      'studentBanned',
+      'shadowbanned',
     ])
   } catch (err) {
     throw new RepoReadError(err)
