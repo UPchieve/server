@@ -5276,6 +5276,14 @@ ALTER TABLE ONLY upchieve.users_surveys_submissions
 
 
 --
+-- Name: users_surveys_submissions users_surveys_submissions_user_survey_id; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys_submissions
+    ADD CONSTRAINT users_surveys_submissions_user_survey_id FOREIGN KEY (user_survey_id) REFERENCES upchieve.users_surveys(id) ON DELETE CASCADE;
+
+
+--
 -- Name: users_surveys users_surveys_survey_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5566,4 +5574,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240517164134'),
     ('20240521195415'),
     ('20240522182235'),
-    ('20240530165825');
+    ('20240530165825'),
+    ('20240624201658');
