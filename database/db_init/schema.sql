@@ -4504,7 +4504,7 @@ ALTER TABLE ONLY upchieve.progress_report_concept_details
 --
 
 ALTER TABLE ONLY upchieve.progress_report_concept_details
-    ADD CONSTRAINT progress_report_concept_details_progress_report_concept_id_fkey FOREIGN KEY (progress_report_concept_id) REFERENCES upchieve.progress_report_concepts(id);
+    ADD CONSTRAINT progress_report_concept_details_progress_report_concept_id_fkey FOREIGN KEY (progress_report_concept_id) REFERENCES upchieve.progress_report_concepts(id) ON DELETE CASCADE;
 
 
 --
@@ -4512,7 +4512,7 @@ ALTER TABLE ONLY upchieve.progress_report_concept_details
 --
 
 ALTER TABLE ONLY upchieve.progress_report_concepts
-    ADD CONSTRAINT progress_report_concepts_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id);
+    ADD CONSTRAINT progress_report_concepts_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id) ON DELETE CASCADE;
 
 
 --
@@ -4536,7 +4536,7 @@ ALTER TABLE ONLY upchieve.progress_report_sessions
 --
 
 ALTER TABLE ONLY upchieve.progress_report_sessions
-    ADD CONSTRAINT progress_report_sessions_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id);
+    ADD CONSTRAINT progress_report_sessions_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id) ON DELETE CASCADE;
 
 
 --
@@ -4552,7 +4552,7 @@ ALTER TABLE ONLY upchieve.progress_report_sessions
 --
 
 ALTER TABLE ONLY upchieve.progress_report_summaries
-    ADD CONSTRAINT progress_report_summaries_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id);
+    ADD CONSTRAINT progress_report_summaries_progress_report_id_fkey FOREIGN KEY (progress_report_id) REFERENCES upchieve.progress_reports(id) ON DELETE CASCADE;
 
 
 --
@@ -4576,7 +4576,7 @@ ALTER TABLE ONLY upchieve.progress_report_summary_details
 --
 
 ALTER TABLE ONLY upchieve.progress_report_summary_details
-    ADD CONSTRAINT progress_report_summary_details_progress_report_summary_id_fkey FOREIGN KEY (progress_report_summary_id) REFERENCES upchieve.progress_report_summaries(id);
+    ADD CONSTRAINT progress_report_summary_details_progress_report_summary_id_fkey FOREIGN KEY (progress_report_summary_id) REFERENCES upchieve.progress_report_summaries(id) ON DELETE CASCADE;
 
 
 --
@@ -5575,4 +5575,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240521195415'),
     ('20240522182235'),
     ('20240530165825'),
-    ('20240624201658');
+    ('20240624201658'),
+    ('20240626164600');
