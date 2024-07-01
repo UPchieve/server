@@ -76,7 +76,7 @@ SELECT
     user_roles.name AS ended_by_role,
     reviewed,
     to_review,
-    student_banned,
+    shadowbanned,
     (time_tutored)::float,
     sessions.created_at,
     sessions.updated_at,
@@ -944,7 +944,7 @@ WHERE
         OR session_reported_count.total > 0)
     AND (student_banned.last_banned_at IS NULL
         OR sessions.created_at < student_banned.last_banned_at
-        OR sessions.student_banned IS FALSE
+        OR sessions.shadowbanned IS FALSE
         OR (:showBannedUsers)::boolean IS TRUE)
     AND ((:showTestUsers)::boolean IS NULL
         OR (:showTestUsers)::boolean IS TRUE

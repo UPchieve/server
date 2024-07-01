@@ -126,7 +126,7 @@ export async function getSessionById(
       'volunteerJoinedAt',
       'endedAt',
       'endedByRole',
-      'studentBanned',
+      'shadowbanned',
     ])
   } catch (err) {
     throw new RepoReadError(err)
