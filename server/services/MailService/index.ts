@@ -1238,7 +1238,6 @@ export async function createContact(userId: Ulid): Promise<any> {
     [SG_CUSTOM_FIELDS.isBanned]: String(
       user.banType === USER_BAN_TYPES.COMPLETE
     ),
-    [SG_CUSTOM_FIELDS.banType]: String(user.banType),
     [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
     [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
     [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
@@ -1249,6 +1248,9 @@ export async function createContact(userId: Ulid): Promise<any> {
   const contactListId = user.isVolunteer
     ? config.sendgrid.contactList.volunteers
     : config.sendgrid.contactList.students
+
+  if (user.banType)
+    customFields[SG_CUSTOM_FIELDS.banType] = String(user.banType)
 
   if (user.isVolunteer) {
     const volunteer = user

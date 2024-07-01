@@ -34,6 +34,7 @@ export type LegacyUserModel = {
   college?: string
   isVolunteer: boolean
   isAdmin: boolean
+  //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
