@@ -782,3 +782,18 @@ export async function getReportedUser(
     throw new RepoReadError(err)
   }
 }
+
+export async function getUsersLatestSubjectsByUserId(
+  userId: Ulid
+): Promise<string[]> {
+  try {
+    const result = await pgQueries.getUsersLatestSubjectsByUserId.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return result.map(row => makeRequired(row).subject)
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
