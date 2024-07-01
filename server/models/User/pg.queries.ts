@@ -1962,3 +1962,46 @@ const getReportedUserIR: any = {"name":"getReportedUser","params":[{"name":"user
 export const getReportedUser = new PreparedQuery<IGetReportedUserParams,IGetReportedUserResult>(getReportedUserIR);
 
 
+/** 'GetUsersLatestSubjectsByUserId' parameters type */
+export interface IGetUsersLatestSubjectsByUserIdParams {
+  userId: string;
+}
+
+/** 'GetUsersLatestSubjectsByUserId' return type */
+export interface IGetUsersLatestSubjectsByUserIdResult {
+  subject: string;
+}
+
+/** 'GetUsersLatestSubjectsByUserId' query type */
+export interface IGetUsersLatestSubjectsByUserIdQuery {
+  params: IGetUsersLatestSubjectsByUserIdParams;
+  result: IGetUsersLatestSubjectsByUserIdResult;
+}
+
+const getUsersLatestSubjectsByUserIdIR: any = {"name":"getUsersLatestSubjectsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":26790,"b":26796,"line":910,"col":20}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    recent_sessions.subject\nFROM ( SELECT DISTINCT ON (subjects.name)\n        subjects.name AS subject,\n        sessions.created_at\n    FROM\n        users\n        JOIN sessions ON sessions.student_id = users.id\n        JOIN subjects ON subjects.id = sessions.subject_id\n    WHERE\n        users.id = :userId!\n    ORDER BY\n        subjects.name,\n        sessions.created_at DESC) AS recent_sessions\nORDER BY\n    recent_sessions.created_at DESC\nLIMIT 3","loc":{"a":26483,"b":26938,"line":900,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     recent_sessions.subject
+ * FROM ( SELECT DISTINCT ON (subjects.name)
+ *         subjects.name AS subject,
+ *         sessions.created_at
+ *     FROM
+ *         users
+ *         JOIN sessions ON sessions.student_id = users.id
+ *         JOIN subjects ON subjects.id = sessions.subject_id
+ *     WHERE
+ *         users.id = :userId!
+ *     ORDER BY
+ *         subjects.name,
+ *         sessions.created_at DESC) AS recent_sessions
+ * ORDER BY
+ *     recent_sessions.created_at DESC
+ * LIMIT 3
+ * ```
+ */
+export const getUsersLatestSubjectsByUserId = new PreparedQuery<IGetUsersLatestSubjectsByUserIdParams,IGetUsersLatestSubjectsByUserIdResult>(getUsersLatestSubjectsByUserIdIR);
+
+
