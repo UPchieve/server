@@ -1235,7 +1235,9 @@ export async function sendSessionRecapMessage(
 export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
   const customFields = {
-    [SG_CUSTOM_FIELDS.isBanned]: String(user.banType === USER_BAN_TYPES.COMPLETE),
+    [SG_CUSTOM_FIELDS.isBanned]: String(
+      user.banType === USER_BAN_TYPES.COMPLETE
+    ),
     [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
     [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
     [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
