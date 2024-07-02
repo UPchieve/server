@@ -846,3 +846,29 @@ const getActiveSubjectPromptBySubjectNameIR: any = {"name":"getActiveSubjectProm
 export const getActiveSubjectPromptBySubjectName = new PreparedQuery<IGetActiveSubjectPromptBySubjectNameParams,IGetActiveSubjectPromptBySubjectNameResult>(getActiveSubjectPromptBySubjectNameIR);
 
 
+/** 'DeleteProgressReportsForUser' parameters type */
+export interface IDeleteProgressReportsForUserParams {
+  userId: string;
+}
+
+/** 'DeleteProgressReportsForUser' return type */
+export type IDeleteProgressReportsForUserResult = void;
+
+/** 'DeleteProgressReportsForUser' query type */
+export interface IDeleteProgressReportsForUserQuery {
+  params: IDeleteProgressReportsForUserParams;
+  result: IDeleteProgressReportsForUserResult;
+}
+
+const deleteProgressReportsForUserIR: any = {"name":"deleteProgressReportsForUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":12819,"b":12825,"line":366,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM progress_reports\nWHERE user_id = :userId!","loc":{"a":12773,"b":12825,"line":365,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM progress_reports
+ * WHERE user_id = :userId!
+ * ```
+ */
+export const deleteProgressReportsForUser = new PreparedQuery<IDeleteProgressReportsForUserParams,IDeleteProgressReportsForUserResult>(deleteProgressReportsForUserIR);
+
+

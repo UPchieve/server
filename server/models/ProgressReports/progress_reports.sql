@@ -360,3 +360,7 @@ WHERE
     subjects.name = :subject!
     AND progress_report_prompts.active IS TRUE;
 
+
+/* @name deleteProgressReportsForUser */
+DELETE FROM progress_reports
+WHERE user_id = :userId!;

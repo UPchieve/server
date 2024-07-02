@@ -1,4 +1,9 @@
-import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoDeleteError,
+  RepoReadError,
+  RepoUpdateError,
+} from '../Errors'
 import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
@@ -427,5 +432,16 @@ export async function getActiveSubjectPromptBySubjectName(
       )
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function deleteProgressReportsForUser(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteProgressReportsForUser.run({ userId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }

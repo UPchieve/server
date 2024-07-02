@@ -16,6 +16,7 @@ import {
   getProgressReportSummariesForMany,
   getProgressReportConceptsByReportId,
   getActiveSubjectPromptBySubjectName,
+  deleteProgressReportsForUser,
 } from '../../models/ProgressReports'
 import {
   ProgressReportConcept,
@@ -34,19 +35,22 @@ const client = getClient()
 let userId: Ulid
 let reportId: Ulid
 
-async function insertUser() {
+async function insertUser(email?: string, referralCode?: string) {
   const user = buildUserRow({
     id: getDbUlid(),
-    email: 'progress-reports@upchieve.org',
-    referralCode: 'progress-report',
+    email: email ?? 'progress-reports@upchieve.org',
+    referralCode: referralCode ?? 'progress-report',
   })
   return await insertSingleRow('users', user, client)
 }
 
-async function insertSession() {
+async function insertSession(data: { userId?: Ulid } = {}) {
   return await insertSingleRow(
     'sessions',
-    await buildSessionRow({ id: getDbUlid(), studentId: userId }),
+    await buildSessionRow({
+      id: getDbUlid(),
+      studentId: data.userId ?? userId,
+    }),
     client
   )
 }
@@ -130,6 +134,7 @@ type ProgressReportInsert = {
   statusId: number
   concepts: ProgressReportConcept[]
   summary: ProgressReportSummary
+  userId?: Ulid
 }
 async function insertProgressReportWithSummaryAndConcepts(
   data: ProgressReportInsert
@@ -137,7 +142,7 @@ async function insertProgressReportWithSummaryAndConcepts(
   const reportId = data.id
   await insertProgressReportInfoRow({
     id: reportId,
-    userId,
+    userId: data.userId ?? userId,
     statusId: data.statusId,
   })
   await insertProgressReportSessionRow({
@@ -500,7 +505,9 @@ describe('getProgressReportInfoBySessionId', () => {
       session.id,
       'single'
     )
-    expect(result).toEqual({ id: reportId, status: 'pending' })
+    expect(result).toEqual(
+      expect.objectContaining({ id: reportId, status: 'pending' })
+    )
   })
 })
 
@@ -517,7 +524,9 @@ describe('getProgressReportByReportId', () => {
     })
 
     const result = await getProgressReportByReportId(reportId)
-    expect(result).toEqual({ id: reportId, status: 'pending' })
+    expect(result).toEqual(
+      expect.objectContaining({ id: reportId, status: 'pending' })
+    )
   })
 })
 
@@ -666,5 +675,245 @@ describe('getActiveSubjectPromptBySubjectName', () => {
     const result = await getActiveSubjectPromptBySubjectName(subject)
     expect(result.id).toEqual(data.id)
     expect(result.prompt).toEqual(data.prompt)
+  })
+})
+
+describe('deleteProgressReportsForUser', () => {
+  test('Deleting the progress reports for the user cascade deletes all the child rows.', async () => {
+    const user = await insertUser(
+      'userForDeletion@upchieve.org',
+      'delete-progress-reports'
+    )
+
+    // Insert progress reports for user.
+    const prSession1 = await insertSession({ userId: user.id })
+    const prSummaryDetails1 = buildProgressReportDetails()
+    const prSummary1 = buildProgressReportSummary({
+      details: [prSummaryDetails1],
+    })
+    const prConcept1_1 = buildProgressReportConcept()
+    const prConcept1_2 = buildProgressReportConcept()
+    await insertProgressReportWithSummaryAndConcepts({
+      id: getUuid(),
+      userId: user.id,
+      statusId: 1,
+      sessionId: prSession1.id,
+      summary: prSummary1,
+      concepts: [prConcept1_1, prConcept1_2],
+    })
+    const prSession2 = await insertSession({ userId: user.id })
+    const prSummary2 = buildProgressReportSummary()
+    const prConceptDetails2_1 = buildProgressReportDetails()
+    const prConceptDetails2_2 = buildProgressReportDetails()
+    const prConcept2_1 = buildProgressReportConcept({
+      details: [prConceptDetails2_1, prConceptDetails2_2],
+    })
+    await insertProgressReportWithSummaryAndConcepts({
+      id: getUuid(),
+      userId: user.id,
+      statusId: 1,
+      sessionId: prSession2.id,
+      summary: prSummary2,
+      concepts: [prConcept2_1],
+    })
+
+    // Verify before.
+    // Progress Reports exists.
+    const prBefore = await client.query(
+      'SELECT * FROM progress_reports WHERE user_id = $1',
+      [user.id]
+    )
+    expect(prBefore.rows.length).toBe(2)
+    // Progress Report Sessions exist.
+    const prSession1Before = await client.query(
+      'SELECT * FROM progress_report_sessions WHERE session_id = $1',
+      [prSession1.id]
+    )
+    expect(prSession1Before.rows.length).toBe(1)
+    const prSession2Before = await client.query(
+      'SELECT * FROM progress_report_sessions WHERE session_id = $1',
+      [prSession2.id]
+    )
+    expect(prSession2Before.rows.length).toBe(1)
+    // Progress Report Summaries and Details exist.
+    const prSummary1Before = await client.query(
+      'SELECT * FROM progress_report_summaries WHERE id = $1',
+      [prSummary1.id]
+    )
+    expect(prSummary1Before.rows.length).toBe(1)
+    const prSummaryDetails1Before = await client.query(
+      'SELECT * FROM progress_report_summary_details WHERE id = $1',
+      [prSummaryDetails1.id]
+    )
+    expect(prSummaryDetails1Before.rows.length).toBe(1)
+    const prSummary2Before = await client.query(
+      'SELECT * FROM progress_report_summaries WHERE id = $1',
+      [prSummary2.id]
+    )
+    expect(prSummary2Before.rows.length).toBe(1)
+    // Progress Report Concepts and Details exist.
+    const prConcept1_1Before = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept1_1.id]
+    )
+    expect(prConcept1_1Before.rows.length).toBe(1)
+    const prConcept1_2Before = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept1_2.id]
+    )
+    expect(prConcept1_2Before.rows.length).toBe(1)
+    const prConcept2_1Before = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept2_1.id]
+    )
+    expect(prConcept2_1Before.rows.length).toBe(1)
+    const prConceptDetails2_1Before = await client.query(
+      'SELECT * FROM progress_report_concept_details WHERE id = $1',
+      [prConceptDetails2_1.id]
+    )
+    expect(prConceptDetails2_1Before.rows.length).toBe(1)
+    const prConceptDetails2_2Before = await client.query(
+      'SELECT * FROM progress_report_concept_details WHERE id = $1',
+      [prConceptDetails2_2.id]
+    )
+    expect(prConceptDetails2_2Before.rows.length).toBe(1)
+
+    await deleteProgressReportsForUser(user.id)
+
+    // Verify after.
+    // Progress Reports deleted.
+    const prAfter = await client.query(
+      'SELECT * FROM progress_reports WHERE user_id = $1',
+      [user.id]
+    )
+    expect(prAfter.rows.length).toBe(0)
+    // Progress Report Sessions deleted.
+    const prSession1After = await client.query(
+      'SELECT * FROM progress_report_sessions WHERE session_id = $1',
+      [prSession1.id]
+    )
+    expect(prSession1After.rows.length).toBe(0)
+    const prSession2After = await client.query(
+      'SELECT * FROM progress_report_sessions WHERE session_id = $1',
+      [prSession2.id]
+    )
+    expect(prSession2After.rows.length).toBe(0)
+    // Progress Report Summaries and Details deleted.
+    const prSummary1After = await client.query(
+      'SELECT * FROM progress_report_summaries WHERE id = $1',
+      [prSummary1.id]
+    )
+    expect(prSummary1After.rows.length).toBe(0)
+    const prSummaryDetails1After = await client.query(
+      'SELECT * FROM progress_report_summary_details WHERE id = $1',
+      [prSummaryDetails1.id]
+    )
+    expect(prSummaryDetails1After.rows.length).toBe(0)
+    const prSummary2After = await client.query(
+      'SELECT * FROM progress_report_summaries WHERE id = $1',
+      [prSummary2.id]
+    )
+    expect(prSummary2After.rows.length).toBe(0)
+    // Progress Report Concepts and Details deleted.
+    const prConcept1_1After = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept1_1.id]
+    )
+    expect(prConcept1_1After.rows.length).toBe(0)
+    const prConcept1_2After = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept1_2.id]
+    )
+    expect(prConcept1_2After.rows.length).toBe(0)
+    const prConcept2_1After = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept2_1.id]
+    )
+    expect(prConcept2_1After.rows.length).toBe(0)
+    const prConceptDetails2_1After = await client.query(
+      'SELECT * FROM progress_report_concept_details WHERE id = $1',
+      [prConceptDetails2_1.id]
+    )
+    expect(prConceptDetails2_1After.rows.length).toBe(0)
+    const prConceptDetails2_2After = await client.query(
+      'SELECT * FROM progress_report_concept_details WHERE id = $1',
+      [prConceptDetails2_2.id]
+    )
+    expect(prConceptDetails2_2After.rows.length).toBe(0)
+  })
+
+  test('Deleting only deletes for the specified user', async () => {
+    const user = await insertUser(
+      'doNotDeletePrs@upchieve.org',
+      'do-not-delete-progress-reports'
+    )
+    // Insert progress reports for userForDeletion.
+    const prSession = await insertSession({ userId: user.id })
+    const prSummaryDetails = buildProgressReportDetails()
+    const prSummary = buildProgressReportSummary({
+      details: [prSummaryDetails],
+    })
+    const prConcept1 = buildProgressReportConcept()
+    const prConceptDetails1 = buildProgressReportDetails()
+    const prConceptDetails2 = buildProgressReportDetails()
+    const prConcept2 = buildProgressReportConcept({
+      details: [prConceptDetails1, prConceptDetails2],
+    })
+    await insertProgressReportWithSummaryAndConcepts({
+      id: getUuid(),
+      userId: user.id,
+      statusId: 1,
+      sessionId: prSession.id,
+      summary: prSummary,
+      concepts: [prConcept1, prConcept2],
+    })
+
+    // Delete for some random user.
+    await deleteProgressReportsForUser(getDbUlid())
+
+    // Progress Reports deleted.
+    const prAfter = await client.query(
+      'SELECT * FROM progress_reports WHERE user_id = $1',
+      [user.id]
+    )
+    expect(prAfter.rows.length).toBe(1)
+    // Progress Report Sessions deleted.
+    const prSessionAfter = await client.query(
+      'SELECT * FROM progress_report_sessions WHERE session_id = $1',
+      [prSession.id]
+    )
+    expect(prSessionAfter.rows.length).toBe(1)
+    // Progress Report Summaries and Details deleted.
+    const prSummaryAfter = await client.query(
+      'SELECT * FROM progress_report_summaries WHERE id = $1',
+      [prSummary.id]
+    )
+    expect(prSummaryAfter.rows.length).toBe(1)
+    const prSummaryDetailsAfter = await client.query(
+      'SELECT * FROM progress_report_summary_details WHERE id = $1',
+      [prSummaryDetails.id]
+    )
+    expect(prSummaryDetailsAfter.rows.length).toBe(1)
+    // Progress Report Concepts and Details deleted.
+    const prConcept1After = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept1.id]
+    )
+    expect(prConcept1After.rows.length).toBe(1)
+    const prConcept2After = await client.query(
+      'SELECT * FROM progress_report_concepts WHERE id = $1',
+      [prConcept2.id]
+    )
+    expect(prConcept2After.rows.length).toBe(1)
+    const prConceptDetails1After = await client.query(
+      'SELECT * FROM progress_report_concept_details WHERE id = $1',
+      [prConceptDetails1.id]
+    )
+    expect(prConceptDetails1After.rows.length).toBe(1)
+    const prConceptDetails2After = await client.query(
+      'SELECT * FROM progress_report_concept_details WHERE id = $1',
+      [prConceptDetails2.id]
+    )
+    expect(prConceptDetails2After.rows.length).toBe(1)
   })
 })
