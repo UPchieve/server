@@ -185,14 +185,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             const { sessionId, joinedFrom } = data
             const user = extractSocketUser(socket)
-            let session: Session
 
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
               if (user.isVolunteer && !user.approved)
                 throw new Error('Volunteer not approved')
-              session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
               socket.emit('redirect')
               reject(error)
@@ -201,7 +199,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               // TODO: correctly type User from passport
-              await SessionService.joinSession(user, session, {
+              await SessionService.joinSession(user, sessionId, {
                 socket,
                 joinedFrom,
               })
@@ -241,6 +239,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               )
               resolve()
             } catch (error) {
+              const session = await SessionRepo.getSessionById(sessionId)
               socketService.bump(
                 socket,
                 {

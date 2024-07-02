@@ -695,6 +695,7 @@ SET
     updated_at = NOW()
 WHERE
     id = :sessionId!
+    AND volunteer_id IS NULL
 RETURNING
     id AS ok;
 

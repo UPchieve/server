@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -835,14 +835,15 @@ export async function getLatestSessionByStudentId(
 
 export async function updateSessionVolunteerById(
   sessionId: Ulid,
-  volunteerId: Ulid
+  volunteerId: Ulid,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateSessionVolunteerById.run(
       { sessionId, volunteerId },
-      getClient()
+      tc ?? getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
+    if (!result.length || !makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
