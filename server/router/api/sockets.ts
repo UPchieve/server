@@ -23,6 +23,7 @@ import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
+import * as UserRolesService from '../../services/UserRolesService'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
@@ -32,6 +33,7 @@ import {
   connectionEvents,
   logSocketConnectionInfo,
 } from '../../utils/log-socket-connection-info'
+import { isVolunteerUserType } from '../../utils/user-type'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -365,10 +367,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
+              const roles = await UserRolesService.getUserRolesById(user.id)
               const messageData = {
                 contents: message,
                 createdAt: createdAt,
-                isVolunteer: user.isVolunteer,
+                isVolunteer: isVolunteerUserType(roles.userType),
+                userType: roles.userType,
                 user: user.id,
                 sessionId,
               }
@@ -383,7 +387,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                   sessionId: sessionId,
                   message,
-                  isVolunteer: user.isVolunteer,
+                  isVolunteer: isVolunteerUserType(roles.userType),
+                  userType: roles.userType,
                 })
               }
 

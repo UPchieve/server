@@ -29,6 +29,7 @@ import {
   UpsertUserResult,
   User,
   UserRole,
+  UserContactInfo,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 
@@ -134,24 +135,6 @@ export async function deleteUser(userId: Ulid, email: string) {
   } catch (err) {
     throw new RepoUpdateError(err)
   }
-}
-
-export type UserContactInfo = {
-  id: Ulid
-  email: string
-  phone?: string
-  phoneVerified: boolean
-  smsConsent: boolean
-  firstName: string
-  isVolunteer: boolean
-  isAdmin: boolean
-  volunteerPartnerOrg?: string
-  studentPartnerOrg?: string
-  lastActivityAt?: Date
-  banned: boolean
-  banType?: USER_BAN_TYPES
-  deactivated: boolean
-  approved?: boolean
 }
 
 export async function getUserRolesById(

@@ -1,3 +1,4 @@
+import { USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
 
 export type UserRole = 'volunteer' | 'student' | 'teacher' | 'admin'
@@ -6,13 +7,14 @@ export type User = {
   id: Ulid
   banned: boolean
   banReasonId?: Pgid
+  banType?: USER_BAN_TYPES
   deactivated: boolean
   firstName: string
   email: string
   emailVerified: boolean
   lastActivityAt?: Date
   lastName: string
-  password: string
+  password?: string
   passwordResetToken?: string
   phone?: string
   smsConsent: boolean
@@ -53,4 +55,24 @@ export type CreateUserResult = Required<
 
 export type UpsertUserResult = CreateUserResult & {
   isCreated: boolean
+}
+
+export type UserContactInfo = Pick<
+  User,
+  | 'id'
+  | 'banned'
+  | 'banType'
+  | 'deactivated'
+  | 'email'
+  | 'firstName'
+  | 'lastActivityAt'
+  | 'phone'
+  | 'phoneVerified'
+  | 'smsConsent'
+> & {
+  approved?: boolean
+  isAdmin: boolean
+  isVolunteer: boolean
+  studentPartnerOrg?: string
+  volunteerPartnerOrg?: string
 }
