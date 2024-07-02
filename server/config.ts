@@ -170,7 +170,7 @@ const config: Static<typeof Config> = {
     host: process.env.SUBWAY_CLIENT_HOST || 'localhost:8080',
   },
   apiPort: Number(process.env.SUBWAY_API_PORT) || 3000,
-  socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3001,
+  socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3000,
 
   socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 

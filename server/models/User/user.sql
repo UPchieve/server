@@ -895,3 +895,23 @@ WHERE
     AND test_user IS FALSE
     AND users.id = :userId!;
 
+
+/* @name getUsersLatestSubjectsByUserId */
+SELECT
+    recent_sessions.subject
+FROM ( SELECT DISTINCT ON (subjects.name)
+        subjects.name AS subject,
+        sessions.created_at
+    FROM
+        users
+        JOIN sessions ON sessions.student_id = users.id
+        JOIN subjects ON subjects.id = sessions.subject_id
+    WHERE
+        users.id = :userId!
+    ORDER BY
+        subjects.name,
+        sessions.created_at DESC) AS recent_sessions
+ORDER BY
+    recent_sessions.created_at DESC
+LIMIT 3;
+

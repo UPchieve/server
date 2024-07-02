@@ -63,6 +63,7 @@ import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
 import Delta from 'quill-delta'
 import { convertBase64ToImage } from '../../utils/convert-base-to-image'
 import { getTextFromImageAnalysis } from '../VisionService'
+import * as LangfuseService from '../LangfuseService'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -349,13 +350,26 @@ export async function generateProgressReportForUser(
   return report
 }
 
+const LF_TRACE_NAME = 'progressReport'
+const LF_GENERATION_NAME = 'getProgressReportResult'
+const MODEL = 'gpt-4o'
 export async function generateProgressReport(
   userId: Ulid,
   systemPrompt: string,
   botPrompt: string
 ): Promise<ProgressReport> {
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    userId,
+  })
+
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model: MODEL,
+    input: botPrompt,
+  })
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4-1106-preview',
+    model: MODEL,
     response_format: { type: 'json_object' },
     messages: [
       {
@@ -368,6 +382,8 @@ export async function generateProgressReport(
       },
     ],
   })
+  gen.end({ output: completion })
+
   const response = completion.choices[0].message.content
   logger.info(
     `User: ${userId} received ProgressReport completion ${completion} with response ${response}`

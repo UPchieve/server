@@ -40,32 +40,26 @@ export async function createChatCompletion({
   isVolunteer: boolean
 }) {
   const model = 'gpt-4o'
+  const promptData = await getPromptData()
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     sessionId: censoredSessionMessage.sessionId,
   })
 
-  const promptName =
-    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
-  let systemPrompt = await LangfuseService.getPrompt(promptName)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
     model,
     input: { censoredSessionMessage, isVolunteer },
+    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
+    ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
-  if (systemPrompt) {
-    // Attach the LF prompt object if available to associate all AI generations made with this prompt
-    gen.update({ prompt: systemPrompt })
-  }
   try {
     const chatCompletion = await openai.chat.completions.create({
       model,
       messages: [
         {
           role: 'system',
-          content:
-            (systemPrompt as TextPromptClient)?.prompt ??
-            FALLBACK_MODERATION_PROMPT,
+          content: promptData.prompt,
         },
         {
           role: 'user',
@@ -88,7 +82,7 @@ export async function createChatCompletion({
       decision: {
         isClean: decision.appropriate,
         reasons: decision.reasons,
-        moderatorVersion: MODERATION_VERSION,
+        promptUsed: promptData.version,
       },
     }
     // @TODO: Eventually remove me from NR
@@ -102,6 +96,29 @@ export async function createChatCompletion({
       },
       `Error while moderating session message`
     )
+  }
+}
+
+const getPromptData = async (): Promise<{
+  isFallback: boolean
+  prompt: string
+  version: string
+  promptObject?: TextPromptClient
+}> => {
+  const promptName =
+    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
+  const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
+  const isFallback = promptFromLangfuse === undefined
+
+  return {
+    isFallback,
+    prompt: isFallback
+      ? FALLBACK_MODERATION_PROMPT
+      : (promptFromLangfuse! as TextPromptClient).prompt,
+    version: isFallback
+      ? 'FALLBACK'
+      : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
+    ...(isFallback && { promptObject: promptFromLangfuse }),
   }
 }
 
@@ -232,7 +249,6 @@ export const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
-export const MODERATION_VERSION = 'openai_v2'
 export const FALLBACK_MODERATION_PROMPT = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
