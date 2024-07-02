@@ -65,6 +65,7 @@ import {
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
 import * as PaidTutorsPilotService from './PaidTutorsPilotService'
+import { TransactionClient, runInTransaction } from '../db'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -681,13 +682,13 @@ export async function getSessionNotifications(data: unknown) {
 
 export async function joinSession(
   user: UserContactInfo,
-  session: Session,
+  sessionId: Ulid,
   data: unknown
 ): Promise<void> {
   const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
   const userAgent = socket.request?.headers['user-agent']
   const ipAddress = socket.handshake?.address
-
+  const session = await SessionRepo.getSessionById(sessionId)
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error('Session has ended')
@@ -703,13 +704,20 @@ export async function joinSession(
     session.volunteerId &&
     session.volunteerId !== user.id
   ) {
-    SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error('A volunteer has already joined the session')
   }
 
   const isInitialVolunteerJoin = user.isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
-    await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+    const result = await runInTransaction(async (tc: TransactionClient) => {
+      try {
+        await SessionRepo.updateSessionVolunteerById(session.id, user.id, tc)
+      } catch (err) {
+        return { error: 'A volunteer has already joined the session' }
+      }
+    })
+    if (result?.error) throw new Error(result.error)
     await createSessionAction({
       userId: user.id,
       sessionId: session.id,
