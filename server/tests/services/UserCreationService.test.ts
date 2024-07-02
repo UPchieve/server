@@ -726,9 +726,7 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
-    mockedUserRepo.getUserContactInfoByReferralCode.mockResolvedValue(
-      REFERRAL_USER
-    )
+    mockedUserRepo.getUserByReferralCode.mockResolvedValue(REFERRAL_USER)
 
     await registerStudent(student)
 

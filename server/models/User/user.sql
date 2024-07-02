@@ -87,40 +87,12 @@ WHERE
 LIMIT 1;
 
 
-/* @name getUserContactInfoByReferralCode */
+/* @name getUserByReferralCode */
 SELECT
     users.id,
-    first_name,
-    email,
-    banned,
-    ban_type,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
-    student_partner_orgs.key AS student_partner_org,
-    users.last_activity_at,
-    deactivated,
-    volunteer_profiles.approved,
-    users.phone,
-    users.phone_verified,
-    users.sms_consent
+    first_name
 FROM
     users
-    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     referral_code = :referralCode!
 LIMIT 1;

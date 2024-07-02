@@ -174,26 +174,16 @@ export async function getUserContactInfoById(
   }
 }
 
-// getUserByReferralCode
-export async function getUserContactInfoByReferralCode(
+export async function getUserByReferralCode(
   referralCode: string
-): Promise<UserContactInfo | undefined> {
+): Promise<{ id: Ulid; firstName: string } | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoByReferralCode.run(
+    const result = await pgQueries.getUserByReferralCode.run(
       { referralCode },
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeOptional(result[0], [
-        'volunteerPartnerOrg',
-        'studentPartnerOrg',
-        'approved',
-        'lastActivityAt',
-        'phone',
-        'banType',
-      ])
-      ret.email = ret.email.toLowerCase()
-      return ret
+      return makeRequired(result[0])
     }
   } catch (err) {
     throw new RepoReadError(err)
