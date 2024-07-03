@@ -292,7 +292,8 @@ SELECT
             TRUE
         ELSE
             FALSE
-        END) AS is_volunteer
+        END) AS is_volunteer,
+    array_agg(user_roles.name) AS roles
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -301,6 +302,8 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN schools ON schools.id = student_profiles.school_id
     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
+    LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE ((:userId)::uuid IS NULL
     OR users.id = :userId)
 AND ((:email)::text IS NULL
@@ -315,6 +318,9 @@ AND ((:partnerOrg)::text IS NULL
 AND ((:highSchool)::text IS NULL
     OR schools.name ILIKE ('%' || :highSchool || '%')
     OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))
+GROUP BY
+    users.id,
+    volunteer_profiles.user_id
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 

@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 import { TransactionClient, getClient } from '../../db'
-||||||| parent of 53bdb038 (Update getUserForSessionAdminView.)
-import { getClient } from '../../db'
-=======
-import { getClient, TransactionClient } from '../../db'
->>>>>>> 53bdb038 (Update getUserForSessionAdminView.)
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,

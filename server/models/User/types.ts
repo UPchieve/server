@@ -86,3 +86,13 @@ export type UserForCreateSendGridContact = UserContactInfo & {
   testUser: boolean
   volunteerPartnerOrgDisplay?: string
 }
+
+export type UserForAdmin = {
+  id: Ulid
+  firstName: string
+  lastName?: string
+  email: string
+  isVolunteer: boolean
+  userType: UserRole
+  createdAt: Date
+}

@@ -8,7 +8,15 @@ export async function getUserRolesById(
   tc: TransactionClient = getClient()
 ) {
   const roles = await UserRepo.getUserRolesById(userId, tc)
+  return {
+    userType: getUserTypeFromRoles(roles),
+    isAdmin: roles.includes('admin') ?? false,
+    // TODO: Remove once no longer any references.
+    isVolunteer: roles.includes('volunteer'),
+  }
+}
 
+export function getUserTypeFromRoles(roles: UserRole[] = []) {
   const userTypes = roles.filter(r => r !== 'admin')
   // For now, we assume all users have one role, not including admin.
   if (!userTypes.length) {
@@ -17,12 +25,7 @@ export async function getUserRolesById(
     throw new Error('Unexpected number of roles for user.')
   }
 
-  return {
-    userType: userTypes[0],
-    isAdmin: roles.includes('admin') ?? false,
-    // TODO: Remove once no longer any references.
-    isVolunteer: roles.includes('volunteer'),
-  }
+  return userTypes[0]
 }
 
 export function isVolunteerUserType(userType: UserRole) {

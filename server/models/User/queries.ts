@@ -31,8 +31,10 @@ import {
   UserRole,
   UserContactInfo,
   UserForCreateSendGridContact,
+  UserForAdmin,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
+import { getUserTypeFromRoles } from '../../services/UserRolesService'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -378,15 +380,6 @@ type UserQuery = {
   partnerOrg: string | undefined
   highSchool: string | undefined
 }
-type AdminUser = {
-  id: Ulid
-  _id: Ulid
-  firstName: string
-  lastName?: string
-  email: string
-  isVolunteer: boolean
-  createdAt: Date
-}
 function cleanPayload(payload: UserQuery): UserQuery {
   const temp: any = {}
   for (const [key, value] of Object.entries(payload)) {
@@ -401,7 +394,7 @@ export async function getUsersForAdminSearch(
   payload: UserQuery,
   limit: number,
   offset: number
-): Promise<AdminUser[]> {
+): Promise<UserForAdmin[]> {
   try {
     const result = await pgQueries.getUsersForAdminSearch.run(
       { ...cleanPayload(payload), limit, offset },
@@ -411,6 +404,7 @@ export async function getUsersForAdminSearch(
       const user = makeSomeOptional(v, ['lastName'])
       return {
         _id: user.id,
+        userType: getUserTypeFromRoles((v.roles ?? []) as UserRole[]),
         ...user,
       }
     })
