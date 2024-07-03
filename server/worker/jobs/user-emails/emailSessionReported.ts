@@ -2,7 +2,10 @@ import { Job } from 'bull'
 import { USER_BAN_REASONS } from '../../../constants'
 import { getReportedUser } from '../../../models/User'
 import * as MailService from '../../../services/MailService'
-import { isStudentUserType, isVolunteerUserType } from '../../../services/UserRolesService'
+import {
+  isStudentUserType,
+  isVolunteerUserType,
+} from '../../../services/UserRolesService'
 import * as UserRolesService from '../../../services/UserRolesService'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'

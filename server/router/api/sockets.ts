@@ -34,6 +34,7 @@ import {
   logSocketConnectionInfo,
 } from '../../utils/log-socket-connection-info'
 import { isVolunteerUserType } from '../../utils/user-type'
+import { getUserTypeFromRoles } from '../../services/UserRolesService'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -348,7 +349,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
-            if (source === 'recap' && !!dbUser?.banType) return resolve()
+            if (!dbUser) return resolve()
+            if (source === 'recap' && !!dbUser.banType) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {
@@ -369,12 +371,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
-              const roles = await UserRolesService.getUserRolesById(user.id)
+              const userType = getUserTypeFromRoles(dbUser.roles)
               const messageData = {
                 contents: message,
                 createdAt: createdAt,
-                isVolunteer: isVolunteerUserType(roles.userType),
-                userType: roles.userType,
+                isVolunteer: isVolunteerUserType(userType),
+                userType: userType,
                 user: user.id,
                 sessionId,
               }

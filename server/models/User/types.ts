@@ -73,11 +73,12 @@ export type UserContactInfo = Pick<
   approved?: boolean
   isAdmin: boolean
   isVolunteer: boolean
+  roles: UserRole[]
   studentPartnerOrg?: string
   volunteerPartnerOrg?: string
 }
 
-export type UserForCreateSendGridContact = UserContactInfo & {
+export type UserForCreateSendGridContact = Omit<UserContactInfo, 'roles'> & {
   createdAt: Date
   lastName: string
   passedUpchieve101?: boolean
@@ -98,12 +99,8 @@ export type UserForAdmin = {
 }
 
 export type ReportedUser = Pick<
-User,
-'id' |
-'firstName' |
-'lastName' |
-'email' |
-'createdAt'
+  User,
+  'id' | 'firstName' | 'lastName' | 'email' | 'createdAt'
 > & {
   isBanned: boolean
   isDeactivated: boolean

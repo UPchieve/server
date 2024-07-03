@@ -130,8 +130,9 @@ async function sendEmails(userId: Ulid): Promise<void> {
   const user = await getUserContactInfoById(userId)
   if (!user) return
 
-  const roles = await UserRolesService.getUserRolesById(user.id)
-  if (isVolunteerUserType(roles.userType)) {
+  const userType = UserRolesService.getUserTypeFromRoles(user.roles)
+
+  if (isVolunteerUserType(userType)) {
     if (user.volunteerPartnerOrg) {
       await MailService.sendPartnerVolunteerWelcomeEmail(
         user.email,
@@ -143,13 +144,13 @@ async function sendEmails(userId: Ulid): Promise<void> {
         user.firstName
       )
     }
-  } else if (isStudentUserType(roles.userType)) {
+  } else if (isStudentUserType(userType)) {
     await MailService.sendStudentOnboardingWelcomeEmail(
       user.email,
       user.firstName
     )
     await StudentService.queueOnboardingEmails(user.id)
-  } else if (isTeacherUserType(roles.userType)) {
+  } else if (isTeacherUserType(userType)) {
     // TODO: TEACHER PROFILES.
   }
 }

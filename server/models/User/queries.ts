@@ -171,9 +171,10 @@ export async function getUserContactInfoById(
         'lastActivityAt',
         'phone',
         'banType',
+        'roles',
       ])
       ret.email = ret.email.toLowerCase()
-      return ret
+      return { ...ret, roles: (ret.roles ?? []) as UserRole[] }
     }
   } catch (err) {
     throw new RepoReadError(err)

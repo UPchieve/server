@@ -128,8 +128,6 @@ describe('Registration tests', () => {
   }
 
   const plainUser = buildUserRow()
-  const studentOpen = buildStudent(studentOpenOverrides)
-  const studentPartner = buildStudent(studentPartnerOverrides)
 
   const volunteerPartnerOverrides = {
     volunteerPartnerOrg: mockedVolunteerPartnerOrg.key,
@@ -191,7 +189,10 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(volunteerOpen)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...volunteerOpen,
+      userType: 'volunteer',
+    })
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm()
@@ -203,7 +204,10 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(volunteerPartner)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...volunteerPartner,
+      userType: 'volunteer',
+    })
     mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
       mockedVolunteerPartnerOrg
     )
@@ -290,7 +294,10 @@ describe('Registration tests', () => {
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...referree,
+      userType: 'volunteer',
+    })
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
@@ -325,7 +332,10 @@ describe('Registration tests', () => {
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...referree,
+      userType: 'volunteer',
+    })
 
     const serviceVolunteer = await AuthService.registerPartnerVolunteer(
       buildPartnerVolunteerRegistrationForm({

@@ -74,7 +74,8 @@ SELECT
     volunteer_profiles.approved,
     users.phone,
     users.phone_verified,
-    users.sms_consent
+    users.sms_consent,
+    array_agg(user_roles.name) AS roles
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -82,8 +83,16 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+    LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
     users.id = :id!
+GROUP BY
+    users.id,
+    volunteer_profiles.user_id,
+    admin_profiles.user_id,
+    volunteer_partner_orgs.id,
+    student_partner_orgs.id
 LIMIT 1;
 
 

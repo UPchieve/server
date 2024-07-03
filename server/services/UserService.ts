@@ -305,10 +305,10 @@ export async function adminUpdateUser(data: unknown) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const userRoles = await UserRolesService.getUserRolesById(userId)
-  const isVolunteer = isVolunteerUserType(userRoles.userType)
-  const isStudent = isStudentUserType(userRoles.userType)
-  const isTeacher = isTeacherUserType(userRoles.userType)
+  const userType = UserRolesService.getUserTypeFromRoles(userBeforeUpdate.roles)
+  const isVolunteer = isVolunteerUserType(userType)
+  const isStudent = isStudentUserType(userType)
+  const isTeacher = isTeacherUserType(userType)
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail

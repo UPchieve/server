@@ -34,7 +34,7 @@ export type AppUser = {
   isTestUser: boolean
   isAdmin: boolean
   isVolunteer: boolean
-  userType: UserRole
+  roles: UserRole[]
 } & User
 
 export type AppStudent = {
