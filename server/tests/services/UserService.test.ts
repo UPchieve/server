@@ -464,7 +464,7 @@ describe('UserService', () => {
       const userId = getDbUlid()
       mockUserRepo.getUserRolesById.mockResolvedValue([])
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
-        'User has no roles.'
+        `User with id ${userId} has no roles.`
       )
     })
 

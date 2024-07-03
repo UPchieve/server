@@ -11,7 +11,7 @@ export function routeModeration(router: Router): void {
     try {
       const user = extractUser(req)
       const isVolunteer = isVolunteerUserType(
-        UserRolesService.getUserTypeFromRoles(user.roles)
+        UserRolesService.getUserTypeFromRoles(user.roles, user.id)
       )
       const args = req.body?.content
         ? {

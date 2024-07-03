@@ -54,7 +54,7 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (isVolunteerUserType(getUserTypeFromRoles(user.roles)))
+  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)))
     socket.join('volunteers')
 }
 
@@ -193,7 +193,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
               if (
-                isVolunteerUserType(getUserTypeFromRoles(user.roles)) &&
+                isVolunteerUserType(
+                  getUserTypeFromRoles(user.roles, user.id)
+                ) &&
                 !user.approved
               )
                 throw new Error('Volunteer not approved')
@@ -372,7 +374,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
-              const userType = getUserTypeFromRoles(dbUser.roles)
+              const userType = getUserTypeFromRoles(dbUser.roles, user.id)
               const messageData = {
                 contents: message,
                 createdAt: createdAt,

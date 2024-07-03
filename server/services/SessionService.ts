@@ -142,7 +142,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   const isBanReason =
     reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
   const isVolunteer = isVolunteerUserType(
-    getUserTypeFromRoles(reportedBy.roles)
+    getUserTypeFromRoles(reportedBy.roles, reportedBy.id)
   )
   const reportedUser = isVolunteer ? session.studentId : session.volunteerId
   if (isBanReason) {
@@ -550,7 +550,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     )
 
   const userId = user.id
-  if (isVolunteerUserType(getUserTypeFromRoles(user.roles)))
+  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, userId)))
     throw new sessionUtils.StartSessionError(
       'Volunteers cannot create new sessions'
     )
@@ -697,7 +697,7 @@ export async function joinSession(
     throw new Error('Session has ended')
   }
 
-  const userType = getUserTypeFromRoles(user.roles)
+  const userType = getUserTypeFromRoles(user.roles, user.id)
   const isStudent = isStudentUserType(userType)
   const isVolunteer = isVolunteerUserType(userType)
   if (isStudent && session.studentId !== user.id) {
@@ -705,11 +705,7 @@ export async function joinSession(
     throw new Error(`A student cannot join another student's session`)
   }
 
-  if (
-    isVolunteer &&
-    session.volunteerId &&
-    session.volunteerId !== user.id
-  ) {
+  if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error('A volunteer has already joined the session')
   }
@@ -826,7 +822,7 @@ export async function generateAndStoreWaitTimeHeatMap(
 export async function getWaitTimeHeatMap(
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
-  if (isStudentUserType(getUserTypeFromRoles(user.roles)))
+  if (isStudentUserType(getUserTypeFromRoles(user.roles, user.id)))
     throw new NotAllowedError('Only volunteers may view the heat map')
   try {
     const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)

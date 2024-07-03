@@ -130,7 +130,7 @@ async function sendEmails(userId: Ulid): Promise<void> {
   const user = await getUserContactInfoById(userId)
   if (!user) return
 
-  const userType = UserRolesService.getUserTypeFromRoles(user.roles)
+  const userType = UserRolesService.getUserTypeFromRoles(user.roles, user.id)
 
   if (isVolunteerUserType(userType)) {
     if (user.volunteerPartnerOrg) {

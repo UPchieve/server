@@ -1,3 +1,4 @@
+import logger from '../../logger'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
@@ -174,7 +175,11 @@ export async function getUserContactInfoById(
         'roles',
       ])
       ret.email = ret.email.toLowerCase()
-      return { ...ret, roles: (ret.roles ?? []) as UserRole[] }
+      const roles = (ret.roles ?? []).filter(r => !!r)
+      if (!roles.length) {
+        logger.error(`User with id ${ret.id} has no user roles.`)
+      }
+      return { ...ret, roles: roles as UserRole[] }
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -408,7 +413,7 @@ export async function getUsersForAdminSearch(
       const user = makeSomeOptional(v, ['lastName'])
       return {
         _id: user.id,
-        userType: getUserTypeFromRoles((v.roles ?? []) as UserRole[]),
+        userType: getUserTypeFromRoles((v.roles ?? []) as UserRole[], user.id),
         ...user,
       }
     })

@@ -306,7 +306,7 @@ export function routeSession(router: Router) {
         session.id,
         session.studentId,
         session.volunteerId,
-        isVolunteerUserType(getUserTypeFromRoles(user.roles))
+        isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id))
       )
       res.json({ session, isRecapDmsAvailable })
     } catch (err) {
