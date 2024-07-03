@@ -54,7 +54,8 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (user && user.isVolunteer) socket.join('volunteers')
+  const userRoles = await UserRolesService.getUserRolesById(user.id)
+  if (isVolunteerUserType(userRoles.userType)) socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -110,7 +111,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
-      await logSocketConnectionInfo('connection', socket) // Log the initial connection
+      logSocketConnectionInfo('connection', socket) // Log the initial connection
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -191,7 +192,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.isVolunteer && !user.approved)
+              const userRoles = await UserRolesService.getUserRolesById(user.id)
+              if (isVolunteerUserType(userRoles.userType) && !user.approved)
                 throw new Error('Volunteer not approved')
             } catch (error) {
               socket.emit('redirect')

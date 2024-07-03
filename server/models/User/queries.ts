@@ -147,7 +147,9 @@ export async function getUserRolesById(
 ): Promise<UserRole[]> {
   try {
     const result = await pgQueries.getUserRolesById.run({ id }, tc)
-    return result.map(row => makeRequired(row).name as UserRole)
+    return result
+      .filter(row => !!row.name)
+      .map(row => makeRequired(row).name as UserRole)
   } catch (err) {
     throw new RepoReadError(err)
   }

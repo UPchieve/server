@@ -15,7 +15,6 @@ describe('logSocketConnectionInfo', () => {
       request: {
         user: {
           id: 'test-user-id-123',
-          isVolunteer: true,
         },
       },
     } as SocketUser
@@ -27,7 +26,6 @@ describe('logSocketConnectionInfo', () => {
         errorMessage: eventError,
         user: {
           id: 'test-user-id-123',
-          isVolunteer: true,
         },
         rooms: ['room1', 'room2'],
       },
@@ -44,7 +42,6 @@ describe('logSocketConnectionInfo', () => {
       request: {
         user: {
           id: 'test-user-id-123',
-          isVolunteer: true,
         },
       },
     } as SocketUser
@@ -57,7 +54,6 @@ describe('logSocketConnectionInfo', () => {
         disconnectIsError: false,
         user: {
           id: 'test-user-id-123',
-          isVolunteer: true,
         },
         rooms: ['room1', 'room2'],
       },
@@ -74,7 +70,6 @@ describe('logSocketConnectionInfo', () => {
       request: {
         user: {
           id: 'test-user-id-123',
-          isVolunteer: false,
         },
       },
     } as SocketUser
@@ -87,7 +82,6 @@ describe('logSocketConnectionInfo', () => {
         disconnectIsError: true,
         user: {
           id: 'test-user-id-123',
-          isVolunteer: false,
         },
         rooms: ['room1', 'room2'],
       },
