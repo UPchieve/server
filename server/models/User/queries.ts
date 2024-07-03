@@ -30,6 +30,7 @@ import {
   User,
   UserRole,
   UserContactInfo,
+  UserForCreateSendGridContact,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 
@@ -533,22 +534,6 @@ export async function getUserForAdminDetail(
   }
 }
 
-export type UserForCreateSendGridContact = UserContactInfo & {
-  lastName: string
-  banned: boolean
-  banType?: USER_BAN_TYPES
-  testUser: boolean
-  isVolunteer: boolean
-  isAdmin: boolean
-  deactivated: boolean
-  createdAt: Date
-  passedUpchieve101?: boolean
-  studentPartnerOrg?: string
-  volunteerPartnerOrg?: string
-  studentPartnerOrgDisplay?: string
-  volunteerPartnerOrgDisplay?: string
-  studentGradeLevel?: string
-}
 export async function getUserToCreateSendGridContact(
   userId: Ulid
 ): Promise<UserForCreateSendGridContact> {
@@ -559,14 +544,14 @@ export async function getUserToCreateSendGridContact(
     )
     if (!result.length) throw new RepoReadError('User not found')
     return makeSomeOptional(result[0], [
-      'studentPartnerOrg',
-      'volunteerPartnerOrg',
-      'studentPartnerOrgDisplay',
-      'volunteerPartnerOrgDisplay',
-      'passedUpchieve101',
-      'lastActivityAt',
-      'studentGradeLevel',
       'banType',
+      'lastActivityAt',
+      'passedUpchieve101',
+      'studentGradeLevel',
+      'studentPartnerOrg',
+      'studentPartnerOrgDisplay',
+      'volunteerPartnerOrg',
+      'volunteerPartnerOrgDisplay',
     ])
   } catch (err) {
     throw new RepoReadError(err)

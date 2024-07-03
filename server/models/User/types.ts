@@ -6,8 +6,8 @@ export type UserRole = 'volunteer' | 'student' | 'teacher' | 'admin'
 export type User = {
   id: Ulid
   banned: boolean
-  banReasonId?: Pgid
   banType?: USER_BAN_TYPES
+  banReasonId?: Pgid
   deactivated: boolean
   firstName: string
   email: string
@@ -75,4 +75,14 @@ export type UserContactInfo = Pick<
   isVolunteer: boolean
   studentPartnerOrg?: string
   volunteerPartnerOrg?: string
+}
+
+export type UserForCreateSendGridContact = UserContactInfo & {
+  createdAt: Date
+  lastName: string
+  passedUpchieve101?: boolean
+  studentGradeLevel?: string
+  studentPartnerOrgDisplay?: string
+  testUser: boolean
+  volunteerPartnerOrgDisplay?: string
 }

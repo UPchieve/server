@@ -1895,7 +1895,7 @@ export interface IGetUsersLatestSubjectsByUserIdQuery {
   result: IGetUsersLatestSubjectsByUserIdResult;
 }
 
-const getUsersLatestSubjectsByUserIdIR: any = {"name":"getUsersLatestSubjectsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":26790,"b":26796,"line":910,"col":20}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    recent_sessions.subject\nFROM ( SELECT DISTINCT ON (subjects.name)\n        subjects.name AS subject,\n        sessions.created_at\n    FROM\n        users\n        JOIN sessions ON sessions.student_id = users.id\n        JOIN subjects ON subjects.id = sessions.subject_id\n    WHERE\n        users.id = :userId!\n    ORDER BY\n        subjects.name,\n        sessions.created_at DESC) AS recent_sessions\nORDER BY\n    recent_sessions.created_at DESC\nLIMIT 3","loc":{"a":26483,"b":26938,"line":900,"col":0}}};
+const getUsersLatestSubjectsByUserIdIR: any = {"name":"getUsersLatestSubjectsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":24747,"b":24753,"line":853,"col":20}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    recent_sessions.subject\nFROM ( SELECT DISTINCT ON (subjects.name)\n        subjects.name AS subject,\n        sessions.created_at\n    FROM\n        users\n        JOIN sessions ON sessions.student_id = users.id\n        JOIN subjects ON subjects.id = sessions.subject_id\n    WHERE\n        users.id = :userId!\n    ORDER BY\n        subjects.name,\n        sessions.created_at DESC) AS recent_sessions\nORDER BY\n    recent_sessions.created_at DESC\nLIMIT 3","loc":{"a":24440,"b":24895,"line":843,"col":0}}};
 
 /**
  * Query generated from SQL:
