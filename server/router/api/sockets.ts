@@ -23,7 +23,6 @@ import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
-import * as UserRolesService from '../../services/UserRolesService'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
@@ -55,8 +54,8 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  const userRoles = await UserRolesService.getUserRolesById(user.id)
-  if (isVolunteerUserType(userRoles.userType)) socket.join('volunteers')
+  if (isVolunteerUserType(getUserTypeFromRoles(user.roles)))
+    socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -193,8 +192,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              const userRoles = await UserRolesService.getUserRolesById(user.id)
-              if (isVolunteerUserType(userRoles.userType) && !user.approved)
+              if (
+                isVolunteerUserType(getUserTypeFromRoles(user.roles)) &&
+                !user.approved
+              )
                 throw new Error('Volunteer not approved')
             } catch (error) {
               socket.emit('redirect')
@@ -391,8 +392,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                   sessionId: sessionId,
                   message,
-                  isVolunteer: isVolunteerUserType(roles.userType),
-                  userType: roles.userType,
+                  isVolunteer: isVolunteerUserType(userType),
+                  userType: userType,
                 })
               }
 
