@@ -1,13 +1,18 @@
 import * as ModerationService from '../../services/ModerationService'
+import * as UserRolesService from '../../services/UserRolesService'
 import { resError } from '../res-error'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
+import { isVolunteerUserType } from '../../utils/user-type'
 
 export function routeModeration(router: Router): void {
   router.route('/moderate/message').post(async (req, res) => {
     try {
-      const isVolunteer = extractUser(req).isVolunteer
+      const user = extractUser(req)
+      const isVolunteer = isVolunteerUserType(
+        UserRolesService.getUserTypeFromRoles(user.roles, user.id)
+      )
       const args = req.body?.content
         ? {
             // Support old versions of high-line and midtown

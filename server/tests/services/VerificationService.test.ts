@@ -410,10 +410,9 @@ describe('VerificationService', () => {
     describe('Sending emails at the end of verification', () => {
       beforeEach(async () => {
         mockedUserRepo.getUserContactInfoById.mockResolvedValue(
-          buildUserContactInfo({
-            isVolunteer: false,
-          })
+          buildUserContactInfo()
         )
+        mockedUserRepo.getUserRolesById.mockResolvedValue(['student'])
       })
 
       it('Should send emails if forSignup = true', async () => {

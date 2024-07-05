@@ -220,6 +220,7 @@ export async function registerStudent(data: RegisterStudentPayload) {
     ...newStudent,
     isAdmin: false,
     isVolunteer: false,
+    userType: 'student',
   }
 }
 
@@ -374,6 +375,7 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
     ...newTeacher,
     isAdmin: false,
     isVolunteer: false,
+    userType: 'teacher',
   }
 }
 

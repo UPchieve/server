@@ -39,6 +39,11 @@ import {
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
+  isStudentUserType,
+  isVolunteerUserType,
+  isTeacherUserType,
+} from '../utils/user-type'
+import {
   asBoolean,
   asEnum,
   asFactory,
@@ -48,6 +53,7 @@ import {
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
+import * as UserRolesService from './UserRolesService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
@@ -56,7 +62,7 @@ export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
 
   // Approved volunteer
-  if (user.isVolunteer && user.isApproved) {
+  if (isVolunteerUserType(user.userType) && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -293,12 +299,20 @@ export async function adminUpdateUser(data: unknown) {
     inGatesStudy,
     partnerSchool,
   } = asAdminUpdate(data)
-  // replaced by UserRepo.getUserForAdminUpdate
   const userBeforeUpdate = await getUserContactInfoById(userId)
+
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('id', userId)
   }
-  const { isVolunteer } = userBeforeUpdate
+
+  const userType = UserRolesService.getUserTypeFromRoles(
+    userBeforeUpdate.roles,
+    userId
+  )
+  const isVolunteer = isVolunteerUserType(userType)
+  const isStudent = isStudentUserType(userType)
+  const isTeacher = isTeacherUserType(userType)
+
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
 
@@ -310,7 +324,7 @@ export async function adminUpdateUser(data: unknown) {
 
   // if unbanning student, also unban their IP addresses
   if (
-    !isVolunteer &&
+    isStudent &&
     userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE &&
     banType !== USER_BAN_TYPES.COMPLETE
   )
@@ -346,14 +360,14 @@ export async function adminUpdateUser(data: unknown) {
     isDeactivated,
     isApproved,
     volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
-    studentPartnerOrg: !isVolunteer && partnerOrg ? partnerOrg : undefined,
-    partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
-    inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
+    studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
+    partnerSite: isStudent && partnerSite ? partnerSite : undefined,
+    inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
     banReason: isBanned ? 'admin' : undefined,
-    partnerSchool: !isVolunteer && partnerSchool ? partnerSchool : undefined,
+    partnerSchool: isStudent && partnerSchool ? partnerSchool : undefined,
   }
 
-  if (!isVolunteer) {
+  if (isStudent) {
     // tracking organic/partner students for posthog if there is a change in partner status
     if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
       AnalyticsService.identify(userId, {
@@ -370,8 +384,10 @@ export async function adminUpdateUser(data: unknown) {
 
   if (isVolunteer) {
     await updateVolunteerForAdmin(userId, update)
-  } else {
+  } else if (isStudent) {
     await adminUpdateStudent(userId, update)
+  } else if (isTeacher) {
+    // TODO: TEACHER PROFILES.
   }
 
   await MailService.createContact(userId)
@@ -446,12 +462,8 @@ export async function updateUserProfile(
 }
 
 export async function deletePhoneFromAccount(userId: Ulid) {
-  const user = await getUserContactInfoById(userId)
-  if (!user) {
-    logger.error({ userId }, 'deletePhoneFromAccount failed to find user')
-    throw new Error(DEFAULT_ERROR_MESSAGE)
-  }
-  if (user.isVolunteer) {
+  const user = await UserRolesService.getUserRolesById(userId)
+  if (isVolunteerUserType(user.userType)) {
     throw new InputError(
       'Phone information is required for UPchieve volunteers'
     )

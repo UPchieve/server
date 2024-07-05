@@ -2,7 +2,7 @@ import { getDbUlid, getUuid, Ulid } from '../../models/pgUtils'
 import { AssistmentsData } from '../../models/AssistmentsData'
 import { Student } from '../../models/Student'
 import { Availability } from '../../models/Availability'
-import { User, UserContactInfo } from '../../models/User'
+import { User, UserContactInfo, UserRole } from '../../models/User'
 import faker from 'faker'
 import _ from 'lodash'
 import createNewAvailability from '../../utils/create-new-availability'
@@ -97,6 +97,7 @@ export function buildUserContactInfo(
     smsConsent: false,
     firstName: getFirstName(),
     isVolunteer: false,
+    roles: ['student'],
     isAdmin: false,
     volunteerPartnerOrg: undefined,
     studentPartnerOrg: undefined,
@@ -142,6 +143,7 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
     isTestUser: userRow.testUser,
     isAdmin: false,
     isVolunteer: false,
+    roles: ['student'] as UserRole[],
     ...overrides,
   }
 }
@@ -168,6 +170,7 @@ export function buildStudent(overrides: Partial<AppStudent> = {}): AppStudent {
     studentPartnerSite: '',
     partnerUserId: '',
     college: 'UPchieve University',
+    roles: ['student'] as UserRole[],
     ...overrides,
   }
 
@@ -181,7 +184,7 @@ export function buildVolunteer(
     ...buildUser({ isVolunteer: true }),
     volunteerPartnerOrg: '',
     phone: getPhoneNumber(),
-
+    roles: ['volunteer'] as UserRole[],
     ...overrides,
   }
 }

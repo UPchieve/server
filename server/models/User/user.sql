@@ -74,7 +74,8 @@ SELECT
     volunteer_profiles.approved,
     users.phone,
     users.phone_verified,
-    users.sms_consent
+    users.sms_consent,
+    array_agg(user_roles.name) AS roles
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -82,45 +83,25 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
+    LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
     users.id = :id!
+GROUP BY
+    users.id,
+    volunteer_profiles.user_id,
+    admin_profiles.user_id,
+    volunteer_partner_orgs.id,
+    student_partner_orgs.id
 LIMIT 1;
 
 
-/* @name getUserContactInfoByReferralCode */
+/* @name getUserByReferralCode */
 SELECT
     users.id,
-    first_name,
-    email,
-    banned,
-    ban_type,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
-    student_partner_orgs.key AS student_partner_org,
-    users.last_activity_at,
-    deactivated,
-    volunteer_profiles.approved,
-    users.phone,
-    users.phone_verified,
-    users.sms_consent
+    first_name
 FROM
     users
-    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
     referral_code = :referralCode!
 LIMIT 1;
@@ -150,43 +131,14 @@ WHERE
 LIMIT 1;
 
 
-/* @name getUserContactInfoByResetToken */
+/* @name getUserByResetToken */
 SELECT
-    users.id,
-    first_name,
-    email,
-    banned,
-    ban_type,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
-    student_partner_orgs.key AS student_partner_org,
-    users.last_activity_at,
-    deactivated,
-    volunteer_profiles.approved,
-    users.phone,
-    users.phone_verified,
-    users.sms_consent
+    id,
+    email
 FROM
     users
-    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
-    password_reset_token = :resetToken!
-LIMIT 1;
+    password_reset_token = :resetToken!;
 
 
 /* @name deleteUser */
@@ -332,29 +284,6 @@ RETURNING
     id AS ok;
 
 
-/* @name getUserForAdminUpdate */
-SELECT
-    users.id,
-    banned,
-    ban_type,
-    email,
-    deactivated,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    student_partner_orgs.name AS student_partner_org
-FROM
-    users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
-WHERE
-    users.id = :userId!;
-
-
 /* @name getUsersForAdminSearch */
 SELECT
     users.id,
@@ -372,7 +301,8 @@ SELECT
             TRUE
         ELSE
             FALSE
-        END) AS is_volunteer
+        END) AS is_volunteer,
+    array_agg(user_roles.name) AS roles
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -381,6 +311,8 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN schools ON schools.id = student_profiles.school_id
     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
+    LEFT JOIN users_roles ON users_roles.user_id = users.id
+    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE ((:userId)::uuid IS NULL
     OR users.id = :userId)
 AND ((:email)::text IS NULL
@@ -395,6 +327,9 @@ AND ((:partnerOrg)::text IS NULL
 AND ((:highSchool)::text IS NULL
     OR schools.name ILIKE ('%' || :highSchool || '%')
     OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))
+GROUP BY
+    users.id,
+    volunteer_profiles.user_id
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -502,6 +437,12 @@ SELECT
             FALSE
         END) AS is_volunteer,
     (
+        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
+            'volunteer'
+        ELSE
+            'student'
+        END) AS TYPE,
+    (
         CASE WHEN admin_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
@@ -516,12 +457,6 @@ SELECT
     users.last_activity_at AS last_activity_at,
     users.referral_code AS referral_code,
     users.referred_by AS referred_by,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            'volunteer'
-        ELSE
-            'student'
-        END) AS TYPE,
     volunteer_profiles.onboarded AS is_onboarded,
     volunteer_profiles.approved AS is_approved,
     volunteer_partner_orgs.key AS volunteer_partner_org,

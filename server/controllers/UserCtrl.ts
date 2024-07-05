@@ -19,9 +19,7 @@ export async function checkReferral(
 ): Promise<Ulid | undefined> {
   if (referredByCode) {
     try {
-      const user = await UserRepo.getUserContactInfoByReferralCode(
-        referredByCode
-      )
+      const user = await UserRepo.getUserByReferralCode(referredByCode)
       if (user) return user.id
     } catch (error) {
       captureException(error)

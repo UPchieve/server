@@ -1,5 +1,6 @@
 import { GRADES, USER_BAN_TYPES } from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
+import { UserRole } from '../User'
 
 export type Student = {
   userId: Ulid
@@ -47,6 +48,7 @@ export type CreatedStudent = StudentContactInfo & {
   isTestUser: boolean
   createdAt: Date
   isVolunteer: boolean
+  userType: UserRole
   isAdmin: boolean
   isBanned: boolean
   banType?: USER_BAN_TYPES
