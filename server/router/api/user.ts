@@ -2,6 +2,7 @@ import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
+import * as UserRolesService from '../../services/UserRolesService'
 import {
   countUsersReferredByOtherId,
   getUserForAdminDetail,
@@ -15,6 +16,7 @@ import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
+import { isVolunteerUserType } from '../../utils/user-type'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
@@ -239,14 +241,15 @@ export function routeUser(router: Router): void {
 
     try {
       const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
+      const userRoles = await UserRolesService.getUserRolesById(userId)
 
       let resUser: any = user
-      if (user.isVolunteer && user.photoIdS3Key) {
+      if (isVolunteerUserType(userRoles.userType) && user.photoIdS3Key) {
         const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
         resUser = Object.assign(resUser, { photoUrl })
       }
 
-      res.json({ user })
+      res.json({ ...user, userType: userRoles.userType })
     } catch (err) {
       resError(res, err)
     }

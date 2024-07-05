@@ -115,7 +115,7 @@ export const logSocketConnectionInfo = (
       errorMessage,
       user: {
         id: userId,
-        isVolunteer: socket.request.user?.isVolunteer,
+        roles: socket.request.user?.roles,
       },
       rooms: Array.from(socket.rooms),
     }

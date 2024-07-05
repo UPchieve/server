@@ -66,6 +66,8 @@ import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
 import * as PaidTutorsPilotService from './PaidTutorsPilotService'
 import { TransactionClient, runInTransaction } from '../db'
+import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
+import { getUserTypeFromRoles } from './UserRolesService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -139,9 +141,10 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   // Autoban users if a session is reported from the recap page
   const isBanReason =
     reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
-  const reportedUser = reportedBy.isVolunteer
-    ? session.studentId
-    : session.volunteerId
+  const isVolunteer = isVolunteerUserType(
+    getUserTypeFromRoles(reportedBy.roles, reportedBy.id)
+  )
+  const reportedUser = isVolunteer ? session.studentId : session.volunteerId
   if (isBanReason) {
     await UserRepo.banUserById(
       reportedUser,
@@ -161,7 +164,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     })
 
     if (source === 'recap') {
-      const sessionFlags = reportedBy.isVolunteer
+      const sessionFlags = isVolunteer
         ? [USER_SESSION_METRICS.coachReportedStudentDm]
         : [USER_SESSION_METRICS.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
@@ -547,7 +550,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     )
 
   const userId = user.id
-  if (user.isVolunteer)
+  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, userId)))
     throw new sessionUtils.StartSessionError(
       'Volunteers cannot create new sessions'
     )
@@ -694,21 +697,20 @@ export async function joinSession(
     throw new Error('Session has ended')
   }
 
-  if (!user.isVolunteer && session.studentId && session.studentId !== user.id) {
+  const userType = getUserTypeFromRoles(user.roles, user.id)
+  const isStudent = isStudentUserType(userType)
+  const isVolunteer = isVolunteerUserType(userType)
+  if (isStudent && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error(`A student cannot join another student's session`)
   }
 
-  if (
-    user.isVolunteer &&
-    session.volunteerId &&
-    session.volunteerId !== user.id
-  ) {
+  if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error('A volunteer has already joined the session')
   }
 
-  const isInitialVolunteerJoin = user.isVolunteer && !session.volunteerId
+  const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
     const result = await runInTransaction(async (tc: TransactionClient) => {
       try {
@@ -820,7 +822,7 @@ export async function generateAndStoreWaitTimeHeatMap(
 export async function getWaitTimeHeatMap(
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
-  if (!user.isVolunteer)
+  if (isStudentUserType(getUserTypeFromRoles(user.roles, user.id)))
     throw new NotAllowedError('Only volunteers may view the heat map')
   try {
     const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)

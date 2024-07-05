@@ -128,8 +128,6 @@ describe('Registration tests', () => {
   }
 
   const plainUser = buildUserRow()
-  const studentOpen = buildStudent(studentOpenOverrides)
-  const studentPartner = buildStudent(studentPartnerOverrides)
 
   const volunteerPartnerOverrides = {
     volunteerPartnerOrg: mockedVolunteerPartnerOrg.key,
@@ -191,7 +189,10 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(volunteerOpen)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...volunteerOpen,
+      userType: 'volunteer',
+    })
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm()
@@ -203,7 +204,10 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(volunteerPartner)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...volunteerPartner,
+      userType: 'volunteer',
+    })
     mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
       mockedVolunteerPartnerOrg
     )
@@ -290,7 +294,10 @@ describe('Registration tests', () => {
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...referree,
+      userType: 'volunteer',
+    })
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
@@ -325,7 +332,10 @@ describe('Registration tests', () => {
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
-    mockedUserCtrl.createVolunteer.mockResolvedValue(referree)
+    mockedUserCtrl.createVolunteer.mockResolvedValue({
+      ...referree,
+      userType: 'volunteer',
+    })
 
     const serviceVolunteer = await AuthService.registerPartnerVolunteer(
       buildPartnerVolunteerRegistrationForm({
@@ -363,9 +373,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm valid reset', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
     const token = '0123456789abcdef0123456789abcdef'
     const newPassword = 'Password456'
 
@@ -409,9 +417,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via bad token', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
 
     const payload = {
       email: user.email,
@@ -428,7 +434,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via unlisted token', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(undefined)
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(undefined)
 
     const payload = {
       email: user.email,
@@ -445,9 +451,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm invalid reset via unmatched token', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
 
     const payload = {
       email: 'different email',
@@ -464,9 +468,7 @@ describe('Password reset tests', () => {
   })
 
   test('Confirm mismatch passwords', async () => {
-    mockedUserRepo.getUserContactInfoByResetToken.mockResolvedValue(
-      userContactInfo
-    )
+    mockedUserRepo.getUserByResetToken.mockResolvedValue(userContactInfo)
 
     const payload = {
       email: 'different email',

@@ -454,9 +454,7 @@ describe('UserService', () => {
   describe('deletePhoneFromAccount', () => {
     it('Should throw an error if it is a volunteer account', async () => {
       const userId = getDbUlid()
-      mockUserRepo.getUserContactInfoById.mockResolvedValue(
-        buildUserContactInfo({ id: userId, isVolunteer: true })
-      )
+      mockUserRepo.getUserRolesById.mockResolvedValue(['volunteer'])
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
         'Phone information is required for UPchieve volunteers'
       )
@@ -464,17 +462,15 @@ describe('UserService', () => {
 
     it('Should throw an error if the user cannot be found', async () => {
       const userId = getDbUlid()
-      mockUserRepo.getUserContactInfoById.mockResolvedValue(undefined)
+      mockUserRepo.getUserRolesById.mockResolvedValue([])
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
-        'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
+        `User with id ${userId} has no roles.`
       )
     })
 
     it('Should call deleteUserPhoneInfo', async () => {
       const userId = getDbUlid()
-      mockUserRepo.getUserContactInfoById.mockResolvedValue(
-        buildUserContactInfo({ id: userId, isVolunteer: false })
-      )
+      mockUserRepo.getUserRolesById.mockResolvedValue(['student'])
       await UserService.deletePhoneFromAccount(userId)
       expect(mockUserRepo.deleteUserPhoneInfo).toHaveBeenCalledWith(userId)
     })
