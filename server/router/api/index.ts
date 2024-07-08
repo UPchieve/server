@@ -22,6 +22,7 @@ import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
 import { routeSubjects } from './subjects'
 import { routeProgressReports } from './progress-reports'
+import { routeTeachers } from './teachers'
 import { routeAdmin } from './admin'
 import { routeWebhooks } from './webhooks'
 import { sendReferralProgramEmail } from '../../services/MailService'
@@ -32,6 +33,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)
+  routeTeachers(app, router)
   routeUser(router)
   routeVerify(router)
   routeSession(router as Router)
