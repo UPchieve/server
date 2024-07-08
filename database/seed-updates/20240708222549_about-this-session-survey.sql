@@ -124,7 +124,8 @@ WHERE ssq.survey_id IN (
             s.name = 'About This Session Survey');
 
 DELETE FROM upchieve.survey_questions
-WHERE question_text IN ('Is this information helpful?', 'What would make this more helpful?')
+WHERE question_text IN ('Is this information helpful?', 'What would make this more helpful?');
+
 DELETE FROM upchieve.survey_response_choices
 WHERE choice_text IN ('Helpful', 'Not helpful');
 
