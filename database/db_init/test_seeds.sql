@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Ubuntu 14.12-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2906,6 +2906,8 @@ COPY upchieve.survey_questions (id, question_type_id, question_text, created_at,
 20	1	Rate your analysis	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	\N	\N	\N
 21	1	What was the problem	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	\N	\N	\N
 22	3	Tell us more about the issue or how we can improve	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	\N	\N	\N
+23	1	Is this information helpful?	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	\N	\N	\N
+24	3	What would make this more helpful?	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	\N	\N	\N
 \.
 
 
@@ -3015,6 +3017,8 @@ COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updat
 96	0	My coach was bad	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	\N
 97	0	What you told me to do is not helpful	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	\N
 98	0	These aren't the concepts I'm studying	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	\N
+99	1	Helpful	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	https://cdn.upchieve.org/site-images/thumbs-up.svg
+100	2	Not helpful	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	https://cdn.upchieve.org/site-images/thumbs-down.svg
 \.
 
 
@@ -3043,6 +3047,7 @@ COPY upchieve.surveys (id, name, created_at, updated_at, role_id) FROM stdin;
 18	Essay Planning Pre-Session Survey	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00	1
 19	Essay Feedback Pre-Session Survey	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00	1
 21	Progress Report Rating Survey	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	1
+22	About This Session Survey	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	2
 \.
 
 
@@ -3123,6 +3128,8 @@ COPY upchieve.surveys_survey_questions (id, survey_id, survey_question_id, displ
 70	21	20	10	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
 71	21	21	20	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
 72	21	22	30	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
+73	22	23	10	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00
+74	22	24	20	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00
 \.
 
 
@@ -3461,6 +3468,9 @@ COPY upchieve.survey_questions_response_choices (response_choice_id, display_pri
 98	50	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	71
 68	60	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	71
 68	10	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00	72
+99	20	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	73
+100	10	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	73
+68	10	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00	74
 \.
 
 
@@ -3472,6 +3482,7 @@ COPY upchieve.survey_types (id, name, created_at, updated_at) FROM stdin;
 1	presession	2023-01-09 19:27:39.322104+00	2023-01-09 19:27:39.322104+00
 2	postsession	2023-01-09 19:27:39.322104+00	2023-01-09 19:27:39.322104+00
 5	progress-report	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
+6	about-this-session	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00
 \.
 
 
@@ -3580,6 +3591,7 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 18	32	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 19	33	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 21	\N	5	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
+22	\N	6	2024-07-08 15:45:33.599616+00	2024-07-08 15:45:33.599616+00
 \.
 
 
@@ -4048,7 +4060,7 @@ SELECT pg_catalog.setval('upchieve.subjects_id_seq', 33, true);
 -- Name: survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 22, true);
+SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 24, true);
 
 
 --
@@ -4062,28 +4074,28 @@ SELECT pg_catalog.setval('upchieve.survey_questions_question_tags_id_seq', 1, fa
 -- Name: survey_response_choices_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 98, true);
+SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 100, true);
 
 
 --
 -- Name: survey_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 6, true);
 
 
 --
 -- Name: surveys_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_id_seq', 21, true);
+SELECT pg_catalog.setval('upchieve.surveys_id_seq', 22, true);
 
 
 --
 -- Name: surveys_survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 72, true);
+SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 74, true);
 
 
 --
