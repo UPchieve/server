@@ -1,4 +1,5 @@
 -- migrate:up
+-- Create a volunteer-only survey
 INSERT INTO upchieve.surveys (name, role_id)
     VALUES ('About This Session Survey', 2);
 
@@ -16,6 +17,8 @@ WHERE
     upchieve.surveys.name = 'About This Session Survey'
     AND upchieve.survey_types.name = 'about-this-session';
 
+-- Question 1: Is this information helpful? (Multiple choice)
+-- Answers: Not helpful (thumbs down), Helpful (thumbs up)
 INSERT INTO upchieve.survey_response_choices (score, choice_text, display_image)
     VALUES (0, 'Not helpful', 'https://cdn.upchieve.org/site-images/thumbs-down.svg'), (1, 'Helpful', 'https://cdn.upchieve.org/site-images/thumbs-up.svg');
 
@@ -28,15 +31,6 @@ FROM
 WHERE
     qt.name = 'multiple choice';
 
-INSERT INTO upchieve.survey_questions (question_type_id, question_text)
-SELECT
-    qt.id,
-    'What information would you like to see here?'
-FROM
-    upchieve.question_types qt
-WHERE
-    qt.name = 'free response';
-
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority)
 SELECT
     s.id,
@@ -48,18 +42,6 @@ FROM
 WHERE
     s.name = 'About This Session Survey'
     AND sq.question_text = 'Is this information helpful?';
-
-INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority)
-SELECT
-    s.id,
-    sq.id,
-    20
-FROM
-    upchieve.surveys s
-    JOIN upchieve.survey_questions sq ON TRUE
-WHERE
-    s.name = 'About This Session Survey'
-    AND sq.question_text = 'What information would you like to see here?';
 
 INSERT INTO upchieve.survey_questions_response_choices (surveys_survey_question_id, response_choice_id, display_priority)
 SELECT
@@ -92,6 +74,28 @@ WHERE
     AND rc.choice_text = 'Helpful'
     AND rc.score = 1
     AND sq.question_text = 'Is this information helpful?';
+
+-- Question 2: What information would you like to see here? (Free response)
+INSERT INTO upchieve.survey_questions (question_type_id, question_text)
+SELECT
+    qt.id,
+    'What information would you like to see here?'
+FROM
+    upchieve.question_types qt
+WHERE
+    qt.name = 'free response';
+
+INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority)
+SELECT
+    s.id,
+    sq.id,
+    20
+FROM
+    upchieve.surveys s
+    JOIN upchieve.survey_questions sq ON TRUE
+WHERE
+    s.name = 'About This Session Survey'
+    AND sq.question_text = 'What information would you like to see here?';
 
 -- migrate:down
 WITH survey AS (
