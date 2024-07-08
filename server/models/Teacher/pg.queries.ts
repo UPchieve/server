@@ -108,3 +108,45 @@ const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","pa
 export const getTeacherClassesByUserId = new PreparedQuery<IGetTeacherClassesByUserIdParams,IGetTeacherClassesByUserIdResult>(getTeacherClassesByUserIdIR);
 
 
+/** 'GetTeacherClassByClassCode' parameters type */
+export interface IGetTeacherClassByClassCodeParams {
+  code: string;
+}
+
+/** 'GetTeacherClassByClassCode' return type */
+export interface IGetTeacherClassByClassCodeResult {
+  active: boolean;
+  code: string;
+  createdAt: Date;
+  name: string;
+  updatedAt: Date;
+  userId: string | null;
+}
+
+/** 'GetTeacherClassByClassCode' query type */
+export interface IGetTeacherClassByClassCodeQuery {
+  params: IGetTeacherClassByClassCodeParams;
+  result: IGetTeacherClassByClassCodeResult;
+}
+
+const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":750,"b":754,"line":38,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":624,"b":754,"line":28,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id,
+ *     name,
+ *     code,
+ *     active,
+ *     created_at,
+ *     updated_at
+ * FROM
+ *     teacher_classes
+ * WHERE
+ *     code = :code!
+ * ```
+ */
+export const getTeacherClassByClassCode = new PreparedQuery<IGetTeacherClassByClassCodeParams,IGetTeacherClassByClassCodeResult>(getTeacherClassByClassCodeIR);
+
+

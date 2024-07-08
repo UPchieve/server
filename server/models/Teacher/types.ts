@@ -18,7 +18,7 @@ export type TeacherClass = {
   updatedAt: Date
 }
 
-export type CreateTeacherClassPayload = Omit<
+export type CreateTeacherClassPayload = Pick<
   TeacherClass,
-  'active' | 'createdAt' | 'updatedAt'
+  'userId' | 'name' | 'code'
 >

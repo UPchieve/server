@@ -1,4 +1,4 @@
-import { TransactionClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import {
   CreateTeacherClassPayload,
@@ -50,7 +50,7 @@ export async function createTeacherClass(
 
 export async function getTeacherClassesByUserId(
   userId: Ulid,
-  tc: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<TeacherClass[]> {
   try {
     const classes = await pgQueries.getTeacherClassesByUserId.run(
@@ -58,6 +58,23 @@ export async function getTeacherClassesByUserId(
       tc
     )
     return classes.map(c => makeRequired(c))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTeacherClassByClassCode(
+  classCode: string,
+  tc: TransactionClient
+) {
+  try {
+    const teacherClass = await pgQueries.getTeacherClassByClassCode.run(
+      { code: classCode },
+      tc
+    )
+    if (teacherClass.length) {
+      return makeRequired(teacherClass[0])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
