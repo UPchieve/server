@@ -104,51 +104,42 @@ WHERE
         AND src.choice_text = 'Other');
 
 -- migrate:down
--- WITH survey AS (
---     SELECT
---         *
---     FROM
---         upchieve.surveys
---     WHERE
---         name = 'About This Session Survey')
--- DELETE FROM upchieve.surveys_survey_questions
--- WHERE survey_id IN (
---         SELECT
---             id
---         FROM
---             survey
---         LIMIT 1);
---
--- DELETE FROM upchieve.surveys_context
--- WHERE survey_id = (
---         SELECT
---             id
---         FROM
---             upchieve.surveys
---         WHERE
---             name = 'About This Session Survey'
---         LIMIT 1);
---
--- DELETE FROM upchieve.survey_response_choices
--- WHERE score = 0
---     AND choice_text = 'Not helpful'
---     AND display_image = 'https://cdn.upchieve.org/site-images/thumbs-down.svg';
---
--- DELETE FROM upchieve.survey_response_choices
--- WHERE score = 1
---     AND choice_text = 'Helpful'
---     AND display_image = 'https://cdn.upchieve.org/site-images/thumbs-up.svg';
---
--- DELETE FROM upchieve.survey_questions
--- WHERE question_text IN ('Is this information helpful?', 'What information would you like to see here?');
---
--- DELETE FROM upchieve.surveys
--- WHERE name = 'About This Session Survey';
---
--- DELETE FROM upchieve.survey_types
--- WHERE name = 'about-this-session';
---
--- -- @TODO
--- -- DELETE FROM upchieve.surveys_survey_questions
--- -- @TODO
--- -- DELETE FROM upchieve.survey_questions_response_choices
+DELETE FROM upchieve.survey_questions_response_choices sqrc
+WHERE sqrc.surveys_survey_question_id IN (
+        SELECT
+            ssq.id
+        FROM
+            upchieve.surveys_survey_questions ssq
+            JOIN upchieve.surveys s ON s.id = ssq.survey_id
+        WHERE
+            s.name = 'About This Session Survey');
+
+DELETE FROM upchieve.surveys_survey_questions ssq
+WHERE ssq.survey_id IN (
+        SELECT
+            s.id
+        FROM
+            upchieve.surveys s
+        WHERE
+            s.name = 'About This Session Survey');
+
+DELETE FROM upchieve.survey_questions
+WHERE question_text IN ('Is this information helpful?', 'What would make this more helpful?')
+DELETE FROM upchieve.survey_response_choices
+WHERE choice_text IN ('Helpful', 'Not helpful');
+
+DELETE FROM upchieve.surveys_context
+WHERE survey_id IN (
+        SELECT
+            s.id
+        FROM
+            upchieve.surveys s
+        WHERE
+            s.name = 'About This Session Survey');
+
+DELETE FROM upchieve.survey_types
+WHERE name = 'about-this-session';
+
+DELETE FROM upchieve.surveys
+WHERE name = 'About This Session Survey';
+
