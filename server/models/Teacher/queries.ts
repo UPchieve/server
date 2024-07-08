@@ -1,8 +1,12 @@
 import { TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { CreateTeacherPayload, TeacherClass } from './types'
+import {
+  CreateTeacherClassPayload,
+  CreateTeacherPayload,
+  TeacherClass,
+} from './types'
 import * as pgQueries from './pg.queries'
-import { makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
 
 export async function createTeacher(
   data: CreateTeacherPayload,
@@ -16,6 +20,29 @@ export async function createTeacher(
       },
       tc
     )
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function createTeacherClass(
+  data: CreateTeacherClassPayload,
+  tc: TransactionClient
+): Promise<TeacherClass> {
+  try {
+    const teacherClass = await pgQueries.createTeacherClass.run(
+      {
+        id: getDbUlid(),
+        userId: data.userId,
+        name: data.name,
+        code: data.code,
+      },
+      tc
+    )
+    if (!teacherClass.length) {
+      throw new RepoCreateError('Unable to create teacher class.')
+    }
+    return makeRequired(teacherClass[0])
   } catch (err) {
     throw new RepoCreateError(err)
   }
