@@ -1695,32 +1695,40 @@ const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicate
 export const deleteDuplicateStudentVolunteerFavorites = new PreparedQuery<IDeleteDuplicateStudentVolunteerFavoritesParams,IDeleteDuplicateStudentVolunteerFavoritesResult>(deleteDuplicateStudentVolunteerFavoritesIR);
 
 
-/** 'GetStudentProfileByUserId' parameters type */
-export interface IGetStudentProfileByUserIdParams {
-  userId: string;
+/** 'GetStudentProfilesByUserIds' parameters type */
+export interface IGetStudentProfilesByUserIdsParams {
+  userIds: readonly (string)[];
 }
 
-/** 'GetStudentProfileByUserId' return type */
-export interface IGetStudentProfileByUserIdResult {
+/** 'GetStudentProfilesByUserIds' return type */
+export interface IGetStudentProfilesByUserIdsResult {
   createdAt: Date;
+  email: string;
+  firstName: string;
   gradeLevel: string;
+  id: string;
+  lastName: string;
   updatedAt: Date;
   userId: string;
 }
 
-/** 'GetStudentProfileByUserId' query type */
-export interface IGetStudentProfileByUserIdQuery {
-  params: IGetStudentProfileByUserIdParams;
-  result: IGetStudentProfileByUserIdResult;
+/** 'GetStudentProfilesByUserIds' query type */
+export interface IGetStudentProfilesByUserIdsQuery {
+  params: IGetStudentProfilesByUserIdsParams;
+  result: IGetStudentProfilesByUserIdsResult;
 }
 
-const getStudentProfileByUserIdIR: any = {"name":"getStudentProfileByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23607,"b":23613,"line":790,"col":32}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    student_profiles.user_id,\n    grade_levels.name AS grade_level,\n    users.created_at,\n    users.updated_at\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\nWHERE\n    student_profiles.user_id = :userId!","loc":{"a":23291,"b":23613,"line":780,"col":0}}};
+const getStudentProfilesByUserIdsIR: any = {"name":"getStudentProfilesByUserIds","params":[{"name":"userIds","codeRefs":{"defined":{"a":23299,"b":23305,"line":780,"col":8},"used":[{"a":23693,"b":23700,"line":796,"col":33}]},"transform":{"type":"array_spread"},"required":true}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    grade_levels.name AS grade_level,\n    users.created_at,\n    users.updated_at\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\nWHERE\n    student_profiles.user_id IN :userIds!","loc":{"a":23320,"b":23700,"line":782,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     student_profiles.user_id,
+ *     users.id,
+ *     first_name,
+ *     last_name,
+ *     email,
  *     grade_levels.name AS grade_level,
  *     users.created_at,
  *     users.updated_at
@@ -1729,9 +1737,9 @@ const getStudentProfileByUserIdIR: any = {"name":"getStudentProfileByUserId","pa
  *     JOIN users ON student_profiles.user_id = users.id
  *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
  * WHERE
- *     student_profiles.user_id = :userId!
+ *     student_profiles.user_id IN :userIds!
  * ```
  */
-export const getStudentProfileByUserId = new PreparedQuery<IGetStudentProfileByUserIdParams,IGetStudentProfileByUserIdResult>(getStudentProfileByUserIdIR);
+export const getStudentProfilesByUserIds = new PreparedQuery<IGetStudentProfilesByUserIdsParams,IGetStudentProfilesByUserIdsResult>(getStudentProfilesByUserIdsIR);
 
 

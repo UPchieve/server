@@ -27,6 +27,7 @@ import {
   CreateStudentProfilePayload,
   Student,
   StudentContactInfo,
+  StudentUserProfile,
 } from './types'
 
 export type StudentPartnerInfo = {
@@ -985,16 +986,29 @@ export async function deleteDuplicateStudentVolunteerFavorites(
 export async function getStudentProfileByUserId(
   userId: Ulid
 ): Promise<Student> {
-  try {
-    const result = await pgQueries.getStudentProfileByUserId.run(
-      { userId },
-      getClient()
+  const students = await getStudentProfilesByUserIds(getClient(), [userId])
+  if (students.length) return (students[0] as unknown) as Student
+  else
+    throw new RepoReadError(
+      `getStudentProfileByUserId: Could not find student with user id ${userId}`
     )
-    if (result.length) return makeSomeOptional(result[0], ['gradeLevel'])
-    else
-      throw new RepoReadError(
-        `getStudentProfileByUserId: Could not find student with user id ${userId}`
-      )
+}
+
+export async function getStudentProfilesByUserIds(
+  tc: TransactionClient,
+  userIds: Ulid[]
+): Promise<StudentUserProfile[]> {
+  try {
+    if (!userIds.length) return []
+    const result = await pgQueries.getStudentProfilesByUserIds.run(
+      { userIds },
+      tc
+    )
+    if (result.length) {
+      return result.map(r => makeSomeOptional(r, ['gradeLevel']))
+    }
+
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
