@@ -12,7 +12,6 @@ import {
   SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
-  SUBJECT_TYPES,
   USER_BAN_REASONS,
   USER_BAN_TYPES,
   USER_SESSION_METRICS,
@@ -64,7 +63,6 @@ import {
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
-import * as PaidTutorsPilotService from './PaidTutorsPilotService'
 import { TransactionClient, runInTransaction } from '../db'
 import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
@@ -567,8 +565,6 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     throw new sessionUtils.StartSessionError(
       'Student already has an active session'
     )
-
-  await PaidTutorsPilotService.bucketUser(userId, topic as SUBJECT_TYPES)
 
   const newSessionId = await SessionRepo.createSession(
     userId,

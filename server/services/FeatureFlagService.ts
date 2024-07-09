@@ -88,23 +88,6 @@ export async function getProgressReportVisionAIFeatureFlag(userId: Ulid) {
   )
 }
 
-export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
-  userId: Ulid
-) {
-  return await timeLimit({
-    promise: productClient.getFeatureFlag(
-      FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY,
-      userId,
-      {
-        personProperties: {
-          paidTutorsPilotEligible: 'true',
-        },
-      }
-    ),
-    fallbackReturnValue: false,
-    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
-  })
-}
 export enum AI_MODERATION_STATE {
   disabled = 'disabled',
   targeted = 'targeted',
