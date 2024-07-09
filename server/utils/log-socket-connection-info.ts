@@ -89,23 +89,41 @@ export const connectionEvents = [
   'join',
 ]
 
+type SocketLogArg = {
+  reason?: string
+  error?: string
+  metadata?: { [key: string]: any }
+}
+
 export const logSocketConnectionInfo = (
   event: string,
   socket: SocketUser,
-  args?: any
+  args: Array<string | SocketLogArg> = []
 ) => {
   const userId = socket.request.user?.id as Ulid
+  let reason: string | undefined
+  let errorMessage: string | undefined
+  let additionalMetadata: { [key: string]: any } | undefined
+
+  if (typeof args[0] === 'string') {
+    reason = args[0]
+    errorMessage = event.includes('error') ? reason : undefined
+  } else if (typeof args[0] === 'object' && args[0] !== null) {
+    reason = args[0].reason
+    errorMessage = args[0].error
+    additionalMetadata = args[0].metadata
+  }
+
   const disconnectReason =
-    event === 'disconnect' || event === 'disconnection'
+    (event === 'disconnect' || event === 'disconnection') && reason
       ? SERVER_DISCONNECT_REASONS[
-          args as keyof typeof SERVER_DISCONNECT_REASONS
+          reason as keyof typeof SERVER_DISCONNECT_REASONS
         ]
-      : event === 'client_disconnect'
+      : event === 'client_disconnect' && reason
       ? CLIENT_DISCONNECT_REASONS[
-          args as keyof typeof CLIENT_DISCONNECT_REASONS
+          reason as keyof typeof CLIENT_DISCONNECT_REASONS
         ]
       : undefined
-  const errorMessage = event.indexOf('error') >= 0 ? args : undefined
 
   try {
     const analyticsData = {
@@ -118,6 +136,7 @@ export const logSocketConnectionInfo = (
         roles: socket.request.user?.roles,
       },
       rooms: Array.from(socket.rooms),
+      ...additionalMetadata,
     }
     const message = `Socket connection event: ${event}`
     disconnectReason?.isError || errorMessage
