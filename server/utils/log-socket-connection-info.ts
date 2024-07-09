@@ -91,7 +91,7 @@ export const connectionEvents = [
 
 type SocketLogArg = {
   reason?: string
-  error?: string
+  error?: Error
   metadata?: { [key: string]: any }
 }
 
@@ -102,15 +102,13 @@ export const logSocketConnectionInfo = (
 ) => {
   const userId = socket.request.user?.id as Ulid
   let reason: string | undefined
-  let errorMessage: string | undefined
+  let error: Error | undefined
   let additionalMetadata: { [key: string]: any } | undefined
 
-  if (typeof args[0] === 'string') {
-    reason = args[0]
-    errorMessage = event.includes('error') ? reason : undefined
-  } else if (typeof args[0] === 'object' && args[0] !== null) {
+  if (typeof args[0] === 'string') reason = args[0]
+  else if (typeof args[0] === 'object' && args[0] !== null) {
     reason = args[0].reason
-    errorMessage = args[0].error
+    error = args[0].error
     additionalMetadata = args[0].metadata
   }
 
@@ -130,7 +128,8 @@ export const logSocketConnectionInfo = (
       eventName: event,
       disconnectReason: disconnectReason?.description,
       disconnectIsError: disconnectReason?.isError,
-      errorMessage,
+      errorMessage: error,
+      error,
       user: {
         id: userId,
         roles: socket.request.user?.roles,
@@ -139,7 +138,7 @@ export const logSocketConnectionInfo = (
       ...additionalMetadata,
     }
     const message = `Socket connection event: ${event}`
-    disconnectReason?.isError || errorMessage
+    disconnectReason?.isError || error?.message
       ? logger.error(analyticsData, message)
       : logger.info(analyticsData, message)
   } catch (err) {
