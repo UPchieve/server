@@ -9,7 +9,7 @@ describe('logSocketConnectionInfo', () => {
   })
 
   it('Logs the error message when an error event is received', () => {
-    const eventError = 'test error message'
+    const eventError = new Error('test error message')
     const socket = {
       rooms: new Set<string>(['room1', 'room2']),
       request: {
@@ -18,16 +18,26 @@ describe('logSocketConnectionInfo', () => {
         },
       },
     } as SocketUser
+    const data = {
+      error: eventError,
+      metadata: {
+        test: true,
+      },
+    }
 
-    logSocketConnectionInfo('client_connect_error', socket, eventError)
+    logSocketConnectionInfo('client_connect_error', socket, data)
     expect(logger.error).toHaveBeenCalledWith(
       {
         eventName: 'client_connect_error',
         errorMessage: eventError,
+        disconnectIsError: undefined,
+        disconnectReason: undefined,
+        error: eventError,
         user: {
           id: 'test-user-id-123',
         },
         rooms: ['room1', 'room2'],
+        ...data.metadata,
       },
       'Socket connection event: client_connect_error'
     )
