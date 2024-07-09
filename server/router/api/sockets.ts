@@ -533,7 +533,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     // Log socket connection-related events for analytics
     connectionEvents.forEach(event => {
-      socket.prependListener(event, (...args) =>
+      socket.prependListener(event, args =>
         logSocketConnectionInfo(event, socket, args)
       )
     })

@@ -98,18 +98,18 @@ type SocketLogArg = {
 export const logSocketConnectionInfo = (
   event: string,
   socket: SocketUser,
-  args: Array<string | SocketLogArg> = []
+  args?: string | SocketLogArg
 ) => {
   const userId = socket.request.user?.id as Ulid
   let reason: string | undefined
   let error: Error | undefined
   let additionalMetadata: { [key: string]: any } | undefined
 
-  if (typeof args[0] === 'string') reason = args[0]
-  else if (typeof args[0] === 'object' && args[0] !== null) {
-    reason = args[0].reason
-    error = args[0].error
-    additionalMetadata = args[0].metadata
+  if (typeof args === 'string') reason = args
+  else if (typeof args === 'object' && args !== null) {
+    reason = args.reason
+    error = args.error
+    additionalMetadata = args.metadata
   }
 
   const disconnectReason =

@@ -25,7 +25,7 @@ describe('logSocketConnectionInfo', () => {
       },
     }
 
-    logSocketConnectionInfo('client_connect_error', socket, [data])
+    logSocketConnectionInfo('client_connect_error', socket, data)
     expect(logger.error).toHaveBeenCalledWith(
       {
         eventName: 'client_connect_error',
@@ -56,7 +56,7 @@ describe('logSocketConnectionInfo', () => {
       },
     } as SocketUser
 
-    logSocketConnectionInfo('disconnect', socket, [reason])
+    logSocketConnectionInfo('disconnect', socket, reason)
     expect(logger.info).toHaveBeenCalledWith(
       {
         eventName: 'disconnect',
@@ -84,7 +84,7 @@ describe('logSocketConnectionInfo', () => {
       },
     } as SocketUser
 
-    logSocketConnectionInfo('client_disconnect', socket, [reason])
+    logSocketConnectionInfo('client_disconnect', socket, reason)
     expect(logger.error).toHaveBeenCalledWith(
       {
         eventName: 'client_disconnect',
