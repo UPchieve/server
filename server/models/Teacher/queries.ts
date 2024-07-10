@@ -79,3 +79,18 @@ export async function getTeacherClassByClassCode(
     throw new RepoReadError(err)
   }
 }
+
+export async function getStudentIdsInTeacherClass(
+  tc: TransactionClient,
+  classId: Ulid
+): Promise<Ulid[]> {
+  try {
+    const studentIds = await pgQueries.getStudentIdsInTeacherClass.run(
+      { classId },
+      tc
+    )
+    return studentIds.map(s => makeRequired(s).userId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

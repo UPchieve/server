@@ -37,3 +37,12 @@ FROM
 WHERE
     code = :code!;
 
+
+/* @name getStudentIdsInTeacherClass */
+SELECT
+    user_id
+FROM
+    student_classes
+WHERE
+    class_id = :classId!;
+

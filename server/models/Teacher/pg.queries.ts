@@ -150,3 +150,35 @@ const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","
 export const getTeacherClassByClassCode = new PreparedQuery<IGetTeacherClassByClassCodeParams,IGetTeacherClassByClassCodeResult>(getTeacherClassByClassCodeIR);
 
 
+/** 'GetStudentIdsInTeacherClass' parameters type */
+export interface IGetStudentIdsInTeacherClassParams {
+  classId: string;
+}
+
+/** 'GetStudentIdsInTeacherClass' return type */
+export interface IGetStudentIdsInTeacherClassResult {
+  userId: string;
+}
+
+/** 'GetStudentIdsInTeacherClass' query type */
+export interface IGetStudentIdsInTeacherClassQuery {
+  params: IGetStudentIdsInTeacherClassParams;
+  result: IGetStudentIdsInTeacherClassResult;
+}
+
+const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":865,"b":872,"line":47,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":799,"b":872,"line":42,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id
+ * FROM
+ *     student_classes
+ * WHERE
+ *     class_id = :classId!
+ * ```
+ */
+export const getStudentIdsInTeacherClass = new PreparedQuery<IGetStudentIdsInTeacherClassParams,IGetStudentIdsInTeacherClassResult>(getStudentIdsInTeacherClassIR);
+
+
