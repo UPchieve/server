@@ -17,15 +17,19 @@ variables:
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
 
+auth:
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.com
+  script:
+    - az login --identity -u $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
+
 .build_docker:
   stage: build
   image: mcr.microsoft.com/azure-cli:latest
   cache: []
   services:
     - docker:20.10.6-dind
-  id_tokens:
-    GITLAB_OIDC_TOKEN:
-      aud: https://gitlab.com
   variables:
     DOCKER_TLS_CERTDIR: ""
     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
@@ -34,7 +38,6 @@ variables:
     action: prepare
   allow_failure: false
   before_script:
-    - az login --identity -u $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
     - docker build --tag $IMAGE_TAG .
