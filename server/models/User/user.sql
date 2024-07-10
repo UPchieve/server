@@ -98,33 +98,7 @@ LIMIT 1;
 /* @name getUserByReferralCode */
 SELECT
     users.id,
-<<<<<<< HEAD
-    first_name,
-    email,
-    ban_type,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
-    student_partner_orgs.key AS student_partner_org,
-    users.last_activity_at,
-    deactivated,
-    volunteer_profiles.approved,
-    users.phone,
-    users.phone_verified,
-    users.sms_consent
-=======
     first_name
->>>>>>> main
 FROM
     users
 WHERE
@@ -158,35 +132,8 @@ LIMIT 1;
 
 /* @name getUserByResetToken */
 SELECT
-<<<<<<< HEAD
-    users.id,
-    first_name,
-    email,
-    ban_type,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
-    student_partner_orgs.key AS student_partner_org,
-    users.last_activity_at,
-    deactivated,
-    volunteer_profiles.approved,
-    users.phone,
-    users.phone_verified,
-    users.sms_consent
-=======
     id,
     email
->>>>>>> main
 FROM
     users
 WHERE
@@ -334,31 +281,6 @@ RETURNING
     id AS ok;
 
 
-<<<<<<< HEAD
-/* @name getUserForAdminUpdate */
-SELECT
-    users.id,
-    ban_type,
-    email,
-    deactivated,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    student_partner_orgs.name AS student_partner_org
-FROM
-    users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
-WHERE
-    users.id = :userId!;
-
-
-=======
->>>>>>> main
 /* @name getUsersForAdminSearch */
 SELECT
     users.id,

@@ -356,19 +356,11 @@ export async function adminUpdateUser(data: unknown) {
     isDeactivated,
     isApproved,
     volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
-<<<<<<< HEAD
-    studentPartnerOrg: !isVolunteer && partnerOrg ? partnerOrg : undefined,
-    partnerSite: !isVolunteer && partnerSite ? partnerSite : undefined,
-    inGatesStudy: !isVolunteer && inGatesStudy ? inGatesStudy : undefined,
-    banReason: banType === USER_BAN_TYPES.COMPLETE ? 'admin' : undefined,
-    partnerSchool: !isVolunteer && partnerSchool ? partnerSchool : undefined,
-=======
     studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
     partnerSite: isStudent && partnerSite ? partnerSite : undefined,
     inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
-    banReason: isBanned ? 'admin' : undefined,
+    banReason: banType === USER_BAN_TYPES.COMPLETE ? 'admin' : undefined,
     partnerSchool: isStudent && partnerSchool ? partnerSchool : undefined,
->>>>>>> main
   }
 
   if (isStudent) {

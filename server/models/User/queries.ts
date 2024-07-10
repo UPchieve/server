@@ -142,26 +142,6 @@ export async function deleteUser(userId: Ulid, email: string) {
   }
 }
 
-<<<<<<< HEAD
-export type UserContactInfo = {
-  id: Ulid
-  email: string
-  phone?: string
-  phoneVerified: boolean
-  smsConsent: boolean
-  firstName: string
-  isVolunteer: boolean
-  isAdmin: boolean
-  volunteerPartnerOrg?: string
-  studentPartnerOrg?: string
-  lastActivityAt?: Date
-  banType?: USER_BAN_TYPES
-  deactivated: boolean
-  approved?: boolean
-}
-
-=======
->>>>>>> main
 export async function getUserRolesById(
   id: Ulid,
   tc: TransactionClient
@@ -557,24 +537,6 @@ export async function getUserForAdminDetail(
   }
 }
 
-<<<<<<< HEAD
-export type UserForCreateSendGridContact = UserContactInfo & {
-  lastName: string
-  banType?: USER_BAN_TYPES
-  testUser: boolean
-  isVolunteer: boolean
-  isAdmin: boolean
-  deactivated: boolean
-  createdAt: Date
-  passedUpchieve101?: boolean
-  studentPartnerOrg?: string
-  volunteerPartnerOrg?: string
-  studentPartnerOrgDisplay?: string
-  volunteerPartnerOrgDisplay?: string
-  studentGradeLevel?: string
-}
-=======
->>>>>>> main
 export async function getUserToCreateSendGridContact(
   userId: Ulid
 ): Promise<UserForCreateSendGridContact> {
@@ -734,23 +696,6 @@ export async function getUserVerificationInfoById(
   }
 }
 
-<<<<<<< HEAD
-export type ReportedUser = {
-  id: Ulid
-  firstName: string
-  lastName: string
-  email: string
-  createdAt: Date
-  isTestUser: boolean
-  banType?: USER_BAN_TYPES
-  isDeactivated: boolean
-  isVolunteer: boolean
-  studentPartnerOrg?: string
-  volunteerPartnerOrg?: string
-}
-
-=======
->>>>>>> main
 export async function getReportedUser(
   userId: Ulid
 ): Promise<ReportedUser | undefined> {
