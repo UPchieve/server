@@ -17,23 +17,15 @@ variables:
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
 
-auth:
-  image: mcr.microsoft.com/azure-cli:latest
-  id_tokens:
-    GITLAB_OIDC_TOKEN:
-      aud: https://gitlab.com
-  script:
-    - echo 'Login'
-    - az login --identity --username $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
-    - echo 'Registry Login'
-    - az acr login --name $AZURE_CONTAINER_REGISTRY
-
 .build_docker:
   stage: build
-  image: "docker:20.10.6"
+  image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
   cache: []
   services:
     - docker:20.10.6-dind
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.com
   variables:
     DOCKER_TLS_CERTDIR: ""
     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
@@ -44,8 +36,8 @@ auth:
   # before_script:
   #   - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
-    - docker build --tag $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+    - docker --version | echo
+    - az --version | echo
 
 build_hackers:
   extends: .build_docker
@@ -59,23 +51,23 @@ build_hackers:
     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - when: manual
 
-.deploy:
-  stage: deploy
-  image: mcr.microsoft.com/azure-cli:latest
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-  before_script:
-    - az login --identity --username $AZURE_CLIENT_ID --tenant $AZURE_TENANT --federated-token $GITLAB_OIDC_TOKEN
-    - az extension add --name containerapp --upgrade
-  script:
-    - az containerapp update \
-      --name $CONTAINER_APP_NAME \
-      --resource-group $RESOURCE_GROUP \
-      --image $IMAGE_TAG
-    - az containerapp update \
-      --name $CONTAINER_APP_WORKER_NAME \
-      --resource-group $RESOURCE_GROUP \
-      --image $IMAGE_TAG
+# .deploy:
+#   stage: deploy
+#   image: mcr.microsoft.com/azure-cli:latest
+#   variables:
+#     IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+#   before_script:
+#     - az login --identity --username $AZURE_CLIENT_ID --tenant $AZURE_TENANT --federated-token $GITLAB_OIDC_TOKEN
+#     - az extension add --name containerapp --upgrade
+#   script:
+#     - az containerapp update \
+#       --name $CONTAINER_APP_NAME \
+#       --resource-group $RESOURCE_GROUP \
+#       --image $IMAGE_TAG
+#     - az containerapp update \
+#       --name $CONTAINER_APP_WORKER_NAME \
+#       --resource-group $RESOURCE_GROUP \
+#       --image $IMAGE_TAG
 
 # deploy_hackers:
 #   extends: .deploy
