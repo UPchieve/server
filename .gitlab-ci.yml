@@ -34,7 +34,7 @@ variables:
     action: prepare
   allow_failure: false
   before_script:
-    - az login --identity --username $AZURE_CLIENT_ID --tenant $AZURE_TENANT --federated-token $GITLAB_OIDC_TOKEN
+    - az login --identity --username $AZURE_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
     - docker build --tag $IMAGE_TAG .
