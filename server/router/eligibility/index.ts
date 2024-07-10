@@ -14,6 +14,7 @@ import {
 } from '../../services/EligibilityService'
 import { getStudentSignupSources } from '../../services/StudentService'
 import { InputError } from '../../models/Errors'
+import { rpush } from '../../cache'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -191,6 +192,16 @@ export function routes(app: Express) {
     try {
       const signupSources = await getStudentSignupSources()
       res.json({ signupSources })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/big-future/email', async function(req, res) {
+    try {
+      const email = asString(req.body.email)
+      await rpush('big-future-emails', email)
+      res.sendStatus(200)
     } catch (err) {
       resError(res, err)
     }
