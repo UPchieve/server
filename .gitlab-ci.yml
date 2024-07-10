@@ -19,10 +19,13 @@ variables:
 
 .build_docker:
   stage: build
-  image: "docker:20.10.6"
+  image: mcr.microsoft.com/azure-cli:latest
   cache: []
   services:
     - docker:20.10.6-dind
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.com
   variables:
     DOCKER_TLS_CERTDIR: ""
     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
@@ -51,7 +54,7 @@ build_hackers:
 
 .deploy:
   stage: deploy
-  image: mcr.microsoft.com/azure-cli
+  image: mcr.microsoft.com/azure-cli:latest
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
   before_script:
