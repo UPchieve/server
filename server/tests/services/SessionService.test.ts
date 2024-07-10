@@ -1,4 +1,61 @@
-test.todo('postgres migration')
+// test.todo('postgres migration')
+
+import * as SessionService from '../../services/SessionService'
+import * as SessionRepo from '../../models/Session/queries'
+import * as UserRepo from '../../models/User/queries'
+import {
+  SESSION_REPORT_REASON,
+  USER_BAN_TYPES,
+  USER_BAN_REASONS,
+} from '../../constants'
+import { mocked } from 'jest-mock'
+import { buildSession, buildVolunteer } from '../mocks/generate'
+
+jest.mock('../../models/Session/queries')
+jest.mock('../../models/User/queries')
+jest.mock('../../models/UserAction/queries')
+
+describe('reportSession', () => {
+  const mockSessionRepo = mocked(SessionRepo)
+
+  beforeEach(async () => {
+    jest.clearAllMocks()
+    jest.restoreAllMocks()
+  })
+
+  test('should ban the user with ban_type of COMPLETE when reported', async () => {
+    const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
+    const reportMessage = 'User was rude'
+    const source = 'recap'
+    const user = buildVolunteer()
+    const session = await buildSession({
+      studentId: 'studentId',
+      volunteerId: user.id,
+    })
+
+    mockSessionRepo.getSessionById.mockImplementationOnce(async () => session)
+
+    const sessionId = session.id
+    mockSessionRepo.updateSessionReported.mockResolvedValue()
+
+    const data = {
+      sessionId,
+      reportReason,
+      reportMessage,
+      source,
+    }
+
+    await SessionService.reportSession(user, data)
+
+    //Verify that the user was banned with the COMPLETE type
+    expect(UserRepo.banUserById).toHaveBeenCalledWith(
+      'studentId',
+      USER_BAN_TYPES.COMPLETE,
+      USER_BAN_REASONS.SESSION_REPORTED
+    )
+  })
+})
+
 /*import { mocked } from 'jest-mock';
 import Delta from 'quill-delta'
 import * as SessionService from '../../services/SessionService'
