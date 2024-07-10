@@ -1,7 +1,7 @@
 import faker from 'faker'
 import { getDbUlid } from '../../../../database/seeds/utils'
 import { getClient } from '../../../db'
-import migrateBannedAndTestUsersToBanType from '../../../scripts/migrate-banned-and-test-users-to-bantype'
+import { migrateUsers } from '../../../scripts/migrate-banned-and-test-users-to-bantype'
 
 const client = getClient()
 
@@ -11,7 +11,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
     expect(bannedUser.banned).toBeTruthy()
     expect(bannedUser.ban_type).toEqual(null)
 
-    await migrateBannedAndTestUsersToBanType()
+    await migrateUsers(client)
 
     const userCompleteBan = await getUser(bannedUser.id)
     expect(userCompleteBan.banned).toBeTruthy()
@@ -23,7 +23,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
     expect(testUser.test_user).toBeTruthy()
     expect(testUser.ban_type).toEqual(null)
 
-    await migrateBannedAndTestUsersToBanType()
+    await migrateUsers(client)
 
     const userShadowBan = await getUser(testUser.id)
     expect(userShadowBan.test_user).toBeTruthy()
@@ -35,7 +35,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
     expect(testUser.test_user).toBeTruthy()
     expect(testUser.ban_type).toEqual(null)
 
-    await migrateBannedAndTestUsersToBanType()
+    await migrateUsers(client)
 
     const userBanType = await getUser(testUser.id)
     expect(userBanType.test_user).toBeTruthy()
@@ -48,7 +48,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
     expect(testUser.banned).toBeFalsy()
     expect(testUser.ban_type).toEqual(null)
 
-    await migrateBannedAndTestUsersToBanType()
+    await migrateUsers(client)
 
     const user = await getUser(testUser.id)
     expect(user.test_user).toBeFalsy()
