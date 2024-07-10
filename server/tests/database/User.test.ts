@@ -174,10 +174,6 @@ describe('admin update user', () => {
       [data.userId]
     )
 
-    await client.query('INSERT INTO student_profiles (user_id) VALUES($1)', [
-      data.userId,
-    ])
-
     await adminUpdateUser(data)
 
     const after = await client.query(
