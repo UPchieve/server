@@ -1,3 +1,4 @@
+import logger from '../../logger'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
@@ -26,11 +27,16 @@ import { PoolClient } from 'pg'
 import {
   CreateUserPayload,
   CreateUserResult,
+  ReportedUser,
   UpsertUserResult,
   User,
   UserRole,
+  UserContactInfo,
+  UserForCreateSendGridContact,
+  UserForAdmin,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
+import { getUserTypeFromRoles } from '../../services/UserRolesService'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -136,6 +142,7 @@ export async function deleteUser(userId: Ulid, email: string) {
   }
 }
 
+<<<<<<< HEAD
 export type UserContactInfo = {
   id: Ulid
   email: string
@@ -153,13 +160,17 @@ export type UserContactInfo = {
   approved?: boolean
 }
 
+=======
+>>>>>>> main
 export async function getUserRolesById(
   id: Ulid,
   tc: TransactionClient
 ): Promise<UserRole[]> {
   try {
     const result = await pgQueries.getUserRolesById.run({ id }, tc)
-    return result.map(row => makeRequired(row).name as UserRole)
+    return result
+      .filter(row => !!row.name)
+      .map(row => makeRequired(row).name as UserRole)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -181,35 +192,30 @@ export async function getUserContactInfoById(
         'lastActivityAt',
         'phone',
         'banType',
+        'roles',
       ])
       ret.email = ret.email.toLowerCase()
-      return ret
+      const roles = (ret.roles ?? []).filter(r => !!r)
+      if (!roles.length) {
+        logger.error(`User with id ${ret.id} has no user roles.`)
+      }
+      return { ...ret, roles: roles as UserRole[] }
     }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-// getUserByReferralCode
-export async function getUserContactInfoByReferralCode(
+export async function getUserByReferralCode(
   referralCode: string
-): Promise<UserContactInfo | undefined> {
+): Promise<{ id: Ulid; firstName: string } | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoByReferralCode.run(
+    const result = await pgQueries.getUserByReferralCode.run(
       { referralCode },
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeOptional(result[0], [
-        'volunteerPartnerOrg',
-        'studentPartnerOrg',
-        'approved',
-        'lastActivityAt',
-        'phone',
-        'banType',
-      ])
-      ret.email = ret.email.toLowerCase()
-      return ret
+      return makeRequired(result[0])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -253,27 +259,18 @@ export async function getUserForPassport(
   }
 }
 
-// getUserByResetToken
-export async function getUserContactInfoByResetToken(
+export async function getUserByResetToken(
   resetToken: string
-): Promise<UserContactInfo | undefined> {
+): Promise<{ id: Ulid; email: string } | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoByResetToken.run(
+    const result = await pgQueries.getUserByResetToken.run(
       { resetToken },
       getClient()
     )
-    if (result.length) {
-      const ret = makeSomeOptional(result[0], [
-        'volunteerPartnerOrg',
-        'studentPartnerOrg',
-        'approved',
-        'lastActivityAt',
-        'phone',
-        'banType',
-      ])
-      ret.email = ret.email.toLowerCase()
-      return ret
+    if (result.length > 1) {
+      throw new RepoReadError('More than one user with reset token.')
     }
+    return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -412,15 +409,6 @@ type UserQuery = {
   partnerOrg: string | undefined
   highSchool: string | undefined
 }
-type AdminUser = {
-  id: Ulid
-  _id: Ulid
-  firstName: string
-  lastName?: string
-  email: string
-  isVolunteer: boolean
-  createdAt: Date
-}
 function cleanPayload(payload: UserQuery): UserQuery {
   const temp: any = {}
   for (const [key, value] of Object.entries(payload)) {
@@ -435,7 +423,7 @@ export async function getUsersForAdminSearch(
   payload: UserQuery,
   limit: number,
   offset: number
-): Promise<AdminUser[]> {
+): Promise<UserForAdmin[]> {
   try {
     const result = await pgQueries.getUsersForAdminSearch.run(
       { ...cleanPayload(payload), limit, offset },
@@ -445,6 +433,7 @@ export async function getUsersForAdminSearch(
       const user = makeSomeOptional(v, ['lastName'])
       return {
         _id: user.id,
+        userType: getUserTypeFromRoles((v.roles ?? []) as UserRole[], user.id),
         ...user,
       }
     })
@@ -568,6 +557,7 @@ export async function getUserForAdminDetail(
   }
 }
 
+<<<<<<< HEAD
 export type UserForCreateSendGridContact = UserContactInfo & {
   lastName: string
   banType?: USER_BAN_TYPES
@@ -583,6 +573,8 @@ export type UserForCreateSendGridContact = UserContactInfo & {
   volunteerPartnerOrgDisplay?: string
   studentGradeLevel?: string
 }
+=======
+>>>>>>> main
 export async function getUserToCreateSendGridContact(
   userId: Ulid
 ): Promise<UserForCreateSendGridContact> {
@@ -593,14 +585,14 @@ export async function getUserToCreateSendGridContact(
     )
     if (!result.length) throw new RepoReadError('User not found')
     return makeSomeOptional(result[0], [
-      'studentPartnerOrg',
-      'volunteerPartnerOrg',
-      'studentPartnerOrgDisplay',
-      'volunteerPartnerOrgDisplay',
-      'passedUpchieve101',
-      'lastActivityAt',
-      'studentGradeLevel',
       'banType',
+      'lastActivityAt',
+      'passedUpchieve101',
+      'studentGradeLevel',
+      'studentPartnerOrg',
+      'studentPartnerOrgDisplay',
+      'volunteerPartnerOrg',
+      'volunteerPartnerOrgDisplay',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -742,6 +734,7 @@ export async function getUserVerificationInfoById(
   }
 }
 
+<<<<<<< HEAD
 export type ReportedUser = {
   id: Ulid
   firstName: string
@@ -756,6 +749,8 @@ export type ReportedUser = {
   volunteerPartnerOrg?: string
 }
 
+=======
+>>>>>>> main
 export async function getReportedUser(
   userId: Ulid
 ): Promise<ReportedUser | undefined> {

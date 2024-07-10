@@ -32,6 +32,8 @@ import {
   connectionEvents,
   logSocketConnectionInfo,
 } from '../../utils/log-socket-connection-info'
+import { isVolunteerUserType } from '../../utils/user-type'
+import { getUserTypeFromRoles } from '../../services/UserRolesService'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -52,7 +54,8 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (user && user.isVolunteer) socket.join('volunteers')
+  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)))
+    socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -108,7 +111,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
-      await logSocketConnectionInfo('connection', socket) // Log the initial connection
+      logSocketConnectionInfo('connection', socket) // Log the initial connection
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -185,14 +188,17 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             const { sessionId, joinedFrom } = data
             const user = extractSocketUser(socket)
-            let session: Session
 
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.isVolunteer && !user.approved)
+              if (
+                isVolunteerUserType(
+                  getUserTypeFromRoles(user.roles, user.id)
+                ) &&
+                !user.approved
+              )
                 throw new Error('Volunteer not approved')
-              session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
               socket.emit('redirect')
               reject(error)
@@ -201,7 +207,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               // TODO: correctly type User from passport
-              await SessionService.joinSession(user, session, {
+              await SessionService.joinSession(user, sessionId, {
                 socket,
                 joinedFrom,
               })
@@ -241,6 +247,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               )
               resolve()
             } catch (error) {
+              const session = await SessionRepo.getSessionById(sessionId)
               socketService.bump(
                 socket,
                 {
@@ -345,7 +352,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
-            if (source === 'recap' && !!dbUser?.banType) return resolve()
+            if (!dbUser) return resolve()
+            if (source === 'recap' && !!dbUser.banType) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {
@@ -366,10 +374,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
+              const userType = getUserTypeFromRoles(dbUser.roles, user.id)
               const messageData = {
                 contents: message,
                 createdAt: createdAt,
-                isVolunteer: user.isVolunteer,
+                isVolunteer: isVolunteerUserType(userType),
+                userType: userType,
                 user: user.id,
                 sessionId,
               }
@@ -384,7 +394,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                   sessionId: sessionId,
                   message,
-                  isVolunteer: user.isVolunteer,
+                  isVolunteer: isVolunteerUserType(userType),
+                  userType: userType,
                 })
               }
 

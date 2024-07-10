@@ -5,6 +5,10 @@ export type UserRole = 'volunteer' | 'student' | 'teacher' | 'admin'
 
 export type User = {
   id: Ulid
+<<<<<<< HEAD
+=======
+  banned: boolean
+>>>>>>> main
   banType?: USER_BAN_TYPES
   banReasonId?: Pgid
   deactivated: boolean
@@ -13,7 +17,7 @@ export type User = {
   emailVerified: boolean
   lastActivityAt?: Date
   lastName: string
-  password: string
+  password?: string
   passwordResetToken?: string
   phone?: string
   smsConsent: boolean
@@ -54,4 +58,57 @@ export type CreateUserResult = Required<
 
 export type UpsertUserResult = CreateUserResult & {
   isCreated: boolean
+}
+
+export type UserContactInfo = Pick<
+  User,
+  | 'id'
+  | 'banned'
+  | 'banType'
+  | 'deactivated'
+  | 'email'
+  | 'firstName'
+  | 'lastActivityAt'
+  | 'phone'
+  | 'phoneVerified'
+  | 'smsConsent'
+> & {
+  approved?: boolean
+  isAdmin: boolean
+  isVolunteer: boolean
+  roles: UserRole[]
+  studentPartnerOrg?: string
+  volunteerPartnerOrg?: string
+}
+
+export type UserForCreateSendGridContact = Omit<UserContactInfo, 'roles'> & {
+  createdAt: Date
+  lastName: string
+  passedUpchieve101?: boolean
+  studentGradeLevel?: string
+  studentPartnerOrgDisplay?: string
+  testUser: boolean
+  volunteerPartnerOrgDisplay?: string
+}
+
+export type UserForAdmin = {
+  id: Ulid
+  firstName: string
+  lastName?: string
+  email: string
+  isVolunteer: boolean
+  userType: UserRole
+  createdAt: Date
+}
+
+export type ReportedUser = Pick<
+  User,
+  'id' | 'firstName' | 'lastName' | 'email' | 'createdAt'
+> & {
+  isBanned: boolean
+  isDeactivated: boolean
+  isTestUser: boolean
+  isVolunteer: boolean
+  studentPartnerOrg?: string
+  volunteerPartnerOrg?: string
 }

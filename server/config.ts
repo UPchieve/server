@@ -107,6 +107,9 @@ const config: Static<typeof Config> = {
       volunteers:
         process.env.SUBWAY_VOLUNTEER_CONTACT_LIST ||
         '1111111a-111b-111c-111d-11111111111e',
+      teachers:
+        process.env.SUBWAY_TEACHER_CONTACT_LIST ||
+        '1111111a-111b-111c-111d-11111111111e',
     },
   },
   logLevel: process.env.SUBWAY_LOG_LEVEL || 'debug',

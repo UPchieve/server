@@ -10,6 +10,7 @@ import {
   TRAINING,
   USER_BAN_TYPES,
 } from '../../constants'
+import * as UserRolesService from '../../services/UserRolesService'
 import { getUserToCreateSendGridContact } from '../../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
@@ -17,6 +18,11 @@ import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
 import { buildAppLink } from '../../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../../utils/environments'
 import logger from '../../logger'
+import {
+  isStudentUserType,
+  isTeacherUserType,
+  isVolunteerUserType,
+} from '../../utils/user-type'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -57,7 +63,7 @@ async function sgDeleteContact(contactId: string): Promise<any> {
 
 const SG_CUSTOM_FIELDS = {
   isBanned: 'e3_T',
-  banType: 'e5_T',
+  banType: 'e22_T',
   isTestUser: 'e4_T',
   isVolunteer: 'e6_T',
   isAdmin: 'e7_T',
@@ -70,6 +76,7 @@ const SG_CUSTOM_FIELDS = {
   volunteerPartnerOrgDisplay: 'e14_T',
   passedUpchieve101: 'e17_T',
   studentGradeLevel: 'w20_T',
+  userType: 'w21_T',
 }
 
 // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
@@ -1234,25 +1241,23 @@ export async function sendSessionRecapMessage(
 
 export async function createContact(userId: Ulid): Promise<any> {
   const user = await getUserToCreateSendGridContact(userId)
+  const userRoles = await UserRolesService.getUserRolesById(userId)
   const customFields = {
     [SG_CUSTOM_FIELDS.isBanned]: String(
       user.banType === USER_BAN_TYPES.COMPLETE
     ),
+    [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
     [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
+    [SG_CUSTOM_FIELDS.userType]: String(userRoles.userType),
     [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
     [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
     [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
     [SG_CUSTOM_FIELDS.joined]: user.createdAt,
   }
 
-  const contactListId = user.isVolunteer
-    ? config.sendgrid.contactList.volunteers
-    : config.sendgrid.contactList.students
-
-  if (user.banType)
-    customFields[SG_CUSTOM_FIELDS.banType] = String(user.banType)
-
-  if (user.isVolunteer) {
+  let contactListId
+  if (isVolunteerUserType(userRoles.userType)) {
+    contactListId = config.sendgrid.contactList.volunteers
     const volunteer = user
     customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
       volunteer.passedUpchieve101
@@ -1265,7 +1270,8 @@ export async function createContact(userId: Ulid): Promise<any> {
         await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
       ).key
     }
-  } else {
+  } else if (isStudentUserType(userRoles.userType)) {
+    contactListId = config.sendgrid.contactList.students
     const student = user
     if (student.studentGradeLevel)
       customFields[SG_CUSTOM_FIELDS.studentGradeLevel] =
@@ -1277,6 +1283,8 @@ export async function createContact(userId: Ulid): Promise<any> {
         await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
       ).key
     }
+  } else if (isTeacherUserType(userRoles.userType)) {
+    contactListId = config.sendgrid.contactList.teachers
   }
 
   const data = {

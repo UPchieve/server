@@ -21,7 +21,6 @@ RETURNING
     sent_inactive_ninety_day_email,
     gates_qualified,
     fall_incentive_program,
-    paid_tutors_pilot_group,
     created_at,
     updated_at;
 
@@ -36,7 +35,6 @@ SELECT
     sent_inactive_ninety_day_email,
     gates_qualified,
     fall_incentive_program,
-    paid_tutors_pilot_group,
     created_at,
     updated_at
 FROM
@@ -92,11 +90,11 @@ RETURNING
     user_id AS ok;
 
 
-/* @name updatePaidTutorsPilotGroup */
+/* @name updateFallIncentiveProgram */
 UPDATE
     user_product_flags
 SET
-    paid_tutors_pilot_group = :group!,
+    fall_incentive_program = :status!,
     updated_at = NOW()
 WHERE
     user_id = :userId!
