@@ -33,8 +33,9 @@ variables:
   environment:
     action: prepare
   allow_failure: false
-  # before_script:
-  #   - az acr login --name $AZURE_CONTAINER_REGISTRY
+  before_script:
+    - az login --identity --username $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
     - docker --version
     - az --version
