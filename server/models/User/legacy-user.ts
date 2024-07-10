@@ -19,6 +19,10 @@ import {
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
+import { getUsersLatestSubjectsByUserId } from './'
+import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
+import * as UserRolesService from '../../services/UserRolesService'
+import { UserRole } from './types'
 
 export type LegacyUserModel = {
   // pg
@@ -33,6 +37,7 @@ export type LegacyUserModel = {
   phone?: string
   college?: string
   isVolunteer: boolean
+  userType: UserRole
   isAdmin: boolean
   isBanned: boolean
   banType?: USER_BAN_TYPES
@@ -70,6 +75,7 @@ export type LegacyUserModel = {
   // student
   gradeLevel: GRADES
   schoolName: string
+  latestRequestedSubjects?: string[]
 }
 
 export async function getLegacyUserObject(
@@ -117,7 +123,14 @@ export async function getLegacyUserObject(
     }, {})
     const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
-    if (baseUser.isVolunteer) {
+    const studentUser: any = {}
+    const userType = (await UserRolesService.getUserRolesById(userId)).userType
+    if (isStudentUserType(userType)) {
+      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
+        baseUser.id
+      )
+    }
+    if (isVolunteerUserType(userType)) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
@@ -158,9 +171,15 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    const final = _.merge({ _id: baseUser.id }, baseUser, volunteerUser, {
-      sessionStats,
-    })
+    const final = _.merge(
+      { _id: baseUser.id, userType },
+      baseUser,
+      volunteerUser,
+      studentUser,
+      {
+        sessionStats,
+      }
+    )
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)

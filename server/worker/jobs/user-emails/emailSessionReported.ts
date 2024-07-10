@@ -2,6 +2,11 @@ import { Job } from 'bull'
 import { USER_BAN_REASONS } from '../../../constants'
 import { getReportedUser } from '../../../models/User'
 import * as MailService from '../../../services/MailService'
+import {
+  isStudentUserType,
+  isVolunteerUserType,
+} from '../../../services/UserRolesService'
+import * as UserRolesService from '../../../services/UserRolesService'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 
@@ -65,7 +70,9 @@ async function emailReportedSession(
         `Failed to send report alert email: ${reportAlert.error.message}`
       )
 
-    if (user.isVolunteer) {
+    const userRoles = await UserRolesService.getUserRolesById(user.id)
+
+    if (isVolunteerUserType(userRoles.userType)) {
       const volunteerEmail = await safeAsync(
         MailService.sendCoachReported(user.email, user.firstName)
       )
@@ -73,7 +80,7 @@ async function emailReportedSession(
         errors.push(
           `Failed to send volunteer ${user.id} email for report: ${volunteerEmail.error.message}`
         )
-    } else {
+    } else if (isStudentUserType(userRoles.userType)) {
       const studentEmail = await safeAsync(
         MailService.sendStudentReported(
           user.email,

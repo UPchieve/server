@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -90,11 +90,7 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
     )
 
     return result.map(session => {
-      const s = makeSomeOptional(session, [
-        'volunteer',
-        'paidTutorsPilotGroup',
-        'studentBanType',
-      ])
+      const s = makeSomeOptional(session, ['volunteer', 'studentBanType'])
       return {
         ...s,
         _id: s.id,
@@ -123,7 +119,7 @@ export async function getSessionById(sessionId: Ulid): Promise<Session> {
       'volunteerJoinedAt',
       'endedAt',
       'endedByRole',
-      'studentBanned',
+      'shadowbanned',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -473,13 +469,6 @@ export type MessageForFrontend = {
   contents: string
   createdAt: Date
 }
-export type UserForAdmin = {
-  isVolunteer: boolean
-  createdAt: Date
-  pastSessions: Ulid[]
-  firstname: string
-  _id: Ulid
-}
 export type SessionByIdWithStudentAndVolunteer = {
   createdAt: Date
   volunteerjoinedAt?: Date
@@ -502,8 +491,8 @@ export type SessionByIdWithStudentAndVolunteer = {
   timeTutored: number
   notifications?: SessionNotification[]
   photos?: string[]
-  student: UserForAdmin
-  volunteer?: UserForAdmin
+  student: CurrentSessionUser
+  volunteer?: CurrentSessionUser
   messages: MessageForFrontend[]
   toReview: boolean
   toolType: string
@@ -536,6 +525,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
     )
     if (!sessionResult.length) throw new Error('Session not found')
     const session = makeSomeOptional(sessionResult[0], [
+      'volunteerId',
       'volunteerJoinedAt',
       'photos',
       'endedAt',
@@ -552,15 +542,12 @@ export async function getSessionByIdWithStudentAndVolunteer(
     const userAgent = userAgentResult.length
       ? makeSomeRequired(userAgentResult[0], [])
       : undefined
-    const userResult = await pgQueries.getUserForSessionAdminView.run(
-      { sessionId },
+    const { student, volunteer } = await getSessionUsers(
+      session.id,
+      session.studentId,
+      session.volunteerId,
       client
     )
-    const users = userResult.map(v => makeRequired(v))
-    const volunteer = users.find(v => !!v.isVolunteer)
-    const student = users.find(v => !v.isVolunteer)
-    if (!student)
-      throw new RepoReadError(`Did not find student for session ${sessionId}`)
     const messages = await getMessagesForFrontend(sessionId, client)
     const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
     const presessionSurvey = await getPresessionSurveyResponse(sessionId)
@@ -576,8 +563,8 @@ export async function getSessionByIdWithStudentAndVolunteer(
 
     return {
       ...session,
-      student: { ...student, _id: student.id },
-      volunteer: volunteer ? { ...volunteer, _id: volunteer.id } : undefined,
+      student,
+      volunteer,
       messages,
       feedbacks,
       surveyResponses: {
@@ -613,11 +600,13 @@ export async function createSession(
 }
 
 export type CurrentSessionUser = {
+  createdAt: Date
   _id: Ulid
+  id: Ulid
   // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
   firstname: string
   firstName: string
-  isVolunteer: boolean
+  pastSessions: Ulid[]
 }
 export type CurrentSession = {
   _id: Ulid
@@ -652,21 +641,16 @@ export async function handleSessionParsingForUser(
 ): Promise<CurrentSession> {
   try {
     const messages = await getMessagesForFrontend(session.id, client)
-    const userResult = await pgQueries.getCurrentSessionUser.run(
-      { sessionId: session.id },
+    const { student, volunteer } = await getSessionUsers(
+      session.id,
+      session.studentId,
+      session.volunteerId,
       client
     )
-    const users = userResult.map(v => makeRequired(v))
-    const student = users.find(v => !v.isVolunteer)
-    if (!student) throw new Error('Session student not found')
-    const volunteer = users.find(v => v.isVolunteer)
     return {
       ...session,
-      student: { _id: session.studentId, ...student },
-      volunteer:
-        !!volunteer && session.volunteerId
-          ? { _id: session.volunteerId, ...volunteer }
-          : undefined,
+      student,
+      volunteer,
       _id: session.id,
       messages,
     }
@@ -787,21 +771,16 @@ export async function getCurrentSessionBySessionId(
       'endedBy',
     ])
     const messages = await getMessagesForFrontend(session.id, client)
-    const userResult = await pgQueries.getCurrentSessionUser.run(
-      { sessionId: session.id },
+    const { student, volunteer } = await getSessionUsers(
+      session.id,
+      session.studentId,
+      session.volunteerId,
       client
     )
-    const users = userResult.map(v => makeRequired(v))
-    const student = users.find(v => !v.isVolunteer)
-    if (!student) throw new Error('Session student not found')
-    const volunteer = users.find(v => v.isVolunteer)
     return {
       ...session,
-      student: { _id: session.studentId, ...student },
-      volunteer:
-        !!volunteer && session.volunteerId
-          ? { _id: session.volunteerId, ...volunteer }
-          : undefined,
+      student,
+      volunteer,
       _id: session.id,
       messages,
     }
@@ -835,14 +814,15 @@ export async function getLatestSessionByStudentId(
 
 export async function updateSessionVolunteerById(
   sessionId: Ulid,
-  volunteerId: Ulid
+  volunteerId: Ulid,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateSessionVolunteerById.run(
       { sessionId, volunteerId },
-      getClient()
+      tc ?? getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
+    if (!result.length || !makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
@@ -1434,5 +1414,27 @@ export async function getUserSessionStats(
     return userSessionStats
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+async function getSessionUsers(
+  sessionId: Ulid,
+  sessionStudentId: Ulid,
+  sessionVolunteerId: Ulid = '',
+  client: TransactionClient
+): Promise<{ student: CurrentSessionUser; volunteer?: CurrentSessionUser }> {
+  const userResult = await pgQueries.getSessionUsers.run({ sessionId }, client)
+  const users = userResult.map(v => makeRequired(v))
+  let student, volunteer
+  for (const u of users) {
+    if (u.id === sessionStudentId) student = u
+    if (sessionVolunteerId && u.id === sessionVolunteerId) volunteer = u
+  }
+  if (!student)
+    throw new RepoReadError(`Did not find student for session ${sessionId}`)
+
+  return {
+    student: { _id: student.id, ...student },
+    volunteer: volunteer ? { _id: volunteer.id, ...volunteer } : undefined,
   }
 }

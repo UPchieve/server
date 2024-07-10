@@ -80,6 +80,7 @@ export const Config = Record({
     contactList: Record({
       students: String,
       volunteers: String,
+      teachers: String,
     }),
   }),
   logLevel: String,

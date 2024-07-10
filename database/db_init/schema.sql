@@ -1928,6 +1928,21 @@ ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWA
 
 
 --
+-- Name: teacher_classes; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.teacher_classes (
+    id uuid NOT NULL,
+    user_id uuid,
+    name text NOT NULL,
+    code text NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: teacher_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3642,6 +3657,22 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_classes teacher_classes_code_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_classes
+    ADD CONSTRAINT teacher_classes_code_key UNIQUE (code);
+
+
+--
+-- Name: teacher_classes teacher_classes_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_classes
+    ADD CONSTRAINT teacher_classes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: teacher_profiles teacher_profiles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5101,6 +5132,14 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_classes teacher_classes_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_classes
+    ADD CONSTRAINT teacher_classes_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.teacher_profiles(user_id);
+
+
+--
 -- Name: teacher_profiles teacher_profiles_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5568,4 +5607,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240521195415'),
     ('20240522182235'),
     ('20240530165825'),
-    ('20240612180331');
+    ('20240612180331'),
+    ('20240705012935');
