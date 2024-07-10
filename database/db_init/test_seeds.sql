@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.11 (Debian 14.11-1.pgdg120+2)
--- Dumped by pg_dump version 14.11 (Homebrew)
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 14.12 (Ubuntu 14.12-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -151,7 +151,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id) FROM stdin;
+COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned) FROM stdin;
 \.
 
 
@@ -3592,6 +3592,14 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 
 
 --
+-- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -3756,6 +3764,16 @@ COPY upchieve.users_quizzes (user_id, quiz_id, attempts, passed, created_at, upd
 --
 
 COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	2	2023-01-09 19:27:43.295393+00	2023-01-09 19:27:43.295393+00
+01859800-bca8-f256-6fe1-596e028d34b1	2	2023-01-09 19:27:43.305311+00	2023-01-09 19:27:43.305311+00
+01859800-bca8-9c76-e3ad-ce3108a3236f	2	2023-01-09 19:27:43.313729+00	2023-01-09 19:27:43.313729+00
+01859800-bca8-2755-4f95-dde7cc391a3c	2	2023-01-09 19:27:43.323289+00	2023-01-09 19:27:43.323289+00
+01859800-bca8-2d88-e7b0-6d9beae2fec0	2	2023-01-09 19:27:43.335489+00	2023-01-09 19:27:43.335489+00
+01859800-bca8-de0f-c4cb-cfc0d5298eb7	2	2023-01-09 19:27:43.345884+00	2023-01-09 19:27:43.345884+00
+01859800-bca8-de0f-c4cb-cfc0d5298eb7	3	2023-01-09 19:27:43.345884+00	2023-01-09 19:27:43.345884+00
+01859800-be4b-685f-4130-8709193d461c	1	2023-01-09 19:27:43.714542+00	2023-01-09 19:27:43.714542+00
+01859800-be4b-2870-ad8c-abecfd5c403f	1	2023-01-09 19:27:43.721668+00	2023-01-09 19:27:43.721668+00
+01859800-be4b-1beb-2b3a-3d26cdb90435	1	2023-01-09 19:27:43.729444+00	2023-01-09 19:27:43.729444+00
 \.
 
 

@@ -11,22 +11,14 @@ import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import * as cache from '../../cache'
 import config from '../../config'
-import {
-  EVENTS,
-  FEATURE_FLAGS,
-  SESSION_ACTIVITY_KEY,
-  USER_BAN_TYPES,
-} from '../../constants'
+import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
 import { getUserContactInfoById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
-import {
-  getRecapSocketUpdatesFeatureFlag,
-  isChatBotEnabled,
-} from '../../services/FeatureFlagService'
+import { isChatBotEnabled } from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
@@ -40,6 +32,8 @@ import {
   connectionEvents,
   logSocketConnectionInfo,
 } from '../../utils/log-socket-connection-info'
+import { isVolunteerUserType } from '../../utils/user-type'
+import { getUserTypeFromRoles } from '../../services/UserRolesService'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -55,13 +49,13 @@ async function handleUser(socket: Socket, user: UserContactInfo) {
 
   const latestSession = await SessionService.currentSession(user.id)
 
-  // Join user to their latest session if it has not ended
+  // Show the user their latest session if it has not ended
   if (latestSession && !latestSession.endedAt) {
-    socket.join(getSessionRoom(latestSession.id))
     socket.emit('session-change', latestSession)
   }
 
-  if (user && user.isVolunteer) socket.join('volunteers')
+  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)))
+    socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -117,12 +111,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
-      await logSocketConnectionInfo('connection', socket) // Log the initial connection
-      const isRecapSocketUpdatesActive = await getRecapSocketUpdatesFeatureFlag(
-        user.id
-      )
-      if (!isRecapSocketUpdatesActive)
-        await joinUserToSessionHistoryRooms(io, user.id)
+      logSocketConnectionInfo('connection', socket) // Log the initial connection
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -199,14 +188,17 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             const { sessionId, joinedFrom } = data
             const user = extractSocketUser(socket)
-            let session: Session
 
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.isVolunteer && !user.approved)
+              if (
+                isVolunteerUserType(
+                  getUserTypeFromRoles(user.roles, user.id)
+                ) &&
+                !user.approved
+              )
                 throw new Error('Volunteer not approved')
-              session = await SessionRepo.getSessionById(sessionId)
             } catch (error) {
               socket.emit('redirect')
               reject(error)
@@ -215,21 +207,47 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               // TODO: correctly type User from passport
-              await SessionService.joinSession(user, session, {
+              await SessionService.joinSession(user, sessionId, {
                 socket,
                 joinedFrom,
               })
 
               const sessionRoom = getSessionRoom(sessionId)
-              const socketIds = await getSocketIdsFromRoom(io, user.id)
+              const userSocketIds = await getSocketIdsFromRoom(io, user.id)
               // Have all of the user's socket connections join the tutoring session room
-              for (const id of socketIds) {
+              for (const id of userSocketIds) {
                 await remoteJoinRoom(io, id, sessionRoom)
               }
 
               await socketService.emitSessionChange(sessionId)
+              /**
+               *
+               * Emit to all other sockets that are not the users and are connected
+               * to the session room that we're now online.
+               *
+               * This handles cases where a user has
+               * multiple tabs of the session view open
+               *
+               */
+              await socket
+                .to(sessionRoom)
+                .except(user.id)
+                .emit('sessions/partner:in-session', true)
+              const sessionSocketIds = await getSocketIdsFromRoom(
+                io,
+                sessionRoom
+              )
+              const partnerSocketIds = sessionSocketIds.filter(
+                id => !userSocketIds.includes(id)
+              )
+              // Emit to self if session partner is in session or not
+              await socket.emit(
+                'sessions/partner:in-session',
+                !!partnerSocketIds.length
+              )
               resolve()
             } catch (error) {
+              const session = await SessionRepo.getSessionById(sessionId)
               socketService.bump(
                 socket,
                 {
@@ -334,7 +352,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
-            if (source === 'recap' && !!dbUser?.banType) return resolve()
+            if (!dbUser) return resolve()
+            if (source === 'recap' && !!dbUser.banType) return resolve()
 
             // TODO: handle this differently?
             if (!sessionId) {
@@ -355,10 +374,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
+              const userType = getUserTypeFromRoles(dbUser.roles, user.id)
               const messageData = {
                 contents: message,
                 createdAt: createdAt,
-                isVolunteer: user.isVolunteer,
+                isVolunteer: isVolunteerUserType(userType),
+                userType: userType,
                 user: user.id,
                 sessionId,
               }
@@ -373,7 +394,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                   sessionId: sessionId,
                   message,
-                  isVolunteer: user.isVolunteer,
+                  isVolunteer: isVolunteerUserType(userType),
+                  userType: userType,
                 })
               }
 
@@ -485,6 +507,28 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/resetWhiteboard', () => {
         socket.to(getSessionRoom(sessionId)).emit('resetWhiteboard')
       })
+    })
+
+    socket.on('disconnecting', () => {
+      const user = extractSocketUser(socket)
+      for (const room of socket.rooms) {
+        if (room.includes('sessions')) {
+          socket
+            .to(room)
+            .except(user.id)
+            .emit('sessions/partner:in-session', false)
+        }
+      }
+    })
+
+    socket.on('sessions:leave', async ({ sessionId }) => {
+      socket.leave(getSessionRoom(sessionId))
+      const user = extractSocketUser(socket)
+      const sessionRoom = getSessionRoom(sessionId)
+      await socket
+        .to(sessionRoom)
+        .except(user.id)
+        .emit('sessions/partner:in-session', false)
     })
 
     // Log socket connection-related events for analytics

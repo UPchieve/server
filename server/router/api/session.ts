@@ -7,6 +7,8 @@ import { resError } from '../res-error'
 import { ReportSessionError } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
 import { asString, asUlid } from '../../utils/type-utils'
+import { isVolunteerUserType } from '../../utils/user-type'
+import { getUserTypeFromRoles } from '../../services/UserRolesService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -304,7 +306,7 @@ export function routeSession(router: Router) {
         session.id,
         session.studentId,
         session.volunteerId,
-        user.isVolunteer
+        isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id))
       )
       res.json({ session, isRecapDmsAvailable })
     } catch (err) {

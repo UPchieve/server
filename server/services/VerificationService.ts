@@ -18,6 +18,7 @@ import {
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
+import * as UserRolesService from './UserRolesService'
 import {
   getUserContactInfoById,
   getUserIdByEmail,
@@ -26,6 +27,11 @@ import {
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
+import {
+  isStudentUserType,
+  isTeacherUserType,
+  isVolunteerUserType,
+} from '../utils/user-type'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -121,28 +127,31 @@ export async function initiateVerification(data: unknown): Promise<void> {
 }
 
 async function sendEmails(userId: Ulid): Promise<void> {
-  // replaced by getUserContactInfo
   const user = await getUserContactInfoById(userId)
-  if (user) {
-    if (user.isVolunteer) {
-      if (user.volunteerPartnerOrg) {
-        await MailService.sendPartnerVolunteerWelcomeEmail(
-          user.email,
-          user.firstName
-        )
-      } else {
-        await MailService.sendOpenVolunteerWelcomeEmail(
-          user.email,
-          user.firstName
-        )
-      }
-    } else {
-      await MailService.sendStudentOnboardingWelcomeEmail(
+  if (!user) return
+
+  const userType = UserRolesService.getUserTypeFromRoles(user.roles, user.id)
+
+  if (isVolunteerUserType(userType)) {
+    if (user.volunteerPartnerOrg) {
+      await MailService.sendPartnerVolunteerWelcomeEmail(
         user.email,
         user.firstName
       )
-      await StudentService.queueOnboardingEmails(user.id)
+    } else {
+      await MailService.sendOpenVolunteerWelcomeEmail(
+        user.email,
+        user.firstName
+      )
     }
+  } else if (isStudentUserType(userType)) {
+    await MailService.sendStudentOnboardingWelcomeEmail(
+      user.email,
+      user.firstName
+    )
+    await StudentService.queueOnboardingEmails(user.id)
+  } else if (isTeacherUserType(userType)) {
+    // TODO: TEACHER PROFILES.
   }
 }
 

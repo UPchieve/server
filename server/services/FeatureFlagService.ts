@@ -56,27 +56,12 @@ export async function getUsingOurPlatformFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
 
-// The implicit return type expects a JSON shape, but this feature flag only
-// has a string payload. We're making an explicit coercion from JSON to string
-export async function getProcrastinationTextReminderCopy(
-  userId: Ulid
-): Promise<string | undefined> {
-  return productClient.getFeatureFlagPayload(
-    FEATURE_FLAGS.PROCRASTINATION_TEXT_REMINDER,
-    userId
-  ) as Promise<string | undefined>
-}
-
 export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
 }
 
 export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
-}
-
-export async function getRecapSocketUpdatesFeatureFlag(userId: Ulid) {
-  return isFeatureEnabled(FEATURE_FLAGS.RECAP_SOCKET_UPDATES, userId)
 }
 
 export async function getSmsVerificationFeatureFlag(userId: Ulid) {
@@ -103,23 +88,6 @@ export async function getProgressReportVisionAIFeatureFlag(userId: Ulid) {
   )
 }
 
-export async function getPaidTutorsPilotStudentEligibilityFeatureFlag(
-  userId: Ulid
-) {
-  return await timeLimit({
-    promise: productClient.getFeatureFlag(
-      FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY,
-      userId,
-      {
-        personProperties: {
-          paidTutorsPilotEligible: 'true',
-        },
-      }
-    ),
-    fallbackReturnValue: false,
-    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' for '${FEATURE_FLAGS.PAID_TUTORS_PILOT_STUDENT_ELIGIBILITY}'.`,
-  })
-}
 export enum AI_MODERATION_STATE {
   disabled = 'disabled',
   targeted = 'targeted',

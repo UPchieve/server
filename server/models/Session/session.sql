@@ -34,13 +34,12 @@ SELECT
     sessions.created_at,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
-    user_product_flags.paid_tutors_pilot_group,
+    users.ban_type AS student_ban_type,
     session_count.total = 1 AS is_first_time_student,
     subjects.display_name AS subject_display_name
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
-    LEFT JOIN user_product_flags ON user_product_flags.user_id = sessions.student_id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN LATERAL (
@@ -55,6 +54,7 @@ WHERE
     AND sessions.ended_at IS NULL
     AND sessions.created_at > :start!
     AND users.banned IS FALSE
+    AND users.ban_type IS DISTINCT FROM 'complete'
 ORDER BY
     sessions.created_at;
 
@@ -74,7 +74,7 @@ SELECT
     user_roles.name AS ended_by_role,
     reviewed,
     to_review,
-    student_banned,
+    shadowbanned,
     (time_tutored)::float,
     sessions.created_at,
     sessions.updated_at,
@@ -427,7 +427,9 @@ SELECT
     session_review_reason.review_reasons,
     session_photo.photos,
     sessions.to_review,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    sessions.student_id,
+    sessions.volunteer_id
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -481,39 +483,6 @@ WHERE
 LIMIT 1;
 
 
-/* @name getUserForSessionAdminView */
-SELECT
-    users.id,
-    first_name AS firstname,
-    users.created_at,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    past_sessions.total AS past_sessions
-FROM
-    users
-    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
-    LEFT JOIN sessions ON sessions.student_id = users.id
-        OR sessions.volunteer_id = users.id
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(sessions.id ORDER BY sessions.created_at) AS total
-        FROM
-            sessions
-        WHERE
-            student_id = users.id
-            OR volunteer_id = users.id) AS past_sessions ON TRUE
-WHERE
-    sessions.id = :sessionId!
-GROUP BY
-    users.id,
-    volunteer_profiles.user_id,
-    past_sessions.total;
-
-
 /* @name getSessionMessagesForFrontend */
 SELECT
     id,
@@ -530,12 +499,12 @@ ORDER BY
 
 
 /* @name createSession */
-INSERT INTO sessions (id, student_id, subject_id, student_banned, created_at, updated_at)
+INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
 SELECT
     :id!,
     :studentId!,
     subjects.id,
-    :studentBanned!,
+    :shadowbanned!,
     NOW(),
     NOW()
 FROM
@@ -648,24 +617,30 @@ WHERE
     sessions.id = :sessionId;
 
 
-/* @name getCurrentSessionUser */
+/* @name getSessionUsers */
 SELECT
+    users.created_at,
     users.id,
     users.first_name AS firstname,
-    users.first_name AS first_name,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NULL THEN
-            FALSE
-        ELSE
-            TRUE
-        END) AS is_volunteer
+    users.first_name,
+    past_sessions.total AS past_sessions
 FROM
     users
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN sessions ON sessions.student_id = users.id
         OR sessions.volunteer_id = users.id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS total
+        FROM
+            sessions
+        WHERE
+            student_id = users.id
+            OR volunteer_id = users.id) AS past_sessions ON TRUE
 WHERE
-    sessions.id = :sessionId!;
+    sessions.id = :sessionId!
+GROUP BY
+    users.id,
+    past_sessions.total;
 
 
 /* @name getLatestSessionByStudentId */
@@ -693,6 +668,7 @@ SET
     updated_at = NOW()
 WHERE
     id = :sessionId!
+    AND volunteer_id IS NULL
 RETURNING
     id AS ok;
 
@@ -789,6 +765,7 @@ FROM
             notifications.user_id = users.id) AS notification_count ON TRUE
 WHERE
     users.banned IS FALSE
+    AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND session_count.total = 0
@@ -846,11 +823,13 @@ SELECT
     students.first_name AS student_first_name,
     students.email AS student_email,
     students.banned AS student_is_banned,
+    students.ban_type AS student_ban_type,
     students.test_user AS student_test_user,
     student_sessions.total AS student_total_past_sessions,
     volunteers.first_name AS volunteer_first_name,
     volunteers.email AS volunteer_email,
     volunteers.banned AS volunteer_is_banned,
+    volunteers.ban_type AS volunteer_ban_type,
     volunteers.test_user AS volunteer_test_user,
     volunteer_sessions.total AS volunteer_total_past_sessions,
     review_reasons.review_reasons
@@ -872,6 +851,7 @@ FROM
             id,
             email,
             banned,
+            ban_type,
             test_user
         FROM
             users
@@ -883,6 +863,7 @@ FROM
             id,
             email,
             banned,
+            ban_type,
             test_user
         FROM
             users
@@ -937,7 +918,7 @@ WHERE
         OR session_reported_count.total > 0)
     AND (student_banned.last_banned_at IS NULL
         OR sessions.created_at < student_banned.last_banned_at
-        OR sessions.student_banned IS FALSE
+        OR sessions.shadowbanned IS FALSE
         OR (:showBannedUsers)::boolean IS TRUE)
     AND ((:showTestUsers)::boolean IS NULL
         OR (:showTestUsers)::boolean IS TRUE
@@ -1179,8 +1160,10 @@ FROM
     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
 WHERE
     sessions.id = :sessionId!
-    AND (students.banned IS TRUE
-        OR volunteers.banned IS TRUE)
+    AND ((students.banned IS TRUE
+            OR students.ban_type = 'complete')
+        OR (volunteers.banned IS TRUE
+            OR volunteers.ban_type = 'complete'))
 LIMIT 1;
 
 

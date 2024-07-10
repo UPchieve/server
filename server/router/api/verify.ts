@@ -70,10 +70,7 @@ export function routeVerify(router: Router) {
       ...req.body,
     } as unknown
 
-    newrelic.addCustomAttribute(
-      'role',
-      user.isVolunteer ? 'volunteer' : 'student'
-    )
+    newrelic.addCustomAttribute('role', user.roles.toString())
 
     try {
       const isVerified = await VerificationService.confirmVerification(payload)
