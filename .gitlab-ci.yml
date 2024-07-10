@@ -18,15 +18,19 @@ variables:
   NEW_RELIC_NO_CONFIG_FILE: "true"
 
 auth:
+  image: mcr.microsoft.com/azure-cli:latest
   id_tokens:
     GITLAB_OIDC_TOKEN:
       aud: https://gitlab.com
   script:
-    - az login --identity -u $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - echo 'Login'
+    - az login --identity --username $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - echo 'Registry Login'
+    - az acr login --name $AZURE_CONTAINER_REGISTRY
 
 .build_docker:
   stage: build
-  image: mcr.microsoft.com/azure-cli:latest
+  image: "docker:20.10.6"
   cache: []
   services:
     - docker:20.10.6-dind
@@ -37,8 +41,8 @@ auth:
   environment:
     action: prepare
   allow_failure: false
-  before_script:
-    - az acr login --name $AZURE_CONTAINER_REGISTRY
+  # before_script:
+  #   - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
     - docker build --tag $IMAGE_TAG .
     - docker push $IMAGE_TAG
