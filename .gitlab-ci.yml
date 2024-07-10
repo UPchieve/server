@@ -36,8 +36,8 @@ variables:
   # before_script:
   #   - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
-    - docker --version | echo
-    - az --version | echo
+    - docker --version
+    - az --version
 
 build_hackers:
   extends: .build_docker
