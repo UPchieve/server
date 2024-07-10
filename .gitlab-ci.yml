@@ -25,7 +25,8 @@ variables:
     - docker:20.10.6-dind
   variables:
     DOCKER_TLS_CERTDIR: ""
-    IMAGE_TAG: $AZ_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    AZURE_TENANT_ID: $AZURE_TENANT_ID
   environment:
     action: prepare
   allow_failure: false
@@ -42,13 +43,11 @@ build_hackers:
     name: hackers
   variables:
     AZURE_CLIENT_ID: $AZURE_CLIENT_ID_HACKERS
-    AZURE_TENANT: $AZURE_TENANT_HACKERS
     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-      when: manual
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: manual
+    #- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - when: manual
 
 .deploy:
   stage: deploy
@@ -63,24 +62,30 @@ build_hackers:
       --name $CONTAINER_APP_NAME \
       --resource-group $RESOURCE_GROUP \
       --image $IMAGE_TAG
+    - az containerapp update \
+      --name $CONTAINER_APP_WORKER_NAME \
+      --resource-group $RESOURCE_GROUP \
+      --image $IMAGE_TAG
 
-deploy_hackers:
-  extends: .deploy
-  environment: hackers
-  resource_group: hackers
-  variables:
-    CONTAINER_APP_NAME: $CONTAINER_APP_NAME_HACKERS
-    CONTAINER_APP_WORKER_NAME: $CONTAINER_APP_WORKER_NAME
-    RESOURCE_GROUP: $RESOURCE_GROUP_HACKERS
-    AZURE_CLIENT_ID: $AZURE_CLIENT_ID_HACKERS
-    AZURE_TENANT: $AZURE_TENANT_HACKERS
-  needs:
-    - job: build_hackers
-      artifacts: true
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: on_success
+# deploy_hackers:
+#   extends: .deploy
+#   environment: hackers
+#   resource_group: hackers
+#   variables:
+#     CONTAINER_APP_NAME: $CONTAINER_APP_NAME_HACKERS
+#     CONTAINER_APP_WORKER_NAME: $CONTAINER_APP_WORKER_NAME
+#     RESOURCE_GROUP: $RESOURCE_GROUP_HACKERS
+#     AZURE_CLIENT_ID: $AZURE_CLIENT_ID_HACKERS
+#     AZURE_TENANT: $AZURE_TENANT_HACKERS
+#   needs:
+#     - job: build_hackers
+#       artifacts: true
+#   rules:
+#     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#     #  when: on_success
+#     - when: manual
 
+### TODO: Clean-up.
 build:
   stage: build
   image: "docker:20.10.6"
