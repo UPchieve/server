@@ -53,41 +53,43 @@ build_hackers:
     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - when: manual
 
-# .deploy:
-#   stage: deploy
-#   image: mcr.microsoft.com/azure-cli:latest
-#   variables:
-#     IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-#   before_script:
-#     - az login --identity --username $AZURE_CLIENT_ID --federated-token $GITLAB_OIDC_TOKEN
-#     - az extension add --name containerapp --upgrade
-#   script:
-#     - az containerapp update \
-#       --name $CONTAINER_APP_NAME \
-#       --resource-group $RESOURCE_GROUP \
-#       --image $IMAGE_TAG
-#     - az containerapp update \
-#       --name $CONTAINER_APP_WORKER_NAME \
-#       --resource-group $RESOURCE_GROUP \
-#       --image $IMAGE_TAG
+.deploy:
+  stage: deploy
+  image: mcr.microsoft.com/azure-cli:latest
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: api://AzureADTokenExchange
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+  before_script:
+    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - az extension add --name containerapp --upgrade
+  script:
+    - az containerapp update \
+      --name $CONTAINER_APP \
+      --resource-group $RESOURCE_GROUP \
+      --image $IMAGE_TAG
+    - az containerapp update \
+      --name $CONTAINER_APP_WORKER \
+      --resource-group $RESOURCE_GROUP \
+      --image $IMAGE_TAG
 
-# deploy_hackers:
-#   extends: .deploy
-#   environment: hackers
-#   resource_group: hackers
-#   variables:
-#     CONTAINER_APP_NAME: $CONTAINER_APP_NAME_HACKERS
-#     CONTAINER_APP_WORKER_NAME: $CONTAINER_APP_WORKER_NAME
-#     RESOURCE_GROUP: $RESOURCE_GROUP_HACKERS
-#     AZURE_CLIENT_ID: $AZURE_CLIENT_ID_HACKERS
-#     AZURE_TENANT: $AZURE_TENANT_HACKERS
-#   needs:
-#     - job: build_hackers
-#       artifacts: true
-#   rules:
-#     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-#     #  when: on_success
-#     - when: manual
+deploy_hackers:
+  extends: .deploy
+  environment: hackers
+  resource_group: hackers
+  variables:
+    CONTAINER_APP: hackers-container-app-subway
+    CONTAINER_APP_WORKER: hackers-container-app-worker
+    RESOURCE_GROUP: hackers-resource-group
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
+  needs:
+    - job: build_hackers
+      artifacts: true
+  rules:
+    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    #  when: on_success
+    - when: manual
 
 ### TODO: Clean-up.
 build:
