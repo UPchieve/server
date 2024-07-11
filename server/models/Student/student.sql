@@ -776,9 +776,15 @@ FROM
     deleted_rows;
 
 
-/* @name getStudentProfileByUserId */
+/* @name getStudentProfilesByUserIds 
+ @param userIds -> (...)
+ */
 SELECT
     student_profiles.user_id,
+    users.id,
+    first_name,
+    last_name,
+    email,
     grade_levels.name AS grade_level,
     users.created_at,
     users.updated_at
@@ -787,5 +793,5 @@ FROM
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
-    student_profiles.user_id = :userId!;
+    student_profiles.user_id IN :userIds!;
 
