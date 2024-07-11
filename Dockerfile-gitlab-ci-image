@@ -1,0 +1,21 @@
+# This image gives us access to both Docker and Azure CLI for use in CI.
+#
+# Right now, this image is pushed to the subway container registry as `gitlab-ci-image:latest`.
+# TODO: Consider putting this into its own repository/registry.
+#
+# To get the image into GitLab container registry, do the following:
+# - Login to the GitLab registry.
+#    $ echo <password or personal access token with read/write registry> | docker login registry.gitlab.com -u <username> --password-stdin
+# - Build this image.
+#    $ docker build -f Dockerfile-gitlab-ci-image -t registry.gitlab.com/upchieve/subway/gitlab-ci-image:latest
+# - Push the image.
+#    $ docker push registry.gitlab.com/upchieve/subway/gitlab-ci-image:latest
+# Then, you can use the image in GitLab CI.
+FROM docker:20.10.6
+
+# The following steps were copied from this documentation issue for installing Azure CLI on Alpine: https://github.com/Azure/azure-cli/issues/19591
+RUN apk add py3-pip
+RUN apk add gcc musl-dev python3-dev libffi-dev openssl-dev cargo make
+RUN pip install --upgrade pip
+RUN pip install azure-cli
+CMD sh
