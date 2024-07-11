@@ -34,18 +34,19 @@ variables:
     action: prepare
   allow_failure: false
   before_script:
-    - az login --service-principal --username $AZURE_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
-    - docker --version
-    - az --version
+    - echo $IMAGE_TAG
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
 
 build_hackers:
   extends: .build_docker
   environment:
     name: hackers
   variables:
-    AZURE_CLIENT_ID: $AZURE_CLIENT_ID_HACKERS
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
   rules:
     #- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
