@@ -25,7 +25,7 @@ variables:
     - docker:20.10.6-dind
   id_tokens:
     GITLAB_OIDC_TOKEN:
-      aud: api//AzureADTokenExchange
+      aud: api://AzureADTokenExchange
   variables:
     DOCKER_TLS_CERTDIR: ""
     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
