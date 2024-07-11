@@ -45,6 +45,14 @@
     "created_at",
     "updated_at"
   ],
+  "censored_session_messages": [
+    "id",
+    "sender_id",
+    "message",
+    "session_id",
+    "censored_by",
+    "sent_at"
+  ],
   "certification_subject_unlocks": [
     "subject_id",
     "certification_id",
@@ -118,6 +126,11 @@
     "created_at",
     "updated_at"
   ],
+  "muted_users_subject_alerts": [
+    "user_id",
+    "subject_id",
+    "created_at"
+  ],
   "notification_methods": [
     "id",
     "method",
@@ -182,6 +195,90 @@
     "user_id",
     "created_at",
     "updated_at"
+  ],
+  "progress_report_analysis_types": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_concept_details": [
+    "id",
+    "content",
+    "progress_report_concept_id",
+    "progress_report_focus_area_id",
+    "progress_report_info_type_id",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_concepts": [
+    "id",
+    "name",
+    "description",
+    "grade",
+    "progress_report_id",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_focus_areas": [
+    "id",
+    "name",
+    "display_name",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_info_types": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_prompts": [
+    "id",
+    "subject_id",
+    "prompt",
+    "active",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_sessions": [
+    "progress_report_id",
+    "session_id",
+    "progress_report_analysis_type_id",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_statuses": [
+    "id",
+    "name",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_summaries": [
+    "id",
+    "summary",
+    "overall_grade",
+    "progress_report_id",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_report_summary_details": [
+    "id",
+    "content",
+    "progress_report_summary_id",
+    "progress_report_focus_area_id",
+    "progress_report_info_type_id",
+    "created_at",
+    "updated_at"
+  ],
+  "progress_reports": [
+    "id",
+    "user_id",
+    "status_id",
+    "created_at",
+    "updated_at",
+    "read_at",
+    "prompt_id"
   ],
   "question_tags": [
     "id",
@@ -402,7 +499,8 @@
     "student_banned",
     "time_tutored",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "shadowbanned",
   ],
   "sessions_session_flags": [
     "session_id",
@@ -572,6 +670,21 @@
     "created_at",
     "updated_at"
   ],
+  "teacher_classes": [
+    "id",
+    "user_id",
+    "name",
+    "code",
+    "active",
+    "created_at",
+    "updated_at"
+  ],
+  "teacher_profiles": [
+    "user_id",
+    "school_id",
+    "created_at",
+    "updated_at"
+  ],
   "tool_types": [
     "id",
     "name",
@@ -632,7 +745,8 @@
     "created_at",
     "updated_at",
     "in_gates_study",
-    "fall_incentive_program"
+    "fall_incentive_program",
+    "paid_tutors_pilot_group"
   ],
   "user_roles": [
     "id",
@@ -678,7 +792,8 @@
     "created_at",
     "updated_at",
     "sms_consent",
-    "other_signup_source"
+    "other_signup_source",
+    "ban_type"
   ],
   "users_certifications": [
     "user_id",
@@ -737,7 +852,8 @@
     "session_id",
     "survey_type_id",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "progress_report_id"
   ],
   "users_surveys_submissions": [
     "user_survey_id",
