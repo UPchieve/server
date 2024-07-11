@@ -60,11 +60,12 @@ build_hackers:
     GITLAB_OIDC_TOKEN:
       aud: api://AzureADTokenExchange
   variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
   before_script:
     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az extension add --name containerapp --upgrade
   script:
+    - echo $IMAGE_TAG
     - az containerapp update \
       --name $CONTAINER_APP \
       --resource-group $RESOURCE_GROUP \
