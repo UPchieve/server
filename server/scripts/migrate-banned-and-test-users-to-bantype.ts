@@ -15,33 +15,31 @@ export default async function main() {
 }
 
 export async function migrateUsers(tc: db.TransactionClient) {
-  const updateQuery = await tc.query(`
-    WITH updated_complete_ban AS (UPDATE
-        users
-    SET
-        ban_type = 'complete'
-        WHERE banned = TRUE
-        RETURNING 1
-    ),
-    updated_shadow_ban AS (UPDATE 
-        users
-    SET 
-        ban_type = 'shadow'
-    WHERE
-        test_user = TRUE
-        AND email NOT LIKE '%@upchieve.org'
-        AND banned = FALSE
-    RETURNING 1
-  )
-    SELECT 
-      (SELECT COUNT(*) FROM updated_complete_ban) AS complete_count,
-      (SELECT COUNT(*) FROM updated_shadow_ban) AS shadow_count;
-    `)
+  const updateCompleteBanQuery = await tc.query(`
+    UPDATE users
+    SET ban_type = 'complete'
+    WHERE banned = TRUE
+    RETURNING 1;
+  `)
 
-  const { numUsersCompleteBaned, numUsersShadowBanned } = updateQuery.rows[0]
+  // Count the number of users updated to complete ban
+  const numUsersCompleteBanned = updateCompleteBanQuery.rowCount
+
+  // Update users to shadow ban
+  const updateShadowBanQuery = await tc.query(`
+    UPDATE users
+    SET ban_type = 'shadow'
+    WHERE test_user = TRUE
+      AND email NOT LIKE '%@upchieve.org'
+      AND banned = FALSE
+    RETURNING 1;
+  `)
+
+  // Count the number of users updated to shadow ban
+  const numUsersShadowBanned = updateShadowBanQuery.rowCount
 
   log(
-    `Successfully updated ${numUsersCompleteBaned} banned users to complete ban ` +
+    `Successfully updated ${numUsersCompleteBanned} banned users to complete ban ` +
       `and ${numUsersShadowBanned} test users to shadow banned.`
   )
 }
