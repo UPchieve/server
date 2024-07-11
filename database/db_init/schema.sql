@@ -1950,7 +1950,8 @@ CREATE TABLE upchieve.teacher_classes (
     code text NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    topic_id integer
 );
 
 
@@ -5168,6 +5169,14 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: teacher_classes teacher_classes_topic_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.teacher_classes
+    ADD CONSTRAINT teacher_classes_topic_id_fkey FOREIGN KEY (topic_id) REFERENCES upchieve.topics(id);
+
+
+--
 -- Name: teacher_classes teacher_classes_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5645,4 +5654,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240530165825'),
     ('20240612180331'),
     ('20240705012935'),
-    ('20240708183519');
+    ('20240708183519'),
+    ('20240711180618');

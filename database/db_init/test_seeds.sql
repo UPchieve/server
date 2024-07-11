@@ -2840,8 +2840,8 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 -- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427	2024-07-05 20:24:33.10427
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427	2024-07-05 20:24:33.10427	\N
 \.
 
 
