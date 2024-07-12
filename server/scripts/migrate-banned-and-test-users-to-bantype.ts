@@ -28,7 +28,8 @@ export async function migrateUsers(tc: db.TransactionClient) {
   // Update users to shadow ban
   const updateShadowBanQuery = await tc.query(`
     UPDATE users
-    SET ban_type = 'shadow'
+    SET ban_type = 'shadow',
+    test_user = FALSE
     WHERE test_user = TRUE
       AND email NOT LIKE '%@upchieve.org'
       AND banned = FALSE
