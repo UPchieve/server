@@ -26,7 +26,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
     await migrateUsers(client)
 
     const userShadowBan = await getUser(testUser.id)
-    expect(userShadowBan.test_user).toBeTruthy()
+    expect(userShadowBan.test_user).toBeFalsy()
     expect(userShadowBan.ban_type).toBe('shadow')
   })
 
