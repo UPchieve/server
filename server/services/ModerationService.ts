@@ -118,7 +118,7 @@ const getPromptData = async (): Promise<{
     version: isFallback
       ? 'FALLBACK'
       : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
-    ...(isFallback && { promptObject: promptFromLangfuse }),
+    ...(!isFallback && { promptObject: promptFromLangfuse }),
   }
 }
 
