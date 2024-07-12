@@ -14,11 +14,12 @@ export type TeacherClass = {
   name: string
   code: string
   active: boolean
+  topicId?: number
   createdAt: Date
   updatedAt: Date
 }
 
 export type CreateTeacherClassPayload = Pick<
   TeacherClass,
-  'userId' | 'name' | 'code'
+  'userId' | 'name' | 'code' | 'topicId'
 >

@@ -33,6 +33,7 @@ export interface ICreateTeacherClassParams {
   code: string;
   id: string;
   name: string;
+  topicId: number | null | void;
   userId: string;
 }
 
@@ -42,6 +43,7 @@ export interface ICreateTeacherClassResult {
   code: string;
   createdAt: Date;
   name: string;
+  topicId: number | null;
   updatedAt: Date;
   userId: string | null;
 }
@@ -52,15 +54,15 @@ export interface ICreateTeacherClassQuery {
   result: ICreateTeacherClassResult;
 }
 
-const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":287,"b":289,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":293,"b":299,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":307,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":311,"b":315,"line":8,"col":37}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, TRUE, NOW(), NOW())\nRETURNING\n    user_id, name, code, active, created_at, updated_at","loc":{"a":188,"b":402,"line":7,"col":0}}};
+const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":297,"b":299,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":309,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":313,"b":317,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":321,"b":325,"line":8,"col":37}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":329,"b":335,"line":8,"col":45}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())\nRETURNING\n    user_id, name, code, topic_id, active, created_at, updated_at","loc":{"a":188,"b":432,"line":7,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO teacher_classes (id, user_id, name, code, active, created_at, updated_at)
- *     VALUES (:id!, :userId!, :name!, :code!, TRUE, NOW(), NOW())
+ * INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
+ *     VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
  * RETURNING
- *     user_id, name, code, active, created_at, updated_at
+ *     user_id, name, code, topic_id, active, created_at, updated_at
  * ```
  */
 export const createTeacherClass = new PreparedQuery<ICreateTeacherClassParams,ICreateTeacherClassResult>(createTeacherClassIR);
@@ -87,7 +89,7 @@ export interface IGetTeacherClassesByUserIdQuery {
   result: IGetTeacherClassesByUserIdResult;
 }
 
-const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":574,"b":580,"line":24,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    user_id = :userId!","loc":{"a":445,"b":580,"line":14,"col":0}}};
+const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":604,"b":610,"line":24,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    user_id = :userId!","loc":{"a":475,"b":610,"line":14,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -129,7 +131,7 @@ export interface IGetTeacherClassByClassCodeQuery {
   result: IGetTeacherClassByClassCodeResult;
 }
 
-const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":750,"b":754,"line":38,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":624,"b":754,"line":28,"col":0}}};
+const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":780,"b":784,"line":38,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":654,"b":784,"line":28,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -166,7 +168,7 @@ export interface IGetStudentIdsInTeacherClassQuery {
   result: IGetStudentIdsInTeacherClassResult;
 }
 
-const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":865,"b":872,"line":47,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":799,"b":872,"line":42,"col":0}}};
+const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":895,"b":902,"line":47,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":829,"b":902,"line":42,"col":0}}};
 
 /**
  * Query generated from SQL:
