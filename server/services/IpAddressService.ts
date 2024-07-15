@@ -14,7 +14,7 @@ import config from '../config'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 
 export async function getIpWhoIs(rawIpString: string) {
-  if (isE2eEnvironment()) {
+  if (isE2eEnvironment() || isDevEnvironment()) {
     return {
       data: {
         success: true,
