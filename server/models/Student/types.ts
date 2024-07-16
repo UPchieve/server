@@ -60,7 +60,6 @@ export type CreatedStudent = StudentContactInfo & {
   isVolunteer: boolean
   userType: UserRole
   isAdmin: boolean
-  isBanned: boolean
   banType?: USER_BAN_TYPES
   verified: boolean
   zipCode?: string
