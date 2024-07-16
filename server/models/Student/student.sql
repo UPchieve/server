@@ -26,8 +26,7 @@ FROM
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
 WHERE
-    banned IS FALSE
-    AND (ban_type IS DISTINCT FROM 'complete')
+    ban_type IS DISTINCT FROM 'complete'
     AND deactivated IS FALSE
     AND test_user IS FALSE
     AND (users.id::uuid = :userId
@@ -775,9 +774,15 @@ FROM
     deleted_rows;
 
 
-/* @name getStudentProfileByUserId */
+/* @name getStudentProfilesByUserIds 
+ @param userIds -> (...)
+ */
 SELECT
     student_profiles.user_id,
+    users.id,
+    first_name,
+    last_name,
+    email,
     grade_levels.name AS grade_level,
     users.created_at,
     users.updated_at
@@ -786,5 +791,5 @@ FROM
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
-    student_profiles.user_id = :userId!;
+    student_profiles.user_id IN :userIds!;
 

@@ -2828,6 +2828,33 @@ COPY upchieve.sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, vol
 
 
 --
+-- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	\N	2024-07-05 20:23:13.609816	2024-07-05 20:23:13.609816
+\.
+
+
+--
+-- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at) FROM stdin;
+01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427	2024-07-05 20:24:33.10427
+\.
+
+
+--
+-- Data for Name: student_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.student_classes (user_id, class_id, created_at, updated_at) FROM stdin;
+01859800-be4b-685f-4130-8709193d461c	01859800-bca8-af9e-8f1d-815bf6891cf5	2024-07-07 19:27:43.288709+00	2024-07-07 19:27:43.288709+00
+\.
+
+
+--
 -- Data for Name: student_favorite_volunteers; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -3580,22 +3607,6 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 18	32	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 19	33	1	2023-01-09 19:27:39.599426+00	2023-01-09 19:27:39.599426+00
 21	\N	5	2024-03-15 00:36:22.825021+00	2024-03-15 00:36:22.825021+00
-\.
-
-
---
--- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at) FROM stdin;
 \.
 
 

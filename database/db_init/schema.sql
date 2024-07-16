@@ -1587,6 +1587,18 @@ CREATE TABLE upchieve.sponsor_orgs_volunteer_partner_orgs_instances (
 
 
 --
+-- Name: student_classes; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_classes (
+    user_id uuid NOT NULL,
+    class_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: student_favorite_volunteers; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3489,6 +3501,14 @@ ALTER TABLE ONLY upchieve.sponsor_orgs_upchieve_instances
 
 
 --
+-- Name: student_classes student_classes_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_classes
+    ADD CONSTRAINT student_classes_pkey PRIMARY KEY (user_id, class_id);
+
+
+--
 -- Name: student_favorite_volunteers student_favorite_volunteers_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4900,6 +4920,22 @@ ALTER TABLE ONLY upchieve.sponsor_orgs_volunteer_partner_orgs_instances
 
 
 --
+-- Name: student_classes student_classes_class_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_classes
+    ADD CONSTRAINT student_classes_class_id_fkey FOREIGN KEY (class_id) REFERENCES upchieve.teacher_classes(id);
+
+
+--
+-- Name: student_classes student_classes_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_classes
+    ADD CONSTRAINT student_classes_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.student_profiles(user_id);
+
+
+--
 -- Name: student_favorite_volunteers student_favorite_volunteers_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5608,4 +5644,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240522182235'),
     ('20240530165825'),
     ('20240612180331'),
-    ('20240705012935');
+    ('20240705012935'),
+    ('20240708183519');

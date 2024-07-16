@@ -15,6 +15,16 @@ export type Student = {
   updatedAt: Date
 }
 
+export type StudentUserProfile = {
+  id: Ulid
+  email: string
+  firstName: string
+  gradeLevel?: string
+  lastName: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type CreateStudentPayload = {
   email: string
   firstName: string
