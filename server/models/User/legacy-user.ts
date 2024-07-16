@@ -39,6 +39,7 @@ export type LegacyUserModel = {
   isVolunteer: boolean
   userType: UserRole
   isAdmin: boolean
+  //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
@@ -96,7 +97,6 @@ export async function getLegacyUserObject(
       'isAdmin',
       'isVolunteer',
       'isTestUser',
-      'isBanned',
       'isDeactivated',
       'referralCode',
       'type',
@@ -176,6 +176,7 @@ export async function getLegacyUserObject(
       baseUser,
       volunteerUser,
       studentUser,
+      { isBanned: baseUser.banType === 'complete' },
       {
         sessionStats,
       }

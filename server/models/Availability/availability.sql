@@ -81,7 +81,6 @@ WHERE
     users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
     AND users.deactivated IS FALSE
-    AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND (user_certs.total IS NOT NULL
         OR user_computed_subjects.total IS NOT NULL);

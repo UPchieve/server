@@ -703,7 +703,6 @@ describe('registerStudent', () => {
     const USER_ID = 'registerStudentWithPassword'
     const REFERRAL_USER = {
       id: '01859800-be4b-685f-4130-8709193d461c',
-      banned: false,
       code: 'A',
       deactivated: false,
       email: faker.internet.email(),

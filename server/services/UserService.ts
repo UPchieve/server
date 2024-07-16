@@ -247,7 +247,6 @@ interface AdminUpdate {
   partnerOrg?: string
   partnerSite?: string
   isVerified: boolean
-  isBanned: boolean
   banType?: USER_BAN_TYPES
   isDeactivated: boolean
   isApproved?: boolean
@@ -262,7 +261,6 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
-  isBanned: asBoolean,
   banType: asOptional(asEnum(USER_BAN_TYPES)),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
@@ -292,7 +290,6 @@ export async function adminUpdateUser(data: unknown) {
     partnerOrg,
     partnerSite,
     isVerified,
-    isBanned,
     banType,
     isDeactivated,
     isApproved,
@@ -355,7 +352,6 @@ export async function adminUpdateUser(data: unknown) {
     lastName,
     email: trimmedEmail,
     isVerified,
-    isBanned,
     banType,
     isDeactivated,
     isApproved,
@@ -363,7 +359,7 @@ export async function adminUpdateUser(data: unknown) {
     studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
     partnerSite: isStudent && partnerSite ? partnerSite : undefined,
     inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
-    banReason: isBanned ? 'admin' : undefined,
+    banReason: banType === USER_BAN_TYPES.COMPLETE ? 'admin' : undefined,
     partnerSchool: isStudent && partnerSchool ? partnerSchool : undefined,
   }
 
