@@ -28,9 +28,9 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/class').get(async function(req, res) {
+  router.route('/class/:classId').get(async function(req, res) {
     try {
-      const classId = req.query.classId as string
+      const classId = req.params.classId as string
       const students = await TeacherService.getStudentsInTeacherClass(classId)
       res.json({ students })
     } catch (err) {
