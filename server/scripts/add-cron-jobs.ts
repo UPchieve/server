@@ -65,7 +65,13 @@ const jobTemplates: JobTemplate[] = [
 const main = async (): Promise<void> => {
   try {
     const queue = new Queue(config.workerQueueName, {
-      createClient: () => new Redis(config.redisConnectionString),
+      createClient: () =>
+        new Redis(config.redisConnectionString, {
+          // These must be included or else an exception will be thrown, starting in Bull 4.0.0.
+          // See https://github.com/OptimalBits/bull/commit/3ade8e6727d7b906a30b09bccb6dc10d76ed1b5f
+          enableReadyCheck: false,
+          maxRetriesPerRequest: null,
+        }),
       settings: {
         // to prevent stalling long jobs
         stalledInterval: 1000 * 60 * 30,
