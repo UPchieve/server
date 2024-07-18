@@ -24,7 +24,9 @@ FROM
     teacher_classes
     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
 WHERE
-    teacher_classes.user_id = :userId!;
+    teacher_classes.user_id = '0190c1b5-d99d-123e-9e01-1391c93d2bc0'
+GROUP BY
+    id;
 
 
 /* @name getTeacherClassByClassCode */
