@@ -67,7 +67,9 @@ export const createTeacherClass = new PreparedQuery<ICreateTeacherClassParams,IC
 
 
 /** 'GetTeacherClassesByUserId' parameters type */
-export type IGetTeacherClassesByUserIdParams = void;
+export interface IGetTeacherClassesByUserIdParams {
+  userId: string;
+}
 
 /** 'GetTeacherClassesByUserId' return type */
 export interface IGetTeacherClassesByUserIdResult {
@@ -87,7 +89,7 @@ export interface IGetTeacherClassesByUserIdQuery {
   result: IGetTeacherClassesByUserIdResult;
 }
 
-const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    active,\n    COUNT(student_classes.user_id)::int AS students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = '0190c1b5-d99d-123e-9e01-1391c93d2bc0'\nGROUP BY\n    id","loc":{"a":445,"b":830,"line":14,"col":0}}};
+const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":778,"b":784,"line":27,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    active,\n    COUNT(student_classes.user_id)::int AS students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id","loc":{"a":445,"b":800,"line":14,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -105,7 +107,7 @@ const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","pa
  *     teacher_classes
  *     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
  * WHERE
- *     teacher_classes.user_id = '0190c1b5-d99d-123e-9e01-1391c93d2bc0'
+ *     teacher_classes.user_id = :userId!
  * GROUP BY
  *     id
  * ```
@@ -134,7 +136,7 @@ export interface IGetTeacherClassByClassCodeQuery {
   result: IGetTeacherClassByClassCodeResult;
 }
 
-const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1000,"b":1004,"line":43,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":874,"b":1004,"line":33,"col":0}}};
+const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":970,"b":974,"line":43,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":844,"b":974,"line":33,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -171,7 +173,7 @@ export interface IGetStudentIdsInTeacherClassQuery {
   result: IGetStudentIdsInTeacherClassResult;
 }
 
-const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1115,"b":1122,"line":52,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":1049,"b":1122,"line":47,"col":0}}};
+const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1085,"b":1092,"line":52,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":1019,"b":1092,"line":47,"col":0}}};
 
 /**
  * Query generated from SQL:
