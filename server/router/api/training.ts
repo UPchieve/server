@@ -140,9 +140,7 @@ export function routeTraining(router: Router): void {
         courseKey as keyof TrainingCourses,
         materialKey
       )
-      if (result)
-        // TODO: can I exit early?
-        res.status(200).json(result)
+      res.status(200).json(result)
     } catch (err) {
       resError(res, err)
     }
