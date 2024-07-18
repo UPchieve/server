@@ -1,0 +1,36 @@
+[
+  {
+    "email": "student1@upchieve.org",
+    "firstname": "Student",
+    "isAdmin": false,
+    "isTestUser": false,
+    "isVolunteer": false,
+    "lastname": "Upchieve",
+    "password": "$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y",
+    "verified": true,
+    "referralCode": "A"
+  },
+  {
+    "email": "student2@upchieve.org",
+    "firstname": "Student",
+    "isAdmin": false,
+    "isTestUser": true,
+    "isVolunteer": false,
+    "lastname": "Upchieve",
+    "password": "$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y",
+    "verified": true,
+    "referralCode": "F"
+  },
+  {
+    "email": "student3@upchieve.org",
+    "firstname": "Student",
+    "isAdmin": false,
+    "isTestUser": true,
+    "isVolunteer": false,
+    "isBanned": true,
+    "lastname": "Upchieve",
+    "password": "$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y",
+    "verified": true,
+    "referralCode": "G"
+  }
+]
