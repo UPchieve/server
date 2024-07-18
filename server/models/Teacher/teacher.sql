@@ -13,16 +13,18 @@ RETURNING
 /* @name getTeacherClassesByUserId */
 SELECT
     id,
-    user_id,
+    teacher_classes.user_id,
     name,
     code,
     active,
-    created_at,
-    updated_at
+    COUNT(student_classes.user_id)::int AS students,
+    teacher_classes.created_at,
+    teacher_classes.updated_at
 FROM
     teacher_classes
+    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
 WHERE
-    user_id = :userId!;
+    teacher_classes.user_id = :userId!;
 
 
 /* @name getTeacherClassByClassCode */
