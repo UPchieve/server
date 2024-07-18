@@ -1,6 +1,9 @@
-FROM node:20-alpine
+FROM node:20.10.0-alpine
 
 WORKDIR app
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ wget
 
 # Install Doppler CLI
 RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
