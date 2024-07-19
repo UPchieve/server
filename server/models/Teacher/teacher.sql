@@ -17,7 +17,7 @@ SELECT
     name,
     code,
     active,
-    COUNT(student_classes.user_id)::int AS students,
+    COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
     teacher_classes.updated_at
 FROM
