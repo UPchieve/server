@@ -41,6 +41,7 @@ export interface ICreateTeacherClassResult {
   active: boolean;
   code: string;
   createdAt: Date;
+  id: string;
   name: string;
   updatedAt: Date;
   userId: string | null;
@@ -52,7 +53,7 @@ export interface ICreateTeacherClassQuery {
   result: ICreateTeacherClassResult;
 }
 
-const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":287,"b":289,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":293,"b":299,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":307,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":311,"b":315,"line":8,"col":37}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, TRUE, NOW(), NOW())\nRETURNING\n    user_id, name, code, active, created_at, updated_at","loc":{"a":188,"b":402,"line":7,"col":0}}};
+const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":287,"b":289,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":293,"b":299,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":307,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":311,"b":315,"line":8,"col":37}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, TRUE, NOW(), NOW())\nRETURNING\n    id, user_id, name, code, active, created_at, updated_at","loc":{"a":188,"b":406,"line":7,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -60,7 +61,7 @@ const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name"
  * INSERT INTO teacher_classes (id, user_id, name, code, active, created_at, updated_at)
  *     VALUES (:id!, :userId!, :name!, :code!, TRUE, NOW(), NOW())
  * RETURNING
- *     user_id, name, code, active, created_at, updated_at
+ *     id, user_id, name, code, active, created_at, updated_at
  * ```
  */
 export const createTeacherClass = new PreparedQuery<ICreateTeacherClassParams,ICreateTeacherClassResult>(createTeacherClassIR);
@@ -76,7 +77,9 @@ export interface IGetTeacherClassesByUserIdResult {
   active: boolean;
   code: string;
   createdAt: Date;
+  id: string;
   name: string;
+  totalStudents: number | null;
   updatedAt: Date;
   userId: string | null;
 }
@@ -87,22 +90,27 @@ export interface IGetTeacherClassesByUserIdQuery {
   result: IGetTeacherClassesByUserIdResult;
 }
 
-const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":574,"b":580,"line":24,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    user_id = :userId!","loc":{"a":445,"b":580,"line":14,"col":0}}};
+const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":788,"b":794,"line":27,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    active,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id","loc":{"a":449,"b":810,"line":14,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     user_id,
+ *     id,
+ *     teacher_classes.user_id,
  *     name,
  *     code,
  *     active,
- *     created_at,
- *     updated_at
+ *     COUNT(student_classes.user_id)::int AS total_students,
+ *     teacher_classes.created_at,
+ *     teacher_classes.updated_at
  * FROM
  *     teacher_classes
+ *     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
  * WHERE
- *     user_id = :userId!
+ *     teacher_classes.user_id = :userId!
+ * GROUP BY
+ *     id
  * ```
  */
 export const getTeacherClassesByUserId = new PreparedQuery<IGetTeacherClassesByUserIdParams,IGetTeacherClassesByUserIdResult>(getTeacherClassesByUserIdIR);
@@ -129,7 +137,7 @@ export interface IGetTeacherClassByClassCodeQuery {
   result: IGetTeacherClassByClassCodeResult;
 }
 
-const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":750,"b":754,"line":38,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":624,"b":754,"line":28,"col":0}}};
+const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":980,"b":984,"line":43,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":854,"b":984,"line":33,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -166,7 +174,7 @@ export interface IGetStudentIdsInTeacherClassQuery {
   result: IGetStudentIdsInTeacherClassResult;
 }
 
-const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":865,"b":872,"line":47,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":799,"b":872,"line":42,"col":0}}};
+const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1095,"b":1102,"line":52,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":1029,"b":1102,"line":47,"col":0}}};
 
 /**
  * Query generated from SQL:
