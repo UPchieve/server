@@ -135,6 +135,7 @@ export const logSocketConnectionInfo = (
         roles: socket.request.user?.roles,
       },
       rooms: Array.from(socket.rooms),
+      transport: socket.conn.transport.name,
       ...additionalMetadata,
     }
     const message = `Socket connection event: ${event}`
