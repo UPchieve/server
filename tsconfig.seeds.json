@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "allowUmdGlobalAccess": true,
+    "outDir": "build",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "target":"es2019",
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "lib":[
+      "es2020"
+    ]
+  },
+  "include": [
+    "database/seeds",
+  ],
+  "ts-node": {
+    "files": true
+  }
+}
