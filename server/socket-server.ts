@@ -21,7 +21,6 @@ export default function(server: http.Server) {
       name: 'subway-io',
       httpOnly: false,
     },
-    allowEIO3: true,
   })
   // Set up Socket IO admin UI
   instrument(io, {
