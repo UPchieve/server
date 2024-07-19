@@ -61,7 +61,7 @@ export async function createVolunteer(
   }
 
   try {
-    // needs id, firstname, lastname, email, isvolunteer, banned, testuser, admin, deactivated, createdat
+    // needs id, firstname, lastname, email, isvolunteer, ban type, testuser, admin, deactivated, createdat
     await createContact(volunteer.id)
   } catch (err) {
     captureException(err)

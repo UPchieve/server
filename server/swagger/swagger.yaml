@@ -1841,12 +1841,13 @@ paths:
                   type: string
                 isVerified:
                   type: boolean
-                isBanned:
-                  type: boolean
                 isDeactivated:
                   type: boolean
                 isApproved:
                   type: boolean
+                banType:
+                  type: string
+                  nullable: true
             example:
               firstName: Student
               lastName: UPchieve
@@ -1855,8 +1856,8 @@ paths:
               partnerSite: Mars
               isDeactivated: false
               isVerified: true
-              isBanned: false
               inGatesStudy: false
+              banType: null
       responses:
         '200':
           description: OK; Record is updated
