@@ -119,15 +119,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     }
 
-    /**
-     *
-     * We're unsure if connection state recovery is working since
-     * following the socket.io examples found in https://socket.io/docs/v4/connection-state-recovery#usage
-     * do not properly recovery the client connection
-     *
-     */
-    if (socket.recovered) newrelic.recordMetric(`SocketRecovery`, 1)
-
     if (isChatBotEnabled()) {
       chatbot = await lookupChatbotFromCache()
       if (!chatbot) logger.error(`Chatbot user not found`)

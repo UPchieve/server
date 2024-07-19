@@ -3,9 +3,9 @@
  */
 import * as http from 'http'
 import { Server } from 'socket.io'
-import { createAdapter } from '@socket.io/redis-adapter'
+import { createAdapter } from '@socket.io/redis-streams-adapter'
 import config from './config'
-import { socketIoPubClient, socketIoSubClient } from './services/RedisService'
+import { redisClient } from './services/RedisService'
 import SocketService from './services/SocketService'
 import { instrument } from '@socket.io/admin-ui'
 import { isDevEnvironment } from './utils/environments'
@@ -24,8 +24,7 @@ export default function(server: http.Server) {
     connectionStateRecovery: {
       // the backup duration of the sessions and the packets
       maxDisconnectionDuration: 2 * 60 * 1000,
-      // // whether to skip middlewares upon successful recovery
-      skipMiddlewares: true,
+      skipMiddlewares: false,
     },
   })
   // Set up Socket IO admin UI
@@ -45,7 +44,7 @@ export default function(server: http.Server) {
   })
   if (process.env.NODE_ENV === 'test') return io
 
-  io.adapter(createAdapter(socketIoPubClient, socketIoSubClient))
+  io.adapter(createAdapter(redisClient))
   // Instantiate the SocketService singleton
   SocketService.getInstance(io)
   return io
