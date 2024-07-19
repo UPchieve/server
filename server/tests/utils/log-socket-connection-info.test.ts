@@ -2,6 +2,12 @@ import { SocketUser } from '../../router/extract-user'
 import { logSocketConnectionInfo } from '../../utils/log-socket-connection-info'
 import logger from '../../logger'
 
+const conn = {
+  transport: {
+    name: 'websocket',
+  },
+}
+
 jest.mock('../../logger')
 describe('logSocketConnectionInfo', () => {
   beforeEach(() => {
@@ -17,6 +23,7 @@ describe('logSocketConnectionInfo', () => {
           id: 'test-user-id-123',
         },
       },
+      conn,
     } as SocketUser
     const data = {
       error: eventError,
@@ -35,8 +42,10 @@ describe('logSocketConnectionInfo', () => {
         error: eventError,
         user: {
           id: 'test-user-id-123',
+          roles: undefined,
         },
         rooms: ['room1', 'room2'],
+        transport: conn.transport.name,
         ...data.metadata,
       },
       'Socket connection event: client_connect_error'
@@ -54,6 +63,7 @@ describe('logSocketConnectionInfo', () => {
           id: 'test-user-id-123',
         },
       },
+      conn,
     } as SocketUser
 
     logSocketConnectionInfo('disconnect', socket, reason)
@@ -62,10 +72,14 @@ describe('logSocketConnectionInfo', () => {
         eventName: 'disconnect',
         disconnectReason: description,
         disconnectIsError: false,
+        error: undefined,
+        errorMessage: undefined,
         user: {
           id: 'test-user-id-123',
+          roles: undefined,
         },
         rooms: ['room1', 'room2'],
+        transport: conn.transport.name,
       },
       'Socket connection event: disconnect'
     )
@@ -82,6 +96,7 @@ describe('logSocketConnectionInfo', () => {
           id: 'test-user-id-123',
         },
       },
+      conn,
     } as SocketUser
 
     logSocketConnectionInfo('client_disconnect', socket, reason)
@@ -90,10 +105,14 @@ describe('logSocketConnectionInfo', () => {
         eventName: 'client_disconnect',
         disconnectReason: description,
         disconnectIsError: true,
+        error: undefined,
+        errorMessage: undefined,
         user: {
           id: 'test-user-id-123',
+          roles: undefined,
         },
         rooms: ['room1', 'room2'],
+        transport: conn.transport.name,
       },
       'Socket connection event: client_disconnect'
     )
