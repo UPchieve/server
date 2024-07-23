@@ -9,10 +9,12 @@ import { extractUser } from '../extract-user'
 import { asString, asUlid } from '../../utils/type-utils'
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
+import multer from 'multer'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
   const socketService = SocketService.getInstance()
+  const upload = multer()
 
   router.route('/session/new').post(async function(req, res) {
     try {
@@ -158,6 +160,31 @@ export function routeSession(router: Router) {
       resError(res, error)
     }
   })
+
+  router.post(
+    '/session/:sessionId/voice-message',
+    upload.single('message'),
+    async function(req, res) {
+      try {
+        // 1. save to database
+        // 2. upload to storage
+        // 3. return voiceMessageId
+        const { senderId, sessionId } = req.body
+        const message = req.file
+        if (typeof message === 'undefined') {
+          throw 'No voice message file uploaded'
+        }
+        const voiceMessageId = await SessionService.saveVoiceMessage({
+          senderId,
+          sessionId,
+          message,
+        })
+        res.json({ voiceMessageId })
+      } catch (error) {
+        resError(res, error)
+      }
+    }
+  )
 
   router.post('/session/:sessionId/report', async function(req, res) {
     try {

@@ -498,6 +498,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   toolType: string
 }
 
+// TODO update this
 export async function getMessagesForFrontend(
   sessionId: Ulid,
   client?: PoolClient
@@ -508,7 +509,17 @@ export async function getMessagesForFrontend(
       { sessionId },
       usableClient
     )
-    return result.map(v => makeRequired(v))
+    const voiceResult = await pgQueries.getSessionVoiceMessagesForFrontend.run(
+      { sessionId },
+      usableClient
+    )
+
+    // insert voice messages
+    const merged = result
+      .concat(voiceResult.map(r => ({ ...r, type: 'voice', contents: r.id })))
+      .sort((a, b) => a.created_at - b.created_at)
+
+    return merged.map(v => makeRequired(v))
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -876,6 +887,24 @@ export async function addMessageToSessionById(
       { id: getDbUlid(), sessionId, senderId, contents },
       getClient()
     )
+    if (!result.length) throw new RepoCreateError('Insert did not return ok')
+    return makeRequired(result[0]).id
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function addVoiceMessageToSessionById(
+  sessionId: Ulid,
+  senderId: Ulid,
+  voiceMessageId: Ulid
+): Promise<string> {
+  try {
+    const result = await pgQueries.insertNewVoiceMessage.run(
+      { id: voiceMessageId, sessionId, senderId },
+      getClient()
+    )
+    console.log({ result })
     if (!result.length) throw new RepoCreateError('Insert did not return ok')
     return makeRequired(result[0]).id
   } catch (err) {

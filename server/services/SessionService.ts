@@ -2,8 +2,8 @@ import Case from 'case'
 import crypto from 'crypto'
 import _ from 'lodash'
 import moment from 'moment'
-import { Ulid } from '../models/pgUtils'
 import * as cache from '../cache'
+import { Ulid } from '../models/pgUtils'
 import config from '../config'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -54,6 +54,7 @@ import SocketService from './SocketService'
 import * as TwilioService from './TwilioService'
 import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
+import * as VoiceMessageService from './VoiceMessageService'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
@@ -66,6 +67,7 @@ import * as Y from 'yjs'
 import { TransactionClient, runInTransaction } from '../db'
 import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
+import { getDbUlid } from '../models/pgUtils'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -763,11 +765,41 @@ export async function joinSession(
   }
 }
 
+export async function saveVoiceMessage({
+  senderId,
+  sessionId,
+  message,
+}: {
+  senderId: Ulid
+  sessionId: Ulid
+  message: Express.Multer.File
+}) {
+  const voiceMessageId = getDbUlid()
+  const wasUploaded = await VoiceMessageService.uploadedToStorage(
+    voiceMessageId,
+    message
+  )
+
+  if (wasUploaded) {
+    return await SessionRepo.addVoiceMessageToSessionById(
+      sessionId,
+      senderId,
+      voiceMessageId
+    )
+  } else {
+    throw new Error('Unable to upload voice message')
+  }
+}
+
 // TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
 export async function saveMessage(
   user: any,
   createdAt: Date,
-  data: unknown,
+  data: {
+    sessionId: Ulid
+    message: string
+    type?: 'voice'
+  },
   chatbot: Ulid | undefined
 ): Promise<string> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
@@ -782,7 +814,15 @@ export async function saveMessage(
   )
     throw new Error('Only session participants are allowed to send messages')
 
-  return await SessionRepo.addMessageToSessionById(sessionId, user._id, message)
+  if (data.type === 'voice') {
+    return message
+  } else {
+    return await SessionRepo.addMessageToSessionById(
+      sessionId,
+      user._id,
+      message
+    )
+  }
 }
 
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
