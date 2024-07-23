@@ -55,15 +55,17 @@ export interface ICreateTeacherClassQuery {
   result: ICreateTeacherClassResult;
 }
 
-const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":297,"b":299,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":309,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":313,"b":317,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":321,"b":325,"line":8,"col":37}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":329,"b":335,"line":8,"col":45}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())\nRETURNING\n    id, user_id, name, code, topic_id, active, created_at, updated_at","loc":{"a":188,"b":436,"line":7,"col":0}}};
+const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":297,"b":299,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":309,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":313,"b":317,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":321,"b":325,"line":8,"col":37}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":329,"b":335,"line":8,"col":45}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())\nRETURNING\n    user_id, name, code, topic_id, active, created_at, updated_at","loc":{"a":188,"b":432,"line":7,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
  *     VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
+ * INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
+ *     VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
  * RETURNING
- *     id, user_id, name, code, topic_id, active, created_at, updated_at
+ *     user_id, name, code, topic_id, active, created_at, updated_at
  * ```
  */
 export const createTeacherClass = new PreparedQuery<ICreateTeacherClassParams,ICreateTeacherClassResult>(createTeacherClassIR);
