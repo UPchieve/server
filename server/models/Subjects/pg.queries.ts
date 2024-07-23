@@ -98,7 +98,9 @@ export const getSubjects = new PreparedQuery<IGetSubjectsParams,IGetSubjectsResu
 
 
 /** 'GetTopics' parameters type */
-export type IGetTopicsParams = void;
+export interface IGetTopicsParams {
+  topicId: number | null | void;
+}
 
 /** 'GetTopics' return type */
 export interface IGetTopicsResult {
@@ -116,7 +118,7 @@ export interface IGetTopicsQuery {
   result: IGetTopicsResult;
 }
 
-const getTopicsIR: any = {"name":"getTopics","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name,\n    display_name,\n    icon_link,\n    dashboard_order,\n    training_order\nFROM\n    topics","loc":{"a":1049,"b":1161,"line":38,"col":0}}};
+const getTopicsIR: any = {"name":"getTopics","params":[{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1171,"b":1177,"line":47,"col":8},{"a":1209,"b":1215,"line":48,"col":13}]}}],"usedParamSet":{"topicId":true},"statement":{"body":"SELECT\n    id,\n    name,\n    display_name,\n    icon_link,\n    dashboard_order,\n    training_order\nFROM\n    topics\nWHERE (:topicId::integer IS NULL\n    OR id = :topicId)","loc":{"a":1049,"b":1216,"line":38,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -130,6 +132,8 @@ const getTopicsIR: any = {"name":"getTopics","params":[],"usedParamSet":{},"stat
  *     training_order
  * FROM
  *     topics
+ * WHERE (:topicId::integer IS NULL
+ *     OR id = :topicId)
  * ```
  */
 export const getTopics = new PreparedQuery<IGetTopicsParams,IGetTopicsResult>(getTopicsIR);
@@ -151,7 +155,7 @@ export interface IGetTrainingCoursesQuery {
   result: IGetTrainingCoursesResult;
 }
 
-const getTrainingCoursesIR: any = {"name":"getTrainingCourses","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name,\n    display_name\nFROM\n    training_courses","loc":{"a":1197,"b":1263,"line":50,"col":0}}};
+const getTrainingCoursesIR: any = {"name":"getTrainingCourses","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    id,\n    name,\n    display_name\nFROM\n    training_courses","loc":{"a":1252,"b":1318,"line":52,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -191,7 +195,7 @@ export interface IGetQuizCertUnlocksQuery {
   result: IGetQuizCertUnlocksResult;
 }
 
-const getQuizCertUnlocksIR: any = {"name":"getQuizCertUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    quizzes.active AS quiz_is_active\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id","loc":{"a":1299,"b":2135,"line":59,"col":0}}};
+const getQuizCertUnlocksIR: any = {"name":"getQuizCertUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    quizzes.active AS quiz_is_active\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id","loc":{"a":1354,"b":2190,"line":61,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -240,7 +244,7 @@ export interface IGetCertSubjectUnlocksQuery {
   result: IGetCertSubjectUnlocksResult;
 }
 
-const getCertSubjectUnlocksIR: any = {"name":"getCertSubjectUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    unlocked_subject.name AS unlocked_subject_name,\n    unlocked_subject.display_name AS unlocked_subject_display_name,\n    unlocked_subject.display_order AS unlocked_subject_display_order,\n    certifications.name AS cert_name,\n    cert_info.display_name AS cert_display_name,\n    cert_info.display_order AS cert_display_order,\n    topics.name AS topic_name\nFROM\n    certification_subject_unlocks csu\n    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    JOIN topics ON topics.id = unlocked_subject.topic_id\n    JOIN subjects AS cert_info ON cert_info.name = certifications.name","loc":{"a":2174,"b":2854,"line":81,"col":0}}};
+const getCertSubjectUnlocksIR: any = {"name":"getCertSubjectUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    unlocked_subject.name AS unlocked_subject_name,\n    unlocked_subject.display_name AS unlocked_subject_display_name,\n    unlocked_subject.display_order AS unlocked_subject_display_order,\n    certifications.name AS cert_name,\n    cert_info.display_name AS cert_display_name,\n    cert_info.display_order AS cert_display_order,\n    topics.name AS topic_name\nFROM\n    certification_subject_unlocks csu\n    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    JOIN topics ON topics.id = unlocked_subject.topic_id\n    JOIN subjects AS cert_info ON cert_info.name = certifications.name","loc":{"a":2229,"b":2909,"line":83,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -284,7 +288,7 @@ export interface IGetComputedSubjectUnlocksQuery {
   result: IGetComputedSubjectUnlocksResult;
 }
 
-const getComputedSubjectUnlocksIR: any = {"name":"getComputedSubjectUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    unlocked_subject.name AS unlocked_subject_name,\n    unlocked_subject.display_name AS unlocked_subject_display_name,\n    unlocked_subject.display_order AS unlocked_subject_display_order,\n    certifications.name AS cert_name,\n    cert_info.display_name AS cert_display_name,\n    cert_info.display_order AS cert_display_order,\n    topics.name AS topic_name\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    JOIN topics ON topics.id = unlocked_subject.topic_id\n    JOIN subjects AS cert_info ON cert_info.name = certifications.name","loc":{"a":2897,"b":3572,"line":98,"col":0}}};
+const getComputedSubjectUnlocksIR: any = {"name":"getComputedSubjectUnlocks","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    unlocked_subject.name AS unlocked_subject_name,\n    unlocked_subject.display_name AS unlocked_subject_display_name,\n    unlocked_subject.display_order AS unlocked_subject_display_order,\n    certifications.name AS cert_name,\n    cert_info.display_name AS cert_display_name,\n    cert_info.display_order AS cert_display_order,\n    topics.name AS topic_name\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects AS unlocked_subject ON unlocked_subject.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    JOIN topics ON topics.id = unlocked_subject.topic_id\n    JOIN subjects AS cert_info ON cert_info.name = certifications.name","loc":{"a":2952,"b":3627,"line":100,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -324,7 +328,7 @@ export interface IGetSubjectTypeQuery {
   result: IGetSubjectTypeResult;
 }
 
-const getSubjectTypeIR: any = {"name":"getSubjectType","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3983,"b":3990,"line":129,"col":20}]}}],"usedParamSet":{"subject":true},"statement":{"body":"SELECT\n    CASE WHEN topics.name IS NOT NULL THEN\n        topics.name\n    WHEN tc.name IS NOT NULL THEN\n        'training'\n    ELSE\n        ''\n    END AS subject_type\nFROM\n    quizzes\n    LEFT JOIN subjects ON subjects.name = quizzes.name\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN training_courses tc ON tc.name = quizzes.name\nWHERE\n    quizzes.name = :subject!","loc":{"a":3604,"b":3990,"line":115,"col":0}}};
+const getSubjectTypeIR: any = {"name":"getSubjectType","params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4038,"b":4045,"line":131,"col":20}]}}],"usedParamSet":{"subject":true},"statement":{"body":"SELECT\n    CASE WHEN topics.name IS NOT NULL THEN\n        topics.name\n    WHEN tc.name IS NOT NULL THEN\n        'training'\n    ELSE\n        ''\n    END AS subject_type\nFROM\n    quizzes\n    LEFT JOIN subjects ON subjects.name = quizzes.name\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN training_courses tc ON tc.name = quizzes.name\nWHERE\n    quizzes.name = :subject!","loc":{"a":3659,"b":4045,"line":117,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -364,7 +368,7 @@ export interface IGetSubjectNameIdMappingQuery {
   result: IGetSubjectNameIdMappingResult;
 }
 
-const getSubjectNameIdMappingIR: any = {"name":"getSubjectNameIdMapping","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    subjects.name,\n    subjects.id\nFROM\n    upchieve.subjects","loc":{"a":4031,"b":4098,"line":133,"col":0}}};
+const getSubjectNameIdMappingIR: any = {"name":"getSubjectNameIdMapping","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    subjects.name,\n    subjects.id\nFROM\n    upchieve.subjects","loc":{"a":4086,"b":4153,"line":135,"col":0}}};
 
 /**
  * Query generated from SQL:

@@ -1,5 +1,5 @@
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import { makeRequired, makeSomeOptional } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 
@@ -16,6 +16,7 @@ import {
   FormattedTrainingRowMappingPerTopic,
   TrainingPerTopic,
   TrainingCourses,
+  GetTopicsResult,
 } from './types'
 import _ from 'lodash'
 import { asBoolean, asNumber, asString } from '../../utils/type-utils'
@@ -31,6 +32,23 @@ export async function getSubjectAndTopic(
     )
 
     if (result.length && makeRequired(result[0])) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTopics(
+  topicId: number | null = null,
+  tc: TransactionClient
+): Promise<GetTopicsResult[]> {
+  try {
+    const results = await pgQueries.getTopics.run(
+      {
+        topicId,
+      },
+      tc
+    )
+    return results.map(r => makeSomeOptional(r, ['iconLink']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -237,7 +255,12 @@ export async function getTrainingCourses(): Promise<TrainingCourses[]> {
 export async function getVolunteerTrainingData(): Promise<TrainingView> {
   try {
     // Get all of the topics for the subject type headings for the training view
-    const topics = await pgQueries.getTopics.run(undefined, getClient())
+    const topics = await pgQueries.getTopics.run(
+      {
+        topicId: null,
+      },
+      getClient()
+    )
     const subjectTypes: TrainingItemWithOrder[] = topics
       .map(v => {
         const mappedTopics = makeRequired(v)

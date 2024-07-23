@@ -6,7 +6,7 @@ import {
   TeacherClass,
 } from './types'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 
 export async function createTeacher(
   data: CreateTeacherPayload,
@@ -36,13 +36,14 @@ export async function createTeacherClass(
         userId: data.userId,
         name: data.name,
         code: data.code,
+        topicId: data.topicId,
       },
       tc
     )
     if (!teacherClass.length) {
       throw new RepoCreateError('Unable to create teacher class.')
     }
-    return makeRequired(teacherClass[0])
+    return makeSomeOptional(teacherClass[0], ['topicId'])
   } catch (err) {
     throw new RepoCreateError(err)
   }

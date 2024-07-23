@@ -16,11 +16,12 @@ export type TeacherClass = {
   code: string
   active: boolean
   total_students?: Number
+  topicId?: number
   createdAt: Date
   updatedAt: Date
 }
 
 export type CreateTeacherClassPayload = Pick<
   TeacherClass,
-  'userId' | 'name' | 'code'
+  'userId' | 'name' | 'code' | 'topicId'
 >
