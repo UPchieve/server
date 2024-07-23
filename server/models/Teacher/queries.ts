@@ -94,3 +94,19 @@ export async function getStudentIdsInTeacherClass(
     throw new RepoReadError(err)
   }
 }
+
+export async function getStudentSessionDetails(
+  tc: TransactionClient,
+  studentId: Ulid
+) {
+  try {
+    const sessionDetails = await pgQueries.getStudentSessionDetails.run(
+      { studentId },
+      tc
+    )
+    console.log('****repo session details', sessionDetails)
+    return sessionDetails.map(s => makeRequired(s))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

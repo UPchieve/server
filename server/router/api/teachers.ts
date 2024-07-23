@@ -38,5 +38,29 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  router.route('/classes/:classCode').get(async function(req, res) {
+    try {
+      const classCode = req.params.classCode as string
+      const teacherClass = await TeacherService.getTeacherClassByClassCode(
+        classCode
+      )
+      res.json({ teacherClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/classes/student/:studentId').get(async function(req, res) {
+    try {
+      const studentId = req.params.studentId as string
+      const sessionDetails = await TeacherService.getStudentSessionDetails(
+        studentId
+      )
+      res.json({ sessionDetails })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   app.use('/api/teachers', router)
 }

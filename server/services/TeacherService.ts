@@ -22,6 +22,13 @@ export async function getTeacherClasses(userId: Ulid) {
   return TeacherRepo.getTeacherClassesByUserId(userId)
 }
 
+export async function getTeacherClassByClassCode(code: string) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const teacherClass = await TeacherRepo.getTeacherClassByClassCode(code, tc)
+    return teacherClass
+  })
+}
+
 export async function getStudentsInTeacherClass(classId: Ulid) {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
@@ -44,4 +51,14 @@ async function generateUniqueClassCode(tc: TransactionClient) {
   }
 
   throw new Error('Could not generate unique class code.')
+}
+
+export async function getStudentSessionDetails(studentId: Ulid) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const sessionDetails = await TeacherRepo.getStudentSessionDetails(
+      tc,
+      studentId
+    )
+    return sessionDetails
+  })
 }
