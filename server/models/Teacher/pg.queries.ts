@@ -65,7 +65,7 @@ const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name"
  * INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
  *     VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
  * RETURNING
- *     user_id, name, code, topic_id, active, created_at, updated_at
+ *     id, user_id, name, code, topic_id,active, created_at, updated_at
  * ```
  */
 export const createTeacherClass = new PreparedQuery<ICreateTeacherClassParams,ICreateTeacherClassResult>(createTeacherClassIR);
