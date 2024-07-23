@@ -31,17 +31,22 @@ describe('ModerationService', () => {
   const senderId = '123'
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
+  let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
 
   beforeEach(() => {
     jest.resetAllMocks()
+    mockGeneration = {
+      end: jest.fn(),
+      update: jest.fn(),
+    }
+    mockTrace = {
+      generation: jest.fn().mockReturnValue(mockGeneration),
+    }
+    mockLangfuseClient = {
+      trace: jest.fn().mockReturnValue(mockTrace),
+    }
     mockLangfuseService.getPrompt.mockResolvedValue(undefined)
-    mockLangfuseService.getClient.mockReturnValue({
-      trace: () => ({
-        generation: () => ({
-          end: () => {},
-        }),
-      }),
-    } as any)
+    mockLangfuseService.getClient.mockReturnValue(mockLangfuseClient as any)
   })
 
   describe('Regex moderation', () => {
@@ -302,6 +307,54 @@ describe('ModerationService', () => {
           }),
           'AI moderation result'
         )
+      })
+
+      it('Associates the Langfuse prompt with the generation', async () => {
+        // If we are able to retrieve a prompt from LF, it should be attached to the generation
+        // to associate generations and their corresponding prompts
+        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
+          FeatureFlagsService.AI_MODERATION_STATE.targeted
+        )
+        const langfusePromptObject = {
+          prompt: 'test-prompt-content',
+          name: 'moderation-prompt',
+          version: 1,
+        }
+        mockLangfuseService.getPrompt.mockResolvedValue(
+          langfusePromptObject as any
+        )
+        await createChatCompletion({
+          censoredSessionMessage,
+          isVolunteer,
+        })
+        expect(mockLangfuseClient.trace).toHaveBeenCalled()
+        expect(mockTrace.generation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'getModerationDecision',
+            input: { censoredSessionMessage, isVolunteer },
+            prompt: langfusePromptObject,
+          })
+        )
+        expect(mockGeneration.end).toHaveBeenCalled()
+      })
+
+      it('Does NOT associate the generation with a LF prompt if none could be retrieved', async () => {
+        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
+          FeatureFlagsService.AI_MODERATION_STATE.targeted
+        )
+        mockLangfuseService.getPrompt.mockResolvedValue(undefined)
+        await createChatCompletion({
+          censoredSessionMessage,
+          isVolunteer,
+        })
+        expect(mockLangfuseClient.trace).toHaveBeenCalled()
+        expect(mockTrace.generation).toHaveBeenCalledWith({
+          name: 'getModerationDecision',
+          model: 'gpt-4o',
+          input: { censoredSessionMessage, isVolunteer },
+          // No prompt included in the LF generation
+        })
+        expect(mockGeneration.end).toHaveBeenCalled()
       })
     })
   })

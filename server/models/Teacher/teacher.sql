@@ -7,21 +7,26 @@ INSERT INTO teacher_profiles (user_id, school_id, created_at, updated_at)
 INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
     VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
 RETURNING
-    user_id, name, code, topic_id, active, created_at, updated_at;
+    id, user_id, name, code, topic_id, active, created_at, updated_at;
 
 
 /* @name getTeacherClassesByUserId */
 SELECT
-    user_id,
+    id,
+    teacher_classes.user_id,
     name,
     code,
     active,
-    created_at,
-    updated_at
+    COUNT(student_classes.user_id)::int AS total_students,
+    teacher_classes.created_at,
+    teacher_classes.updated_at
 FROM
     teacher_classes
+    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
 WHERE
-    user_id = :userId!;
+    teacher_classes.user_id = :userId!
+GROUP BY
+    id;
 
 
 /* @name getTeacherClassByClassCode */

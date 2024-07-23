@@ -5,6 +5,7 @@ import {
   updateVolunteerTrainingById,
 } from '../models/Volunteer'
 import * as TrainingUtils from '../utils/training-courses'
+import logger from '../logger'
 
 // @note: this type was derived from how the return type is used by the frontend
 // TODO: come back and verify this is the return shape we want
@@ -42,29 +43,47 @@ export async function getCourse(
   }
 }
 
-// TODO: clean up return type
+interface CourseProgress {
+  progress: number
+  isComplete: boolean
+}
 export async function recordProgress(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses,
   materialKey: string
-) {
+): Promise<CourseProgress> {
   const volunteerTrainingCourses = await getVolunteerTrainingCourses(
     volunteer.id
   )
-  const foundCourse = volunteerTrainingCourses[courseKey]
-  // if the volunteer has no progress so far make a blank
-  const volunteerCourse = foundCourse || {
-    complete: false,
-    completedMaterials: [],
-    progress: 0,
-  }
 
-  // Early exit if already saved progress
-  if (volunteerCourse.completedMaterials.includes(materialKey)) return
+  const volunteerCourse = volunteerTrainingCourses.hasOwnProperty(courseKey)
+    ? volunteerTrainingCourses[courseKey]
+    : {
+        complete: false,
+        completedMaterials: [] as string[],
+        progress: 0,
+      }
 
-  // Mutate user object's completedMaterials
+  // A course may have several materials to complete.
+  // The user may already have some progress toward the course if
+  // they have completed any of the materials.
+  let materialAlreadyCompleted = false
   const completedMaterials = [...volunteerCourse.completedMaterials]
-  completedMaterials.push(materialKey)
+  if (volunteerCourse.completedMaterials.includes(materialKey)) {
+    // This _shouldn't_ happen if the client is making the right calls,
+    // but it appears to happen on occasion.
+    // TODO Remove once we figure out why.
+    materialAlreadyCompleted = true
+    logger.warn(
+      {
+        courseKey,
+        materialKey,
+      },
+      'User has already completed this training material'
+    )
+  } else {
+    completedMaterials.push(materialKey)
+  }
 
   const progress = await TrainingUtils.getProgress(
     courseKey,
@@ -73,13 +92,15 @@ export async function recordProgress(
   )
   const isComplete = progress === 100
 
-  await updateVolunteerTrainingById(
-    volunteer.id,
-    courseKey,
-    isComplete,
-    progress,
-    materialKey
-  )
+  if (!materialAlreadyCompleted) {
+    await updateVolunteerTrainingById(
+      volunteer.id,
+      courseKey,
+      isComplete,
+      progress,
+      materialKey
+    )
+  }
 
   return { progress, isComplete }
 }

@@ -94,7 +94,7 @@ describe('VolunteerRepo', () => {
     })
 
     it.each([
-      ['banned', { banned: true }],
+      ['banType', { banType: 'complete' }],
       ['unapproved', { approved: false }],
       ['onboarded', { onboarded: false }],
     ])('Returns the volunteer who is not %s', async (msg, opt) => {
@@ -307,7 +307,10 @@ describe('VolunteerRepo', () => {
         onboarded: false,
         certificationSubjects: ['reading'],
       })
-      await loadVolunteer({ banned: true, certificationSubjects: ['reading'] })
+      await loadVolunteer({
+        banType: 'complete',
+        certificationSubjects: ['reading'],
+      })
       expect(await runQuery(opts)).toBeUndefined()
 
       // No eligible volunteer who is not disqualified
@@ -404,7 +407,6 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
   const options = {
     approved: true,
     onboarded: true,
-    banned: false,
     deactivated: false,
     certificationSubjects: ['prealgebra'],
     withFullAvailability: true,
@@ -429,7 +431,6 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
   await updateVolunteerForAdmin(res.id, {
     email: res.email,
     isVerified: true,
-    isBanned: options.banned,
     isApproved: options.approved,
     isDeactivated: options.deactivated,
     firstName: undefined,

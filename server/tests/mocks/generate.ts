@@ -102,7 +102,6 @@ export function buildUserContactInfo(
     volunteerPartnerOrg: undefined,
     studentPartnerOrg: undefined,
     lastActivityAt: new Date(),
-    banned: false,
     deactivated: false,
     ...overrides,
   }
@@ -122,12 +121,12 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
     password: 'Password123',
     firstName: getFirstName(),
     lastName: getLastName(),
-    banned: false,
     testUser: false,
     deactivated: false,
     referralCode: 'ABC',
     createdAt: new Date(),
     updatedAt: new Date(),
+    banType: undefined,
     ...overrides,
   }
 }
@@ -138,7 +137,6 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
     ...userRow,
     firstname: userRow.firstName,
     lastname: userRow.lastName,
-    isBanned: userRow.banned,
     isDeactivated: userRow.deactivated,
     isTestUser: userRow.testUser,
     isAdmin: false,
