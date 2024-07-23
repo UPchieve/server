@@ -10,10 +10,12 @@ export type TeacherProfile = {
 export type CreateTeacherPayload = Pick<TeacherProfile, 'userId' | 'schoolId'>
 
 export type TeacherClass = {
+  id: Ulid
   userId: Ulid
   name: string
   code: string
   active: boolean
+  total_students?: Number
   topicId?: number
   createdAt: Date
   updatedAt: Date

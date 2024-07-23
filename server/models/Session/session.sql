@@ -53,7 +53,6 @@ WHERE
     sessions.volunteer_id IS NULL
     AND sessions.ended_at IS NULL
     AND sessions.created_at > :start!
-    AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
 ORDER BY
     sessions.created_at;
@@ -764,8 +763,7 @@ FROM
         WHERE
             notifications.user_id = users.id) AS notification_count ON TRUE
 WHERE
-    users.banned IS FALSE
-    AND users.ban_type IS DISTINCT FROM 'complete'
+    users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND session_count.total = 0
@@ -822,13 +820,11 @@ SELECT
     subjects.name AS sub_topic,
     students.first_name AS student_first_name,
     students.email AS student_email,
-    students.banned AS student_is_banned,
     students.ban_type AS student_ban_type,
     students.test_user AS student_test_user,
     student_sessions.total AS student_total_past_sessions,
     volunteers.first_name AS volunteer_first_name,
     volunteers.email AS volunteer_email,
-    volunteers.banned AS volunteer_is_banned,
     volunteers.ban_type AS volunteer_ban_type,
     volunteers.test_user AS volunteer_test_user,
     volunteer_sessions.total AS volunteer_total_past_sessions,
@@ -850,7 +846,6 @@ FROM
             first_name,
             id,
             email,
-            banned,
             ban_type,
             test_user
         FROM
@@ -862,7 +857,6 @@ FROM
             first_name,
             id,
             email,
-            banned,
             ban_type,
             test_user
         FROM
@@ -1160,10 +1154,8 @@ FROM
     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
 WHERE
     sessions.id = :sessionId!
-    AND ((students.banned IS TRUE
-            OR students.ban_type = 'complete')
-        OR (volunteers.banned IS TRUE
-            OR volunteers.ban_type = 'complete'))
+    AND (students.ban_type = 'complete'
+        OR volunteers.ban_type = 'complete')
 LIMIT 1;
 
 

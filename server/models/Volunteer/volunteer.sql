@@ -1027,7 +1027,6 @@ SET
     email = :email!,
     verified = :isVerified!,
     ban_type = :banType,
-    banned = :isBanned!,
     deactivated = :isDeactivated!
 WHERE
     users.id = :userId!

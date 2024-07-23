@@ -555,7 +555,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
 
   const userBanned = user.banType === USER_BAN_TYPES.COMPLETE
 
-  if (user.banned || userBanned)
+  if (userBanned)
     throw new sessionUtils.StartSessionError(
       'Banned students cannot request a new session'
     )
@@ -596,7 +596,7 @@ export async function startSession(user: UserContactInfo, data: unknown) {
       )
     }
 
-  if (!user.banned || !userBanned) {
+  if (!userBanned) {
     await beginRegularNotifications(newSessionId)
   }
 

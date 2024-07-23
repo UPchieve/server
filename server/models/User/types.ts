@@ -5,7 +5,6 @@ export type UserRole = 'volunteer' | 'student' | 'teacher' | 'admin'
 
 export type User = {
   id: Ulid
-  banned: boolean
   banType?: USER_BAN_TYPES
   banReasonId?: Pgid
   deactivated: boolean
@@ -60,7 +59,6 @@ export type UpsertUserResult = CreateUserResult & {
 export type UserContactInfo = Pick<
   User,
   | 'id'
-  | 'banned'
   | 'banType'
   | 'deactivated'
   | 'email'
@@ -102,7 +100,6 @@ export type ReportedUser = Pick<
   User,
   'id' | 'firstName' | 'lastName' | 'email' | 'createdAt'
 > & {
-  isBanned: boolean
   isDeactivated: boolean
   isTestUser: boolean
   isVolunteer: boolean
