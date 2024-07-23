@@ -6,6 +6,28 @@ export type SubjectAndTopic = {
   toolType: string
 }
 
+export type Topic = {
+  id: number
+  name: string
+  iconLink?: string
+  color?: string
+  dashboardOrder: number
+  displayName: string
+  createdAt: Date
+  updatedAt: Date
+  trainingOrder: number
+}
+
+export type GetTopicsResult = Pick<
+  Topic,
+  | 'id'
+  | 'name'
+  | 'displayName'
+  | 'iconLink'
+  | 'dashboardOrder'
+  | 'trainingOrder'
+>
+
 export type SubjectWithTopic = {
   name: string
   id: number

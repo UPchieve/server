@@ -43,7 +43,9 @@ SELECT
     dashboard_order,
     training_order
 FROM
-    topics;
+    topics
+WHERE (:topicId::integer IS NULL
+    OR id = :topicId);
 
 
 /* @name getTrainingCourses */
