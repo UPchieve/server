@@ -1,6 +1,9 @@
 import { resError } from '../res-error'
 import { Router } from 'express'
-import { isValidSubjectAndTopic } from '../../services/SubjectsService'
+import {
+  getTopics,
+  isValidSubjectAndTopic,
+} from '../../services/SubjectsService'
 import {
   getSubjectsWithTopic,
   getVolunteerTrainingData,
@@ -33,6 +36,15 @@ export function routeSubjects(router: Router): void {
     try {
       const isValid = await isValidSubjectAndTopic(req.query)
       res.json({ isValid })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/topics', async function(_req, res) {
+    try {
+      const topics = await getTopics()
+      res.json({ topics })
     } catch (err) {
       resError(res, err)
     }

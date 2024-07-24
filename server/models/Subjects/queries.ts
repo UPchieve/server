@@ -39,7 +39,7 @@ export async function getSubjectAndTopic(
 
 export async function getTopics(
   topicId: number | null = null,
-  tc: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<GetTopicsResult[]> {
   try {
     const results = await pgQueries.getTopics.run(
