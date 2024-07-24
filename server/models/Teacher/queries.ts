@@ -58,7 +58,7 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeRequired(c))
+    return classes.map(c => makeSomeOptional(c, ['topicId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -105,7 +105,6 @@ export async function getStudentSessionDetails(
       { studentId },
       tc
     )
-    console.log('****repo session details', sessionDetails)
     return sessionDetails.map(s => makeRequired(s))
   } catch (err) {
     throw new RepoReadError(err)
