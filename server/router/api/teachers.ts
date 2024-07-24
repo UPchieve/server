@@ -8,9 +8,11 @@ export function routeTeachers(app: Express, router: Router): void {
     try {
       const user = extractUser(req)
       const className = req.body.className as string
+      const topicId = (req.body.topicId as number) ?? null
       const teacherClass = await TeacherService.createTeacherClass(
         user.id,
-        className
+        className,
+        topicId
       )
       res.json({ teacherClass })
     } catch (err) {

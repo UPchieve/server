@@ -1,5 +1,5 @@
 import { asFactory, asString } from '../utils/type-utils'
-import { getSubjectAndTopic } from '../models/Subjects'
+import * as SubjectsRepo from '../models/Subjects'
 import Case from 'case'
 
 export type ValidSubjectAndTopicCheck = {
@@ -16,9 +16,13 @@ export const asValidSubjectAndTopicCheck = asFactory<ValidSubjectAndTopicCheck>(
 
 export async function isValidSubjectAndTopic(data: unknown): Promise<boolean> {
   const { subject, topic } = asValidSubjectAndTopicCheck(data)
-  const result = await getSubjectAndTopic(
+  const result = await SubjectsRepo.getSubjectAndTopic(
     Case.camel(subject),
     Case.camel(topic)
   )
   return !!result
+}
+
+export async function getTopics(): Promise<SubjectsRepo.GetTopicsResult[]> {
+  return SubjectsRepo.getTopics()
 }
