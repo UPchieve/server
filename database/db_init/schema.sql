@@ -1479,6 +1479,19 @@ CREATE TABLE upchieve.session_review_reasons (
 
 
 --
+-- Name: session_voice_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_voice_messages (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    sender_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: sessions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3446,6 +3459,14 @@ ALTER TABLE ONLY upchieve.session_review_reasons
 
 
 --
+-- Name: session_voice_messages session_voice_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_voice_messages
+    ADD CONSTRAINT session_voice_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: sessions sessions_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4175,6 +4196,13 @@ CREATE INDEX session_review_reasons_session_id ON upchieve.session_review_reason
 
 
 --
+-- Name: session_voice_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_voice_messages_session_id ON upchieve.session_voice_messages USING btree (session_id);
+
+
+--
 -- Name: sessions_student_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4846,6 +4874,22 @@ ALTER TABLE ONLY upchieve.session_review_reasons
 
 ALTER TABLE ONLY upchieve.session_review_reasons
     ADD CONSTRAINT session_review_reasons_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_voice_messages session_voice_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_voice_messages
+    ADD CONSTRAINT session_voice_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: session_voice_messages session_voice_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_voice_messages
+    ADD CONSTRAINT session_voice_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -5655,4 +5699,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240612180331'),
     ('20240705012935'),
     ('20240708183519'),
-    ('20240711180618');
+    ('20240711180618'),
+    ('20240723161108');
