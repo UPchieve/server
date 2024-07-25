@@ -498,7 +498,6 @@ export type SessionByIdWithStudentAndVolunteer = {
   toolType: string
 }
 
-// TODO update this
 export async function getMessagesForFrontend(
   sessionId: Ulid,
   client?: PoolClient
@@ -904,7 +903,6 @@ export async function addVoiceMessageToSessionById(
       { id: voiceMessageId, sessionId, senderId },
       getClient()
     )
-    console.log({ result })
     if (!result.length) throw new RepoCreateError('Insert did not return ok')
     return makeRequired(result[0]).id
   } catch (err) {

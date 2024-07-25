@@ -16,11 +16,9 @@ const blobServiceClient = new BlobServiceClient(
   voiceMessageStorageCredential
 )
 
-// a helper method used to read a Node.js readable stream into a Buffer
 async function streamToBuffer(
   readableStream: NodeJS.ReadableStream
 ): Promise<Buffer> {
-  // TODO: is there a way to do this async?
   return new Promise((resolve, reject) => {
     const chunks: any[] = []
     readableStream.on('data', (data: any) => {
@@ -36,14 +34,13 @@ async function streamToBuffer(
 export async function getBlob(
   containerName: string,
   blobName: string
-): Promise<string> {
+): Promise<Buffer> {
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(
-    `${blobName.replaceAll('-', '').toUpperCase()}`
+    `${blobName.replace(/-/g, '').toUpperCase()}`
   )
   const downloadBlockBlobResponse = await blobClient.download()
   const blobContent = await streamToBuffer(
-    // readableStreamBody always available within Node
     downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
   )
   return blobContent
@@ -52,7 +49,7 @@ export async function getBlob(
 export async function uploadBlob(
   containerName: string,
   blobName: string,
-  content: { content: { buffer: Express.Multer.File['buffer'] } }
+  content: { buffer: Express.Multer.File['buffer'] }
 ): Promise<void> {
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blockBlobClient = containerClient.getBlockBlobClient(blobName)
@@ -61,7 +58,7 @@ export async function uploadBlob(
 
 export const uploadedToStorage = async (
   voiceMessageId: Ulid,
-  voiceMessage: string,
+  voiceMessage: Express.Multer.File,
   attempts = 0
 ): Promise<boolean> => {
   try {
@@ -92,7 +89,9 @@ export const uploadedToStorage = async (
   }
 }
 
-export const getFromStorage = async (voiceMessageId: Ulid): Promise<string> => {
+export const getFromStorage = async (
+  voiceMessageId: Ulid
+): Promise<Buffer | string> => {
   try {
     const voiceMessage = await getBlob(
       config.voiceMessageStorageContainer,
