@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Ubuntu 14.12-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 16.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2796,6 +2796,14 @@ COPY upchieve.session_reports (id, report_reason_id, report_message, reporting_u
 --
 
 COPY upchieve.session_review_reasons (session_id, session_flag_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_voice_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_voice_messages (id, session_id, sender_id, created_at, updated_at) FROM stdin;
 \.
 
 
