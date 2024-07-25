@@ -504,21 +504,27 @@ export async function getMessagesForFrontend(
 ): Promise<MessageForFrontend[]> {
   try {
     const usableClient = client ? client : getClient()
-    const result = await pgQueries.getSessionMessagesForFrontend.run(
-      { sessionId },
-      usableClient
-    )
-    const voiceResult = await pgQueries.getSessionVoiceMessagesForFrontend.run(
-      { sessionId },
-      usableClient
-    )
+    const result = (
+      await pgQueries.getSessionMessagesForFrontend.run(
+        { sessionId },
+        usableClient
+      )
+    ).map(v => makeRequired(v))
+    const voiceResult = (
+      await pgQueries.getSessionVoiceMessagesForFrontend.run(
+        { sessionId },
+        usableClient
+      )
+    ).map(v => makeRequired(v))
 
     // insert voice messages
     const merged = result
       .concat(voiceResult.map(r => ({ ...r, type: 'voice', contents: r.id })))
-      .sort((a, b) => a.created_at - b.created_at)
+      .sort((a, b) => {
+        return Number(a.createdAt) - Number(b.createdAt)
+      })
 
-    return merged.map(v => makeRequired(v))
+    return merged
   } catch (error) {
     throw new RepoReadError(error)
   }
