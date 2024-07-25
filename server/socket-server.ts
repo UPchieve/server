@@ -21,6 +21,7 @@ export default function(server: http.Server) {
       name: 'subway-io',
       httpOnly: false,
     },
+    allowEIO3: true,
     connectionStateRecovery: {
       // the backup duration of the sessions and the packets
       maxDisconnectionDuration: 2 * 60 * 1000,
