@@ -311,6 +311,15 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
     process.env.SUBWAY_WHITEBOARD_STORAGE_CONTAINER || 'bogus',
+  voiceMessageStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
+  voiceMessageStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
+  voiceMessageStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
+  voiceMessageStorageSubscriptionId:
+    process.env.SUBWAY_AZURE_VOICE_MESSAGE_SUBSCRIPTION_ID || 'bogus',
+  voiceMessageStorageAccountName:
+    process.env.SUBWAY_VOICE_MESSAGE_STORAGE_ACCOUNT_NAME || 'bogus',
+  voiceMessageStorageContainer:
+    process.env.SUBWAY_VOICE_MESSAGE_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
