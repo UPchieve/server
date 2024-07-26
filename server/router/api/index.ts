@@ -28,6 +28,7 @@ import { routeWebhooks } from './webhooks'
 import { sendReferralProgramEmail } from '../../services/MailService'
 import { getUserReferralLink } from '../../models/User'
 import config from '../../config'
+import { routeVoiceMessages } from './voice-messages'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -37,6 +38,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeUser(router)
   routeVerify(router)
   routeSession(router as Router)
+  routeVoiceMessages(router)
   routeCalendar(router)
   routeTraining(router)
   routeFeedback(router)

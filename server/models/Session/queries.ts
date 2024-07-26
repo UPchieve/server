@@ -504,11 +504,27 @@ export async function getMessagesForFrontend(
 ): Promise<MessageForFrontend[]> {
   try {
     const usableClient = client ? client : getClient()
-    const result = await pgQueries.getSessionMessagesForFrontend.run(
-      { sessionId },
-      usableClient
-    )
-    return result.map(v => makeRequired(v))
+    const result = (
+      await pgQueries.getSessionMessagesForFrontend.run(
+        { sessionId },
+        usableClient
+      )
+    ).map(v => makeRequired(v))
+    const voiceResult = (
+      await pgQueries.getSessionVoiceMessagesForFrontend.run(
+        { sessionId },
+        usableClient
+      )
+    ).map(v => makeRequired(v))
+
+    // insert voice messages
+    const merged = result
+      .concat(voiceResult.map(r => ({ ...r, type: 'voice', contents: r.id })))
+      .sort((a, b) => {
+        return Number(a.createdAt) - Number(b.createdAt)
+      })
+
+    return merged
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -874,6 +890,23 @@ export async function addMessageToSessionById(
   try {
     const result = await pgQueries.insertNewMessage.run(
       { id: getDbUlid(), sessionId, senderId, contents },
+      getClient()
+    )
+    if (!result.length) throw new RepoCreateError('Insert did not return ok')
+    return makeRequired(result[0]).id
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function addVoiceMessageToSessionById(
+  sessionId: Ulid,
+  senderId: Ulid,
+  voiceMessageId: Ulid
+): Promise<string> {
+  try {
+    const result = await pgQueries.insertNewVoiceMessage.run(
+      { id: voiceMessageId, sessionId, senderId },
       getClient()
     )
     if (!result.length) throw new RepoCreateError('Insert did not return ok')
