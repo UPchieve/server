@@ -31,7 +31,11 @@ interface ICleverUserInfoResponse {
       middle: string
     }
     roles: {
-      student: Object
+      student: {
+        grade?: string
+        school: string // Clever ID of the student's primary school.
+        schools: string[] // List of ids of schools this student is associated with.
+      }
     }
     id: string
   }

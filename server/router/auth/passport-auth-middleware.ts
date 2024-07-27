@@ -159,19 +159,32 @@ export function addPassportAuthMiddleware() {
       profile: passport.Profile & { issuer: string },
       done: Function
     ) {
-      const isLogin = (req.session as SessionWithSsoData)?.isLogin ?? true
-      if (isLogin) {
-        return passportLoginUser(profile.id, profile.issuer, done)
-      } else {
-        const { studentData } = req.session as SessionWithSsoData
-        return passportRegisterUser(
-          profile,
-          profile.issuer,
-          'Clever',
-          studentData,
-          done
-        )
+      const existingFedCred = await getFederatedCredential(
+        profile.id,
+        profile.issuer
+      )
+      if (existingFedCred) {
+        return done(null, { id: existingFedCred.userId })
       }
+
+      const firstName = profile.name?.givenName
+      const lastName = profile.name?.familyName
+      const email = profile.emails?.[0]?.value
+      if (!firstName || !lastName || !email) {
+        return done(null, false, 'Missing required field in passport.Profile')
+      }
+
+      const { studentData } = req.session as SessionWithSsoData
+      const data = {
+        email,
+        firstName,
+        issuer: profile.issuer,
+        lastName,
+        profileId: profile.id,
+        ...studentData,
+      }
+      const student = await registerStudent(data)
+      return done(null, student)
     })
   )
 }
