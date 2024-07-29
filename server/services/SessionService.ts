@@ -979,3 +979,13 @@ export async function isRecapDmsAvailable(
   )
   return sentMessages || isVolunteer
 }
+
+export async function getStudentSessionDetails(studentId: Ulid) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const sessionDetails = await SessionRepo.getStudentSessionDetails(
+      tc,
+      studentId
+    )
+    return sessionDetails
+  })
+}

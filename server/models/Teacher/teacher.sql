@@ -54,26 +54,3 @@ FROM
 WHERE
     class_id = :classId!;
 
-
-/* @name getStudentSessionDetails */
-SELECT
-    sessions.id,
-    subjects.name,
-    sessions.ended_at - sessions.created_at AS length,
-    sessions.created_at,
-    users.first_name,
-    COUNT(session_id) AS message_count
-FROM
-    sessions
-    LEFT JOIN session_messages ON sessions.id = session_id
-    JOIN subjects ON sessions.subject_id = subjects.id
-    JOIN users ON sessions.student_id = users.id
-WHERE
-    student_id = :studentId!
-GROUP BY
-    sessions.id,
-    subjects.name,
-    sessions.ended_at,
-    sessions.created_at,
-    users.first_name;
-

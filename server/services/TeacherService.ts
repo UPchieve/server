@@ -60,13 +60,3 @@ async function generateUniqueClassCode(tc: TransactionClient) {
 
   throw new Error('Could not generate unique class code.')
 }
-
-export async function getStudentSessionDetails(studentId: Ulid) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const sessionDetails = await TeacherRepo.getStudentSessionDetails(
-      tc,
-      studentId
-    )
-    return sessionDetails
-  })
-}

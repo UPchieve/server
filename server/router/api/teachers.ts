@@ -1,6 +1,7 @@
 import { Express, Router } from 'express'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
+import * as SessionService from '../../services/SessionService'
 import { resError } from '../res-error'
 
 export function routeTeachers(app: Express, router: Router): void {
@@ -55,7 +56,7 @@ export function routeTeachers(app: Express, router: Router): void {
   router.route('/classes/student/:studentId').get(async function(req, res) {
     try {
       const studentId = req.params.studentId as string
-      const sessionDetails = await TeacherService.getStudentSessionDetails(
+      const sessionDetails = await SessionService.getStudentSessionDetails(
         studentId
       )
       res.json({ sessionDetails })
