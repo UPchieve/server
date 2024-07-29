@@ -37,6 +37,7 @@ SELECT
     name,
     code,
     active,
+    topic_id,
     created_at,
     updated_at
 FROM
@@ -57,7 +58,7 @@ WHERE
 /* @name getStudentSessionDetails */
 SELECT
     sessions.id,
-    subjects.display_name,
+    subjects.name,
     sessions.ended_at - sessions.created_at AS length,
     sessions.created_at,
     users.first_name,
@@ -71,7 +72,7 @@ WHERE
     student_id = :studentId!
 GROUP BY
     sessions.id,
-    subjects.display_name,
+    subjects.name,
     sessions.ended_at,
     sessions.created_at,
     users.first_name;

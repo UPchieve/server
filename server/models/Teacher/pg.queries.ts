@@ -132,6 +132,7 @@ export interface IGetTeacherClassByClassCodeResult {
   createdAt: Date;
   id: string;
   name: string;
+  topicId: number | null;
   updatedAt: Date;
   userId: string | null;
 }
@@ -142,7 +143,7 @@ export interface IGetTeacherClassByClassCodeQuery {
   result: IGetTeacherClassByClassCodeResult;
 }
 
-const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1032,"b":1036,"line":45,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":898,"b":1036,"line":34,"col":0}}};
+const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1046,"b":1050,"line":46,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":898,"b":1050,"line":34,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -153,6 +154,7 @@ const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","
  *     name,
  *     code,
  *     active,
+ *     topic_id,
  *     created_at,
  *     updated_at
  * FROM
@@ -180,7 +182,7 @@ export interface IGetStudentIdsInTeacherClassQuery {
   result: IGetStudentIdsInTeacherClassResult;
 }
 
-const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1147,"b":1154,"line":54,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":1081,"b":1154,"line":49,"col":0}}};
+const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1161,"b":1168,"line":55,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":1095,"b":1168,"line":50,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -204,11 +206,11 @@ export interface IGetStudentSessionDetailsParams {
 /** 'GetStudentSessionDetails' return type */
 export interface IGetStudentSessionDetailsResult {
   createdAt: Date;
-  displayName: string;
   firstName: string;
   id: string;
   length: string | null;
   messageCount: string | null;
+  name: string;
 }
 
 /** 'GetStudentSessionDetails' query type */
@@ -217,14 +219,14 @@ export interface IGetStudentSessionDetailsQuery {
   result: IGetStudentSessionDetailsResult;
 }
 
-const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1593,"b":1602,"line":71,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.display_name,\n    sessions.ended_at - sessions.created_at AS length,\n    sessions.created_at,\n    users.first_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.display_name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name","loc":{"a":1196,"b":1724,"line":58,"col":0}}};
+const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1599,"b":1608,"line":72,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at - sessions.created_at AS length,\n    sessions.created_at,\n    users.first_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name","loc":{"a":1210,"b":1722,"line":59,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     sessions.id,
- *     subjects.display_name,
+ *     subjects.name,
  *     sessions.ended_at - sessions.created_at AS length,
  *     sessions.created_at,
  *     users.first_name,
@@ -238,7 +240,7 @@ const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","para
  *     student_id = :studentId!
  * GROUP BY
  *     sessions.id,
- *     subjects.display_name,
+ *     subjects.name,
  *     sessions.ended_at,
  *     sessions.created_at,
  *     users.first_name
