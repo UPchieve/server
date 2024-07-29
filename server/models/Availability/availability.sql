@@ -10,11 +10,25 @@ FROM
     LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id
     LEFT JOIN users ON availabilities.user_id = users.id
 WHERE
-    availabilities.user_id::uuid = :userId
-    OR users.mongo_id::text = :mongoUserId;
+    availabilities.user_id::uuid = :userId;
 
 
-/* 
+/* @name getAvailabilityForLegacyVolunteer */
+SELECT
+    availabilities.id,
+    availabilities.available_start,
+    availabilities.available_end,
+    availabilities.timezone,
+    weekdays.day AS weekday
+FROM
+    availabilities
+    LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id
+    LEFT JOIN users ON availabilities.user_id = users.id
+WHERE
+    users.mongo_id::text = :mongoUserId;
+
+
+/*
  @name getAvailabilityForVolunteerHeatmap
  */
 WITH certs_for_subject AS (
