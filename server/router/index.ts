@@ -7,6 +7,7 @@ import SessionStore from './api/session-store'
 import * as ContactFormRouter from './contact'
 import * as AuthRouter from './auth'
 import * as ApiRouter from './api'
+import * as ApiPublicRouter from './api-public'
 import * as EligibilityRouter from './eligibility'
 import * as WhiteboardRouter from './whiteboard'
 import * as EduRouter from './edu'
@@ -35,6 +36,7 @@ export default function(app: Express, io: Server) {
   WhiteboardRouter.routes(app)
   AuthRouter.routes(app)
   ApiRouter.routes(app, sessionStore, io)
+  ApiPublicRouter.routes(app)
   EduRouter.routes(app)
   EligibilityRouter.routes(app)
   TwimlRouter.routes(app)
