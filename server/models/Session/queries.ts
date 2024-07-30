@@ -812,6 +812,7 @@ export type StudentLatestSession = {
   createdAt: Date
   subject: string
   timeTutored: number
+  endedByUserRole?: string
 }
 export async function getLatestSessionByStudentId(
   studentId: Ulid
@@ -822,7 +823,7 @@ export async function getLatestSessionByStudentId(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    return makeSomeOptional(result[0], ['endedByUserRole'])
   } catch (error) {
     throw error
   }

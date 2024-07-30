@@ -661,10 +661,12 @@ SELECT
     sessions.id,
     sessions.created_at,
     time_tutored::int,
-    subjects.name AS subject
+    subjects.name AS subject,
+    user_roles.name AS ended_by_user_role
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
+    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
