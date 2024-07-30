@@ -178,6 +178,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     }
 
+    if (socket.recovered) logSocketConnectionInfo('recovered', socket)
+
     // Tutor session management
     socket.on('join', async function(data) {
       newrelic.startWebTransaction(
