@@ -33,6 +33,7 @@ import {
 } from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
+import { Server as Engine } from 'engine.io'
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
@@ -170,7 +171,8 @@ server.removeAllListeners('upgrade')
 server.on('upgrade', (request, socket, head) => {
   const pathname = request.url
   if (pathname?.startsWith('/socket.io/')) {
-    io.engine.handleUpgrade(request, socket, head)
+    // Temporary workaround for `handleUpgrade` not existing on the type: https://github.com/socketio/socket.io/issues/4693#issuecomment-1529401350
+    ;(io.engine as Engine).handleUpgrade(request, socket, head)
   } else {
     const wss = wsInstance.getWss()
     wss.handleUpgrade(request, socket as Socket, head, ws => {
