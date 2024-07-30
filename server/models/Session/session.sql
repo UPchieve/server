@@ -497,6 +497,20 @@ ORDER BY
     created_at;
 
 
+/* @name getSessionVoiceMessagesForFrontend */
+SELECT
+    id,
+    sender_id AS USER,
+    created_at,
+    session_id
+FROM
+    session_voice_messages
+WHERE
+    session_id = :sessionId!
+ORDER BY
+    created_at;
+
+
 /* @name createSession */
 INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
 SELECT
@@ -647,10 +661,12 @@ SELECT
     sessions.id,
     sessions.created_at,
     time_tutored::int,
-    subjects.name AS subject
+    subjects.name AS subject,
+    user_roles.name AS ended_by_user_role
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
+    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
@@ -696,6 +712,13 @@ WHERE
 /* @name insertNewMessage */
 INSERT INTO session_messages (id, sender_id, contents, session_id, created_at, updated_at)
     VALUES (:id!, :senderId!, :contents!, :sessionId!, NOW(), NOW())
+RETURNING
+    id;
+
+
+/* @name insertNewVoiceMessage */
+INSERT INTO session_voice_messages (id, session_id, sender_id, created_at, updated_at)
+    VALUES (:id!, :sessionId!, :senderId!, NOW(), NOW())
 RETURNING
     id;
 

@@ -98,13 +98,13 @@ export async function getAvailabilityForVolunteer(
 ): Promise<Availability> {
   const client = poolClient ? poolClient : getClient()
   try {
-    const result = await pgQueries.getAvailabilityForVolunteer.run(
-      {
-        userId: isPgId(userId) ? userId : undefined,
-        mongoUserId: isPgId(userId) ? undefined : userId,
-      },
-      client
-    )
+    const result = isPgId(userId)
+      ? await pgQueries.getAvailabilityForVolunteer.run({ userId }, client)
+      : await pgQueries.getAvailabilityForLegacyVolunteer.run(
+          { mongoUserId: userId },
+          client
+        )
+
     return buildAvailabilityModel(result.map(v => makeRequired(v)))
   } catch (err) {
     throw new RepoReadError(err)

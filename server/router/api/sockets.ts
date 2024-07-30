@@ -16,7 +16,11 @@ import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
-import { getUserContactInfoById, UserContactInfo } from '../../models/User'
+import {
+  getUserContactInfoById,
+  UserContactInfo,
+  UserRole,
+} from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import { isChatBotEnabled } from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
@@ -346,7 +350,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            const { user, sessionId, message, source } = data
+            const { user, sessionId, message, source, type } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
 
@@ -362,26 +366,46 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             const createdAt = new Date()
             try {
               // TODO: correctly type user from payload
+              const data: {
+                sessionId: Ulid
+                message: string
+                type?: 'voice'
+              } = {
+                sessionId,
+                message,
+              }
+              if (type === 'voice') {
+                data.type = type
+              }
               const messageId = await SessionService.saveMessage(
                 user,
                 createdAt,
-                {
-                  sessionId,
-                  message,
-                },
+                data,
                 chatbot
               )
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
               const userType = getUserTypeFromRoles(dbUser.roles, user.id)
-              const messageData = {
+              const messageData: {
+                contents: string
+                createdAt: Date
+                isVolunteer: boolean
+                userType: UserRole
+                user: Ulid
+                sessionId: Ulid
+                type?: 'voice'
+              } = {
                 contents: message,
                 createdAt: createdAt,
                 isVolunteer: isVolunteerUserType(userType),
                 userType: userType,
                 user: user.id,
                 sessionId,
+              }
+
+              if (type === 'voice') {
+                messageData.type = type
               }
 
               // If the message is coming from the recap page, queue the message to send a notification

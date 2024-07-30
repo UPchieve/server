@@ -1,20 +1,28 @@
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as StudentRepo from '../models/Student'
+import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 
-export async function createTeacherClass(userId: Ulid, className: string) {
+export async function createTeacherClass(
+  userId: Ulid,
+  className: string,
+  topicId?: number
+) {
   return runInTransaction(async (tc: TransactionClient) => {
     const code = await generateUniqueClassCode(tc)
-    return TeacherRepo.createTeacherClass(
+    const newClass = await TeacherRepo.createTeacherClass(
       {
         userId,
         name: className,
         code,
+        topicId,
       },
       tc
     )
+    const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : {}
+    return { ...newClass, ...topic }
   })
 }
 
