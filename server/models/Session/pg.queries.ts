@@ -2617,9 +2617,9 @@ export interface IGetStudentSessionDetailsParams {
 /** 'GetStudentSessionDetails' return type */
 export interface IGetStudentSessionDetailsResult {
   createdAt: Date;
+  endedAt: Date | null;
   firstName: string;
   id: string;
-  length: string | null;
   messageCount: string | null;
   name: string;
 }
@@ -2630,7 +2630,7 @@ export interface IGetStudentSessionDetailsQuery {
   result: IGetStudentSessionDetailsResult;
 }
 
-const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":34537,"b":34546,"line":1228,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at - sessions.created_at AS length,\n    sessions.created_at,\n    users.first_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name","loc":{"a":34148,"b":34660,"line":1215,"col":0}}};
+const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":34505,"b":34514,"line":1228,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name","loc":{"a":34148,"b":34628,"line":1215,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2638,7 +2638,7 @@ const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","para
  * SELECT
  *     sessions.id,
  *     subjects.name,
- *     sessions.ended_at - sessions.created_at AS length,
+ *     sessions.ended_at,
  *     sessions.created_at,
  *     users.first_name,
  *     COUNT(session_id) AS message_count

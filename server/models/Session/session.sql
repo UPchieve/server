@@ -1211,11 +1211,12 @@ GROUP BY
     subjects.name,
     topics.name;
 
+
 /* @name getStudentSessionDetails */
 SELECT
     sessions.id,
     subjects.name,
-    sessions.ended_at - sessions.created_at AS length,
+    sessions.ended_at,
     sessions.created_at,
     users.first_name,
     COUNT(session_id) AS message_count
@@ -1232,3 +1233,4 @@ GROUP BY
     sessions.ended_at,
     sessions.created_at,
     users.first_name;
+
