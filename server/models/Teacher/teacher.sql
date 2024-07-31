@@ -16,6 +16,7 @@ SELECT
     teacher_classes.user_id,
     name,
     code,
+    topic_id,
     active,
     COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
@@ -31,10 +32,12 @@ GROUP BY
 
 /* @name getTeacherClassByClassCode */
 SELECT
+    id,
     user_id,
     name,
     code,
     active,
+    topic_id,
     created_at,
     updated_at
 FROM

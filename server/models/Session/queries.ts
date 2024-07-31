@@ -1472,3 +1472,18 @@ async function getSessionUsers(
     volunteer: volunteer ? { _id: volunteer.id, ...volunteer } : undefined,
   }
 }
+
+export async function getStudentSessionDetails(
+  tc: TransactionClient,
+  studentId: Ulid
+) {
+  try {
+    const sessionDetails = await pgQueries.getStudentSessionDetails.run(
+      { studentId },
+      tc
+    )
+    return sessionDetails.map(s => makeRequired(s))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

@@ -58,7 +58,7 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeRequired(c))
+    return classes.map(c => makeSomeOptional(c, ['topicId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
