@@ -85,6 +85,7 @@ export function routes(app: Express) {
     }
     ;(req.session as SessionWithSsoData).provider = provider
     ;(req.session as SessionWithSsoData).isLogin = isLogin
+    ;(req.session as SessionWithSsoData).redirect = req.query.redirect as string
     const strategy = provider
     passport.authenticate(strategy)(req, res)
   })
@@ -93,6 +94,7 @@ export function routes(app: Express) {
     const {
       provider = req.headers.referer?.includes('clever') ? 'clever' : '',
       isLogin = true,
+      redirect = '',
       studentData,
     } = req.session as SessionWithSsoData
     if (!provider || !isSupportedSsoProvider(provider)) {
@@ -103,7 +105,7 @@ export function routes(app: Express) {
     passport.authenticate(strategy, async function(_err, user, errorMsg) {
       if (user) {
         await req.asyncLogin(user)
-        return res.redirect(AuthRedirect.successRedirect)
+        return res.redirect(AuthRedirect.successRedirect(redirect))
       } else {
         req.logout()
         return res.redirect(
