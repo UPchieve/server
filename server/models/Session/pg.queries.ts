@@ -2684,3 +2684,54 @@ const getUserSessionStatsIR: any = {"name":"getUserSessionStats","params":[{"nam
 export const getUserSessionStats = new PreparedQuery<IGetUserSessionStatsParams,IGetUserSessionStatsResult>(getUserSessionStatsIR);
 
 
+/** 'GetStudentSessionDetails' parameters type */
+export interface IGetStudentSessionDetailsParams {
+  studentId: string;
+}
+
+/** 'GetStudentSessionDetails' return type */
+export interface IGetStudentSessionDetailsResult {
+  createdAt: Date;
+  endedAt: Date | null;
+  firstName: string;
+  id: string;
+  messageCount: string | null;
+  name: string;
+}
+
+/** 'GetStudentSessionDetails' query type */
+export interface IGetStudentSessionDetailsQuery {
+  params: IGetStudentSessionDetailsParams;
+  result: IGetStudentSessionDetailsResult;
+}
+
+const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":34505,"b":34514,"line":1228,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name","loc":{"a":34148,"b":34628,"line":1215,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     subjects.name,
+ *     sessions.ended_at,
+ *     sessions.created_at,
+ *     users.first_name,
+ *     COUNT(session_id) AS message_count
+ * FROM
+ *     sessions
+ *     LEFT JOIN session_messages ON sessions.id = session_id
+ *     JOIN subjects ON sessions.subject_id = subjects.id
+ *     JOIN users ON sessions.student_id = users.id
+ * WHERE
+ *     student_id = :studentId!
+ * GROUP BY
+ *     sessions.id,
+ *     subjects.name,
+ *     sessions.ended_at,
+ *     sessions.created_at,
+ *     users.first_name
+ * ```
+ */
+export const getStudentSessionDetails = new PreparedQuery<IGetStudentSessionDetailsParams,IGetStudentSessionDetailsResult>(getStudentSessionDetailsIR);
+
+
