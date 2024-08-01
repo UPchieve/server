@@ -45,6 +45,21 @@ FROM
 WHERE
     code = :code!;
 
+/* @name getTeacherClassById */
+SELECT
+    id,
+    user_id,
+    name,
+    code,
+    active,
+    topic_id,
+    created_at,
+    updated_at
+FROM
+    teacher_classes
+WHERE
+    id = :id!;
+
 
 /* @name getStudentIdsInTeacherClass */
 SELECT

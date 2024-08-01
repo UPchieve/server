@@ -81,6 +81,24 @@ export async function getTeacherClassByClassCode(
   }
 }
 
+export async function getTeacherClassById(
+  id: Ulid,
+  tc: TransactionClient
+) {
+  try {
+    const teacherClass = await pgQueries.getTeacherClassById.run(
+      { id },
+      tc
+    )
+    if (teacherClass.length) {
+      return makeRequired(teacherClass[0])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+
 export async function getStudentIdsInTeacherClass(
   tc: TransactionClient,
   classId: Ulid
