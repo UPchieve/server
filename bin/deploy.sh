@@ -1,12 +1,12 @@
 #!/bin/bash
 
 if [ "$1" = 'hackers' ]; then
-  RESOURCE_GROUP='hackers'
+  ENV_NAME='hackers'
 else
-  RESOURCE_GROUP=$(op read op://private/subway-local-deploy/resource-group)
+  ENV_NAME=$(op read op://private/subway-local-deploy/resource-group)
 fi
 
-REGISTRY_NAME=uc${RESOURCE_GROUP}registry.azurecr.io
+REGISTRY_NAME=uc${ENV_NAME}registry.azurecr.io
 
 echo Logging in to container registry: $REGISTRY_NAME
 az acr login --name $REGISTRY_NAME
@@ -17,16 +17,18 @@ echo "Building Docker image with tag: $IMAGE"
 docker build --tag $IMAGE .
 docker push $IMAGE
 
-CONTAINER_APP_NAME=$RESOURCE_GROUP-container-app-subway
-echo "Deploying subway: $CONTAINER_APP_NAME"
+RESOURCE_GROUP_NAME=$ENV_NAME-resource-group
+
+CONTAINER_APP_NAME=$ENV_NAME-container-app-subway
+echo "Deploying subway image $IMAGE to $CONTAINER_APP_NAME in $RESOURCE_GROUP_NAME"
 az containerapp update \
   --name $CONTAINER_APP_NAME \
-  --resource-group $RESOURCE_GROUP \
+  --resource-group $RESOURCE_GROUP_NAME \
   --image $IMAGE
 
-CONTAINER_APP_WORKER_NAME=$RESOURCE_GROUP-container-app-worker
-echo "Deploying worker: $CONTAINER_APP_WORKER_NAME"
+CONTAINER_APP_WORKER_NAME=$ENV_NAME-container-app-worker
+echo "Deploying worker image $IMAGE to $CONTAINER_APP_WORKER_NAME in $RESOURCE_GROUP_NAME"
 az containerapp update \
   --name $CONTAINER_APP_WORKER_NAME \
-  --resource-group $RESOURCE_GROUP \
+  --resource-group $RESOURCE_GROUP_NAME \
   --image $IMAGE
