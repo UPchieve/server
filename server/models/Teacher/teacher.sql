@@ -45,6 +45,7 @@ FROM
 WHERE
     code = :code!;
 
+
 /* @name getTeacherClassById */
 SELECT
     id,

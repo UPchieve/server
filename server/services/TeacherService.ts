@@ -38,7 +38,7 @@ export async function getTeacherClassByClassCode(code: string) {
   })
 }
 
-export async function getTeacherClassById(id: Ulid){
+export async function getTeacherClassById(id: Ulid) {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClass = await TeacherRepo.getTeacherClassById(id, tc)
     return teacherClass
