@@ -33,6 +33,16 @@ WHERE
         OR users.mongo_id::text = :mongoUserId);
 
 
+/* @name getStudentByEmail */
+SELECT
+    users.id
+FROM
+    student_profiles
+    LEFT JOIN users ON student_profiles.user_id = users.id
+WHERE
+    email = :email!;
+
+
 /* @name isTestUser */
 SELECT
     test_user
@@ -792,4 +802,11 @@ FROM
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
     student_profiles.user_id IN :userIds!;
+
+
+/* @name addStudentToTeacherClass */
+INSERT INTO student_classes (user_id, class_id)
+    VALUES (:userId!, :classId!)
+ON CONFLICT (user_id, class_id)
+    DO NOTHING;
 

@@ -77,6 +77,22 @@ export async function getStudentContactInfoById(
   }
 }
 
+export async function getStudentByEmail(email: string) {
+  try {
+    const result = await pgQueries.getStudentByEmail.run(
+      {
+        email,
+      },
+      getClient()
+    )
+    if (result.length) {
+      return makeRequired(result[0])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 // NOTE: duplicate of `isTestUser` query function in this file
 // TODO: remove once there are no more callers of this function
 export async function getTestStudentExistsById(
@@ -1009,5 +1025,17 @@ export async function getStudentProfilesByUserIds(
     return []
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function addStudentToTeacherClass(
+  tc: TransactionClient,
+  userId: Ulid,
+  classId: Ulid
+) {
+  try {
+    await pgQueries.addStudentToTeacherClass.run({ userId, classId }, tc)
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

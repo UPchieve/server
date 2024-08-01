@@ -1,4 +1,5 @@
 import { runInTransaction, TransactionClient } from '../db'
+import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import * as StudentRepo from '../models/Student'
 import * as SubjectsRepo from '../models/Subjects'
@@ -44,6 +45,23 @@ export async function getStudentsInTeacherClass(classId: Ulid) {
       classId
     )
     return StudentRepo.getStudentProfilesByUserIds(tc, studentIds)
+  })
+}
+
+export async function addStudentToTeacherClass(
+  userId: Ulid,
+  classCode: string
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const teacherClass = await TeacherRepo.getTeacherClassByClassCode(
+      classCode,
+      tc
+    )
+    if (!teacherClass) throw new InputError('Incorrect class code.')
+
+    await StudentRepo.addStudentToTeacherClass(tc, userId, teacherClass.id)
+
+    return teacherClass
   })
 }
 
