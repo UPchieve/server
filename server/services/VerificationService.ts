@@ -151,7 +151,10 @@ async function sendEmails(userId: Ulid): Promise<void> {
     )
     await StudentService.queueOnboardingEmails(user.id)
   } else if (isTeacherUserType(userType)) {
-    // TODO: TEACHER PROFILES.
+    await MailService.sendTeacherOnboardingWelcomeEmail(
+      user.email,
+      user.firstName
+    )
   }
 }
 

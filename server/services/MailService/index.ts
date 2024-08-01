@@ -246,6 +246,24 @@ export async function sendStudentOnboardingWelcomeEmail(
   )
 }
 
+export async function sendTeacherOnboardingWelcomeEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const overrides = {
+    categories: ['teacher welcome email'],
+  }
+
+  await sendEmail(
+    email,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.teacherOnboardingWelcomeTemplate,
+    { firstName },
+    overrides
+  )
+}
+
 export async function sendStudentOnboardingHowItWorks(
   email: string,
   firstName: string
