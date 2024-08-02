@@ -31,7 +31,7 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/class/:classId').get(async function(req, res) {
+  router.route('/class/:classId/students').get(async function(req, res) {
     try {
       const classId = req.params.classId as string
       const students = await TeacherService.getStudentsInTeacherClass(classId)
@@ -41,9 +41,9 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/classes/:classCode').get(async function(req, res) {
+  router.route('/classes').get(async function(req, res) {
     try {
-      const classCode = req.params.classCode as string
+      const classCode = req.query.classCode as string
       const teacherClass = await TeacherService.getTeacherClassByClassCode(
         classCode
       )
@@ -53,7 +53,7 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/classes/class/:classId').get(async function(req, res) {
+  router.route('class/:classId').get(async function(req, res) {
     try {
       const classId = req.params.classId as string
       const teacherClass = await TeacherService.getTeacherClassById(classId)
@@ -63,6 +63,7 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  //put in session routes
   router.route('/classes/student/:studentId').get(async function(req, res) {
     try {
       const studentId = req.params.studentId as string
