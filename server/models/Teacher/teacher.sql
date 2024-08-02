@@ -55,7 +55,14 @@ SELECT
     active,
     topic_id,
     created_at,
-    updated_at
+    updated_at,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            student_classes
+        WHERE
+            class_id = id) AS total_students
 FROM
     teacher_classes
 WHERE
