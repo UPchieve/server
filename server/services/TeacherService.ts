@@ -38,6 +38,13 @@ export async function getTeacherClassByClassCode(code: string) {
   })
 }
 
+export async function getTeacherClassById(id: Ulid) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const teacherClass = await TeacherRepo.getTeacherClassById(id, tc)
+    return teacherClass
+  })
+}
+
 export async function getStudentsInTeacherClass(classId: Ulid) {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
