@@ -55,21 +55,37 @@ export async function getStudentsInTeacherClass(classId: Ulid) {
   })
 }
 
+export async function getTeacherSchoolIdFromClassCode(
+  code: string,
+  tc: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const teacherClass = await TeacherRepo.getTeacherClassByClassCode(code, tc)
+    if (!teacherClass) return
+
+    const teacher = await TeacherRepo.getTeacherById(teacherClass.userId, tc)
+    if (!teacher) return
+
+    return teacher.schoolId
+  }, tc)
+}
+
 export async function addStudentToTeacherClass(
   userId: Ulid,
-  classCode: string
+  classCode: string,
+  tc?: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClass = await TeacherRepo.getTeacherClassByClassCode(
       classCode,
       tc
     )
-    if (!teacherClass) throw new InputError('Incorrect class code.')
+    if (!teacherClass) throw new InputError('Invalid class code.')
 
     await StudentRepo.addStudentToTeacherClass(tc, userId, teacherClass.id)
 
     return teacherClass
-  })
+  }, tc)
 }
 
 async function generateUniqueClassCode(tc: TransactionClient) {

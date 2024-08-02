@@ -105,8 +105,11 @@ export async function closeClient(): Promise<void> {
 
 export type TransactionClient = Pool | PoolClient
 export async function runInTransaction<T>(
-  cb: (tc: TransactionClient) => Promise<T>
+  cb: (tc: TransactionClient) => Promise<T>,
+  existingTc?: TransactionClient
 ) {
+  if (existingTc) return cb(existingTc)
+
   const tc = await getClient().connect()
   try {
     await tc.query('BEGIN')
