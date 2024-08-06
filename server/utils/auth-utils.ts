@@ -192,6 +192,7 @@ export interface RegisterTeacherPayload {
   lastName: string
   password: string
   schoolId?: string
+  signupSource?: string
 }
 export const registerTeacherValidator = asFactory<RegisterTeacherPayload>({
   email: asString,
@@ -200,6 +201,7 @@ export const registerTeacherValidator = asFactory<RegisterTeacherPayload>({
   lastName: asString,
   password: asString,
   schoolId: asOptional(asString),
+  signupSource: asOptional(asString),
 })
 
 export interface ResetConfirmData {

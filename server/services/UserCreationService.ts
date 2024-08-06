@@ -353,12 +353,18 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
   await checkUser(data.email)
 
   const newTeacher = await runInTransaction(async (tc: TransactionClient) => {
+    const signupSource = await SignUpSourceRepo.getSignUpSourceByName(
+      'Other',
+      tc
+    )
+
     const userData = {
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
-      // TODO: Include signup source?
       password: await hashPassword(data.password),
+      signupSourceId: signupSource?.id,
+      otherSignupSource: data.signupSource,
     }
     const user = await createUser(userData, data.ip, USER_ROLES.TEACHER, tc)
 
