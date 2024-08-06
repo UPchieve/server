@@ -24,6 +24,7 @@ export const Config = Record({
     openVolunteerWelcomeTemplate: String,
     partnerVolunteerWelcomeTemplate: String,
     studentOnboardingWelcomeTemplate: String,
+    teacherOnboardingWelcomeTemplate: String,
     reportedSessionAlertTemplate: String,
     referenceFormTemplate: String,
     referenceFormApologyTemplate: String,

@@ -27,6 +27,7 @@ import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
 import { insertFederatedCredential } from '../models/FederatedCredential'
 import { checkIpAddress, checkUser } from './AuthService'
 import { verifyEligibility } from './EligibilityService'
+import * as TeacherService from './TeacherService'
 import {
   createParentGuardian,
   linkParentGuardianToStudent,
@@ -187,15 +188,27 @@ export async function registerStudent(data: RegisterStudentPayload) {
     }
     const user = await createUser(userData, data.ip, USER_ROLES.STUDENT, tc)
 
+    let teacherSchoolId
+    if (data.classCode) {
+      teacherSchoolId = await TeacherService.getTeacherSchoolIdFromClassCode(
+        data.classCode,
+        tc
+      )
+    }
+
     const studentData = {
       userId: user.id,
       gradeLevel: data.gradeLevel,
-      schoolId: data.schoolId,
+      schoolId: data.schoolId ?? teacherSchoolId,
       studentPartnerOrgKey: data.studentPartnerOrgKey,
       studentPartnerOrgSiteName: data.studentPartnerOrgSiteName,
       zipCode: data.zipCode,
     }
     await upsertStudent(studentData, tc)
+
+    if (data.classCode) {
+      await TeacherService.addStudentToTeacherClass(user.id, data.classCode, tc)
+    }
 
     if (useFedCred(data)) {
       await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
@@ -353,12 +366,18 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
   await checkUser(data.email)
 
   const newTeacher = await runInTransaction(async (tc: TransactionClient) => {
+    const signupSource = await SignUpSourceRepo.getSignUpSourceByName(
+      'Other',
+      tc
+    )
+
     const userData = {
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
-      // TODO: Include signup source?
       password: await hashPassword(data.password),
+      signupSourceId: signupSource?.id,
+      otherSignupSource: data.signupSource,
     }
     const user = await createUser(userData, data.ip, USER_ROLES.TEACHER, tc)
 

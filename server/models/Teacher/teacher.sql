@@ -10,6 +10,18 @@ RETURNING
     id, user_id, name, code, topic_id, active, created_at, updated_at;
 
 
+/* @name getTeacherById */
+SELECT
+    user_id,
+    school_id,
+    created_at,
+    updated_at
+FROM
+    teacher_profiles
+WHERE
+    user_id = :userId!;
+
+
 /* @name getTeacherClassesByUserId */
 SELECT
     id,

@@ -3,6 +3,7 @@ import { extractUserIfExists } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'
 import * as TeacherService from '../../services/TeacherService'
+import { InputError } from '../../models/Errors'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -19,6 +20,13 @@ export function routes(app: Express) {
           classCode
         )
         return res.json({ teacherClass })
+      }
+
+      const teacherClass = await TeacherService.getTeacherClassByClassCode(
+        classCode
+      )
+      if (!teacherClass) {
+        throw new InputError('Invalid class code.')
       }
 
       const isExistingStudent = await StudentService.doesStudentWithEmailExist(
