@@ -557,6 +557,26 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         .emit('sessions/partner:in-session', false)
     })
 
+    socket.conn.once('upgrade', () => {
+      socket.downgraded = false
+      logSocketConnectionInfo('transportUpgrade', socket)
+    })
+
+    socket.conn.on('packet', packet => {
+      if (
+        packet.type === 'ping' &&
+        socket.conn.transport.name !== 'websocket' &&
+        !socket.downgraded
+      ) {
+        socket.downgraded = true
+        logSocketConnectionInfo('socketTransportDowngrade', socket)
+        newrelic.recordCustomEvent('socketTransportDowngrade', {
+          transport: socket.conn.transport.name,
+          timestamp: Date.now(),
+        })
+      }
+    })
+
     // Log socket connection-related events for analytics
     connectionEvents.forEach(event => {
       socket.prependListener(event, args =>
