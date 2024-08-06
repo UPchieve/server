@@ -135,6 +135,7 @@ export const logSocketConnectionInfo = (
         roles: socket.request.user?.roles,
       },
       rooms: Array.from(socket.rooms),
+      transport: socket.conn.transport.name,
       ...additionalMetadata,
       recovered: socket.recovered,
       socketId: socket.id,

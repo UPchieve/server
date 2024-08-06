@@ -3,7 +3,10 @@ import { UserContactInfo } from '../models/User'
 import { NotAuthenticatedError } from '../models/Errors'
 import { Socket } from 'socket.io'
 
-export type SocketUser = Socket & { request: { user?: UserContactInfo } }
+export type SocketUser = Socket & {
+  request: { user?: UserContactInfo }
+  downgraded?: boolean
+}
 
 export function extractUser(req: Request): UserContactInfo {
   if (!req.user) throw new NotAuthenticatedError()
