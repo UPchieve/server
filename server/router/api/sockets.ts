@@ -558,14 +558,17 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.conn.once('upgrade', () => {
+      socket.downgraded = false
       logSocketConnectionInfo('transportUpgrade', socket)
     })
 
     socket.conn.on('packet', packet => {
       if (
         packet.type === 'ping' &&
-        socket.conn.transport.name !== 'websocket'
+        socket.conn.transport.name !== 'websocket' &&
+        !socket.downgraded
       ) {
+        socket.downgraded = true
         logSocketConnectionInfo('socketTransportDowngrade', socket)
         newrelic.recordCustomEvent('socketTransportDowngrade', {
           transport: socket.conn.transport.name,
