@@ -1962,8 +1962,8 @@ CREATE TABLE upchieve.teacher_classes (
     name text NOT NULL,
     code text NOT NULL,
     active boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     topic_id integer
 );
 
@@ -1975,8 +1975,8 @@ CREATE TABLE upchieve.teacher_classes (
 CREATE TABLE upchieve.teacher_profiles (
     user_id uuid NOT NULL,
     school_id uuid,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -5700,4 +5700,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240705012935'),
     ('20240708183519'),
     ('20240711180618'),
-    ('20240723161108');
+    ('20240723161108'),
+    ('20240731165533');

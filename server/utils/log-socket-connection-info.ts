@@ -137,6 +137,8 @@ export const logSocketConnectionInfo = (
       rooms: Array.from(socket.rooms),
       transport: socket.conn.transport.name,
       ...additionalMetadata,
+      recovered: socket.recovered,
+      socketId: socket.id,
     }
     const message = `Socket connection event: ${event}`
     disconnectReason?.isError || error?.message

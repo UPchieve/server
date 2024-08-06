@@ -18,8 +18,8 @@ export class AuthRedirect {
     return this._baseRedirect
   }
 
-  static get successRedirect() {
-    return this.getBaseRedirect()
+  static successRedirect(redirect?: string) {
+    return this.getBaseRedirect() + (redirect ?? '')
   }
 
   static failureRedirect(

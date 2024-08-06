@@ -58,7 +58,7 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeRequired(c))
+    return classes.map(c => makeSomeOptional(c, ['topicId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -74,7 +74,18 @@ export async function getTeacherClassByClassCode(
       tc
     )
     if (teacherClass.length) {
-      return makeRequired(teacherClass[0])
+      return makeSomeOptional(teacherClass[0], ['topicId'])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTeacherClassById(id: Ulid, tc: TransactionClient) {
+  try {
+    const teacherClass = await pgQueries.getTeacherClassById.run({ id }, tc)
+    if (teacherClass.length) {
+      return makeSomeOptional(teacherClass[0], ['topicId'])
     }
   } catch (err) {
     throw new RepoReadError(err)

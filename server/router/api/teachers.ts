@@ -1,6 +1,7 @@
 import { Express, Router } from 'express'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
+import * as SessionService from '../../services/SessionService'
 import { resError } from '../res-error'
 
 export function routeTeachers(app: Express, router: Router): void {
@@ -30,11 +31,33 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/class/:classId').get(async function(req, res) {
+  router.route('/class/:classId/students').get(async function(req, res) {
     try {
       const classId = req.params.classId as string
       const students = await TeacherService.getStudentsInTeacherClass(classId)
       res.json({ students })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/class').get(async function(req, res) {
+    try {
+      const classCode = req.query.classCode as string
+      const teacherClass = await TeacherService.getTeacherClassByClassCode(
+        classCode
+      )
+      res.json({ teacherClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('class/:classId').get(async function(req, res) {
+    try {
+      const classId = req.params.classId as string
+      const teacherClass = await TeacherService.getTeacherClassById(classId)
+      res.json({ teacherClass })
     } catch (err) {
       resError(res, err)
     }

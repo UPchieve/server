@@ -10,6 +10,10 @@ export function extractUser(req: Request): UserContactInfo {
   return req.user as UserContactInfo
 }
 
+export function extractUserIfExists(req: Request): UserContactInfo | undefined {
+  return req.user as UserContactInfo
+}
+
 // Non-existent user is handled by socket middleware
 export function extractSocketUser(socket: SocketUser): UserContactInfo {
   const {

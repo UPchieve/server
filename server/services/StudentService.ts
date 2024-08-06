@@ -1,8 +1,6 @@
 import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
-import { School } from '../models/School'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
-import { getSchool } from './SchoolService'
 import * as AnalyticsService from './AnalyticsService'
 import * as StudentRepo from '../models/Student/queries'
 import config from '../config'
@@ -13,8 +11,6 @@ import {
   StudentPartnerOrgInstance,
   StudentSignupSources,
 } from '../models/Student/queries'
-import moment from 'moment'
-import { updateUserPhoneNumberByUserId } from '../models/User'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -117,4 +113,8 @@ export async function adminGetActivePartnersForStudent(
   studentId: Ulid
 ): Promise<StudentPartnerOrgInstance[] | undefined> {
   return await StudentRepo.getActivePartnersForStudent(studentId)
+}
+
+export async function doesStudentWithEmailExist(email: string) {
+  return !!(await StudentRepo.getStudentByEmail(email))
 }
