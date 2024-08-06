@@ -53,7 +53,7 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('class/:classId').get(async function(req, res) {
+  router.route('/class/:classId').get(async function(req, res) {
     try {
       const classId = req.params.classId as string
       const teacherClass = await TeacherService.getTeacherClassById(classId)
