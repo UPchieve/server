@@ -54,6 +54,7 @@ export interface SessionWithSsoData extends session.Session {
 }
 
 export interface RegisterStudentPayload {
+  classCode?: string
   email: string
   firstName: string
   gradeLevel?: string
@@ -72,6 +73,7 @@ export interface RegisterStudentPayload {
   zipCode?: string
 }
 export const registerStudentValidator = asFactory<RegisterStudentPayload>({
+  classCode: asOptional(asString),
   email: asString,
   firstName: asString,
   gradeLevel: asOptional(asEnum(GRADES)),

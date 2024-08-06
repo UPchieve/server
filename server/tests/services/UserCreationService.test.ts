@@ -11,6 +11,7 @@ import * as FedCredRepo from '../../models/FederatedCredential'
 import * as MailService from '../../services/MailService'
 import * as EligibilityService from '../../services/EligibilityService'
 import * as IpAddressService from '../../services/IpAddressService'
+import * as TeacherService from '../../services/TeacherService'
 import {
   registerStudent,
   rosterPartnerStudents,
@@ -29,6 +30,7 @@ jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/FederatedCredential/queries')
 jest.mock('../../services/MailService')
 jest.mock('../../services/IpAddressService')
+jest.mock('../../services/TeacherService')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedStudentRepo = mocked(StudentRepo)
@@ -40,6 +42,7 @@ const mockedUserActionRepo = mocked(UserActionRepo)
 const mockedFedCredRepo = mocked(FedCredRepo)
 const mockedMailService = mocked(MailService)
 const mockedIpAddressService = mocked(IpAddressService)
+const mockedTeacherService = mocked(TeacherService)
 jest.spyOn(EligibilityService, 'verifyEligibility').mockResolvedValue(true)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7
@@ -697,6 +700,67 @@ describe('registerStudent', () => {
       USER_ID,
       expect.toBeTransactionClient()
     )
+  })
+
+  test('creates user with linked class if class code available', async () => {
+    const USER_ID = 'linkClassCode'
+    const student = {
+      classCode: 'ABC123',
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'this-is-my-PASSword999',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+    mockedTeacherService.getTeacherSchoolIdFromClassCode.mockResolvedValue(
+      undefined
+    )
+
+    await registerStudent(student)
+
+    expect(mockedTeacherService.addStudentToTeacherClass).toHaveBeenCalledWith(
+      USER_ID,
+      student.classCode,
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test(`uses teacher's school if have a class code and no schoolId was provided`, async () => {
+    const USER_ID = 'useTeacherSchool'
+    const teacherSchoolId = 'teacherSchoolId'
+
+    const student = {
+      classCode: '987ZYX',
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      password: 'purpleEleph@nt5',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      email: student.email,
+      firstName: student.firstName,
+    })
+    mockedTeacherService.getTeacherSchoolIdFromClassCode.mockResolvedValue(
+      teacherSchoolId
+    )
+
+    await registerStudent(student)
+
+    expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalledWith(
+      {
+        userId: USER_ID,
+        schoolId: teacherSchoolId,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(
+      mockedStudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId
+    ).toHaveBeenCalled()
   })
 
   test('creates user with referral', async () => {

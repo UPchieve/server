@@ -49,6 +49,22 @@ export async function createTeacherClass(
   }
 }
 
+export async function getTeacherById(userId: Ulid, tc: TransactionClient) {
+  try {
+    const teacher = await pgQueries.getTeacherById.run(
+      {
+        userId,
+      },
+      tc
+    )
+    if (teacher.length) {
+      return makeSomeOptional(teacher[0], ['schoolId'])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getTeacherClassesByUserId(
   userId: Ulid,
   tc: TransactionClient = getClient()
@@ -70,7 +86,7 @@ export async function getTeacherClassByClassCode(
 ) {
   try {
     const teacherClass = await pgQueries.getTeacherClassByClassCode.run(
-      { code: classCode },
+      { code: classCode.toUpperCase() },
       tc
     )
     if (teacherClass.length) {
