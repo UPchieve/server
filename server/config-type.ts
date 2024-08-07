@@ -234,4 +234,8 @@ export const Config = Record({
   langfuseSecretKey: String,
   langfusePublicKey: String,
   langfuseBaseUrl: String,
+
+  // Azure Content Safety
+  azureContentSafetyApiKey: String,
+  azureContentSafetyBaseUrl: String,
 })

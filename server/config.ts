@@ -358,6 +358,10 @@ const config: Static<typeof Config> = {
   langfuseSecretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY || 'bogus',
   langfusePublicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY || 'bogus',
   langfuseBaseUrl: process.env.SUBWAY_LANGFUSE_BASEURL || 'bogus',
+
+  // Azure Content Safety
+  azureContentSafetyApiKey: process.env.SUBWAY_AZURE_CONTENT_SAFETY_API_KEY,
+  azureContentSafetyBaseUrl: process.env.SUBWAY_AZURE_CONTENT_SAFETY_BASE_URL,
 }
 
 module.exports = config

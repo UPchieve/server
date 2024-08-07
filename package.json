@@ -64,6 +64,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.588.0",
     "@aws-sdk/s3-request-presigner": "^3.588.0",
+    "@azure-rest/ai-content-safety": "^1.0.0",
     "@azure-rest/ai-vision-image-analysis": "^1.0.0-beta.2",
     "@azure/core-auth": "^1.7.2",
     "@azure/identity": "^1.2.3",
