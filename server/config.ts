@@ -360,8 +360,10 @@ const config: Static<typeof Config> = {
   langfuseBaseUrl: process.env.SUBWAY_LANGFUSE_BASEURL || 'bogus',
 
   // Azure Content Safety
-  azureContentSafetyApiKey: process.env.SUBWAY_AZURE_CONTENT_SAFETY_API_KEY,
-  azureContentSafetyBaseUrl: process.env.SUBWAY_AZURE_CONTENT_SAFETY_BASE_URL,
+  azureContentSafetyApiKey:
+    process.env.SUBWAY_AZURE_CONTENT_SAFETY_API_KEY || 'bogus',
+  azureContentSafetyBaseUrl:
+    process.env.SUBWAY_AZURE_CONTENT_SAFETY_BASE_URL || 'bogus',
 }
 
 module.exports = config
