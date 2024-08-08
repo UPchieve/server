@@ -288,7 +288,7 @@ export const moderateImage = async (
 
   logger.info(
     {
-      fileName: imageFile.filename,
+      fileName: imageFile.originalname,
       sessionId,
       analysis: (result as AnalyzeImage200Response).body.categoriesAnalysis,
     },
