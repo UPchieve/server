@@ -158,7 +158,7 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
   if (!data.studentPartnerOrgKey) {
     await verifyEligibility(data.zipCode, data.schoolId)
   }
-  if (data.ip) {
+  if (data.ip && !data.studentPartnerOrgKey) {
     await checkIpAddress(data.ip)
   }
   if (!usePassword(data) && !useResetToken(data) && !useFedCred(data)) {
