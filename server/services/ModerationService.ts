@@ -38,6 +38,8 @@ const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 const LF_TRACE_NAME = 'moderateSessionMessage'
 const LF_GENERATION_NAME = 'getModerationDecision'
 
+// Image moderation
+const AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD = 2
 const createAzureContentSafetyClient = () => {
   const credential = new AzureKeyCredential(config.azureContentSafetyApiKey)
   return ContentSafetyClient(config.azureContentSafetyBaseUrl, credential)
@@ -304,9 +306,9 @@ const getImageModerationDecision = (
   isClean: boolean
   failureReasons?: ModerationFailureReasons
 } => {
-  const threshold = 2 // The max score that Azure can give in any category before the image is deemed unsafe
   const failureCategories = result.body.categoriesAnalysis.filter(
-    category => category.severity ?? 0 > threshold
+    category =>
+      category.severity ?? 0 > AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD
   )
   const isClean = failureCategories.length === 0
   return {
