@@ -5,8 +5,11 @@ import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { isVolunteerUserType } from '../../utils/user-type'
+import multer from 'multer'
 
 export function routeModeration(router: Router): void {
+  const upload = multer()
+
   router.route('/moderate/message').post(async (req, res) => {
     try {
       const user = extractUser(req)
@@ -32,4 +35,24 @@ export function routeModeration(router: Router): void {
       resError(res, error)
     }
   })
+
+  router
+    .route('/moderate/image')
+    .post(upload.single('image'), async (req, res) => {
+      const imageToModerate = req.file
+      const sessionId = req.body.sessionId
+      if (!imageToModerate) {
+        return res.status(400).json({ err: 'No file was attached' })
+      }
+
+      try {
+        const moderationResult = await ModerationService.moderateImage(
+          imageToModerate,
+          sessionId
+        )
+        res.status(200).json(moderationResult)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }
