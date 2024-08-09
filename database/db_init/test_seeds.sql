@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 16.2
+-- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
+-- Dumped by pg_dump version 16.2 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -444,6 +444,23 @@ COPY upchieve.federated_credentials (id, issuer, user_id) FROM stdin;
 --
 
 COPY upchieve.feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, legacy_feedbacks, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: grade_level_sequence; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.grade_level_sequence (grade_name, next_grade_name) FROM stdin;
+6th	7th
+7th	8th
+8th	9th
+9th	10th
+10th	11th
+11th	12th
+12th	College
+College	College
+Other	Other
 \.
 
 
@@ -2840,7 +2857,7 @@ COPY upchieve.sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, vol
 --
 
 COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	\N	2024-07-05 20:23:13.609816	2024-07-05 20:23:13.609816
+01859800-bca8-af9e-8f1d-815bf6891cf5	\N	2024-07-05 20:23:13.609816+00	2024-07-05 20:23:13.609816+00
 \.
 
 
@@ -2849,7 +2866,7 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 --
 
 COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427	2024-07-05 20:24:33.10427	\N
+01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427+00	2024-07-05 20:24:33.10427+00	\N
 \.
 
 
