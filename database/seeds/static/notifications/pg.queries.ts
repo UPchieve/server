@@ -24,21 +24,26 @@ const insertNotificationMethodIR: any = {
       name: 'method',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 112, b: 118, line: 2, col: 75 }] },
+      codeRefs: { used: [{ a: 116, b: 122, line: 3, col: 13 }] },
     },
   ],
   usedParamSet: { method: true },
   statement: {
     body:
-      'INSERT INTO notification_methods (method, created_at, updated_at) VALUES (:method!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 37, b: 175, line: 2, col: 0 },
+      'INSERT INTO notification_methods (method, created_at, updated_at)\n    VALUES (:method!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 37, b: 187, line: 2, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO notification_methods (method, created_at, updated_at) VALUES (:method!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO notification_methods (method, created_at, updated_at)
+ *     VALUES (:method!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertNotificationMethod = new PreparedQuery<
@@ -69,21 +74,26 @@ const insertNotificationTypeIR: any = {
       name: 'type',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 285, b: 289, line: 5, col: 71 }] },
+      codeRefs: { used: [{ a: 302, b: 306, line: 12, col: 13 }] },
     },
   ],
   usedParamSet: { type: true },
   statement: {
     body:
-      'INSERT INTO notification_types (type, created_at, updated_at) VALUES (:type!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 214, b: 346, line: 5, col: 0 },
+      'INSERT INTO notification_types (TYPE, created_at, updated_at)\n    VALUES (:type!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 227, b: 371, line: 11, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO notification_types (type, created_at, updated_at) VALUES (:type!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO notification_types (TYPE, created_at, updated_at)
+ *     VALUES (:type!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertNotificationType = new PreparedQuery<
@@ -115,27 +125,32 @@ const insertPriorityGroupIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 473, b: 477, line: 8, col: 91 }] },
+      codeRefs: { used: [{ a: 503, b: 507, line: 21, col: 13 }] },
     },
     {
       name: 'priority',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 481, b: 489, line: 8, col: 99 }] },
+      codeRefs: { used: [{ a: 511, b: 519, line: 21, col: 21 }] },
     },
   ],
   usedParamSet: { name: true, priority: true },
   statement: {
     body:
-      'INSERT INTO notification_priority_groups (name, priority, created_at, updated_at) VALUES (:name!, :priority!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 382, b: 546, line: 8, col: 0 },
+      'INSERT INTO notification_priority_groups (name, priority, created_at, updated_at)\n    VALUES (:name!, :priority!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 408, b: 584, line: 20, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO notification_priority_groups (name, priority, created_at, updated_at) VALUES (:name!, :priority!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO notification_priority_groups (name, priority, created_at, updated_at)
+ *     VALUES (:name!, :priority!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertPriorityGroup = new PreparedQuery<

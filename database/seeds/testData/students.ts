@@ -65,16 +65,19 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
       userId: userMap[student1] as string,
       studentPartnerOrgId: undefined,
       schoolId: schoolIds['Approved School'] as string,
+      gradeLevelId: 2,
     },
     {
       userId: userMap[student2] as string,
       studentPartnerOrgId: spoIds['College Mentors'] as string,
       schoolId: schoolIds['Approved Partner School'] as string,
+      gradeLevelId: 2,
     },
     {
       userId: userMap[student3] as string,
       studentPartnerOrgId: spoIds['School Helpers'] as string,
       schoolId: undefined,
+      gradeLevelId: 2,
     },
   ]
 
