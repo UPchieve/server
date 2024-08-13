@@ -515,7 +515,7 @@ export async function getMessagesForFrontend(
         { sessionId },
         usableClient
       )
-    ).map(v => makeRequired(v))
+    ).map(v => makeSomeOptional(v, ['transcript']))
 
     // insert voice messages
     const merged = result
@@ -903,11 +903,12 @@ export async function addMessageToSessionById(
 export async function addVoiceMessageToSessionById(
   sessionId: Ulid,
   senderId: Ulid,
-  voiceMessageId: Ulid
+  voiceMessageId: Ulid,
+  transcript: string
 ): Promise<string> {
   try {
     const result = await pgQueries.insertNewVoiceMessage.run(
-      { id: voiceMessageId, sessionId, senderId },
+      { id: voiceMessageId, sessionId, senderId, transcript },
       getClient()
     )
     if (!result.length) throw new RepoCreateError('Insert did not return ok')

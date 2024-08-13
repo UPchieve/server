@@ -169,7 +169,7 @@ export function routeSession(router: Router) {
         // 1. save to database
         // 2. upload to storage
         // 3. return voiceMessageId
-        const { senderId, sessionId } = req.body
+        const { senderId, sessionId, transcript } = req.body
         const message = req.file
         if (typeof message === 'undefined') {
           throw 'No voice message file uploaded'
@@ -178,6 +178,7 @@ export function routeSession(router: Router) {
           senderId,
           sessionId,
           message,
+          transcript,
         })
         res.json({ voiceMessageId })
       } catch (error) {
