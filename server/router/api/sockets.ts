@@ -352,7 +352,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            const { user, sessionId, message, source, type } = data
+            const { user, sessionId, message, source, type, transcript } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
 
@@ -372,12 +372,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 sessionId: Ulid
                 message: string
                 type?: 'voice'
+                transcript?: string
               } = {
                 sessionId,
                 message,
               }
               if (type === 'voice') {
                 data.type = type
+                data.transcript = transcript
               }
               const messageId = await SessionService.saveMessage(
                 user,
@@ -397,6 +399,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 user: Ulid
                 sessionId: Ulid
                 type?: 'voice'
+                transcript?: string
               } = {
                 contents: message,
                 createdAt: createdAt,
@@ -408,6 +411,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
               if (type === 'voice') {
                 messageData.type = type
+                messageData.transcript = transcript
               }
 
               // If the message is coming from the recap page, queue the message to send a notification

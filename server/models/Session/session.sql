@@ -502,7 +502,8 @@ SELECT
     id,
     sender_id AS USER,
     created_at,
-    session_id
+    session_id,
+    transcript
 FROM
     session_voice_messages
 WHERE
@@ -717,8 +718,8 @@ RETURNING
 
 
 /* @name insertNewVoiceMessage */
-INSERT INTO session_voice_messages (id, session_id, sender_id, created_at, updated_at)
-    VALUES (:id!, :sessionId!, :senderId!, NOW(), NOW())
+INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)
+    VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())
 RETURNING
     id;
 
