@@ -2803,7 +2803,7 @@ COPY upchieve.session_review_reasons (session_id, session_flag_id, created_at, u
 -- Data for Name: session_voice_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_voice_messages (id, session_id, sender_id, created_at, updated_at) FROM stdin;
+COPY upchieve.session_voice_messages (id, session_id, sender_id, created_at, updated_at, transcript) FROM stdin;
 \.
 
 
@@ -2840,7 +2840,7 @@ COPY upchieve.sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, vol
 --
 
 COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	\N	2024-07-05 20:23:13.609816	2024-07-05 20:23:13.609816
+01859800-bca8-af9e-8f1d-815bf6891cf5	\N	2024-07-05 20:23:13.609816+00	2024-07-05 20:23:13.609816+00
 \.
 
 
@@ -2849,7 +2849,7 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 --
 
 COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id) FROM stdin;
-01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427	2024-07-05 20:24:33.10427	\N
+01859800-bca8-af9e-8f1d-815bf6891cf5	01859800-bca8-af9e-8f1d-815bf6891cf5	some class	123123	t	2024-07-05 20:24:33.10427+00	2024-07-05 20:24:33.10427+00	\N
 \.
 
 
