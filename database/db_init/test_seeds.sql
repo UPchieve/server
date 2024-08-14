@@ -2722,7 +2722,7 @@ COPY upchieve.session_review_reasons (session_id, session_flag_id, created_at, u
 -- Data for Name: session_voice_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_voice_messages (id, session_id, sender_id, created_at, updated_at) FROM stdin;
+COPY upchieve.session_voice_messages (id, session_id, sender_id, created_at, updated_at, transcript) FROM stdin;
 \.
 
 

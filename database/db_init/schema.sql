@@ -1582,7 +1582,8 @@ CREATE TABLE upchieve.session_voice_messages (
     session_id uuid NOT NULL,
     sender_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    transcript text
 );
 
 
@@ -5787,4 +5788,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240711180618'),
     ('20240723161108'),
     ('20240731165533'),
-    ('20240809200824');
+    ('20240809200824'),
+    ('20240812190423');

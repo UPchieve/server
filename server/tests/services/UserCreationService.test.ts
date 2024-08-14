@@ -2,50 +2,59 @@ import faker from 'faker'
 import { mocked } from 'jest-mock'
 import * as UserRepo from '../../models/User'
 import * as StudentRepo from '../../models/Student'
+import * as TeacherRepo from '../../models/Teacher'
 import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg'
 import * as SignUpSourceRepo from '../../models/SignUpSource'
 import * as USMRepo from '../../models/UserSessionMetrics'
 import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
 import * as FedCredRepo from '../../models/FederatedCredential'
+import * as AuthService from '../../services/AuthService'
 import * as MailService from '../../services/MailService'
 import * as EligibilityService from '../../services/EligibilityService'
-import * as IpAddressService from '../../services/IpAddressService'
 import * as TeacherService from '../../services/TeacherService'
+import * as AuthUtils from '../../utils/auth-utils'
 import {
   registerStudent,
+  registerTeacher,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
-import { hashPassword, verifyPassword } from '../../utils/auth-utils'
 import { ACCOUNT_USER_ACTIONS, USER_ROLES } from '../../constants'
-import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
+import { InputError } from '../../models/Errors'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../models/Student/queries')
+jest.mock('../../models/Teacher/queries')
 jest.mock('../../models/StudentPartnerOrg/queries')
 jest.mock('../../models/SignUpSource/queries')
 jest.mock('../../models/UserSessionMetrics/queries')
 jest.mock('../../models/UserProductFlags/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/FederatedCredential/queries')
+jest.mock('../../services/AuthService')
+jest.mock('../../services/EligibilityService')
 jest.mock('../../services/MailService')
-jest.mock('../../services/IpAddressService')
 jest.mock('../../services/TeacherService')
+jest.mock('../../utils/auth-utils')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedStudentRepo = mocked(StudentRepo)
+const mockedTeacherRepo = mocked(TeacherRepo)
 const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo)
 const mockedSignUpSourceRepo = mocked(SignUpSourceRepo)
 const mockedUSMRepo = mocked(USMRepo)
 const mockedUPFRepo = mocked(UPFRepo)
 const mockedUserActionRepo = mocked(UserActionRepo)
 const mockedFedCredRepo = mocked(FedCredRepo)
+const mockedAuthService = mocked(AuthService)
+const mockedEligibilityService = mocked(EligibilityService)
 const mockedMailService = mocked(MailService)
-const mockedIpAddressService = mocked(IpAddressService)
 const mockedTeacherService = mocked(TeacherService)
-jest.spyOn(EligibilityService, 'verifyEligibility').mockResolvedValue(true)
+const mockedAuthUtils = mocked(AuthUtils)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7
+const OTHER_SIGNUP_SOURCE_ID = 6
+const HASHED_PASSWORD_RESOLVED = 'iamnowhashedhehe'
 
 describe('rosterPartnerStudents', () => {
   beforeAll(() => {
@@ -53,56 +62,40 @@ describe('rosterPartnerStudents', () => {
       id: ROSTER_SIGNUP_SOURCE_ID,
       name: 'Roster',
     })
+    mockedAuthUtils.hashPassword.mockResolvedValue(HASHED_PASSWORD_RESOLVED)
   })
   beforeEach(async () => {
     jest.clearAllMocks()
   })
 
-  describe('validates input', () => {
-    test('ensure firstName is valid', async () => {
-      const invalidFirstName = {
-        firstName: 'https://someurl.com',
-        email: '',
-        gradeLevel: '',
-        lastName: faker.name.lastName(),
-      }
-
-      const { failed } = await rosterPartnerStudents([invalidFirstName], '123')
-
-      expect(failed.length).toBe(1)
-      expect(failed[0].email).toBe(invalidFirstName.email)
-      expect(failed[0].firstName).toBe(invalidFirstName.firstName)
+  test('validates input', async () => {
+    const data = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      gradeLevel: '8th',
+      lastName: faker.name.lastName(),
+      password: 'Password123',
+      proxyEmail: faker.internet.email(),
+    }
+    mockedUserRepo.upsertUser.mockResolvedValue({
+      id: 'abc',
+      email: data.email,
+      firstName: data.firstName,
+      proxyEmail: data.proxyEmail,
+      isCreated: true,
     })
 
-    test('ensure lastName is valid', async () => {
-      const invalidLastName = {
-        firstName: faker.name.firstName(),
-        email: '',
-        gradeLevel: '',
-        lastName: 'DELETE * FROM upchieve.users;',
-      }
+    await rosterPartnerStudents([data], 'school-id')
 
-      const { failed } = await rosterPartnerStudents([invalidLastName], '123')
-
-      expect(failed.length).toBe(1)
-      expect(failed[0].email).toBe(invalidLastName.email)
-      expect(failed[0].firstName).toBe(invalidLastName.firstName)
-    })
-
-    test('ensure email is valid', async () => {
-      const invalidEmail = {
-        firstName: faker.name.firstName(),
-        email: 'isweariamemailATpromise.com',
-        gradeLevel: '',
-        lastName: faker.name.lastName(),
-      }
-
-      const { failed } = await rosterPartnerStudents([invalidEmail], '123')
-
-      expect(failed.length).toBe(1)
-      expect(failed[0].email).toBe(invalidEmail.email)
-      expect(failed[0].firstName).toBe(invalidEmail.firstName)
-    })
+    expect(mockedAuthUtils.checkEmail).toHaveBeenNthCalledWith(1, data.email)
+    expect(mockedAuthUtils.checkEmail).toHaveBeenNthCalledWith(
+      2,
+      data.proxyEmail
+    )
+    expect(mockedAuthUtils.checkNames).toHaveBeenCalledWith(
+      data.firstName,
+      data.lastName
+    )
   })
 
   test('creates user, student, and contact', async () => {
@@ -186,13 +179,20 @@ describe('rosterPartnerStudents', () => {
 
     await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
-    const firstArg = mockedUserRepo.upsertUser.mock.calls[0][0]
-    const hashedStudentPassword = await hashPassword(rosterStudent.password!)
-    const isSame = await verifyPassword(
-      firstArg.password!,
-      hashedStudentPassword
+    expect(mockedUserRepo.upsertUser).toHaveBeenCalledWith(
+      {
+        email: rosterStudent.email,
+        emailVerified: true,
+        firstName: rosterStudent.firstName,
+        lastName: rosterStudent.lastName,
+        password: HASHED_PASSWORD_RESOLVED,
+        passwordResetToken: undefined,
+        proxyEmail: undefined,
+        signupSourceId: ROSTER_SIGNUP_SOURCE_ID,
+        verified: true,
+      },
+      expect.toBeTransactionClient()
     )
-    expect(isSame).toBe(true)
   })
 
   test('adds reset token if no password and sends email', async () => {
@@ -212,12 +212,13 @@ describe('rosterPartnerStudents', () => {
       proxyEmail: rosterStudent.proxyEmail,
       isCreated: true,
     })
+    mockedAuthUtils.createResetToken.mockReturnValue('resettoken')
 
     await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
     const firstArg = mockedUserRepo.upsertUser.mock.calls[0][0]
     expect(firstArg.password).toBeFalsy()
-    expect(firstArg.passwordResetToken).toBeTruthy()
+    expect(firstArg.passwordResetToken).toBe('resettoken')
 
     expect(
       mockedMailService.sendRosterStudentSetPasswordEmail
@@ -601,6 +602,9 @@ describe('rosterPartnerStudents', () => {
 })
 
 describe('registerStudent', () => {
+  beforeAll(async () => {
+    mockedAuthUtils.hashPassword.mockResolvedValue(HASHED_PASSWORD_RESOLVED)
+  })
   beforeEach(async () => {
     jest.clearAllMocks()
   })
@@ -630,7 +634,7 @@ describe('registerStudent', () => {
         emailVerified: false,
         firstName: student.firstName,
         lastName: student.lastName,
-        password: expect.any(String),
+        password: HASHED_PASSWORD_RESOLVED,
         verified: false,
       },
       expect.toBeTransactionClient()
@@ -789,7 +793,7 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
-    mockedUserRepo.getUserByReferralCode.mockResolvedValue(REFERRAL_USER)
+    mockedAuthUtils.getReferredBy.mockResolvedValue(REFERRAL_USER.id)
 
     await registerStudent(student)
 
@@ -799,7 +803,7 @@ describe('registerStudent', () => {
         emailVerified: false,
         firstName: student.firstName,
         lastName: student.lastName,
-        password: expect.any(String),
+        password: HASHED_PASSWORD_RESOLVED,
         referredBy: REFERRAL_USER.id,
         verified: false,
       },
@@ -820,6 +824,7 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
+    mockedAuthUtils.getReferredBy.mockResolvedValue(undefined)
 
     await registerStudent(student)
 
@@ -829,15 +834,14 @@ describe('registerStudent', () => {
         emailVerified: false,
         firstName: student.firstName,
         lastName: student.lastName,
-        password: expect.any(String),
+        otherSignupSource: undefined,
+        password: HASHED_PASSWORD_RESOLVED,
+        passwordResetToken: undefined,
+        signupSourceId: undefined,
         verified: false,
       },
       expect.toBeTransactionClient()
     )
-
-    const firstArg = mockedUserRepo.createUser.mock.calls[0][0]
-    const isSame = await verifyPassword(student.password, firstArg.password!)
-    expect(isSame).toBe(true)
   })
 
   test('creates non-school partner org instance', async () => {
@@ -963,23 +967,39 @@ describe('registerStudent', () => {
     ).toHaveBeenCalledTimes(1)
   })
 
-  test('throws if user with email already exists', async () => {
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(
-      'id-of-user-that-already-exists'
+  test('validates input', async () => {
+    const data = {
+      email: faker.internet.email(),
+      ip: faker.internet.ip(),
+      firstName: faker.name.firstName(),
+      gradeLevel: '8th',
+      lastName: faker.name.lastName(),
+      password: 'Password123',
+      schoolId: 'iamschoolidiswear',
+      zipCode: '92010',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: 'zzzyyyxxx',
+      email: data.email,
+      firstName: data.firstName,
+    })
+
+    await registerStudent(data)
+
+    expect(mockedAuthUtils.checkEmail).toHaveBeenCalledWith(data.email)
+    expect(mockedAuthUtils.checkNames).toHaveBeenCalledWith(
+      data.firstName,
+      data.lastName
     )
-    await expect(
-      registerStudent({
-        email: faker.internet.email(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
-      })
-    ).rejects.toThrow(
-      new LookupError('The email address you entered is already in use')
+    expect(mockedAuthService.checkUser).toHaveBeenCalledWith(data.email)
+    expect(mockedEligibilityService.verifyEligibility).toHaveBeenCalledWith(
+      data.zipCode,
+      data.schoolId
     )
+    expect(mockedAuthService.checkIpAddress).toHaveBeenCalledWith(data.ip)
   })
 
   test('throws if no authentication method provided', async () => {
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     await expect(
       registerStudent({
         email: faker.internet.email(),
@@ -988,22 +1008,107 @@ describe('registerStudent', () => {
       })
     ).rejects.toThrow(new InputError('No authentication method provided.'))
   })
+})
 
-  test('throws if non-US ip', async () => {
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
-    mockedIpAddressService.getIpWhoIs.mockResolvedValue({
-      country_code: 'RU',
-      org: 'example',
+describe('registerTeacher', () => {
+  beforeAll(() => {
+    mockedSignUpSourceRepo.getSignUpSourceByName.mockResolvedValue({
+      id: OTHER_SIGNUP_SOURCE_ID,
+      name: 'Other',
     })
-    await expect(
-      registerStudent({
-        email: faker.internet.email(),
-        ip: faker.internet.ip(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
-      })
-    ).rejects.toThrow(
-      new NotAllowedError('Cannot register from an international IP address')
+    mockedAuthUtils.hashPassword.mockResolvedValue(HASHED_PASSWORD_RESOLVED)
+  })
+
+  test('validates input', async () => {
+    const data = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      ip: faker.internet.ip(),
+      lastName: faker.name.lastName(),
+      password: 'Password123',
+      schoolId: 'school-id',
+      signupSource: 'Another teacher at my school',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: '123',
+      firstName: data.firstName,
+      email: data.email,
+    })
+
+    await registerTeacher(data)
+
+    expect(mockedAuthUtils.checkEmail).toHaveBeenCalledWith(data.email)
+    expect(mockedAuthUtils.checkNames).toHaveBeenCalledWith(
+      data.firstName,
+      data.lastName
     )
+    expect(mockedAuthUtils.checkPassword).toHaveBeenCalledWith(data.password)
+    expect(mockedAuthService.checkUser).toHaveBeenCalledWith(data.email)
+  })
+
+  test('creates teacher', async () => {
+    const USER_ID = '456'
+    const data = {
+      email: faker.internet.email(),
+      firstName: faker.name.firstName(),
+      ip: faker.internet.ip(),
+      lastName: faker.name.lastName(),
+      password: 'p@sSw0rb666',
+      schoolId: 'another-school-id',
+      signupSource: 'Kagi search',
+    }
+    mockedUserRepo.createUser.mockResolvedValue({
+      id: USER_ID,
+      firstName: data.firstName,
+      email: data.email,
+    })
+
+    const teacher = await registerTeacher(data)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        otherSignupSource: data.signupSource,
+        password: HASHED_PASSWORD_RESOLVED,
+        signupSourceId: OTHER_SIGNUP_SOURCE_ID,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUserRepo.insertUserRoleByUserId).toHaveBeenCalledWith(
+      USER_ID,
+      USER_ROLES.TEACHER,
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUSMRepo.createUSMByUserId).toHaveBeenCalledWith(
+      USER_ID,
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUPFRepo.createUPFByUserId).toHaveBeenCalledWith(
+      USER_ID,
+      expect.toBeTransactionClient()
+    )
+    expect(mockedUserActionRepo.createAccountAction).toHaveBeenCalledWith(
+      {
+        action: ACCOUNT_USER_ACTIONS.CREATED,
+        userId: USER_ID,
+        ipAddress: data.ip,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedTeacherRepo.createTeacher).toHaveBeenCalledWith(
+      {
+        userId: USER_ID,
+        schoolId: data.schoolId,
+      },
+      expect.toBeTransactionClient()
+    )
+
+    expect(teacher.email).toBe(data.email)
+    expect(teacher.firstName).toBe(data.firstName)
+    expect(teacher.userType).toBe('teacher')
+    expect(teacher.isAdmin).toBe(false)
+    expect(teacher.isVolunteer).toBe(false)
   })
 })
