@@ -15,6 +15,13 @@ import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum } from './LangfuseService'
+import ContentSafetyClient, {
+  AnalyzeImage200Response,
+  AnalyzeImageDefaultResponse,
+} from '@azure-rest/ai-content-safety'
+import { AzureKeyCredential } from '@azure/core-auth'
+import config from '../config'
+import { InputError } from '../models/Errors'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -31,6 +38,15 @@ const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 
 const LF_TRACE_NAME = 'moderateSessionMessage'
 const LF_GENERATION_NAME = 'getModerationDecision'
+
+// Image moderation
+const AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD = 2
+const createAzureContentSafetyClient = () => {
+  const credential = new AzureKeyCredential(config.azureContentSafetyApiKey)
+  return ContentSafetyClient(config.azureContentSafetyBaseUrl, credential)
+}
+
+const azureContentSafetyClient = createAzureContentSafetyClient()
 
 export async function createChatCompletion({
   censoredSessionMessage,
@@ -164,6 +180,10 @@ function formatAiResponse(response: {
   return response.appropriate ? {} : response.reasons
 }
 
+export type ModerationFailureReasons = {
+  failures: Record<string, string[] | never>
+}
+
 // Returns whether message is clean
 export async function moderateMessage({
   message,
@@ -175,7 +195,7 @@ export async function moderateMessage({
   senderId: string
   isVolunteer: boolean
   sessionId?: string
-}): Promise<boolean | { failures: Record<string, string[] | never> }> {
+}): Promise<boolean | ModerationFailureReasons> {
   // a change to create a new commit
   const failedTests = [
     ['email', test({ regex: EMAIL_REGEX, message })],
@@ -240,6 +260,73 @@ export async function moderateMessage({
   return result
 }
 
+enum AnalyzeImageErrorCodeEnum {
+  INVALID_REQUEST_BODY = 'InvalidRequestBody',
+}
+export const moderateImage = async (
+  imageFile: Express.Multer.File,
+  sessionId: string
+): Promise<{
+  isClean: boolean
+  failureReasons?: ModerationFailureReasons
+}> => {
+  const reqBody = {
+    timeout: 3 * 1000,
+    body: {
+      image: {
+        content: imageFile.buffer.toString('base64'),
+      },
+    },
+  }
+  const result = await azureContentSafetyClient
+    .path('/image:analyze')
+    .post(reqBody)
+
+  if (result.status !== '200') {
+    const errResponse = result as AnalyzeImageDefaultResponse
+    const logData = {
+      error: errResponse.body.error,
+    }
+    const logMsg = 'Failed to get image analysis from Azure Content Safety'
+    if (
+      errResponse.body.error.code ===
+      AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
+    ) {
+      logger.warn(logData, logMsg)
+      throw new InputError('Image is invalid')
+    }
+    logger.error(logData, logMsg)
+    throw new Error('Could not moderate image')
+  }
+
+  logger.info(
+    {
+      fileName: imageFile.originalname,
+      sessionId,
+      analysis: (result as AnalyzeImage200Response).body.categoriesAnalysis,
+    },
+    'Image moderation result'
+  )
+
+  return getImageModerationDecision(result as AnalyzeImage200Response)
+}
+
+const getImageModerationDecision = (
+  result: AnalyzeImage200Response
+): {
+  isClean: boolean
+  failureReasons?: ModerationFailureReasons
+} => {
+  const failureCategories = result.body.categoriesAnalysis.filter(
+    category =>
+      category.severity ?? 0 > AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD
+  )
+  const isClean = failureCategories.length === 0
+  return {
+    isClean,
+    ...(isClean ? {} : failureCategories),
+  }
+}
 /**
  * Enclose the given message in <student></student> or <tutor></tutor> tags.
  */

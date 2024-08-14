@@ -22,8 +22,8 @@ export async function createTeacherClass(
       },
       tc
     )
-    const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : {}
-    return { ...newClass, ...topic }
+    const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : []
+    return { ...newClass, topic: topic[0] }
   })
 }
 
@@ -57,7 +57,7 @@ export async function getStudentsInTeacherClass(classId: Ulid) {
 
 export async function getTeacherSchoolIdFromClassCode(
   code: string,
-  tc: TransactionClient
+  tc?: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClass = await TeacherRepo.getTeacherClassByClassCode(code, tc)

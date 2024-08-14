@@ -769,10 +769,12 @@ export async function saveVoiceMessage({
   senderId,
   sessionId,
   message,
+  transcript,
 }: {
   senderId: Ulid
   sessionId: Ulid
   message: Express.Multer.File
+  transcript: string
 }) {
   const voiceMessageId = getDbUlid()
   const wasUploaded = await VoiceMessageService.uploadedToStorage(
@@ -784,7 +786,8 @@ export async function saveVoiceMessage({
     return await SessionRepo.addVoiceMessageToSessionById(
       sessionId,
       senderId,
-      voiceMessageId
+      voiceMessageId,
+      transcript
     )
   } else {
     throw new Error('Unable to upload voice message')
