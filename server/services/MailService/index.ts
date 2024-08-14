@@ -256,8 +256,8 @@ export async function sendTeacherOnboardingWelcomeEmail(
 
   await sendEmail(
     email,
-    config.mail.senders.support,
-    'UPchieve',
+    config.mail.senders.programsManager,
+    config.mail.people.programsManager,
     config.sendgrid.teacherOnboardingWelcomeTemplate,
     { firstName },
     overrides
