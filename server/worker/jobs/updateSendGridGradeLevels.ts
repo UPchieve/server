@@ -13,6 +13,10 @@ const BATCH_SIZE = 100
 export default async (): Promise<void> => {
   const errors: string[] = []
   let totalUpdated = 0
+  // We only want to update the SendGrid custom fields for students
+  // who have moved up a grade level. We are excluding students who
+  // have recently created an account, as their contact information
+  // in SendGrid is already up to date.
   const students = await getStudentsForGradeLevelSgUpdate()
 
   for (let i = 0; i < students.length; i += BATCH_SIZE) {
