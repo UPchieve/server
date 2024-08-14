@@ -284,18 +284,18 @@ export const moderateImage = async (
 
   if (result.status !== '200') {
     const errResponse = result as AnalyzeImageDefaultResponse
+    const logData = {
+      error: errResponse.body.error,
+    }
+    const logMsg = 'Failed to get image analysis from Azure Content Safety'
     if (
       errResponse.body.error.code ===
       AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
     ) {
+      logger.warn(logData, logMsg)
       throw new InputError('Image is invalid')
     }
-    logger.error(
-      {
-        error: errResponse.body.error,
-      },
-      'Failed to get image analysis from Azure Content Safety'
-    )
+    logger.error(logData, logMsg)
     throw new Error('Could not moderate image')
   }
 
