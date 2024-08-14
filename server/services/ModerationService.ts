@@ -21,6 +21,7 @@ import ContentSafetyClient, {
 } from '@azure-rest/ai-content-safety'
 import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
+import { InputError } from '../models/Errors'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -259,6 +260,9 @@ export async function moderateMessage({
   return result
 }
 
+enum AnalyzeImageErrorCodeEnum {
+  INVALID_REQUEST_BODY = 'InvalidRequestBody',
+}
 export const moderateImage = async (
   imageFile: Express.Multer.File,
   sessionId: string
@@ -279,9 +283,16 @@ export const moderateImage = async (
     .post(reqBody)
 
   if (result.status !== '200') {
+    const errResponse = result as AnalyzeImageDefaultResponse
+    if (
+      errResponse.body.error.code ===
+      AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
+    ) {
+      throw new InputError('Image is invalid')
+    }
     logger.error(
       {
-        error: (result as AnalyzeImageDefaultResponse).body.error,
+        error: errResponse.body.error,
       },
       'Failed to get image analysis from Azure Content Safety'
     )
