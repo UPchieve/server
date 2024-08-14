@@ -1534,90 +1534,35 @@ const getActivePartnersForStudentIR: any = {"name":"getActivePartnersForStudent"
 export const getActivePartnersForStudent = new PreparedQuery<IGetActivePartnersForStudentParams,IGetActivePartnersForStudentResult>(getActivePartnersForStudentIR);
 
 
-/** 'GetStudentsForGradeLevelUpdate' parameters type */
-export interface IGetStudentsForGradeLevelUpdateParams {
-  fromDate: string;
-  toDate: string;
-}
+/** 'GetStudentsForGradeLevelSgUpdate' parameters type */
+export type IGetStudentsForGradeLevelSgUpdateParams = void;
 
-/** 'GetStudentsForGradeLevelUpdate' return type */
-export interface IGetStudentsForGradeLevelUpdateResult {
-  createdAt: Date;
-  gradeLevel: string;
+/** 'GetStudentsForGradeLevelSgUpdate' return type */
+export interface IGetStudentsForGradeLevelSgUpdateResult {
   userId: string;
 }
 
-/** 'GetStudentsForGradeLevelUpdate' query type */
-export interface IGetStudentsForGradeLevelUpdateQuery {
-  params: IGetStudentsForGradeLevelUpdateParams;
-  result: IGetStudentsForGradeLevelUpdateResult;
+/** 'GetStudentsForGradeLevelSgUpdate' query type */
+export interface IGetStudentsForGradeLevelSgUpdateQuery {
+  params: IGetStudentsForGradeLevelSgUpdateParams;
+  result: IGetStudentsForGradeLevelSgUpdateResult;
 }
 
-const getStudentsForGradeLevelUpdateIR: any = {"name":"getStudentsForGradeLevelUpdate","params":[{"name":"fromDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21582,"b":21590,"line":700,"col":39}]}},{"name":"toDate","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21656,"b":21662,"line":701,"col":38}]}}],"usedParamSet":{"fromDate":true,"toDate":true},"statement":{"body":"SELECT\n    sp.user_id,\n    sp.created_at,\n    gl.name AS grade_level\nFROM\n    student_profiles sp\n    JOIN grade_levels gl ON gl.id = sp.grade_level_id\nWHERE\n    NOT gl.name = ANY ('{\"College\", \"Other\"}')\n    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'\n    AND sp.created_at >= to_timestamp(:fromDate!, 'YYYY-MM-DD HH24:MI:SS')\n    AND sp.created_at < to_timestamp(:toDate!, 'YYYY-MM-DD HH24:MI:SS')\nORDER BY\n    sp.created_at DESC","loc":{"a":21266,"b":21720,"line":690,"col":0}}};
+const getStudentsForGradeLevelSgUpdateIR: any = {"name":"getStudentsForGradeLevelSgUpdate","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\nORDER BY\n    sp.created_at DESC","loc":{"a":21268,"b":21417,"line":690,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     sp.user_id,
- *     sp.created_at,
- *     gl.name AS grade_level
+ *     sp.user_id
  * FROM
  *     student_profiles sp
- *     JOIN grade_levels gl ON gl.id = sp.grade_level_id
- * WHERE
- *     NOT gl.name = ANY ('{"College", "Other"}')
- *     AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
- *     AND sp.created_at >= to_timestamp(:fromDate!, 'YYYY-MM-DD HH24:MI:SS')
- *     AND sp.created_at < to_timestamp(:toDate!, 'YYYY-MM-DD HH24:MI:SS')
+ *     JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
  * ORDER BY
  *     sp.created_at DESC
  * ```
  */
-export const getStudentsForGradeLevelUpdate = new PreparedQuery<IGetStudentsForGradeLevelUpdateParams,IGetStudentsForGradeLevelUpdateResult>(getStudentsForGradeLevelUpdateIR);
-
-
-/** 'UpdateStudentsGradeLevel' parameters type */
-export interface IUpdateStudentsGradeLevelParams {
-  gradeLevel: string;
-  userId: string;
-}
-
-/** 'UpdateStudentsGradeLevel' return type */
-export interface IUpdateStudentsGradeLevelResult {
-  ok: string;
-}
-
-/** 'UpdateStudentsGradeLevel' query type */
-export interface IUpdateStudentsGradeLevelQuery {
-  params: IUpdateStudentsGradeLevelParams;
-  result: IUpdateStudentsGradeLevelResult;
-}
-
-const updateStudentsGradeLevelIR: any = {"name":"updateStudentsGradeLevel","params":[{"name":"gradeLevel","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":21962,"b":21972,"line":718,"col":29}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":22008,"b":22014,"line":720,"col":15}]}}],"usedParamSet":{"gradeLevel":true,"userId":true},"statement":{"body":"UPDATE\n    student_profiles\nSET\n    grade_level_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        grade_levels.id\n    FROM\n        grade_levels\n    WHERE\n        grade_levels.name = :gradeLevel!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":21762,"b":22042,"line":707,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     student_profiles
- * SET
- *     grade_level_id = subquery.id,
- *     updated_at = NOW()
- * FROM (
- *     SELECT
- *         grade_levels.id
- *     FROM
- *         grade_levels
- *     WHERE
- *         grade_levels.name = :gradeLevel!) AS subquery
- * WHERE
- *     user_id = :userId!
- * RETURNING
- *     user_id AS ok
- * ```
- */
-export const updateStudentsGradeLevel = new PreparedQuery<IUpdateStudentsGradeLevelParams,IUpdateStudentsGradeLevelResult>(updateStudentsGradeLevelIR);
+export const getStudentsForGradeLevelSgUpdate = new PreparedQuery<IGetStudentsForGradeLevelSgUpdateParams,IGetStudentsForGradeLevelSgUpdateResult>(getStudentsForGradeLevelSgUpdateIR);
 
 
 /** 'CountDuplicateStudentVolunteerFavorites' parameters type */
@@ -1634,7 +1579,7 @@ export interface ICountDuplicateStudentVolunteerFavoritesQuery {
   result: ICountDuplicateStudentVolunteerFavoritesResult;
 }
 
-const countDuplicateStudentVolunteerFavoritesIR: any = {"name":"countDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n)\nSELECT\n    count(*)::int AS duplicates\nFROM\n    favorites_partition\nWHERE\n    rn <> 1","loc":{"a":22099,"b":22471,"line":726,"col":0}}};
+const countDuplicateStudentVolunteerFavoritesIR: any = {"name":"countDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n)\nSELECT\n    count(*)::int AS duplicates\nFROM\n    favorites_partition\nWHERE\n    rn <> 1","loc":{"a":21474,"b":21846,"line":700,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1675,7 +1620,7 @@ export interface IDeleteDuplicateStudentVolunteerFavoritesQuery {
   result: IDeleteDuplicateStudentVolunteerFavoritesResult;
 }
 
-const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n),\nduplicate_favorites AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at\n    FROM\n        favorites_partition\n    WHERE\n        rn <> 1\n),\ndeleted_rows AS (\n    DELETE FROM upchieve.student_favorite_volunteers\n    WHERE (student_id,\n            volunteer_id,\n            updated_at,\n            created_at) IN (\n            SELECT\n                *\n            FROM\n                duplicate_favorites)\n        RETURNING\n            *\n)\nSELECT\n    COUNT(*)::int AS deleted\nFROM\n    deleted_rows","loc":{"a":22529,"b":23355,"line":746,"col":0}}};
+const deleteDuplicateStudentVolunteerFavoritesIR: any = {"name":"deleteDuplicateStudentVolunteerFavorites","params":[],"usedParamSet":{},"statement":{"body":"WITH favorites_partition AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at,\n        row_number() OVER (PARTITION BY student_id,\n            volunteer_id ORDER BY updated_at DESC) AS rn\n    FROM\n        upchieve.student_favorite_volunteers\n),\nduplicate_favorites AS (\n    SELECT\n        student_id,\n        volunteer_id,\n        updated_at,\n        created_at\n    FROM\n        favorites_partition\n    WHERE\n        rn <> 1\n),\ndeleted_rows AS (\n    DELETE FROM upchieve.student_favorite_volunteers\n    WHERE (student_id,\n            volunteer_id,\n            updated_at,\n            created_at) IN (\n            SELECT\n                *\n            FROM\n                duplicate_favorites)\n        RETURNING\n            *\n)\nSELECT\n    COUNT(*)::int AS deleted\nFROM\n    deleted_rows","loc":{"a":21904,"b":22730,"line":720,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1747,7 +1692,7 @@ export interface IGetStudentProfilesByUserIdsQuery {
   result: IGetStudentProfilesByUserIdsResult;
 }
 
-const getStudentProfilesByUserIdsIR: any = {"name":"getStudentProfilesByUserIds","params":[{"name":"userIds","codeRefs":{"defined":{"a":23406,"b":23412,"line":788,"col":8},"used":[{"a":23800,"b":23807,"line":804,"col":33}]},"transform":{"type":"array_spread"},"required":true}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    grade_levels.name AS grade_level,\n    users.created_at,\n    users.updated_at\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\nWHERE\n    student_profiles.user_id IN :userIds!","loc":{"a":23427,"b":23807,"line":790,"col":0}}};
+const getStudentProfilesByUserIdsIR: any = {"name":"getStudentProfilesByUserIds","params":[{"name":"userIds","codeRefs":{"defined":{"a":22781,"b":22787,"line":762,"col":8},"used":[{"a":23175,"b":23182,"line":778,"col":33}]},"transform":{"type":"array_spread"},"required":true}],"usedParamSet":{"userIds":true},"statement":{"body":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    grade_levels.name AS grade_level,\n    users.created_at,\n    users.updated_at\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\nWHERE\n    student_profiles.user_id IN :userIds!","loc":{"a":22802,"b":23182,"line":764,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -1787,7 +1732,7 @@ export interface IAddStudentToTeacherClassQuery {
   result: IAddStudentToTeacherClassResult;
 }
 
-const addStudentToTeacherClassIR: any = {"name":"addStudentToTeacherClass","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23910,"b":23916,"line":809,"col":13}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23920,"b":23927,"line":809,"col":23}]}}],"usedParamSet":{"userId":true,"classId":true},"statement":{"body":"INSERT INTO student_classes (user_id, class_id)\n    VALUES (:userId!, :classId!)\nON CONFLICT (user_id, class_id)\n    DO NOTHING","loc":{"a":23849,"b":23975,"line":808,"col":0}}};
+const addStudentToTeacherClassIR: any = {"name":"addStudentToTeacherClass","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23285,"b":23291,"line":783,"col":13}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":23295,"b":23302,"line":783,"col":23}]}}],"usedParamSet":{"userId":true,"classId":true},"statement":{"body":"INSERT INTO student_classes (user_id, class_id)\n    VALUES (:userId!, :classId!)\nON CONFLICT (user_id, class_id)\n    DO NOTHING","loc":{"a":23224,"b":23350,"line":782,"col":0}}};
 
 /**
  * Query generated from SQL:
