@@ -95,6 +95,7 @@ export const Config = Record({
       studentOutreachManager: String,
       corporatePartnershipsManager: String,
       crisis: String,
+      programsManager: String,
     }),
     receivers: Record({
       contact: String,
@@ -119,6 +120,7 @@ export const Config = Record({
         firstName: String,
         lastName: String,
       }),
+      programsManager: String,
     }),
   }),
   client: Record({
