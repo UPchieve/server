@@ -1,28 +1,28 @@
-import config from '../../config'
-import { Ulid } from '../../models/pgUtils'
+import config from '../config'
+import { Ulid } from '../models/pgUtils'
 import sgMail from '@sendgrid/mail'
 import axios from 'axios'
 import { capitalize } from 'lodash'
-import formatMultiWordSubject from '../../utils/format-multi-word-subject'
+import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import {
   SESSION_REPORT_REASON,
   USER_BAN_REASONS,
   TRAINING,
   USER_BAN_TYPES,
-} from '../../constants'
-import * as UserRolesService from '../../services/UserRolesService'
-import { getUserToCreateSendGridContact } from '../../models/User'
-import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
-import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
-import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
-import { buildAppLink } from '../../utils/link-builders'
-import { isDevEnvironment, isE2eEnvironment } from '../../utils/environments'
-import logger from '../../logger'
+} from '../constants'
+import * as UserRolesService from '../services/UserRolesService'
+import { getUserToCreateSendGridContact } from '../models/User'
+import { VolunteerContactInfo, UnsentReference } from '../models/Volunteer'
+import { getFullVolunteerPartnerOrgByKey } from '../models/VolunteerPartnerOrg'
+import { getFullStudentPartnerOrgByKey } from '../models/StudentPartnerOrg'
+import { buildAppLink } from '../utils/link-builders'
+import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
+import logger from '../logger'
 import {
   isStudentUserType,
   isTeacherUserType,
   isVolunteerUserType,
-} from '../../utils/user-type'
+} from '../utils/user-type'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
