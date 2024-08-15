@@ -4,7 +4,7 @@ import {
   upsertStudentProfile,
 } from '../../models/Student/queries'
 import { Ulid } from 'id128'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { CreateUserPayload } from '../../models/User'
 import { getClient } from '../../db'
 
@@ -191,10 +191,10 @@ async function createUser(
       'INSERT INTO users (id, first_name, last_name, email, referral_code) VALUES($1, $2, $3, $4, $5) RETURNING id',
       [
         Ulid.generate().toRaw(),
-        userData.firstName ?? faker.name.firstName(),
-        userData.lastName ?? faker.name.lastName(),
+        userData.firstName ?? faker.person.firstName(),
+        userData.lastName ?? faker.person.lastName(),
         userData.email ?? faker.internet.email(),
-        faker.random.alphaNumeric(20),
+        faker.string.alphanumeric(20),
       ]
     )
   ).rows[0]
