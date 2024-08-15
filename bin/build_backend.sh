@@ -16,14 +16,6 @@ else
   exit 1
 fi
 
-if [[ $(mkdir build/services/MailService/views && cp server/services/MailService/views/* build/services/MailService/views) -eq 0 ]]
-then
-  echo "Copied mail template files"
-else
-  echo "Failed to copy mail templates" >&2
-  exit 1
-fi
-
 if [[ $(cp -rn server/views build/) -eq 0 ]]
 then
   echo "Copied view template files"
