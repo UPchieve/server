@@ -686,7 +686,7 @@ WHERE
     AND deactivated_on IS NOT NULL;
 
 
-/* @name getStudentsForGradeLevelSgUpdate */
+/* @name getStudentsIdsForGradeLevelSgUpdate */
 SELECT
     sp.user_id
 FROM

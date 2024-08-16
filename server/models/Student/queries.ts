@@ -909,20 +909,14 @@ export async function getActivePartnersForStudent(
   }
 }
 
-export type StudentsForGradeLevelUpdate = {
-  userId: Ulid
-}
-
-export async function getStudentsForGradeLevelSgUpdate(): Promise<
-  StudentsForGradeLevelUpdate[]
-> {
+export async function getStudentIdsForGradeLevelSgUpdate(): Promise<Ulid[]> {
   try {
-    const result = await pgQueries.getStudentsForGradeLevelSgUpdate.run(
+    const result = await pgQueries.getStudentsIdsForGradeLevelSgUpdate.run(
       undefined,
       getClient()
     )
 
-    if (result.length) return result.map(row => makeRequired(row))
+    if (result.length) return result.map(row => makeRequired(row).userId)
     return []
   } catch (err) {
     throw new RepoReadError(err)
