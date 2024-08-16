@@ -46,7 +46,9 @@ async function pollContactJobStatus(
       maxDelay: 1000 * 60,
       numOfAttempts: 20,
       retry: (error: Error, attemptNumber: number) => {
-        log(`${Jobs.UpdateSendGridGradeLevels} - Checking SendGrid job status ${jobId} on attempt ${attemptNumber}`)
+        log(
+          `${Jobs.UpdateSendGridGradeLevels} - Checking SendGrid job status ${jobId} on attempt ${attemptNumber}`
+        )
         return true
       },
     }
