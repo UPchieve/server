@@ -135,6 +135,8 @@ const config: Static<typeof Config> = {
       programsManager:
         process.env.SUBWAY_PROGRAMS_MANAGER_EMAIL_SENDER ||
         'example@example.org',
+      supportApp:
+        process.env.SUBWAY_SUPPORT_APP_EMAIL_SENDER || 'example@exampleapp.org',
     },
     receivers: {
       contact:

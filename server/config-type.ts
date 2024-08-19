@@ -96,6 +96,7 @@ export const Config = Record({
       corporatePartnershipsManager: String,
       crisis: String,
       programsManager: String,
+      supportApp: String,
     }),
     receivers: Record({
       contact: String,

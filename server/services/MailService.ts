@@ -613,7 +613,7 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
 
   await sendEmail(
     volunteer.email,
-    config.mail.senders.volunteerManager,
+    config.mail.senders.supportApp,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.niceToMeetYouTemplate,
     {
