@@ -62,7 +62,6 @@ export async function lockAndGetDocCacheState(
     await lock.unlock()
     return result
   } catch (err) {
-    console.log('the error here? ', err)
     if (!(err instanceof cache.KeyNotFoundError)) throw err
   }
 }
