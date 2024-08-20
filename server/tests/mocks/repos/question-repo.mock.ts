@@ -1,6 +1,6 @@
 import { getPgid } from '../../../models/pgUtils'
 import * as QuestionRepo from '../../../models/Question'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import {
   CERT_UNLOCKING,
   COLLEGE_CERTS,
@@ -53,22 +53,22 @@ export const buildQuestion = (
 ): QuestionRepo.Question => {
   const question = {
     id: getPgid(),
-    questionText: faker.random.words(),
+    questionText: faker.lorem.words(),
     possibleAnswers: [
       {
-        txt: faker.random.words(),
+        txt: faker.lorem.words(),
         val: 'a',
       },
       {
-        txt: faker.random.words(),
+        txt: faker.lorem.words(),
         val: 'b',
       },
       {
-        txt: faker.random.words(),
+        txt: faker.lorem.words(),
         val: 'c',
       },
       {
-        txt: faker.random.words(),
+        txt: faker.lorem.words(),
         val: 'd',
       },
     ],

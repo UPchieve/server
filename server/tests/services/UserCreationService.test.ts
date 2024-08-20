@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { mocked } from 'jest-mock'
 import * as UserRepo from '../../models/User'
 import * as StudentRepo from '../../models/Student'
@@ -71,9 +71,9 @@ describe('rosterPartnerStudents', () => {
   test('validates input', async () => {
     const data = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       gradeLevel: '8th',
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: 'Password123',
       proxyEmail: faker.internet.email(),
     }
@@ -103,9 +103,9 @@ describe('rosterPartnerStudents', () => {
     const SCHOOL_ID = 'schoolId123'
     const rosterStudent = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       gradeLevel: '8.0',
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: '123456Aa',
     }
     mockedUserRepo.upsertUser.mockResolvedValue({
@@ -164,9 +164,9 @@ describe('rosterPartnerStudents', () => {
     const SCHOOL_ID = 'schoolId456'
     const rosterStudent = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       gradeLevel: '10',
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: '123456Aa',
     }
     mockedUserRepo.upsertUser.mockResolvedValue({
@@ -200,9 +200,9 @@ describe('rosterPartnerStudents', () => {
     const SCHOOL_ID = 'schoolId789'
     const rosterStudent = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       gradeLevel: '12',
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       proxyEmail: faker.internet.email(),
     }
     mockedUserRepo.upsertUser.mockResolvedValue({
@@ -235,9 +235,9 @@ describe('rosterPartnerStudents', () => {
       const SCHOOL_ID = 'schoolId789'
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '12',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         password: faker.internet.password(),
         proxyEmail: faker.internet.email(),
       }
@@ -270,9 +270,9 @@ describe('rosterPartnerStudents', () => {
 
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '9',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -323,9 +323,9 @@ describe('rosterPartnerStudents', () => {
 
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '6',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -367,9 +367,9 @@ describe('rosterPartnerStudents', () => {
 
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '9',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -411,9 +411,9 @@ describe('rosterPartnerStudents', () => {
 
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '9',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -457,9 +457,9 @@ describe('rosterPartnerStudents', () => {
 
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '9',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -513,9 +513,9 @@ describe('rosterPartnerStudents', () => {
       const EXISTING_SCHOOL_PARTNER_KEY = 'existing-school-partner-key'
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '9',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -553,9 +553,9 @@ describe('rosterPartnerStudents', () => {
 
       const rosterStudent = {
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
+        firstName: faker.person.firstName(),
         gradeLevel: '9',
-        lastName: faker.name.lastName(),
+        lastName: faker.person.lastName(),
         proxyEmail: faker.internet.email(),
       }
       mockedUserRepo.upsertUser.mockResolvedValue({
@@ -613,9 +613,9 @@ describe('registerStudent', () => {
     const USER_ID = 'registerStudentAll'
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       gradeLevel: '10th',
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: 's0me-rAndom-paS$word',
       schoolId: '01859800-bc76-3420-c3c5-2c46ccf409c4', // 'Approved School' Id
       zipCode: '00501',
@@ -675,8 +675,8 @@ describe('registerStudent', () => {
     const USER_ID = 'registerStudentWithFedCred'
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       profileId: 'profile-id',
       issuer: 'google',
     }
@@ -711,8 +711,8 @@ describe('registerStudent', () => {
     const student = {
       classCode: 'ABC123',
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'this-is-my-PASSword999',
     }
     mockedUserRepo.createUser.mockResolvedValue({
@@ -740,8 +740,8 @@ describe('registerStudent', () => {
     const student = {
       classCode: '987ZYX',
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'purpleEleph@nt5',
     }
     mockedUserRepo.createUser.mockResolvedValue({
@@ -776,15 +776,15 @@ describe('registerStudent', () => {
       email: faker.internet.email(),
       isVolunteer: false,
       isAdmin: false,
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       phoneVerified: false,
       smsConsent: false,
     }
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'Password123!',
       referredByCode: REFERRAL_USER.code,
     }
@@ -815,8 +815,8 @@ describe('registerStudent', () => {
     const USER_ID = 'registerStudentWithPassword'
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'sUper-$ecuRe-p@s$w0rd',
     }
     mockedUserRepo.createUser.mockResolvedValue({
@@ -853,8 +853,8 @@ describe('registerStudent', () => {
     }
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'Password123!',
       studentPartnerOrgKey: PARTNER_ORG.key,
     }
@@ -897,8 +897,8 @@ describe('registerStudent', () => {
     })
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'Password123!',
       studentPartnerOrgKey: PARTNER_ORG.key,
     }
@@ -937,8 +937,8 @@ describe('registerStudent', () => {
     })
     const student = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
       password: 'Password123!',
       studentPartnerOrgKey: PARTNER_ORG.key,
     }
@@ -971,9 +971,9 @@ describe('registerStudent', () => {
     const data = {
       email: faker.internet.email(),
       ip: faker.internet.ip(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       gradeLevel: '8th',
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: 'Password123',
       schoolId: 'iamschoolidiswear',
       zipCode: '92010',
@@ -1003,8 +1003,8 @@ describe('registerStudent', () => {
     await expect(
       registerStudent({
         email: faker.internet.email(),
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
       })
     ).rejects.toThrow(new InputError('No authentication method provided.'))
   })
@@ -1022,9 +1022,9 @@ describe('registerTeacher', () => {
   test('validates input', async () => {
     const data = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       ip: faker.internet.ip(),
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: 'Password123',
       schoolId: 'school-id',
       signupSource: 'Another teacher at my school',
@@ -1050,9 +1050,9 @@ describe('registerTeacher', () => {
     const USER_ID = '456'
     const data = {
       email: faker.internet.email(),
-      firstName: faker.name.firstName(),
+      firstName: faker.person.firstName(),
       ip: faker.internet.ip(),
-      lastName: faker.name.lastName(),
+      lastName: faker.person.lastName(),
       password: 'p@sSw0rb666',
       schoolId: 'another-school-id',
       signupSource: 'Kagi search',
