@@ -55,7 +55,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeProgressReports(router)
   routeWebhooks(router)
   routeAdmin(app, router)
-  routeTutorBot(app, router)
+  routeTutorBot(router)
 
   router.post('/send-referral-email', async function(req, res) {
     try {

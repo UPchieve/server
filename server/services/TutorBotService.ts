@@ -45,7 +45,7 @@ export const sendMessageAndGetUpdatedTranscript = async (
   )
   const transcript = await getTranscript(sessionId)
   const prompt = createPromptFromTranscript(transcript)
-  const completion = await createChatCompletion(prompt, sessionId) // @TODO: max tokens will be an issue with contextual prompting :(
+  const completion = await createChatCompletion(prompt, sessionId)
   const botMessage = getBotResponseMessage(completion)
 
   // Save bot response to session messages and append to the existing transcript

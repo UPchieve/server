@@ -1,13 +1,16 @@
-import { Express, Router } from 'express'
+import { Router } from 'express'
 import * as TutorBotService from '../../services/TutorBotService'
-export function routeTutorBot(app: Express, router: Router): void {
-  router.post('/message', async function(req, res) {
-    const result = await TutorBotService.sendMessageAndGetUpdatedTranscript(
-      req.body.sessionId,
-      req.body.message
-    )
-    return res.json({ transcript: result }).status(200)
+import { resError } from '../res-error'
+export function routeTutorBot(router: Router) {
+  router.post('/tutor-bot/message', async function(req, res) {
+    try {
+      const result = await TutorBotService.sendMessageAndGetUpdatedTranscript(
+        req.body.sessionId,
+        req.body.message
+      )
+      return res.json({ transcript: result }).status(200)
+    } catch (err) {
+      resError(res, err)
+    }
   })
-
-  app.use('/api/tutor-bot', router)
 }
