@@ -606,7 +606,7 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
 ): Promise<void> {
   const overrides = {
     reply_to: {
-      email: config.mail.senders.volunteerManager,
+      email: config.mail.senders.supportApp,
     },
     categories: ['nice to meet you email'],
   }
