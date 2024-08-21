@@ -3,6 +3,9 @@ import * as cache from '../cache'
 import { Ulid } from '../models/pgUtils'
 import { LockError } from 'redlock'
 import logger from '../logger'
+import { getSessionById } from '../models/Session'
+import { COLLEGE_LIST_DOC_WORKSHEET } from '../constants'
+import { getCollegeListWorkSheetFlag } from './FeatureFlagService'
 
 function sessionIdToKey(id: Ulid): string {
   return `quill-${id.toString()}`
@@ -17,7 +20,12 @@ function getSessionDocumentUpdatesKey(id: Ulid): string {
 }
 
 export async function createDoc(sessionId: Ulid): Promise<Delta> {
-  const newDoc = new Delta()
+  const session = await getSessionById(sessionId)
+  const newDoc =
+    session.subject === 'collegeList' &&
+    (await getCollegeListWorkSheetFlag(session.studentId))
+      ? new Delta(COLLEGE_LIST_DOC_WORKSHEET)
+      : new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
 }
