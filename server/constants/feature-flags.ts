@@ -10,4 +10,5 @@ export enum FEATURE_FLAGS {
   PROGRESS_REPORTS = 'progress-reports',
   PROGRESS_REPORTS_VISION_AI = 'progress-reports-vision-ai',
   AI_MODERATION = 'ai-moderation',
+  COLLEGE_LIST_WORKSHEET = 'college-list-worksheet',
 }
