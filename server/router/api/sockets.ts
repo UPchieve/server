@@ -31,13 +31,11 @@ import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
 import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
-import { extractSocketUser, SocketUser } from '../extract-user'
-import {
-  connectionEvents,
-  logSocketConnectionInfo,
-} from '../../utils/log-socket-connection-info'
+import { extractSocketUser } from '../extract-user'
+import { logSocketEvent } from '../../utils/log-socket-connection-info'
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
+import { SocketUser } from '../../types/socket-types'
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -46,7 +44,7 @@ async function handleChatBot(socket: Socket, key: string) {
   logger.debug('Chatbot connected to socket!')
 }
 
-async function handleUser(socket: Socket, user: UserContactInfo) {
+async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
   socket.join(user.id.toString())
@@ -115,7 +113,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     if (user) {
       await handleUser(socket, user)
-      logSocketConnectionInfo('connection', socket) // Log the initial connection
+      logSocketEvent('connection', socket) // Log the initial connection
     } else {
       if (!socketApiKey) {
         socket.emit('redirect')
@@ -178,7 +176,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     }
 
-    if (socket.recovered) logSocketConnectionInfo('recovered', socket)
+    if (socket.recovered) logSocketEvent('recovered', socket)
 
     // Tutor session management
     socket.on('join', async function(data) {
@@ -226,6 +224,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
 
               await socketService.emitSessionChange(sessionId)
+              // Attach the sessionId to the socket for analytics and debugging purposes
+              // Currently only one sessionId is attached to a socket at a time
+              socket.data.sessionId = data.sessionId
               /**
                *
                * Emit to all other sockets that are not the users and are connected
@@ -293,7 +294,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               )
                 throw new Error('Not a session participant')
             } catch (error) {
-              socket.emit('redirect', error)
+              socket.emit('redirect', error as Error)
               resolve()
               return
             }
@@ -302,13 +303,23 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               const sessionRoom = getSessionRoom(sessionId)
               await remoteJoinRoom(io, socket.id, sessionRoom)
               socket.emit('sessions/recap:joined')
+              // Attach the sessionId to the socket for analytics and debugging purposes
+              // Currently only one sessionId is attached to a socket at a time
+              socket.data.sessionId = data.sessionId
             } catch (error) {
-              socket.emit('sessions/recap:join-failed', error)
+              socket.emit('sessions/recap:join-failed', error as Error)
             } finally {
               resolve()
             }
           })
       )
+    })
+
+    socket.on('sessions/recap:leave', async ({ sessionId }) => {
+      newrelic.startWebTransaction('/socket-io/sessions/recap:leave', () => {
+        socket.leave(getSessionRoom(sessionId))
+        delete socket.data.sessionId
+      })
     })
 
     socket.on('list', (_data, callback) => {
@@ -433,7 +444,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()
             } catch (error) {
-              socket.emit('messageError', { sessionId: data.session })
+              socket.emit('messageError', { sessionId: data.sessionId })
               reject(error)
             }
           })
@@ -552,28 +563,40 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('sessions:leave', async ({ sessionId }) => {
-      socket.leave(getSessionRoom(sessionId))
-      const user = extractSocketUser(socket)
-      const sessionRoom = getSessionRoom(sessionId)
-      await socket
-        .to(sessionRoom)
-        .except(user.id)
-        .emit('sessions/partner:in-session', false)
+      newrelic.startWebTransaction(
+        '/socket-io/sessions:leave',
+        () =>
+          new Promise<void>(async (resolve, reject) => {
+            try {
+              socket.leave(getSessionRoom(sessionId))
+              delete socket.data.sessionId
+              const user = extractSocketUser(socket)
+              const sessionRoom = getSessionRoom(sessionId)
+              await socket
+                .to(sessionRoom)
+                .except(user.id)
+                .emit('sessions/partner:in-session', false)
+              resolve()
+            } catch (error) {
+              reject(error)
+            }
+          })
+      )
     })
 
     socket.conn.once('upgrade', () => {
-      socket.downgraded = false
-      logSocketConnectionInfo('transportUpgrade', socket)
+      socket.data.downgraded = false
+      logSocketEvent('transportUpgrade', socket)
     })
 
     socket.conn.on('packet', packet => {
       if (
         packet.type === 'ping' &&
         socket.conn.transport.name !== 'websocket' &&
-        !socket.downgraded
+        !socket.data.downgraded
       ) {
-        socket.downgraded = true
-        logSocketConnectionInfo('socketTransportDowngrade', socket)
+        socket.data.downgraded = true
+        logSocketEvent('socketTransportDowngrade', socket)
         newrelic.recordCustomEvent('socketTransportDowngrade', {
           transport: socket.conn.transport.name,
           timestamp: Date.now(),
@@ -581,11 +604,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     })
 
-    // Log socket connection-related events for analytics
-    connectionEvents.forEach(event => {
-      socket.prependListener(event, args =>
-        logSocketConnectionInfo(event, socket, args)
-      )
+    // Log socket connection-related events for analytics and debugging
+    socket.onAny((eventName, args) => {
+      logSocketEvent(eventName, socket, args)
     })
   })
 }

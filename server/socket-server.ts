@@ -9,9 +9,20 @@ import { redisClient } from './services/RedisService'
 import SocketService from './services/SocketService'
 import { instrument } from '@socket.io/admin-ui'
 import { isDevEnvironment } from './utils/environments'
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
+} from './types/socket-types'
 
 export default function(server: http.Server) {
-  const io = new Server(server, {
+  const io = new Server<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvents,
+    SocketData
+  >(server, {
     pingTimeout: 30000,
     cors: {
       origin: new RegExp(`^(${config.host})$`),
