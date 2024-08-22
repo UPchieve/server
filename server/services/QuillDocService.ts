@@ -6,6 +6,7 @@ import logger from '../logger'
 import { getSessionById } from '../models/Session'
 import { COLLEGE_LIST_DOC_WORKSHEET } from '../constants'
 import { getCollegeListWorkSheetFlag } from './FeatureFlagService'
+import * as Y from 'yjs'
 
 function sessionIdToKey(id: Ulid): string {
   return `quill-${id.toString()}`
@@ -139,7 +140,22 @@ export async function appendToDoc(
  *
  */
 export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
-  return await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
+  const updates = await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
+  const session = await getSessionById(sessionId)
+  if (
+    updates.length === 0 &&
+    session.subject === 'collegeList' &&
+    (await getCollegeListWorkSheetFlag(session.studentId))
+  ) {
+    const ydoc = new Y.Doc()
+    const ytext = ydoc.getText('quill')
+    ytext.applyDelta(COLLEGE_LIST_DOC_WORKSHEET)
+    const update = Y.encodeStateAsUpdate(ydoc)
+    const updateString = Array.from(update).toString()
+    await addDocumentUpdate(sessionId, updateString)
+    return [updateString]
+  }
+  return updates
 }
 
 export async function addDocumentUpdate(
