@@ -200,7 +200,7 @@ export async function sendOpenVolunteerWelcomeEmail(
 
   await sendEmail(
     email,
-    config.mail.senders.support,
+    config.mail.senders.supportApp,
     'UPchieve',
     config.sendgrid.openVolunteerWelcomeTemplate,
     { volunteerName },
@@ -232,13 +232,13 @@ export async function sendStudentOnboardingWelcomeEmail(
 ): Promise<void> {
   const overrides = {
     reply_to: {
-      email: config.mail.receivers.students,
+      email: config.mail.senders.supportApp,
     },
     categories: ['Student Onboarding Email 1 - Welcome'],
   }
   await sendEmail(
     email,
-    config.mail.senders.students,
+    config.mail.senders.supportApp,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingWelcomeTemplate,
     { firstName },
