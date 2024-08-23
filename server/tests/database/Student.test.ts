@@ -153,7 +153,6 @@ describe('upsertStudentProfile', () => {
     )
     expect(before.rows.length).toBe(1)
 
-    const GRADE_LEVEL_10_ID = 3
     const COLLEGE_MENTORS_SPO_ID = '01859800-bbed-150a-2f52-f0856c633b63'
     const COLLEGE_MENTORS_SPO_SITE_ID = '01859800-bc55-58ea-c1c8-0d8f14d3a1a6'
     const updatedStudent = {
@@ -173,13 +172,83 @@ describe('upsertStudentProfile', () => {
       [user.id]
     )
     expect(after.rows.length).toBe(1)
-    expect(after.rows[0].grade_level_id).toBe(GRADE_LEVEL_10_ID)
     expect(after.rows[0].postal_code).toBe(updatedStudent.zipCode)
     expect(after.rows[0].school_id).toBe(updatedStudent.schoolId)
     expect(after.rows[0].student_partner_org_id).toBe(COLLEGE_MENTORS_SPO_ID)
     expect(after.rows[0].student_partner_org_site_id).toBe(
       COLLEGE_MENTORS_SPO_SITE_ID
     )
+  })
+
+  test('updates only the values that are new, except grade level and parter site', async () => {
+    const user = await createUser()
+
+    const GRADE_LEVEL_8TH_ID = 1
+    const COLLEGE_MENTORS_SPO_ID = '01859800-bbed-150a-2f52-f0856c633b63'
+    const COLLEGE_MENTORS_SPO_SITE_ID = '01859800-bc55-58ea-c1c8-0d8f14d3a1a6'
+    const UNAPPROVED_SCHOOL_ID = '01859800-bc76-7db0-734b-b567fa67a568'
+    await client.query(
+      'INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [
+        user.id,
+        '00000',
+        COLLEGE_MENTORS_SPO_ID,
+        COLLEGE_MENTORS_SPO_SITE_ID,
+        GRADE_LEVEL_8TH_ID,
+        UNAPPROVED_SCHOOL_ID,
+        'some college',
+        new Date(),
+        new Date(),
+      ]
+    )
+    const before = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(before.rows.length).toBe(1)
+
+    const returnedNoUpdate = await upsertStudentProfile(
+      { userId: user.id },
+      client
+    )
+    expect(returnedNoUpdate.isCreated).toBe(false)
+
+    const afterNoUpdate = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(afterNoUpdate.rows.length).toBe(1)
+    expect(afterNoUpdate.rows[0].postal_code).toBe('00000')
+    expect(afterNoUpdate.rows[0].grade_level_id).toBe(GRADE_LEVEL_8TH_ID)
+    expect(afterNoUpdate.rows[0].school_id).toBe(UNAPPROVED_SCHOOL_ID)
+    expect(afterNoUpdate.rows[0].student_partner_org_id).toBe(
+      COLLEGE_MENTORS_SPO_ID
+    )
+    expect(afterNoUpdate.rows[0].student_partner_org_site_id).toBe(
+      COLLEGE_MENTORS_SPO_SITE_ID
+    )
+
+    const updatedStudent = {
+      userId: user.id,
+      gradeLevel: '12th',
+      studentPartnerOrgKey: 'school-helpers',
+    }
+    const returnedWithUpdate = await upsertStudentProfile(
+      updatedStudent,
+      client
+    )
+    expect(returnedWithUpdate.isCreated).toBe(false)
+
+    const afterWithUpdate = await client.query(
+      'SELECT * FROM student_profiles WHERE user_id = $1',
+      [user.id]
+    )
+    expect(afterWithUpdate.rows.length).toBe(1)
+    expect(afterWithUpdate.rows[0].grade_level_id).toBe(GRADE_LEVEL_8TH_ID)
+    expect(afterWithUpdate.rows[0].student_partner_org_id).toBe(
+      '01859800-bbed-b3e3-f1db-a8e79e57e498'
+    )
+    expect(afterWithUpdate.rows[0].student_partner_org_site_id).toBeNull()
   })
 })
 

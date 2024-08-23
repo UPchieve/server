@@ -586,8 +586,8 @@ export async function upsertStudentProfile(
         schoolId: studentData.schoolId,
         postalCode: studentData.zipCode,
         gradeLevel: studentData.gradeLevel,
-        partnerOrg: studentData.studentPartnerOrgKey,
-        partnerSite: studentData.studentPartnerOrgSiteName,
+        studentPartnerOrgKey: studentData.studentPartnerOrgKey,
+        studentPartnerOrgSiteName: studentData.studentPartnerOrgSiteName,
       },
       tc
     )
