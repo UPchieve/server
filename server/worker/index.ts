@@ -5,6 +5,7 @@ import config from '../config'
 import * as db from '../db'
 import logger from '../logger'
 import { addJobProcessors } from './jobs'
+import { registerListeners } from '../services/listeners'
 
 const main = async (): Promise<void> => {
   try {
@@ -41,6 +42,7 @@ const main = async (): Promise<void> => {
       newrelic.noticeError(error)
     })
     addJobProcessors(queue)
+    registerListeners()
   } catch (error) {
     newrelic.noticeError(error as Error)
     // handle redis connection errors; for whatever reason Redis.ReplyError type is not in the declarations file
