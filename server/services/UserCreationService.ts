@@ -285,78 +285,80 @@ async function createUserMetadata(
   ])
 }
 
-async function upsertStudent(
+export async function upsertStudent(
   studentData: StudentRepo.CreateStudentProfilePayload,
-  tc: TransactionClient
+  tc?: TransactionClient
 ) {
-  const activeInstances = await StudentRepo.getActivePartnersForStudent(
-    studentData.userId,
-    tc
-  )
-
-  let spoOrgToAdd = studentData.studentPartnerOrgKey
-    ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
-        tc,
-        studentData.studentPartnerOrgKey,
-        studentData.studentPartnerOrgSiteName
-      )
-    : null
-  let spoSchoolToAdd =
-    // Don't add a school student partner org from the school id if
-    // the non-school student partner org to add is that already school.
-    studentData.schoolId && spoOrgToAdd?.schoolId !== studentData.schoolId
-      ? await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-          tc,
-          studentData.schoolId
-        )
-      : null
-
-  for (const a of activeInstances ?? []) {
-    if (spoOrgToAdd && spoOrgToAdd.partnerId === a.id) {
-      // The non-school student partner org we want to add for the student
-      // already has an active instance.
-      spoOrgToAdd = null
-    } else if (spoSchoolToAdd && spoSchoolToAdd.partnerId === a.id) {
-      // The school student partner org we want to add for the student
-      // already has an active instance.
-      spoSchoolToAdd = null
-    } else {
-      // This active instance doesn't match any of the ones we want to add
-      // for that student. We can deactivate it.
-      await StudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance(
-        tc,
-        studentData.userId,
-        a.id
-      )
-    }
-  }
-
-  if (spoOrgToAdd) {
-    await addUserStudentPartnerOrgInstance(spoOrgToAdd)
-  }
-
-  if (spoSchoolToAdd) {
-    await addUserStudentPartnerOrgInstance(spoSchoolToAdd)
-  }
-
-  if (spoOrgToAdd?.schoolId && !studentData.schoolId) {
-    studentData.schoolId = spoOrgToAdd.schoolId
-  }
-
-  await StudentRepo.upsertStudentProfile(studentData, tc)
-
-  async function addUserStudentPartnerOrgInstance(
-    spo: GetStudentPartnerOrgResult
-  ) {
-    await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
-      {
-        userId: studentData.userId,
-        studentPartnerOrgId: spo.partnerId,
-        studentPartnerOrgSiteId: spo.siteId,
-      },
+  await runInTransaction(async (tc: TransactionClient) => {
+    const activeInstances = await StudentRepo.getActivePartnersForStudent(
+      studentData.userId,
       tc
     )
-  }
+
+    let spoOrgToAdd = studentData.studentPartnerOrgKey
+      ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
+          tc,
+          studentData.studentPartnerOrgKey,
+          studentData.studentPartnerOrgSiteName
+        )
+      : null
+    let spoSchoolToAdd =
+      // Don't add a school student partner org from the school id if
+      // the non-school student partner org to add is that already school.
+      studentData.schoolId && spoOrgToAdd?.schoolId !== studentData.schoolId
+        ? await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+            tc,
+            studentData.schoolId
+          )
+        : null
+
+    for (const a of activeInstances ?? []) {
+      if (spoOrgToAdd && spoOrgToAdd.partnerId === a.id) {
+        // The non-school student partner org we want to add for the student
+        // already has an active instance.
+        spoOrgToAdd = null
+      } else if (spoSchoolToAdd && spoSchoolToAdd.partnerId === a.id) {
+        // The school student partner org we want to add for the student
+        // already has an active instance.
+        spoSchoolToAdd = null
+      } else {
+        // This active instance doesn't match any of the ones we want to add
+        // for that student. We can deactivate it.
+        await StudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance(
+          tc,
+          studentData.userId,
+          a.id
+        )
+      }
+    }
+
+    if (spoOrgToAdd) {
+      await addUserStudentPartnerOrgInstance(spoOrgToAdd)
+    }
+
+    if (spoSchoolToAdd) {
+      await addUserStudentPartnerOrgInstance(spoSchoolToAdd)
+    }
+
+    if (spoOrgToAdd?.schoolId && !studentData.schoolId) {
+      studentData.schoolId = spoOrgToAdd.schoolId
+    }
+
+    await StudentRepo.upsertStudentProfile(studentData, tc)
+
+    async function addUserStudentPartnerOrgInstance(
+      spo: GetStudentPartnerOrgResult
+    ) {
+      await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
+        {
+          userId: studentData.userId,
+          studentPartnerOrgId: spo.partnerId,
+          studentPartnerOrgSiteId: spo.siteId,
+        },
+        tc
+      )
+    }
+  }, tc)
 }
 
 export async function registerTeacher(data: RegisterTeacherPayload) {

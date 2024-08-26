@@ -23,7 +23,7 @@ interface ICleverUserInfoResponse {
   data: {
     created: Date
     district: string
-    email: string
+    email?: string
     last_modified: Date
     name: {
       first: string
@@ -31,7 +31,13 @@ interface ICleverUserInfoResponse {
       middle: string
     }
     roles: {
-      student: Object
+      // We don't actually have access to the following with Clever SSO Integration -
+      // we would have to pay for their Secure Sync product.
+      student: {
+        grade?: string
+        school: string // Clever ID of the student's primary school.
+        schools: string[] // List of ids of schools this student is associated with.
+      }
     }
     id: string
   }
@@ -90,7 +96,7 @@ export default class CleverStrategy extends OAuth2Strategy {
       const profile: passport.Profile & { issuer: string } = {
         id: userData.id,
         displayName: userData.name.first + ' ' + userData.name.last,
-        emails: [{ value: userData.email }],
+        emails: [{ value: userData.email ?? '' }],
         issuer: CleverStrategy.baseUrl,
         name: {
           familyName: userData.name.last,
