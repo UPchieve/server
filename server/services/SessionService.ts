@@ -974,10 +974,11 @@ export async function getSessionRecap(
 
 export async function isEligibleForSessionRecap(
   sessionId: Ulid,
-  studentId: Ulid
+  studentId: Ulid,
+  volunteerId: Ulid
 ): Promise<boolean> {
   const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
-    studentId
+    volunteerId
   )
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
@@ -1008,7 +1009,7 @@ export async function isRecapDmsAvailable(
   if (hasBannedParticipant) return false
 
   const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
-    studentId
+    volunteerId
   )
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
