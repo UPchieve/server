@@ -1,7 +1,8 @@
 import { Express, Router, Request, Response } from 'express'
 import passport from 'passport'
-
 import * as AuthService from '../../services/AuthService'
+import * as FedCredService from '../../services/FederatedCredentialService'
+import * as StudentService from '../../services/StudentService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   authPassport,
@@ -14,7 +15,7 @@ import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
 import { asString } from '../../utils/type-utils'
-import { Ulid } from '../../models/pgUtils'
+import { getUuid, Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
 import { extractUser } from '../extract-user'
@@ -77,15 +78,19 @@ export function routes(app: Express) {
       res.redirect(AuthRedirect.failureRedirect(isLogin, provider ?? ''))
       return
     }
-    if (!isLogin) {
-      ;(req.session as SessionWithSsoData).studentData = {
-        ...req.query,
-        ip: req.ip,
-      }
+
+    ;(req.session as SessionWithSsoData).sso = {
+      studentData: !isLogin
+        ? {
+            ...req.query,
+            ip: req.ip,
+          }
+        : undefined,
+      provider,
+      isLogin,
+      redirect: req.query.redirect as string,
     }
-    ;(req.session as SessionWithSsoData).provider = provider
-    ;(req.session as SessionWithSsoData).isLogin = isLogin
-    ;(req.session as SessionWithSsoData).redirect = req.query.redirect as string
+
     const strategy = provider
     passport.authenticate(strategy)(req, res)
   })
@@ -95,21 +100,52 @@ export function routes(app: Express) {
       provider = req.headers.referer?.includes('clever') ? 'clever' : '',
       isLogin = true,
       redirect = '',
-      studentData,
-    } = req.session as SessionWithSsoData
+      studentData = {},
+    } = (req.session as SessionWithSsoData).sso ?? {}
     if (!provider || !isSupportedSsoProvider(provider)) {
-      res.redirect(AuthRedirect.failureRedirect(isLogin, provider, studentData))
+      res.redirect(
+        AuthRedirect.failureRedirect(
+          isLogin,
+          provider,
+          studentData,
+          `Unknown provider: ${provider}`
+        )
+      )
       return
     }
     const strategy = provider
-    passport.authenticate(strategy, async function(_err, user, errorMsg) {
+    passport.authenticate(strategy, async function(_, user, data) {
+      if (data.profileId && data.issuer) {
+        const validator = getUuid()
+        ;(req.session as SessionWithSsoData).sso = {
+          fedCredData: {
+            profileId: data.profileId,
+            issuer: data.issuer,
+            validator,
+          },
+          studentData: {
+            ...studentData,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+        }
+        return res.redirect(AuthRedirect.emailRedirect(validator))
+      }
+
+      delete (req.session as SessionWithSsoData).sso
+
       if (user) {
         await req.asyncLogin(user)
         return res.redirect(AuthRedirect.successRedirect(redirect))
       } else {
         req.logout()
         return res.redirect(
-          AuthRedirect.failureRedirect(isLogin, provider, studentData, errorMsg)
+          AuthRedirect.failureRedirect(
+            isLogin,
+            provider,
+            studentData,
+            data.errorMessage
+          )
         )
       }
     })(req, res)
@@ -126,14 +162,39 @@ export function routes(app: Express) {
 
   router.route('/register/student').post(async function(req, res) {
     try {
+      const { fedCredData } = (req.session as SessionWithSsoData).sso ?? {}
+      if (fedCredData && req.body.validator === fedCredData.validator) {
+        const existingStudent = await StudentService.getStudentByEmail(
+          req.body.email
+        )
+        if (existingStudent) {
+          await FedCredService.linkAccount(
+            fedCredData.profileId,
+            fedCredData.issuer,
+            existingStudent.id
+          )
+          await req.asyncLogin({ id: existingStudent.id, isAdmin: false })
+          delete (req.session as SessionWithSsoData).sso
+          return res.json({ user: existingStudent })
+        }
+      } else {
+        delete (req.session as SessionWithSsoData).sso
+      }
+
       const data = registerStudentValidator({
         ...req.body,
+        ...((req.session as SessionWithSsoData).sso?.fedCredData ?? {}),
+        ...((req.session as SessionWithSsoData).sso?.studentData ?? {}),
         ip: req.ip,
       })
       const student = await UserCreationService.registerStudent(data)
-      if (data.password) {
+      if (
+        data.password ||
+        (req.session as SessionWithSsoData).sso?.fedCredData
+      ) {
         await req.asyncLogin(student)
       }
+      delete (req.session as SessionWithSsoData).sso
       return res.json({ user: student })
     } catch (e) {
       resError(res, e)
