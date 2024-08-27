@@ -25,27 +25,32 @@ const insertUsStateIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 94, b: 98, line: 2, col: 68 }] },
+      codeRefs: { used: [{ a: 98, b: 102, line: 3, col: 13 }] },
     },
     {
       name: 'code',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 102, b: 106, line: 2, col: 76 }] },
+      codeRefs: { used: [{ a: 106, b: 110, line: 3, col: 21 }] },
     },
   ],
   usedParamSet: { name: true, code: true },
   statement: {
     body:
-      'INSERT INTO us_states (name, code, created_at, updated_at) VALUES (:name!, :code!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok',
-    loc: { a: 26, b: 165, line: 2, col: 0 },
+      'INSERT INTO us_states (name, code, created_at, updated_at)\n    VALUES (:name!, :code!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    name AS ok',
+    loc: { a: 26, b: 177, line: 2, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO us_states (name, code, created_at, updated_at) VALUES (:name!, :code!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok
+ * INSERT INTO us_states (name, code, created_at, updated_at)
+ *     VALUES (:name!, :code!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     name AS ok
  * ```
  */
 export const insertUsState = new PreparedQuery<
@@ -80,31 +85,31 @@ const insertZipCodeIR: any = {
       name: 'code',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 293, b: 297, line: 5, col: 98 }] },
+      codeRefs: { used: [{ a: 310, b: 314, line: 12, col: 13 }] },
     },
     {
       name: 'usStateCode',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 301, b: 312, line: 5, col: 106 }] },
+      codeRefs: { used: [{ a: 318, b: 329, line: 12, col: 21 }] },
     },
     {
       name: 'income',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 316, b: 322, line: 5, col: 121 }] },
+      codeRefs: { used: [{ a: 333, b: 339, line: 12, col: 36 }] },
     },
     {
       name: 'latitude',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 332, b: 340, line: 5, col: 137 }] },
+      codeRefs: { used: [{ a: 349, b: 357, line: 12, col: 52 }] },
     },
     {
       name: 'longitude',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 344, b: 353, line: 5, col: 149 }] },
+      codeRefs: { used: [{ a: 361, b: 370, line: 12, col: 64 }] },
     },
   ],
   usedParamSet: {
@@ -116,15 +121,20 @@ const insertZipCodeIR: any = {
   },
   statement: {
     body:
-      'INSERT INTO postal_codes (code, us_state_code, income, location, created_at, updated_at) VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING code AS ok',
-    loc: { a: 195, b: 413, line: 5, col: 0 },
+      'INSERT INTO postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    code AS ok',
+    loc: { a: 208, b: 438, line: 11, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO postal_codes (code, us_state_code, income, location, created_at, updated_at) VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING code AS ok
+ * INSERT INTO postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at)
+ *     VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     code AS ok
  * ```
  */
 export const insertZipCode = new PreparedQuery<
@@ -156,27 +166,32 @@ const insertWeekdayIR: any = {
       name: 'id',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 507, b: 509, line: 8, col: 64 }] },
+      codeRefs: { used: [{ a: 537, b: 539, line: 21, col: 13 }] },
     },
     {
       name: 'day',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 513, b: 516, line: 8, col: 70 }] },
+      codeRefs: { used: [{ a: 543, b: 546, line: 21, col: 19 }] },
     },
   ],
   usedParamSet: { id: true, day: true },
   statement: {
     body:
-      'INSERT INTO weekdays (id, day, created_at, updated_at) VALUES (:id!, :day!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 443, b: 573, line: 8, col: 0 },
+      'INSERT INTO weekdays (id, day, created_at, updated_at)\n    VALUES (:id!, :day!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 469, b: 611, line: 20, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO weekdays (id, day, created_at, updated_at) VALUES (:id!, :day!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO weekdays (id, day, created_at, updated_at)
+ *     VALUES (:id!, :day!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertWeekday = new PreparedQuery<
