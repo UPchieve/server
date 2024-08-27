@@ -1,7 +1,7 @@
 /* @name getGatesStudentById */
 SELECT
     student_profiles.user_id AS id,
-    grade_levels.name AS current_grade,
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
     student_partner_orgs.name AS student_partner_org,
     schools.partner AS is_partner_school,
     student_profiles.school_id AS approved_highschool
@@ -9,6 +9,7 @@ FROM
     student_profiles
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
     JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
 WHERE
     student_profiles.user_id = :userId!;
@@ -761,13 +762,14 @@ SELECT
     first_name,
     last_name,
     email,
-    grade_levels.name AS grade_level,
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
     users.created_at,
     users.updated_at
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
 WHERE
     student_profiles.user_id IN :userIds!;
 
