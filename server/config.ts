@@ -132,6 +132,11 @@ const config: Static<typeof Config> = {
         process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_EMAIL_SENDER ||
         'example@example.org',
       crisis: process.env.SUBWAY_CRISIS_EMAIL_SENDER || 'example@example.org',
+      programsManager:
+        process.env.SUBWAY_PROGRAMS_MANAGER_EMAIL_SENDER ||
+        'example@example.org',
+      supportApp:
+        process.env.SUBWAY_SUPPORT_APP_EMAIL_SENDER || 'example@exampleapp.org',
     },
     receivers: {
       contact:
@@ -168,6 +173,8 @@ const config: Static<typeof Config> = {
         lastName:
           process.env.SUBWAY_CORPORATE_PARTNERSHIPS_MANAGER_LAST_NAME || '',
       },
+      programsManager:
+        process.env.SUBWAY_PROGRAMS_MANAGER_EMAIL_SENDER_NAME || '',
     },
   },
   client: {

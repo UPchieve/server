@@ -15,7 +15,7 @@ export default async (): Promise<void> => {
       } on ${Date.toString()} - Material view refreshed`
     )
 
-    await QueueService.add(Jobs.UpdateSendGridFields)
+    await QueueService.add(Jobs.UpdateSendGridGradeLevels)
   } catch (error) {
     throw new Error(`Failed to ${Jobs.UpdateGradeLevel}: ${error}`)
   }

@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { v4 as uuid } from 'uuid'
 import * as Cache from '../../cache'
 import { KeyNotFoundError } from '../../cache'

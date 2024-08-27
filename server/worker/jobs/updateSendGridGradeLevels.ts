@@ -1,61 +1,103 @@
 import { Jobs } from '.'
 import 'moment-timezone'
 import { log } from '../logger'
-import { getStudentsForGradeLevelSgUpdate } from '../../models/Student'
-import { createContact } from '../../services/MailService'
+import { getStudentIdsForGradeLevelSgUpdate } from '../../models/Student'
+import {
+  createContact,
+  checkContactJobStatus,
+} from '../../services/MailService'
 import { backOff } from 'exponential-backoff'
 import { AxiosError } from 'axios'
 
-const REQUEST_RATE_LIMIT_PER_MINUTE = 600
-const REQUEST_DELAY = 60000 / REQUEST_RATE_LIMIT_PER_MINUTE
-const BATCH_SIZE = 100
+async function pollContactJobStatus(
+  jobId: string,
+  startBatchSize: number,
+  endBatchSize: number
+): Promise<void> {
+  await backOff(
+    async () => {
+      const status = await checkContactJobStatus(jobId)
+      const batchSize = `batch size ${startBatchSize} to ${endBatchSize}`
+
+      if (status.status === 'completed')
+        log(
+          `${Jobs.UpdateSendGridGradeLevels} - SendGrid job ${jobId} completed successfully for ${batchSize}`
+        )
+      else if (
+        status.status === 'failed' ||
+        (status.errors && status.errors.length > 0)
+      )
+        throw new Error(
+          `${
+            Jobs.UpdateSendGridGradeLevels
+          } - SendGrid job ${jobId} failed with errors for ${batchSize}: ${JSON.stringify(
+            status.errors
+          )}`
+        )
+      else
+        throw new Error(
+          `${Jobs.UpdateSendGridGradeLevels} - SendGrid job ${jobId} is still processing for ${batchSize}.`
+        )
+    },
+    {
+      delayFirstAttempt: true,
+      jitter: 'full',
+      startingDelay: 1000 * 60,
+      maxDelay: 1000 * 60,
+      numOfAttempts: 20,
+      retry: (error: Error, attemptNumber: number) => {
+        log(
+          `${Jobs.UpdateSendGridGradeLevels} - Checking SendGrid job status ${jobId} on attempt ${attemptNumber}`
+        )
+        return true
+      },
+    }
+  )
+}
 
 export default async (): Promise<void> => {
   const errors: string[] = []
+  const BATCH_SIZE = 30000
+  const studentIds = await getStudentIdsForGradeLevelSgUpdate()
   let totalUpdated = 0
-  // We only want to update the SendGrid custom fields for students
-  // who have moved up a grade level. We are excluding students who
-  // have recently created an account, as their contact information
-  // in SendGrid is already up to date.
-  const students = await getStudentsForGradeLevelSgUpdate()
 
-  for (let i = 0; i < students.length; i += BATCH_SIZE) {
-    const batch = students.slice(i, i + BATCH_SIZE)
-    for (const student of batch) {
-      try {
-        // Handle request retries if we reach rate limits
-        await backOff(() => createContact(student.userId), {
-          delayFirstAttempt: true,
-          jitter: 'full',
-          startingDelay: REQUEST_DELAY,
-          maxDelay: 60000,
-          numOfAttempts: 5,
-          retry: (error: AxiosError, attemptNumber: number) => {
-            if (error.response && error.response.status === 429) {
-              log(
-                `${Jobs.UpdateSendGridFields} - Rate limit exceeded on attempt ${attemptNumber}. Retrying...`
-              )
-              // Retry if rate-limit error
-              return true
-            }
-            // Do not retry if error is not related to rate-limit
-            return false
-          },
-        })
+  for (let i = 0; i < studentIds.length; i += BATCH_SIZE) {
+    const batch = studentIds.slice(i, i + BATCH_SIZE)
 
-        totalUpdated++
-      } catch (error) {
-        errors.push(
-          `${student.userId}: Attempted to update custom fields in SendGrid: ${student.userId} with error: ${error}\n`
-        )
-      }
+    try {
+      const jobId = await backOff(() => createContact(batch), {
+        jitter: 'full',
+        maxDelay: 1000 * 60,
+        numOfAttempts: 5,
+        retry: (error: AxiosError, attemptNumber: number) => {
+          if (error.response && error.response.status === 429) {
+            log(
+              `${Jobs.UpdateSendGridGradeLevels} - Rate limit exceeded on attempt ${attemptNumber}. Retrying...`
+            )
+            // Retry if rate-limit error
+            return true
+          }
+          // Do not retry if error is not related to rate-limit
+          return false
+        },
+      })
+
+      // Ensure the batch contact update with SendGrid actually succeeds
+      await pollContactJobStatus(jobId, i, i + BATCH_SIZE)
+      totalUpdated += batch.length
+    } catch (error) {
+      errors.push(
+        `Failed to process batch starting with ${batch[0]}: ${error}\n`
+      )
     }
   }
 
-  log(`Successfully ${Jobs.UpdateSendGridFields} for ${totalUpdated} students`)
+  log(
+    `Successfully ${Jobs.UpdateSendGridGradeLevels} for ${totalUpdated} students`
+  )
   if (errors.length) {
     throw new Error(
-      `Failed to ${Jobs.UpdateSendGridFields} for students:\n${errors}`
+      `Failed to ${Jobs.UpdateSendGridGradeLevels} for students:\n${errors}`
     )
   }
 }

@@ -3,7 +3,7 @@ import {
   updateAvailabilityByVolunteerId,
 } from '../../models/Availability'
 import { DAYS, HOURS } from '../../constants'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import {
   addVolunteerCertification,
   CreatedVolunteer,
@@ -387,13 +387,13 @@ const loadVolunteerAvailability = async (
 }
 
 const generateVolunteer = (): CreateVolunteerPayload => {
-  const firstName = faker.name.firstName()
-  const lastName = faker.name.lastName()
+  const firstName = faker.person.firstName()
+  const lastName = faker.person.lastName()
   return {
     ip: '123',
     email: faker.internet.email(),
     password: 'Password!123', // pragma: allowlist secret
-    phone: faker.phone.phoneNumber('+###########'),
+    phone: faker.phone.number(),
     terms: true,
     firstName,
     lastName,

@@ -115,3 +115,7 @@ export async function getAiModerationFeatureFlag(
     waitInMs: 2000,
   })
 }
+
+export async function getCollegeListWorkSheetFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.COLLEGE_LIST_WORKSHEET, userId)
+}
