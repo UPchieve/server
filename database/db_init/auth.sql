@@ -56,6 +56,7 @@ END;
 $$;
 -- put all mat view ownership moves below here
 ALTER MATERIALIZED VIEW upchieve.users_subjects_mview OWNER TO mat_view_owners;
+ALTER MATERIALIZED VIEW upchieve.current_grade_levels_mview OWNER TO mat_view_owners;
 
 -- Basic Access Schema and Role.
 -- The schema contains views for every table of the upchieve schema without the columns containing PII.
