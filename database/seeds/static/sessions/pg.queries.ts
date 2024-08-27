@@ -24,21 +24,26 @@ const insertReportReasonIR: any = {
       name: 'reason',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 100, b: 106, line: 2, col: 69 }] },
+      codeRefs: { used: [{ a: 104, b: 110, line: 3, col: 13 }] },
     },
   ],
   usedParamSet: { reason: true },
   statement: {
     body:
-      'INSERT INTO report_reasons (reason, created_at, updated_at) VALUES (:reason!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 31, b: 163, line: 2, col: 0 },
+      'INSERT INTO report_reasons (reason, created_at, updated_at)\n    VALUES (:reason!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 31, b: 175, line: 2, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO report_reasons (reason, created_at, updated_at) VALUES (:reason!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO report_reasons (reason, created_at, updated_at)
+ *     VALUES (:reason!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertReportReason = new PreparedQuery<
@@ -69,21 +74,26 @@ const insertSessionFlagIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 263, b: 267, line: 5, col: 66 }] },
+      codeRefs: { used: [{ a: 280, b: 284, line: 12, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO session_flags (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 197, b: 324, line: 5, col: 0 },
+      'INSERT INTO session_flags (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 210, b: 349, line: 11, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO session_flags (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO session_flags (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertSessionFlag = new PreparedQuery<
