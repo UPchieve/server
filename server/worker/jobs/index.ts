@@ -53,6 +53,7 @@ import migrateProgressReportPromptIds from '../../scripts/migrate-progress-repor
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import moderateSessionMessage from '../../scripts/moderate-session-message'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
+import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -101,6 +102,7 @@ export enum Jobs {
   UpdateGradeLevel = 'UpdateGradeLevel',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   GenerateProgressReport = 'GenerateProgressReport',
+  UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -314,6 +316,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.GenerateProgressReport,
     processor: generateProgressReport,
+  },
+  {
+    name: Jobs.UpdateSendGridGradeLevels,
+    processor: updateSendGridGradeLevels,
   },
 
   // TODO: remove the following deprecated job names

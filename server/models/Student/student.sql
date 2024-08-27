@@ -680,40 +680,14 @@ WHERE
     AND deactivated_on IS NOT NULL;
 
 
-/* @name getStudentsForGradeLevelUpdate */
+/* @name getStudentsIdsForGradeLevelSgUpdate */
 SELECT
-    sp.user_id,
-    sp.created_at,
-    gl.name AS grade_level
+    sp.user_id
 FROM
     student_profiles sp
-    JOIN grade_levels gl ON gl.id = sp.grade_level_id
-WHERE
-    NOT gl.name = ANY ('{"College", "Other"}')
-    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
-    AND sp.created_at >= to_timestamp(:fromDate!, 'YYYY-MM-DD HH24:MI:SS')
-    AND sp.created_at < to_timestamp(:toDate!, 'YYYY-MM-DD HH24:MI:SS')
+    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
 ORDER BY
     sp.created_at DESC;
-
-
-/* @name updateStudentsGradeLevel */
-UPDATE
-    student_profiles
-SET
-    grade_level_id = subquery.id,
-    updated_at = NOW()
-FROM (
-    SELECT
-        grade_levels.id
-    FROM
-        grade_levels
-    WHERE
-        grade_levels.name = :gradeLevel!) AS subquery
-WHERE
-    user_id = :userId!
-RETURNING
-    user_id AS ok;
 
 
 /* @name countDuplicateStudentVolunteerFavorites */
