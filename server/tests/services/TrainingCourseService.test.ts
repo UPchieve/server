@@ -1,7 +1,7 @@
 import * as VolunteerRepo from '../../models/Volunteer'
 import { recordProgress } from '../../services/TrainingCourseService'
 import { getDbUlid } from '../../models/pgUtils'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { UserContactInfo } from '../../models/User'
 import { TRAINING } from '../../constants'
 import logger from '../../logger'
@@ -21,9 +21,9 @@ describe('TrainingCourseService', () => {
     banType: undefined,
     deactivated: false,
     email: faker.internet.email(),
-    phone: faker.phone.phoneNumber('+###########'),
+    phone: faker.phone.number(),
     phoneVerified: true,
-    firstName: faker.name.firstName(),
+    firstName: faker.person.firstName(),
     lastActivityAt: new Date(),
     smsConsent: true,
     isAdmin: false,

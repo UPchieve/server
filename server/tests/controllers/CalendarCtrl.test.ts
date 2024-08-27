@@ -1,6 +1,6 @@
 import { mocked } from 'jest-mock'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 
 import * as CalendarCtrl from '../../controllers/CalendarCtrl'
 import * as VolunteerRepo from '../../models/Volunteer'
@@ -66,7 +66,7 @@ function buildVolunteerForScheduleUpdate(
 ): VolunteerRepo.VolunteerForScheduleUpdate {
   return {
     id: userId || getDbUlid(),
-    volunteerPartnerOrg: faker.company.companyName(),
+    volunteerPartnerOrg: faker.company.name(),
     onboarded: onboarded,
     availability: buildAvailability(),
     subjects: subjects || ['algebraOne'],

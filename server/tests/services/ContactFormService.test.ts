@@ -5,7 +5,7 @@ import * as ContactFormService from '../../services/ContactFormService'
 import { getDbUlid } from '../../models/pgUtils'
 import * as MailService from '../../services/MailService'
 import { InputError } from '../../models/Errors'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 jest.mock('../../models/ContactFormSubmission/queries')
 jest.mock('../../services/MailService')
 

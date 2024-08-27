@@ -3,6 +3,10 @@ import * as cache from '../cache'
 import { Ulid } from '../models/pgUtils'
 import { LockError } from 'redlock'
 import logger from '../logger'
+import { getSessionById } from '../models/Session'
+import { COLLEGE_LIST_DOC_WORKSHEET } from '../constants'
+import { getCollegeListWorkSheetFlag } from './FeatureFlagService'
+import * as Y from 'yjs'
 
 function sessionIdToKey(id: Ulid): string {
   return `quill-${id.toString()}`
@@ -17,7 +21,12 @@ function getSessionDocumentUpdatesKey(id: Ulid): string {
 }
 
 export async function createDoc(sessionId: Ulid): Promise<Delta> {
-  const newDoc = new Delta()
+  const session = await getSessionById(sessionId)
+  const newDoc =
+    session.subject === 'collegeList' &&
+    (await getCollegeListWorkSheetFlag(session.studentId))
+      ? new Delta(COLLEGE_LIST_DOC_WORKSHEET)
+      : new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
 }
@@ -131,7 +140,22 @@ export async function appendToDoc(
  *
  */
 export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
-  return await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
+  const updates = await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
+  const session = await getSessionById(sessionId)
+  if (
+    updates.length === 0 &&
+    session.subject === 'collegeList' &&
+    (await getCollegeListWorkSheetFlag(session.studentId))
+  ) {
+    const ydoc = new Y.Doc()
+    const ytext = ydoc.getText('quill')
+    ytext.applyDelta(COLLEGE_LIST_DOC_WORKSHEET)
+    const update = Y.encodeStateAsUpdate(ydoc)
+    const updateString = Array.from(update).toString()
+    await addDocumentUpdate(sessionId, updateString)
+    return [updateString]
+  }
+  return updates
 }
 
 export async function addDocumentUpdate(

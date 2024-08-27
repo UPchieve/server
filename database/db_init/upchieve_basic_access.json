@@ -500,7 +500,7 @@
     "time_tutored",
     "created_at",
     "updated_at",
-    "shadowbanned",
+    "shadowbanned"
   ],
   "sessions_session_flags": [
     "session_id",

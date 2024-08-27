@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { getDbUlid } from '../../../../database/seeds/utils'
 import { getClient } from '../../../db'
 import { migrateUsers } from '../../../scripts/migrate-banned-and-test-users-to-bantype'
@@ -70,12 +70,12 @@ async function createUser(
     `,
     [
       getDbUlid(),
-      faker.name.firstName(),
-      faker.name.lastName(),
+      faker.person.firstName(),
+      faker.person.lastName(),
       email,
       isTestUser,
       isBanned,
-      faker.random.alphaNumeric(6),
+      faker.string.alphanumeric(6),
     ]
   )
 
