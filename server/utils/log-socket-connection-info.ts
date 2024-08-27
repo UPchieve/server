@@ -1,4 +1,4 @@
-import { SocketUser } from '../router/extract-user'
+import { SocketUser } from '../types/socket-types'
 import { Ulid } from '../models/pgUtils'
 import logger from '../logger'
 
@@ -95,7 +95,7 @@ type SocketLogArg = {
   metadata?: { [key: string]: any }
 }
 
-export const logSocketConnectionInfo = (
+export const logSocketEvent = (
   event: string,
   socket: SocketUser,
   args?: string | SocketLogArg
@@ -139,15 +139,13 @@ export const logSocketConnectionInfo = (
       ...additionalMetadata,
       recovered: socket.recovered,
       socketId: socket.id,
+      sessionId: socket.data.sessionId,
     }
-    const message = `Socket connection event: ${event}`
+    const message = `Socket event: ${event}`
     disconnectReason?.isError || error?.message
       ? logger.error(analyticsData, message)
       : logger.info(analyticsData, message)
   } catch (err) {
-    logger.error(
-      err,
-      `Failed to log socket connection info for userId=${userId}`
-    )
+    logger.error(err, `Failed to log socket event for userId=${userId}`)
   }
 }

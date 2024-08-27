@@ -1,28 +1,28 @@
-import config from '../../config'
-import { Ulid } from '../../models/pgUtils'
+import config from '../config'
+import { Ulid } from '../models/pgUtils'
 import sgMail from '@sendgrid/mail'
 import axios from 'axios'
 import { capitalize } from 'lodash'
-import formatMultiWordSubject from '../../utils/format-multi-word-subject'
+import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import {
   SESSION_REPORT_REASON,
   USER_BAN_REASONS,
   TRAINING,
   USER_BAN_TYPES,
-} from '../../constants'
-import * as UserRolesService from '../../services/UserRolesService'
-import { getUserToCreateSendGridContact } from '../../models/User'
-import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
-import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
-import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
-import { buildAppLink } from '../../utils/link-builders'
-import { isDevEnvironment, isE2eEnvironment } from '../../utils/environments'
-import logger from '../../logger'
+} from '../constants'
+import * as UserRolesService from '../services/UserRolesService'
+import { getUserToCreateSendGridContact } from '../models/User'
+import { VolunteerContactInfo, UnsentReference } from '../models/Volunteer'
+import { getFullVolunteerPartnerOrgByKey } from '../models/VolunteerPartnerOrg'
+import { getFullStudentPartnerOrgByKey } from '../models/StudentPartnerOrg'
+import { buildAppLink } from '../utils/link-builders'
+import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
+import logger from '../logger'
 import {
   isStudentUserType,
   isTeacherUserType,
   isVolunteerUserType,
-} from '../../utils/user-type'
+} from '../utils/user-type'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -200,7 +200,7 @@ export async function sendOpenVolunteerWelcomeEmail(
 
   await sendEmail(
     email,
-    config.mail.senders.support,
+    config.mail.senders.supportApp,
     'UPchieve',
     config.sendgrid.openVolunteerWelcomeTemplate,
     { volunteerName },
@@ -232,13 +232,13 @@ export async function sendStudentOnboardingWelcomeEmail(
 ): Promise<void> {
   const overrides = {
     reply_to: {
-      email: config.mail.receivers.students,
+      email: config.mail.senders.supportApp,
     },
     categories: ['Student Onboarding Email 1 - Welcome'],
   }
   await sendEmail(
     email,
-    config.mail.senders.students,
+    config.mail.senders.supportApp,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingWelcomeTemplate,
     { firstName },
@@ -256,8 +256,8 @@ export async function sendTeacherOnboardingWelcomeEmail(
 
   await sendEmail(
     email,
-    config.mail.senders.support,
-    'UPchieve',
+    config.mail.senders.programsManager,
+    config.mail.people.programsManager,
     config.sendgrid.teacherOnboardingWelcomeTemplate,
     { firstName },
     overrides
@@ -606,14 +606,14 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
 ): Promise<void> {
   const overrides = {
     reply_to: {
-      email: config.mail.senders.volunteerManager,
+      email: config.mail.senders.supportApp,
     },
     categories: ['nice to meet you email'],
   }
 
   await sendEmail(
     volunteer.email,
-    config.mail.senders.volunteerManager,
+    config.mail.senders.supportApp,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.niceToMeetYouTemplate,
     {

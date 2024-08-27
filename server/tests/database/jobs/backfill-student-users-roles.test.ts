@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { getDbUlid } from '../../../../database/seeds/utils'
 import { getClient } from '../../../db'
 import { backfill } from '../../../scripts/backfill-student-users-roles'
@@ -88,11 +88,11 @@ describe('backfillStudentUsersRoles', () => {
   `,
       [
         getDbUlid(),
-        faker.name.firstName(),
-        faker.name.lastName(),
+        faker.person.firstName(),
+        faker.person.lastName(),
         faker.internet.email(),
         ROSTER_SIGNUP_SOURCE_ID,
-        faker.random.alphaNumeric(6),
+        faker.string.alphanumeric(6),
       ]
     )
 

@@ -47,10 +47,17 @@ export const asCredentialData = asFactory<CredentialData>({
 })
 
 export interface SessionWithSsoData extends session.Session {
-  isLogin?: boolean
-  provider?: string
-  redirect?: string
-  studentData?: Partial<RegisterStudentPayload>
+  sso?: {
+    isLogin?: boolean
+    provider?: string
+    redirect?: string
+    studentData?: Partial<RegisterStudentPayload>
+    fedCredData?: {
+      profileId: string
+      issuer: string
+      validator: string
+    }
+  }
 }
 
 export interface RegisterStudentPayload {

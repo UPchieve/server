@@ -3,9 +3,15 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as GoogleStrategy } from 'passport-google-oidc'
 import CleverStrategy from './clever-strategy'
-import { getFederatedCredential } from '../../models/FederatedCredential/queries'
+import {
+  getFederatedCredential,
+  insertFederatedCredential,
+} from '../../models/FederatedCredential/queries'
 import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
-import { registerStudent } from '../../services/UserCreationService'
+import {
+  registerStudent,
+  upsertStudent,
+} from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
   SessionWithSsoData,
@@ -40,11 +46,9 @@ async function passportRegisterUser(
   try {
     const existingFedCred = await getFederatedCredential(profile.id, issuer)
     if (existingFedCred) {
-      return done(
-        null,
-        false,
-        `${providerName} account already used with another UPchieve account.`
-      )
+      return done(null, false, {
+        errorMessage: `${providerName} account already used with another UPchieve account.`,
+      })
     }
 
     const firstName = profile.name?.givenName
@@ -56,11 +60,9 @@ async function passportRegisterUser(
 
     const existingUser = await getUserIdByEmail(email)
     if (existingUser) {
-      return done(
-        null,
-        false,
-        `Account with ${providerName} email already exists.`
-      )
+      return done(null, false, {
+        errorMessage: `Account with ${providerName} email already exists.`,
+      })
     }
 
     const studentData = {
@@ -133,11 +135,11 @@ export function addPassportAuthMiddleware() {
         profile: passport.Profile,
         done: Function
       ) {
-        const { isLogin } = req.session as SessionWithSsoData
+        const { isLogin } = (req.session as SessionWithSsoData).sso ?? {}
         if (isLogin) {
           return passportLoginUser(profile.id, issuer, done)
         } else {
-          const { studentData } = req.session as SessionWithSsoData
+          const { studentData } = (req.session as SessionWithSsoData).sso ?? {}
           return passportRegisterUser(
             profile,
             issuer,
@@ -159,19 +161,74 @@ export function addPassportAuthMiddleware() {
       profile: passport.Profile & { issuer: string },
       done: Function
     ) {
-      const isLogin = (req.session as SessionWithSsoData)?.isLogin ?? true
-      if (isLogin) {
-        return passportLoginUser(profile.id, profile.issuer, done)
-      } else {
-        const { studentData } = req.session as SessionWithSsoData
-        return passportRegisterUser(
-          profile,
-          profile.issuer,
-          'Clever',
-          studentData,
-          done
-        )
+      const { studentData } = (req.session as SessionWithSsoData).sso ?? {}
+
+      const existingFedCred = await getFederatedCredential(
+        profile.id,
+        profile.issuer
+      )
+      if (existingFedCred) {
+        if (studentData) {
+          const data = {
+            schoolId: studentData.schoolId,
+            studentPartnerOrgKey: studentData.studentPartnerOrgKey,
+            studentPartnerOrgSiteName: studentData.studentPartnerOrgSiteName,
+            userId: existingFedCred.userId,
+          }
+          await upsertStudent(data)
+        }
+        return done(null, { id: existingFedCred.userId })
       }
+
+      const firstName = profile.name?.givenName
+      const lastName = profile.name?.familyName
+      if (!firstName || !lastName) {
+        return done(null, false, 'Missing required field in passport.Profile')
+      }
+
+      const profileEmail = profile.emails?.[0]?.value
+      const email = profileEmail ?? studentData?.email
+      if (!email) {
+        // Redirect to get the email from the student so we can link
+        // their account if an account already exists, or create an
+        // account.
+        return done(null, false, {
+          profileId: profile.id,
+          issuer: profile.issuer,
+          firstName,
+          lastName,
+        })
+      }
+
+      const existingUserId = await getUserIdByEmail(email)
+      if (existingUserId) {
+        if (studentData) {
+          const data = {
+            schoolId: studentData.schoolId,
+            studentPartnerOrgKey: studentData.studentPartnerOrgKey,
+            studentPartnerOrgSiteName: studentData.studentPartnerOrgSiteName,
+            userId: existingUserId,
+          }
+          await upsertStudent(data)
+        }
+        await insertFederatedCredential(
+          profile.id,
+          profile.issuer,
+          existingUserId
+        )
+        return done(null, { id: existingUserId })
+      }
+
+      const data = {
+        ...studentData,
+        email,
+        firstName,
+        issuer: profile.issuer,
+        lastName,
+        profileId: profile.id,
+      }
+      const student = await registerStudent(data)
+      return done(null, student)
     })
   )
 }

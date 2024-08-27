@@ -321,7 +321,7 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
             FROM
                 student_partner_orgs
             WHERE
-                student_partner_orgs.key = :partnerOrg
+                student_partner_orgs.key = :studentPartnerOrgKey
             LIMIT 1),
         (
             SELECT
@@ -329,7 +329,7 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
             FROM
                 student_partner_org_sites
             WHERE
-                student_partner_org_sites.name = :partnerSite
+                student_partner_org_sites.name = :studentPartnerOrgSiteName
             LIMIT 1),
         (
             SELECT
@@ -345,40 +345,34 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
         NOW())
 ON CONFLICT (user_id)
     DO UPDATE SET
-        postal_code = :postalCode,
-        student_partner_org_id = (
-            SELECT
-                id
-            FROM
-                student_partner_orgs
-            WHERE
-                student_partner_orgs.key = :partnerOrg
-            LIMIT 1),
-    student_partner_org_site_id = (
-        SELECT
-            id
-        FROM
-            student_partner_org_sites
-        WHERE
-            student_partner_org_sites.name = :partnerSite
-        LIMIT 1),
-grade_level_id = (
-    SELECT
-        id
-    FROM
-        grade_levels
-    WHERE
-        grade_levels.name = :gradeLevel
-    LIMIT 1),
-school_id = :schoolId,
-college = :college,
-updated_at = NOW()
+        postal_code = COALESCE(:postalCode, student_profiles.postal_code),
+    student_partner_org_id = COALESCE(EXCLUDED.student_partner_org_id, student_profiles.student_partner_org_id),
+    student_partner_org_site_id = CASE WHEN EXCLUDED.student_partner_org_id IS NOT NULL THEN
+        EXCLUDED.student_partner_org_site_id
+    ELSE
+        student_profiles.student_partner_org_site_id
+    END,
+    school_id = COALESCE(:schoolId, student_profiles.school_id),
+    college = COALESCE(:college, student_profiles.college),
+    updated_at = NOW()
 RETURNING
     user_id,
     postal_code,
-    :partnerOrg AS student_partner_org,
-    :partnerSite AS partner_site,
-    :gradeLevel AS grade_level,
+    COALESCE(:studentPartnerOrgKey, (
+            SELECT
+                KEY FROM student_partner_orgs
+            WHERE
+                id = student_profiles.student_partner_org_id)) AS student_partner_org_key,
+    COALESCE(:studentPartnerOrgSiteName, (
+            SELECT
+                name FROM student_partner_org_sites
+            WHERE
+                id = student_profiles.student_partner_org_site_id)) AS student_partner_org_site_name,
+    COALESCE(:gradeLevel, (
+            SELECT
+                name FROM grade_levels
+            WHERE
+                id = student_profiles.grade_level_id)) AS grade_level,
     school_id,
     college,
     created_at,

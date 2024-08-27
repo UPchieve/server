@@ -3,7 +3,7 @@ import { AssistmentsData } from '../../models/AssistmentsData'
 import { Student } from '../../models/Student'
 import { Availability } from '../../models/Availability'
 import { User, UserContactInfo, UserRole } from '../../models/User'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import _ from 'lodash'
 import createNewAvailability from '../../utils/create-new-availability'
 import { VolunteerPartnerOrg } from '../../models/VolunteerPartnerOrg'
@@ -42,12 +42,11 @@ export function getEmail(): string {
   return faker.internet.email().toLowerCase()
 }
 export function getPhoneNumber(): string {
-  const phoneNumber = faker.phone.phoneNumberFormat(0)
-  const formattedPhoneNumber = phoneNumber.replace(/-/g, '')
-  return `+1${formattedPhoneNumber}`
+  const phoneNumber = faker.string.numeric(9)
+  return `+1${phoneNumber}`
 }
-export const getFirstName = faker.name.firstName
-export const getLastName = faker.name.lastName
+export const getFirstName = faker.person.firstName
+export const getLastName = faker.person.lastName
 export const getIpAddress = faker.internet.ip
 
 export const buildAvailability = (overrides = {}): Availability => {
