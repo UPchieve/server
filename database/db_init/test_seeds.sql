@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 16.2
+-- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
+-- Dumped by pg_dump version 16.2 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -444,6 +444,23 @@ COPY upchieve.federated_credentials (id, issuer, user_id) FROM stdin;
 --
 
 COPY upchieve.feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, legacy_feedbacks, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: grade_level_sequence; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.grade_level_sequence (grade_name, next_grade_name) FROM stdin;
+6th	7th
+7th	8th
+8th	9th
+9th	10th
+10th	11th
+11th	12th
+12th	College
+College	College
+Other	Other
 \.
 
 
