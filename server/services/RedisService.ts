@@ -8,13 +8,13 @@ type EventData = {
   id?: Ulid
 }
 
-type ParsedElement =
+type ParsedArg =
   | {
       packet: {
         data: [string, EventData]
       }
     }
-  | 'string'
+  | string
 
 const clientToServerEventKeys = [
   'join',
@@ -94,33 +94,28 @@ function extractSessionId(
 }
 
 function getEventNameAndData(
-  args: any[][]
+  args: any[]
 ): { eventName: string; data: { sessionId?: Ulid } } | undefined {
   try {
     for (const arg of args) {
-      for (const element of arg) {
-        if (typeof element === 'string') {
-          try {
-            const parsedElement = JSON.parse(element) as ParsedElement
+      if (typeof arg === 'string') {
+        try {
+          const parsedArg = JSON.parse(arg) as ParsedArg
 
-            if (
-              parsedElement &&
-              typeof parsedElement === 'object' &&
-              parsedElement.packet
-            ) {
-              const [eventName, packetData] = parsedElement.packet.data
-              if (!eventsToCapture.includes(eventName)) continue
-              const sessionId = extractSessionId(eventName, packetData)
-              return {
-                eventName,
-                data: {
-                  sessionId,
-                },
-              }
+          if (parsedArg && typeof parsedArg === 'object' && parsedArg.packet) {
+            const [eventName, packetData] = parsedArg.packet.data
+            if (!eventsToCapture.includes(eventName)) continue
+            const sessionId = extractSessionId(eventName, packetData)
+            return {
+              eventName,
+              data: {
+                sessionId,
+              },
             }
-          } catch (error) {
-            continue
           }
+        } catch (error) {
+          logger.warn(`Failed to parse argument as JSON: ${arg}`)
+          continue
         }
       }
     }
@@ -138,7 +133,7 @@ export const redisClient = new Proxy(baseClient, {
     const originalMethod = target[command]
 
     if (typeof originalMethod === 'function' && command === 'xadd') {
-      return async (...args: any[]) => {
+      return async (args: any[]) => {
         const logData = getEventNameAndData(args)
         if (logData?.eventName && logData.data.sessionId)
           logger.info(
