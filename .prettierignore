@@ -3,4 +3,4 @@ public/**/*
 server/utils/zwibblerDecoder.ts
 server/dbutils/*
 server/models/**/pg.*.ts
-database/seeds/scripts/**/pg.*.ts
+database/seeds/**/pg.*.ts
