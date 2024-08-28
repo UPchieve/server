@@ -17,6 +17,13 @@ CREATE SCHEMA auth;
 
 
 --
+-- Name: basic_access; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA basic_access;
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -112,22 +119,24 @@ CREATE FUNCTION upchieve.generate_ulid() RETURNS uuid
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    timestamp bytea = E'\\000\\000\\000\\000\\000\\000';
-    unix_time bigint;
-    ulid bytea;
+  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
+
+  unix_time  BIGINT;
+  ulid       BYTEA;
 BEGIN
-    -- 6 timestamp bytes
-    unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::bigint;
-    timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::bit(8)::integer);
-    timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::bit(8)::integer);
-    timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::bit(8)::integer);
-    timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::bit(8)::integer);
-    timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::bit(8)::integer);
-    timestamp = SET_BYTE(timestamp, 5, unix_time::bit(8)::integer);
-    -- 10 entropy bytes
-    ulid = timestamp || public.gen_random_bytes(10);
-    RETURN CAST(substring(CAST(ulid AS text)
-            FROM 3) AS uuid);
+  -- 6 timestamp bytes
+  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
+  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
+  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
+
+  -- 10 entropy bytes
+  ulid = timestamp || public.gen_random_bytes(10);
+
+  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
 END
 $$;
 
@@ -189,7 +198,7 @@ CREATE TABLE auth.session (
 --
 
 CREATE TABLE public.schema_migrations (
-    version character varying(128) NOT NULL
+    version character varying(255) NOT NULL
 );
 
 
@@ -2348,10 +2357,10 @@ CREATE TABLE upchieve.users (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     phone text,
+    sms_consent boolean DEFAULT false NOT NULL,
     mongo_id character varying(24),
     other_signup_source text,
     proxy_email text,
-    sms_consent boolean DEFAULT false NOT NULL,
     ban_type upchieve.ban_types
 );
 
@@ -2491,7 +2500,8 @@ CREATE TABLE upchieve.users_surveys (
     session_id uuid,
     survey_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    progress_report_id uuid
 );
 
 
@@ -5855,4 +5865,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240809200824'),
     ('20240812190423'),
     ('20240828142138'),
-    ('20240828222203');
+    ('20240828232026');
