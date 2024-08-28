@@ -441,6 +441,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
 
               const socketRoom = getSessionRoom(data.sessionId)
+              logSocketEvent('messageSend', socket)
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()
             } catch (error) {

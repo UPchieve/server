@@ -39,14 +39,14 @@ export type ClientToServerEvents = {
 
 export type ServerToClientEvents = {
   redirect: (error?: Error) => void
-  message: (data: { sessionId: Ulid; message: string }) => void
+  messageSend: (data: { sessionId: Ulid; message: string }) => void
+  messageError: (data: { sessionId: Ulid }) => void
   'sessions/partner:in-session': (status: boolean) => void
   'sessions/recap:joined': () => void
   'sessions/recap:join-failed': (error: Error) => void
   sessions: (sessions: UnfulfilledSessions[]) => void
   'is-typing': (data: { sessionId: Ulid }) => void
   'not-typing': (data: { sessionId: Ulid }) => void
-  messageError: (data: { sessionId: Ulid }) => void
   lastDeltaStored: (data: { delta: Delta }) => void
   quillState: (data: { delta: Delta | undefined }) => void
   retryLoadingDoc: () => void

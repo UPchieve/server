@@ -12,6 +12,7 @@ import Redis from 'ioredis'
 import { CustomError } from 'ts-custom-error'
 import config from '../config'
 import redlock, { Lock } from 'redlock'
+import logger from '../logger'
 
 const redisClient = new Redis(config.redisConnectionString)
 
@@ -37,6 +38,7 @@ export class KeyDeletionFailureError extends CustomError {
 }
 
 export async function save(key: string, value: string): Promise<void> {
+  logger.info(`Redis saving key ${key} with value of length ${value.length}`)
   await redisClient.set(key, value)
 }
 
@@ -51,6 +53,7 @@ export async function saveWithExpiration(
   value: string,
   seconds = 86400
 ): Promise<void> {
+  logger.info(`Redis saving key ${key} with expiration of ${seconds} seconds`)
   // possible expiryMode values: https://redis.io/commands/set
   await redisClient.set(key, value, 'EX', seconds)
 }
@@ -60,38 +63,49 @@ export async function getTimeToExpiration(key: string): Promise<number> {
 }
 
 export async function get(key: string): Promise<string> {
+  logger.info(`Redis getting key ${key}`)
   const value = await redisClient.get(key)
   if (value === null) {
+    logger.warn(`Redis key not found: ${key}`)
     throw new KeyNotFoundError(key)
   }
   return value
 }
 
 export async function remove(key: string): Promise<number> {
+  logger.info(`Redis removing key ${key}`)
   return await redisClient.del(key)
 }
 
 export async function append(key: string, addition: string): Promise<void> {
+  logger.info(
+    `Redis appending to key ${key} with addition of length ${addition.length}`
+  )
   const docLength = await redisClient.append(key, addition)
   if (docLength === 0) throw new AppendLengthZeroError(key)
 }
 
 export async function rpush(key: string, addition: string): Promise<number> {
+  logger.info(`Redis pushing to key ${key}`)
   return await redisClient.rpush(key, [addition])
 }
 
 export async function lpop(key: string): Promise<string> {
+  logger.info(`Redis popping from key ${key}`)
   return await redisClient.lpop(key)
 }
 
 export async function lock(key: string, lockDuration: number): Promise<Lock> {
+  logger.info(`Redis locking key ${key} for ${lockDuration} ms`)
   return await redisLock.lock(`lock:${key}`, lockDuration)
 }
 
 export async function sadd(key: string, member: string) {
+  logger.info(`Redis adding member to set key ${key}`)
   return await redisClient.sadd(key, member)
 }
 
 export async function smembers(key: string) {
+  logger.info(`Redis fetching members of set key ${key}`)
   return await redisClient.smembers(key)
 }
