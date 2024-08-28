@@ -374,7 +374,7 @@ SELECT
     users.verified,
     users.ban_type AS ban_type,
     user_product_flags.gates_qualified AS in_gates_study,
-    grade_levels.name AS current_grade,
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
     student_partner_org_sites.name AS partner_site,
     session_count.total AS num_past_sessions,
     occupations.occupation,
@@ -390,6 +390,7 @@ FROM
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
     LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN (
         SELECT
             COUNT(*) AS total
@@ -471,7 +472,7 @@ SELECT
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
     schools.partner AS is_school_partner,
-    grade_levels.name AS grade_level,
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
     users_roles.role_id,
@@ -586,6 +587,7 @@ FROM
             AND passed IS TRUE) AS users_quizzes ON TRUE
     LEFT JOIN schools ON student_profiles.school_id = schools.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN (
         SELECT
@@ -634,7 +636,7 @@ SELECT
         END) AS passed_upchieve101,
     users.test_user,
     users.last_name,
-    grade_levels.name AS student_grade_level
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
@@ -652,6 +654,7 @@ FROM
             users_training_courses.user_id = users.id
             AND training_courses.name = 'UPchieve 101') AS user_upchieve101 ON TRUE
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
 WHERE
     users.id = :userId!
 LIMIT 1;

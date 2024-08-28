@@ -1,7 +1,7 @@
 import * as SchoolRepo from '../../models/School'
 import { mocked } from 'jest-mock'
 import * as SchoolService from '../../services/SchoolService'
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 
 jest.mock('../../models/School')
@@ -17,11 +17,11 @@ describe('SchoolService', () => {
       {
         id: getDbUlid(),
         name: 'Test School',
-        city: faker.address.city(),
-        state: faker.address.state(),
+        city: faker.location.city(),
+        state: faker.location.state(),
       },
     ])
-    const query = faker.random.words(75)
+    const query = faker.lorem.words(75)
     const firstSeventyChars = query.substring(0, 70)
     expect(query.length).toBeGreaterThan(70)
     expect(firstSeventyChars.length).toEqual(70)

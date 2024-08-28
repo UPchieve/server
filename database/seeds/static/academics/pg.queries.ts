@@ -32,21 +32,26 @@ const insertCertificationIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 99, b: 103, line: 2, col: 67 }] },
+      codeRefs: { used: [{ a: 103, b: 107, line: 3, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO certifications (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 32, b: 160, line: 2, col: 0 },
+      'INSERT INTO certifications (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 32, b: 172, line: 2, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO certifications (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO certifications (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertCertification = new PreparedQuery<
@@ -77,21 +82,26 @@ const insertQuizIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 247, b: 251, line: 5, col: 60 }] },
+      codeRefs: { used: [{ a: 264, b: 268, line: 12, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO quizzes (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 187, b: 308, line: 5, col: 0 },
+      'INSERT INTO quizzes (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 200, b: 333, line: 11, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quizzes (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO quizzes (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertQuiz = new PreparedQuery<
@@ -123,27 +133,32 @@ const insertCertificationGrantIR: any = {
       name: 'quizId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 448, b: 454, line: 8, col: 99 }] },
+      codeRefs: { used: [{ a: 478, b: 484, line: 21, col: 13 }] },
     },
     {
       name: 'certificationId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 458, b: 473, line: 8, col: 109 }] },
+      codeRefs: { used: [{ a: 488, b: 503, line: 21, col: 23 }] },
     },
   ],
   usedParamSet: { quizId: true, certificationId: true },
   statement: {
     body:
-      'INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at) VALUES (:quizId!, :certificationId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING quiz_id AS ok',
-    loc: { a: 349, b: 535, line: 8, col: 0 },
+      'INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)\n    VALUES (:quizId!, :certificationId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    quiz_id AS ok',
+    loc: { a: 375, b: 573, line: 20, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at) VALUES (:quizId!, :certificationId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING quiz_id AS ok
+ * INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)
+ *     VALUES (:quizId!, :certificationId!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     quiz_id AS ok
  * ```
  */
 export const insertCertificationGrant = new PreparedQuery<
@@ -175,27 +190,32 @@ const insertQuizSubcategoryIR: any = {
       name: 'quizId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 653, b: 659, line: 11, col: 80 }] },
+      codeRefs: { used: [{ a: 696, b: 702, line: 30, col: 13 }] },
     },
     {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 663, b: 667, line: 11, col: 90 }] },
+      codeRefs: { used: [{ a: 706, b: 710, line: 30, col: 23 }] },
     },
   ],
   usedParamSet: { quizId: true, name: true },
   statement: {
     body:
-      'INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at) VALUES (:quizId!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 573, b: 724, line: 11, col: 0 },
+      'INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at)\n    VALUES (:quizId!, :name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 612, b: 775, line: 29, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at) VALUES (:quizId!, :name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at)
+ *     VALUES (:quizId!, :name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertQuizSubcategory = new PreparedQuery<
@@ -229,25 +249,25 @@ const insertQuizQuestionIR: any = {
       name: 'correctAnswer',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 890, b: 903, line: 14, col: 131 }] },
+      codeRefs: { used: [{ a: 946, b: 959, line: 39, col: 13 }] },
     },
     {
       name: 'possibleAnswers',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 907, b: 922, line: 14, col: 148 }] },
+      codeRefs: { used: [{ a: 963, b: 978, line: 39, col: 30 }] },
     },
     {
       name: 'subCategoryId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 926, b: 939, line: 14, col: 167 }] },
+      codeRefs: { used: [{ a: 982, b: 995, line: 39, col: 49 }] },
     },
     {
       name: 'questionText',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 943, b: 955, line: 14, col: 184 }] },
+      codeRefs: { used: [{ a: 999, b: 1011, line: 39, col: 66 }] },
     },
   ],
   usedParamSet: {
@@ -258,15 +278,20 @@ const insertQuizQuestionIR: any = {
   },
   statement: {
     body:
-      'INSERT INTO quiz_questions (correct_answer, possible_answers, quiz_subcategory_id, question_text, created_at, updated_at) VALUES (:correctAnswer!, :possibleAnswers!, :subCategoryId!, :questionText!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 759, b: 1012, line: 14, col: 0 },
+      'INSERT INTO quiz_questions (correct_answer, possible_answers, quiz_subcategory_id, question_text, created_at, updated_at)\n    VALUES (:correctAnswer!, :possibleAnswers!, :subCategoryId!, :questionText!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 811, b: 1076, line: 38, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO quiz_questions (correct_answer, possible_answers, quiz_subcategory_id, question_text, created_at, updated_at) VALUES (:correctAnswer!, :possibleAnswers!, :subCategoryId!, :questionText!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO quiz_questions (correct_answer, possible_answers, quiz_subcategory_id, question_text, created_at, updated_at)
+ *     VALUES (:correctAnswer!, :possibleAnswers!, :subCategoryId!, :questionText!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertQuizQuestion = new PreparedQuery<
@@ -301,31 +326,31 @@ const insertSubjectIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1156, b: 1160, line: 17, col: 114 }] },
+      codeRefs: { used: [{ a: 1225, b: 1229, line: 48, col: 13 }] },
     },
     {
       name: 'displayName',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1164, b: 1175, line: 17, col: 122 }] },
+      codeRefs: { used: [{ a: 1233, b: 1244, line: 48, col: 21 }] },
     },
     {
       name: 'displayOrder',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1179, b: 1191, line: 17, col: 137 }] },
+      codeRefs: { used: [{ a: 1248, b: 1260, line: 48, col: 36 }] },
     },
     {
       name: 'toolTypeId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1195, b: 1205, line: 17, col: 153 }] },
+      codeRefs: { used: [{ a: 1264, b: 1274, line: 48, col: 52 }] },
     },
     {
       name: 'topicId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1209, b: 1216, line: 17, col: 167 }] },
+      codeRefs: { used: [{ a: 1278, b: 1285, line: 48, col: 66 }] },
     },
   ],
   usedParamSet: {
@@ -337,15 +362,20 @@ const insertSubjectIR: any = {
   },
   statement: {
     body:
-      'INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at) VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 1042, b: 1273, line: 17, col: 0 },
+      'INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at)\n    VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 1107, b: 1350, line: 47, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at) VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at)
+ *     VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertSubject = new PreparedQuery<
@@ -377,27 +407,32 @@ const insertCertificationSubjectUnlocksIR: any = {
       name: 'certificationId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1429, b: 1444, line: 20, col: 106 }] },
+      codeRefs: { used: [{ a: 1511, b: 1526, line: 57, col: 13 }] },
     },
     {
       name: 'subjectId',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1448, b: 1457, line: 20, col: 125 }] },
+      codeRefs: { used: [{ a: 1530, b: 1539, line: 57, col: 32 }] },
     },
   ],
   usedParamSet: { certificationId: true, subjectId: true },
   statement: {
     body:
-      'INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at) VALUES (:certificationId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING subject_id AS ok',
-    loc: { a: 1323, b: 1522, line: 20, col: 0 },
+      'INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at)\n    VALUES (:certificationId!, :subjectId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    subject_id AS ok',
+    loc: { a: 1401, b: 1612, line: 56, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at) VALUES (:certificationId!, :subjectId!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING subject_id AS ok
+ * INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at)
+ *     VALUES (:certificationId!, :subjectId!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     subject_id AS ok
  * ```
  */
 export const insertCertificationSubjectUnlocks = new PreparedQuery<
@@ -428,21 +463,26 @@ const insertToolTypeIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1616, b: 1620, line: 23, col: 63 }] },
+      codeRefs: { used: [{ a: 1711, b: 1715, line: 66, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO tool_types (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 1553, b: 1677, line: 23, col: 0 },
+      'INSERT INTO tool_types (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 1644, b: 1780, line: 65, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO tool_types (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO tool_types (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertToolType = new PreparedQuery<
@@ -475,33 +515,38 @@ const insertTopicIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1795, b: 1799, line: 26, col: 90 }] },
+      codeRefs: { used: [{ a: 1903, b: 1907, line: 75, col: 13 }] },
     },
     {
       name: 'displayName',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1803, b: 1814, line: 26, col: 98 }] },
+      codeRefs: { used: [{ a: 1911, b: 1922, line: 75, col: 21 }] },
     },
     {
       name: 'dashboardOrder',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1818, b: 1832, line: 26, col: 113 }] },
+      codeRefs: { used: [{ a: 1926, b: 1940, line: 75, col: 36 }] },
     },
   ],
   usedParamSet: { name: true, displayName: true, dashboardOrder: true },
   statement: {
     body:
-      'INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at) VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 1705, b: 1889, line: 26, col: 0 },
+      'INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)\n    VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 1809, b: 2005, line: 74, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at) VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)
+ *     VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertTopic = new PreparedQuery<
@@ -532,21 +577,26 @@ const insertTrainingCourseIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 1995, b: 1999, line: 29, col: 69 }] },
+      codeRefs: { used: [{ a: 2116, b: 2120, line: 84, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO training_courses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok',
-    loc: { a: 1926, b: 2058, line: 29, col: 0 },
+      'INSERT INTO training_courses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    name AS ok',
+    loc: { a: 2043, b: 2187, line: 83, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO training_courses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING name AS ok
+ * INSERT INTO training_courses (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     name AS ok
  * ```
  */
 export const insertTrainingCourse = new PreparedQuery<
@@ -575,7 +625,7 @@ const getCertificationsIR: any = {
   usedParamSet: {},
   statement: {
     body: 'SELECT\n    id,\n    name\nFROM\n    certifications',
-    loc: { a: 2092, b: 2138, line: 32, col: 0 },
+    loc: { a: 2222, b: 2268, line: 92, col: 0 },
   },
 }
 
@@ -615,7 +665,7 @@ const getQuizzesIR: any = {
   usedParamSet: {},
   statement: {
     body: 'SELECT\n    id,\n    name\nFROM\n    quizzes',
-    loc: { a: 2165, b: 2204, line: 39, col: 0 },
+    loc: { a: 2296, b: 2335, line: 100, col: 0 },
   },
 }
 

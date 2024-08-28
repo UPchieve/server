@@ -310,10 +310,11 @@ export function routeSession(router: Router) {
   ) {
     try {
       const { sessionId } = req.params
-      const { studentId } = req.body
+      const { studentId, volunteerId } = req.body
       const isEligible = await SessionService.isEligibleForSessionRecap(
         sessionId,
-        asString(studentId)
+        asString(studentId),
+        asString(volunteerId)
       )
       res.json({ isEligible })
     } catch (err) {

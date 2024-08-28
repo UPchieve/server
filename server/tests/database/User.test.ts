@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import { getClient } from '../../db'
 import {
   banUserById,
@@ -47,7 +47,7 @@ test('deleteUserPhoneInfo', async () => {
     email: faker.internet.email().toLowerCase(),
     firstName: 'Test',
     lastName: 'McTest',
-    phone: faker.phone.phoneNumber('+###########'),
+    phone: faker.phone.number(),
     phoneVerified: true,
     password: 'Pass123',
   }

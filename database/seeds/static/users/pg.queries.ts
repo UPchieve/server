@@ -24,21 +24,26 @@ const insertBanReasonIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 92, b: 96, line: 2, col: 64 }] },
+      codeRefs: { used: [{ a: 96, b: 100, line: 3, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO ban_reasons (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 28, b: 153, line: 2, col: 0 },
+      'INSERT INTO ban_reasons (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 28, b: 165, line: 2, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO ban_reasons (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO ban_reasons (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertBanReason = new PreparedQuery<
@@ -69,21 +74,26 @@ const insertGradeLevelIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 251, b: 255, line: 5, col: 65 }] },
+      codeRefs: { used: [{ a: 268, b: 272, line: 12, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO grade_levels (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 186, b: 312, line: 5, col: 0 },
+      'INSERT INTO grade_levels (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 199, b: 337, line: 11, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO grade_levels (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO grade_levels (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertGradeLevel = new PreparedQuery<
@@ -114,21 +124,26 @@ const insertPhotoIdStatusIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 418, b: 422, line: 8, col: 70 }] },
+      codeRefs: { used: [{ a: 448, b: 452, line: 21, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO photo_id_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 348, b: 479, line: 8, col: 0 },
+      'INSERT INTO photo_id_statuses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 374, b: 517, line: 20, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO photo_id_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO photo_id_statuses (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertPhotoIdStatus = new PreparedQuery<
@@ -159,21 +174,26 @@ const insertSignupSourceIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 581, b: 585, line: 11, col: 67 }] },
+      codeRefs: { used: [{ a: 624, b: 628, line: 30, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO signup_sources (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 514, b: 642, line: 11, col: 0 },
+      'INSERT INTO signup_sources (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 553, b: 693, line: 29, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO signup_sources (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO signup_sources (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertSignupSource = new PreparedQuery<
@@ -204,21 +224,26 @@ const insertUserRoleIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 736, b: 740, line: 14, col: 63 }] },
+      codeRefs: { used: [{ a: 792, b: 796, line: 39, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO user_roles (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 673, b: 797, line: 14, col: 0 },
+      'INSERT INTO user_roles (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 725, b: 861, line: 38, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO user_roles (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO user_roles (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertUserRole = new PreparedQuery<
@@ -249,21 +274,26 @@ const insertVolunteerReferenceStatusIR: any = {
       name: 'name',
       required: true,
       transform: { type: 'scalar' },
-      codeRefs: { used: [{ a: 925, b: 929, line: 17, col: 81 }] },
+      codeRefs: { used: [{ a: 994, b: 998, line: 48, col: 13 }] },
     },
   ],
   usedParamSet: { name: true },
   statement: {
     body:
-      'INSERT INTO volunteer_reference_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok',
-    loc: { a: 844, b: 986, line: 17, col: 0 },
+      'INSERT INTO volunteer_reference_statuses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    loc: { a: 909, b: 1063, line: 47, col: 0 },
   },
 }
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO volunteer_reference_statuses (name, created_at, updated_at) VALUES (:name!, NOW(), NOW()) ON CONFLICT DO NOTHING RETURNING id AS ok
+ * INSERT INTO volunteer_reference_statuses (name, created_at, updated_at)
+ *     VALUES (:name!, NOW(), NOW())
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     id AS ok
  * ```
  */
 export const insertVolunteerReferenceStatus = new PreparedQuery<

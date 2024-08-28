@@ -1,28 +1,28 @@
-import config from '../../config'
-import { Ulid } from '../../models/pgUtils'
+import config from '../config'
+import { Ulid } from '../models/pgUtils'
 import sgMail from '@sendgrid/mail'
 import axios from 'axios'
 import { capitalize } from 'lodash'
-import formatMultiWordSubject from '../../utils/format-multi-word-subject'
+import formatMultiWordSubject from '../utils/format-multi-word-subject'
 import {
   SESSION_REPORT_REASON,
   USER_BAN_REASONS,
   TRAINING,
   USER_BAN_TYPES,
-} from '../../constants'
-import * as UserRolesService from '../../services/UserRolesService'
-import { getUserToCreateSendGridContact } from '../../models/User'
-import { VolunteerContactInfo, UnsentReference } from '../../models/Volunteer'
-import { getFullVolunteerPartnerOrgByKey } from '../../models/VolunteerPartnerOrg'
-import { getFullStudentPartnerOrgByKey } from '../../models/StudentPartnerOrg'
-import { buildAppLink } from '../../utils/link-builders'
-import { isDevEnvironment, isE2eEnvironment } from '../../utils/environments'
-import logger from '../../logger'
+} from '../constants'
+import * as UserRolesService from '../services/UserRolesService'
+import { getUserToCreateSendGridContact } from '../models/User'
+import { VolunteerContactInfo, UnsentReference } from '../models/Volunteer'
+import { getFullVolunteerPartnerOrgByKey } from '../models/VolunteerPartnerOrg'
+import { getFullStudentPartnerOrgByKey } from '../models/StudentPartnerOrg'
+import { buildAppLink } from '../utils/link-builders'
+import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
+import logger from '../logger'
 import {
   isStudentUserType,
   isTeacherUserType,
   isVolunteerUserType,
-} from '../../utils/user-type'
+} from '../utils/user-type'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -200,7 +200,7 @@ export async function sendOpenVolunteerWelcomeEmail(
 
   await sendEmail(
     email,
-    config.mail.senders.support,
+    config.mail.senders.supportApp,
     'UPchieve',
     config.sendgrid.openVolunteerWelcomeTemplate,
     { volunteerName },
@@ -232,13 +232,13 @@ export async function sendStudentOnboardingWelcomeEmail(
 ): Promise<void> {
   const overrides = {
     reply_to: {
-      email: config.mail.receivers.students,
+      email: config.mail.senders.supportApp,
     },
     categories: ['Student Onboarding Email 1 - Welcome'],
   }
   await sendEmail(
     email,
-    config.mail.senders.students,
+    config.mail.senders.supportApp,
     'UPchieve Student Success Team',
     config.sendgrid.studentOnboardingWelcomeTemplate,
     { firstName },
@@ -606,14 +606,14 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
 ): Promise<void> {
   const overrides = {
     reply_to: {
-      email: config.mail.senders.volunteerManager,
+      email: config.mail.senders.supportApp,
     },
     categories: ['nice to meet you email'],
   }
 
   await sendEmail(
     volunteer.email,
-    config.mail.senders.volunteerManager,
+    config.mail.senders.supportApp,
     config.mail.people.volunteerManager.firstName,
     config.sendgrid.niceToMeetYouTemplate,
     {
@@ -1257,66 +1257,70 @@ export async function sendSessionRecapMessage(
   )
 }
 
-export async function createContact(userId: Ulid): Promise<any> {
-  const user = await getUserToCreateSendGridContact(userId)
-  const userRoles = await UserRolesService.getUserRolesById(userId)
-  const customFields = {
-    [SG_CUSTOM_FIELDS.isBanned]: String(
-      user.banType === USER_BAN_TYPES.COMPLETE
-    ),
-    [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
-    [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
-    [SG_CUSTOM_FIELDS.userType]: String(userRoles.userType),
-    [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
-    [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
-    [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
-    [SG_CUSTOM_FIELDS.joined]: user.createdAt,
-  }
-
+export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
+  const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
+  const contacts = []
   let contactListId
-  if (isVolunteerUserType(userRoles.userType)) {
-    contactListId = config.sendgrid.contactList.volunteers
-    const volunteer = user
-    customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
-      volunteer.passedUpchieve101
-    )
+  for (const userId of listOfUserIds) {
+    const user = await getUserToCreateSendGridContact(userId)
+    const userRoles = await UserRolesService.getUserRolesById(userId)
+    const customFields = {
+      [SG_CUSTOM_FIELDS.isBanned]: String(
+        user.banType === USER_BAN_TYPES.COMPLETE
+      ),
+      [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
+      [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
+      [SG_CUSTOM_FIELDS.userType]: String(userRoles.userType),
+      [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
+      [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
+      [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
+      [SG_CUSTOM_FIELDS.joined]: user.createdAt,
+    }
 
-    if (volunteer.volunteerPartnerOrg) {
-      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
-        volunteer.volunteerPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] = (
-        await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
-      ).key
+    if (isVolunteerUserType(userRoles.userType)) {
+      contactListId = config.sendgrid.contactList.volunteers
+      const volunteer = user
+      customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
+        volunteer.passedUpchieve101
+      )
+
+      if (volunteer.volunteerPartnerOrg) {
+        customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
+          volunteer.volunteerPartnerOrg
+        customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] = (
+          await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
+        ).key
+      }
+    } else if (isStudentUserType(userRoles.userType)) {
+      contactListId = config.sendgrid.contactList.students
+      const student = user
+      if (student.studentGradeLevel)
+        customFields[SG_CUSTOM_FIELDS.studentGradeLevel] =
+          student.studentGradeLevel
+      if (student.studentPartnerOrg) {
+        customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
+          student.studentPartnerOrg
+        customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
+          await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
+        ).key
+      }
+    } else if (isTeacherUserType(userRoles.userType)) {
+      contactListId = config.sendgrid.contactList.teachers
     }
-  } else if (isStudentUserType(userRoles.userType)) {
-    contactListId = config.sendgrid.contactList.students
-    const student = user
-    if (student.studentGradeLevel)
-      customFields[SG_CUSTOM_FIELDS.studentGradeLevel] =
-        student.studentGradeLevel
-    if (student.studentPartnerOrg) {
-      customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] =
-        student.studentPartnerOrg
-      customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
-        await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
-      ).key
-    }
-  } else if (isTeacherUserType(userRoles.userType)) {
-    contactListId = config.sendgrid.contactList.teachers
+    contacts.push({
+      first_name: user.firstName,
+      last_name: user.lastName,
+      email: user.email,
+      custom_fields: customFields,
+    })
   }
 
   const data = {
     list_ids: [contactListId],
-    contacts: [
-      {
-        first_name: user.firstName,
-        last_name: user.lastName,
-        email: user.email,
-        custom_fields: customFields,
-      },
-    ],
+    contacts,
   }
-  return await putContact(JSON.stringify(data))
+  const response = await putContact(JSON.stringify(data))
+  return response.data.job_id
 }
 
 export async function searchContact(email: string): Promise<any> {
@@ -1330,4 +1334,31 @@ export async function searchContact(email: string): Promise<any> {
 
 export async function deleteContact(contactId: string): Promise<any> {
   return await sgDeleteContact(contactId)
+}
+
+type SendGridJobStatus = {
+  id: string
+  status: 'pending' | 'completed' | 'failed' | 'processing'
+  results: {
+    requested_count: number
+    updated_count: number
+  }
+  errors?: Array<{
+    field?: string
+    message: string
+  }>
+  job_type: string
+  created_at: string
+  updated_at: string
+}
+
+export async function checkContactJobStatus(
+  jobId: string
+): Promise<SendGridJobStatus> {
+  const response = await axios.get(
+    `https://api.sendgrid.com/v3/marketing/contacts/imports/${jobId}`,
+    options
+  )
+
+  return response.data
 }

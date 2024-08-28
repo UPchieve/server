@@ -1,4 +1,4 @@
-import faker from 'faker'
+import { faker } from '@faker-js/faker'
 import {
   IInsertIntoUserQuizzesParams,
   IInsertStudentProfileParams,
@@ -10,9 +10,9 @@ import {
 } from './pg.queries'
 import { getDbUlid, NameToId } from '../utils'
 
-export const getFirstName = faker.name.firstName
+export const getFirstName = faker.person.firstName
 export const getEmail = faker.internet.email
-export const getPhone = faker.phone.phoneNumber
+export const getPhone = faker.phone.number
 
 export function buildUserIds(total: number) {
   const ids = []

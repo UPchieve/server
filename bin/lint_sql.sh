@@ -19,7 +19,7 @@ for filename in $(find ./database/seed-updates -name "*.sql"); do
 done
 
 echo "linting files in database/seeds"
-for filename in $(find ./database/seed-updates -name "*.sql"); do
+for filename in $(find ./database/seeds -name "*.sql"); do
   [ -e "$filename" ] || continue
   npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$filename"
 done

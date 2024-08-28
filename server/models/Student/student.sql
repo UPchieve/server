@@ -1,7 +1,7 @@
 /* @name getGatesStudentById */
 SELECT
     student_profiles.user_id AS id,
-    grade_levels.name AS current_grade,
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
     student_partner_orgs.name AS student_partner_org,
     schools.partner AS is_partner_school,
     student_profiles.school_id AS approved_highschool
@@ -9,6 +9,7 @@ FROM
     student_profiles
     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
     JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN schools ON student_profiles.school_id = schools.id
 WHERE
     student_profiles.user_id = :userId!;
@@ -321,7 +322,7 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
             FROM
                 student_partner_orgs
             WHERE
-                student_partner_orgs.key = :partnerOrg
+                student_partner_orgs.key = :studentPartnerOrgKey
             LIMIT 1),
         (
             SELECT
@@ -329,7 +330,7 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
             FROM
                 student_partner_org_sites
             WHERE
-                student_partner_org_sites.name = :partnerSite
+                student_partner_org_sites.name = :studentPartnerOrgSiteName
             LIMIT 1),
         (
             SELECT
@@ -345,40 +346,34 @@ INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, stud
         NOW())
 ON CONFLICT (user_id)
     DO UPDATE SET
-        postal_code = :postalCode,
-        student_partner_org_id = (
-            SELECT
-                id
-            FROM
-                student_partner_orgs
-            WHERE
-                student_partner_orgs.key = :partnerOrg
-            LIMIT 1),
-    student_partner_org_site_id = (
-        SELECT
-            id
-        FROM
-            student_partner_org_sites
-        WHERE
-            student_partner_org_sites.name = :partnerSite
-        LIMIT 1),
-grade_level_id = (
-    SELECT
-        id
-    FROM
-        grade_levels
-    WHERE
-        grade_levels.name = :gradeLevel
-    LIMIT 1),
-school_id = :schoolId,
-college = :college,
-updated_at = NOW()
+        postal_code = COALESCE(:postalCode, student_profiles.postal_code),
+    student_partner_org_id = COALESCE(EXCLUDED.student_partner_org_id, student_profiles.student_partner_org_id),
+    student_partner_org_site_id = CASE WHEN EXCLUDED.student_partner_org_id IS NOT NULL THEN
+        EXCLUDED.student_partner_org_site_id
+    ELSE
+        student_profiles.student_partner_org_site_id
+    END,
+    school_id = COALESCE(:schoolId, student_profiles.school_id),
+    college = COALESCE(:college, student_profiles.college),
+    updated_at = NOW()
 RETURNING
     user_id,
     postal_code,
-    :partnerOrg AS student_partner_org,
-    :partnerSite AS partner_site,
-    :gradeLevel AS grade_level,
+    COALESCE(:studentPartnerOrgKey, (
+            SELECT
+                KEY FROM student_partner_orgs
+            WHERE
+                id = student_profiles.student_partner_org_id)) AS student_partner_org_key,
+    COALESCE(:studentPartnerOrgSiteName, (
+            SELECT
+                name FROM student_partner_org_sites
+            WHERE
+                id = student_profiles.student_partner_org_site_id)) AS student_partner_org_site_name,
+    COALESCE(:gradeLevel, (
+            SELECT
+                name FROM grade_levels
+            WHERE
+                id = student_profiles.grade_level_id)) AS grade_level,
     school_id,
     college,
     created_at,
@@ -686,40 +681,14 @@ WHERE
     AND deactivated_on IS NOT NULL;
 
 
-/* @name getStudentsForGradeLevelUpdate */
+/* @name getStudentsIdsForGradeLevelSgUpdate */
 SELECT
-    sp.user_id,
-    sp.created_at,
-    gl.name AS grade_level
+    sp.user_id
 FROM
     student_profiles sp
-    JOIN grade_levels gl ON gl.id = sp.grade_level_id
-WHERE
-    NOT gl.name = ANY ('{"College", "Other"}')
-    AND sp.created_at < DATE_TRUNC('year', NOW()) + INTERVAL '7 months'
-    AND sp.created_at >= to_timestamp(:fromDate!, 'YYYY-MM-DD HH24:MI:SS')
-    AND sp.created_at < to_timestamp(:toDate!, 'YYYY-MM-DD HH24:MI:SS')
+    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
 ORDER BY
     sp.created_at DESC;
-
-
-/* @name updateStudentsGradeLevel */
-UPDATE
-    student_profiles
-SET
-    grade_level_id = subquery.id,
-    updated_at = NOW()
-FROM (
-    SELECT
-        grade_levels.id
-    FROM
-        grade_levels
-    WHERE
-        grade_levels.name = :gradeLevel!) AS subquery
-WHERE
-    user_id = :userId!
-RETURNING
-    user_id AS ok;
 
 
 /* @name countDuplicateStudentVolunteerFavorites */
@@ -793,13 +762,14 @@ SELECT
     first_name,
     last_name,
     email,
-    grade_levels.name AS grade_level,
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
     users.created_at,
     users.updated_at
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
 WHERE
     student_profiles.user_id IN :userIds!;
 

@@ -1,6 +1,7 @@
-import { SocketUser } from '../../router/extract-user'
-import { logSocketConnectionInfo } from '../../utils/log-socket-connection-info'
+import { SocketUser } from '../../types/socket-types'
+import { logSocketEvent } from '../../utils/log-socket-connection-info'
 import logger from '../../logger'
+import { getDbUlid } from '../../models/pgUtils'
 
 const conn = {
   transport: {
@@ -9,7 +10,7 @@ const conn = {
 }
 
 jest.mock('../../logger')
-describe('logSocketConnectionInfo', () => {
+describe('logSocketEvent', () => {
   beforeEach(() => {
     jest.resetAllMocks()
   })
@@ -23,6 +24,9 @@ describe('logSocketConnectionInfo', () => {
           id: 'test-user-id-123',
         },
       },
+      data: {
+        sessionId: getDbUlid(),
+      },
       conn,
     } as SocketUser
     const data = {
@@ -32,7 +36,7 @@ describe('logSocketConnectionInfo', () => {
       },
     }
 
-    logSocketConnectionInfo('client_connect_error', socket, data)
+    logSocketEvent('client_connect_error', socket, data)
     expect(logger.error).toHaveBeenCalledWith(
       {
         eventName: 'client_connect_error',
@@ -46,9 +50,10 @@ describe('logSocketConnectionInfo', () => {
         },
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
+        sessionId: socket.data.sessionId,
         ...data.metadata,
       },
-      'Socket connection event: client_connect_error'
+      'Socket event: client_connect_error'
     )
   })
 
@@ -63,10 +68,11 @@ describe('logSocketConnectionInfo', () => {
           id: 'test-user-id-123',
         },
       },
+      data: {},
       conn,
     } as SocketUser
 
-    logSocketConnectionInfo('disconnect', socket, reason)
+    logSocketEvent('disconnect', socket, reason)
     expect(logger.info).toHaveBeenCalledWith(
       {
         eventName: 'disconnect',
@@ -80,8 +86,9 @@ describe('logSocketConnectionInfo', () => {
         },
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
+        sessionId: undefined,
       },
-      'Socket connection event: disconnect'
+      'Socket event: disconnect'
     )
   })
 
@@ -96,10 +103,11 @@ describe('logSocketConnectionInfo', () => {
           id: 'test-user-id-123',
         },
       },
+      data: {},
       conn,
     } as SocketUser
 
-    logSocketConnectionInfo('client_disconnect', socket, reason)
+    logSocketEvent('client_disconnect', socket, reason)
     expect(logger.error).toHaveBeenCalledWith(
       {
         eventName: 'client_disconnect',
@@ -113,8 +121,9 @@ describe('logSocketConnectionInfo', () => {
         },
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
+        sessionId: undefined,
       },
-      'Socket connection event: client_disconnect'
+      'Socket event: client_disconnect'
     )
   })
 })
