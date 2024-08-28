@@ -9,6 +9,8 @@ const conn = {
   },
 }
 
+const socketId = '123'
+
 jest.mock('../../logger')
 describe('logSocketEvent', () => {
   beforeEach(() => {
@@ -17,6 +19,7 @@ describe('logSocketEvent', () => {
 
   it('Logs the error message when an error event is received', () => {
     const eventError = new Error('test error message')
+    const sessionId = getDbUlid()
     const socket = {
       rooms: new Set<string>(['room1', 'room2']),
       request: {
@@ -25,8 +28,9 @@ describe('logSocketEvent', () => {
         },
       },
       data: {
-        sessionId: getDbUlid(),
+        sessionId,
       },
+      id: socketId,
       conn,
     } as SocketUser
     const data = {
@@ -51,9 +55,10 @@ describe('logSocketEvent', () => {
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
         sessionId: socket.data.sessionId,
+        socketId,
         ...data.metadata,
       },
-      'Socket event: client_connect_error'
+      `Socket ${socketId} event: client_connect_error for session ${sessionId}`
     )
   })
 
@@ -69,6 +74,7 @@ describe('logSocketEvent', () => {
         },
       },
       data: {},
+      id: socketId,
       conn,
     } as SocketUser
 
@@ -87,8 +93,9 @@ describe('logSocketEvent', () => {
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
         sessionId: undefined,
+        socketId,
       },
-      'Socket event: disconnect'
+      `Socket ${socketId} event: disconnect`
     )
   })
 
@@ -104,6 +111,7 @@ describe('logSocketEvent', () => {
         },
       },
       data: {},
+      id: socketId,
       conn,
     } as SocketUser
 
@@ -121,9 +129,10 @@ describe('logSocketEvent', () => {
         },
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
+        socketId,
         sessionId: undefined,
       },
-      'Socket event: client_disconnect'
+      `Socket ${socketId} event: client_disconnect`
     )
   })
 })

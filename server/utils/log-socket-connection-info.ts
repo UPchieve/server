@@ -142,9 +142,9 @@ export const logSocketEvent = (
       sessionId: socket.data.sessionId,
     }
     const sessionMessage = socket.data.sessionId
-      ? `for session ${socket.data.sessionId}`
+      ? ` for session ${socket.data.sessionId}`
       : ''
-    const message = `Socket ${socket.id} event: ${event} ${sessionMessage}`
+    const message = `Socket ${socket.id} event: ${event}` + sessionMessage
     disconnectReason?.isError || error?.message
       ? logger.error(analyticsData, message)
       : logger.info(analyticsData, message)

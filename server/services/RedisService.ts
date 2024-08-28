@@ -8,11 +8,13 @@ type EventData = {
   id?: Ulid
 }
 
-type ParsedElement = {
-  packet: {
-    data: [string, EventData]
-  }
-}
+type ParsedElement =
+  | {
+      packet: {
+        data: [string, EventData]
+      }
+    }
+  | 'string'
 
 const clientToServerEventKeys = [
   'join',
