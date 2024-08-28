@@ -17,13 +17,6 @@ CREATE SCHEMA auth;
 
 
 --
--- Name: basic_access; Type: SCHEMA; Schema: -; Owner: -
---
-
-CREATE SCHEMA basic_access;
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -119,24 +112,22 @@ CREATE FUNCTION upchieve.generate_ulid() RETURNS uuid
     LANGUAGE plpgsql
     AS $$
 DECLARE
-  timestamp  BYTEA = E'\\000\\000\\000\\000\\000\\000';
-
-  unix_time  BIGINT;
-  ulid       BYTEA;
+    timestamp bytea = E'\\000\\000\\000\\000\\000\\000';
+    unix_time bigint;
+    ulid bytea;
 BEGIN
-  -- 6 timestamp bytes
-  unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT;
-  timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::BIT(8)::INTEGER);
-  timestamp = SET_BYTE(timestamp, 5, unix_time::BIT(8)::INTEGER);
-
-  -- 10 entropy bytes
-  ulid = timestamp || public.gen_random_bytes(10);
-
-  RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
+    -- 6 timestamp bytes
+    unix_time = (EXTRACT(EPOCH FROM NOW()) * 1000)::bigint;
+    timestamp = SET_BYTE(timestamp, 0, (unix_time >> 40)::bit(8)::integer);
+    timestamp = SET_BYTE(timestamp, 1, (unix_time >> 32)::bit(8)::integer);
+    timestamp = SET_BYTE(timestamp, 2, (unix_time >> 24)::bit(8)::integer);
+    timestamp = SET_BYTE(timestamp, 3, (unix_time >> 16)::bit(8)::integer);
+    timestamp = SET_BYTE(timestamp, 4, (unix_time >> 8)::bit(8)::integer);
+    timestamp = SET_BYTE(timestamp, 5, unix_time::bit(8)::integer);
+    -- 10 entropy bytes
+    ulid = timestamp || public.gen_random_bytes(10);
+    RETURN CAST(substring(CAST(ulid AS text)
+            FROM 3) AS uuid);
 END
 $$;
 
@@ -198,7 +189,7 @@ CREATE TABLE auth.session (
 --
 
 CREATE TABLE public.schema_migrations (
-    version character varying(255) NOT NULL
+    version character varying(128) NOT NULL
 );
 
 
@@ -217,6 +208,24 @@ CREATE TABLE public.seed_migrations (
 
 CREATE TABLE upchieve.admin_profiles (
     user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: assignments; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.assignments (
+    id uuid NOT NULL,
+    class_id uuid,
+    description text,
+    name text,
+    number_of_sessions integer,
+    min_duration_in_minutes integer,
+    due_date timestamp with time zone,
+    subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -2339,10 +2348,10 @@ CREATE TABLE upchieve.users (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     phone text,
-    sms_consent boolean DEFAULT false NOT NULL,
     mongo_id character varying(24),
     other_signup_source text,
     proxy_email text,
+    sms_consent boolean DEFAULT false NOT NULL,
     ban_type upchieve.ban_types
 );
 
@@ -2482,8 +2491,7 @@ CREATE TABLE upchieve.users_surveys (
     session_id uuid,
     survey_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    progress_report_id uuid
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -2878,6 +2886,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY upchieve.admin_profiles
     ADD CONSTRAINT admin_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: assignments assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assignments
+    ADD CONSTRAINT assignments_pkey PRIMARY KEY (id);
 
 
 --
@@ -4363,6 +4379,22 @@ ALTER TABLE ONLY upchieve.admin_profiles
 
 
 --
+-- Name: assignments assignments_class_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assignments
+    ADD CONSTRAINT assignments_class_id_fkey FOREIGN KEY (class_id) REFERENCES upchieve.teacher_classes(id);
+
+
+--
+-- Name: assignments assignments_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assignments
+    ADD CONSTRAINT assignments_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
 -- Name: assistments_data assistments_data_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5822,4 +5854,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240731165533'),
     ('20240809200824'),
     ('20240812190423'),
-    ('20240828142138');
+    ('20240828142138'),
+    ('20240828222203');
