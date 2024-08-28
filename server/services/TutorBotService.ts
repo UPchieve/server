@@ -28,9 +28,16 @@ export const getTranscript = async (
   }
 }
 
-const getBotResponseMessage = (conversation: string): string => {
+const getBotResponseMessage = (
+  conversation: string
+): { assistant: string; system: string } => {
   const messages = conversation.split('<|end|>')
-  return removeTurnMarkers(messages[messages.length - 1])
+  const lastMessage = messages[messages.length - 1]
+  const { system, assistant } = extractSystem(lastMessage)
+  return {
+    assistant: removeTurnMarkers(assistant),
+    system,
+  }
 }
 
 export const sendMessageAndGetUpdatedTranscript = async (
@@ -46,8 +53,7 @@ export const sendMessageAndGetUpdatedTranscript = async (
   const transcript = await getTranscript(sessionId)
   const prompt = createPromptFromTranscript(transcript)
   const completion = await createChatCompletion(prompt, sessionId)
-  const botMessage = getBotResponseMessage(completion)
-
+  const { assistant: botMessage, system } = getBotResponseMessage(completion)
   // Save bot response to session messages and append to the existing transcript
   const savedBotMessage = await insertTutorBotSessionMessage(
     sessionId,
@@ -59,7 +65,13 @@ export const sendMessageAndGetUpdatedTranscript = async (
     message: botMessage,
     createdAt: savedBotMessage.createdAt,
   } as TutorBotSessionMessage)
-  return transcript
+  return {
+    transcript,
+    status: system.substring(
+      system.indexOf('[[') + 2,
+      system.lastIndexOf(']]')
+    ),
+  }
 }
 
 /**
@@ -96,6 +108,8 @@ const createChatCompletion = async (
   }
 }
 
+const byteSize = (str: string) => new Blob([str]).size
+
 const createPromptFromTranscript = (
   transcript: TutorBotSessionTranscript
 ): string => {
@@ -103,17 +117,40 @@ const createPromptFromTranscript = (
   transcript.messages.forEach(m => {
     const senderTag =
       m.tutorBotSessionUserType === 'bot' ? '<|assistant|>' : '<|user|>'
-    prompt += `${senderTag}\n${m.message}<|end|>\n`
+
+    prompt += `${senderTag}\n${m.message}<|end|>${
+      senderTag === '<|user|>' ? '<|system|>' : ''
+    }\n`
   })
+
+  // start removing the earlier messages
+  if (byteSize(prompt) > 1024) {
+    while (byteSize(prompt) > 1024) {
+      prompt = prompt
+        .split('<|end|>\n')
+        .slice(1)
+        .join('<|end|>\n')
+    }
+  }
   return prompt
 }
 
+const systemRegex = /^(<\|system\|>)\n.*(\[\[([A-Z]+)\]\])/gm
+
+const extractSystem = (text: string): { assistant: string; system: string } => {
+  const [system] = text.match(systemRegex) ?? ['']
+  if (system) {
+  }
+
+  return {
+    system,
+    assistant: system ? text.replace(`${system} `, '') : text,
+  }
+}
 /**
  * Removes chat turn markers from the string.
  * See https://huggingface.co/microsoft/Phi-3-medium-4k-instruct#chat-format
  */
 const removeTurnMarkers = (text: string): string => {
-  return text
-    .replace(/<\|user\|>|<\|assistant\|>|<\|end\|>|\[\[NONE\]\]/g, '')
-    .trim()
+  return text.replace(/<\|user\|>|<\|assistant\|>|<\|end\|>/g, '').trim()
 }

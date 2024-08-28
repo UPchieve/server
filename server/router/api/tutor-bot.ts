@@ -8,7 +8,9 @@ export function routeTutorBot(router: Router) {
         req.body.sessionId,
         req.body.message
       )
-      return res.json({ transcript: result }).status(200)
+      return res
+        .json({ transcript: result.transcript, status: result.status })
+        .status(200)
     } catch (err) {
       resError(res, err)
     }
