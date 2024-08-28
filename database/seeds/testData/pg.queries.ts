@@ -1321,3 +1321,71 @@ export const insertSchoolStudentPartners = new PreparedQuery<
   IInsertSchoolStudentPartnersParams,
   IInsertSchoolStudentPartnersResult
 >(insertSchoolStudentPartnersIR)
+
+/** 'InsertUsersRoles' parameters type */
+export interface IInsertUsersRolesParams {
+  roleName: string
+  userId: string
+}
+
+/** 'InsertUsersRoles' return type */
+export interface IInsertUsersRolesResult {
+  ok: string
+}
+
+/** 'InsertUsersRoles' query type */
+export interface IInsertUsersRolesQuery {
+  params: IInsertUsersRolesParams
+  result: IInsertUsersRolesResult
+}
+
+const insertUsersRolesIR: any = {
+  name: 'insertUsersRoles',
+  params: [
+    {
+      name: 'userId',
+      required: true,
+      transform: { type: 'scalar' },
+      codeRefs: { used: [{ a: 4950, b: 4956, line: 212, col: 5 }] },
+    },
+    {
+      name: 'roleName',
+      required: true,
+      transform: { type: 'scalar' },
+      codeRefs: { used: [{ a: 5074, b: 5082, line: 221, col: 27 }] },
+    },
+  ],
+  usedParamSet: { userId: true, roleName: true },
+  statement: {
+    body:
+      'INSERT INTO users_roles (role_id, user_id, created_at, updated_at)\nSELECT\n    subquery.id,\n    :userId!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        user_roles\n    WHERE\n        user_roles.name = :roleName!) AS subquery\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    loc: { a: 4854, b: 5150, line: 209, col: 0 },
+  },
+}
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO users_roles (role_id, user_id, created_at, updated_at)
+ * SELECT
+ *     subquery.id,
+ *     :userId!,
+ *     NOW(),
+ *     NOW()
+ * FROM (
+ *     SELECT
+ *         id
+ *     FROM
+ *         user_roles
+ *     WHERE
+ *         user_roles.name = :roleName!) AS subquery
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const insertUsersRoles = new PreparedQuery<
+  IInsertUsersRolesParams,
+  IInsertUsersRolesResult
+>(insertUsersRolesIR)
