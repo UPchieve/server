@@ -1,6 +1,7 @@
 import axios from 'axios'
 import config from '../config'
 import {
+  addMessageToSessionById,
   getTutorBotSessionMessagesBySessionId,
   insertTutorBotSessionMessage,
 } from '../models/Session'
@@ -41,6 +42,7 @@ const getBotResponseMessage = (
 }
 
 export const sendMessageAndGetUpdatedTranscript = async (
+  userId: string,
   sessionId: string,
   message: string
 ) => {
@@ -65,8 +67,9 @@ export const sendMessageAndGetUpdatedTranscript = async (
     message: botMessage,
     createdAt: savedBotMessage.createdAt,
   } as TutorBotSessionMessage)
+
   return {
-    transcript,
+    message: transcript.messages[transcript.messages.length - 1].message,
     status: system.substring(
       system.indexOf('[[') + 2,
       system.lastIndexOf(']]')
