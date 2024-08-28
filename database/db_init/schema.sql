@@ -24,13 +24,6 @@ CREATE SCHEMA basic_access;
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -105,6 +98,16 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
     'complete'
+);
+
+
+--
+-- Name: tutor_bot_session_user_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.tutor_bot_session_user_type AS ENUM (
+    'student',
+    'bot'
 );
 
 
@@ -2161,6 +2164,19 @@ ALTER SEQUENCE upchieve.training_courses_id_seq OWNED BY upchieve.training_cours
 
 
 --
+-- Name: tutor_bot_session_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.tutor_bot_session_messages (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    message text,
+    tutor_bot_session_user_type upchieve.tutor_bot_session_user_type NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: us_states; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3857,6 +3873,14 @@ ALTER TABLE ONLY upchieve.training_courses
 
 
 --
+-- Name: tutor_bot_session_messages tutor_bot_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_session_messages
+    ADD CONSTRAINT tutor_bot_session_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5331,6 +5355,14 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
+-- Name: tutor_bot_session_messages tutor_bot_session_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_session_messages
+    ADD CONSTRAINT tutor_bot_session_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
 -- Name: user_actions user_actions_ip_address_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5789,4 +5821,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240723161108'),
     ('20240731165533'),
     ('20240809200824'),
-    ('20240812190423');
+    ('20240812190423'),
+    ('20240828142138');
