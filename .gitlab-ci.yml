@@ -115,9 +115,11 @@ tag_commit_hackers:
   # extends: .tag_commit
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   script:
-    - echo 'will this tag?'
+    - timestamp=$(date +%Y%m%d%H%M%S)
+    - deployment_tag="deployed-$CI_ENVIRONMENT_NAME-$timestamp"
+    - echo $deployment_tag
   release:
-    tag_name: 'hackers-test'
+    tag_name: $deployment_tag
     name: 'hackers-test'
     description: 'hackers-test'
   #needs:
