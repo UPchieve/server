@@ -40,8 +40,7 @@ variables:
 
 build_hackers:
   extends: .build_docker
-  environment:
-    name: hackers
+  environment: hackers
   variables:
     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
@@ -65,18 +64,6 @@ build_hackers:
   script:
     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
     - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
-  # after_script:
-  #   - |
-  #     if [ $CI_JOB_STATUS == "success" ]; then
-  #       git config --global user.name $GITLAB_USER_NAME
-  #       git config --global user.email $GITALB_USER_EMAIL
-
-  #       # Create unique tag for the deployment.
-  #       timestamp=$(date +%Y%m%d%H%M%S)
-  #       deployment_tag="deployed-$environment-$timestamp"
-  #       git tag -a $deployment_tag -m "Deployed to $environment at $timestamp"
-  #       git push origin $deployment_tag
-  #     fi
 
 deploy_hackers:
   extends: .deploy
@@ -88,16 +75,6 @@ deploy_hackers:
     RESOURCE_GROUP: hackers-resource-group
     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
-  # after_script:
-  #   - !reference [.deploy, after_script]
-  #   - |
-  #     if [ $CI_JOB_STATUS == "success" ]; then
-  #       git config --global user.name $GITLAB_USER_NAME
-  #       git config --global user.email $GITALB_USER_EMAIL
-
-  #       git tag -f "latest-hackers"
-  #       git push origin -f "latest-hackers"
-  #     fi
   needs:
     - job: build_hackers
       artifacts: true
@@ -105,6 +82,30 @@ deploy_hackers:
     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     #  when: on_success
     - when: manual
+
+.tag_commit:
+  stage: post-deploy
+  images: alpine/git
+  script:
+    - git config --global user.name $GITLAB_USER_NAME
+    - git config --global user.email $GITALB_USER_EMAIL
+    # Create unique tag for the deployment.
+    - timestamp=$(date +%Y%m%d%H%M%S)
+    - deployment_tag="deployed-$environment-$timestamp"
+    - echo $deployment_tag
+    - git tag -a $deployment_tag -m "Deployed to $environment at $timestamp"
+    - git push origin $deployment_tag
+  rules:
+    - if: $CI_JOB_STATUS == "success"
+  
+hackers_tag_commit:
+  extends: .tag_commit
+  needs:
+    - job: deploy_hackers
+  script:
+    - !reference [.tag_commit, script]
+    - git tag -f "latest-hackers"
+    - git push origin -f "latest-hackers"
 
 ### TODO: Clean-up.
 # build:
