@@ -16,7 +16,6 @@ export async function createAssignment(
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createAssignment(
       {
-        id,
         classId,
         description,
         title,
