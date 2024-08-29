@@ -1,6 +1,3 @@
-#include:
-#  - template: Auto-DevOps.gitlab-ci.yml
-
 cache:
   # TODO: Try key as package-lock.json to speed up across branches.
   # key:
@@ -66,14 +63,8 @@ build_hackers:
     - az extension add --name containerapp --upgrade
   script:
     - echo $IMAGE_TAG
-    - az containerapp update \
-      --name $CONTAINER_APP \
-      --resource-group $RESOURCE_GROUP \
-      --image $IMAGE_TAG
-    - az containerapp update \
-      --name $CONTAINER_APP_WORKER \
-      --resource-group $RESOURCE_GROUP \
-      --image $IMAGE_TAG
+    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
   after_script:
     - |
       if [ $CI_JOB_STATUS == "success" ]; then
