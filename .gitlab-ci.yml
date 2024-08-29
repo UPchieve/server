@@ -111,9 +111,15 @@ variables:
     # 
   
 tag_commit_hackers:
-  extends: .tag_commit
-  environment:
-    name: hackers
+  stage: post-deploy
+  # extends: .tag_commit
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  script:
+    - echo 'will this tag?'
+  release:
+    tag_name: 'hackers-test'
+    name: 'hackers-test'
+    description: 'hackers-test'
   #needs:
     #- job: deploy_hackers
   # rules:
