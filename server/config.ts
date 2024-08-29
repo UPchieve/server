@@ -371,6 +371,11 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_AZURE_CONTENT_SAFETY_API_KEY || 'bogus',
   azureContentSafetyBaseUrl:
     process.env.SUBWAY_AZURE_CONTENT_SAFETY_BASE_URL || 'bogus',
+
+  // Tutor bot POC
+  tutorBotApiKey: process.env.TUTOR_BOT_API_KEY || 'bogus',
+  tutorBotBaseUrl: process.env.TUTOR_BOT_BASE_URL || 'bogus',
+  tutorBotModelName: process.env.TUTOR_BOT_MODEL_NAME || 'bogus',
 }
 
 module.exports = config
