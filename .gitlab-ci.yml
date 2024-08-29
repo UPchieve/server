@@ -1,3 +1,9 @@
+stages:
+  - build
+  - test
+  - deploy
+  - post-deploy
+
 cache:
   # TODO: Try key as package-lock.json to speed up across branches.
   # key:
@@ -84,7 +90,7 @@ deploy_hackers:
     - when: manual
 
 .tag_commit:
-  stage: .post
+  stage: post-deploy
   image: alpine/git
   script:
     - git config --global user.name $GITLAB_USER_NAME
