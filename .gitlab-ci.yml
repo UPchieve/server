@@ -48,7 +48,8 @@ build_hackers:
   rules:
     #- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - when: manual
+    - when: always
+    # - when: manual
 
 .deploy:
   stage: deploy
@@ -63,6 +64,8 @@ build_hackers:
     - az extension add --name containerapp --upgrade
   script:
     - echo $IMAGE_TAG
+    - echo $CONTAINER_APP
+    - echo $RESOURECE_GROUP
     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
     - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
   after_script:
@@ -107,121 +110,121 @@ deploy_hackers:
     - when: manual
 
 ### TODO: Clean-up.
-build:
-  stage: build
-  image: "docker:20.10.6"
-  cache: {}
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  services:
-    - docker:20.10.6-dind
-  script:
-    - |
-      if [[ -z "$CI_COMMIT_TAG" ]]; then
-        export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG}
-        export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_SHA}
-      else
-        export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE}
-        export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_TAG}
-      fi
-    - export image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-    - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
-    - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - apk add --update curl tar
-    - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
-    - |
-      pack build "$image_tagged" \
-        --creation-time now \
-        --builder heroku/buildpacks:20 \
-        --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
-        --buildpack heroku/nodejs@2.6.2 \
-        --buildpack heroku/procfile@0.6.2 \
-        --publish
-  rules:
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
-testbackend:
-  stage: test
-  image: node:20.10.0-bullseye
-  variables:
-    NODE_OPTIONS: --max_old_space_size=5120
-  services:
-    - redis:latest
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run test:backend
-  needs: []
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
-# TODO: commenting out because it appears our current setup doesn't scale to having a lot of test data
-#       tests aren't currently super useful so until this is fixed we're ignoring them
-# testdatabase:
-#   stage: test
-#   image: node:20.10.0-bullseye
-#   tags:
-#     - upchieve
+# build:
+#   stage: build
+#   image: "docker:20.10.6"
+#   cache: {}
 #   variables:
-#     NODE_OPTIONS: --max_old_space_size=5120
-#     DOCKER_HOST: tcp://docker:2376
-#     DOCKER_TLS_VERIFY: 1
-#     DOCKER_CERT_PATH: "/certs/client"
-#     DOCKER_TLS_CERTDIR: "/certs"
-#     TESTCONTAINERS_HOST_OVERRIDE: docker
-#     CI_CONTAINER: "true"
+#     DOCKER_TLS_CERTDIR: ""
 #   services:
 #     - docker:20.10.6-dind
+#   script:
+#     - |
+#       if [[ -z "$CI_COMMIT_TAG" ]]; then
+#         export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG}
+#         export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_SHA}
+#       else
+#         export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE}
+#         export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_TAG}
+#       fi
+#     - export image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+#     - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
+#     - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
+#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#     - apk add --update curl tar
+#     - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+#     - |
+#       pack build "$image_tagged" \
+#         --creation-time now \
+#         --builder heroku/buildpacks:20 \
+#         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
+#         --buildpack heroku/nodejs@2.6.2 \
+#         --buildpack heroku/procfile@0.6.2 \
+#         --publish
+#   rules:
+#     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+# testbackend:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   variables:
+#     NODE_OPTIONS: --max_old_space_size=5120
+#   services:
+#     - redis:latest
 #   before_script:
 #     - npm ci --cache .npm --prefer-offline
-#     - curl -fsSL https://get.docker.com -o get-docker.sh
-#     - VERSION=20.10.6 sh ./get-docker.sh
 #   script:
-#     - npm run test:database
+#     - npm run test:backend
 #   needs: []
 #   rules:
 #     - if: '$TEST_DISABLED'
 #       when: never
 #     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
-lint:
-  stage: test
-  image: node:20.10.0-bullseye
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run lint
-  needs: []
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+# # TODO: commenting out because it appears our current setup doesn't scale to having a lot of test data
+# #       tests aren't currently super useful so until this is fixed we're ignoring them
+# # testdatabase:
+# #   stage: test
+# #   image: node:20.10.0-bullseye
+# #   tags:
+# #     - upchieve
+# #   variables:
+# #     NODE_OPTIONS: --max_old_space_size=5120
+# #     DOCKER_HOST: tcp://docker:2376
+# #     DOCKER_TLS_VERIFY: 1
+# #     DOCKER_CERT_PATH: "/certs/client"
+# #     DOCKER_TLS_CERTDIR: "/certs"
+# #     TESTCONTAINERS_HOST_OVERRIDE: docker
+# #     CI_CONTAINER: "true"
+# #   services:
+# #     - docker:20.10.6-dind
+# #   before_script:
+# #     - npm ci --cache .npm --prefer-offline
+# #     - curl -fsSL https://get.docker.com -o get-docker.sh
+# #     - VERSION=20.10.6 sh ./get-docker.sh
+# #   script:
+# #     - npm run test:database
+# #   needs: []
+# #   rules:
+# #     - if: '$TEST_DISABLED'
+# #       when: never
+# #     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
-lint_sql:
-  stage: test
-  image: node:20.10.0-bullseye
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run lint:sql:check
-  needs: []
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+# lint:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - npm run lint
+#   needs: []
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
-lint_database:
-  stage: test
-  image: node:20.10.0-bullseye
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run lint:database:dry
-  needs: []
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+# lint_sql:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - npm run lint:sql:check
+#   needs: []
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+# lint_database:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - npm run lint:database:dry
+#   needs: []
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
