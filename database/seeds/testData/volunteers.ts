@@ -105,6 +105,10 @@ export async function volunteers(
       pgQueries.insertUserProductFlags.run,
       { id: user.id }
     )
+    await wrapInsert('users_roles', pgQueries.insertUsersRoles.run, {
+      userId: user.id,
+      roleName: 'volunteer',
+    })
   }
 
   const profiles = [

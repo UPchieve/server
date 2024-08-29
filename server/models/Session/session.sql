@@ -1258,3 +1258,21 @@ GROUP BY
     sessions.created_at,
     users.first_name;
 
+
+/* @name getTutorBotSessionMessagesBySessionId */
+SELECT
+    *
+FROM
+    tutor_bot_session_messages
+WHERE
+    session_id = :sessionId!
+ORDER BY
+    created_at ASC;
+
+
+/* @name insertTutorBotSessionMessage */
+INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type)
+    VALUES (:id!, :sessionId!, :message!, :userType!)
+RETURNING
+    id, session_id, message, tutor_bot_session_user_type, created_at;
+

@@ -58,6 +58,10 @@ export async function students(spoIds: NameToId, schoolIds: NameToId) {
       pgQueries.insertUserProductFlags.run,
       { id: user.id }
     )
+    await wrapInsert('users_roles', pgQueries.insertUsersRoles.run, {
+      userId: user.id,
+      roleName: 'student',
+    })
   }
 
   const profiles = [

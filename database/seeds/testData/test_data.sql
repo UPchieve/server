@@ -204,3 +204,23 @@ WHERE
 RETURNING
     id AS ok;
 
+
+/* @name insertUsersRoles */
+INSERT INTO users_roles (role_id, user_id, created_at, updated_at)
+SELECT
+    subquery.id,
+    :userId!,
+    NOW(),
+    NOW()
+FROM (
+    SELECT
+        id
+    FROM
+        user_roles
+    WHERE
+        user_roles.name = :roleName!) AS subquery
+ON CONFLICT
+    DO NOTHING
+RETURNING
+    user_id AS ok;
+
