@@ -24,8 +24,9 @@ FROM
 WHERE
     class_id = :classId!;
 
+
 /* @name getAssignmentsByClassId */
-SELECT 
+SELECT
     id,
     class_id,
     description,
@@ -37,7 +38,8 @@ SELECT
     subject_id,
     created_at,
     updated_at
-FROM 
+FROM
     assignments
-WHERE 
+WHERE
     class_id = :classId!;
+
