@@ -57,7 +57,7 @@ async function pollContactJobStatus(
 
 export default async (): Promise<void> => {
   const errors: string[] = []
-  const BATCH_SIZE = 30000
+  const BATCH_SIZE = 5000
   const studentIds = await getStudentIdsForGradeLevelSgUpdate()
   let totalUpdated = 0
 
@@ -87,7 +87,9 @@ export default async (): Promise<void> => {
       totalUpdated += batch.length
     } catch (error) {
       errors.push(
-        `Failed to process batch starting with ${batch[0]}: ${error}\n`
+        `${
+          Jobs.UpdateSendGridGradeLevels
+        } - Failed to process batch ${i} + ${i + BATCH_SIZE}: ${error}\n`
       )
     }
   }
