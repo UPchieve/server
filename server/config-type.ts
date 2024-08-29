@@ -241,4 +241,9 @@ export const Config = Record({
   // Azure Content Safety
   azureContentSafetyApiKey: String,
   azureContentSafetyBaseUrl: String,
+
+  // Tutor bot POC
+  tutorBotApiKey: String,
+  tutorBotBaseUrl: String,
+  tutorBotModelName: String,
 })

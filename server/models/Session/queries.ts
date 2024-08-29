@@ -33,6 +33,10 @@ import {
   getSessionRating,
 } from '../Survey'
 import config from '../../config'
+import {
+  IGetTutorBotSessionMessagesBySessionIdResult,
+  tutor_bot_session_user_type,
+} from './pg.queries'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -1487,5 +1491,45 @@ export async function getStudentSessionDetails(
     return sessionDetails.map(s => makeRequired(s))
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function getTutorBotSessionMessagesBySessionId(
+  sessionId: Ulid
+): Promise<IGetTutorBotSessionMessagesBySessionIdResult[]> {
+  try {
+    const messages = await pgQueries.getTutorBotSessionMessagesBySessionId.run(
+      {
+        sessionId,
+      },
+      getClient()
+    )
+    return messages.map(m => makeRequired(m))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function insertTutorBotSessionMessage(
+  sessionId: Ulid,
+  message: string,
+  userType: tutor_bot_session_user_type
+) {
+  try {
+    const result = await pgQueries.insertTutorBotSessionMessage.run(
+      {
+        id: getDbUlid(),
+        sessionId,
+        message,
+        userType,
+      },
+      getClient()
+    )
+    if (!result) {
+      throw new Error('Failed to insert tutor bot session message')
+    }
+    return result[0]
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

@@ -29,6 +29,7 @@ import { sendReferralProgramEmail } from '../../services/MailService'
 import { getUserReferralLink } from '../../models/User'
 import config from '../../config'
 import { routeVoiceMessages } from './voice-messages'
+import { routeTutorBot } from './tutor-bot'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -54,6 +55,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeProgressReports(router)
   routeWebhooks(router)
   routeAdmin(app, router)
+  routeTutorBot(router)
 
   router.post('/send-referral-email', async function(req, res) {
     try {
