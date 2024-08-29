@@ -51,3 +51,55 @@ const createAssignmentIR: any = {"name":"createAssignment","params":[{"name":"id
 export const createAssignment = new PreparedQuery<ICreateAssignmentParams,ICreateAssignmentResult>(createAssignmentIR);
 
 
+/** 'GetAssignmentsByClassId' parameters type */
+export interface IGetAssignmentsByClassIdParams {
+  classId: string;
+}
+
+/** 'GetAssignmentsByClassId' return type */
+export interface IGetAssignmentsByClassIdResult {
+  classId: string | null;
+  createdAt: Date;
+  description: string | null;
+  dueDate: Date | null;
+  id: string;
+  minDurationInMinutes: number | null;
+  numberOfSessions: number | null;
+  startAt: Date | null;
+  subjectId: number | null;
+  title: string | null;
+  updatedAt: Date;
+}
+
+/** 'GetAssignmentsByClassId' query type */
+export interface IGetAssignmentsByClassIdQuery {
+  params: IGetAssignmentsByClassIdParams;
+  result: IGetAssignmentsByClassIdResult;
+}
+
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":745,"b":752,"line":23,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT \n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    due_date,\n    start_at,\n    subject_id,\n    created_at,\n    updated_at\nFROM \n    assignments\nWHERE \n    class_id = :classId!","loc":{"a":514,"b":752,"line":8,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT 
+ *     id,
+ *     class_id,
+ *     description,
+ *     title,
+ *     number_of_sessions,
+ *     min_duration_in_minutes,
+ *     due_date,
+ *     start_at,
+ *     subject_id,
+ *     created_at,
+ *     updated_at
+ * FROM 
+ *     assignments
+ * WHERE 
+ *     class_id = :classId!
+ * ```
+ */
+export const getAssignmentsByClassId = new PreparedQuery<IGetAssignmentsByClassIdParams,IGetAssignmentsByClassIdResult>(getAssignmentsByClassIdIR);
+
+
