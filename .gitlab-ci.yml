@@ -104,10 +104,8 @@ variables:
     - deployment_tag="deployed-$CI_ENVIRONMENT_NAME-$timestamp"
     - echo $deployment_tag
     - git tag $deployment_tag
-    - echo $CI_PROJECT_PATH
-    - url=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
-    - echo $url
-    #- git push https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git $deployment_tag
+    - token_name=ci-git-tag
+    - git push https://${token_name}:$REPO_ACCESS_TOKEN@gitlab.com/${CI_PROJECT_PATH}.git $deployment_tag
   # rules:
   #   - when: manual
     # 
