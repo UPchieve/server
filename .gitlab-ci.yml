@@ -62,14 +62,16 @@ build_hackers:
   before_script:
     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az extension add --name containerapp --upgrade
-    - az provider register --namespace Microsoft.App
-    - az provider register --namespace Microsoft.OperationalInsights
   script:
     - echo $IMAGE_TAG
     - echo $CONTAINER_APP
     - echo $RESOURCE_GROUP
-    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
-    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+    - echo 'without variable:'
+    - az containerapp list --resource-group hackers-resource-group --output table
+    - echo 'with variable:'
+    - az containerapp list --resource-group $RESOURCE_GROUP --output table
+    # - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+    # - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image 
   after_script:
     - |
       if [ $CI_JOB_STATUS == "success" ]; then
