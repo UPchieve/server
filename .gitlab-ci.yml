@@ -97,16 +97,16 @@ deploy_hackers:
     RESOURCE_GROUP: hackers-resource-group
     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
-  after_script:
-    - !reference [.deploy, after_script]
-    - |
-      if [ $CI_JOB_STATUS == "success" ]; then
-        git config --global user.name $GITLAB_USER_NAME
-        git config --global user.email $GITALB_USER_EMAIL
+  # after_script:
+  #   - !reference [.deploy, after_script]
+  #   - |
+  #     if [ $CI_JOB_STATUS == "success" ]; then
+  #       git config --global user.name $GITLAB_USER_NAME
+  #       git config --global user.email $GITALB_USER_EMAIL
 
-        git tag -f "latest-hackers"
-        git push origin -f "latest-hackers"
-      fi
+  #       git tag -f "latest-hackers"
+  #       git push origin -f "latest-hackers"
+  #     fi
   needs:
     - job: build_hackers
       artifacts: true
