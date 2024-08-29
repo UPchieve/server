@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/query';
 
 export type ban_types = 'complete' | 'shadow';
 
+export type tutor_bot_session_user_type = 'bot' | 'student';
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 export type stringArray = (string)[];
@@ -2736,5 +2738,80 @@ const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","para
  * ```
  */
 export const getStudentSessionDetails = new PreparedQuery<IGetStudentSessionDetailsParams,IGetStudentSessionDetailsResult>(getStudentSessionDetailsIR);
+
+
+/** 'GetTutorBotSessionMessagesBySessionId' parameters type */
+export interface IGetTutorBotSessionMessagesBySessionIdParams {
+  sessionId: string;
+}
+
+/** 'GetTutorBotSessionMessagesBySessionId' return type */
+export interface IGetTutorBotSessionMessagesBySessionIdResult {
+  createdAt: Date;
+  id: string;
+  message: string | null;
+  sessionId: string;
+  tutorBotSessionUserType: tutor_bot_session_user_type;
+}
+
+/** 'GetTutorBotSessionMessagesBySessionId' query type */
+export interface IGetTutorBotSessionMessagesBySessionIdQuery {
+  params: IGetTutorBotSessionMessagesBySessionIdParams;
+  result: IGetTutorBotSessionMessagesBySessionIdResult;
+}
+
+const getTutorBotSessionMessagesBySessionIdIR: any = {"name":"getTutorBotSessionMessagesBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35319,"b":35328,"line":1268,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    tutor_bot_session_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    created_at ASC","loc":{"a":35246,"b":35356,"line":1263,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     *
+ * FROM
+ *     tutor_bot_session_messages
+ * WHERE
+ *     session_id = :sessionId!
+ * ORDER BY
+ *     created_at ASC
+ * ```
+ */
+export const getTutorBotSessionMessagesBySessionId = new PreparedQuery<IGetTutorBotSessionMessagesBySessionIdParams,IGetTutorBotSessionMessagesBySessionIdResult>(getTutorBotSessionMessagesBySessionIdIR);
+
+
+/** 'InsertTutorBotSessionMessage' parameters type */
+export interface IInsertTutorBotSessionMessageParams {
+  id: string;
+  message: string;
+  sessionId: string;
+  userType: tutor_bot_session_user_type;
+}
+
+/** 'InsertTutorBotSessionMessage' return type */
+export interface IInsertTutorBotSessionMessageResult {
+  createdAt: Date;
+  id: string;
+  message: string | null;
+  sessionId: string;
+  tutorBotSessionUserType: tutor_bot_session_user_type;
+}
+
+/** 'InsertTutorBotSessionMessage' query type */
+export interface IInsertTutorBotSessionMessageQuery {
+  params: IInsertTutorBotSessionMessageParams;
+  result: IInsertTutorBotSessionMessageResult;
+}
+
+const insertTutorBotSessionMessageIR: any = {"name":"insertTutorBotSessionMessage","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35509,"b":35511,"line":1275,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35515,"b":35524,"line":1275,"col":19}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35528,"b":35535,"line":1275,"col":32}]}},{"name":"userType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35539,"b":35547,"line":1275,"col":43}]}}],"usedParamSet":{"id":true,"sessionId":true,"message":true,"userType":true},"statement":{"body":"INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type)\n    VALUES (:id!, :sessionId!, :message!, :userType!)\nRETURNING\n    id, session_id, message, tutor_bot_session_user_type, created_at","loc":{"a":35402,"b":35627,"line":1274,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type)
+ *     VALUES (:id!, :sessionId!, :message!, :userType!)
+ * RETURNING
+ *     id, session_id, message, tutor_bot_session_user_type, created_at
+ * ```
+ */
+export const insertTutorBotSessionMessage = new PreparedQuery<IInsertTutorBotSessionMessageParams,IInsertTutorBotSessionMessageResult>(insertTutorBotSessionMessageIR);
 
 
