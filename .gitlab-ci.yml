@@ -103,7 +103,7 @@ variables:
     - deployment_tag="deployed-$CI_ENVIRONMENT_NAME-$timestamp"
     - echo $deployment_tag
     - git tag $deployment_tag
-    #- git push origin $deployment_tag
+    - git push origin $deployment_tag
   # rules:
   #   - when: manual
     # 
@@ -116,10 +116,10 @@ tag_commit_hackers:
     #- job: deploy_hackers
   # rules:
   #   - if: $CI_JOB_STATUS == "success"
-  # script:
-  #   - !reference [.tag_commit, script]
-  #   - git tag -f "latest-hackers"
-  #   - git push origin -f "latest-hackers"
+  script:
+    - !reference [.tag_commit, script]
+    - git tag -f "latest-hackers"
+    - git push origin -f "latest-hackers"
 
 ### TODO: Clean-up.
 # build:
