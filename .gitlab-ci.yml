@@ -63,13 +63,8 @@ build_hackers:
     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az extension add --name containerapp --upgrade
   script:
-    - echo $IMAGE_TAG
-    - echo $CONTAINER_APP
-    - echo $RESOURCE_GROUP
-    - echo 'with variable:'
-    - az containerapp list --resource-group $RESOURCE_GROUP --output table
     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
-    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image 
+    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
   # after_script:
   #   - |
   #     if [ $CI_JOB_STATUS == "success" ]; then
