@@ -5,13 +5,13 @@ export type Assignment = {
   classId: Ulid
   description?: string
   title?: string
-  numberOfSessions?: Number
-  minDurationInMinutes?: Number
+  numberOfSessions?: number
+  minDurationInMinutes?: number
   dueDate?: Date
   startAt?: Date
-  subjectId?: Number
+  subjectId?: number
   createdAt: Date
   updatedAt: Date
 }
 
-export type CreateAssignmentPayload = Pick<Assignment, 'id' | 'classId'>
+export type CreateAssignmentPayload = Pick<Assignment, 'id' | 'classId' | 'description' | 'title' | 'numberOfSessions' | 'minDurationInMinutes' | 'dueDate' | 'startAt' | 'subjectId'>
