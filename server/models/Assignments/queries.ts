@@ -61,7 +61,7 @@ export async function getAssignmentsByClassId(
         'subjectId',
       ])
     )
-  } catch(err) {
+  } catch (err) {
     throw new RepoReadError(err)
   }
 }

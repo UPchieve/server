@@ -4,8 +4,9 @@ INSERT INTO assignments (id, class_id, description, title, number_of_sessions, m
 RETURNING
     id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at;
 
+
 /* @name getAssignmentsByClassId */
-SELECT 
+SELECT
     id,
     class_id,
     description,
@@ -17,7 +18,8 @@ SELECT
     subject_id,
     created_at,
     updated_at
-FROM 
+FROM
     assignments
-WHERE 
+WHERE
     class_id = :classId!;
+
