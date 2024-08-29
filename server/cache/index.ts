@@ -109,3 +109,23 @@ export async function smembers(key: string) {
   logger.info(`Redis fetching members of set key ${key}`)
   return await redisClient.smembers(key)
 }
+
+redisClient.on('connect', () => {
+  logger.info('Redis client connected')
+})
+
+redisClient.on('ready', () => {
+  logger.info('Redis client ready')
+})
+
+redisClient.on('end', () => {
+  logger.warn('Redis client connection closed')
+})
+
+redisClient.on('reconnecting', time => {
+  logger.warn(`Redis client reconnecting in ${time}ms`)
+})
+
+redisClient.on('error', error => {
+  logger.error('Redis client error:', error)
+})

@@ -155,3 +155,23 @@ export const redisClient = new Proxy(baseClient, {
     return originalMethod
   },
 })
+
+redisClient.on('connect', () => {
+  logger.info('Redis Streams Adapter client connected to Redis')
+})
+
+redisClient.on('ready', () => {
+  logger.info('Redis Streams Adapter client ready')
+})
+
+redisClient.on('end', () => {
+  logger.warn('Redis Streams Adapter client connection closed')
+})
+
+redisClient.on('reconnecting', time => {
+  logger.warn(`Redis Streams Adapter client reconnecting in ${time}ms`)
+})
+
+redisClient.on('error', error => {
+  logger.error('Redis Streams Adapter client error:', error)
+})
