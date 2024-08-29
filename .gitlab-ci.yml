@@ -119,9 +119,8 @@ tag_commit_hackers:
     - deployment_tag="deployed-$CI_ENVIRONMENT_NAME-$timestamp"
     - echo $deployment_tag
   release:
-    tag_name: 'deployed-$CI_PIPELINE_CREATED_AT'
-    name: 'Deployed $CI_PIPELINE_CREATED_AT'
-    description: 'Deployed from GitLab CI'
+    tag_name: 'deployed-$(date +%Y%m%d%H%M%S)'
+    description: 'Deployed from GitLab CI.'
   #needs:
     #- job: deploy_hackers
   # rules:
