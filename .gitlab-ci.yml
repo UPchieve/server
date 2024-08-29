@@ -102,16 +102,17 @@ deploy_hackers:
     - git tag -a $deployment_tag -m "Deployed to $environment at $timestamp"
     - git push origin $deployment_tag
   rules:
+    # - when: manual
     - if: $CI_JOB_STATUS == "success"
   
 hackers_tag_commit:
   extends: .tag_commit
   needs:
     - job: deploy_hackers
-  script:
-    - !reference [.tag_commit, script]
-    - git tag -f "latest-hackers"
-    - git push origin -f "latest-hackers"
+  # script:
+  #   - !reference [.tag_commit, script]
+  #   - git tag -f "latest-hackers"
+  #   - git push origin -f "latest-hackers"
 
 ### TODO: Clean-up.
 # build:
