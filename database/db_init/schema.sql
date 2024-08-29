@@ -230,10 +230,11 @@ CREATE TABLE upchieve.assignments (
     id uuid NOT NULL,
     class_id uuid,
     description text,
-    name text,
+    title text,
     number_of_sessions integer,
     min_duration_in_minutes integer,
     due_date timestamp with time zone,
+    start_at timestamp with time zone,
     subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
