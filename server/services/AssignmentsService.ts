@@ -3,7 +3,6 @@ import { Ulid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 
 export async function createAssignment(
-  id: Ulid,
   classId: Ulid,
   description?: string,
   title?: string,
