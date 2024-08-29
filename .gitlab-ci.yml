@@ -85,7 +85,7 @@ deploy_hackers:
 
 .tag_commit:
   stage: post-deploy
-  images: alpine/git
+  image: alpine/git
   script:
     - git config --global user.name $GITLAB_USER_NAME
     - git config --global user.email $GITALB_USER_EMAIL
