@@ -20,74 +20,76 @@ variables:
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
 
-.build_docker:
-  stage: build
-  image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
-  cache: []
-  services:
-    - docker:20.10.6-dind
-  id_tokens:
-    GITLAB_OIDC_TOKEN:
-      aud: api://AzureADTokenExchange
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-    AZURE_TENANT_ID: $AZURE_TENANT_ID
-  environment:
-    action: prepare
-  allow_failure: false
-  before_script:
-    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
-    - az acr login --name $AZURE_CONTAINER_REGISTRY
-  script:
-    - echo $IMAGE_TAG
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+# .build_docker:
+#   stage: build
+#   image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
+#   cache: []
+#   services:
+#     - docker:20.10.6-dind
+#   id_tokens:
+#     GITLAB_OIDC_TOKEN:
+#       aud: api://AzureADTokenExchange
+#   variables:
+#     DOCKER_TLS_CERTDIR: ""
+#     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+#     AZURE_TENANT_ID: $AZURE_TENANT_ID
+#   environment:
+#     action: prepare
+#   allow_failure: false
+#   before_script:
+#     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+#     - az acr login --name $AZURE_CONTAINER_REGISTRY
+#   script:
+#     - echo $IMAGE_TAG
+#     - docker build -t $IMAGE_TAG .
+#     - docker push $IMAGE_TAG
 
-build_hackers:
-  extends: .build_docker
-  environment: hackers
-  variables:
-    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
-    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
-  rules:
-    #- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - when: always
-    # - when: manual
+# build_hackers:
+#   extends: .build_docker
+#   environment:
+#     name: hackers
+#   variables:
+#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
+#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
+#   rules:
+#     #- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+#     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#     - when: always
+#     # - when: manual
 
-.deploy:
-  stage: deploy
-  image: mcr.microsoft.com/azure-cli:latest
-  id_tokens:
-    GITLAB_OIDC_TOKEN:
-      aud: api://AzureADTokenExchange
-  variables:
-    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-  before_script:
-    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
-    - az extension add --name containerapp --upgrade
-  script:
-    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
-    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+# .deploy:
+#   stage: deploy
+#   image: mcr.microsoft.com/azure-cli:latest
+#   id_tokens:
+#     GITLAB_OIDC_TOKEN:
+#       aud: api://AzureADTokenExchange
+#   variables:
+#     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+#   before_script:
+#     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+#     - az extension add --name containerapp --upgrade
+#   script:
+#     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+#     - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
 
-deploy_hackers:
-  extends: .deploy
-  environment: hackers
-  resource_group: hackers
-  variables:
-    CONTAINER_APP: hackers-container-app-subway
-    CONTAINER_APP_WORKER: hackers-container-app-worker
-    RESOURCE_GROUP: hackers-resource-group
-    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
-    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
-  needs:
-    - job: build_hackers
-      artifacts: true
-  rules:
-    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    #  when: on_success
-    - when: manual
+# deploy_hackers:
+#   extends: .deploy
+#   environment: 
+#     name: hackers
+#   resource_group: hackers
+#   variables:
+#     CONTAINER_APP: hackers-container-app-subway
+#     CONTAINER_APP_WORKER: hackers-container-app-worker
+#     RESOURCE_GROUP: hackers-resource-group
+#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_HACKERS
+#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_HACKERS
+#   needs:
+#     - job: build_hackers
+#       artifacts: true
+#   rules:
+#     #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#     #  when: on_success
+#     - when: manual
 
 .tag_commit:
   stage: post-deploy
@@ -106,8 +108,8 @@ deploy_hackers:
   
 tag_commit_hackers:
   extends: .tag_commit
-  needs:
-    - job: deploy_hackers
+  #needs:
+    #- job: deploy_hackers
   # rules:
   #   - if: $CI_JOB_STATUS == "success"
   # script:
