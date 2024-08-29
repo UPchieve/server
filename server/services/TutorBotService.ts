@@ -142,8 +142,6 @@ const systemRegex = /^(<\|system\|>)\n.*(\[\[([A-Z]+)\]\])/gm
 
 const extractSystem = (text: string): { assistant: string; system: string } => {
   const [system] = text.match(systemRegex) ?? ['']
-  if (system) {
-  }
 
   return {
     system,
