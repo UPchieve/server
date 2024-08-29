@@ -59,14 +59,19 @@ export interface IGetAssignmentsByClassIdParams {
 /** 'GetAssignmentsByClassId' return type */
 export interface IGetAssignmentsByClassIdResult {
 <<<<<<< HEAD
+<<<<<<< HEAD
   classId: string;
 =======
   classId: string | null;
 >>>>>>> a41a82aa (add getAssignmentsByClassId sql query)
+=======
+  classId: string | null;
+>>>>>>> e4518c2c (add getAssignmentsByClassId sql query)
   createdAt: Date;
   description: string | null;
   dueDate: Date | null;
   id: string;
+<<<<<<< HEAD
 <<<<<<< HEAD
   isRequired: boolean;
   minDurationInMinutes: number | null;
@@ -77,6 +82,11 @@ export interface IGetAssignmentsByClassIdResult {
   numberOfSessions: number | null;
   startAt: Date | null;
 >>>>>>> a41a82aa (add getAssignmentsByClassId sql query)
+=======
+  minDurationInMinutes: number | null;
+  numberOfSessions: number | null;
+  startAt: Date | null;
+>>>>>>> e4518c2c (add getAssignmentsByClassId sql query)
   subjectId: number | null;
   title: string | null;
   updatedAt: Date;
@@ -89,25 +99,34 @@ export interface IGetAssignmentsByClassIdQuery {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":807,"b":814,"line":25,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":814,"line":9,"col":0}}};
 =======
 const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":745,"b":752,"line":23,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT \n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    due_date,\n    start_at,\n    subject_id,\n    created_at,\n    updated_at\nFROM \n    assignments\nWHERE \n    class_id = :classId!","loc":{"a":514,"b":752,"line":8,"col":0}}};
 >>>>>>> a41a82aa (add getAssignmentsByClassId sql query)
+=======
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":745,"b":752,"line":23,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT \n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    due_date,\n    start_at,\n    subject_id,\n    created_at,\n    updated_at\nFROM \n    assignments\nWHERE \n    class_id = :classId!","loc":{"a":514,"b":752,"line":8,"col":0}}};
+>>>>>>> e4518c2c (add getAssignmentsByClassId sql query)
 
 /**
  * Query generated from SQL:
  * ```
 <<<<<<< HEAD
+<<<<<<< HEAD
  * SELECT
 =======
  * SELECT 
 >>>>>>> a41a82aa (add getAssignmentsByClassId sql query)
+=======
+ * SELECT 
+>>>>>>> e4518c2c (add getAssignmentsByClassId sql query)
  *     id,
  *     class_id,
  *     description,
  *     title,
  *     number_of_sessions,
  *     min_duration_in_minutes,
+<<<<<<< HEAD
 <<<<<<< HEAD
  *     is_required,
  *     due_date,
@@ -119,6 +138,8 @@ const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params
  *     assignments
  * WHERE
 =======
+=======
+>>>>>>> e4518c2c (add getAssignmentsByClassId sql query)
  *     due_date,
  *     start_at,
  *     subject_id,
@@ -127,7 +148,10 @@ const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params
  * FROM 
  *     assignments
  * WHERE 
+<<<<<<< HEAD
 >>>>>>> a41a82aa (add getAssignmentsByClassId sql query)
+=======
+>>>>>>> e4518c2c (add getAssignmentsByClassId sql query)
  *     class_id = :classId!
  * ```
  */
