@@ -19,15 +19,23 @@ export async function createAssignment(
         minDurationInMinutes: data.minDurationInMinutes,
         dueDate: data.dueDate,
         startAt: data.startAt,
-        subjectId: data.subjectId
+        subjectId: data.subjectId,
       },
       tc
     )
     if (!assignment.length) {
       throw new RepoCreateError('Unable to create assignment.')
     }
-    return makeSomeOptional(assignment[0], ['description', 'title', 'numberOfSessions', 'minDurationInMinutes', 'dueDate', 'startAt', 'subjectId'])
-  } catch (err){
+    return makeSomeOptional(assignment[0], [
+      'description',
+      'title',
+      'numberOfSessions',
+      'minDurationInMinutes',
+      'dueDate',
+      'startAt',
+      'subjectId',
+    ])
+  } catch (err) {
     throw new RepoCreateError(err)
   }
 }
