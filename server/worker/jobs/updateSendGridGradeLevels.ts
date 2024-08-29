@@ -87,7 +87,9 @@ export default async (): Promise<void> => {
       totalUpdated += batch.length
     } catch (error) {
       errors.push(
-        `Failed to process batch ${i} + ${i + BATCH_SIZE}: ${error}\n`
+        `${
+          Jobs.UpdateSendGridGradeLevels
+        } - Failed to process batch ${i} + ${i + BATCH_SIZE}: ${error}\n`
       )
     }
   }
