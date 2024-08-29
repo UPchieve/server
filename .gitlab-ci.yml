@@ -108,8 +108,8 @@ tag_commit_hackers:
   extends: .tag_commit
   needs:
     - job: deploy_hackers
-  rules:
-    - if: $CI_JOB_STATUS == "success"
+  # rules:
+  #   - if: $CI_JOB_STATUS == "success"
   # script:
   #   - !reference [.tag_commit, script]
   #   - git tag -f "latest-hackers"
