@@ -14,19 +14,24 @@ export async function createAssignment(
   subjectId?: number
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const assignment = await AssignmentsRepo.createAssignment({
-      id,
-      classId,
-      description,
-      title,
-      numberOfSessions,
-      minDurationInMinutes,
-      dueDate,
-      startAt,
-      subjectId
-    },
-    tc
-  )
-    return assignment;
+    const assignment = await AssignmentsRepo.createAssignment(
+      {
+        id,
+        classId,
+        description,
+        title,
+        numberOfSessions,
+        minDurationInMinutes,
+        dueDate,
+        startAt,
+        subjectId,
+      },
+      tc
+    )
+    return assignment
   })
+}
+
+export async function getAssignmentsByClassId(classId: Ulid) {
+  return AssignmentsRepo.getAssignmentsByClassId(classId)
 }
