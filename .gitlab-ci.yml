@@ -98,7 +98,7 @@ variables:
     - echo $GITLAB_USER_NAME
     - echo $GITLAB_USER_EMAIL
     - git config --global user.name $GITLAB_USER_NAME
-    - git config --global user.email $GITALB_USER_EMAIL
+    - git config --global user.email $GITLAB_USER_EMAIL
     - timestamp=$(date +%Y%m%d%H%M%S)
     - deployment_tag="deployed-$CI_ENVIRONMENT_NAME-$timestamp"
     - echo $deployment_tag
