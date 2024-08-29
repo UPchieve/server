@@ -14,4 +14,4 @@ export type Assignment = {
   updatedAt: Date
 }
 
-export type CreateAssignmentPayload = Pick<Assignment, 'id' | 'class_id' | 'subject_id'>
+export type CreateAssignmentPayload = Pick<Assignment, 'id' | 'class_id'>
