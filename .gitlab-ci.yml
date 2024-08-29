@@ -65,7 +65,7 @@ build_hackers:
   script:
     - echo $IMAGE_TAG
     - echo $CONTAINER_APP
-    - echo $RESOURECE_GROUP
+    - echo $RESOURCE_GROUP
     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
     - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
   after_script:
