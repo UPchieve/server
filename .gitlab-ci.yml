@@ -95,8 +95,8 @@ variables:
   stage: post-deploy
   #image: alpine/git
   script:
-    - git config --global user.name $GITLAB_USER_NAME
-    - git config --global user.email $GITALB_USER_EMAIL
+    #- git config --global user.name $GITLAB_USER_NAME
+    #- git config --global user.email $GITALB_USER_EMAIL
     - timestamp=$(date +%Y%m%d%H%M%S)
     - deployment_tag="deployed-$environment-$timestamp"
     - echo $deployment_tag
