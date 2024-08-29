@@ -23,4 +23,3 @@ FROM
     assignments
 WHERE
     class_id = :classId!;
-
