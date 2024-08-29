@@ -97,17 +97,21 @@ variables:
   script:
     #- git config --global user.name $GITLAB_USER_NAME
     #- git config --global user.email $GITALB_USER_EMAIL
+    - echo $GITLAB_USER_NAME
+    - echo $GITLAB_USER_EMAIL
     - timestamp=$(date +%Y%m%d%H%M%S)
     - deployment_tag="deployed-$environment-$timestamp"
     - echo $deployment_tag
     - git tag $deployment_tag
-    - git push origin $deployment_tag
+    #- git push origin $deployment_tag
   # rules:
   #   - when: manual
     # 
   
 tag_commit_hackers:
   extends: .tag_commit
+  environment:
+    name: hackers
   #needs:
     #- job: deploy_hackers
   # rules:
