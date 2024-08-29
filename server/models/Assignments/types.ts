@@ -16,7 +16,6 @@ export type Assignment = {
 
 export type CreateAssignmentPayload = Pick<
   Assignment,
-  | 'id'
   | 'classId'
   | 'description'
   | 'title'
