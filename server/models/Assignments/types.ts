@@ -9,7 +9,7 @@ export type Assignment = {
   min_duration_in_minutes?: Number
   due_date?: Date
   start_at?: Date
-  subject_id: Number
+  subject_id?: Number
   created_at: Date
   updatedAt: Date
 }
