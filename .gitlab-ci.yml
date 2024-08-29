@@ -93,9 +93,8 @@ deploy_hackers:
   stage: post-deploy
   image: alpine/git
   script:
-    - git config --global user.name $GITLAB_USER_NAME
-    - git config --global user.email $GITALB_USER_EMAIL
-    # Create unique tag for the deployment.
+    # - git config --global user.name $GITLAB_USER_NAME
+    # - git config --global user.email $GITALB_USER_EMAIL
     - timestamp=$(date +%Y%m%d%H%M%S)
     - deployment_tag="deployed-$environment-$timestamp"
     - echo $deployment_tag
@@ -103,14 +102,14 @@ deploy_hackers:
     - git push origin $deployment_tag
   # rules:
   #   - when: manual
-    # - if: $CI_JOB_STATUS == "success"
+    # 
   
 tag_commit_hackers:
   extends: .tag_commit
   needs:
     - job: deploy_hackers
   rules:
-    - when: manual
+    - if: $CI_JOB_STATUS == "success"
   # script:
   #   - !reference [.tag_commit, script]
   #   - git tag -f "latest-hackers"
