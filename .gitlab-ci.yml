@@ -66,24 +66,26 @@ build_hackers:
     - echo $IMAGE_TAG
     - echo $CONTAINER_APP
     - echo $RESOURCE_GROUP
+    - echo 'account:'
+    - az account show --output table
     - echo 'without variable:'
     - az containerapp list --resource-group hackers-resource-group --output table
     - echo 'with variable:'
     - az containerapp list --resource-group $RESOURCE_GROUP --output table
     # - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
     # - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image 
-  after_script:
-    - |
-      if [ $CI_JOB_STATUS == "success" ]; then
-        git config --global user.name $GITLAB_USER_NAME
-        git config --global user.email $GITALB_USER_EMAIL
+  # after_script:
+  #   - |
+  #     if [ $CI_JOB_STATUS == "success" ]; then
+  #       git config --global user.name $GITLAB_USER_NAME
+  #       git config --global user.email $GITALB_USER_EMAIL
 
-        # Create unique tag for the deployment.
-        timestamp=$(date +%Y%m%d%H%M%S)
-        deployment_tag="deployed-$environment-$timestamp"
-        git tag -a $deployment_tag -m "Deployed to $environment at $timestamp"
-        git push origin $deployment_tag
-      fi
+  #       # Create unique tag for the deployment.
+  #       timestamp=$(date +%Y%m%d%H%M%S)
+  #       deployment_tag="deployed-$environment-$timestamp"
+  #       git tag -a $deployment_tag -m "Deployed to $environment at $timestamp"
+  #       git push origin $deployment_tag
+  #     fi
 
 deploy_hackers:
   extends: .deploy
