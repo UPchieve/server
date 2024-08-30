@@ -183,3 +183,38 @@ const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","pa
 export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
 
 
+/** 'CreateStudentAssignment' parameters type */
+export interface ICreateStudentAssignmentParams {
+  assignmentId: string;
+  submittedAt: Date | null | void;
+  userId: string;
+}
+
+/** 'CreateStudentAssignment' return type */
+export interface ICreateStudentAssignmentResult {
+  assignmentId: string;
+  createdAt: Date;
+  submittedAt: Date | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'CreateStudentAssignment' query type */
+export interface ICreateStudentAssignmentQuery {
+  params: ICreateStudentAssignmentParams;
+  result: ICreateStudentAssignmentResult;
+}
+
+const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1661,"b":1667,"line":65,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1671,"b":1683,"line":65,"col":23}]}},{"name":"submittedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1687,"b":1697,"line":65,"col":39}]}}],"usedParamSet":{"userId":true,"assignmentId":true,"submittedAt":true},"statement":{"body":"INSERT INTO students_assignments(user_id, assignment_id, submitted_at, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, :submittedAt, NOW(), NOW())\nRETURNING user_id, assignment_id, submitted_at, created_at, updated_at","loc":{"a":1553,"b":1783,"line":64,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO students_assignments(user_id, assignment_id, submitted_at, created_at, updated_at)
+ *     VALUES (:userId!, :assignmentId!, :submittedAt, NOW(), NOW())
+ * RETURNING user_id, assignment_id, submitted_at, created_at, updated_at
+ * ```
+ */
+export const createStudentAssignment = new PreparedQuery<ICreateStudentAssignmentParams,ICreateStudentAssignmentResult>(createStudentAssignmentIR);
+
+
