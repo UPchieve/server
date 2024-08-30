@@ -51,7 +51,7 @@ WHERE
 
 /* @name createStudentAssignment */
 INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
-    VALUES (:userId!, :assignmentId!, null, NOW(), NOW())
+    VALUES (:userId!, :assignmentId!, NULL, NOW(), NOW())
 RETURNING
     user_id, assignment_id, created_at, updated_at;
 
