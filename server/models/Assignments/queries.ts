@@ -95,11 +95,40 @@ export async function getAssignmentById(
 export async function createStudentAssignment(
   userId: Ulid,
   assignmentId: Ulid,
-  tc: TransactionClient = getClient()
+  tc: TransactionClient
 ) {
-  const assignment = await pgQueries.createStudentAssignment.run( { userId, assignmentId }, tc)
+  const assignment = await pgQueries.createStudentAssignment.run(
+    { userId, assignmentId },
+    tc
+  )
   if (!assignment.length) {
     throw new RepoCreateError('Unable to create student assignment.')
   }
   return assignment[0]
+}
+
+export async function getAssignmentsByStudentId(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const assignments = await pgQueries.getAssignmentsByStudentId.run(
+      { userId },
+      tc
+    )
+    return assignments.map(a =>
+      makeSomeOptional(a, [
+        'description',
+        'title',
+        'numberOfSessions',
+        'minDurationInMinutes',
+        'dueDate',
+        'startAt',
+        'subjectId',
+        'submittedAt',
+      ])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }
