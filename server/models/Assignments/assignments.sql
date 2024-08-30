@@ -48,3 +48,10 @@ FROM
 WHERE
     students_assignments.user_id = :userId!;
 
+
+/* @name createStudentAssignment */
+INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
+    VALUES (:userId!, :assignmentId!, :submittedAt, NOW(), NOW())
+RETURNING
+    user_id, assignment_id, submitted_at, created_at, updated_at;
+
