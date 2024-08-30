@@ -52,3 +52,17 @@ export async function getAssignmentById(
 ): Promise<AssignmentsRepo.CreateAssignmentPayload | undefined> {
   return AssignmentsRepo.getAssignmentById(assignmentId)
 }
+
+export async function createStudentAssignment(
+  userId: Ulid,
+  assignmentId: Ulid
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const assignment = await AssignmentsRepo.createStudentAssignment(
+      userId,
+      assignmentId, 
+      tc
+    )
+    return assignment
+  })
+}
