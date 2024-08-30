@@ -29,4 +29,8 @@ export function routeAssignments(app: Express, router: Router): void {
       resError(res, err)
     }
   })
+
+  router.route('/assignments').get(async function(req, res) {
+    
+  })
 }
