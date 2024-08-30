@@ -60,9 +60,13 @@ export async function createStudentAssignment(
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createStudentAssignment(
       userId,
-      assignmentId, 
+      assignmentId,
       tc
     )
     return assignment
   })
+}
+
+export async function getAssignmentsByStudentId(userId: Ulid) {
+  return AssignmentsRepo.getAssignmentsByStudentId(userId)
 }
