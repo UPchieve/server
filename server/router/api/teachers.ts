@@ -1,10 +1,11 @@
 import { Express, Router } from 'express'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
-import * as SessionService from '../../services/SessionService'
+import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 
 export function routeTeachers(app: Express, router: Router): void {
+  /* Classes */
   router.route('/class').post(async function(req, res) {
     try {
       const user = extractUser(req)
@@ -58,6 +59,46 @@ export function routeTeachers(app: Express, router: Router): void {
       const classId = req.params.classId as string
       const teacherClass = await TeacherService.getTeacherClassById(classId)
       res.json({ teacherClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  /* Assignments */
+  router.route('/assignment').post(async function(req, res) {
+    try {
+      const classId = req.body.classId
+      const description = (req.body.description as string) ?? null
+      const title = (req.body.title as string) ?? null
+      const numberOfSessions = (req.body.numberOfSessions as number) ?? null
+      const minDurationInMinutes =
+        (req.body.minDurationInMinutes as number) ?? null
+      const dueDate = (req.body.dueDate as Date) ?? null
+      const startAt = (req.body.startDate as Date) ?? null
+      const subjectId = (req.body.subjectId as number) ?? null
+      const assignment = await AssignmentsService.createAssignment(
+        classId,
+        description,
+        title,
+        numberOfSessions,
+        minDurationInMinutes,
+        dueDate,
+        startAt,
+        subjectId
+      )
+      res.json({ assignment })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/class/:classId/assignments').get(async function(req, res) {
+    try {
+      const classId = req.params.classId as string
+      const assignments = await AssignmentsService.getAssignmentsByClassId(
+        classId
+      )
+      res.json({ assignments })
     } catch (err) {
       resError(res, err)
     }
