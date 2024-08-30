@@ -44,3 +44,7 @@ export async function createAssignment(data: AssignmentInputdata) {
 export async function getAssignmentsByClassId(classId: Ulid) {
   return AssignmentsRepo.getAssignmentsByClassId(classId)
 }
+
+export async function getAssignmentById(assignmentId: Ulid) {
+  return AssignmentsRepo.getAssignmentById(assignmentId)
+}
