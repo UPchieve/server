@@ -42,9 +42,9 @@ FROM
 WHERE
     id = :assignmentId!;
 
-/* @name getAssignmentsByStudentId */
 
-SELECT 
+/* @name getAssignmentsByStudentId */
+SELECT
     assignments.class_id,
     assignments.description,
     assignments.title,
@@ -55,7 +55,9 @@ SELECT
     assignments.start_at,
     assignments.id,
     students_assignments.submitted_at
-FROM 
+FROM
     assignments
-LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
-WHERE students_assignments.user_id = :userId!;
+    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
+WHERE
+    students_assignments.user_id = :userId!;
+
