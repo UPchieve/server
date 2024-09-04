@@ -67,7 +67,9 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
       },
     } as Job<EmailFallIncentiveInvitedToEnrollReminderJobData>
 
-    await expect(emailFallIncentiveInvitedToEnrollReminder(jobData)).rejects.toThrow(
+    await expect(
+      emailFallIncentiveInvitedToEnrollReminder(jobData)
+    ).rejects.toThrow(
       `Failed to send ${Jobs.EmailFallIncentiveInvitedToEnrollReminder} to student ${user.id}: ${error}`
     )
     expect(

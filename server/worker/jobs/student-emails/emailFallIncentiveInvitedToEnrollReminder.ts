@@ -19,7 +19,10 @@ export default async (
 
   const { firstName, email } = user
   try {
-    await MailService.sendFallIncentiveInvitedToEnrollReminderEmail(email, firstName)
+    await MailService.sendFallIncentiveInvitedToEnrollReminderEmail(
+      email,
+      firstName
+    )
     log(
       `Sent ${Jobs.EmailFallIncentiveInvitedToEnrollReminder} to student ${userId}`
     )
