@@ -10,7 +10,9 @@ CREATE TABLE upchieve.assignments (
     start_at timestamptz,
     subject_id int REFERENCES upchieve.subjects (id),
     created_at timestamptz NOT NULL DEFAULT NOW(),
-    updated_at timestamptz NOT NULL DEFAULT NOW())
+    updated_at timestamptz NOT NULL DEFAULT NOW()
+);
+
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.assignments;
 
