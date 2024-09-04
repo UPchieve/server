@@ -1033,3 +1033,46 @@ export async function getStudentSessionDetails(studentId: Ulid) {
     return sessionDetails
   })
 }
+
+type FallIncentiveSessionStats = {
+  total: number
+  totalQualified: number
+  totalUnqualified: number
+}
+
+export async function getFallIncentiveSessionStats(
+  studentId: Ulid,
+  start: Date,
+  end?: Date
+): Promise<FallIncentiveSessionStats> {
+  const sessions = await SessionRepo.getStudentSessionsForFallIncentive(
+    studentId,
+    start,
+    end
+  )
+
+  const tenMinutes = 1000 * 60 * 10
+  let total = 0
+  let totalQualified = 0
+  let totalUnqualified = 0
+
+  for (const session of sessions) {
+    if (
+      !(
+        session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
+        session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
+      ) &&
+      session.timeTutored > tenMinutes &&
+      session.totalMessages >= 15
+    )
+      totalQualified++
+    else totalUnqualified++
+    total++
+  }
+
+  return {
+    total,
+    totalQualified,
+    totalUnqualified,
+  }
+}

@@ -41,3 +41,12 @@ export type UserSessionsFilter = {
   topic?: string
   sessionId?: Ulid
 }
+
+export type FallIncentiveSessions = {
+  id: Ulid
+  timeTutored: number
+  flags: string[]
+  reported: boolean
+  totalMessages: number
+  createdAt: Date
+}
