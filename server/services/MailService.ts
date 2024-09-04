@@ -1301,6 +1301,27 @@ export async function sendFallIncentiveInvitedToEnrollReminderEmail(
   )
 }
 
+export async function sendFallIncentiveLeavingMoneyOnTableEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.noreply
+  const overrides = {
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive leaving money on table email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    'UPchieve',
+    config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate,
+    { firstName },
+    overrides
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
   const contacts = []

@@ -99,6 +99,7 @@ const config: Static<typeof Config> = {
     // TODO: place in templates
     fallIncentiveEnrollmentWelcomeTemplate: '',
     fallIncentiveInvitedToEnrollReminderTemplate: '',
+    fallIncentiveLeavingMoneyOnTableTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
