@@ -56,6 +56,7 @@ import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
+import emailFallIncentiveLeavingMoneyOnTable from './student-emails/emailFallIncentiveLeavingMoneyOnTable'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -107,7 +108,7 @@ export enum Jobs {
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
   EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
-  EmailFallIncentiveMoneyOnTable = 'EmailFallIncentiveMoneyOnTable',
+  EmailFallIncentiveLeavingMoneyOnTable = 'EmailFallIncentiveLeavingMoneyOnTable',
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
   EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
   EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
@@ -336,6 +337,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailFallIncentiveInvitedToEnrollReminder,
     processor: emailFallIncentiveInvitedToEnrollReminder,
+  },
+  {
+    name: Jobs.EmailFallIncentiveLeavingMoneyOnTable,
+    processor: emailFallIncentiveLeavingMoneyOnTable,
   },
   // TODO: remove the following deprecated job names
   {
