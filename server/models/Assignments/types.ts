@@ -7,8 +7,9 @@ export type Assignment = {
   title?: string
   numberOfSessions?: number
   minDurationInMinutes?: number
+  isRequired: boolean
   dueDate?: Date
-  startAt?: Date
+  startDate?: Date
   subjectId?: number
   createdAt: Date
   updatedAt: Date
@@ -21,7 +22,8 @@ export type CreateAssignmentPayload = Pick<
   | 'title'
   | 'numberOfSessions'
   | 'minDurationInMinutes'
+  | 'isRequired'
   | 'dueDate'
-  | 'startAt'
+  | 'startDate'
   | 'subjectId'
 >
