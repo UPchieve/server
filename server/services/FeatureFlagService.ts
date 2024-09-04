@@ -119,3 +119,12 @@ export async function getAiModerationFeatureFlag(
 export async function getCollegeListWorkSheetFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.COLLEGE_LIST_WORKSHEET, userId)
 }
+
+export async function getFallIncentiveProgramPayload(
+  userId: Ulid
+): Promise<string | null> {
+  return await getFeatureFlagPayload(
+    FEATURE_FLAGS.FALL_INCENTIVE_PROGRAM,
+    userId
+  )
+}
