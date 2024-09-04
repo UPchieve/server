@@ -1825,6 +1825,19 @@ CREATE TABLE upchieve.student_partner_orgs_volunteer_partner_orgs_instances (
 
 
 --
+-- Name: students_assignments; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.students_assignments (
+    user_id uuid NOT NULL,
+    assignment_id uuid NOT NULL,
+    submitted_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: subjects; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3742,6 +3755,14 @@ ALTER TABLE ONLY upchieve.student_profiles
 
 
 --
+-- Name: students_assignments students_assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.students_assignments
+    ADD CONSTRAINT students_assignments_pkey PRIMARY KEY (user_id, assignment_id);
+
+
+--
 -- Name: subjects subjects_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5261,6 +5282,22 @@ ALTER TABLE ONLY upchieve.student_profiles
 
 ALTER TABLE ONLY upchieve.student_profiles
     ADD CONSTRAINT student_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: students_assignments students_assignments_assignment_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.students_assignments
+    ADD CONSTRAINT students_assignments_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES upchieve.assignments(id);
+
+
+--
+-- Name: students_assignments students_assignments_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.students_assignments
+    ADD CONSTRAINT students_assignments_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.student_profiles(user_id);
 
 
 --
