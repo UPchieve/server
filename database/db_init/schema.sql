@@ -2218,7 +2218,8 @@ CREATE TABLE upchieve.user_actions (
     mongo_id character varying(24),
     reference_email text,
     volunteer_id uuid,
-    ban_reason text
+    ban_reason text,
+    email_template_id text
 );
 
 
@@ -5831,4 +5832,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240809200824'),
     ('20240812190423'),
     ('20240828142138'),
-    ('20240903213429');
+    ('20240903213429'),
+    ('20240904030712');
