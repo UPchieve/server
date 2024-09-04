@@ -103,6 +103,12 @@ export enum Jobs {
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   GenerateProgressReport = 'GenerateProgressReport',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
+  EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
+  EmailInvitedToFallIncentiveReminder = 'EmailInvitedToFallIncentiveReminder',
+  EmailFallIncentiveMoneyOnTable = 'EmailFallIncentiveMoneyOnTable',
+  EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
+  EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
+  EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
