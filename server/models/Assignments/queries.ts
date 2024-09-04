@@ -18,7 +18,8 @@ export async function createAssignment(
         numberOfSessions: data.numberOfSessions,
         minDurationInMinutes: data.minDurationInMinutes,
         dueDate: data.dueDate,
-        startAt: data.startAt,
+        isRequired: data.isRequired,
+        startDate: data.startDate,
         subjectId: data.subjectId,
       },
       tc
@@ -32,7 +33,7 @@ export async function createAssignment(
       'numberOfSessions',
       'minDurationInMinutes',
       'dueDate',
-      'startAt',
+      'startDate',
       'subjectId',
     ])
   } catch (err) {
