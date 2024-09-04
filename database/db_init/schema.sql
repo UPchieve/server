@@ -223,26 +223,6 @@ CREATE TABLE upchieve.admin_profiles (
 
 
 --
--- Name: assignments; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.assignments (
-    id uuid NOT NULL,
-    class_id uuid NOT NULL,
-    description text,
-    title text,
-    number_of_sessions integer,
-    min_duration_in_minutes integer,
-    due_date timestamp with time zone,
-    start_at timestamp with time zone,
-    is_required boolean DEFAULT false NOT NULL,
-    subject_id integer,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
 -- Name: assistments_data; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2914,14 +2894,6 @@ ALTER TABLE ONLY upchieve.admin_profiles
 
 
 --
--- Name: assignments assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.assignments
-    ADD CONSTRAINT assignments_pkey PRIMARY KEY (id);
-
-
---
 -- Name: assistments_data assistments_data_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4412,22 +4384,6 @@ ALTER TABLE ONLY upchieve.admin_profiles
 
 
 --
--- Name: assignments assignments_class_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.assignments
-    ADD CONSTRAINT assignments_class_id_fkey FOREIGN KEY (class_id) REFERENCES upchieve.teacher_classes(id);
-
-
---
--- Name: assignments assignments_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.assignments
-    ADD CONSTRAINT assignments_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
-
-
---
 -- Name: assistments_data assistments_data_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5904,5 +5860,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240809200824'),
     ('20240812190423'),
     ('20240828142138'),
-    ('20240828232026'),
     ('20240830182606');

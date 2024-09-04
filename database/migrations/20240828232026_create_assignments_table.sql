@@ -7,7 +7,7 @@ CREATE TABLE upchieve.assignments (
     number_of_sessions int,
     min_duration_in_minutes int,
     due_date timestamptz,
-    start_at timestamptz,
+    start_date timestamptz,
     is_required boolean NOT NULL DEFAULT FALSE,
     subject_id int REFERENCES upchieve.subjects (id),
     created_at timestamptz NOT NULL DEFAULT NOW(),
