@@ -74,6 +74,7 @@ export const Config = Record({
     emailSessionRecapMessage: String,
     studentReportedCoachDmTemplate: String,
     fallIncentiveEnrollmentWelcomeTemplate: String,
+    fallIncentiveInvitedToEnrollReminderTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,

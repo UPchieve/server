@@ -98,6 +98,7 @@ const config: Static<typeof Config> = {
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
     // TODO: place in templates
     fallIncentiveEnrollmentWelcomeTemplate: '',
+    fallIncentiveInvitedToEnrollReminderTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

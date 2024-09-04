@@ -55,6 +55,7 @@ import moderateSessionMessage from '../../scripts/moderate-session-message'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
+import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -331,6 +332,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailFallIncentiveEnrollmentWelcome,
     processor: emailFallIncentiveEnrollmentWelcome,
+  },
+  {
+    name: Jobs.EmailFallIncentiveInvitedToEnrollReminder,
+    processor: emailFallIncentiveInvitedToEnrollReminder,
   },
   // TODO: remove the following deprecated job names
   {
