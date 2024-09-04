@@ -37,6 +37,7 @@ import {
 } from '../../models/ProgressReports/'
 import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
+import { UserProductFlags } from '../../models/UserProductFlags'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -233,9 +234,9 @@ export async function buildSessionRow(
   }
 }
 
-export async function buildSession(
+export function buildSession(
   overrides: Partial<Session> & { studentId: Ulid }
-): Promise<Session> {
+): Session {
   return {
     id: getDbUlid(),
     hasWhiteboardDoc: true,
@@ -593,4 +594,22 @@ export const buildSubjectAndTopic = (
     ...overrides,
   }
   return subject
+}
+
+export const buildUserProductFlags = (
+  overrides: Partial<UserProductFlags> = {}
+): UserProductFlags => {
+  return {
+    userId: getDbUlid(),
+    sentReadyToCoachEmail: false,
+    sentHourSummaryIntroEmail: false,
+    sentInactiveThirtyDayEmail: false,
+    sentInactiveSixtyDayEmail: false,
+    sentInactiveNinetyDayEmail: false,
+    gatesQualified: false,
+    fallIncentiveEnrollmentAt: undefined,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
 }
