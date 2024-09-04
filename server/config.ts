@@ -96,6 +96,8 @@ const config: Static<typeof Config> = {
     failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
     emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
+    // TODO: place in templates
+    fallIncentiveEnrollmentWelcomeTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
