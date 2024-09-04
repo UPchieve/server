@@ -58,14 +58,15 @@ export interface IGetAssignmentsByClassIdParams {
 
 /** 'GetAssignmentsByClassId' return type */
 export interface IGetAssignmentsByClassIdResult {
-  classId: string | null;
+  classId: string;
   createdAt: Date;
   description: string | null;
   dueDate: Date | null;
   id: string;
+  isRequired: boolean;
   minDurationInMinutes: number | null;
   numberOfSessions: number | null;
-  startAt: Date | null;
+  startDate: Date | null;
   subjectId: number | null;
   title: string | null;
   updatedAt: Date;
@@ -77,26 +78,27 @@ export interface IGetAssignmentsByClassIdQuery {
   result: IGetAssignmentsByClassIdResult;
 }
 
-const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":745,"b":752,"line":23,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT \n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    due_date,\n    start_at,\n    subject_id,\n    created_at,\n    updated_at\nFROM \n    assignments\nWHERE \n    class_id = :classId!","loc":{"a":514,"b":752,"line":8,"col":0}}};
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":807,"b":814,"line":25,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":814,"line":9,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT 
+ * SELECT
  *     id,
  *     class_id,
  *     description,
  *     title,
  *     number_of_sessions,
  *     min_duration_in_minutes,
+ *     is_required,
  *     due_date,
- *     start_at,
+ *     start_date,
  *     subject_id,
  *     created_at,
  *     updated_at
- * FROM 
+ * FROM
  *     assignments
- * WHERE 
+ * WHERE
  *     class_id = :classId!
  * ```
  */

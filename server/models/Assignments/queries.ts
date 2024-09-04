@@ -57,7 +57,7 @@ export async function getAssignmentsByClassId(
         'numberOfSessions',
         'minDurationInMinutes',
         'dueDate',
-        'startAt',
+        'startDate',
         'subjectId',
       ])
     )
