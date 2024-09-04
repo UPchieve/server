@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - deploy
 
 cache:
   # TODO: Try key as package-lock.json to speed up across branches.
@@ -71,9 +72,63 @@ build_staging:
 #   extends: .build_docker
 #   environment:
 #     name: production
+#   allow_failure: false
 #   variables:
 #     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
 #     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+.deploy:
+  stage: deploy
+  image: mcr.microsoft.com/azure-cli:latest
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: api://AzureADTokenExchange
+  variables:
+    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+  before_script:
+    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - az extension add --name containerapp --upgrade
+  script:
+    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+
+deploy_staging:
+  extends: .deploy
+  environment:
+    name: staging
+  resource_group: staging
+  variables:
+    CONTAINER_APP: staging-container-app-subway
+    CONTAINER_APP_WORKER: staging-container-app-worker
+    RESOURCE_GROUP: staging-resource-group
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_STAGING
+    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_STAGING
+  needs:
+    - job: build_staging
+      artifacts: true
+    - job: test_backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+# TODO: Uncomment once production environment is set up.
+# deploy_production:
+#   extends: .deploy
+#   environment:
+#     name: production
+#   resource_group: production
+#   variables:
+#     CONTAINER_APP: production-container-app-subway
+#     CONTAINER_APP_WORKER: production-container-app-worker
+#     RESOURCE_GROUP: production-resource-group
+#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
+#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+#   needs:
+#     - job: build_production
+#       artifacts: true
+#     - job: test_backend
+#   when: manual
 #   rules:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
