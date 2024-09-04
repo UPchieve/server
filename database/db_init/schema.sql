@@ -234,8 +234,7 @@ CREATE TABLE upchieve.assignments (
     number_of_sessions integer,
     min_duration_in_minutes integer,
     due_date timestamp with time zone,
-    start_date timestamp with time zone,
-    is_required boolean DEFAULT false NOT NULL,
+    start_at timestamp with time zone,
     subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
