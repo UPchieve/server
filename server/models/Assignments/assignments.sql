@@ -33,8 +33,9 @@ SELECT
     title,
     number_of_sessions,
     min_duration_in_minutes,
+    is_required,
     due_date,
-    start_at,
+    start_date,
     subject_id,
     created_at,
     updated_at
