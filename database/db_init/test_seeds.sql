@@ -249,7 +249,7 @@ COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, upda
 -- Data for Name: assignments; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, start_at, subject_id, created_at, updated_at) FROM stdin;
+COPY upchieve.assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, start_at, is_required, subject_id, created_at, updated_at) FROM stdin;
 \.
 
 

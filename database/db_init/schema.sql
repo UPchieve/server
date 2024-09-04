@@ -228,13 +228,14 @@ CREATE TABLE upchieve.admin_profiles (
 
 CREATE TABLE upchieve.assignments (
     id uuid NOT NULL,
-    class_id uuid,
+    class_id uuid NOT NULL,
     description text,
     title text,
     number_of_sessions integer,
     min_duration_in_minutes integer,
     due_date timestamp with time zone,
     start_at timestamp with time zone,
+    is_required boolean DEFAULT false NOT NULL,
     subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
@@ -5865,6 +5866,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240731165533'),
     ('20240809200824'),
     ('20240812190423'),
-    ('20240815164808'),
     ('20240828142138'),
     ('20240828232026');
