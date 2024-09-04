@@ -38,7 +38,7 @@ export function routeProductFlags(router: Router) {
     .post(async function(req, res) {
       const user = extractUser(req)
       try {
-        await UserProductFlagsService.queueInvitedToFallIncentiveReminderJob(
+        await UserProductFlagsService.queueIncentiveInvitedToEnrollReminderJob(
           user.id
         )
         res.sendStatus(200)

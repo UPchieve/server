@@ -22,9 +22,9 @@ export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
   )
 }
 
-export async function queueInvitedToFallIncentiveReminderJob(userId: Ulid) {
+export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
   await QueueService.add(
-    Jobs.EmailInvitedToFallIncentiveReminder,
+    Jobs.EmailFallIncentiveInvitedToEnrollReminder,
     { userId },
     { removeOnComplete: true, removeOnFail: true }
   )

@@ -1,4 +1,3 @@
-import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session'
 import * as UserRepo from '../../models/User'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
@@ -6,7 +5,7 @@ import QueueService from '../../services/QueueService'
 import {
   checkIfInIncentiveProgram,
   queueIncentiveProgramEnrollmentWelcomeJob,
-  queueInvitedToFallIncentiveReminderJob,
+  queueIncentiveInvitedToEnrollReminderJob,
   queueFallIncentiveMoneyCanBeMadeReminderJob,
   queueFallIncentiveSessionQualificationJob,
   incentiveProgramEnrollmentEnroll,
@@ -82,17 +81,17 @@ describe('queueIncentiveProgramEnrollmentWelcomeJob', () => {
   })
 })
 
-describe('queueInvitedToFallIncentiveReminderJob', () => {
+describe('queueIncentiveInvitedToEnrollReminderJob', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  test('Should queue the EmailInvitedToFallIncentiveReminder job', async () => {
+  test('Should queue the EmailFallIncentiveInvitedToEnrollmentReminder job', async () => {
     const userId = getDbUlid()
 
-    await queueInvitedToFallIncentiveReminderJob(userId)
+    await queueIncentiveInvitedToEnrollReminderJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailInvitedToFallIncentiveReminder,
+      Jobs.EmailFallIncentiveInvitedToEnrollReminder,
       { userId },
       { removeOnComplete: true, removeOnFail: true }
     )

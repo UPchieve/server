@@ -104,7 +104,7 @@ export enum Jobs {
   GenerateProgressReport = 'GenerateProgressReport',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
-  EmailInvitedToFallIncentiveReminder = 'EmailInvitedToFallIncentiveReminder',
+  EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
   EmailFallIncentiveMoneyOnTable = 'EmailFallIncentiveMoneyOnTable',
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
   EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
@@ -327,7 +327,6 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.UpdateSendGridGradeLevels,
     processor: updateSendGridGradeLevels,
   },
-
   // TODO: remove the following deprecated job names
   {
     name: Jobs.EmailStudentUseCases,
