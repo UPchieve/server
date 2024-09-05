@@ -42,7 +42,7 @@ export type UserSessionsFilter = {
   sessionId?: Ulid
 }
 
-export type FallIncentiveSessions = {
+export type FallIncentiveSession = {
   id: Ulid
   timeTutored: number
   flags: string[]

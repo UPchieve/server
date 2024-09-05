@@ -10,7 +10,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import {
-  FallIncentiveSessions,
+  FallIncentiveSession,
   Session,
   UserSessionStats,
   UserSessionsFilter,
@@ -1543,7 +1543,7 @@ export async function getStudentSessionsForFallIncentive(
   studentId: Ulid,
   start: Date,
   end?: Date
-): Promise<FallIncentiveSessions[]> {
+): Promise<FallIncentiveSession[]> {
   try {
     const result = await pgQueries.getStudentSessionsForFallIncentive.run(
       {
