@@ -1040,6 +1040,20 @@ type FallIncentiveSessionStats = {
   totalUnqualified: number
 }
 
+function isQualifiedFallIncentiveSession(
+  session: SessionRepo.FallIncentiveSession
+) {
+  const tenMinutes = 1000 * 60 * 10
+  return (
+    !(
+      session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
+      session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
+    ) &&
+    session.timeTutored > tenMinutes &&
+    session.totalMessages >= 15
+  )
+}
+
 export async function getFallIncentiveSessionStats(
   studentId: Ulid,
   start: Date,
@@ -1051,21 +1065,12 @@ export async function getFallIncentiveSessionStats(
     end
   )
 
-  const tenMinutes = 1000 * 60 * 10
   let total = 0
   let totalQualified = 0
   let totalUnqualified = 0
 
   for (const session of sessions) {
-    if (
-      !(
-        session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
-        session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
-      ) &&
-      session.timeTutored > tenMinutes &&
-      session.totalMessages >= 15
-    )
-      totalQualified++
+    if (isQualifiedFallIncentiveSession(session)) totalQualified++
     else totalUnqualified++
     total++
   }
