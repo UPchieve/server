@@ -75,15 +75,20 @@ export async function getAssignmentById(
       { assignmentId },
       tc
     )
-    return makeSomeOptional(assignment[0], [
-      'description',
-      'title',
-      'numberOfSessions',
-      'minDurationInMinutes',
-      'dueDate',
-      'startAt',
-      'subjectId',
-    ])
+
+    if (assignment.length) {
+      return makeSomeOptional(assignment[0], [
+        'description',
+        'title',
+        'numberOfSessions',
+        'minDurationInMinutes',
+        'dueDate',
+        'startAt',
+        'subjectId',
+      ])
+    } else {
+      throw new RepoReadError('Could not find assignment.')
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
