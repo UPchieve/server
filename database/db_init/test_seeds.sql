@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
+-- Dumped by pg_dump version 16.2 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3563,16 +3563,16 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N
-01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N
-01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N
-01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N
-01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N
-01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N
-01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N
-01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N
-01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N
+COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N
+01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N
+01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N
+01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N
 \.
 
 
