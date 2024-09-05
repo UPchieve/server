@@ -100,6 +100,8 @@ const config: Static<typeof Config> = {
     fallIncentiveEnrollmentWelcomeTemplate: '',
     fallIncentiveInvitedToEnrollReminderTemplate: '',
     fallIncentiveLeavingMoneyOnTableTemplate: '',
+    qualifiedForGiftCardTemplate: '',
+    stillTimeForQualifyingSessionTemplate: '',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
