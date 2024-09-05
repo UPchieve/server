@@ -52,7 +52,8 @@ SELECT
     assignments.min_duration_in_minutes,
     assignments.due_date,
     assignments.subject_id,
-    assignments.start_at,
+    assignments.start_date,
+    assignments.is_required,
     assignments.id,
     students_assignments.submitted_at
 FROM
