@@ -78,7 +78,9 @@ export function routeTeachers(app: Express, router: Router): void {
         startDate: (req.body.startDate as Date) ?? null,
         subjectId: (req.body.subjectId as number) ?? null,
       }
-      const assignment = await AssignmentsService.createAssignment(assignmentData)
+      const assignment = await AssignmentsService.createAssignment(
+        assignmentData
+      )
       res.json({ assignment })
     } catch (err) {
       resError(res, err)
