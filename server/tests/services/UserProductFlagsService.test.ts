@@ -6,7 +6,7 @@ import {
   checkIfInIncentiveProgram,
   queueIncentiveProgramEnrollmentWelcomeJob,
   queueIncentiveInvitedToEnrollReminderJob,
-  queueFallIncentiveMoneyCanBeMadeReminderJob,
+  queueFallIncentiveLeavingMoneyOnTableJob,
   queueFallIncentiveSessionQualificationJob,
   incentiveProgramEnrollmentEnroll,
 } from '../../services/UserProductFlagsService'
@@ -103,17 +103,17 @@ describe('queueFallIncentiveMoneyCanBeMadeReminderJob', () => {
     jest.clearAllMocks()
   })
 
-  test('Should queue the EmailFallIncentiveMoneyOnTable job with studentId', async () => {
+  test('Should queue the EmailFallIncentiveLeavingMoneyOnTable job with studentId', async () => {
     const sessionId = getDbUlid()
     const studentId = getDbUlid()
     mockedSessionRepo.getSessionById.mockResolvedValue(
       buildSession({ studentId })
     )
 
-    await queueFallIncentiveMoneyCanBeMadeReminderJob(sessionId)
+    await queueFallIncentiveLeavingMoneyOnTableJob(sessionId)
     expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailFallIncentiveMoneyOnTable,
+      Jobs.EmailFallIncentiveLeavingMoneyOnTable,
       { userId: studentId },
       { removeOnComplete: true, removeOnFail: true }
     )
