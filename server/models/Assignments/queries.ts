@@ -123,7 +123,7 @@ export async function getAssignmentsByStudentId(
         'numberOfSessions',
         'minDurationInMinutes',
         'dueDate',
-        'startAt',
+        'startDate',
         'subjectId',
         'submittedAt',
       ])
