@@ -1322,6 +1322,48 @@ export async function sendFallIncentiveLeavingMoneyOnTableEmail(
   )
 }
 
+export async function sendQualifiedForGiftCardEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.noreply
+  const overrides = {
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive qualified for gift card email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    'UPchieve',
+    config.sendgrid.qualifiedForGiftCardTemplate,
+    { firstName },
+    overrides
+  )
+}
+
+export async function sendStillTimeToHaveQualifyingSessionEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.noreply
+  const overrides = {
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive still time to qualify email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    'UPchieve',
+    config.sendgrid.stillTimeForQualifyingSessionTemplate,
+    { firstName },
+    overrides
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
   const contacts = []
