@@ -1,15 +1,14 @@
 import { getUserContactInfoById, UserContactInfo } from '../models/User'
 import { getUPFByUserId, UserProductFlags } from '../models/UserProductFlags'
 import { getFallIncentiveProgramPayload } from '../services/FeatureFlagService'
-import moment, { Moment } from 'moment'
 
 type UserAndFallIncentiveStartDate = {
   user: UserContactInfo
   productFlags: UserProductFlags
-  fallIncentiveProgramStartDate: Moment
+  incentiveProgramDate: Date
 }
 
-export async function getUserAndFallIncentiveStartDate(
+export async function getUserFallIncentiveData(
   userId: string,
   enrollmentFlag: boolean
 ): Promise<UserAndFallIncentiveStartDate | undefined> {
@@ -25,6 +24,9 @@ export async function getUserAndFallIncentiveStartDate(
   )
     return
 
-  const fallIncentiveProgramStartDate = moment(incentiveProgramDate)
-  return { user, productFlags, fallIncentiveProgramStartDate }
+  return {
+    user,
+    productFlags,
+    incentiveProgramDate: new Date(incentiveProgramDate),
+  }
 }
