@@ -65,7 +65,7 @@ export default async (
 
   const sessionStats = await getFallIncentiveSessionStats(
     userId,
-    fallIncentiveProgramStartDate.toDate()
+    startOfWeek.toDate()
   )
   const { firstName, email } = user
   try {
