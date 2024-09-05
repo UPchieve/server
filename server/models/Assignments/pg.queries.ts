@@ -112,13 +112,14 @@ export interface IGetAssignmentByIdParams {
 
 /** 'GetAssignmentById' return type */
 export interface IGetAssignmentByIdResult {
-  classId: string | null;
+  classId: string;
   createdAt: Date;
   description: string | null;
   dueDate: Date | null;
+  isRequired: boolean;
   minDurationInMinutes: number | null;
   numberOfSessions: number | null;
-  startAt: Date | null;
+  startDate: Date | null;
   subjectId: number | null;
   title: string | null;
   updatedAt: Date;
@@ -130,23 +131,24 @@ export interface IGetAssignmentByIdQuery {
   result: IGetAssignmentByIdResult;
 }
 
-const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1000,"b":1012,"line":41,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT \n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    due_date,\n    start_at,\n    subject_id,\n    created_at,\n    updated_at\nFROM \n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":784,"b":1012,"line":27,"col":0}}};
+const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1082,"b":1094,"line":44,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at\nFROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":849,"b":1094,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT 
+ * SELECT
  *     class_id,
  *     description,
  *     title,
  *     number_of_sessions,
  *     min_duration_in_minutes,
+ *     is_required,
  *     due_date,
- *     start_at,
+ *     start_date,
  *     subject_id,
  *     created_at,
  *     updated_at
- * FROM 
+ * FROM
  *     assignments
  * WHERE
  *     id = :assignmentId!
