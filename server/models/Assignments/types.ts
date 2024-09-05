@@ -27,3 +27,17 @@ export type CreateAssignmentPayload = Pick<
   | 'startDate'
   | 'subjectId'
 >
+
+export type StudentAssignment = {
+  id: Ulid
+  classId: Ulid
+  description?: string
+  title?: string
+  numberOfSessions?: number
+  minDurationInMinutes?: number
+  isRequired: boolean
+  dueDate?: Date
+  startDate?: Date
+  subjectId?: number
+  submittedAt?: Date
+}

@@ -67,6 +67,8 @@ export async function createStudentAssignment(
   })
 }
 
-export async function getAssignmentsByStudentId(userId: Ulid) {
+export async function getAssignmentsByStudentId(
+  userId: Ulid
+): Promise<AssignmentsRepo.StudentAssignment[]> {
   return AssignmentsRepo.getAssignmentsByStudentId(userId)
 }
