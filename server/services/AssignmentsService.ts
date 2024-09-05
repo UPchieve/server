@@ -45,6 +45,8 @@ export async function getAssignmentsByClassId(classId: Ulid) {
   return AssignmentsRepo.getAssignmentsByClassId(classId)
 }
 
-export async function getAssignmentById(assignmentId: Ulid) {
+export async function getAssignmentById(
+  assignmentId: Ulid
+): Promise<AssignmentsRepo.CreateAssignmentPayload> {
   return AssignmentsRepo.getAssignmentById(assignmentId)
 }
