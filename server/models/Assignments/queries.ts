@@ -83,7 +83,7 @@ export async function getAssignmentById(
         'numberOfSessions',
         'minDurationInMinutes',
         'dueDate',
-        'startAt',
+        'startDate',
         'subjectId',
       ])
     } else {

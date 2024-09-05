@@ -42,21 +42,3 @@ FROM
 WHERE
     id = :assignmentId!;
 
-
-/* @name getAssignmentById */
-SELECT
-    class_id,
-    description,
-    title,
-    number_of_sessions,
-    min_duration_in_minutes,
-    due_date,
-    start_at,
-    subject_id,
-    created_at,
-    updated_at
-FROM
-    assignments
-WHERE
-    id = :assignmentId!;
-
