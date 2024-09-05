@@ -41,7 +41,9 @@ export async function createAssignment(data: AssignmentInputdata) {
   })
 }
 
-export async function getAssignmentsByClassId(classId: Ulid) {
+export async function getAssignmentsByClassId(
+  classId: Ulid
+): Promise<AssignmentsRepo.CreateAssignmentPayload[]> {
   return AssignmentsRepo.getAssignmentsByClassId(classId)
 }
 
