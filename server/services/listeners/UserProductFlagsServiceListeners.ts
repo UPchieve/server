@@ -8,4 +8,9 @@ export function listeners() {
     UserProductFlagsService.queueFallIncentiveLeavingMoneyOnTableJob,
     'queueFallIncentiveLeavingMoneyOnTableJob'
   )
+  register(
+    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
+    UserProductFlagsService.queueFallIncentiveSessionQualificationJob,
+    'queueFallIncentiveSessionQualificationJob'
+  )
 }
