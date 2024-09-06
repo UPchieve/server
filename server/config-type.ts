@@ -100,7 +100,7 @@ export const Config = Record({
       crisis: String,
       programsManager: String,
       supportApp: String,
-      incentive: String
+      incentive: String,
     }),
     receivers: Record({
       contact: String,
