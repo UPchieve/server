@@ -33,7 +33,7 @@ describe('checkIfInIncentiveProgram', () => {
     jest.clearAllMocks()
   })
 
-  test('Should throw error if user is already enrolled in the incentive program', async () => {
+  test('Should return true if user is already enrolled in the incentive program', async () => {
     const userId = getDbUlid()
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValue(
       buildUserProductFlags({
@@ -41,15 +41,14 @@ describe('checkIfInIncentiveProgram', () => {
       })
     )
 
-    await expect(checkIfInIncentiveProgram(userId)).rejects.toThrow(
-      `You're already enrolled in the fall incentive program`
-    )
+    const result = await checkIfInIncentiveProgram(userId)
+    expect(result).toEqual(true)
     expect(mockedUserProductFlagsRepo.getUPFByUserId).toHaveBeenCalledWith(
       userId
     )
   })
 
-  test('Should do nothing if user is not enrolled in the incentive program', async () => {
+  test('Should return false if user is not enrolled in the incentive program', async () => {
     const userId = getDbUlid()
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValue(
       buildUserProductFlags({
@@ -57,7 +56,8 @@ describe('checkIfInIncentiveProgram', () => {
       })
     )
 
-    await expect(checkIfInIncentiveProgram(userId)).resolves.not.toThrow()
+    const result = await checkIfInIncentiveProgram(userId)
+    expect(result).toEqual(false)
     expect(mockedUserProductFlagsRepo.getUPFByUserId).toHaveBeenCalledWith(
       userId
     )
@@ -156,7 +156,7 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     )
 
     await expect(incentiveProgramEnrollmentEnroll(userId)).rejects.toThrow(
-      `You're already enrolled in the fall incentive program`
+      `You're already enrolled in the fall incentive program.`
     )
     expect(mockedUserProductFlagsRepo.getUPFByUserId).toHaveBeenCalledWith(
       userId

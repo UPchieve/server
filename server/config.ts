@@ -97,8 +97,10 @@ const config: Static<typeof Config> = {
     emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
     // TODO: place in templates
-    fallIncentiveEnrollmentWelcomeTemplate: '',
-    fallIncentiveInvitedToEnrollReminderTemplate: '',
+    fallIncentiveEnrollmentWelcomeTemplate:
+      'd-914f98ad37c3461eaacc1c2bf27f097d',
+    fallIncentiveInvitedToEnrollReminderTemplate:
+      'd-ea8dadbc26f64da6bcdf7932049211d4',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
