@@ -121,5 +121,5 @@ WHERE
     AND ((:start)::timestamptz IS NULL
         OR created_at >= (:start)::timestamptz
         AND ((:end)::timestamptz IS NULL
-            OR created_at >= (:end)::timestamptz));
+            OR created_at <= (:end)::timestamptz));
 

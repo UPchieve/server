@@ -412,7 +412,7 @@ export interface IGetEmailActivityByEmailTemplateIdQuery {
   result: IGetEmailActivityByEmailTemplateIdResult;
 }
 
-const getEmailActivityByEmailTemplateIdIR: any = {"name":"getEmailActivityByEmailTemplateId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2963,"b":2969,"line":119,"col":19}]}},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3000,"b":3015,"line":120,"col":29}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3028,"b":3032,"line":121,"col":11},{"a":3083,"b":3087,"line":122,"col":27}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3118,"b":3120,"line":123,"col":15},{"a":3175,"b":3177,"line":124,"col":31}]}}],"usedParamSet":{"userId":true,"emailTemplateId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    action,\n    email_template_id,\n    created_at\nFROM\n    user_actions\nWHERE\n    action_type = 'ACCOUNT'\n    AND action = 'EMAILED'\n    AND user_id = :userId!\n    AND email_template_id = :emailTemplateId!\n    AND ((:start)::timestamptz IS NULL\n        OR created_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR created_at >= (:end)::timestamptz))","loc":{"a":2804,"b":3193,"line":110,"col":0}}};
+const getEmailActivityByEmailTemplateIdIR: any = {"name":"getEmailActivityByEmailTemplateId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2963,"b":2969,"line":119,"col":19}]}},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3000,"b":3015,"line":120,"col":29}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3028,"b":3032,"line":121,"col":11},{"a":3083,"b":3087,"line":122,"col":27}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3118,"b":3120,"line":123,"col":15},{"a":3175,"b":3177,"line":124,"col":31}]}}],"usedParamSet":{"userId":true,"emailTemplateId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    action,\n    email_template_id,\n    created_at\nFROM\n    user_actions\nWHERE\n    action_type = 'ACCOUNT'\n    AND action = 'EMAILED'\n    AND user_id = :userId!\n    AND email_template_id = :emailTemplateId!\n    AND ((:start)::timestamptz IS NULL\n        OR created_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR created_at <= (:end)::timestamptz))","loc":{"a":2804,"b":3193,"line":110,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -431,7 +431,7 @@ const getEmailActivityByEmailTemplateIdIR: any = {"name":"getEmailActivityByEmai
  *     AND ((:start)::timestamptz IS NULL
  *         OR created_at >= (:start)::timestamptz
  *         AND ((:end)::timestamptz IS NULL
- *             OR created_at >= (:end)::timestamptz))
+ *             OR created_at <= (:end)::timestamptz))
  * ```
  */
 export const getEmailActivityByEmailTemplateId = new PreparedQuery<IGetEmailActivityByEmailTemplateIdParams,IGetEmailActivityByEmailTemplateIdResult>(getEmailActivityByEmailTemplateIdIR);
