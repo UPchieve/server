@@ -4,7 +4,7 @@ import * as UserActionRepo from '../models/UserAction'
 export async function createAccountAction(
   params: UserActionRepo.AccountActionParams
 ) {
-  return await UserActionRepo.createAccountAction(params)
+  return UserActionRepo.createAccountAction(params)
 }
 
 export async function getEmailActivityByEmailTemplateId(
@@ -13,7 +13,7 @@ export async function getEmailActivityByEmailTemplateId(
   start?: Date,
   end?: Date
 ) {
-  return await UserActionRepo.getEmailActivityByEmailTemplateId(
+  return UserActionRepo.getEmailActivityByEmailTemplateId(
     userId,
     emailTemplateId,
     start,
