@@ -72,6 +72,7 @@ services:
         - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
         - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
         - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+        - ./database/db_init/refresh_materialized_views.sql:/docker-entrypoint-initdb.d/f.sql
       healthcheck:
         test: [ "CMD", "pg_isready", "-h", "postgres" ]
         interval: 3s
