@@ -24,6 +24,13 @@ CREATE SCHEMA basic_access;
 
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -2283,7 +2290,8 @@ CREATE TABLE upchieve.user_product_flags (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     in_gates_study boolean DEFAULT false NOT NULL,
     fall_incentive_program boolean DEFAULT false NOT NULL,
-    paid_tutors_pilot_group public.paid_tutors_pilot_groups
+    paid_tutors_pilot_group public.paid_tutors_pilot_groups,
+    fall_incentive_enrollment_at timestamp with time zone
 );
 
 
@@ -5904,5 +5912,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240809200824'),
     ('20240812190423'),
     ('20240828142138'),
-    ('20240828232026'),
-    ('20240830182606');
+    ('20240903213429');
