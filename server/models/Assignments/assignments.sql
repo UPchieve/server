@@ -4,6 +4,7 @@ INSERT INTO assignments (id, class_id, description, title, number_of_sessions, m
 RETURNING
     id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at;
 
+
 /* @name getAssignmentsByClassId */
 SELECT
     *
@@ -20,11 +21,23 @@ FROM
     assignments
 WHERE
     id = :assignmentId!;
-    id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at;
+
+id,
+class_id,
+description,
+title,
+number_of_sessions,
+min_duration_in_minutes,
+is_required,
+due_date,
+start_date,
+subject_id,
+created_at,
+updated_at;
+
 
 /* @name getAssignmentsByStudentId */
-
-SELECT 
+SELECT
     assignments.class_id,
     assignments.description,
     assignments.title,
@@ -35,7 +48,9 @@ SELECT
     assignments.start_at,
     assignments.id,
     students_assignments.submitted_at
-FROM 
+FROM
     assignments
-LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
-WHERE students_assignments.user_id = :userId!;
+    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
+WHERE
+    students_assignments.user_id = :userId!;
+
