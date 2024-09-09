@@ -6,39 +6,14 @@ RETURNING
 
 
 /* @name getAssignmentsByClassId */
-SELECT
-    id,
-    class_id,
-    description,
-    title,
-    number_of_sessions,
-    min_duration_in_minutes,
-    is_required,
-    due_date,
-    start_date,
-    subject_id,
-    created_at,
-    updated_at
-FROM
+SELECT * FROM
     assignments
 WHERE
     class_id = :classId!;
 
 
 /* @name getAssignmentById */
-SELECT
-    class_id,
-    description,
-    title,
-    number_of_sessions,
-    min_duration_in_minutes,
-    is_required,
-    due_date,
-    start_date,
-    subject_id,
-    created_at,
-    updated_at
-FROM
+SELECT * FROM
     assignments
 WHERE
     id = :assignmentId!;
