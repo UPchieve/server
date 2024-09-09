@@ -517,7 +517,7 @@ FROM
     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
     JOIN upchieve.survey_types st ON st.id = us.survey_type_id
 WHERE
-    us.user_id = :userId
+    us.user_id = :userId!
     AND st.name = 'postsession'
     AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
     AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED');
