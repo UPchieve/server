@@ -18,6 +18,8 @@ type AssignmentInputdata = {
 
 export async function createAssignment(data: AssignmentInputdata) {
   return runInTransaction(async (tc: TransactionClient) => {
+    const assignment = await AssignmentsRepo.createAssignment(data, tc)
+
     const numSessions = data.numberOfSessions
     const startDate = data.startDate
     const dueDate = data.dueDate
@@ -35,13 +37,18 @@ export async function createAssignment(data: AssignmentInputdata) {
 
       if (!idExists) throw new InputError('Subject id is not valid')
     }
-
-    const assignment = await AssignmentsRepo.createAssignment(data, tc)
-
     return assignment
   })
 }
 
-export async function getAssignmentsByClassId(classId: Ulid) {
+export async function getAssignmentsByClassId(
+  classId: Ulid
+): Promise<AssignmentsRepo.CreateAssignmentPayload[]> {
   return AssignmentsRepo.getAssignmentsByClassId(classId)
+}
+
+export async function getAssignmentById(
+  assignmentId: Ulid
+): Promise<AssignmentsRepo.CreateAssignmentPayload | undefined> {
+  return AssignmentsRepo.getAssignmentById(assignmentId)
 }
