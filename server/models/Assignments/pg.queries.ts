@@ -78,25 +78,12 @@ export interface IGetAssignmentsByClassIdQuery {
   result: IGetAssignmentsByClassIdResult;
 }
 
-const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":807,"b":814,"line":25,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":814,"line":9,"col":0}}};
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":612,"b":619,"line":12,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT * FROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":619,"line":9,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT
- *     id,
- *     class_id,
- *     description,
- *     title,
- *     number_of_sessions,
- *     min_duration_in_minutes,
- *     is_required,
- *     due_date,
- *     start_date,
- *     subject_id,
- *     created_at,
- *     updated_at
- * FROM
+ * SELECT * FROM
  *     assignments
  * WHERE
  *     class_id = :classId!
@@ -116,6 +103,7 @@ export interface IGetAssignmentByIdResult {
   createdAt: Date;
   description: string | null;
   dueDate: Date | null;
+  id: string;
   isRequired: boolean;
   minDurationInMinutes: number | null;
   numberOfSessions: number | null;
@@ -131,82 +119,17 @@ export interface IGetAssignmentByIdQuery {
   result: IGetAssignmentByIdResult;
 }
 
-const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1082,"b":1094,"line":44,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at\nFROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":849,"b":1094,"line":29,"col":0}}};
+const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":700,"b":712,"line":19,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT * FROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":654,"b":712,"line":16,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT
- *     class_id,
- *     description,
- *     title,
- *     number_of_sessions,
- *     min_duration_in_minutes,
- *     is_required,
- *     due_date,
- *     start_date,
- *     subject_id,
- *     created_at,
- *     updated_at
- * FROM
+ * SELECT * FROM
  *     assignments
  * WHERE
  *     id = :assignmentId!
  * ```
  */
 export const getAssignmentById = new PreparedQuery<IGetAssignmentByIdParams,IGetAssignmentByIdResult>(getAssignmentByIdIR);
-
-
-/** 'GetAssignmentsByStudentId' parameters type */
-export interface IGetAssignmentsByStudentIdParams {
-  userId: string;
-}
-
-/** 'GetAssignmentsByStudentId' return type */
-export interface IGetAssignmentsByStudentIdResult {
-  classId: string;
-  description: string | null;
-  dueDate: Date | null;
-  id: string;
-  isRequired: boolean;
-  minDurationInMinutes: number | null;
-  numberOfSessions: number | null;
-  startDate: Date | null;
-  subjectId: number | null;
-  submittedAt: Date | null;
-  title: string | null;
-}
-
-/** 'GetAssignmentsByStudentId' query type */
-export interface IGetAssignmentsByStudentIdQuery {
-  params: IGetAssignmentsByStudentIdParams;
-  result: IGetAssignmentsByStudentIdResult;
-}
-
-const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1621,"b":1627,"line":64,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    assignments.start_date,\n    assignments.is_required,\n    assignments.id,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":1137,"b":1627,"line":48,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     assignments.class_id,
- *     assignments.description,
- *     assignments.title,
- *     assignments.number_of_sessions,
- *     assignments.min_duration_in_minutes,
- *     assignments.due_date,
- *     assignments.subject_id,
- *     assignments.start_date,
- *     assignments.is_required,
- *     assignments.id,
- *     students_assignments.submitted_at
- * FROM
- *     assignments
- *     LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
- * WHERE
- *     students_assignments.user_id = :userId!
- * ```
- */
-export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
 
 
