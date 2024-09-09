@@ -1,8 +1,8 @@
-import { TransactionClient } from '../../db'
-import { RepoCreateError } from '../Errors'
+import { getClient, TransactionClient } from '../../db'
+import { RepoReadError, RepoCreateError } from '../Errors'
 import { Assignment, CreateAssignmentPayload } from './types'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeSomeOptional } from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeOptional } from '../pgUtils'
 
 export async function createAssignment(
   data: CreateAssignmentPayload,
@@ -38,5 +38,30 @@ export async function createAssignment(
     ])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function getAssignmentsByClassId(
+  classId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<Assignment[]> {
+  try {
+    const assignments = await pgQueries.getAssignmentsByClassId.run(
+      { classId },
+      tc
+    )
+    return assignments.map(a =>
+      makeSomeOptional(a, [
+        'description',
+        'title',
+        'numberOfSessions',
+        'minDurationInMinutes',
+        'dueDate',
+        'startDate',
+        'subjectId',
+      ])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
