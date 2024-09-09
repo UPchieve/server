@@ -22,6 +22,14 @@ FROM
 WHERE
     id = :assignmentId!;
 
+
+/* @name createStudentAssignment */
+INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
+    VALUES (:user_id!, :assignment_id!, NULL, NOW(), NOW())
+RETURNING
+    user_id, assignment_id, submitted_at, created_at, updated_at;
+
+
 /* @name getAssignmentsByStudentId */
 SELECT
     assignments.class_id,
