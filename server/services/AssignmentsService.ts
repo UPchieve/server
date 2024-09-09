@@ -53,17 +53,21 @@ export async function getAssignmentById(
   return AssignmentsRepo.getAssignmentById(assignmentId)
 }
 
-export async function createStudentAssignment(
-  userId: Ulid,
+export async function addAssignmentForStudents(
+  studentIds: string[],
   assignmentId: Ulid
 ) {
+  let studentsAdded = []
   return runInTransaction(async (tc: TransactionClient) => {
-    const assignment = await AssignmentsRepo.createStudentAssignment(
-      userId,
-      assignmentId,
-      tc
-    )
-    return assignment
+    for (const studentId in studentIds) {
+      const studentAssignment = await AssignmentsRepo.createStudentAssignment(
+        studentId,
+        assignmentId,
+        tc
+      )
+      studentsAdded.push(studentAssignment)
+    }
+    return studentsAdded
   })
 }
 
