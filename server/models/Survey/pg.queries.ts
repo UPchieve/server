@@ -943,7 +943,7 @@ export interface IGetStudentPostsessionSurveyGoalQuestionRatingsQuery {
   result: IGetStudentPostsessionSurveyGoalQuestionRatingsResult;
 }
 
-const getStudentPostsessionSurveyGoalQuestionRatingsIR: any = {"name":"getStudentPostsessionSurveyGoalQuestionRatings","params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19213,"b":19218,"line":519,"col":18}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    us.user_id,\n    us.session_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score\nFROM\n    upchieve.users_surveys us\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    us.user_id = :userId\n    AND us.survey_type_id = 2\n    AND sq.id = 6\n    AND uss.survey_response_choice_id IN (69, 44, 45, 46, 47)","loc":{"a":18806,"b":19328,"line":507,"col":0}}};
+const getStudentPostsessionSurveyGoalQuestionRatingsIR: any = {"name":"getStudentPostsessionSurveyGoalQuestionRatings","params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19276,"b":19281,"line":520,"col":18}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    us.user_id,\n    us.session_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score\nFROM\n    upchieve.users_surveys us\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE\n    us.user_id = :userId\n    AND st.name = 'postsession'\n    AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'\n    AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')","loc":{"a":18806,"b":19548,"line":507,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -959,11 +959,12 @@ const getStudentPostsessionSurveyGoalQuestionRatingsIR: any = {"name":"getStuden
  *     JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
  *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
  *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ *     JOIN upchieve.survey_types st ON st.id = us.survey_type_id
  * WHERE
  *     us.user_id = :userId
- *     AND us.survey_type_id = 2
- *     AND sq.id = 6
- *     AND uss.survey_response_choice_id IN (69, 44, 45, 46, 47)
+ *     AND st.name = 'postsession'
+ *     AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
+ *     AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')
  * ```
  */
 export const getStudentPostsessionSurveyGoalQuestionRatings = new PreparedQuery<IGetStudentPostsessionSurveyGoalQuestionRatingsParams,IGetStudentPostsessionSurveyGoalQuestionRatingsResult>(getStudentPostsessionSurveyGoalQuestionRatingsIR);
