@@ -65,3 +65,31 @@ export async function getAssignmentsByClassId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getAssignmentById(
+  assignmentId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const assignment = await pgQueries.getAssignmentById.run(
+      { assignmentId },
+      tc
+    )
+
+    if (assignment.length) {
+      return makeSomeOptional(assignment[0], [
+        'description',
+        'title',
+        'numberOfSessions',
+        'minDurationInMinutes',
+        'dueDate',
+        'startDate',
+        'subjectId',
+      ])
+    } else {
+      return undefined
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
