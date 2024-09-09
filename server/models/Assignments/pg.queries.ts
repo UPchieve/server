@@ -78,12 +78,14 @@ export interface IGetAssignmentsByClassIdQuery {
   result: IGetAssignmentsByClassIdResult;
 }
 
-const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":612,"b":619,"line":12,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT * FROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":619,"line":9,"col":0}}};
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":616,"b":623,"line":14,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":623,"line":9,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM
+ * SELECT
+ *     *
+ * FROM
  *     assignments
  * WHERE
  *     class_id = :classId!
@@ -119,12 +121,14 @@ export interface IGetAssignmentByIdQuery {
   result: IGetAssignmentByIdResult;
 }
 
-const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":700,"b":712,"line":19,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT * FROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":654,"b":712,"line":16,"col":0}}};
+const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":708,"b":720,"line":23,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":658,"b":720,"line":18,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM
+ * SELECT
+ *     *
+ * FROM
  *     assignments
  * WHERE
  *     id = :assignmentId!
@@ -140,13 +144,14 @@ export interface IGetAssignmentsByStudentIdParams {
 
 /** 'GetAssignmentsByStudentId' return type */
 export interface IGetAssignmentsByStudentIdResult {
-  classId: string | null;
+  classId: string;
   description: string | null;
   dueDate: Date | null;
   id: string;
+  isRequired: boolean;
   minDurationInMinutes: number | null;
   numberOfSessions: number | null;
-  startAt: Date | null;
+  startDate: Date | null;
   subjectId: number | null;
   submittedAt: Date | null;
   title: string | null;
@@ -158,12 +163,12 @@ export interface IGetAssignmentsByStudentIdQuery {
   result: IGetAssignmentsByStudentIdResult;
 }
 
-const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1501,"b":1507,"line":60,"col":38}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT \n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    assignments.start_at,\n    assignments.id,\n    students_assignments.submitted_at\nFROM \n    assignments\nLEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\nWHERE students_assignments.user_id = :userId!","loc":{"a":1054,"b":1507,"line":46,"col":0}}};
+const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1246,"b":1252,"line":42,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    assignments.start_date,\n    assignments.is_required,\n    assignments.id,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":762,"b":1252,"line":26,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT 
+ * SELECT
  *     assignments.class_id,
  *     assignments.description,
  *     assignments.title,
@@ -171,49 +176,17 @@ const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","pa
  *     assignments.min_duration_in_minutes,
  *     assignments.due_date,
  *     assignments.subject_id,
- *     assignments.start_at,
+ *     assignments.start_date,
+ *     assignments.is_required,
  *     assignments.id,
  *     students_assignments.submitted_at
- * FROM 
+ * FROM
  *     assignments
- * LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
- * WHERE students_assignments.user_id = :userId!
+ *     LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
+ * WHERE
+ *     students_assignments.user_id = :userId!
  * ```
  */
 export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
-
-
-/** 'CreateStudentAssignment' parameters type */
-export interface ICreateStudentAssignmentParams {
-  assignmentId: string;
-  userId: string;
-}
-
-/** 'CreateStudentAssignment' return type */
-export interface ICreateStudentAssignmentResult {
-  assignmentId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'CreateStudentAssignment' query type */
-export interface ICreateStudentAssignmentQuery {
-  params: ICreateStudentAssignmentParams;
-  result: ICreateStudentAssignmentResult;
-}
-
-const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1663,"b":1669,"line":66,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1673,"b":1685,"line":66,"col":23}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, null, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, created_at, updated_at","loc":{"a":1554,"b":1767,"line":65,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
- *     VALUES (:userId!, :assignmentId!, null, NOW(), NOW())
- * RETURNING
- *     user_id, assignment_id, created_at, updated_at
- * ```
- */
-export const createStudentAssignment = new PreparedQuery<ICreateStudentAssignmentParams,ICreateStudentAssignmentResult>(createStudentAssignmentIR);
 
 
