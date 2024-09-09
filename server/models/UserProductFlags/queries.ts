@@ -1,8 +1,8 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { UserProductFlags } from './types'
+import { PublicUserProductFlags, UserProductFlags } from './types'
 
 export async function createUPFByUserId(
   userId: Ulid,
@@ -16,7 +16,7 @@ export async function createUPFByUserId(
       tc ?? getClient()
     )
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeOptional(result[0], ['fallIncentiveEnrollmentAt'])
     }
     throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
@@ -36,17 +36,12 @@ export async function getUPFByUserId(
     )
 
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeOptional(result[0], ['fallIncentiveEnrollmentAt'])
     }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
-
-export type PublicUserProductFlags = Pick<
-  UserProductFlags,
-  'userId' | 'gatesQualified' | 'fallIncentiveProgram'
->
 
 export async function getPublicUPFByUserId(
   userId: Ulid
@@ -59,7 +54,8 @@ export async function getPublicUPFByUserId(
       getClient()
     )
 
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeOptional(result[0], ['fallIncentiveEnrollmentAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -116,16 +112,15 @@ export async function updateSentInactiveNinetyDayEmail(
   }
 }
 
-export async function updateFallIncentiveProgram(
-  userId: Ulid,
-  status: boolean
-): Promise<void> {
+export async function enrollStudentToFallIncentiveProgram(
+  userId: Ulid
+): Promise<Date> {
   try {
-    const result = await pgQueries.updateFallIncentiveProgram.run(
-      { userId, status },
+    const result = await pgQueries.enrollStudentToFallIncentiveProgram.run(
+      { userId },
       getClient()
     )
-    if (result.length && makeRequired(result[0].ok)) return
+    if (result.length) return makeRequired(result[0]).fallIncentiveEnrollmentAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err

@@ -20,7 +20,7 @@ RETURNING
     sent_inactive_sixty_day_email,
     sent_inactive_ninety_day_email,
     gates_qualified,
-    fall_incentive_program,
+    fall_incentive_enrollment_at,
     created_at,
     updated_at;
 
@@ -34,7 +34,7 @@ SELECT
     sent_inactive_sixty_day_email,
     sent_inactive_ninety_day_email,
     gates_qualified,
-    fall_incentive_program,
+    fall_incentive_enrollment_at,
     created_at,
     updated_at
 FROM
@@ -47,7 +47,7 @@ WHERE
 SELECT
     user_id,
     gates_qualified,
-    fall_incentive_program
+    fall_incentive_enrollment_at
 FROM
     user_product_flags
 WHERE
@@ -90,14 +90,14 @@ RETURNING
     user_id AS ok;
 
 
-/* @name updateFallIncentiveProgram */
+/* @name enrollStudentToFallIncentiveProgram */
 UPDATE
     user_product_flags
 SET
-    fall_incentive_program = :status!,
+    fall_incentive_enrollment_at = NOW(),
     updated_at = NOW()
 WHERE
     user_id = :userId!
 RETURNING
-    user_id AS ok;
+    fall_incentive_enrollment_at;
 
