@@ -6,14 +6,18 @@ RETURNING
 
 
 /* @name getAssignmentsByClassId */
-SELECT * FROM
+SELECT
+    *
+FROM
     assignments
 WHERE
     class_id = :classId!;
 
 
 /* @name getAssignmentById */
-SELECT * FROM
+SELECT
+    *
+FROM
     assignments
 WHERE
     id = :assignmentId!;
