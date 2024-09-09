@@ -87,7 +87,7 @@ export async function getAssignmentById(
         'subjectId',
       ])
     } else {
-      throw new RepoReadError('Could not find assignment.')
+      return undefined
     }
   } catch (err) {
     throw new RepoReadError(err)
