@@ -502,3 +502,22 @@ WHERE
 ORDER BY
     ssq.display_priority ASC;
 
+
+/* @name getStudentPostsessionSurveyGoalQuestionRatings */
+SELECT
+    us.user_id,
+    us.session_id,
+    us.created_at,
+    uss.survey_response_choice_id,
+    src.score
+FROM
+    upchieve.users_surveys us
+    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+WHERE
+    us.user_id = :userId
+    AND us.survey_type_id = 2
+    AND sq.id = 6
+    AND uss.survey_response_choice_id IN (69, 44, 45, 46, 47);
+
