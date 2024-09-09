@@ -2839,6 +2839,14 @@ COPY upchieve.student_partner_orgs_volunteer_partner_orgs_instances (student_par
 
 
 --
+-- Data for Name: students_assignments; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: survey_questions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
