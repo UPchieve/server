@@ -1257,6 +1257,54 @@ export async function sendSessionRecapMessage(
   )
 }
 
+export async function sendFallIncentiveEnrollmentWelcomeEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.incentive
+  const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive enrollment welcome email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    config.mail.people.incentiveOutreach,
+    config.sendgrid.fallIncentiveEnrollmentWelcomeTemplate,
+    { firstName },
+    overrides
+  )
+}
+
+export async function sendFallIncentiveInvitedToEnrollReminderEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.incentive
+  const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive invited to enroll reminder email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    config.mail.people.incentiveOutreach,
+    config.sendgrid.fallIncentiveInvitedToEnrollReminderTemplate,
+    { firstName },
+    overrides
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
   const contacts = []

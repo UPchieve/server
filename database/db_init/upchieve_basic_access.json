@@ -746,6 +746,7 @@
     "updated_at",
     "in_gates_study",
     "fall_incentive_program",
+    "fall_incentive_enrollment_at",
     "paid_tutors_pilot_group"
   ],
   "user_roles": [

@@ -73,10 +73,13 @@ export const Config = Record({
     failedFirstAttemptedTrainingTemplate: String,
     emailSessionRecapMessage: String,
     studentReportedCoachDmTemplate: String,
+    fallIncentiveEnrollmentWelcomeTemplate: String,
+    fallIncentiveInvitedToEnrollReminderTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
       volunteerSummary: Number,
+      incentiveProgram: Number,
     }),
     contactList: Record({
       students: String,
@@ -97,6 +100,7 @@ export const Config = Record({
       crisis: String,
       programsManager: String,
       supportApp: String,
+      incentive: String,
     }),
     receivers: Record({
       contact: String,
@@ -122,6 +126,7 @@ export const Config = Record({
         lastName: String,
       }),
       programsManager: String,
+      incentiveOutreach: String,
     }),
   }),
   client: Record({
