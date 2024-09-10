@@ -409,3 +409,19 @@ export async function getProgressReportSurveyResponse(
     throw new RepoReadError(err)
   }
 }
+
+export const getStudentPostsessionSurveyGoalQuestionRatings = async (
+  userId: string
+) => {
+  try {
+    const ratings = await pgQueries.getStudentPostsessionSurveyGoalQuestionRatings.run(
+      {
+        userId,
+      },
+      getRoClient()
+    )
+    return ratings ?? []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
