@@ -69,8 +69,9 @@ GROUP BY
 
 
 /* @name createEmailNotification */
-INSERT INTO notifications (user_id, session_id, email_template_id, method_id, sent_at)
+INSERT INTO notifications (id, user_id, session_id, email_template_id, method_id, sent_at)
 SELECT
+    generate_ulid (),
     :userId!,
     :sessionId,
     :emailTemplateId!,
