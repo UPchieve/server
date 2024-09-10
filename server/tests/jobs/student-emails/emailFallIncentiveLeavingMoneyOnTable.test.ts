@@ -5,7 +5,7 @@ import emailFallIncentiveLeavingMoneyOnTable, {
 import { getDbUlid } from '../../../models/pgUtils'
 import * as MailService from '../../../services/MailService'
 import * as SessionService from '../../../services/SessionService'
-import * as UserActionService from '../../../services/UserActionService'
+import * as NotificationService from '../../../services/NotificationService'
 import * as FallIncentiveUtils from '../../../utils/fall-incentive-utils'
 import { Job } from 'bull'
 import { buildUser, buildUserProductFlags } from '../../mocks/generate'
@@ -16,12 +16,12 @@ import config from '../../../config'
 jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/SessionService')
-jest.mock('../../../services/UserActionService')
+jest.mock('../../../services/NotificationService')
 jest.mock('../../../utils/fall-incentive-utils')
 
 const mockedSessionService = mocked(SessionService)
 const mockedMailService = mocked(MailService)
-const mockedUserActionService = mocked(UserActionService)
+const mockedNotificationService = mocked(NotificationService)
 const mockedFallIncentiveUtils = mocked(FallIncentiveUtils)
 
 describe('emailFallIncentiveLeavingMoneyOnTable', () => {
@@ -43,7 +43,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     expect(
       MailService.sendFallIncentiveLeavingMoneyOnTableEmail
     ).not.toHaveBeenCalled()
-    expect(UserActionService.logEmailActivity).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
   test('Should do nothing if user has already received email', async () => {
@@ -55,7 +55,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
       }),
       incentiveProgramDate: new Date(),
     })
-    mockedUserActionService.hasEmailBeenSent.mockResolvedValueOnce(true)
+    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
@@ -67,7 +67,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     expect(
       MailService.sendFallIncentiveLeavingMoneyOnTableEmail
     ).not.toHaveBeenCalled()
-    expect(UserActionService.logEmailActivity).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
   test('Should do nothing if there are no qualifying sessions', async () => {
@@ -79,7 +79,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
       }),
       incentiveProgramDate: new Date(),
     })
-    mockedUserActionService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 0,
@@ -96,7 +96,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     expect(
       MailService.sendFallIncentiveLeavingMoneyOnTableEmail
     ).not.toHaveBeenCalled()
-    expect(UserActionService.logEmailActivity).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
   test('Should send email if user has exactly one qualifying session', async () => {
@@ -108,7 +108,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
       }),
       incentiveProgramDate: new Date(),
     })
-    mockedUserActionService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 1,
@@ -125,7 +125,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     expect(
       MailService.sendFallIncentiveLeavingMoneyOnTableEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
-    expect(UserActionService.logEmailActivity).toHaveBeenCalledWith(
+    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith(
       user.id,
       config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate
     )
@@ -144,7 +144,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
       }),
       incentiveProgramDate: new Date(),
     })
-    mockedUserActionService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 1,
@@ -168,6 +168,6 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     expect(
       MailService.sendFallIncentiveLeavingMoneyOnTableEmail
     ).toHaveBeenCalled()
-    expect(UserActionService.logEmailActivity).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 })

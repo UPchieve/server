@@ -7,8 +7,8 @@ import { getFallIncentiveSessionStats } from '../../../services/SessionService'
 import config from '../../../config'
 import {
   hasEmailBeenSent,
-  logEmailActivity,
-} from '../../../services/UserActionService'
+  createEmailNotification,
+} from '../../../services/NotificationService'
 import { getUserFallIncentiveData } from '../../../utils/fall-incentive-utils'
 import moment from 'moment'
 import { log } from '../../logger'
@@ -72,7 +72,7 @@ export default async (
     // Send qualified email if this is their first qualifying session
     if (sessionStats.totalQualified === 1) {
       await MailService.sendQualifiedForGiftCardEmail(email, firstName)
-      await logEmailActivity(
+      await createEmailNotification(
         userId,
         config.sendgrid.qualifiedForGiftCardTemplate
       )
@@ -93,7 +93,7 @@ export default async (
           email,
           firstName
         )
-        await logEmailActivity(
+        await createEmailNotification(
           userId,
           config.sendgrid.stillTimeForQualifyingSessionTemplate
         )

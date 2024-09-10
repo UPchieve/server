@@ -9,8 +9,8 @@ import { log } from '../../logger'
 import { getUserFallIncentiveData } from '../../../utils/fall-incentive-utils'
 import {
   hasEmailBeenSent,
-  logEmailActivity,
-} from '../../../services/UserActionService'
+  createEmailNotification,
+} from '../../../services/NotificationService'
 import moment from 'moment'
 
 export type EmailFallIncentiveLeavingMoneyOnTableJobData = {
@@ -49,7 +49,7 @@ export default async (
         email,
         firstName
       )
-      await logEmailActivity(
+      await createEmailNotification(
         userId,
         config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate
       )

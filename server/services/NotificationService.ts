@@ -8,7 +8,7 @@ export async function createEmailNotification(
   return NotificationRepo.createEmailNotification(userId, emailTemplateId)
 }
 
-export async function getEmailActivityByEmailTemplateId(
+export async function getEmailNotificationsByEmailTemplateId(
   userId: Ulid,
   emailTemplateId: string,
   start?: Date,
@@ -20,4 +20,17 @@ export async function getEmailActivityByEmailTemplateId(
     start,
     end
   )
+}
+
+export async function hasEmailBeenSent(
+  userId: string,
+  templateId: string,
+  startDate: Date
+) {
+  const emailActivity = await getEmailNotificationsByEmailTemplateId(
+    userId,
+    templateId,
+    startDate
+  )
+  return emailActivity.length > 0
 }
