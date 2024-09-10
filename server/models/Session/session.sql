@@ -1315,7 +1315,7 @@ WHERE
     AND sessions.ended_at IS NOT NULL
     AND sessions.created_at >= :start!
     AND ((:end)::timestamptz IS NULL
-        OR sessions.created_at >= (:end)::timestamptz)
+        OR sessions.created_at <= (:end)::timestamptz)
 ORDER BY
     created_at ASC;
 
