@@ -78,12 +78,14 @@ export interface IGetAssignmentsByClassIdQuery {
   result: IGetAssignmentsByClassIdResult;
 }
 
-const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":612,"b":619,"line":12,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT * FROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":619,"line":9,"col":0}}};
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":616,"b":623,"line":14,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":623,"line":9,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM
+ * SELECT
+ *     *
+ * FROM
  *     assignments
  * WHERE
  *     class_id = :classId!
@@ -119,12 +121,14 @@ export interface IGetAssignmentByIdQuery {
   result: IGetAssignmentByIdResult;
 }
 
-const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":700,"b":712,"line":19,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT * FROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":654,"b":712,"line":16,"col":0}}};
+const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":708,"b":720,"line":23,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":658,"b":720,"line":18,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM
+ * SELECT
+ *     *
+ * FROM
  *     assignments
  * WHERE
  *     id = :assignmentId!

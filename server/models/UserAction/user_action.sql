@@ -87,8 +87,8 @@ RETURNING
 
 
 /* @name createAccountAction */
-INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, email_template_id, created_at, updated_at)
-    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, :emailTemplateId, NOW(), NOW())
+INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)
+    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())
 RETURNING
     id AS ok;
 
@@ -104,22 +104,4 @@ RETURNING
 DELETE FROM user_actions
 WHERE user_id = volunteer_id
     AND action = 'VOLUNTEER FAVORITED';
-
-
-/* @name getEmailActivityByEmailTemplateId */
-SELECT
-    action,
-    email_template_id,
-    created_at
-FROM
-    user_actions
-WHERE
-    action_type = 'ACCOUNT'
-    AND action = 'EMAILED'
-    AND user_id = :userId!
-    AND email_template_id = :emailTemplateId!
-    AND ((:start)::timestamptz IS NULL
-        OR created_at >= (:start)::timestamptz
-        AND ((:end)::timestamptz IS NULL
-            OR created_at <= (:end)::timestamptz));
 

@@ -67,3 +67,21 @@ WHERE
 GROUP BY
     users.id;
 
+
+/* @name getEmailNotificationsByEmailTemplateId */
+SELECT
+    email_template_id,
+    sent_at,
+    notifications.created_at
+FROM
+    notifications
+    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id
+WHERE
+    notification_methods.method = 'email'
+    AND user_id = :userId!
+    AND email_template_id = :emailTemplateId!
+    AND ((:start)::timestamptz IS NULL
+        OR sent_at >= (:start)::timestamptz
+        AND ((:end)::timestamptz IS NULL
+            OR sent_at <= (:end)::timestamptz));
+
