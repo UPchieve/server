@@ -1309,8 +1309,11 @@ export async function sendFallIncentiveLeavingMoneyOnTableEmail(
   email: string,
   firstName: string
 ): Promise<void> {
-  const sender = config.mail.senders.noreply
+  const sender = config.mail.senders.incentive
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
     reply_to: {
       email: sender,
     },
@@ -1319,7 +1322,7 @@ export async function sendFallIncentiveLeavingMoneyOnTableEmail(
   await sendEmail(
     email,
     sender,
-    'UPchieve',
+    config.mail.people.incentiveOutreach,
     config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate,
     { firstName },
     overrides
@@ -1330,8 +1333,11 @@ export async function sendQualifiedForGiftCardEmail(
   email: string,
   firstName: string
 ): Promise<void> {
-  const sender = config.mail.senders.noreply
+  const sender = config.mail.senders.incentive
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
     reply_to: {
       email: sender,
     },
@@ -1340,7 +1346,7 @@ export async function sendQualifiedForGiftCardEmail(
   await sendEmail(
     email,
     sender,
-    'UPchieve',
+    config.mail.people.incentiveOutreach,
     config.sendgrid.qualifiedForGiftCardTemplate,
     { firstName },
     overrides
@@ -1351,8 +1357,11 @@ export async function sendStillTimeToHaveQualifyingSessionEmail(
   email: string,
   firstName: string
 ): Promise<void> {
-  const sender = config.mail.senders.noreply
+  const sender = config.mail.senders.incentive
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
     reply_to: {
       email: sender,
     },
@@ -1361,7 +1370,7 @@ export async function sendStillTimeToHaveQualifyingSessionEmail(
   await sendEmail(
     email,
     sender,
-    'UPchieve',
+    config.mail.people.incentiveOutreach,
     config.sendgrid.stillTimeForQualifyingSessionTemplate,
     { firstName },
     overrides

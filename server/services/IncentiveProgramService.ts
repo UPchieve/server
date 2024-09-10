@@ -6,12 +6,6 @@ import { Jobs } from '../worker/jobs'
 import { getFallIncentiveProgramPayload } from './FeatureFlagService'
 import QueueService from './QueueService'
 
-type UserAndFallIncentiveStartDate = {
-  user: UserContactInfo
-  productFlags: UserProductFlags
-  incentiveProgramDate: Date
-}
-
 export async function isUserInIncentiveProgram(userId: Ulid) {
   const flags = await getUPFByUserId(userId)
   return !!flags?.fallIncentiveEnrollmentAt
@@ -53,6 +47,12 @@ export async function queueFallIncentiveSessionQualificationJob(
     { userId: session.studentId },
     { removeOnComplete: true, removeOnFail: true }
   )
+}
+
+type UserAndFallIncentiveStartDate = {
+  user: UserContactInfo
+  productFlags: UserProductFlags
+  incentiveProgramDate: Date
 }
 
 export async function getUserFallIncentiveData(
