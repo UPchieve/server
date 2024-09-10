@@ -16,6 +16,14 @@ type AssignmentInputdata = {
   subjectId?: number
 }
 
+type StudentAssignment = {
+  assignmentId: string
+  createdAt: Date
+  submittedAt: Date | null
+  updatedAt: Date
+  userId: string
+}
+
 export async function createAssignment(data: AssignmentInputdata) {
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createAssignment(data, tc)
@@ -57,7 +65,7 @@ export async function addAssignmentForStudents(
   studentIds: string[],
   assignmentId: Ulid
 ) {
-  let studentsAdded = []
+  let studentAssignments: StudentAssignment[] = []
   return runInTransaction(async (tc: TransactionClient) => {
     for (const studentId in studentIds) {
       const studentAssignment = await AssignmentsRepo.createStudentAssignment(
@@ -65,9 +73,9 @@ export async function addAssignmentForStudents(
         assignmentId,
         tc
       )
-      studentsAdded.push(studentAssignment)
+      studentAssignments.push(studentAssignment)
     }
-    return studentsAdded
+    return studentAssignments
   })
 }
 
