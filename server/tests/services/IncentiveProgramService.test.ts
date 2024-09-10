@@ -118,7 +118,7 @@ describe('queueFallIncentiveMoneyCanBeMadeReminderJob', () => {
     expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveLeavingMoneyOnTable,
-      { userId: studentId },
+      { userId: studentId, sessionId },
       { removeOnComplete: true, removeOnFail: true }
     )
   })
@@ -140,7 +140,7 @@ describe('queueFallIncentiveSessionQualificationJob', () => {
     expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveSessionQualification,
-      { userId: studentId },
+      { userId: studentId, sessionId },
       { removeOnComplete: true, removeOnFail: true }
     )
   })

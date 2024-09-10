@@ -33,7 +33,7 @@ export async function queueFallIncentiveLeavingMoneyOnTableJob(
   const session = await getSessionById(sessionId)
   await QueueService.add(
     Jobs.EmailFallIncentiveLeavingMoneyOnTable,
-    { userId: session.studentId },
+    { userId: session.studentId, sessionId },
     { removeOnComplete: true, removeOnFail: true }
   )
 }
@@ -44,7 +44,7 @@ export async function queueFallIncentiveSessionQualificationJob(
   const session = await getSessionById(sessionId)
   await QueueService.add(
     Jobs.EmailFallIncentiveSessionQualification,
-    { userId: session.studentId },
+    { userId: session.studentId, sessionId },
     { removeOnComplete: true, removeOnFail: true }
   )
 }
