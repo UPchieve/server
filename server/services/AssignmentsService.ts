@@ -2,6 +2,7 @@ import { runInTransaction, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as SubjectsRepo from '../models/Subjects'
+import * as TeacherRepo from '../models/Teacher'
 import { NotAllowedError, InputError } from '../models/Errors'
 
 type AssignmentInputdata = {
@@ -76,6 +77,25 @@ export async function addAssignmentForStudents(
     } catch (err) {
       throw new Error((err as Error).message)
     }
+  })
+}
+
+export async function addAssignmentForClass(classId: Ulid, assignmentId: Ulid) {
+  let studentAssignments: StudentAssignment[] = []
+  return runInTransaction(async (tc: TransactionClient) => {
+    const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
+      tc,
+      classId
+    )
+
+    for (const studentId in studentIds) {
+      const studentAssignment = await AssignmentsRepo.createStudentAssignment(
+        studentId,
+        assignmentId,
+        tc
+      )
+    }
+    return studentAssignments
   })
 }
 
