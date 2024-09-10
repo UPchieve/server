@@ -31,3 +31,8 @@ export const NotificationMethod = <const>{
   EMAIL: 'EMAIL',
 }
 export type NotificationMethod = ExtractValues<typeof NotificationMethod>
+
+export type EmailNotification = {
+  emailTemplateId: string
+  sentAt: Date
+}

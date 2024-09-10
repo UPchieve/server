@@ -1261,9 +1261,11 @@ export async function sendFallIncentiveEnrollmentWelcomeEmail(
   email: string,
   firstName: string
 ): Promise<void> {
-  // TODO: double check email sender information
-  const sender = config.mail.senders.noreply
+  const sender = config.mail.senders.incentive
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
     reply_to: {
       email: sender,
     },
@@ -1272,7 +1274,7 @@ export async function sendFallIncentiveEnrollmentWelcomeEmail(
   await sendEmail(
     email,
     sender,
-    'UPchieve',
+    config.mail.people.incentiveOutreach,
     config.sendgrid.fallIncentiveEnrollmentWelcomeTemplate,
     { firstName },
     overrides
@@ -1283,9 +1285,11 @@ export async function sendFallIncentiveInvitedToEnrollReminderEmail(
   email: string,
   firstName: string
 ): Promise<void> {
-  // TODO: double check email sender information
-  const sender = config.mail.senders.noreply
+  const sender = config.mail.senders.incentive
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
     reply_to: {
       email: sender,
     },
@@ -1294,7 +1298,7 @@ export async function sendFallIncentiveInvitedToEnrollReminderEmail(
   await sendEmail(
     email,
     sender,
-    'UPchieve',
+    config.mail.people.incentiveOutreach,
     config.sendgrid.fallIncentiveInvitedToEnrollReminderTemplate,
     { firstName },
     overrides

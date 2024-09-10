@@ -21,11 +21,4 @@ export type AccountActionParams = {
   sessionId?: Ulid
   volunteerId?: Ulid
   banReason?: string
-  emailTemplateId?: string
-}
-
-export type EmailActivity = {
-  action: string
-  emailTemplateId: string
-  createdAt: Date
 }

@@ -24,13 +24,6 @@ CREATE SCHEMA basic_access;
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -224,6 +217,26 @@ CREATE TABLE public.seed_migrations (
 
 CREATE TABLE upchieve.admin_profiles (
     user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: assignments; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.assignments (
+    id uuid NOT NULL,
+    class_id uuid NOT NULL,
+    description text,
+    title text,
+    number_of_sessions integer,
+    min_duration_in_minutes integer,
+    due_date timestamp with time zone,
+    start_date timestamp with time zone,
+    is_required boolean DEFAULT false NOT NULL,
+    subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -759,15 +772,16 @@ CREATE TABLE upchieve.notifications (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
     sent_at timestamp with time zone,
-    type_id integer NOT NULL,
+    type_id integer,
     method_id integer NOT NULL,
-    priority_group_id integer NOT NULL,
+    priority_group_id integer,
     successful boolean,
-    session_id uuid NOT NULL,
+    session_id uuid,
     message_carrier_id text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    email_template_id text
 );
 
 
@@ -1812,6 +1826,19 @@ CREATE TABLE upchieve.student_partner_orgs_volunteer_partner_orgs_instances (
 
 
 --
+-- Name: students_assignments; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.students_assignments (
+    user_id uuid NOT NULL,
+    assignment_id uuid NOT NULL,
+    submitted_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: subjects; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2218,8 +2245,7 @@ CREATE TABLE upchieve.user_actions (
     mongo_id character varying(24),
     reference_email text,
     volunteer_id uuid,
-    ban_reason text,
-    email_template_id text
+    ban_reason text
 );
 
 
@@ -2887,6 +2913,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY upchieve.admin_profiles
     ADD CONSTRAINT admin_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: assignments assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assignments
+    ADD CONSTRAINT assignments_pkey PRIMARY KEY (id);
 
 
 --
@@ -3722,6 +3756,14 @@ ALTER TABLE ONLY upchieve.student_profiles
 
 
 --
+-- Name: students_assignments students_assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.students_assignments
+    ADD CONSTRAINT students_assignments_pkey PRIMARY KEY (user_id, assignment_id);
+
+
+--
 -- Name: subjects subjects_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4369,6 +4411,22 @@ CREATE TRIGGER update_users_subjects AFTER INSERT OR DELETE OR UPDATE ON upchiev
 
 ALTER TABLE ONLY upchieve.admin_profiles
     ADD CONSTRAINT admin_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: assignments assignments_class_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assignments
+    ADD CONSTRAINT assignments_class_id_fkey FOREIGN KEY (class_id) REFERENCES upchieve.teacher_classes(id);
+
+
+--
+-- Name: assignments assignments_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.assignments
+    ADD CONSTRAINT assignments_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
 
 
 --
@@ -5228,6 +5286,22 @@ ALTER TABLE ONLY upchieve.student_profiles
 
 
 --
+-- Name: students_assignments students_assignments_assignment_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.students_assignments
+    ADD CONSTRAINT students_assignments_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES upchieve.assignments(id);
+
+
+--
+-- Name: students_assignments students_assignments_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.students_assignments
+    ADD CONSTRAINT students_assignments_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.student_profiles(user_id);
+
+
+--
 -- Name: subjects subjects_tool_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5833,4 +5907,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240812190423'),
     ('20240828142138'),
     ('20240903213429'),
-    ('20240904030712');
+    ('20240906232026'),
+    ('20240909182606'),
+    ('20240910003849'),
+    ('20240910010753');

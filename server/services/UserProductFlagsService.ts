@@ -10,8 +10,7 @@ import { Jobs } from '../worker/jobs'
 
 export async function checkIfInIncentiveProgram(userId: Ulid) {
   const flags = await getUPFByUserId(userId)
-  if (flags?.fallIncentiveEnrollmentAt)
-    throw new Error(`You're already enrolled in the fall incentive program`)
+  return !!flags?.fallIncentiveEnrollmentAt
 }
 
 export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
@@ -53,7 +52,9 @@ export async function queueFallIncentiveSessionQualificationJob(
 }
 
 export async function incentiveProgramEnrollmentEnroll(userId: Ulid) {
-  await checkIfInIncentiveProgram(userId)
+  const isInIncentiveProgram = await checkIfInIncentiveProgram(userId)
+  if (isInIncentiveProgram)
+    throw new Error(`You're already enrolled in the fall incentive program.`)
   const userVerificationInfo = await getUserVerificationInfoById(userId)
   if (!userVerificationInfo?.phoneVerified)
     throw new Error(

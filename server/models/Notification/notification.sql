@@ -67,3 +67,36 @@ WHERE
 GROUP BY
     users.id;
 
+
+/* @name createEmailNotification */
+INSERT INTO notifications (user_id, email_template_id, method_id, sent_at)
+SELECT
+    :userId!,
+    :emailTemplateId,
+    (
+        SELECT
+            id
+        FROM
+            notification_methods
+        WHERE
+            method = 'email'), NOW()
+RETURNING
+    id AS ok;
+
+
+/* @name getEmailNotificationsByEmailTemplateId */
+SELECT
+    email_template_id,
+    sent_at
+FROM
+    notifications
+    JOIN notification_methods ON notifications.method_id = notification_methods.id
+WHERE
+    notification_methods.method = 'email'
+    AND user_id = :userId!
+    AND email_template_id = :emailTemplateId!
+    AND ((:start)::timestamptz IS NULL
+        OR sent_at >= (:start)::timestamptz
+        AND ((:end)::timestamptz IS NULL
+            OR sent_at <= (:end)::timestamptz));
+
