@@ -2244,8 +2244,7 @@ CREATE TABLE upchieve.user_actions (
     mongo_id character varying(24),
     reference_email text,
     volunteer_id uuid,
-    ban_reason text,
-    email_template_id text
+    ban_reason text
 );
 
 

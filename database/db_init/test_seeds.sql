@@ -3571,7 +3571,7 @@ COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_ses
 -- Data for Name: user_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason, email_template_id) FROM stdin;
+COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason) FROM stdin;
 \.
 
 
