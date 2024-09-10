@@ -1,28 +1,28 @@
+import { Job } from 'bull'
 import { mocked } from 'jest-mock'
+import config from '../../../config'
+import { getDbUlid } from '../../../models/pgUtils'
+import { buildUser, buildUserProductFlags } from '../../mocks/generate'
+import * as IncentiveProgramService from '../../../services/IncentiveProgramService'
+import * as MailService from '../../../services/MailService'
+import * as NotificationService from '../../../services/NotificationService'
+import * as SessionService from '../../../services/SessionService'
+import { log } from '../../../worker/logger'
+import { Jobs } from '../../../worker/jobs'
 import emailFallIncentiveLeavingMoneyOnTable, {
   EmailFallIncentiveLeavingMoneyOnTableJobData,
 } from '../../../worker/jobs/student-emails/emailFallIncentiveLeavingMoneyOnTable'
-import { getDbUlid } from '../../../models/pgUtils'
-import * as MailService from '../../../services/MailService'
-import * as SessionService from '../../../services/SessionService'
-import * as NotificationService from '../../../services/NotificationService'
-import * as FallIncentiveUtils from '../../../utils/fall-incentive-utils'
-import { Job } from 'bull'
-import { buildUser, buildUserProductFlags } from '../../mocks/generate'
-import { log } from '../../../worker/logger'
-import { Jobs } from '../../../worker/jobs'
-import config from '../../../config'
 
 jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/NotificationService')
-jest.mock('../../../utils/fall-incentive-utils')
+jest.mock('../../../services/IncentiveProgramService')
 
-const mockedSessionService = mocked(SessionService)
+const mockedIncentiveProgramService = mocked(IncentiveProgramService)
 const mockedMailService = mocked(MailService)
 const mockedNotificationService = mocked(NotificationService)
-const mockedFallIncentiveUtils = mocked(FallIncentiveUtils)
+const mockedSessionService = mocked(SessionService)
 
 describe('emailFallIncentiveLeavingMoneyOnTable', () => {
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
   })
 
   test('Should do nothing if no fall incentive data ', async () => {
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce(
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       undefined
     )
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
@@ -48,13 +48,15 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
 
   test('Should do nothing if user has already received email', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
@@ -72,13 +74,15 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
 
   test('Should do nothing if there are no qualifying sessions', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
@@ -101,13 +105,15 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
 
   test('Should send email if user has exactly one qualifying session', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
@@ -137,13 +143,15 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
   test('Should catch error when sending email', async () => {
     const error = 'Failed to send email'
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,

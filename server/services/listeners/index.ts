@@ -3,7 +3,7 @@ import { listeners as USMServiceListeners } from './USMServiceListeners'
 import { listeners as StudentServiceListeners } from './StudentServiceListeners'
 import { listeners as UserCreationServiceListeners } from './UserCreationServiceListeners'
 import { listeners as ProgressReportsServiceListeners } from './ProgressReportsServiceListeners'
-import { listeners as UserProductFlagsServiceListeners } from './UserProductFlagsServiceListeners'
+import { listeners as IncentiveProgramServiceListeners } from './IncentiveProgramServiceListeners'
 
 export function registerListeners() {
   SessionServiceListeners()
@@ -11,5 +11,5 @@ export function registerListeners() {
   StudentServiceListeners()
   UserCreationServiceListeners()
   ProgressReportsServiceListeners()
-  UserProductFlagsServiceListeners()
+  IncentiveProgramServiceListeners()
 }

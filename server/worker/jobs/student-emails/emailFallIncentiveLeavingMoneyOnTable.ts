@@ -6,7 +6,7 @@ import { Jobs } from '..'
 import config from '../../../config'
 import { getFallIncentiveSessionStats } from '../../../services/SessionService'
 import { log } from '../../logger'
-import { getUserFallIncentiveData } from '../../../utils/fall-incentive-utils'
+import { getUserFallIncentiveData } from '../../../services/IncentiveProgramService'
 import {
   hasEmailBeenSent,
   createEmailNotification,

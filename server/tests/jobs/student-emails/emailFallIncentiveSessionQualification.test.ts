@@ -6,7 +6,7 @@ import { getDbUlid } from '../../../models/pgUtils'
 import * as MailService from '../../../services/MailService'
 import * as SessionService from '../../../services/SessionService'
 import * as NotificationService from '../../../services/NotificationService'
-import * as FallIncentiveUtils from '../../../utils/fall-incentive-utils'
+import * as IncentiveProgramService from '../../../services/IncentiveProgramService'
 import { Job } from 'bull'
 import { buildUser, buildUserProductFlags } from '../../mocks/generate'
 import { log } from '../../../worker/logger'
@@ -17,12 +17,12 @@ jest.mock('../../../logger')
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/NotificationService')
-jest.mock('../../../utils/fall-incentive-utils')
+jest.mock('../../../services/IncentiveProgramService')
 
 const mockedSessionService = mocked(SessionService)
 const mockedMailService = mocked(MailService)
 const mockedNotificationService = mocked(NotificationService)
-const mockedFallIncentiveUtils = mocked(FallIncentiveUtils)
+const mockedIncentiveProgramService = mocked(IncentiveProgramService)
 
 describe('emailFallIncentiveSessionQualification', () => {
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('emailFallIncentiveSessionQualification', () => {
   })
 
   test('Should do nothing if no fall incentive data is available', async () => {
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce(
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       undefined
     )
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
@@ -49,13 +49,15 @@ describe('emailFallIncentiveSessionQualification', () => {
 
   test('Should do nothing if user has already received qualified for gift card email', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
@@ -74,13 +76,15 @@ describe('emailFallIncentiveSessionQualification', () => {
 
   test('Should send qualified for gift card email if user has exactly one qualifying session', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
@@ -110,13 +114,15 @@ describe('emailFallIncentiveSessionQualification', () => {
 
   test('Should not send reminder email if been sent that email before', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
@@ -141,13 +147,15 @@ describe('emailFallIncentiveSessionQualification', () => {
 
   test('Should send reminder email if user has exactly one non-qualifying session and hasnt been sent that email before', async () => {
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
@@ -178,13 +186,15 @@ describe('emailFallIncentiveSessionQualification', () => {
   test('Should catch error when sending qualified email', async () => {
     const error = 'Failed to send email'
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
@@ -211,13 +221,15 @@ describe('emailFallIncentiveSessionQualification', () => {
   test('Should catch error when sending reminder email', async () => {
     const error = 'Failed to send reminder email'
     const user = buildUser()
-    mockedFallIncentiveUtils.getUserFallIncentiveData.mockResolvedValueOnce({
-      user,
-      productFlags: buildUserProductFlags({
-        fallIncentiveEnrollmentAt: new Date(),
-      }),
-      incentiveProgramDate: new Date(),
-    })
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({

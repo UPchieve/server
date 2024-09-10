@@ -9,7 +9,7 @@ import {
   hasEmailBeenSent,
   createEmailNotification,
 } from '../../../services/NotificationService'
-import { getUserFallIncentiveData } from '../../../utils/fall-incentive-utils'
+import { getUserFallIncentiveData } from '../../../services/IncentiveProgramService'
 import moment from 'moment'
 import { log } from '../../logger'
 
