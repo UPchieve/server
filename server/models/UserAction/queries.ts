@@ -11,7 +11,6 @@ import {
   UserActionAgent,
   QuizzesPassedForDateRange,
   AccountActionParams,
-  EmailActivity,
 } from './types'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -206,7 +205,6 @@ export async function createAccountAction(
         userId: params.userId,
         volunteerId: params.volunteerId ? params.volunteerId : null,
         banReason: params.banReason ? params.banReason : null,
-        emailTemplateId: params.emailTemplateId ? params.emailTemplateId : null,
       },
       client
     )
@@ -246,28 +244,6 @@ export async function deleteSelfFavoritedVolunteersActions(): Promise<void> {
       undefined,
       getClient()
     )
-  } catch (err) {
-    throw new RepoDeleteError(err)
-  }
-}
-
-export async function getEmailActivityByEmailTemplateId(
-  userId: Ulid,
-  emailTemplateId: string,
-  start?: Date,
-  end?: Date
-): Promise<EmailActivity[]> {
-  try {
-    const result = await pgQueries.getEmailActivityByEmailTemplateId.run(
-      {
-        userId,
-        emailTemplateId,
-        start,
-        end,
-      },
-      getClient()
-    )
-    return result.map(row => makeRequired(row))
   } catch (err) {
     throw new RepoDeleteError(err)
   }

@@ -1,22 +1,7 @@
-import { Ulid } from '../models/pgUtils'
 import * as UserActionRepo from '../models/UserAction'
 
 export async function createAccountAction(
   params: UserActionRepo.AccountActionParams
 ) {
   return UserActionRepo.createAccountAction(params)
-}
-
-export async function getEmailActivityByEmailTemplateId(
-  userId: Ulid,
-  emailTemplateId: string,
-  start?: Date,
-  end?: Date
-) {
-  return UserActionRepo.getEmailActivityByEmailTemplateId(
-    userId,
-    emailTemplateId,
-    start,
-    end
-  )
 }
