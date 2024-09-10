@@ -1,4 +1,8 @@
-import { EmailNotification, Notification } from './types'
+import {
+  CreateEmailNotificationProps,
+  EmailNotification,
+  Notification,
+} from './types'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
@@ -83,14 +87,14 @@ export async function getNotificationsForGentleWarning(
 }
 
 export async function createEmailNotification(
-  userId: Ulid,
-  emailTemplateId: string
+  data: CreateEmailNotificationProps
 ): Promise<void> {
   try {
     const result = await pgQueries.createEmailNotification.run(
       {
-        userId,
-        emailTemplateId,
+        userId: data.userId,
+        sessionId: data.sessionId ? data.sessionId : undefined,
+        emailTemplateId: data.emailTemplateId,
       },
       getClient()
     )

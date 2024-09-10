@@ -2,10 +2,9 @@ import * as NotificationRepo from '../models/Notification'
 import { Ulid } from '../models/pgUtils'
 
 export async function createEmailNotification(
-  userId: Ulid,
-  emailTemplateId: string
+  data: NotificationRepo.CreateEmailNotificationProps
 ) {
-  return NotificationRepo.createEmailNotification(userId, emailTemplateId)
+  return NotificationRepo.createEmailNotification(data)
 }
 
 export async function getEmailNotificationsByEmailTemplateId(
