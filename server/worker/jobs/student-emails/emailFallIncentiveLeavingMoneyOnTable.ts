@@ -15,6 +15,7 @@ import moment from 'moment'
 
 export type EmailFallIncentiveLeavingMoneyOnTableJobData = {
   userId: Ulid
+  sessionId: Ulid
 }
 
 /**
@@ -27,6 +28,7 @@ export default async (
   job: Job<EmailFallIncentiveLeavingMoneyOnTableJobData>
 ): Promise<void> => {
   const userId = asString(job.data.userId)
+  const sessionId = asString(job.data.sessionId)
   const data = await getUserFallIncentiveData(userId, false)
   if (!data) return
   const { user, incentiveProgramDate } = data
@@ -49,10 +51,12 @@ export default async (
         email,
         firstName
       )
-      await createEmailNotification(
+      await createEmailNotification({
         userId,
-        config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate
-      )
+        sessionId,
+        emailTemplateId:
+          config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate,
+      })
       log(
         `Sent ${Jobs.EmailFallIncentiveLeavingMoneyOnTable} to student ${userId}`
       )

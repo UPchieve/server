@@ -36,6 +36,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: getDbUlid(),
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -63,6 +64,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -76,6 +78,7 @@ describe('emailFallIncentiveSessionQualification', () => {
 
   test('Should send qualified for gift card email if user has exactly one qualifying session', async () => {
     const user = buildUser()
+    const sessionId = getDbUlid()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
         user,
@@ -95,6 +98,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
+        sessionId,
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -103,10 +107,11 @@ describe('emailFallIncentiveSessionQualification', () => {
       user.email,
       user.firstName
     )
-    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith(
-      user.id,
-      config.sendgrid.qualifiedForGiftCardTemplate
-    )
+    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
+      userId: user.id,
+      sessionId,
+      emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
+    })
     expect(log).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
     )
@@ -134,6 +139,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -147,6 +153,7 @@ describe('emailFallIncentiveSessionQualification', () => {
 
   test('Should send reminder email if user has exactly one non-qualifying session and hasnt been sent that email before', async () => {
     const user = buildUser()
+    const sessionId = getDbUlid()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
         user,
@@ -167,6 +174,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
+        sessionId,
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -174,10 +182,11 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(
       MailService.sendStillTimeToHaveQualifyingSessionEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
-    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith(
-      user.id,
-      config.sendgrid.stillTimeForQualifyingSessionTemplate
-    )
+    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
+      userId: user.id,
+      sessionId,
+      emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
+    })
     expect(log).toHaveBeenCalledWith(
       `${Jobs.EmailFallIncentiveSessionQualification} sent student ${user.id} session did not qualify email`
     )
@@ -206,6 +215,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -244,6 +254,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 

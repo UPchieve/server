@@ -36,6 +36,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
         userId: getDbUlid(),
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveLeavingMoneyOnTableJobData>
 
@@ -62,6 +63,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveLeavingMoneyOnTableJobData>
 
@@ -93,6 +95,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveLeavingMoneyOnTableJobData>
 
@@ -105,6 +108,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
 
   test('Should send email if user has exactly one qualifying session', async () => {
     const user = buildUser()
+    const sessionId = getDbUlid()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
         user,
@@ -124,6 +128,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
         userId: user.id,
+        sessionId,
       },
     } as Job<EmailFallIncentiveLeavingMoneyOnTableJobData>
 
@@ -131,10 +136,11 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     expect(
       MailService.sendFallIncentiveLeavingMoneyOnTableEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
-    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith(
-      user.id,
-      config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate
-    )
+    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
+      userId: user.id,
+      sessionId,
+      emailTemplateId: config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate,
+    })
     expect(log).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveLeavingMoneyOnTable} to student ${user.id}`
     )
@@ -165,6 +171,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
         userId: user.id,
+        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveLeavingMoneyOnTableJobData>
 

@@ -15,6 +15,7 @@ import { log } from '../../logger'
 
 export interface EmailFallIncentiveSessionQualificationJobData {
   userId: Ulid
+  sessionId: Ulid
 }
 
 /**
@@ -38,6 +39,7 @@ export default async (
   job: Job<EmailFallIncentiveSessionQualificationJobData>
 ): Promise<void> => {
   const userId = asString(job.data.userId)
+  const sessionId = asString(job.data.sessionId)
   const data = await getUserFallIncentiveData(userId, true)
   if (!data) return
 
@@ -72,10 +74,11 @@ export default async (
     // Send qualified email if this is their first qualifying session
     if (sessionStats.totalQualified === 1) {
       await MailService.sendQualifiedForGiftCardEmail(email, firstName)
-      await createEmailNotification(
+      await createEmailNotification({
         userId,
-        config.sendgrid.qualifiedForGiftCardTemplate
-      )
+        sessionId,
+        emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
+      })
       log(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
@@ -93,10 +96,12 @@ export default async (
           email,
           firstName
         )
-        await createEmailNotification(
+        await createEmailNotification({
           userId,
-          config.sendgrid.stillTimeForQualifyingSessionTemplate
-        )
+          sessionId,
+          emailTemplateId:
+            config.sendgrid.stillTimeForQualifyingSessionTemplate,
+        })
         log(
           `${Jobs.EmailFallIncentiveSessionQualification} sent student ${userId} session did not qualify email`
         )
