@@ -137,3 +137,90 @@ const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"
 export const getAssignmentById = new PreparedQuery<IGetAssignmentByIdParams,IGetAssignmentByIdResult>(getAssignmentByIdIR);
 
 
+/** 'CreateStudentAssignment' parameters type */
+export interface ICreateStudentAssignmentParams {
+  assignmentId: string;
+  userId: string;
+}
+
+/** 'CreateStudentAssignment' return type */
+export interface ICreateStudentAssignmentResult {
+  assignmentId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'CreateStudentAssignment' query type */
+export interface ICreateStudentAssignmentQuery {
+  params: ICreateStudentAssignmentParams;
+  result: ICreateStudentAssignmentResult;
+}
+
+const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":856,"b":862,"line":28,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":866,"b":878,"line":28,"col":23}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, created_at, updated_at","loc":{"a":761,"b":954,"line":27,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)
+ *     VALUES (:userId!, :assignmentId!, NOW(), NOW())
+ * RETURNING
+ *     user_id, assignment_id, created_at, updated_at
+ * ```
+ */
+export const createStudentAssignment = new PreparedQuery<ICreateStudentAssignmentParams,ICreateStudentAssignmentResult>(createStudentAssignmentIR);
+
+
+/** 'GetAssignmentsByStudentId' parameters type */
+export interface IGetAssignmentsByStudentIdParams {
+  userId: string;
+}
+
+/** 'GetAssignmentsByStudentId' return type */
+export interface IGetAssignmentsByStudentIdResult {
+  classId: string;
+  description: string | null;
+  dueDate: Date | null;
+  id: string;
+  isRequired: boolean;
+  minDurationInMinutes: number | null;
+  numberOfSessions: number | null;
+  startDate: Date | null;
+  subjectId: number | null;
+  submittedAt: Date | null;
+  title: string | null;
+}
+
+/** 'GetAssignmentsByStudentId' query type */
+export interface IGetAssignmentsByStudentIdQuery {
+  params: IGetAssignmentsByStudentIdParams;
+  result: IGetAssignmentsByStudentIdResult;
+}
+
+const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1481,"b":1487,"line":50,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    assignments.start_date,\n    assignments.is_required,\n    assignments.id,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":997,"b":1487,"line":34,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     assignments.class_id,
+ *     assignments.description,
+ *     assignments.title,
+ *     assignments.number_of_sessions,
+ *     assignments.min_duration_in_minutes,
+ *     assignments.due_date,
+ *     assignments.subject_id,
+ *     assignments.start_date,
+ *     assignments.is_required,
+ *     assignments.id,
+ *     students_assignments.submitted_at
+ * FROM
+ *     assignments
+ *     LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
+ * WHERE
+ *     students_assignments.user_id = :userId!
+ * ```
+ */
+export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
+
+
