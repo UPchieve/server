@@ -69,10 +69,11 @@ GROUP BY
 
 
 /* @name createEmailNotification */
-INSERT INTO notifications (user_id, email_template_id, method_id, sent_at)
+INSERT INTO notifications (user_id, session_id, email_template_id, method_id, sent_at)
 SELECT
     :userId!,
-    :emailTemplateId,
+    :sessionId,
+    :emailTemplateId!,
     (
         SELECT
             id

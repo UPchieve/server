@@ -36,3 +36,9 @@ export type EmailNotification = {
   emailTemplateId: string
   sentAt: Date
 }
+
+export type CreateEmailNotificationProps = {
+  userId: Ulid
+  sessionId?: Ulid
+  emailTemplateId: string
+}
