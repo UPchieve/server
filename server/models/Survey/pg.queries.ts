@@ -923,3 +923,50 @@ const getProgressReportSurveyResponseIR: any = {"name":"getProgressReportSurveyR
 export const getProgressReportSurveyResponse = new PreparedQuery<IGetProgressReportSurveyResponseParams,IGetProgressReportSurveyResponseResult>(getProgressReportSurveyResponseIR);
 
 
+/** 'GetStudentPostsessionSurveyGoalQuestionRatings' parameters type */
+export interface IGetStudentPostsessionSurveyGoalQuestionRatingsParams {
+  userId: string;
+}
+
+/** 'GetStudentPostsessionSurveyGoalQuestionRatings' return type */
+export interface IGetStudentPostsessionSurveyGoalQuestionRatingsResult {
+  createdAt: Date;
+  score: number;
+  sessionId: string | null;
+  surveyResponseChoiceId: number | null;
+  userId: string;
+}
+
+/** 'GetStudentPostsessionSurveyGoalQuestionRatings' query type */
+export interface IGetStudentPostsessionSurveyGoalQuestionRatingsQuery {
+  params: IGetStudentPostsessionSurveyGoalQuestionRatingsParams;
+  result: IGetStudentPostsessionSurveyGoalQuestionRatingsResult;
+}
+
+const getStudentPostsessionSurveyGoalQuestionRatingsIR: any = {"name":"getStudentPostsessionSurveyGoalQuestionRatings","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":19276,"b":19282,"line":520,"col":18}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    us.user_id,\n    us.session_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score\nFROM\n    upchieve.users_surveys us\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE\n    us.user_id = :userId!\n    AND st.name = 'postsession'\n    AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'\n    AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')","loc":{"a":18806,"b":19549,"line":507,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     us.user_id,
+ *     us.session_id,
+ *     us.created_at,
+ *     uss.survey_response_choice_id,
+ *     src.score
+ * FROM
+ *     upchieve.users_surveys us
+ *     JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+ *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+ *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ *     JOIN upchieve.survey_types st ON st.id = us.survey_type_id
+ * WHERE
+ *     us.user_id = :userId!
+ *     AND st.name = 'postsession'
+ *     AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
+ *     AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')
+ * ```
+ */
+export const getStudentPostsessionSurveyGoalQuestionRatings = new PreparedQuery<IGetStudentPostsessionSurveyGoalQuestionRatingsParams,IGetStudentPostsessionSurveyGoalQuestionRatingsResult>(getStudentPostsessionSurveyGoalQuestionRatingsIR);
+
+

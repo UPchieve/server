@@ -2,6 +2,7 @@ import { Ulid } from '../models/pgUtils'
 import { getSessionById } from '../models/Session'
 import {
   getPresessionSurveyResponse,
+  getStudentPostsessionSurveyGoalQuestionRatings,
   saveUserSurveyAndSubmissions,
   SimpleSurveyResponse,
 } from '../models/Survey'
@@ -73,6 +74,10 @@ export async function saveUserSurvey(
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
   if (userSurvey.sessionId)
     emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
+}
+
+export const getStudentPostsessionGoalRatings = async (userId: string) => {
+  return await getStudentPostsessionSurveyGoalQuestionRatings(userId)
 }
 
 export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)
