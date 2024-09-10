@@ -117,18 +117,4 @@ export function routeStudents(router: Router): void {
       resError(res, err)
     }
   })
-
-  router.post('/students/assignments/:assignmentId', async function(req, res) {
-    try {
-      const user = extractUser(req)
-      const assignmentId = req.query.assignmentId as string
-      const assignments = await AssignmentsService.createStudentAssignment(
-        user.id,
-        assignmentId
-      )
-      res.json({ assignments })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }
