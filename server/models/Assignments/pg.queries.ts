@@ -78,7 +78,7 @@ export interface IGetAssignmentsByClassIdQuery {
   result: IGetAssignmentsByClassIdResult;
 }
 
-const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":616,"b":623,"line":14,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":560,"b":623,"line":9,"col":0}}};
+const getAssignmentsByClassIdIR: any = {"name":"getAssignmentsByClassId","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":615,"b":622,"line":13,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    class_id = :classId!","loc":{"a":559,"b":622,"line":8,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -121,7 +121,7 @@ export interface IGetAssignmentByIdQuery {
   result: IGetAssignmentByIdResult;
 }
 
-const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":708,"b":720,"line":23,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":658,"b":720,"line":18,"col":0}}};
+const getAssignmentByIdIR: any = {"name":"getAssignmentById","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":707,"b":719,"line":22,"col":10}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    id = :assignmentId!","loc":{"a":657,"b":719,"line":17,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -244,13 +244,13 @@ export interface ICreateStudentAssignmentQuery {
   result: ICreateStudentAssignmentResult;
 }
 
-const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1663,"b":1669,"line":66,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1673,"b":1685,"line":66,"col":23}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, null, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, created_at, updated_at","loc":{"a":1554,"b":1767,"line":65,"col":0}}};
+const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1670,"b":1676,"line":54,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1680,"b":1692,"line":54,"col":23}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, NULL, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, created_at, updated_at","loc":{"a":1561,"b":1774,"line":53,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
- *     VALUES (:userId!, :assignmentId!, null, NOW(), NOW())
+ *     VALUES (:userId!, :assignmentId!, NULL, NOW(), NOW())
  * RETURNING
  *     user_id, assignment_id, created_at, updated_at
  * ```
