@@ -3,7 +3,7 @@ import {
   EmailNotification,
   Notification,
 } from './types'
-import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
@@ -101,18 +101,18 @@ export async function createEmailNotification(
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoCreateError('Insert query did not return ok')
   } catch (err) {
-    throw new RepoDeleteError(err)
+    throw new RepoCreateError(err)
   }
 }
 
-export async function getEmailNotificationsByEmailTemplateId(
+export async function getUserEmailNotificationsByTemplateId(
   userId: Ulid,
   emailTemplateId: string,
   start?: Date,
   end?: Date
 ): Promise<EmailNotification[]> {
   try {
-    const result = await pgQueries.getEmailNotificationsByEmailTemplateId.run(
+    const result = await pgQueries.getUserEmailNotificationsByTemplateId.run(
       {
         userId,
         emailTemplateId,
@@ -123,6 +123,26 @@ export async function getEmailNotificationsByEmailTemplateId(
     )
     return result.map(row => makeRequired(row))
   } catch (err) {
-    throw new RepoDeleteError(err)
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAllEmailNotificationsByTemplateId(
+  emailTemplateId: string,
+  start?: Date,
+  end?: Date
+): Promise<EmailNotification[]> {
+  try {
+    const result = await pgQueries.getAllEmailNotificationsByTemplateId.run(
+      {
+        emailTemplateId,
+        start,
+        end,
+      },
+      getClient()
+    )
+    return result.map(row => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
