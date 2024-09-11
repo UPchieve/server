@@ -120,5 +120,19 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  router.route('/assignment/:assignmentId').post(async function(req, res) {
+    try {
+      const studentIds = req.body.studentIds
+      const assignmentId = req.params.assignmentId
+      const studentAssignments = await AssignmentsService.addAssignmentForStudents(
+        studentIds,
+        assignmentId
+      )
+      res.json({ studentAssignments })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   app.use('/api/teachers', router)
 }
