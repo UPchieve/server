@@ -2,6 +2,8 @@ import { Router } from 'express'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
+import * as UserProductFlagsService from '../../services/UserProductFlagsService'
+
 export interface TwilioError extends Error {
   message: string
   status: number
@@ -16,4 +18,32 @@ export function routeProductFlags(router: Router) {
       resError(res, err)
     }
   })
+
+  router
+    .route('/product-flags/fall-incentive-enrollment/enroll')
+    .post(async function(req, res) {
+      const user = extractUser(req)
+      try {
+        const fallIncentiveEnrollmentAt = await UserProductFlagsService.incentiveProgramEnrollmentEnroll(
+          user.id
+        )
+        res.json({ fallIncentiveEnrollmentAt })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/product-flags/fall-incentive-enrollment/denied')
+    .post(async function(req, res) {
+      const user = extractUser(req)
+      try {
+        await UserProductFlagsService.queueIncentiveInvitedToEnrollReminderJob(
+          user.id
+        )
+        res.sendStatus(200)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }

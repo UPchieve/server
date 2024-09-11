@@ -8,7 +8,12 @@ export type UserProductFlags = {
   sentInactiveSixtyDayEmail: boolean
   sentInactiveNinetyDayEmail: boolean
   gatesQualified: boolean
-  fallIncentiveProgram: boolean
+  fallIncentiveEnrollmentAt?: Date
   createdAt: Date
   updatedAt: Date
 }
+
+export type PublicUserProductFlags = Pick<
+  UserProductFlags,
+  'userId' | 'gatesQualified' | 'fallIncentiveEnrollmentAt'
+>

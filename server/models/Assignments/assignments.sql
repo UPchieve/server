@@ -24,10 +24,10 @@ WHERE
 
 
 /* @name createStudentAssignment */
-INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
-    VALUES (:userId!, :assignmentId!, NULL, NOW(), NOW())
+INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)
+    VALUES (:userId!, :assignmentId!, NOW(), NOW())
 RETURNING
-    user_id, assignment_id, submitted_at, created_at, updated_at;
+    user_id, assignment_id, created_at, updated_at;
 
 
 /* @name getAssignmentsByStudentId */

@@ -54,6 +54,8 @@ import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import moderateSessionMessage from '../../scripts/moderate-session-message'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
+import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
+import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -103,6 +105,12 @@ export enum Jobs {
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   GenerateProgressReport = 'GenerateProgressReport',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
+  EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
+  EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
+  EmailFallIncentiveMoneyOnTable = 'EmailFallIncentiveMoneyOnTable',
+  EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
+  EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
+  EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -321,7 +329,14 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.UpdateSendGridGradeLevels,
     processor: updateSendGridGradeLevels,
   },
-
+  {
+    name: Jobs.EmailFallIncentiveEnrollmentWelcome,
+    processor: emailFallIncentiveEnrollmentWelcome,
+  },
+  {
+    name: Jobs.EmailFallIncentiveInvitedToEnrollReminder,
+    processor: emailFallIncentiveInvitedToEnrollReminder,
+  },
   // TODO: remove the following deprecated job names
   {
     name: Jobs.EmailStudentUseCases,

@@ -147,7 +147,6 @@ export interface ICreateStudentAssignmentParams {
 export interface ICreateStudentAssignmentResult {
   assignmentId: string;
   createdAt: Date;
-  submittedAt: Date | null;
   updatedAt: Date;
   userId: string;
 }
@@ -158,15 +157,15 @@ export interface ICreateStudentAssignmentQuery {
   result: ICreateStudentAssignmentResult;
 }
 
-const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":870,"b":876,"line":28,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":880,"b":892,"line":28,"col":23}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, NULL, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, submitted_at, created_at, updated_at","loc":{"a":761,"b":988,"line":27,"col":0}}};
+const createStudentAssignmentIR: any = {"name":"createStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":856,"b":862,"line":28,"col":13}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":866,"b":878,"line":28,"col":23}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, created_at, updated_at","loc":{"a":761,"b":954,"line":27,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at)
- *     VALUES (:userId!, :assignmentId!, NULL, NOW(), NOW())
+ * INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)
+ *     VALUES (:userId!, :assignmentId!, NOW(), NOW())
  * RETURNING
- *     user_id, assignment_id, submitted_at, created_at, updated_at
+ *     user_id, assignment_id, created_at, updated_at
  * ```
  */
 export const createStudentAssignment = new PreparedQuery<ICreateStudentAssignmentParams,ICreateStudentAssignmentResult>(createStudentAssignmentIR);
@@ -198,7 +197,7 @@ export interface IGetAssignmentsByStudentIdQuery {
   result: IGetAssignmentsByStudentIdResult;
 }
 
-const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1515,"b":1521,"line":50,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    assignments.start_date,\n    assignments.is_required,\n    assignments.id,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":1031,"b":1521,"line":34,"col":0}}};
+const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1481,"b":1487,"line":50,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    assignments.start_date,\n    assignments.is_required,\n    assignments.id,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":997,"b":1487,"line":34,"col":0}}};
 
 /**
  * Query generated from SQL:

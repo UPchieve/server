@@ -96,10 +96,16 @@ const config: Static<typeof Config> = {
     failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
     emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
+    // TODO: place in templates
+    fallIncentiveEnrollmentWelcomeTemplate:
+      'd-914f98ad37c3461eaacc1c2bf27f097d',
+    fallIncentiveInvitedToEnrollReminderTemplate:
+      'd-ea8dadbc26f64da6bcdf7932049211d4',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
       volunteerSummary: 14543,
+      incentiveProgram: 26444,
     },
     contactList: {
       students:
@@ -137,6 +143,7 @@ const config: Static<typeof Config> = {
         'example@example.org',
       supportApp:
         process.env.SUBWAY_SUPPORT_APP_EMAIL_SENDER || 'example@exampleapp.org',
+      incentive: process.env.SUBWAY_INCENTIVE_SENDER || 'example@example.org',
     },
     receivers: {
       contact:
@@ -175,6 +182,7 @@ const config: Static<typeof Config> = {
       },
       programsManager:
         process.env.SUBWAY_PROGRAMS_MANAGER_EMAIL_SENDER_NAME || '',
+      incentiveOutreach: process.env.SUBWAY_INCENTIVE_OUTREACH_NAME || '',
     },
   },
   client: {
