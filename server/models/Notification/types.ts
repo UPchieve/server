@@ -44,7 +44,7 @@ export type CreateEmailNotificationProps = {
   emailTemplateId: string
 }
 
-export type EmailNotificationsByTemplateIdProps = {
+export type GetEmailNotificationsProps = {
   emailTemplateId: string
   userId?: Ulid
   sessionId?: Ulid

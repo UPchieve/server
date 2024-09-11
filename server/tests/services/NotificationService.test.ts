@@ -3,8 +3,8 @@ import { getDbUlid } from '../../models/pgUtils'
 import * as NotificationRepo from '../../models/Notification'
 import {
   createEmailNotification,
-  getEmailNotificationsByEmailTemplateId,
-  hasEmailBeenSent,
+  getEmailNotificationsByTemplateId,
+  hasUserBeenSentEmail,
 } from '../../services/NotificationService'
 
 jest.mock('../../models/Notification')
@@ -31,7 +31,7 @@ describe('createEmailNotification', () => {
   })
 })
 
-describe('getEmailNotificationsByEmailTemplateId', () => {
+describe('getEmailNotificationsByTemplateId', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -41,57 +41,60 @@ describe('getEmailNotificationsByEmailTemplateId', () => {
     const emailTemplateId = 'template-123'
     const mockResults = [
       {
+        userId,
         emailTemplateId,
         sentAt: new Date(),
       },
     ]
-    mockedNotificationRepo.getEmailNotificationsByEmailTemplateId.mockResolvedValueOnce(
+    mockedNotificationRepo.getEmailNotificationsByTemplateId.mockResolvedValueOnce(
       mockResults
     )
 
-    const results = await getEmailNotificationsByEmailTemplateId(
+    const results = await getEmailNotificationsByTemplateId({
       userId,
-      emailTemplateId
-    )
+      emailTemplateId,
+    })
     expect(results).toEqual(mockResults)
     expect(
-      mockedNotificationRepo.getEmailNotificationsByEmailTemplateId
-    ).toHaveBeenCalledWith(userId, emailTemplateId, undefined, undefined)
+      mockedNotificationRepo.getEmailNotificationsByTemplateId
+    ).toHaveBeenCalledWith({ userId, emailTemplateId })
   })
 })
 
-describe('hasEmailBeenSent', () => {
+describe('hasUserBeenSentEmail', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
   test('Should return true if an email has been sent', async () => {
     const userId = getDbUlid()
-    const templateId = 'template-123'
-    const startDate = new Date()
-    mockedNotificationRepo.getEmailNotificationsByEmailTemplateId.mockResolvedValueOnce(
-      [{ emailTemplateId: templateId, sentAt: startDate }]
+    const emailTemplateId = 'template-123'
+    const start = new Date()
+    mockedNotificationRepo.getEmailNotificationsByTemplateId.mockResolvedValueOnce(
+      [{ userId, emailTemplateId, sentAt: start }]
     )
+    const data = { userId, emailTemplateId, start }
 
-    const result = await hasEmailBeenSent(userId, templateId, startDate)
+    const result = await hasUserBeenSentEmail(data)
     expect(result).toBe(true)
     expect(
-      mockedNotificationRepo.getEmailNotificationsByEmailTemplateId
-    ).toHaveBeenCalledWith(userId, templateId, startDate, undefined)
+      mockedNotificationRepo.getEmailNotificationsByTemplateId
+    ).toHaveBeenCalledWith(data)
   })
 
   test('Should return false if no email has been sent', async () => {
     const userId = getDbUlid()
-    const templateId = 'template-123'
-    const startDate = new Date()
-    mockedNotificationRepo.getEmailNotificationsByEmailTemplateId.mockResolvedValueOnce(
+    const emailTemplateId = 'template-123'
+    const start = new Date()
+    mockedNotificationRepo.getEmailNotificationsByTemplateId.mockResolvedValueOnce(
       []
     )
+    const data = { userId, emailTemplateId, start }
 
-    const result = await hasEmailBeenSent(userId, templateId, startDate)
+    const result = await hasUserBeenSentEmail(data)
     expect(result).toBe(false)
     expect(
-      mockedNotificationRepo.getEmailNotificationsByEmailTemplateId
-    ).toHaveBeenCalledWith(userId, templateId, startDate, undefined)
+      mockedNotificationRepo.getEmailNotificationsByTemplateId
+    ).toHaveBeenCalledWith(data)
   })
 })

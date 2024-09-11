@@ -59,7 +59,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
@@ -88,7 +88,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 1,
@@ -128,8 +128,8 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 0,
@@ -163,8 +163,8 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 0,
@@ -204,7 +204,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 1,
@@ -240,8 +240,8 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 0,

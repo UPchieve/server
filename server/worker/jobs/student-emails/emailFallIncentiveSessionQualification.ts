@@ -6,7 +6,7 @@ import { Jobs } from '..'
 import { getFallIncentiveSessionStats } from '../../../services/SessionService'
 import config from '../../../config'
 import {
-  hasEmailBeenSent,
+  hasUserBeenSentEmail,
   createEmailNotification,
 } from '../../../services/NotificationService'
 import { getUserFallIncentiveData } from '../../../services/IncentiveProgramService'
@@ -57,11 +57,11 @@ export default async (
     fallIncentiveEnrollmentAt
   )
 
-  const qualifiedEmailSent = await hasEmailBeenSent(
+  const qualifiedEmailSent = await hasUserBeenSentEmail({
     userId,
-    config.sendgrid.qualifiedForGiftCardTemplate,
-    startOfWeek.toDate()
-  )
+    emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
+    start: startOfWeek.toDate(),
+  })
   // If they already qualified for this week, do not send any email
   if (qualifiedEmailSent) return
 
@@ -86,11 +86,11 @@ export default async (
 
     // Send reminder email if this is their first unqualified session
     if (sessionStats.totalUnqualified === 1) {
-      const unqualifiedEmailSent = await hasEmailBeenSent(
+      const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
-        config.sendgrid.stillTimeForQualifyingSessionTemplate,
-        startOfWeek.toDate()
-      )
+        emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
+        start: startOfWeek.toDate(),
+      })
       if (!unqualifiedEmailSent) {
         await MailService.sendStillTimeToHaveQualifyingSessionEmail(
           email,

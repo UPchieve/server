@@ -58,7 +58,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(true)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveLeavingMoneyOnTableJobData> = {
       data: {
@@ -85,7 +85,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 0,
@@ -118,7 +118,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 1,
@@ -158,7 +158,7 @@ describe('emailFallIncentiveLeavingMoneyOnTable', () => {
         incentiveProgramDate: new Date(),
       }
     )
-    mockedNotificationService.hasEmailBeenSent.mockResolvedValueOnce(false)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
       total: 0,
       totalQualified: 1,

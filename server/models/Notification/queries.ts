@@ -1,7 +1,7 @@
 import {
   CreateEmailNotificationProps,
   EmailNotification,
-  EmailNotificationsByTemplateIdProps,
+  GetEmailNotificationsProps,
   Notification,
 } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
@@ -107,7 +107,7 @@ export async function createEmailNotification(
 }
 
 export async function getEmailNotificationsByTemplateId(
-  data: EmailNotificationsByTemplateIdProps
+  data: GetEmailNotificationsProps
 ): Promise<EmailNotification[]> {
   try {
     const result = await pgQueries.getEmailNotificationsByTemplateId.run(

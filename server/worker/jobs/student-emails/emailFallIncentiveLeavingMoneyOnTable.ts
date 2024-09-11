@@ -8,7 +8,7 @@ import { getFallIncentiveSessionStats } from '../../../services/SessionService'
 import { log } from '../../logger'
 import { getUserFallIncentiveData } from '../../../services/IncentiveProgramService'
 import {
-  hasEmailBeenSent,
+  hasUserBeenSentEmail,
   createEmailNotification,
 } from '../../../services/NotificationService'
 import moment from 'moment'
@@ -33,11 +33,11 @@ export default async (
   if (!data) return
   const { user, incentiveProgramDate } = data
   const fallIncentiveProgramStartDate = moment(incentiveProgramDate)
-  const hasEmailSent = await hasEmailBeenSent(
+  const hasEmailSent = await hasUserBeenSentEmail({
     userId,
-    config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate,
-    fallIncentiveProgramStartDate.toDate()
-  )
+    emailTemplateId: config.sendgrid.fallIncentiveLeavingMoneyOnTableTemplate,
+    start: fallIncentiveProgramStartDate.toDate(),
+  })
   if (hasEmailSent) return
 
   const sessionStats = await getFallIncentiveSessionStats(
