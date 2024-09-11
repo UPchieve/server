@@ -203,32 +203,34 @@ const createEmailNotificationIR: any = {"name":"createEmailNotification","params
 export const createEmailNotification = new PreparedQuery<ICreateEmailNotificationParams,ICreateEmailNotificationResult>(createEmailNotificationIR);
 
 
-/** 'GetEmailNotificationsByEmailTemplateId' parameters type */
-export interface IGetEmailNotificationsByEmailTemplateIdParams {
+/** 'GetEmailNotificationsByTemplateId' parameters type */
+export interface IGetEmailNotificationsByTemplateIdParams {
   emailTemplateId: string;
   end: Date | null | void;
   start: Date | null | void;
+  userId: string | null | void;
+}
+
+/** 'GetEmailNotificationsByTemplateId' return type */
+export interface IGetEmailNotificationsByTemplateIdResult {
+  emailTemplateId: string | null;
+  sentAt: Date | null;
   userId: string;
 }
 
-/** 'GetEmailNotificationsByEmailTemplateId' return type */
-export interface IGetEmailNotificationsByEmailTemplateIdResult {
-  emailTemplateId: string | null;
-  sentAt: Date | null;
+/** 'GetEmailNotificationsByTemplateId' query type */
+export interface IGetEmailNotificationsByTemplateIdQuery {
+  params: IGetEmailNotificationsByTemplateIdParams;
+  result: IGetEmailNotificationsByTemplateIdResult;
 }
 
-/** 'GetEmailNotificationsByEmailTemplateId' query type */
-export interface IGetEmailNotificationsByEmailTemplateIdQuery {
-  params: IGetEmailNotificationsByEmailTemplateIdParams;
-  result: IGetEmailNotificationsByEmailTemplateIdResult;
-}
-
-const getEmailNotificationsByEmailTemplateIdIR: any = {"name":"getEmailNotificationsByEmailTemplateId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3006,"b":3012,"line":98,"col":19}]}},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3043,"b":3058,"line":99,"col":29}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3071,"b":3075,"line":100,"col":11},{"a":3123,"b":3127,"line":101,"col":24}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3158,"b":3160,"line":102,"col":15},{"a":3212,"b":3214,"line":103,"col":28}]}}],"usedParamSet":{"userId":true,"emailTemplateId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    email_template_id,\n    sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notifications.method_id = notification_methods.id\nWHERE\n    notification_methods.method = 'email'\n    AND user_id = :userId!\n    AND email_template_id = :emailTemplateId!\n    AND ((:start)::timestamptz IS NULL\n        OR sent_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR sent_at <= (:end)::timestamptz))","loc":{"a":2791,"b":3230,"line":90,"col":0}}};
+const getEmailNotificationsByTemplateIdIR: any = {"name":"getEmailNotificationsByTemplateId","params":[{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3024,"b":3039,"line":99,"col":29}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3051,"b":3056,"line":100,"col":10},{"a":3094,"b":3099,"line":101,"col":22}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3119,"b":3123,"line":102,"col":11},{"a":3171,"b":3175,"line":103,"col":24}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3206,"b":3208,"line":104,"col":15},{"a":3260,"b":3262,"line":105,"col":28}]}}],"usedParamSet":{"emailTemplateId":true,"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    user_id,\n    email_template_id,\n    sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notifications.method_id = notification_methods.id\nWHERE\n    notification_methods.method = 'email'\n    AND email_template_id = :emailTemplateId!\n    AND (:userId::uuid IS NULL\n        OR user_id = :userId::uuid)\n    AND ((:start)::timestamptz IS NULL\n        OR sent_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR sent_at <= (:end)::timestamptz))","loc":{"a":2786,"b":3278,"line":90,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     user_id,
  *     email_template_id,
  *     sent_at
  * FROM
@@ -236,14 +238,15 @@ const getEmailNotificationsByEmailTemplateIdIR: any = {"name":"getEmailNotificat
  *     JOIN notification_methods ON notifications.method_id = notification_methods.id
  * WHERE
  *     notification_methods.method = 'email'
- *     AND user_id = :userId!
  *     AND email_template_id = :emailTemplateId!
+ *     AND (:userId::uuid IS NULL
+ *         OR user_id = :userId::uuid)
  *     AND ((:start)::timestamptz IS NULL
  *         OR sent_at >= (:start)::timestamptz
  *         AND ((:end)::timestamptz IS NULL
  *             OR sent_at <= (:end)::timestamptz))
  * ```
  */
-export const getEmailNotificationsByEmailTemplateId = new PreparedQuery<IGetEmailNotificationsByEmailTemplateIdParams,IGetEmailNotificationsByEmailTemplateIdResult>(getEmailNotificationsByEmailTemplateIdIR);
+export const getEmailNotificationsByTemplateId = new PreparedQuery<IGetEmailNotificationsByTemplateIdParams,IGetEmailNotificationsByTemplateIdResult>(getEmailNotificationsByTemplateIdIR);
 
 
