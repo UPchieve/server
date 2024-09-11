@@ -2,7 +2,7 @@ import { getClient, TransactionClient } from '../../db'
 import { RepoReadError, RepoCreateError } from '../Errors'
 import { Assignment, CreateAssignmentPayload } from './types'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeSomeOptional } from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeOptional, makeSomeRequired } from '../pgUtils'
 
 export async function createAssignment(
   data: CreateAssignmentPayload,
@@ -87,6 +87,43 @@ export async function getAssignmentById(
         'subjectId',
       ])
     }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function createStudentAssignment(
+  userId: Ulid,
+  assignmentId: Ulid,
+  tc: TransactionClient
+) {
+  const assignment = await pgQueries.createStudentAssignment.run(
+    { userId, assignmentId },
+    tc
+  )
+  if (!assignment.length) {
+    throw new RepoCreateError('Unable to create student assignment.')
+  }
+  return makeSomeRequired(assignment[0], [
+    'userId',
+    'assignmentId',
+    'createdAt',
+    'updatedAt',
+  ])
+}
+
+export async function getAssignmentsByStudentId(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const assignments = await pgQueries.getAssignmentsByStudentId.run(
+      { userId },
+      tc
+    )
+    return assignments.map(a =>
+      makeSomeRequired(a, ['classId', 'id', 'isRequired'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
