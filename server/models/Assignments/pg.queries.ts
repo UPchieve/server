@@ -224,23 +224,3 @@ const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","pa
 export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
 
 
-/** 'CreateStudentAssignment' parameters type */
-export interface ICreateStudentAssignmentParams {
-  assignmentId: string;
-  userId: string;
-}
-
-/** 'CreateStudentAssignment' return type */
-export interface ICreateStudentAssignmentResult {
-  assignmentId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'CreateStudentAssignment' query type */
-export interface ICreateStudentAssignmentQuery {
-  params: ICreateStudentAssignmentParams;
-  result: ICreateStudentAssignmentResult;
-}
-
