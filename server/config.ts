@@ -387,6 +387,13 @@ const config: Static<typeof Config> = {
   tutorBotApiKey: process.env.TUTOR_BOT_API_KEY || 'bogus',
   tutorBotBaseUrl: process.env.TUTOR_BOT_BASE_URL || 'bogus',
   tutorBotModelName: process.env.TUTOR_BOT_MODEL_NAME || 'bogus',
+
+  // Tremendous API
+  tremendousDomain:
+    process.env.SUBWAY_TREMENDOUS_DOMAIN || 'testflight.tremendous.com',
+  tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
+  tremendousFallIncentiveCampaign:
+    process.env.SUBWAY_TREMENDOUS_FALL_INCENTIVE_CAMPAIGN || 'bogus',
 }
 
 module.exports = config

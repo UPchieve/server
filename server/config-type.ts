@@ -254,4 +254,8 @@ export const Config = Record({
   tutorBotApiKey: String,
   tutorBotBaseUrl: String,
   tutorBotModelName: String,
+
+  tremendousDomain: String,
+  tremendousApiKey: String,
+  tremendousFallIncentiveCampaign: String,
 })
