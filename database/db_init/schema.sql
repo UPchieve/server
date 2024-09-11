@@ -772,11 +772,11 @@ CREATE TABLE upchieve.notifications (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
     sent_at timestamp with time zone,
-    type_id integer NOT NULL,
+    type_id integer,
     method_id integer NOT NULL,
-    priority_group_id integer NOT NULL,
+    priority_group_id integer,
     successful boolean,
-    session_id uuid NOT NULL,
+    session_id uuid,
     message_carrier_id text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -5907,4 +5907,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240828142138'),
     ('20240903213429'),
     ('20240906232026'),
-    ('20240909182606');
+    ('20240909182606'),
+    ('20240910003849');
