@@ -5,6 +5,7 @@ import { asBoolean, asNumber, asUlid, asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'
+import * as AssignmentsService from '../../services/AssignmentsService'
 import { FavoriteLimitReachedError } from '../../services/Errors'
 import { authPassport } from '../../utils/auth-utils'
 
@@ -100,6 +101,18 @@ export function routeStudents(router: Router): void {
         asString(studentId)
       )
       res.json({ activePartners: activePartners || [] })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/students/assignments', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const assignments = await AssignmentsService.getAssignmentsByStudentId(
+        user.id
+      )
+      res.json({ assignments })
     } catch (err) {
       resError(res, err)
     }
