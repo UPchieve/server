@@ -104,7 +104,7 @@ export async function createStudentAssignment(
   if (!assignment.length) {
     throw new RepoCreateError('Unable to create student assignment.')
   }
-  return makeSomeOptional(assignment[0], [
+  return makeSomeRequired(assignment[0], [
     'userId',
     'assignmentId',
     'createdAt',
