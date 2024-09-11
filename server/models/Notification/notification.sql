@@ -89,6 +89,7 @@ RETURNING
 /* @name getEmailNotificationsByTemplateId */
 SELECT
     user_id,
+    session_id,
     email_template_id,
     sent_at
 FROM

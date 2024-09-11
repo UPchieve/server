@@ -215,6 +215,7 @@ export interface IGetEmailNotificationsByTemplateIdParams {
 export interface IGetEmailNotificationsByTemplateIdResult {
   emailTemplateId: string | null;
   sentAt: Date | null;
+  sessionId: string | null;
   userId: string;
 }
 
@@ -224,13 +225,14 @@ export interface IGetEmailNotificationsByTemplateIdQuery {
   result: IGetEmailNotificationsByTemplateIdResult;
 }
 
-const getEmailNotificationsByTemplateIdIR: any = {"name":"getEmailNotificationsByTemplateId","params":[{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3024,"b":3039,"line":99,"col":29}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3051,"b":3056,"line":100,"col":10},{"a":3094,"b":3099,"line":101,"col":22}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3119,"b":3123,"line":102,"col":11},{"a":3171,"b":3175,"line":103,"col":24}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3206,"b":3208,"line":104,"col":15},{"a":3260,"b":3262,"line":105,"col":28}]}}],"usedParamSet":{"emailTemplateId":true,"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    user_id,\n    email_template_id,\n    sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notifications.method_id = notification_methods.id\nWHERE\n    notification_methods.method = 'email'\n    AND email_template_id = :emailTemplateId!\n    AND (:userId::uuid IS NULL\n        OR user_id = :userId::uuid)\n    AND ((:start)::timestamptz IS NULL\n        OR sent_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR sent_at <= (:end)::timestamptz))","loc":{"a":2786,"b":3278,"line":90,"col":0}}};
+const getEmailNotificationsByTemplateIdIR: any = {"name":"getEmailNotificationsByTemplateId","params":[{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3040,"b":3055,"line":100,"col":29}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3067,"b":3072,"line":101,"col":10},{"a":3110,"b":3115,"line":102,"col":22}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3135,"b":3139,"line":103,"col":11},{"a":3187,"b":3191,"line":104,"col":24}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3222,"b":3224,"line":105,"col":15},{"a":3276,"b":3278,"line":106,"col":28}]}}],"usedParamSet":{"emailTemplateId":true,"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    user_id,\n    session_id,\n    email_template_id,\n    sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notifications.method_id = notification_methods.id\nWHERE\n    notification_methods.method = 'email'\n    AND email_template_id = :emailTemplateId!\n    AND (:userId::uuid IS NULL\n        OR user_id = :userId::uuid)\n    AND ((:start)::timestamptz IS NULL\n        OR sent_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR sent_at <= (:end)::timestamptz))","loc":{"a":2786,"b":3294,"line":90,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     user_id,
+ *     session_id,
  *     email_template_id,
  *     sent_at
  * FROM
