@@ -107,7 +107,6 @@ export async function createStudentAssignment(
   return makeSomeOptional(assignment[0], [
     'userId',
     'assignmentId',
-    'submittedAt',
     'createdAt',
     'updatedAt',
   ])
