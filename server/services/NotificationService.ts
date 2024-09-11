@@ -7,28 +7,8 @@ export async function createEmailNotification(
   return NotificationRepo.createEmailNotification(data)
 }
 
-export async function getUserEmailNotificationsByTemplateId(
-  userId: Ulid,
-  emailTemplateId: string,
-  start?: Date,
-  end?: Date
+export async function getEmailNotificationsByTemplateId(
+  data: NotificationRepo.EmailNotificationsByTemplateIdProps
 ) {
-  return NotificationRepo.getUserEmailNotificationsByTemplateId(
-    userId,
-    emailTemplateId,
-    start,
-    end
-  )
-}
-
-export async function getAllEmailNotificationsByTemplateId(
-  emailTemplateId: string,
-  start?: Date,
-  end?: Date
-) {
-  return NotificationRepo.getAllEmailNotificationsByTemplateId(
-    emailTemplateId,
-    start,
-    end
-  )
+  return NotificationRepo.getEmailNotificationsByTemplateId(data)
 }

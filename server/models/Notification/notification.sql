@@ -86,25 +86,7 @@ RETURNING
     id AS ok;
 
 
-/* @name getUserEmailNotificationsByTemplateId */
-SELECT
-    user_id,
-    email_template_id,
-    sent_at
-FROM
-    notifications
-    JOIN notification_methods ON notifications.method_id = notification_methods.id
-WHERE
-    notification_methods.method = 'email'
-    AND user_id = :userId!
-    AND email_template_id = :emailTemplateId!
-    AND ((:start)::timestamptz IS NULL
-        OR sent_at >= (:start)::timestamptz
-        AND ((:end)::timestamptz IS NULL
-            OR sent_at <= (:end)::timestamptz));
-
-
-/* @name getAllEmailNotificationsByTemplateId */
+/* @name getEmailNotificationsByTemplateId */
 SELECT
     user_id,
     email_template_id,
@@ -115,6 +97,8 @@ FROM
 WHERE
     notification_methods.method = 'email'
     AND email_template_id = :emailTemplateId!
+    AND (:userId::uuid IS NULL
+        OR user_id = :userId::uuid)
     AND ((:start)::timestamptz IS NULL
         OR sent_at >= (:start)::timestamptz
         AND ((:end)::timestamptz IS NULL

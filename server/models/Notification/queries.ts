@@ -1,6 +1,7 @@
 import {
   CreateEmailNotificationProps,
   EmailNotification,
+  EmailNotificationsByTemplateIdProps,
   Notification,
 } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
@@ -105,39 +106,16 @@ export async function createEmailNotification(
   }
 }
 
-export async function getUserEmailNotificationsByTemplateId(
-  userId: Ulid,
-  emailTemplateId: string,
-  start?: Date,
-  end?: Date
+export async function getEmailNotificationsByTemplateId(
+  data: EmailNotificationsByTemplateIdProps
 ): Promise<EmailNotification[]> {
   try {
-    const result = await pgQueries.getUserEmailNotificationsByTemplateId.run(
+    const result = await pgQueries.getEmailNotificationsByTemplateId.run(
       {
-        userId,
-        emailTemplateId,
-        start,
-        end,
-      },
-      getClient()
-    )
-    return result.map(row => makeRequired(row))
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getAllEmailNotificationsByTemplateId(
-  emailTemplateId: string,
-  start?: Date,
-  end?: Date
-): Promise<EmailNotification[]> {
-  try {
-    const result = await pgQueries.getAllEmailNotificationsByTemplateId.run(
-      {
-        emailTemplateId,
-        start,
-        end,
+        emailTemplateId: data.emailTemplateId,
+        userId: data.userId ? data.userId : undefined,
+        start: data.start ? data.start : undefined,
+        end: data.end ? data.end : undefined,
       },
       getClient()
     )
