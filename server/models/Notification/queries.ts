@@ -119,7 +119,7 @@ export async function getEmailNotificationsByTemplateId(
       },
       getClient()
     )
-    return result.map(row => makeRequired(row))
+    return result.map(row => makeSomeOptional(row, ['sessionId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
