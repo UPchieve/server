@@ -109,7 +109,7 @@ export async function createStudentAssignment(
     'assignmentId',
     'submittedAt',
     'createdAt',
-    'updatedAt'
+    'updatedAt',
   ])
 }
 
@@ -122,12 +122,8 @@ export async function getAssignmentsByStudentId(
       { userId },
       tc
     )
-    return assignments.map(a => 
-      makeSomeRequired(a, [
-        'classId',
-        'id',
-        'isRequired'
-      ])
+    return assignments.map(a =>
+      makeSomeRequired(a, ['classId', 'id', 'isRequired'])
     )
   } catch (err) {
     throw new RepoReadError(err)
