@@ -8,7 +8,7 @@ export async function createEmailNotification(
 }
 
 export async function getEmailNotificationsByTemplateId(
-  data: NotificationRepo.EmailNotificationsByTemplateIdProps
+  data: NotificationRepo.GetEmailNotificationsProps
 ) {
   return NotificationRepo.getEmailNotificationsByTemplateId(data)
 }

@@ -34,6 +34,7 @@ export type NotificationMethod = ExtractValues<typeof NotificationMethod>
 
 export type EmailNotification = {
   userId: Ulid
+  sessionId?: Ulid
   emailTemplateId: string
   sentAt: Date
 }
@@ -44,7 +45,7 @@ export type CreateEmailNotificationProps = {
   emailTemplateId: string
 }
 
-export type EmailNotificationsByTemplateIdProps = {
+export type GetEmailNotificationsProps = {
   emailTemplateId: string
   userId?: Ulid
   sessionId?: Ulid
