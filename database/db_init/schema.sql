@@ -780,7 +780,8 @@ CREATE TABLE upchieve.notifications (
     message_carrier_id text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    email_template_id text
 );
 
 
@@ -5908,4 +5909,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240903213429'),
     ('20240906232026'),
     ('20240909182606'),
-    ('20240910003849');
+    ('20240910003849'),
+    ('20240910010753');
