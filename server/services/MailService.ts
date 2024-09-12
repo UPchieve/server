@@ -1377,6 +1377,28 @@ export async function sendStillTimeToHaveQualifyingSessionEmail(
   )
 }
 
+export async function sendFallIncentiveGiftCardEmail(
+  email: string,
+  firstName: string,
+  rewardLink: string
+): Promise<void> {
+  const sender = config.mail.senders.incentive
+  const overrides = {
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive gift card email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    config.mail.people.incentiveOutreach,
+    config.sendgrid.fallIncentiveGiftCardTemplate,
+    { firstName, rewardLink },
+    overrides
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
   const contacts = []
