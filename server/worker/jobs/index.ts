@@ -58,6 +58,7 @@ import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncen
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import emailFallIncentiveLeavingMoneyOnTable from './student-emails/emailFallIncentiveLeavingMoneyOnTable'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
+import emailFallIncentiveRewards from './student-emails/emailFallIncentiveRewards'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -112,7 +113,7 @@ export enum Jobs {
   EmailFallIncentiveLeavingMoneyOnTable = 'EmailFallIncentiveLeavingMoneyOnTable',
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
   EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
-  EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
+  EmailFallIncentiveRewards = 'EmailFallIncentiveRewards',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -359,6 +360,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailStudentGoalSetting,
     processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailFallIncentiveRewards,
+    processor: emailFallIncentiveRewards,
   },
 
   // Backfill scripts
