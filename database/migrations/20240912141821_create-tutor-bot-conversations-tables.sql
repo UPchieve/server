@@ -14,13 +14,15 @@ CREATE TYPE upchieve.tutor_bot_conversation_user_type AS ENUM (
 );
 
 CREATE TABLE IF NOT EXISTS upchieve.tutor_bot_conversation_messages (
-    id uuid PRIMARY KEY,
     tutor_bot_conversation_id uuid NOT NULL REFERENCES upchieve.tutor_bot_conversations (id),
     user_id uuid NOT NULL REFERENCES upchieve.users (id),
     sender_user_type upchieve.tutor_bot_conversation_user_type NOT NULL,
     message text NOT NULL,
     created_at timestamptz DEFAULT now() NOT NULL
 );
+
+ALTER TABLE upchieve.tutor_bot_conversation_messages
+    ADD PRIMARY KEY (tutor_bot_conversation_id, user_id, sender_user_type, created_at);
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.tutor_bot_conversation_messages;
