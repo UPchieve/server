@@ -13,7 +13,7 @@ export interface IGetNotificationsByVolunteerIdResult {
   method: string;
   priorityGroup: string;
   sentAt: Date | null;
-  sessionId: string;
+  sessionId: string | null;
   type: string;
   volunteer: string;
   wasSuccessful: boolean | null;
@@ -65,7 +65,7 @@ export interface IGetSessionNotificationsWithSessionIdResult {
   method: string;
   priorityGroup: string;
   sentAt: Date | null;
-  sessionId: string;
+  sessionId: string | null;
   type: string;
   volunteerPartnerOrg: string;
   wasSuccessful: boolean | null;
