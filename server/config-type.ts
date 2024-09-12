@@ -78,6 +78,7 @@ export const Config = Record({
     fallIncentiveLeavingMoneyOnTableTemplate: String,
     qualifiedForGiftCardTemplate: String,
     stillTimeForQualifyingSessionTemplate: String,
+    fallIncentiveGiftCardTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
