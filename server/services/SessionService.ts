@@ -1050,7 +1050,8 @@ function isQualifiedFallIncentiveSession(
       session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
     ) &&
     session.timeTutored > tenMinutes &&
-    session.totalMessages >= 15
+    session.totalMessages >= 15 &&
+    !session.reported
   )
 }
 
