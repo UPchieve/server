@@ -38,10 +38,6 @@ import {
   getSessionRating,
 } from '../Survey'
 import config from '../../config'
-import {
-  IGetTutorBotSessionMessagesBySessionIdResult,
-  tutor_bot_session_user_type,
-} from './pg.queries'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
