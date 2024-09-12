@@ -89,21 +89,12 @@ export async function addAssignmentForStudents(
 }
 
 export async function addAssignmentForClass(classId: Ulid, assignmentId: Ulid) {
-  let studentAssignments: StudentAssignment[] = []
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
       classId
     )
-
-    for (const studentId in studentIds) {
-      const studentAssignment = await AssignmentsRepo.createStudentAssignment(
-        studentId,
-        assignmentId,
-        tc
-      )
-    }
-    return studentAssignments
+    return addAssignmentForStudents(studentIds, assignmentId)
   })
 }
 
