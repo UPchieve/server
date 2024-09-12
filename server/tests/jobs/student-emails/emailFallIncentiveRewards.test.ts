@@ -1,5 +1,3 @@
-test.todo('Helloooo')
-
 import { mocked } from 'jest-mock'
 import emailFallIncentiveRewards from '../../../worker/jobs/student-emails/emailFallIncentiveRewards'
 import { Jobs } from '../../../worker/jobs'
@@ -10,7 +8,6 @@ import * as IncentiveProgramService from '../../../services/IncentiveProgramServ
 import { buildUser, buildUserProductFlags } from '../../mocks/generate'
 import config from '../../../config'
 import { log } from '../../../worker/logger'
-import moment from 'moment'
 import { getDbUlid } from '../../../models/pgUtils'
 
 jest.mock('../../../logger')
