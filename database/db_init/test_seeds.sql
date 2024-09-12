@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
--- Dumped by pg_dump version 14.11 (Homebrew)
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3556,6 +3556,22 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) FROM stdin;
 1	upchieve101	2024-08-28 00:28:43.735425+00	2024-08-28 00:28:44.16882+00	UPchieve 101
+\.
+
+
+--
+-- Data for Name: tutor_bot_conversations; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.tutor_bot_conversations (id, user_id, created_at, session_id, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: tutor_bot_conversation_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.tutor_bot_conversation_messages (id, tutor_bot_conversation_id, sender_id, sender_user_type, message, created_at) FROM stdin;
 \.
 
 

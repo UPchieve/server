@@ -102,6 +102,17 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 
 --
+-- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.tutor_bot_conversation_user_type AS ENUM (
+    'student',
+    'bot',
+    'volunteer'
+);
+
+
+--
 -- Name: tutor_bot_session_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -2198,6 +2209,33 @@ ALTER SEQUENCE upchieve.training_courses_id_seq OWNED BY upchieve.training_cours
 
 
 --
+-- Name: tutor_bot_conversation_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.tutor_bot_conversation_messages (
+    id uuid NOT NULL,
+    tutor_bot_conversation_id uuid NOT NULL,
+    sender_id uuid NOT NULL,
+    sender_user_type upchieve.tutor_bot_conversation_user_type NOT NULL,
+    message text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tutor_bot_conversations; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.tutor_bot_conversations (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    session_id uuid,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: tutor_bot_session_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3924,6 +3962,22 @@ ALTER TABLE ONLY upchieve.training_courses
 
 
 --
+-- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
+    ADD CONSTRAINT tutor_bot_conversation_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tutor_bot_conversations tutor_bot_conversations_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversations
+    ADD CONSTRAINT tutor_bot_conversations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tutor_bot_session_messages tutor_bot_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5438,6 +5492,38 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
+-- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
+    ADD CONSTRAINT tutor_bot_conversation_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
+    ADD CONSTRAINT tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey FOREIGN KEY (tutor_bot_conversation_id) REFERENCES upchieve.tutor_bot_conversations(id);
+
+
+--
+-- Name: tutor_bot_conversations tutor_bot_conversations_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversations
+    ADD CONSTRAINT tutor_bot_conversations_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: tutor_bot_conversations tutor_bot_conversations_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversations
+    ADD CONSTRAINT tutor_bot_conversations_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: tutor_bot_session_messages tutor_bot_session_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5910,4 +5996,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240906232026'),
     ('20240909182606'),
     ('20240910003849'),
-    ('20240910010753');
+    ('20240910010753'),
+    ('20240912141821');
