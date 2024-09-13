@@ -98,9 +98,16 @@ export function routeTeachers(app: Express, router: Router): void {
   /* Assignments */
   router.route('/assignment').post(async function(req, res) {
     try {
-      const assignmentData = asAssignment(req.body)
+        const { dueDate, startDate } = req.body
+        const assignmentData = {
+          ...req.body,
+          dueDate: new Date(dueDate),
+          startDate: new Date(startDate)
+        }
+      const assignmentDataValidation = asAssignment(assignmentData)
+
       const assignment = await AssignmentsService.createAssignment(
-        assignmentData
+        assignmentDataValidation
       )
       res.json({ assignment })
     } catch (err) {
