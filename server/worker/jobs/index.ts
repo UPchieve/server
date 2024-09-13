@@ -56,7 +56,6 @@ import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
-import emailFallIncentiveLeavingMoneyOnTable from './student-emails/emailFallIncentiveLeavingMoneyOnTable'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
 
 export enum Jobs {
@@ -338,10 +337,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailFallIncentiveInvitedToEnrollReminder,
     processor: emailFallIncentiveInvitedToEnrollReminder,
-  },
-  {
-    name: Jobs.EmailFallIncentiveLeavingMoneyOnTable,
-    processor: emailFallIncentiveLeavingMoneyOnTable,
   },
   {
     name: Jobs.EmailFallIncentiveSessionQualification,

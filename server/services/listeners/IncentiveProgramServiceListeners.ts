@@ -5,11 +5,6 @@ import register from './register'
 export function listeners() {
   register(
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
-    IncentiveProgramService.queueFallIncentiveLeavingMoneyOnTableJob,
-    'queueFallIncentiveLeavingMoneyOnTableJob'
-  )
-  register(
-    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     IncentiveProgramService.queueFallIncentiveSessionQualificationJob,
     'queueFallIncentiveSessionQualificationJob'
   )
