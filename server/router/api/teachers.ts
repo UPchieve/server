@@ -145,5 +145,17 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  router.route('/assignments').get(async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const assignments = await AssignmentsService.getAllAssignmentsForTeacher(
+        user.id
+      )
+      res.json({ assignments })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   app.use('/api/teachers', router)
 }
