@@ -47,11 +47,10 @@ export interface IGetTutorBotConversationMessagesByConversationIdParams {
 /** 'GetTutorBotConversationMessagesByConversationId' return type */
 export interface IGetTutorBotConversationMessagesByConversationIdResult {
   createdAt: Date;
-  id: string;
   message: string;
-  senderId: string;
   senderUserType: tutor_bot_conversation_user_type;
   tutorBotConversationId: string;
+  userId: string;
 }
 
 /** 'GetTutorBotConversationMessagesByConversationId' query type */
@@ -84,11 +83,10 @@ export interface IGetTutorBotConversationByIdParams {
 /** 'GetTutorBotConversationById' return type */
 export interface IGetTutorBotConversationByIdResult {
   createdAt: Date;
-  id: string;
   message: string;
-  senderId: string;
   senderUserType: tutor_bot_conversation_user_type;
   tutorBotConversationId: string;
+  userId: string;
 }
 
 /** 'GetTutorBotConversationById' query type */
@@ -118,10 +116,9 @@ export const getTutorBotConversationById = new PreparedQuery<IGetTutorBotConvers
 /** 'InsertTutorBotConversationMessage' parameters type */
 export interface IInsertTutorBotConversationMessageParams {
   conversationId: string;
-  id: string;
   message: string;
-  senderId: string;
   senderUserType: tutor_bot_conversation_user_type;
+  userId: string;
 }
 
 /** 'InsertTutorBotConversationMessage' return type */
@@ -133,13 +130,13 @@ export interface IInsertTutorBotConversationMessageQuery {
   result: IInsertTutorBotConversationMessageResult;
 }
 
-const insertTutorBotConversationMessageIR: any = {"name":"insertTutorBotConversationMessage","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":668,"b":670,"line":32,"col":13}]}},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":674,"b":688,"line":32,"col":19}]}},{"name":"senderId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":692,"b":700,"line":32,"col":37}]}},{"name":"senderUserType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":704,"b":718,"line":32,"col":49}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":722,"b":729,"line":32,"col":67}]}}],"usedParamSet":{"id":true,"conversationId":true,"senderId":true,"senderUserType":true,"message":true},"statement":{"body":"INSERT INTO tutor_bot_conversation_messages (id, tutor_bot_conversation_id, sender_id, sender_user_type, message, created_at)\n    VALUES (:id!, :conversationId!, :senderId!, :senderUserType!, :message!, NOW())","loc":{"a":529,"b":737,"line":31,"col":0}}};
+const insertTutorBotConversationMessageIR: any = {"name":"insertTutorBotConversationMessage","params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":662,"b":676,"line":32,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":680,"b":686,"line":32,"col":31}]}},{"name":"senderUserType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":690,"b":704,"line":32,"col":41}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":708,"b":715,"line":32,"col":59}]}}],"usedParamSet":{"conversationId":true,"userId":true,"senderUserType":true,"message":true},"statement":{"body":"INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)\n    VALUES (:conversationId!, :userId!, :senderUserType!, :message!, NOW())","loc":{"a":529,"b":723,"line":31,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO tutor_bot_conversation_messages (id, tutor_bot_conversation_id, sender_id, sender_user_type, message, created_at)
- *     VALUES (:id!, :conversationId!, :senderId!, :senderUserType!, :message!, NOW())
+ * INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)
+ *     VALUES (:conversationId!, :userId!, :senderUserType!, :message!, NOW())
  * ```
  */
 export const insertTutorBotConversationMessage = new PreparedQuery<IInsertTutorBotConversationMessageParams,IInsertTutorBotConversationMessageResult>(insertTutorBotConversationMessageIR);

@@ -28,6 +28,6 @@ ORDER BY
 
 
 /* @name insertTutorBotConversationMessage */
-INSERT INTO tutor_bot_conversation_messages (id, tutor_bot_conversation_id, sender_id, sender_user_type, message, created_at)
-    VALUES (:id!, :conversationId!, :senderId!, :senderUserType!, :message!, NOW());
+INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)
+    VALUES (:conversationId!, :userId!, :senderUserType!, :message!, NOW());
 
