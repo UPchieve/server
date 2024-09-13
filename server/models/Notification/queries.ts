@@ -1,5 +1,10 @@
-import { Notification } from './types'
-import { RepoReadError } from '../Errors'
+import {
+  CreateEmailNotificationProps,
+  EmailNotification,
+  GetEmailNotificationsProps,
+  Notification,
+} from './types'
+import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
@@ -77,6 +82,44 @@ export async function getNotificationsForGentleWarning(
       ret.email = ret.email.toLowerCase()
       return ret
     })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function createEmailNotification(
+  data: CreateEmailNotificationProps
+): Promise<void> {
+  try {
+    const result = await pgQueries.createEmailNotification.run(
+      {
+        userId: data.userId,
+        sessionId: data.sessionId ? data.sessionId : undefined,
+        emailTemplateId: data.emailTemplateId,
+      },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoCreateError('Insert query did not return ok')
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function getEmailNotificationsByTemplateId(
+  data: GetEmailNotificationsProps
+): Promise<EmailNotification[]> {
+  try {
+    const result = await pgQueries.getEmailNotificationsByTemplateId.run(
+      {
+        emailTemplateId: data.emailTemplateId,
+        userId: data.userId ? data.userId : undefined,
+        start: data.start ? data.start : undefined,
+        end: data.end ? data.end : undefined,
+      },
+      getClient()
+    )
+    return result.map(row => makeSomeOptional(row, ['sessionId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
