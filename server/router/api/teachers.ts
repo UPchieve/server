@@ -126,7 +126,7 @@ export function routeTeachers(app: Express, router: Router): void {
       const assignmentId = req.params.assignmentId
       const classIds = asArray(asString)(req.body.classIds)
       if (classIds.length === 1) {
-        const studentIds = req.body.studentIds
+        const studentIds = asArray(asString)(req.body.studentIds)
         const studentAssignments = await AssignmentsService.addAssignmentForStudents(
           studentIds,
           assignmentId
