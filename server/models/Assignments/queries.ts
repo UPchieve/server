@@ -128,3 +128,20 @@ export async function getAssignmentsByStudentId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getAllAssignmentsForTeacher(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const assignments = await pgQueries.getAllAssignmentsForTeacher.run(
+      { userId },
+      tc
+    )
+    return assignments.map(a =>
+      makeSomeRequired(a, ['classId', 'id', 'isRequired'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
