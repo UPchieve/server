@@ -7,7 +7,11 @@ import {
   RepoUpdateError,
   RepoDeleteError,
 } from '../Errors'
-import { UserActionAgent, QuizzesPassedForDateRange } from './types'
+import {
+  UserActionAgent,
+  QuizzesPassedForDateRange,
+  AccountActionParams,
+} from './types'
 import {
   ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
@@ -179,16 +183,6 @@ export async function createSessionAction(
   } catch (err) {
     throw new RepoCreateError(err)
   }
-}
-
-interface AccountActionParams {
-  action: ACCOUNT_USER_ACTIONS
-  userId: Ulid
-  ipAddress?: string
-  referenceEmail?: string
-  sessionId?: Ulid
-  volunteerId?: Ulid
-  banReason?: string
 }
 
 export async function createAccountAction(
