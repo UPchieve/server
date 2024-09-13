@@ -11,7 +11,6 @@ import {
   asOptional,
   asString,
   asArray,
-  asArray,
 } from '../../utils/type-utils'
 
 interface Assignment {
