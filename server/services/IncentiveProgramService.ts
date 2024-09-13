@@ -42,6 +42,8 @@ export async function queueFallIncentiveSessionQualificationJob(
   sessionId: Ulid
 ) {
   const session = await getSessionById(sessionId)
+  // Do nothing if the session was not matched
+  if (!session.volunteerId) return
   await QueueService.add(
     Jobs.EmailFallIncentiveSessionQualification,
     { userId: session.studentId, sessionId },
