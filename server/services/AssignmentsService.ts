@@ -2,6 +2,7 @@ import { runInTransaction, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as SubjectsRepo from '../models/Subjects'
+import * as TeacherRepo from '../models/Teacher'
 import { NotAllowedError, InputError } from '../models/Errors'
 
 type AssignmentInputdata = {
@@ -64,7 +65,7 @@ export async function getAssignmentById(
 export async function addAssignmentForStudents(
   studentIds: string[],
   assignmentId: Ulid
-) {
+): Promise<StudentAssignment[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     try {
       const studentAssignments = await Promise.all(
@@ -76,6 +77,19 @@ export async function addAssignmentForStudents(
     } catch (err) {
       throw new Error((err as Error).message)
     }
+  })
+}
+
+export async function addAssignmentForClass(
+  classId: Ulid,
+  assignmentId: Ulid
+): Promise<StudentAssignment[]> {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
+      tc,
+      classId
+    )
+    return addAssignmentForStudents(studentIds, assignmentId)
   })
 }
 
