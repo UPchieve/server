@@ -224,3 +224,55 @@ const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","pa
 export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
 
 
+/** 'GetAllAssignmentsForTeacher' parameters type */
+export interface IGetAllAssignmentsForTeacherParams {
+  userId: string;
+}
+
+/** 'GetAllAssignmentsForTeacher' return type */
+export interface IGetAllAssignmentsForTeacherResult {
+  active: boolean;
+  classId: string;
+  code: string;
+  createdAt: Date;
+  createdAt: Date;
+  description: string | null;
+  dueDate: Date | null;
+  id: string;
+  id: string;
+  isRequired: boolean;
+  minDurationInMinutes: number | null;
+  name: string;
+  numberOfSessions: number | null;
+  startDate: Date | null;
+  subjectId: number | null;
+  title: string | null;
+  topicId: number | null;
+  updatedAt: Date;
+  updatedAt: Date;
+  userId: string | null;
+}
+
+/** 'GetAllAssignmentsForTeacher' query type */
+export interface IGetAllAssignmentsForTeacherQuery {
+  params: IGetAllAssignmentsForTeacherParams;
+  result: IGetAllAssignmentsForTeacherResult;
+}
+
+const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1672,"b":1678,"line":59,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    teacher_classes.user_id = :userId!","loc":{"a":1531,"b":1678,"line":53,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     *
+ * FROM
+ *     assignments
+ *     JOIN teacher_classes ON assignments.class_id = teacher_classes.id
+ * WHERE
+ *     teacher_classes.user_id = :userId!
+ * ```
+ */
+export const getAllAssignmentsForTeacher = new PreparedQuery<IGetAllAssignmentsForTeacherParams,IGetAllAssignmentsForTeacherResult>(getAllAssignmentsForTeacherIR);
+
+
