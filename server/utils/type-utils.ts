@@ -59,21 +59,12 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
 }
 
 export function asDate(s: unknown, errMsg?: string): Date {
-  let date: Date
+  const date =
+    typeof s === 'string' ? new Date(s) : s instanceof Date ? s : null
 
-  if (typeof s === 'string') {
-    date = new Date(s)
-  } else if (s instanceof Date) {
-    date = s
-  } else {
-    throw new InputError(`${errMsg} : ${s} is not a Date`)
-  }
+  if (date && !isNaN(date.getTime())) return date
 
-  if (isNaN(date.getTime())) {
-    throw new InputError(`${errMsg} : ${s} is not a valid Date`)
-  }
-
-  return date
+  throw new InputError(`${errMsg} : ${s} is not a valid Date`)
 }
 
 export function asFunction(s: unknown, errMsg?: string): Function {
