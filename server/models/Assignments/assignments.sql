@@ -49,6 +49,7 @@ FROM
 WHERE
     students_assignments.user_id = :userId!;
 
+
 /* @name getAllAssignmentsForTeacher */
 SELECT
     *
