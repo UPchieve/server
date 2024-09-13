@@ -259,7 +259,7 @@ export interface IGetAllAssignmentsForTeacherQuery {
   result: IGetAllAssignmentsForTeacherResult;
 }
 
-const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1672,"b":1678,"line":59,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    teacher_classes.user_id = :userId!","loc":{"a":1531,"b":1678,"line":53,"col":0}}};
+const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1673,"b":1679,"line":60,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    *\nFROM\n    assignments\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    teacher_classes.user_id = :userId!","loc":{"a":1532,"b":1679,"line":54,"col":0}}};
 
 /**
  * Query generated from SQL:
