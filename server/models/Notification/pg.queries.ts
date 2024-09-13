@@ -160,3 +160,95 @@ const getNotificationsForGentleWarningIR: any = {"name":"getNotificationsForGent
 export const getNotificationsForGentleWarning = new PreparedQuery<IGetNotificationsForGentleWarningParams,IGetNotificationsForGentleWarningResult>(getNotificationsForGentleWarningIR);
 
 
+/** 'CreateEmailNotification' parameters type */
+export interface ICreateEmailNotificationParams {
+  emailTemplateId: string;
+  sessionId: string | null | void;
+  userId: string;
+}
+
+/** 'CreateEmailNotification' return type */
+export interface ICreateEmailNotificationResult {
+  ok: string;
+}
+
+/** 'CreateEmailNotification' query type */
+export interface ICreateEmailNotificationQuery {
+  params: ICreateEmailNotificationParams;
+  result: ICreateEmailNotificationResult;
+}
+
+const createEmailNotificationIR: any = {"name":"createEmailNotification","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2533,"b":2539,"line":75,"col":5}]}},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2547,"b":2555,"line":76,"col":5}]}},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2563,"b":2578,"line":77,"col":5}]}}],"usedParamSet":{"userId":true,"sessionId":true,"emailTemplateId":true},"statement":{"body":"INSERT INTO notifications (id, user_id, session_id, email_template_id, method_id, sent_at)\nSELECT\n    generate_ulid (),\n    :userId!,\n    :sessionId,\n    :emailTemplateId!,\n    (\n        SELECT\n            id\n        FROM\n            notification_methods\n        WHERE\n            method = 'email'), NOW()\nRETURNING\n    id AS ok","loc":{"a":2408,"b":2735,"line":72,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO notifications (id, user_id, session_id, email_template_id, method_id, sent_at)
+ * SELECT
+ *     generate_ulid (),
+ *     :userId!,
+ *     :sessionId,
+ *     :emailTemplateId!,
+ *     (
+ *         SELECT
+ *             id
+ *         FROM
+ *             notification_methods
+ *         WHERE
+ *             method = 'email'), NOW()
+ * RETURNING
+ *     id AS ok
+ * ```
+ */
+export const createEmailNotification = new PreparedQuery<ICreateEmailNotificationParams,ICreateEmailNotificationResult>(createEmailNotificationIR);
+
+
+/** 'GetEmailNotificationsByTemplateId' parameters type */
+export interface IGetEmailNotificationsByTemplateIdParams {
+  emailTemplateId: string;
+  end: Date | null | void;
+  start: Date | null | void;
+  userId: string | null | void;
+}
+
+/** 'GetEmailNotificationsByTemplateId' return type */
+export interface IGetEmailNotificationsByTemplateIdResult {
+  emailTemplateId: string | null;
+  sentAt: Date | null;
+  sessionId: string | null;
+  userId: string;
+}
+
+/** 'GetEmailNotificationsByTemplateId' query type */
+export interface IGetEmailNotificationsByTemplateIdQuery {
+  params: IGetEmailNotificationsByTemplateIdParams;
+  result: IGetEmailNotificationsByTemplateIdResult;
+}
+
+const getEmailNotificationsByTemplateIdIR: any = {"name":"getEmailNotificationsByTemplateId","params":[{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3040,"b":3055,"line":100,"col":29}]}},{"name":"userId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3067,"b":3072,"line":101,"col":10},{"a":3110,"b":3115,"line":102,"col":22}]}},{"name":"start","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3135,"b":3139,"line":103,"col":11},{"a":3187,"b":3191,"line":104,"col":24}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3222,"b":3224,"line":105,"col":15},{"a":3276,"b":3278,"line":106,"col":28}]}}],"usedParamSet":{"emailTemplateId":true,"userId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    user_id,\n    session_id,\n    email_template_id,\n    sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notifications.method_id = notification_methods.id\nWHERE\n    notification_methods.method = 'email'\n    AND email_template_id = :emailTemplateId!\n    AND (:userId::uuid IS NULL\n        OR user_id = :userId::uuid)\n    AND ((:start)::timestamptz IS NULL\n        OR sent_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR sent_at <= (:end)::timestamptz))","loc":{"a":2786,"b":3294,"line":90,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id,
+ *     session_id,
+ *     email_template_id,
+ *     sent_at
+ * FROM
+ *     notifications
+ *     JOIN notification_methods ON notifications.method_id = notification_methods.id
+ * WHERE
+ *     notification_methods.method = 'email'
+ *     AND email_template_id = :emailTemplateId!
+ *     AND (:userId::uuid IS NULL
+ *         OR user_id = :userId::uuid)
+ *     AND ((:start)::timestamptz IS NULL
+ *         OR sent_at >= (:start)::timestamptz
+ *         AND ((:end)::timestamptz IS NULL
+ *             OR sent_at <= (:end)::timestamptz))
+ * ```
+ */
+export const getEmailNotificationsByTemplateId = new PreparedQuery<IGetEmailNotificationsByTemplateIdParams,IGetEmailNotificationsByTemplateIdResult>(getEmailNotificationsByTemplateIdIR);
+
+

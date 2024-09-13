@@ -31,3 +31,24 @@ export const NotificationMethod = <const>{
   EMAIL: 'EMAIL',
 }
 export type NotificationMethod = ExtractValues<typeof NotificationMethod>
+
+export type EmailNotification = {
+  userId: Ulid
+  sessionId?: Ulid
+  emailTemplateId: string
+  sentAt: Date
+}
+
+export type CreateEmailNotificationProps = {
+  userId: Ulid
+  sessionId?: Ulid
+  emailTemplateId: string
+}
+
+export type GetEmailNotificationsProps = {
+  emailTemplateId: string
+  userId?: Ulid
+  sessionId?: Ulid
+  start?: Date
+  end?: Date
+}
