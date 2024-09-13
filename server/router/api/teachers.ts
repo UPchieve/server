@@ -121,25 +121,17 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  /* TODO: add route for specific students */
   router.route('/assignment/:assignmentId').post(async function(req, res) {
     try {
       const assignmentId = req.params.assignmentId
       const classIds = asArray(asString)(req.body.classIds)
-      if (classIds.length === 1) {
-        const studentIds = asArray(asString)(req.body.studentIds)
-        const studentAssignments = await AssignmentsService.addAssignmentForStudents(
-          studentIds,
-          assignmentId
+      const assignments = await Promise.all(
+        classIds.map((classId: string) =>
+          AssignmentsService.addAssignmentForClass(classId, assignmentId)
         )
-        res.json({ studentAssignments })
-      } else {
-        const classAssignments = await Promise.all(
-          classIds.map((classId: string) =>
-            AssignmentsService.addAssignmentForClass(classId, assignmentId)
-          )
-        )
-        res.json({ classAssignments })
-      }
+      )
+      res.json({ assignments })
     } catch (err) {
       resError(res, err)
     }
