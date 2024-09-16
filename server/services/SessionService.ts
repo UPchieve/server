@@ -1033,3 +1033,50 @@ export async function getStudentSessionDetails(studentId: Ulid) {
     return sessionDetails
   })
 }
+
+type FallIncentiveSessionStats = {
+  total: number
+  totalQualified: number
+  totalUnqualified: number
+}
+
+function isQualifiedFallIncentiveSession(
+  session: SessionRepo.FallIncentiveSession
+) {
+  const tenMinutes = 1000 * 60 * 10
+  return (
+    !session.flags.includes(USER_SESSION_METRICS.absentStudent) &&
+    !session.flags.includes(USER_SESSION_METRICS.absentVolunteer) &&
+    session.timeTutored > tenMinutes &&
+    session.totalMessages >= 15 &&
+    !session.reported
+  )
+}
+
+export async function getFallIncentiveSessionStats(
+  studentId: Ulid,
+  start: Date,
+  end?: Date
+): Promise<FallIncentiveSessionStats> {
+  const sessions = await SessionRepo.getStudentSessionsForFallIncentive(
+    studentId,
+    start,
+    end
+  )
+
+  let total = 0
+  let totalQualified = 0
+  let totalUnqualified = 0
+
+  for (const session of sessions) {
+    if (isQualifiedFallIncentiveSession(session)) totalQualified++
+    else totalUnqualified++
+    total++
+  }
+
+  return {
+    total,
+    totalQualified,
+    totalUnqualified,
+  }
+}

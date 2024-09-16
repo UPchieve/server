@@ -3,6 +3,7 @@ import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as UserProductFlagsService from '../../services/UserProductFlagsService'
+import * as IncentiveProgramService from '../../services/IncentiveProgramService'
 
 export interface TwilioError extends Error {
   message: string
@@ -38,7 +39,7 @@ export function routeProductFlags(router: Router) {
     .post(async function(req, res) {
       const user = extractUser(req)
       try {
-        await UserProductFlagsService.queueIncentiveInvitedToEnrollReminderJob(
+        await IncentiveProgramService.queueIncentiveInvitedToEnrollReminderJob(
           user.id
         )
         res.sendStatus(200)

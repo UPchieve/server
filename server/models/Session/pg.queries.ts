@@ -2815,3 +2815,76 @@ const insertTutorBotSessionMessageIR: any = {"name":"insertTutorBotSessionMessag
 export const insertTutorBotSessionMessage = new PreparedQuery<IInsertTutorBotSessionMessageParams,IInsertTutorBotSessionMessageResult>(insertTutorBotSessionMessageIR);
 
 
+/** 'GetStudentSessionsForFallIncentive' parameters type */
+export interface IGetStudentSessionsForFallIncentiveParams {
+  end: Date | null | void;
+  start: Date;
+  studentId: string;
+}
+
+/** 'GetStudentSessionsForFallIncentive' return type */
+export interface IGetStudentSessionsForFallIncentiveResult {
+  createdAt: Date;
+  flags: stringArray | null;
+  id: string;
+  reported: boolean | null;
+  timeTutored: number | null;
+  totalMessages: number | null;
+}
+
+/** 'GetStudentSessionsForFallIncentive' query type */
+export interface IGetStudentSessionsForFallIncentiveQuery {
+  params: IGetStudentSessionsForFallIncentiveParams;
+  result: IGetStudentSessionsForFallIncentiveResult;
+}
+
+const getStudentSessionsForFallIncentiveIR: any = {"name":"getStudentSessionsForFallIncentive","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36784,"b":36793,"line":1314,"col":27}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36865,"b":36870,"line":1316,"col":32}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36883,"b":36885,"line":1317,"col":11},{"a":36945,"b":36947,"line":1318,"col":36}]}}],"usedParamSet":{"studentId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    sessions.id,\n    (time_tutored)::float,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    session_reported_count.total <> 0 AS reported,\n    messages.total AS total_messages,\n    sessions.created_at\nFROM\n    sessions\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.student_id = :studentId!\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.created_at >= :start!\n    AND ((:end)::timestamptz IS NULL\n        OR sessions.created_at <= (:end)::timestamptz)\nORDER BY\n    created_at ASC","loc":{"a":35679,"b":36990,"line":1281,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     (time_tutored)::float,
+ *     COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,
+ *     session_reported_count.total <> 0 AS reported,
+ *     messages.total AS total_messages,
+ *     sessions.created_at
+ * FROM
+ *     sessions
+ *     LEFT JOIN session_reports ON session_reports.session_id = sessions.id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             COUNT(id)::int AS total
+ *         FROM
+ *             session_reports
+ *         WHERE
+ *             session_reports.session_id = sessions.id) AS session_reported_count ON TRUE
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             array_agg(name) AS flags
+ *         FROM
+ *             sessions_session_flags
+ *             LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
+ *         WHERE
+ *             sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             COUNT(id)::int AS total
+ *         FROM
+ *             session_messages
+ *         WHERE
+ *             session_messages.session_id = sessions.id) AS messages ON TRUE
+ * WHERE
+ *     sessions.student_id = :studentId!
+ *     AND sessions.ended_at IS NOT NULL
+ *     AND sessions.created_at >= :start!
+ *     AND ((:end)::timestamptz IS NULL
+ *         OR sessions.created_at <= (:end)::timestamptz)
+ * ORDER BY
+ *     created_at ASC
+ * ```
+ */
+export const getStudentSessionsForFallIncentive = new PreparedQuery<IGetStudentSessionsForFallIncentiveParams,IGetStudentSessionsForFallIncentiveResult>(getStudentSessionsForFallIncentiveIR);
+
+
