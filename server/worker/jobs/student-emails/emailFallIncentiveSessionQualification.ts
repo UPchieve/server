@@ -71,8 +71,7 @@ export default async (
   )
   const { firstName, email } = user
   try {
-    // Send qualified email if this is their first qualifying session
-    if (sessionStats.totalQualified === 1) {
+    if (sessionStats.totalQualified >= 1) {
       await MailService.sendQualifiedForGiftCardEmail(email, firstName)
       await createEmailNotification({
         userId,
@@ -84,8 +83,7 @@ export default async (
       )
     }
 
-    // Send reminder email if this is their first unqualified session
-    if (sessionStats.totalUnqualified === 1) {
+    if (sessionStats.totalUnqualified >= 1) {
       const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
         emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
