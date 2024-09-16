@@ -62,7 +62,7 @@ WHERE
 
 /* @name getStudentsByAssignmentId */
 SELECT
-    user_id
+    *
 FROM
     students_assignments
 WHERE

@@ -275,6 +275,10 @@ export interface IGetStudentsByAssignmentIdParams {
 
 /** 'GetStudentsByAssignmentId' return type */
 export interface IGetStudentsByAssignmentIdResult {
+  assignmentId: string;
+  createdAt: Date;
+  submittedAt: Date | null;
+  updatedAt: Date;
   userId: string;
 }
 
@@ -284,13 +288,13 @@ export interface IGetStudentsByAssignmentIdQuery {
   result: IGetStudentsByAssignmentIdResult;
 }
 
-const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1809,"b":1821,"line":68,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1733,"b":1821,"line":63,"col":0}}};
+const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1804,"b":1816,"line":69,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1734,"b":1816,"line":64,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     user_id
+ *     *
  * FROM
  *     students_assignments
  * WHERE
