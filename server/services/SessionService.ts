@@ -1045,10 +1045,8 @@ function isQualifiedFallIncentiveSession(
 ) {
   const tenMinutes = 1000 * 60 * 10
   return (
-    !(
-      session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
-      session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
-    ) &&
+    !session.flags.includes(USER_SESSION_METRICS.absentStudent) &&
+    !session.flags.includes(USER_SESSION_METRICS.absentVolunteer) &&
     session.timeTutored > tenMinutes &&
     session.totalMessages >= 15 &&
     !session.reported

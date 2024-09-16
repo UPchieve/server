@@ -81,9 +81,7 @@ export default async (
       log(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
-    }
-
-    if (sessionStats.totalUnqualified >= 1) {
+    } else if (sessionStats.totalUnqualified >= 1) {
       const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
         emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,

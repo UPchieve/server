@@ -2,6 +2,7 @@ import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
+import { ISODateString } from '../types/dates'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
@@ -122,7 +123,7 @@ export async function getCollegeListWorkSheetFlag(userId: Ulid) {
 
 export async function getFallIncentiveProgramPayload(
   userId: Ulid
-): Promise<string | null> {
+): Promise<ISODateString | null> {
   return await getFeatureFlagPayload(
     FEATURE_FLAGS.FALL_INCENTIVE_PROGRAM,
     userId
