@@ -1,31 +1,31 @@
-import { Ulid } from '../pgUtils'
+import { Ulid, Uuid } from '../pgUtils'
 
 export type Assignment = {
   id: Ulid
   classId: Ulid
   description?: string
-  title?: string
-  numberOfSessions?: number
-  minDurationInMinutes?: number
-  isRequired: boolean
   dueDate?: Date
+  isRequired: boolean
+  minDurationInMinutes?: number
+  numberOfSessions?: number
   startDate?: Date
   subjectId?: number
+  title?: string
   createdAt: Date
   updatedAt: Date
 }
 
-export type CreateAssignmentPayload = Pick<
+export type CreateAssignmentInput = Pick<
   Assignment,
   | 'classId'
   | 'description'
-  | 'title'
-  | 'numberOfSessions'
-  | 'minDurationInMinutes'
-  | 'isRequired'
   | 'dueDate'
+  | 'isRequired'
+  | 'minDurationInMinutes'
+  | 'numberOfSessions'
   | 'startDate'
   | 'subjectId'
+  | 'title'
 >
 
 export type StudentAssignment = {
@@ -40,4 +40,11 @@ export type StudentAssignment = {
   startDate?: Date
   subjectId?: number
   submittedAt?: Date
+}
+
+export type CreateStudentAssignmentResult = {
+  userId: Ulid
+  assignmentId: Uuid
+  createdAt: Date
+  updatedAt: Date
 }

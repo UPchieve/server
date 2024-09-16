@@ -1,11 +1,11 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoReadError, RepoCreateError } from '../Errors'
-import { Assignment, CreateAssignmentPayload } from './types'
+import { Assignment, CreateAssignmentInput } from './types'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeSomeOptional, makeSomeRequired } from '../pgUtils'
 
 export async function createAssignment(
-  data: CreateAssignmentPayload,
+  data: CreateAssignmentInput,
   tc: TransactionClient
 ): Promise<Assignment> {
   try {
@@ -14,27 +14,25 @@ export async function createAssignment(
         id: getDbUlid(),
         classId: data.classId,
         description: data.description,
-        title: data.title,
-        numberOfSessions: data.numberOfSessions,
-        minDurationInMinutes: data.minDurationInMinutes,
         dueDate: data.dueDate,
         isRequired: data.isRequired,
+        minDurationInMinutes: data.minDurationInMinutes,
+        numberOfSessions: data.numberOfSessions,
         startDate: data.startDate,
         subjectId: data.subjectId,
+        title: data.title,
       },
       tc
     )
     if (!assignment.length) {
       throw new RepoCreateError('Unable to create assignment.')
     }
-    return makeSomeOptional(assignment[0], [
-      'description',
-      'title',
-      'numberOfSessions',
-      'minDurationInMinutes',
-      'dueDate',
-      'startDate',
-      'subjectId',
+    return makeSomeRequired(assignment[0], [
+      'id',
+      'classId',
+      'isRequired',
+      'createdAt',
+      'updatedAt',
     ])
   } catch (err) {
     throw new RepoCreateError(err)

@@ -3,38 +3,7 @@ import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
-import {
-  asDate,
-  asBoolean,
-  asFactory,
-  asNumber,
-  asOptional,
-  asString,
-  asArray,
-} from '../../utils/type-utils'
-
-interface Assignment {
-  classId: string
-  description?: string
-  title?: string
-  numberOfSessions?: number
-  minDurationInMinutes?: number
-  isRequired: boolean
-  dueDate?: Date
-  startDate?: Date
-  subjectId?: number
-}
-const asAssignment = asFactory<Assignment>({
-  classId: asString,
-  description: asOptional(asString),
-  title: asOptional(asString),
-  numberOfSessions: asOptional(asNumber),
-  minDurationInMinutes: asOptional(asNumber),
-  isRequired: asBoolean,
-  dueDate: asOptional(asDate),
-  startDate: asOptional(asDate),
-  subjectId: asOptional(asNumber),
-})
+import { asString, asArray } from '../../utils/type-utils'
 
 export function routeTeachers(app: Express, router: Router): void {
   /* Classes */
@@ -99,7 +68,7 @@ export function routeTeachers(app: Express, router: Router): void {
   /* Assignments */
   router.route('/assignment').post(async function(req, res) {
     try {
-      const assignmentData = asAssignment(req.body)
+      const assignmentData = AssignmentsService.asAssignment(req.body)
       const assignment = await AssignmentsService.createAssignment(
         assignmentData
       )
