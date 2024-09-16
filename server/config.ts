@@ -96,11 +96,14 @@ const config: Static<typeof Config> = {
     failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
     emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
-    // TODO: place in templates
     fallIncentiveEnrollmentWelcomeTemplate:
       'd-914f98ad37c3461eaacc1c2bf27f097d',
     fallIncentiveInvitedToEnrollReminderTemplate:
       'd-ea8dadbc26f64da6bcdf7932049211d4',
+    fallIncentiveLeavingMoneyOnTableTemplate:
+      'd-77780e77be46490d963f5ccefe1431bc',
+    qualifiedForGiftCardTemplate: 'd-4a5f5e272e3d49e5abf074af32c99813',
+    stillTimeForQualifyingSessionTemplate: 'd-61b7eff0a57f4a69a0e11b63c4d15fbe',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

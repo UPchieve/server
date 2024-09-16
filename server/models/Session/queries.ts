@@ -9,7 +9,12 @@ import {
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
-import { Session, UserSessionStats, UserSessionsFilter } from './types'
+import {
+  FallIncentiveSession,
+  Session,
+  UserSessionStats,
+  UserSessionsFilter,
+} from './types'
 import 'moment-timezone'
 import {
   USER_BAN_TYPES,
@@ -1531,5 +1536,25 @@ export async function insertTutorBotSessionMessage(
     return result[0]
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function getStudentSessionsForFallIncentive(
+  studentId: Ulid,
+  start: Date,
+  end?: Date
+): Promise<FallIncentiveSession[]> {
+  try {
+    const result = await pgQueries.getStudentSessionsForFallIncentive.run(
+      {
+        studentId,
+        start,
+        end,
+      },
+      getClient()
+    )
+    return result.map(row => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

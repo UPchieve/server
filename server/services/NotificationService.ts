@@ -12,3 +12,10 @@ export async function getEmailNotificationsByTemplateId(
 ) {
   return NotificationRepo.getEmailNotificationsByTemplateId(data)
 }
+
+export async function hasUserBeenSentEmail(
+  data: NotificationRepo.GetEmailNotificationsProps
+) {
+  const emailActivity = await getEmailNotificationsByTemplateId(data)
+  return emailActivity.length > 0
+}

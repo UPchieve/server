@@ -1276,3 +1276,46 @@ INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_sessi
 RETURNING
     id, session_id, message, tutor_bot_session_user_type, created_at;
 
+
+/* @name getStudentSessionsForFallIncentive */
+SELECT
+    sessions.id,
+    (time_tutored)::float,
+    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,
+    session_reported_count.total <> 0 AS reported,
+    messages.total AS total_messages,
+    sessions.created_at
+FROM
+    sessions
+    LEFT JOIN session_reports ON session_reports.session_id = sessions.id
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(id)::int AS total
+        FROM
+            session_reports
+        WHERE
+            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(name) AS flags
+        FROM
+            sessions_session_flags
+            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
+        WHERE
+            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(id)::int AS total
+        FROM
+            session_messages
+        WHERE
+            session_messages.session_id = sessions.id) AS messages ON TRUE
+WHERE
+    sessions.student_id = :studentId!
+    AND sessions.ended_at IS NOT NULL
+    AND sessions.created_at >= :start!
+    AND ((:end)::timestamptz IS NULL
+        OR sessions.created_at <= (:end)::timestamptz)
+ORDER BY
+    created_at ASC;
+
