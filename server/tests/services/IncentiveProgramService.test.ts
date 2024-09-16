@@ -129,11 +129,23 @@ describe('queueFallIncentiveSessionQualificationJob', () => {
     jest.clearAllMocks()
   })
 
-  test('Should queue the EmailFallIncentiveSessionQualification job with studentId', async () => {
+  test('Should not queue the EmailFallIncentiveSessionQualification job if not a matched session', async () => {
     const sessionId = getDbUlid()
     const studentId = getDbUlid()
     mockedSessionRepo.getSessionById.mockResolvedValue(
       buildSession({ studentId })
+    )
+
+    await queueFallIncentiveSessionQualificationJob(sessionId)
+    expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
+    expect(mockedQueueService.add).not.toHaveBeenCalled()
+  })
+
+  test('Should queue the EmailFallIncentiveSessionQualification job with studentId', async () => {
+    const sessionId = getDbUlid()
+    const studentId = getDbUlid()
+    mockedSessionRepo.getSessionById.mockResolvedValue(
+      buildSession({ studentId, volunteerId: getDbUlid() })
     )
 
     await queueFallIncentiveSessionQualificationJob(sessionId)
