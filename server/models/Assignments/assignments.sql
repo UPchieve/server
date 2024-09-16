@@ -49,3 +49,13 @@ FROM
 WHERE
     students_assignments.user_id = :userId!;
 
+
+/* @name getAllAssignmentsForTeacher */
+SELECT
+    assignments.*
+FROM
+    assignments
+    JOIN teacher_classes ON assignments.class_id = teacher_classes.id
+WHERE
+    teacher_classes.user_id = :userId!;
+

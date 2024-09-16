@@ -10,6 +10,7 @@ import {
   asNumber,
   asOptional,
   asString,
+  asArray,
 } from '../../utils/type-utils'
 
 interface Assignment {
@@ -122,13 +123,35 @@ export function routeTeachers(app: Express, router: Router): void {
 
   router.route('/assignment/:assignmentId').post(async function(req, res) {
     try {
-      const studentIds = req.body.studentIds
       const assignmentId = req.params.assignmentId
-      const studentAssignments = await AssignmentsService.addAssignmentForStudents(
-        studentIds,
-        assignmentId
+      const classIds = asArray(asString)(req.body.classIds)
+      if (classIds.length === 1) {
+        const studentIds = asArray(asString)(req.body.studentIds)
+        const studentAssignments = await AssignmentsService.addAssignmentForStudents(
+          studentIds,
+          assignmentId
+        )
+        res.json({ studentAssignments })
+      } else {
+        const classAssignments = await Promise.all(
+          classIds.map((classId: string) =>
+            AssignmentsService.addAssignmentForClass(classId, assignmentId)
+          )
+        )
+        res.json({ classAssignments })
+      }
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/assignments').get(async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const assignments = await AssignmentsService.getAllAssignmentsForTeacher(
+        user.id
       )
-      res.json({ studentAssignments })
+      res.json({ assignments })
     } catch (err) {
       resError(res, err)
     }

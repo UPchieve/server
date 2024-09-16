@@ -224,3 +224,47 @@ const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","pa
 export const getAssignmentsByStudentId = new PreparedQuery<IGetAssignmentsByStudentIdParams,IGetAssignmentsByStudentIdResult>(getAssignmentsByStudentIdIR);
 
 
+/** 'GetAllAssignmentsForTeacher' parameters type */
+export interface IGetAllAssignmentsForTeacherParams {
+  userId: string;
+}
+
+/** 'GetAllAssignmentsForTeacher' return type */
+export interface IGetAllAssignmentsForTeacherResult {
+  classId: string;
+  createdAt: Date;
+  description: string | null;
+  dueDate: Date | null;
+  id: string;
+  isRequired: boolean;
+  minDurationInMinutes: number | null;
+  numberOfSessions: number | null;
+  startDate: Date | null;
+  subjectId: number | null;
+  title: string | null;
+  updatedAt: Date;
+}
+
+/** 'GetAllAssignmentsForTeacher' query type */
+export interface IGetAllAssignmentsForTeacherQuery {
+  params: IGetAllAssignmentsForTeacherParams;
+  result: IGetAllAssignmentsForTeacherResult;
+}
+
+const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1685,"b":1691,"line":60,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.*\nFROM\n    assignments\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    teacher_classes.user_id = :userId!","loc":{"a":1532,"b":1691,"line":54,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     assignments.*
+ * FROM
+ *     assignments
+ *     JOIN teacher_classes ON assignments.class_id = teacher_classes.id
+ * WHERE
+ *     teacher_classes.user_id = :userId!
+ * ```
+ */
+export const getAllAssignmentsForTeacher = new PreparedQuery<IGetAllAssignmentsForTeacherParams,IGetAllAssignmentsForTeacherResult>(getAllAssignmentsForTeacherIR);
+
+
