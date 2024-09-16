@@ -59,6 +59,7 @@ FROM
 WHERE
     teacher_classes.user_id = :userId!;
 
+
 /* @name getStudentsByAssignmentId */
 SELECT
     user_id
@@ -66,3 +67,4 @@ FROM
     students_assignments
 WHERE
     assignment_id = :assignmentId!;
+
