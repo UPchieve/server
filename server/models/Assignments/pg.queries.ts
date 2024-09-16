@@ -268,3 +268,35 @@ const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher"
 export const getAllAssignmentsForTeacher = new PreparedQuery<IGetAllAssignmentsForTeacherParams,IGetAllAssignmentsForTeacherResult>(getAllAssignmentsForTeacherIR);
 
 
+/** 'GetStudentsByAssignmentId' parameters type */
+export interface IGetStudentsByAssignmentIdParams {
+  assignmentId: string;
+}
+
+/** 'GetStudentsByAssignmentId' return type */
+export interface IGetStudentsByAssignmentIdResult {
+  userId: string;
+}
+
+/** 'GetStudentsByAssignmentId' query type */
+export interface IGetStudentsByAssignmentIdQuery {
+  params: IGetStudentsByAssignmentIdParams;
+  result: IGetStudentsByAssignmentIdResult;
+}
+
+const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1809,"b":1821,"line":68,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1733,"b":1821,"line":63,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id
+ * FROM
+ *     students_assignments
+ * WHERE
+ *     assignment_id = :assignmentId!
+ * ```
+ */
+export const getStudentsByAssignmentId = new PreparedQuery<IGetStudentsByAssignmentIdParams,IGetStudentsByAssignmentIdResult>(getStudentsByAssignmentIdIR);
+
+
