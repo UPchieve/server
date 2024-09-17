@@ -106,6 +106,16 @@ export function routeStudents(router: Router): void {
     }
   })
 
+  router.get('/students/classes', async function(req, res) {
+    try {
+      const user = extractUser(req)
+      const classes = await StudentService.getActiveClassesForStudent(user.id)
+      res.json({ classes })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.get('/students/assignments', async function(req, res) {
     try {
       const user = extractUser(req)

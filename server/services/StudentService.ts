@@ -3,6 +3,7 @@ import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as StudentRepo from '../models/Student/queries'
+import * as TeacherClassRepo from '../models/TeacherClass/queries'
 import config from '../config'
 import { Ulid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
@@ -11,6 +12,7 @@ import {
   StudentPartnerOrgInstance,
   StudentSignupSources,
 } from '../models/Student/queries'
+import { TeacherClassResult } from '../models/TeacherClass'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -122,4 +124,13 @@ export async function doesStudentWithEmailExist(email: string) {
 export async function getStudentByEmail(email?: string) {
   if (!email) return
   return StudentRepo.getStudentByEmail(email)
+}
+
+export async function getActiveClassesForStudent(
+  studentId: Ulid
+): Promise<TeacherClassResult[]> {
+  const teacherClasses = await TeacherClassRepo.getTeacherClassesForStudent(
+    studentId
+  )
+  return teacherClasses.filter(c => c.active)
 }
