@@ -72,7 +72,11 @@ export function routeTeachers(app: Express, router: Router): void {
       const assignment = await AssignmentsService.createAssignment(
         assignmentData
       )
-      res.json({ assignment })
+      const classAssignment = await AssignmentsService.addAssignmentForClass(
+        classId,
+        assignment.id
+      )
+      res.json({ classAssignment })
     } catch (err) {
       resError(res, err)
     }
@@ -85,21 +89,6 @@ export function routeTeachers(app: Express, router: Router): void {
         classId
       )
       res.json({ assignments })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.route('/assignment/:assignmentId').post(async function(req, res) {
-    try {
-      const assignmentId = req.params.assignmentId
-      const classIds = asArray(asString)(req.body.classIds)
-      const classAssignments = await Promise.all(
-        classIds.map((classId: string) =>
-          AssignmentsService.addAssignmentForClass(classId, assignmentId)
-        )
-      )
-      res.json({ classAssignments })
     } catch (err) {
       resError(res, err)
     }
