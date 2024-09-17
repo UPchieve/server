@@ -83,6 +83,7 @@ export async function getAssignmentById(
         'dueDate',
         'startDate',
         'subjectId',
+        'subjectName',
       ])
     }
   } catch (err) {
