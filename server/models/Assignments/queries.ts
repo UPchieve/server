@@ -146,7 +146,7 @@ export async function getAllAssignmentsForTeacher(
   }
 }
 
-export async function getStudentsByAssignmentIds(
+export async function getStudentsByAssignmentId(
   assignmentId: Ulid,
   tc: TransactionClient = getClient()
 ) {
