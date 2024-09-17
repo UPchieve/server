@@ -106,5 +106,5 @@ export async function getAllAssignmentsForTeacher(
 }
 
 export async function getStudentsByAssignmentId(assignmentId: Ulid) {
-  return AssignmentsRepo.getStudentsByAssignmentIds(assignmentId)
+  return AssignmentsRepo.getStudentsByAssignmentId(assignmentId)
 }
