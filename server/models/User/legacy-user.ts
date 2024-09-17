@@ -77,6 +77,7 @@ export type LegacyUserModel = {
   gradeLevel: GRADES
   schoolName: string
   latestRequestedSubjects?: string[]
+  numberOfStudentClasses: number
 }
 
 export async function getLegacyUserObject(

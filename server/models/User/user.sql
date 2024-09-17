@@ -476,7 +476,8 @@ SELECT
     array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
     users_quizzes.total::int AS total_quizzes_passed,
     users_roles.role_id,
-    muted_users_subject_alerts_agg.muted_subject_alerts
+    muted_users_subject_alerts_agg.muted_subject_alerts,
+    number_of_student_classes.count AS number_of_student_classes
 FROM
     users
     LEFT JOIN (
@@ -597,6 +598,13 @@ FROM
             JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
         WHERE
             muted_users_subject_alerts.user_id = :userId!) AS muted_users_subject_alerts_agg ON TRUE
+    LEFT JOIN (
+        SELECT
+            COUNT(*) AS count
+        FROM
+            student_classes
+        WHERE
+            user_id = :userId!) AS number_of_student_classes ON TRUE
 WHERE
     users.id = :userId!;
 
