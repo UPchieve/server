@@ -104,3 +104,7 @@ export async function getAllAssignmentsForTeacher(
 ): Promise<AssignmentsRepo.StudentAssignment[]> {
   return AssignmentsRepo.getAllAssignmentsForTeacher(userId)
 }
+
+export async function getStudentsByAssignmentId(assignmentId: Ulid) {
+  return AssignmentsRepo.getStudentsByAssignmentId(assignmentId)
+}
