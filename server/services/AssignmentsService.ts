@@ -125,5 +125,5 @@ export async function getAllAssignmentsForTeacher(
 }
 
 export async function getStudentAssignmentCompletion(assignmentId: Ulid) {
-         return AssignmentsRepo.getStudentAssignmentCompletion(assignmentId)
-       }
+  return AssignmentsRepo.getStudentAssignmentCompletion(assignmentId)
+}
