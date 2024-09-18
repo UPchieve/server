@@ -2230,7 +2230,8 @@ CREATE TABLE upchieve.tutor_bot_conversations (
     user_id uuid NOT NULL,
     session_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    subject_id integer NOT NULL
 );
 
 
@@ -5515,6 +5516,14 @@ ALTER TABLE ONLY upchieve.tutor_bot_conversations
 
 
 --
+-- Name: tutor_bot_conversations tutor_bot_conversations_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversations
+    ADD CONSTRAINT tutor_bot_conversations_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES upchieve.subjects(id);
+
+
+--
 -- Name: tutor_bot_conversations tutor_bot_conversations_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5996,4 +6005,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240909182606'),
     ('20240910003849'),
     ('20240910010753'),
-    ('20240912141821');
+    ('20240912141821'),
+    ('20240918170007');
