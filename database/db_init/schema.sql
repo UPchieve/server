@@ -2213,9 +2213,8 @@ ALTER SEQUENCE upchieve.training_courses_id_seq OWNED BY upchieve.training_cours
 --
 
 CREATE TABLE upchieve.tutor_bot_conversation_messages (
-    id uuid NOT NULL,
     tutor_bot_conversation_id uuid NOT NULL,
-    sender_id uuid NOT NULL,
+    user_id uuid NOT NULL,
     sender_user_type upchieve.tutor_bot_conversation_user_type NOT NULL,
     message text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
@@ -2229,8 +2228,8 @@ CREATE TABLE upchieve.tutor_bot_conversation_messages (
 CREATE TABLE upchieve.tutor_bot_conversations (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
     session_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -3966,7 +3965,7 @@ ALTER TABLE ONLY upchieve.training_courses
 --
 
 ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
-    ADD CONSTRAINT tutor_bot_conversation_messages_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT tutor_bot_conversation_messages_pkey PRIMARY KEY (tutor_bot_conversation_id, user_id, sender_user_type, created_at);
 
 
 --
@@ -5492,19 +5491,19 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
--- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
-    ADD CONSTRAINT tutor_bot_conversation_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
-
-
---
 -- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
     ADD CONSTRAINT tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey FOREIGN KEY (tutor_bot_conversation_id) REFERENCES upchieve.tutor_bot_conversations(id);
+
+
+--
+-- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversation_messages
+    ADD CONSTRAINT tutor_bot_conversation_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --

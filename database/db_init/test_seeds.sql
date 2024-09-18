@@ -3563,7 +3563,7 @@ COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) 
 -- Data for Name: tutor_bot_conversations; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.tutor_bot_conversations (id, user_id, created_at, session_id, updated_at) FROM stdin;
+COPY upchieve.tutor_bot_conversations (id, user_id, session_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -3571,7 +3571,7 @@ COPY upchieve.tutor_bot_conversations (id, user_id, created_at, session_id, upda
 -- Data for Name: tutor_bot_conversation_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.tutor_bot_conversation_messages (id, tutor_bot_conversation_id, sender_id, sender_user_type, message, created_at) FROM stdin;
+COPY upchieve.tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at) FROM stdin;
 \.
 
 
