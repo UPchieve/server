@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped by pg_dump version 14.13 (Ubuntu 14.13-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2759,6 +2759,22 @@ COPY upchieve.sessions_session_flags (session_id, session_flag_id, created_at, u
 
 
 --
+-- Data for Name: students_assignments; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sessions_students_assignments; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.sessions_students_assignments (session_id, user_id, assignment_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: sponsor_orgs_upchieve_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2835,14 +2851,6 @@ COPY upchieve.student_partner_orgs_upchieve_instances (id, student_partner_org_i
 
 COPY upchieve.student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 01919662-87dc-1b9c-e053-326c64a2edbc	01919662-87f7-ecae-08ec-2d9b6c13ba3c	\N	2024-08-28 00:28:45.444321+00	2024-08-28 00:28:45.541532+00
-\.
-
-
---
--- Data for Name: students_assignments; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.students_assignments (user_id, assignment_id, submitted_at, created_at, updated_at) FROM stdin;
 \.
 
 
