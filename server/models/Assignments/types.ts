@@ -39,6 +39,7 @@ export type StudentAssignment = {
   dueDate?: Date
   startDate?: Date
   subjectId?: number
+  subjectName?: string
   submittedAt?: Date
 }
 
