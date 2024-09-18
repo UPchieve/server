@@ -1,71 +1,90 @@
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
-import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
-import { NotAllowedError, InputError } from '../models/Errors'
+import { InputError } from '../models/Errors'
+import {
+  asDate,
+  asBoolean,
+  asFactory,
+  asNumber,
+  asOptional,
+  asString,
+} from '../utils/type-utils'
+import moment from 'moment'
+import { CreateStudentAssignmentResult } from '../models/Assignments'
 
-type AssignmentInputdata = {
-  classId: Ulid
-  isRequired: boolean
+export type CreateAssignmentPayload = {
+  classId: string
   description?: string
-  title?: string
-  numberOfSessions?: number
-  minDurationInMinutes?: number
   dueDate?: Date
+  isRequired: boolean
+  minDurationInMinutes?: number
+  numberOfSessions?: number
   startDate?: Date
   subjectId?: number
+  title?: string
 }
+export const asAssignment = asFactory<CreateAssignmentPayload>({
+  classId: asString,
+  description: asOptional(asString),
+  dueDate: asOptional(asDate),
+  isRequired: asBoolean,
+  minDurationInMinutes: asOptional(asNumber),
+  numberOfSessions: asOptional(asNumber),
+  startDate: asOptional(asDate),
+  subjectId: asOptional(asNumber),
+  title: asOptional(asString),
+})
 
-type StudentAssignment = {
-  assignmentId: string
-  createdAt: Date
-  submittedAt?: Date
-  updatedAt: Date
-  userId: string
-}
-
-export async function createAssignment(data: AssignmentInputdata) {
+export async function createAssignment(data: CreateAssignmentPayload) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const assignment = await AssignmentsRepo.createAssignment(data, tc)
-
     const numSessions = data.numberOfSessions
-    const startDate = data.startDate
-    const dueDate = data.dueDate
-    const subjectId = data.subjectId
-
     if (numSessions && numSessions <= 0)
       throw new InputError('Number of sessions must be greater than 0.')
-    if (startDate && dueDate && startDate > dueDate)
-      throw new NotAllowedError('Start date cannot be after the due date.')
-    if (subjectId) {
-      const allSubjects = await SubjectsRepo.getSubjectsWithTopic()
-      const idExists = Object.values(allSubjects).some(
-        subject => subject.id === subjectId
-      )
 
-      if (!idExists) throw new InputError('Subject id is not valid')
-    }
-    return assignment
+    const startDate = data.startDate
+    const dueDate = data.dueDate
+    if (
+      startDate &&
+      dueDate &&
+      moment(startDate).isSameOrAfter(moment(dueDate))
+    )
+      throw new InputError('Start date cannot be after the due date.')
+
+    return AssignmentsRepo.createAssignment(
+      {
+        classId: data.classId,
+        description: data.description,
+        dueDate: data.dueDate,
+        isRequired: data.isRequired ?? false,
+        minDurationInMinutes: data.minDurationInMinutes,
+        numberOfSessions: data.numberOfSessions,
+        startDate: data.startDate,
+        subjectId: data.subjectId,
+        title: data.title,
+      },
+      tc
+    )
   })
 }
 
 export async function getAssignmentsByClassId(
   classId: Ulid
-): Promise<AssignmentsRepo.CreateAssignmentPayload[]> {
+): Promise<AssignmentsRepo.CreateAssignmentInput[]> {
   return AssignmentsRepo.getAssignmentsByClassId(classId)
 }
 
 export async function getAssignmentById(
   assignmentId: Ulid
-): Promise<AssignmentsRepo.CreateAssignmentPayload | undefined> {
+): Promise<AssignmentsRepo.CreateAssignmentInput | undefined> {
   return AssignmentsRepo.getAssignmentById(assignmentId)
 }
 
 export async function addAssignmentForStudents(
   studentIds: string[],
   assignmentId: Ulid
-): Promise<StudentAssignment[]> {
+): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     try {
       const studentAssignments = await Promise.all(
@@ -83,7 +102,7 @@ export async function addAssignmentForStudents(
 export async function addAssignmentForClass(
   classId: Ulid,
   assignmentId: Ulid
-): Promise<StudentAssignment[]> {
+): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
