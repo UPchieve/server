@@ -72,11 +72,7 @@ export function routeTeachers(app: Express, router: Router): void {
       const assignment = await AssignmentsService.createAssignment(
         assignmentData
       )
-      const classAssignment = await AssignmentsService.addAssignmentForClass(
-        classId,
-        assignment.id
-      )
-      res.json({ classAssignment })
+      res.json({ assignment })
     } catch (err) {
       resError(res, err)
     }
