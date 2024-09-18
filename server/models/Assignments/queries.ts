@@ -6,7 +6,7 @@ import { Ulid, getDbUlid, makeSomeOptional, makeSomeRequired } from '../pgUtils'
 
 export async function createAssignment(
   data: CreateAssignmentInput,
-  tc: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<Assignment> {
   try {
     const assignment = await pgQueries.createAssignment.run(
@@ -93,7 +93,7 @@ export async function getAssignmentById(
 export async function createStudentAssignment(
   userId: Ulid,
   assignmentId: Ulid,
-  tc: TransactionClient
+  tc: TransactionClient = getClient()
 ) {
   const assignment = await pgQueries.createStudentAssignment.run(
     { userId, assignmentId },
