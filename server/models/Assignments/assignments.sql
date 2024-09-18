@@ -16,11 +16,13 @@ WHERE
 
 /* @name getAssignmentById */
 SELECT
-    *
+    assignments.*,
+    subjects.name AS subject_name
 FROM
     assignments
+    LEFT JOIN subjects ON assignments.subject_id = subjects.id
 WHERE
-    id = :assignmentId!;
+    assignments.id = :assignmentId!;
 
 
 /* @name createStudentAssignment */
@@ -39,6 +41,7 @@ SELECT
     assignments.min_duration_in_minutes,
     assignments.due_date,
     assignments.subject_id,
+    subjects.name AS subject_name,
     assignments.start_date,
     assignments.is_required,
     assignments.id,
@@ -46,6 +49,7 @@ SELECT
 FROM
     assignments
     LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id
+    LEFT JOIN subjects ON assignments.subject_id = subjects.id
 WHERE
     students_assignments.user_id = :userId!;
 
