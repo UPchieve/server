@@ -274,24 +274,22 @@ const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher"
 export const getAllAssignmentsForTeacher = new PreparedQuery<IGetAllAssignmentsForTeacherParams,IGetAllAssignmentsForTeacherResult>(getAllAssignmentsForTeacherIR);
 
 
-/** 'GetStudentsByAssignmentId' parameters type */
-export interface IGetStudentsByAssignmentIdParams {
+/** 'GetStudentAssignmentCompletion' parameters type */
+export interface IGetStudentAssignmentCompletionParams {
   assignmentId: string;
 }
 
-/** 'GetStudentsByAssignmentId' return type */
-export interface IGetStudentsByAssignmentIdResult {
-  assignmentId: string;
-  createdAt: Date;
+/** 'GetStudentAssignmentCompletion' return type */
+export interface IGetStudentAssignmentCompletionResult {
+  firstName: string;
+  lastName: string;
   submittedAt: Date | null;
-  updatedAt: Date;
-  userId: string;
 }
 
-/** 'GetStudentsByAssignmentId' query type */
-export interface IGetStudentsByAssignmentIdQuery {
-  params: IGetStudentsByAssignmentIdParams;
-  result: IGetStudentsByAssignmentIdResult;
+/** 'GetStudentAssignmentCompletion' query type */
+export interface IGetStudentAssignmentCompletionQuery {
+  params: IGetStudentAssignmentCompletionParams;
+  result: IGetStudentAssignmentCompletionResult;
 }
 
 const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2024,"b":2036,"line":73,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1954,"b":2036,"line":68,"col":0}}};
@@ -300,13 +298,14 @@ const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","pa
  * Query generated from SQL:
  * ```
  * SELECT
- *     *
- * FROM
- *     students_assignments
- * WHERE
- *     assignment_id = :assignmentId!
+ * 	users.first_name,
+ * 	users.last_name,
+ * 	students_assignments.submitted_at
+ * from students_assignments
+ * LEFT JOIN users ON students_assignments.user_id = users.id
+ * WHERE students_assignments.assignment_id = :assignmentId!
  * ```
  */
-export const getStudentsByAssignmentId = new PreparedQuery<IGetStudentsByAssignmentIdParams,IGetStudentsByAssignmentIdResult>(getStudentsByAssignmentIdIR);
+export const getStudentAssignmentCompletion = new PreparedQuery<IGetStudentAssignmentCompletionParams,IGetStudentAssignmentCompletionResult>(getStudentAssignmentCompletionIR);
 
 

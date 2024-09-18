@@ -145,16 +145,16 @@ export async function getAllAssignmentsForTeacher(
   }
 }
 
-export async function getStudentsByAssignmentId(
+export async function getStudentAssignmentCompletion(
   assignmentId: Ulid,
   tc: TransactionClient = getClient()
 ) {
   try {
-    const studentIds = await pgQueries.getStudentsByAssignmentId.run(
+    const studentAssignments = await pgQueries.getStudentAssignmentCompletion.run(
       { assignmentId },
       tc
     )
-    return studentIds
+    return studentAssignments
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -64,11 +64,14 @@ WHERE
     teacher_classes.user_id = :userId!;
 
 
-/* @name getStudentsByAssignmentId */
+/* @name getStudentAssignmentCompletion */
 SELECT
-    *
+    users.first_name,
+    users.last_name,
+    students_assignments.submitted_at
 FROM
     students_assignments
+    LEFT JOIN users ON students_assignments.user_id = users.id
 WHERE
-    assignment_id = :assignmentId!;
+    students_assignments.assignment_id = :assignmentId!;
 
