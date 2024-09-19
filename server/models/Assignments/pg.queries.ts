@@ -311,3 +311,54 @@ const getStudentAssignmentCompletionIR: any = {"name":"getStudentAssignmentCompl
 export const getStudentAssignmentCompletion = new PreparedQuery<IGetStudentAssignmentCompletionParams,IGetStudentAssignmentCompletionResult>(getStudentAssignmentCompletionIR);
 
 
+/** 'GetStudentAssignmentForSession' parameters type */
+export interface IGetStudentAssignmentForSessionParams {
+  sessionId: string | null | void;
+}
+
+/** 'GetStudentAssignmentForSession' return type */
+export interface IGetStudentAssignmentForSessionResult {
+  assignedAt: Date;
+  description: string | null;
+  dueDate: Date | null;
+  minDurationInMinutes: number | null;
+  numberOfSessions: number | null;
+  startDate: Date | null;
+  subjectId: number | null;
+  submittedAt: Date | null;
+  title: string | null;
+}
+
+/** 'GetStudentAssignmentForSession' query type */
+export interface IGetStudentAssignmentForSessionQuery {
+  params: IGetStudentAssignmentForSessionParams;
+  result: IGetStudentAssignmentForSessionResult;
+}
+
+const getStudentAssignmentForSessionIR: any = {"name":"getStudentAssignmentForSession","params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2307,"b":2315,"line":89,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    a.title,\n    a.description,\n    a.number_of_sessions,\n    a.min_duration_in_minutes,\n    a.due_date,\n    a.start_date,\n    a.subject_id,\n    sa.created_at AS assigned_at,\n    sa.submitted_at\nFROM\n    assignments a\n    LEFT JOIN students_assignments sa ON sa.assignment_id = a.id\n    LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id\n        AND ssa.user_id = sa.user_id\nWHERE\n    ssa.session_id = :sessionId","loc":{"a":1864,"b":2315,"line":73,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     a.title,
+ *     a.description,
+ *     a.number_of_sessions,
+ *     a.min_duration_in_minutes,
+ *     a.due_date,
+ *     a.start_date,
+ *     a.subject_id,
+ *     sa.created_at AS assigned_at,
+ *     sa.submitted_at
+ * FROM
+ *     assignments a
+ *     LEFT JOIN students_assignments sa ON sa.assignment_id = a.id
+ *     LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id
+ *         AND ssa.user_id = sa.user_id
+ * WHERE
+ *     ssa.session_id = :sessionId
+ * ```
+ */
+export const getStudentAssignmentForSession = new PreparedQuery<IGetStudentAssignmentForSessionParams,IGetStudentAssignmentForSessionResult>(getStudentAssignmentForSessionIR);
+
+
