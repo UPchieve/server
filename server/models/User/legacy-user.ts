@@ -78,6 +78,7 @@ export type LegacyUserModel = {
   schoolName: string
   latestRequestedSubjects?: string[]
   numberOfStudentClasses: number
+  issuers: string[]
 }
 
 export async function getLegacyUserObject(
@@ -130,6 +131,13 @@ export async function getLegacyUserObject(
       studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
         baseUser.id
       )
+      studentUser.usesGoogle = baseUser.issuers?.some(issuer =>
+        issuer.includes('google')
+      )
+      studentUser.usesClever = baseUser.issuers?.some(issuer =>
+        issuer.includes('clever')
+      )
+      delete baseUser.issuers
     }
     if (isVolunteerUserType(userType)) {
       if (!baseUser.subjects) baseUser.subjects = []
