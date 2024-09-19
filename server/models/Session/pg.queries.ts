@@ -2700,6 +2700,7 @@ export interface IGetStudentSessionDetailsResult {
   endedAt: Date | null;
   firstName: string;
   id: string;
+  lastName: string;
   messageCount: string | null;
   name: string;
 }
@@ -2710,7 +2711,7 @@ export interface IGetStudentSessionDetailsQuery {
   result: IGetStudentSessionDetailsResult;
 }
 
-const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35068,"b":35077,"line":1253,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name","loc":{"a":34711,"b":35191,"line":1240,"col":0}}};
+const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35089,"b":35098,"line":1254,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    users.last_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    users.last_name","loc":{"a":34711,"b":35233,"line":1240,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2721,6 +2722,7 @@ const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","para
  *     sessions.ended_at,
  *     sessions.created_at,
  *     users.first_name,
+ *     users.last_name,
  *     COUNT(session_id) AS message_count
  * FROM
  *     sessions
@@ -2734,7 +2736,8 @@ const getStudentSessionDetailsIR: any = {"name":"getStudentSessionDetails","para
  *     subjects.name,
  *     sessions.ended_at,
  *     sessions.created_at,
- *     users.first_name
+ *     users.first_name,
+ *     users.last_name
  * ```
  */
 export const getStudentSessionDetails = new PreparedQuery<IGetStudentSessionDetailsParams,IGetStudentSessionDetailsResult>(getStudentSessionDetailsIR);
@@ -2760,7 +2763,7 @@ export interface IGetTutorBotSessionMessagesBySessionIdQuery {
   result: IGetTutorBotSessionMessagesBySessionIdResult;
 }
 
-const getTutorBotSessionMessagesBySessionIdIR: any = {"name":"getTutorBotSessionMessagesBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35319,"b":35328,"line":1268,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    tutor_bot_session_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    created_at ASC","loc":{"a":35246,"b":35356,"line":1263,"col":0}}};
+const getTutorBotSessionMessagesBySessionIdIR: any = {"name":"getTutorBotSessionMessagesBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35361,"b":35370,"line":1270,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    tutor_bot_session_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    created_at ASC","loc":{"a":35288,"b":35398,"line":1265,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2801,7 +2804,7 @@ export interface IInsertTutorBotSessionMessageQuery {
   result: IInsertTutorBotSessionMessageResult;
 }
 
-const insertTutorBotSessionMessageIR: any = {"name":"insertTutorBotSessionMessage","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35509,"b":35511,"line":1275,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35515,"b":35524,"line":1275,"col":19}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35528,"b":35535,"line":1275,"col":32}]}},{"name":"userType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35539,"b":35547,"line":1275,"col":43}]}}],"usedParamSet":{"id":true,"sessionId":true,"message":true,"userType":true},"statement":{"body":"INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type)\n    VALUES (:id!, :sessionId!, :message!, :userType!)\nRETURNING\n    id, session_id, message, tutor_bot_session_user_type, created_at","loc":{"a":35402,"b":35627,"line":1274,"col":0}}};
+const insertTutorBotSessionMessageIR: any = {"name":"insertTutorBotSessionMessage","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35551,"b":35553,"line":1277,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35557,"b":35566,"line":1277,"col":19}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35570,"b":35577,"line":1277,"col":32}]}},{"name":"userType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":35581,"b":35589,"line":1277,"col":43}]}}],"usedParamSet":{"id":true,"sessionId":true,"message":true,"userType":true},"statement":{"body":"INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type)\n    VALUES (:id!, :sessionId!, :message!, :userType!)\nRETURNING\n    id, session_id, message, tutor_bot_session_user_type, created_at","loc":{"a":35444,"b":35669,"line":1276,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -2838,7 +2841,7 @@ export interface IGetStudentSessionsForFallIncentiveQuery {
   result: IGetStudentSessionsForFallIncentiveResult;
 }
 
-const getStudentSessionsForFallIncentiveIR: any = {"name":"getStudentSessionsForFallIncentive","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36784,"b":36793,"line":1314,"col":27}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36865,"b":36870,"line":1316,"col":32}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36883,"b":36885,"line":1317,"col":11},{"a":36945,"b":36947,"line":1318,"col":36}]}}],"usedParamSet":{"studentId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    sessions.id,\n    (time_tutored)::float,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    session_reported_count.total <> 0 AS reported,\n    messages.total AS total_messages,\n    sessions.created_at\nFROM\n    sessions\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.student_id = :studentId!\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.created_at >= :start!\n    AND ((:end)::timestamptz IS NULL\n        OR sessions.created_at <= (:end)::timestamptz)\nORDER BY\n    created_at ASC","loc":{"a":35679,"b":36990,"line":1281,"col":0}}};
+const getStudentSessionsForFallIncentiveIR: any = {"name":"getStudentSessionsForFallIncentive","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36826,"b":36835,"line":1316,"col":27}]}},{"name":"start","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36907,"b":36912,"line":1318,"col":32}]}},{"name":"end","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":36925,"b":36927,"line":1319,"col":11},{"a":36987,"b":36989,"line":1320,"col":36}]}}],"usedParamSet":{"studentId":true,"start":true,"end":true},"statement":{"body":"SELECT\n    sessions.id,\n    (time_tutored)::float,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    session_reported_count.total <> 0 AS reported,\n    messages.total AS total_messages,\n    sessions.created_at\nFROM\n    sessions\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.student_id = :studentId!\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.created_at >= :start!\n    AND ((:end)::timestamptz IS NULL\n        OR sessions.created_at <= (:end)::timestamptz)\nORDER BY\n    created_at ASC","loc":{"a":35721,"b":37032,"line":1283,"col":0}}};
 
 /**
  * Query generated from SQL:

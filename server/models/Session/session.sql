@@ -1243,6 +1243,7 @@ SELECT
     sessions.ended_at,
     sessions.created_at,
     users.first_name,
+    users.last_name,
     COUNT(session_id) AS message_count
 FROM
     sessions
@@ -1256,7 +1257,8 @@ GROUP BY
     subjects.name,
     sessions.ended_at,
     sessions.created_at,
-    users.first_name;
+    users.first_name,
+    users.last_name;
 
 
 /* @name getTutorBotSessionMessagesBySessionId */
