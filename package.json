@@ -5,7 +5,7 @@
   "scripts": {
     "build": "./bin/build_backend.sh",
     "build:tsc": "tsc --p tsconfig.server.json",
-    "deploy:hackers": "./bin/deploy.sh hackers",
+    "deploy:dev": "./bin/deploy.sh dev",
     "deploy:local": "./bin/deploy.sh",
     "start": "node -r newrelic build/main",
     "start:worker": "node build/worker",

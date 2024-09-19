@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ "$1" = 'hackers' ]; then
-  ENV_NAME='hackers'
+if [ "$1" = 'dev' ]; then
+  ENV_NAME='development'
 else
   ENV_NAME=$(op read op://private/subway-local-deploy/resource-group)
 fi
