@@ -477,7 +477,8 @@ SELECT
     users_quizzes.total::int AS total_quizzes_passed,
     users_roles.role_id,
     muted_users_subject_alerts_agg.muted_subject_alerts,
-    number_of_student_classes.count AS number_of_student_classes
+    number_of_student_classes.count AS number_of_student_classes,
+    federated_credentials_agg.issuers
 FROM
     users
     LEFT JOIN (
@@ -605,6 +606,13 @@ FROM
             student_classes
         WHERE
             user_id = :userId!) AS number_of_student_classes ON TRUE
+    LEFT JOIN (
+        SELECT
+            array_agg(issuer) AS issuers
+        FROM
+            federated_credentials
+        WHERE
+            federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE
 WHERE
     users.id = :userId!;
 
