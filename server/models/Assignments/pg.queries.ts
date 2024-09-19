@@ -294,7 +294,7 @@ export interface IGetStudentsByAssignmentIdQuery {
   result: IGetStudentsByAssignmentIdResult;
 }
 
-const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1804,"b":1816,"line":69,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1734,"b":1816,"line":64,"col":0}}};
+const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2024,"b":2036,"line":73,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1954,"b":2036,"line":68,"col":0}}};
 
 /**
  * Query generated from SQL:
