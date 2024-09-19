@@ -41,7 +41,13 @@ SELECT
     meta.lzip AS zip,
     meta.lea_name AS district,
     approved AS is_admin_approved,
-    partner AS is_partner
+    partner AS is_partner,
+    meta.is_school_wide_title1,
+    meta.is_title1_eligible,
+    meta.national_school_lunch_program,
+    meta.total_students,
+    meta.nslp_direct_certification,
+    meta.frl_eligible
 FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
