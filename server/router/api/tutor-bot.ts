@@ -50,6 +50,7 @@ export function routeTutorBot(router: Router) {
     }
   })
 
+  // TODO should probably just be a get to /tutor-bot/conversations
   router.get('/tutor-bot/conversations/users/:userId', async function(
     req,
     res
