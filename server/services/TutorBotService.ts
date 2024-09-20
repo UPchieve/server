@@ -1,32 +1,85 @@
 import axios from 'axios'
 import config from '../config'
-import {
-  addMessageToSessionById,
-  getTutorBotSessionMessagesBySessionId,
-  insertTutorBotSessionMessage,
-} from '../models/Session'
-import { tutor_bot_session_user_type } from '../models/Session/pg.queries'
 import logger from '../logger'
+import { tutor_bot_conversation_user_type } from '../models/TutorBot/pg.queries'
+import {
+  getTutorBotConversationMessagesById,
+  getTutorBotConversationsByUserId,
+  insertTutorBotConversation,
+  insertTutorBotConversationMessage,
+} from '../models/TutorBot'
+import { getDbUlid } from '../models/pgUtils'
+import * as LangfuseService from './LangfuseService'
+import { runInTransaction, TransactionClient } from '../db'
 
-interface TutorBotSessionMessage {
-  tutorBotSessionUserType: tutor_bot_session_user_type
+const LF_TRACE_NAME = 'tutorBotSession'
+const LF_GENERATION_NAME = 'tutorBotSessionMessage'
+
+interface TutorBotConversationMessage {
+  tutorBotConversationId: string
+  userId: string
+  senderUserType: tutor_bot_conversation_user_type
   message: string
   createdAt: Date
 }
 
-interface TutorBotSessionTranscript {
-  sessionId: string
-  messages: TutorBotSessionMessage[]
+interface TutorBotConversationTranscript {
+  conversationId: string
+  subjectId: number
+  messages: TutorBotConversationMessage[]
 }
 
-export const getTranscript = async (
-  sessionId: string
-): Promise<TutorBotSessionTranscript> => {
-  const messagesInOrder = await getTutorBotSessionMessagesBySessionId(sessionId)
+export const getTranscriptForConversation = async (
+  conversationId: string
+): Promise<TutorBotConversationTranscript> => {
+  const results = await getTutorBotConversationMessagesById(conversationId)
   return {
-    sessionId,
-    messages: messagesInOrder.map(m => m as TutorBotSessionMessage),
+    conversationId,
+    subjectId: results.subjectId,
+    messages: results.messages,
   }
+}
+
+export const createTutorBotConversation = async (data: {
+  userId: string
+  sessionId: string | null
+  message: string
+  senderUserType: 'student' | 'volunteer'
+  subjectId: number
+}): Promise<{
+  conversationId: string
+  userId: string
+  sessionId: string | null
+  botResponse: BotResponse
+}> => {
+  const userId = data.userId
+  const sessionId = data.sessionId
+  const subjectId = data.subjectId
+
+  return await runInTransaction(async (tc: TransactionClient) => {
+    const conversationId = await insertTutorBotConversation({
+      subjectId,
+      userId,
+      sessionId,
+      id: getDbUlid(),
+    })
+    const botResponse = await sendMessageAndGetBotResponse(
+      userId,
+      conversationId,
+      data.message,
+      data.senderUserType
+    )
+    return {
+      conversationId,
+      userId,
+      sessionId,
+      botResponse,
+    }
+  })
+}
+
+export const getAllConversationsForUser = async (userId: string) => {
+  return await getTutorBotConversationsByUserId(userId)
 }
 
 const getBotResponseMessage = (
@@ -41,34 +94,61 @@ const getBotResponseMessage = (
   }
 }
 
-export const sendMessageAndGetUpdatedTranscript = async (
-  userId: string,
-  sessionId: string,
+export type BotResponse = {
   message: string
-) => {
+  status: string
+  traceId: string
+  observationId: string | null
+}
+export const sendMessageAndGetBotResponse = async (
+  userId: string,
+  conversationId: string,
+  message: string,
+  senderUserType: tutor_bot_conversation_user_type
+): Promise<BotResponse> => {
   // Save the latest user message to DB and create the transcript of the conversation so far
-  await insertTutorBotSessionMessage(
-    sessionId,
-    removeTurnMarkers(message),
-    'student'
-  )
-  const transcript = await getTranscript(sessionId)
+  await insertTutorBotConversationMessage({
+    conversationId,
+    userId,
+    senderUserType,
+    message: removeTurnMarkers(message),
+  })
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    sessionId: conversationId,
+  })
+
+  const transcript = await getTranscriptForConversation(conversationId)
   const prompt = createPromptFromTranscript(transcript)
-  const completion = await createChatCompletion(prompt, sessionId)
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model: 'phi3-upchieve-tutormodel',
+  })
+  const completion = await createChatCompletion(prompt, conversationId)
   const { assistant: botMessage, system } = getBotResponseMessage(completion)
-  // Save bot response to session messages and append to the existing transcript
-  const savedBotMessage = await insertTutorBotSessionMessage(
-    sessionId,
-    botMessage,
-    'bot'
-  )
+  // Save bot response to conversation messages and append to the existing transcript
+  const savedBotMessage = await insertTutorBotConversationMessage({
+    conversationId,
+    userId,
+    message: botMessage,
+    senderUserType: 'bot',
+  })
+  gen.end({
+    output: botMessage,
+    input: { prompt, ...savedBotMessage },
+  })
+
   transcript.messages.push({
-    tutorBotSessionUserType: 'bot',
+    senderUserType: 'bot',
     message: botMessage,
     createdAt: savedBotMessage.createdAt,
-  } as TutorBotSessionMessage)
+    tutorBotConversationId: conversationId,
+    userId,
+  } as TutorBotConversationMessage)
 
   return {
+    traceId: gen.traceId,
+    observationId: gen.observationId,
     message: transcript.messages[transcript.messages.length - 1].message,
     status: system.substring(
       system.indexOf('[[') + 2,
@@ -82,7 +162,7 @@ export const sendMessageAndGetUpdatedTranscript = async (
  */
 const createChatCompletion = async (
   prompt: string,
-  sessionId: string
+  conversationId: string
 ): Promise<string> => {
   try {
     const res = await axios.post(
@@ -102,7 +182,7 @@ const createChatCompletion = async (
   } catch (err) {
     logger.error(
       {
-        sessionId,
+        conversationId,
         error: err,
       },
       'Failed to get Tutor Bot response'
@@ -114,12 +194,11 @@ const createChatCompletion = async (
 const byteSize = (str: string) => new Blob([str]).size
 
 const createPromptFromTranscript = (
-  transcript: TutorBotSessionTranscript
+  transcript: TutorBotConversationTranscript
 ): string => {
   let prompt = ''
   transcript.messages.forEach(m => {
-    const senderTag =
-      m.tutorBotSessionUserType === 'bot' ? '<|assistant|>' : '<|user|>'
+    const senderTag = m.senderUserType === 'bot' ? '<|assistant|>' : '<|user|>'
 
     prompt += `${senderTag}\n${m.message}<|end|>${
       senderTag === '<|user|>' ? '<|system|>' : ''
@@ -142,7 +221,6 @@ const systemRegex = /^(<\|system\|>)\n.*(\[\[([A-Z]+)\]\])/gm
 
 const extractSystem = (text: string): { assistant: string; system: string } => {
   const [system] = text.match(systemRegex) ?? ['']
-
   return {
     system,
     assistant: system ? text.replace(`${system} `, '') : text,
