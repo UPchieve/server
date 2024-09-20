@@ -1,10 +1,13 @@
 import { mocked } from 'jest-mock'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as AssignmentRepo from '../../models/Assignments'
+import * as TeacherRepo from '../../models/Teacher'
 import moment from 'moment'
 
 jest.mock('../../models/Assignments')
+jest.mock('../../models/Teacher')
 const mockedAssignmentRepo = mocked(AssignmentRepo)
+const mockedTeacherRepo = mocked(TeacherRepo)
 
 describe('createAssignment', () => {
   beforeEach(() => {
@@ -40,8 +43,22 @@ describe('createAssignment', () => {
 
   test('does not throw an error if the minimum number of session is 0', async () => {
     const data = {
+      classId: 'classId',
       numberOfSessions: 0,
     }
+
+    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+      id: 'assignment-id',
+      classId: 'classId',
+      isRequired: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+
+    mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
+      'student-id-1',
+    ])
+
     await expect(
       AssignmentsService.createAssignment(
         data as AssignmentsService.CreateAssignmentPayload
@@ -55,6 +72,20 @@ describe('createAssignment', () => {
     const data = {
       numberOfSessions: 1,
     }
+
+    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+      id: 'assignment-id',
+      classId: 'classId',
+      isRequired: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...data,
+    })
+
+    mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
+      'student-id-1',
+    ])
+
     await expect(
       AssignmentsService.createAssignment(
         data as AssignmentsService.CreateAssignmentPayload
@@ -85,6 +116,11 @@ describe('createAssignment', () => {
       dueDate: dueDate.toDate(),
       startDate: startDate.toDate(),
     }
+
+    mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
+      'student-id-1',
+    ])
+
     await expect(
       AssignmentsService.createAssignment(
         data as AssignmentsService.CreateAssignmentPayload
@@ -111,6 +147,20 @@ describe('createAssignment', () => {
       dueDate: dueDate.toDate(),
       startDate: startDate.toDate(),
     }
+
+    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+      id: 'assignment-id',
+      classId: 'classId',
+      isRequired: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...data,
+    })
+
+    mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
+      'student-id-1',
+    ])
+
     await AssignmentsService.createAssignment(
       data as AssignmentsService.CreateAssignmentPayload
     )
@@ -130,6 +180,19 @@ describe('createAssignment', () => {
     const data = {
       classId: 'class-id123',
     }
+
+    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+      id: 'assignment-id',
+      isRequired: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...data,
+    })
+
+    mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
+      'student-id-1',
+    ])
+
     await AssignmentsService.createAssignment(
       data as AssignmentsService.CreateAssignmentPayload
     )
@@ -155,10 +218,19 @@ describe('createAssignment', () => {
       subjectId: 15,
       title: 'the title of the assignment',
     }
+    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+      id: 'assignment-id',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...data,
+    })
+
+    mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
+      'student-id-1',
+    ])
     await AssignmentsService.createAssignment(
       data as AssignmentsService.CreateAssignmentPayload
     )
-
     expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
       data,
       expect.toBeTransactionClient()

@@ -124,6 +124,6 @@ export async function getAllAssignmentsForTeacher(
   return AssignmentsRepo.getAllAssignmentsForTeacher(userId)
 }
 
-export async function getStudentsByAssignmentId(assignmentId: Ulid) {
-  return AssignmentsRepo.getStudentsByAssignmentId(assignmentId)
+export async function getStudentAssignmentCompletion(assignmentId: Ulid) {
+  return AssignmentsRepo.getStudentAssignmentCompletion(assignmentId)
 }
