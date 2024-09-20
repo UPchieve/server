@@ -38,11 +38,9 @@ export async function getTutorBotConversationMessagesById(
       },
       getRoClient()
     )
-    if (results.length) {
-      return {
-        subjectId: makeSomeOptional(conversation[0], ['sessionId']).subjectId,
-        messages: results.map(makeRequired),
-      }
+    return {
+      subjectId: makeSomeOptional(conversation[0], ['sessionId']).subjectId,
+      messages: results.map(makeRequired),
     }
   } catch (err) {
     throw new RepoReadError(err)

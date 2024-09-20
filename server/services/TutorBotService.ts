@@ -35,8 +35,8 @@ export const getTranscriptForConversation = async (
   const results = await getTutorBotConversationMessagesById(conversationId)
   return {
     conversationId,
-    subjectId: results?.subjectId,
-    messages: results?.messages ?? [],
+    subjectId: results.subjectId,
+    messages: results.messages,
   }
 }
 
