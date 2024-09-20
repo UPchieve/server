@@ -14,6 +14,7 @@ export interface IGetTutorBotConversationsByUserIdResult {
   id: string;
   messagePreview: string;
   sessionId: string | null;
+  subjectId: number;
   updatedAt: Date;
   userId: string;
 }
