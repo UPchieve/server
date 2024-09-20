@@ -1,5 +1,12 @@
-import { Ulid } from '../pgUtils'
 import { tutor_bot_conversation_user_type } from './pg.queries'
+import { Ulid, Uuid } from '../pgUtils'
+
+export type InsertTutorBotConversationPayload = {
+  userId: Ulid
+  subjectId: number
+  sessionId: Ulid | null
+  id: Uuid
+}
 
 export type InsertTutorBotConversationMessagePayload = {
   conversationId: Ulid
