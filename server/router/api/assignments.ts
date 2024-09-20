@@ -17,11 +17,11 @@ export function routeAssignments(router: Router): void {
 
   router.get('/assignment/:assignmentId/students', async function(req, res) {
     try {
-      const assignmentId = req.params.assignemntId as string
-      const studentIds = await AssignmentsService.getStudentsByAssignmentId(
+      const assignmentId = req.params.assignmentId as string
+      const studentAssignments = await AssignmentsService.getStudentAssignmentCompletion(
         assignmentId
       )
-      res.json({ studentIds })
+      res.json({ studentAssignments })
     } catch (err) {
       resError(res, err)
     }

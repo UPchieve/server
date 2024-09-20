@@ -90,21 +90,6 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/assignment/:assignmentId').post(async function(req, res) {
-    try {
-      const assignmentId = req.params.assignmentId
-      const classIds = asArray(asString)(req.body.classIds)
-      const classAssignments = await Promise.all(
-        classIds.map((classId: string) =>
-          AssignmentsService.addAssignmentForClass(classId, assignmentId)
-        )
-      )
-      res.json({ classAssignments })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router.route('/assignments').get(async function(req, res) {
     try {
       const user = extractUser(req)
