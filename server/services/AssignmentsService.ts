@@ -103,14 +103,11 @@ export async function addAssignmentForClass(
   classId: Ulid,
   assignmentId: Ulid
 ): Promise<CreateStudentAssignmentResult[]> {
-  console.log('*****inside add assignment')
   return runInTransaction(async (tc: TransactionClient) => {
-    console.log('****inside transaction')
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
       classId
     )
-    console.log('****student ids', studentIds)
     return addAssignmentForStudents(studentIds, assignmentId)
   })
 }
