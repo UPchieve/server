@@ -292,18 +292,20 @@ export interface IGetStudentAssignmentCompletionQuery {
   result: IGetStudentAssignmentCompletionResult;
 }
 
-const getStudentsByAssignmentIdIR: any = {"name":"getStudentsByAssignmentId","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2024,"b":2036,"line":73,"col":21}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    *\nFROM\n    students_assignments\nWHERE\n    assignment_id = :assignmentId!","loc":{"a":1954,"b":2036,"line":68,"col":0}}};
+const getStudentAssignmentCompletionIR: any = {"name":"getStudentAssignmentCompletion","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2188,"b":2200,"line":76,"col":42}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    users.first_name,\n    users.last_name,\n    students_assignments.submitted_at\nFROM\n    students_assignments\n    LEFT JOIN users ON students_assignments.user_id = users.id\nWHERE\n    students_assignments.assignment_id = :assignmentId!","loc":{"a":1959,"b":2200,"line":68,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- * 	users.first_name,
- * 	users.last_name,
- * 	students_assignments.submitted_at
- * from students_assignments
- * LEFT JOIN users ON students_assignments.user_id = users.id
- * WHERE students_assignments.assignment_id = :assignmentId!
+ *     users.first_name,
+ *     users.last_name,
+ *     students_assignments.submitted_at
+ * FROM
+ *     students_assignments
+ *     LEFT JOIN users ON students_assignments.user_id = users.id
+ * WHERE
+ *     students_assignments.assignment_id = :assignmentId!
  * ```
  */
 export const getStudentAssignmentCompletion = new PreparedQuery<IGetStudentAssignmentCompletionParams,IGetStudentAssignmentCompletionResult>(getStudentAssignmentCompletionIR);
