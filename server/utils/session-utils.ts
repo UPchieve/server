@@ -171,8 +171,6 @@ export const asRequestIdentifiers = asFactory<RequestIdentifier>(
 export interface StartSessionData extends RequestIdentifier {
   sessionSubTopic: string
   sessionType: string
-  problemId?: string
-  assignmentId?: string
   studentId?: string
   docEditorVersion?: number
 }
@@ -180,8 +178,6 @@ export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
   sessionSubTopic: asString,
   sessionType: asString,
-  problemId: asOptional(asString),
-  assignmentId: asOptional(asString),
   studentId: asOptional(asString),
   docEditorVersion: asOptional(asNumber),
 })

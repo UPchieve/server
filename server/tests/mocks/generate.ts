@@ -1,5 +1,4 @@
 import { getDbUlid, getUuid, Ulid } from '../../models/pgUtils'
-import { AssistmentsData } from '../../models/AssistmentsData'
 import { Student } from '../../models/Student'
 import { Availability } from '../../models/Availability'
 import { User, UserContactInfo, UserRole } from '../../models/User'
@@ -280,21 +279,6 @@ export const buildMessageForFrontend = (
     ...overrides,
   }
   return message
-}
-
-export function buildAssistmentsData(
-  overrides: Partial<AssistmentsData> & { sessionId: Ulid }
-): AssistmentsData {
-  return {
-    id: getDbUlid(),
-    problemId: Math.floor(Math.random() * 100),
-    assignmentId: getUuid(),
-    studentId: getUuid(),
-    sent: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...overrides,
-  }
 }
 
 export function buildVolunteerPartnerOrg(
