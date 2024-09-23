@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import SocketService from '../../services/SocketService'
+import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
@@ -274,6 +275,18 @@ export function routeSession(router: Router) {
       }
     }
   )
+
+  router.get('/session/:sessionId/assignment', async function(req, res) {
+    try {
+      const { sessionId } = req.params
+      const assignment = await AssignmentsService.getStudentAssignmentForSession(
+        sessionId
+      )
+      res.json({ assignment })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
 
   router.get('/sessions/history', async function(req, res) {
     try {
