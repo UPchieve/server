@@ -11,6 +11,7 @@ import {
 import { getDbUlid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { runInTransaction, TransactionClient } from '../db'
+import { getSocket } from '../worker/sockets'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -106,6 +107,7 @@ export const sendMessageAndGetBotResponse = async (
   message: string,
   senderUserType: tutor_bot_conversation_user_type
 ): Promise<BotResponse> => {
+  const socket = getSocket()
   // Save the latest user message to DB and create the transcript of the conversation so far
   await insertTutorBotConversationMessage({
     conversationId,
@@ -113,6 +115,15 @@ export const sendMessageAndGetBotResponse = async (
     senderUserType,
     message: removeTurnMarkers(message),
   })
+
+  // TODO emit message from user
+  // if (conversation.sessionId) {
+  //   socket.emit('tutorBotConversationMessage', {
+  //     sessionId,
+  //     message,
+  //   })
+  // }
+
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     sessionId: conversationId,
@@ -146,7 +157,7 @@ export const sendMessageAndGetBotResponse = async (
     userId,
   } as TutorBotConversationMessage)
 
-  return {
+  const result = {
     traceId: gen.traceId,
     observationId: gen.observationId,
     message: transcript.messages[transcript.messages.length - 1].message,
@@ -155,6 +166,20 @@ export const sendMessageAndGetBotResponse = async (
       system.lastIndexOf(']]')
     ),
   }
+
+  // TODO if there's a session
+  /*
+  if (conversation.sessionId) {
+    socket.emit('tutorBotConversationMessage', {
+      // socket message handler expects a FRONTEND user-like object
+      user: { _id: chatbot, isVolunteer: true, userType: 'volunteer' },
+      sessionId,
+      message: content,
+    })
+  }
+  */
+
+  return result
 }
 
 /**

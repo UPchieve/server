@@ -199,3 +199,35 @@ const insertTutorBotConversationMessageIR: any = {"name":"insertTutorBotConversa
 export const insertTutorBotConversationMessage = new PreparedQuery<IInsertTutorBotConversationMessageParams,IInsertTutorBotConversationMessageResult>(insertTutorBotConversationMessageIR);
 
 
+/** 'UpdateTutorBotConversationSessionId' parameters type */
+export interface IUpdateTutorBotConversationSessionIdParams {
+  id: string;
+  sessionId: string;
+}
+
+/** 'UpdateTutorBotConversationSessionId' return type */
+export interface IUpdateTutorBotConversationSessionIdResult {
+  id: string;
+}
+
+/** 'UpdateTutorBotConversationSessionId' query type */
+export interface IUpdateTutorBotConversationSessionIdQuery {
+  params: IUpdateTutorBotConversationSessionIdParams;
+  result: IUpdateTutorBotConversationSessionIdResult;
+}
+
+const updateTutorBotConversationSessionIdIR: any = {"name":"updateTutorBotConversationSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1589,"b":1598,"line":59,"col":20}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1614,"b":1616,"line":60,"col":14}]}}],"usedParamSet":{"sessionId":true,"id":true},"statement":{"body":"UPDATE tutor_bot_conversations\n    SET session_id=:sessionId!\n    WHERE id=:id!\nRETURNING\n    id","loc":{"a":1538,"b":1633,"line":58,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE tutor_bot_conversations
+ *     SET session_id=:sessionId!
+ *     WHERE id=:id!
+ * RETURNING
+ *     id
+ * ```
+ */
+export const updateTutorBotConversationSessionId = new PreparedQuery<IUpdateTutorBotConversationSessionIdParams,IUpdateTutorBotConversationSessionIdResult>(updateTutorBotConversationSessionIdIR);
+
+

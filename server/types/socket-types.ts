@@ -35,6 +35,10 @@ export type ClientToServerEvents = {
   resetWhiteboard: (data: { sessionId: Ulid }) => void
   'sessions:leave': (data: { sessionId: Ulid }) => void
   'sessions/recap:leave': (data: { sessionId: Ulid }) => void
+  tutorBotConversationMessage: (data: {
+    sessionId: Ulid
+    tutorBotConversationId: Ulid
+  }) => void
 }
 
 export type ServerToClientEvents = {

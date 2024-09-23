@@ -14,3 +14,8 @@ export type InsertTutorBotConversationMessagePayload = {
   senderUserType: tutor_bot_conversation_user_type
   message: string
 }
+
+export type UpdateTutorBotConversationSessionIdMessagePayload = {
+  id: Ulid
+  sessionId: Ulid
+}

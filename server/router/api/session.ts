@@ -10,6 +10,7 @@ import { asString, asUlid } from '../../utils/type-utils'
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import multer from 'multer'
+import { updateTutorBotConversationSessionId } from '../../models/TutorBot'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -19,11 +20,20 @@ export function routeSession(router: Router) {
   router.route('/session/new').post(async function(req, res) {
     try {
       const user = extractUser(req)
+
       const sessionId = await SessionService.startSession(user, {
         ...req.body,
         userAgent: req.get('User-Agent'),
         ip: req.ip,
       } as unknown)
+
+      if (req.body.tutorBotConversationId) {
+        await updateTutorBotConversationSessionId({
+          id: req.body.tutorBotConversationId,
+          sessionId,
+        })
+      }
+
       res.json({ sessionId })
     } catch (error) {
       resError(res, error)

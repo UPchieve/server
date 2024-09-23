@@ -3,6 +3,7 @@ import { RepoCreateError, RepoReadError } from '../Errors'
 import {
   InsertTutorBotConversationMessagePayload,
   InsertTutorBotConversationPayload,
+  UpdateTutorBotConversationSessionIdMessagePayload,
 } from './types'
 import * as pgQueries from './pg.queries'
 import { makeSomeOptional, makeRequired } from '../pgUtils'
@@ -57,6 +58,23 @@ export async function insertTutorBotConversation(
     if (!result.length)
       throw new RepoCreateError('Failed to create conversation')
     return result[0].id
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function updateTutorBotConversationSessionId(
+  data: UpdateTutorBotConversationSessionIdMessagePayload
+) {
+  try {
+    const result = await pgQueries.updateTutorBotConversationSessionId.run(
+      {
+        ...data,
+      },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+    throw new RepoCreateError('Failed to insert tutor bot conversation message')
   } catch (err) {
     throw new RepoCreateError(err)
   }

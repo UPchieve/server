@@ -358,6 +358,25 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
+    socket.on('tutorBotConversationMessage', async data => {
+      newrelic.startWebTransaction(
+        '/socket-io/tutorBotConversationMessage',
+        () =>
+          new Promise<void>(async (resolve, reject) => {
+            // TODO
+            // TODO
+            // TODO
+            // TODO
+            // send back tutor bot message
+            // TODO
+            // TODO
+            // TODO
+            // TODO
+            // TODO
+          })
+      )
+    })
+
     socket.on('message', async data => {
       newrelic.startWebTransaction(
         '/socket-io/message',
