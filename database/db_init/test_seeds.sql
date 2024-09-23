@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
+-- Dumped by pg_dump version 14.11 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -464,6 +464,14 @@ COPY upchieve.computed_subject_unlocks (subject_id, certification_id, created_at
 --
 
 COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: fall_incentive_excluded_partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.fall_incentive_excluded_partner_orgs (student_partner_org_id, created_at, updated_at) FROM stdin;
 \.
 
 
