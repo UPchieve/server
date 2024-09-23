@@ -68,7 +68,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
     )
 
     const assignmentId = assignment.id
-    addAssignmentForClass(data.classId, assignmentId)
+    await addAssignmentForClass(data.classId, assignmentId)
 
     return assignment
   })
