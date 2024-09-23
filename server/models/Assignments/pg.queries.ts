@@ -365,3 +365,33 @@ const getStudentAssignmentForSessionIR: any = {"name":"getStudentAssignmentForSe
 export const getStudentAssignmentForSession = new PreparedQuery<IGetStudentAssignmentForSessionParams,IGetStudentAssignmentForSessionResult>(getStudentAssignmentForSessionIR);
 
 
+/** 'LinkSessionToAssignment' parameters type */
+export interface ILinkSessionToAssignmentParams {
+  assignmentId: string;
+  sessionId: string;
+  userId: string;
+}
+
+/** 'LinkSessionToAssignment' return type */
+export type ILinkSessionToAssignmentResult = void;
+
+/** 'LinkSessionToAssignment' query type */
+export interface ILinkSessionToAssignmentQuery {
+  params: ILinkSessionToAssignmentParams;
+  result: ILinkSessionToAssignmentResult;
+}
+
+const linkSessionToAssignmentIR: any = {"name":"linkSessionToAssignment","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2756,"b":2765,"line":100,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2769,"b":2775,"line":100,"col":26}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2779,"b":2791,"line":100,"col":36}]}}],"usedParamSet":{"sessionId":true,"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO sessions_students_assignments (session_id, user_id, assignment_id)\n    VALUES (:sessionId!, :userId!, :assignmentId!)\nON CONFLICT\n    DO NOTHING","loc":{"a":2664,"b":2819,"line":99,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO sessions_students_assignments (session_id, user_id, assignment_id)
+ *     VALUES (:sessionId!, :userId!, :assignmentId!)
+ * ON CONFLICT
+ *     DO NOTHING
+ * ```
+ */
+export const linkSessionToAssignment = new PreparedQuery<ILinkSessionToAssignmentParams,ILinkSessionToAssignmentResult>(linkSessionToAssignmentIR);
+
+

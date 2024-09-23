@@ -97,3 +97,10 @@ FROM
 WHERE
     ssa.session_id = :sessionId;
 
+
+/* @name linkSessionToAssignment */
+INSERT INTO sessions_students_assignments (session_id, user_id, assignment_id)
+    VALUES (:sessionId!, :userId!, :assignmentId!)
+ON CONFLICT
+    DO NOTHING;
+

@@ -142,3 +142,17 @@ export async function getStudentAssignmentCompletion(assignmentId: Ulid) {
 export async function getStudentAssignmentForSession(sessionId: Uuid) {
   return AssignmentsRepo.getStudentAssignmentForSession(sessionId)
 }
+
+export async function linkSessionToAssignment(
+  userId: Ulid,
+  sessionId: Uuid,
+  assignmentId: Uuid,
+  tc: TransactionClient
+) {
+  return AssignmentsRepo.linkSessionToAssignment(
+    userId,
+    sessionId,
+    assignmentId,
+    tc
+  )
+}
