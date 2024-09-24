@@ -111,12 +111,12 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
   }
 }
 
-export async function getSessionById(sessionId: Ulid): Promise<Session> {
+export async function getSessionById(
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<Session> {
   try {
-    const result = await pgQueries.getSessionById.run(
-      { sessionId },
-      getClient()
-    )
+    const result = await pgQueries.getSessionById.run({ sessionId }, tc)
     if (!result.length) throw new RepoReadError('Session not found')
     return makeSomeOptional(result[0], [
       'volunteerId',
@@ -505,21 +505,14 @@ export type SessionByIdWithStudentAndVolunteer = {
 
 export async function getMessagesForFrontend(
   sessionId: Ulid,
-  client?: PoolClient
+  tc: TransactionClient = getClient()
 ): Promise<MessageForFrontend[]> {
   try {
-    const usableClient = client ? client : getClient()
     const result = (
-      await pgQueries.getSessionMessagesForFrontend.run(
-        { sessionId },
-        usableClient
-      )
+      await pgQueries.getSessionMessagesForFrontend.run({ sessionId }, tc)
     ).map(v => makeRequired(v))
     const voiceResult = (
-      await pgQueries.getSessionVoiceMessagesForFrontend.run(
-        { sessionId },
-        usableClient
-      )
+      await pgQueries.getSessionVoiceMessagesForFrontend.run({ sessionId }, tc)
     ).map(v => makeSomeOptional(v, ['transcript']))
 
     // insert voice messages
@@ -607,12 +600,13 @@ export async function getSessionByIdWithStudentAndVolunteer(
 export async function createSession(
   studentId: Ulid,
   subject: string,
-  shadowbanned: boolean
+  shadowbanned: boolean,
+  tc: TransactionClient = getClient()
 ): Promise<Ulid> {
   try {
     const result = await pgQueries.createSession.run(
       { id: getDbUlid(), studentId, subject, shadowbanned },
-      getClient()
+      tc
     )
     return makeRequired(result[0]).id
   } catch (err) {
@@ -658,15 +652,15 @@ export type SessionInfoForUser = {
 
 export async function handleSessionParsingForUser(
   session: SessionInfoForUser,
-  client: PoolClient
+  tc: TransactionClient
 ): Promise<CurrentSession> {
   try {
-    const messages = await getMessagesForFrontend(session.id, client)
+    const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
       session.id,
       session.studentId,
       session.volunteerId,
-      client
+      tc
     )
     return {
       ...session,
@@ -681,14 +675,11 @@ export async function handleSessionParsingForUser(
 }
 
 export async function getCurrentSessionByUserId(
-  userId: Ulid
+  userId: Ulid,
+  tc: TransactionClient = getClient()
 ): Promise<CurrentSession | undefined> {
-  const client = await getClient().connect()
   try {
-    const result = await pgQueries.getCurrentSessionByUserId.run(
-      { userId },
-      client
-    )
+    const result = await pgQueries.getCurrentSessionByUserId.run({ userId }, tc)
     if (!result.length) return
     else {
       const session = makeSomeOptional(result[0], [
@@ -696,12 +687,10 @@ export async function getCurrentSessionByUserId(
         'endedAt',
         'volunteerJoinedAt',
       ])
-      return handleSessionParsingForUser(session, client)
+      return handleSessionParsingForUser(session, tc)
     }
   } catch (error) {
     throw new RepoReadError(error)
-  } finally {
-    client.release()
   }
 }
 
@@ -1462,9 +1451,9 @@ async function getSessionUsers(
   sessionId: Ulid,
   sessionStudentId: Ulid,
   sessionVolunteerId: Ulid = '',
-  client: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<{ student: CurrentSessionUser; volunteer?: CurrentSessionUser }> {
-  const userResult = await pgQueries.getSessionUsers.run({ sessionId }, client)
+  const userResult = await pgQueries.getSessionUsers.run({ sessionId }, tc)
   const users = userResult.map(v => makeRequired(v))
   let student, volunteer
   for (const u of users) {
