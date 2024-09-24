@@ -2,11 +2,7 @@ import twilio from 'twilio'
 import { getCurrentNewYorkTime } from '../utils/get-times'
 import config from '../config'
 import moment from 'moment'
-import {
-  getFavoriteVolunteersByStudentId,
-  getStudentContactInfoById,
-  getTestStudentExistsById,
-} from '../models/Student'
+import * as StudentsRepo from '../models/Student'
 import {
   VolunteerContactInfo,
   getVolunteersNotifiedBySessionId,
@@ -28,6 +24,7 @@ import {
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
 import { getMutedSubjectAlertsFlag } from './FeatureFlagService'
+import { getClient, TransactionClient } from '../db'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot =
@@ -249,10 +246,14 @@ export async function getAssociatedPartner(
 export async function notifyVolunteer(
   session: SessionRepo.Session
 ): Promise<Ulid | undefined> {
-  const student = await getStudentContactInfoById(session.studentId)
+  const student = await StudentsRepo.getStudentContactInfoById(
+    session.studentId
+  )
   if (!student) return
 
-  const favoriteVolunteers = await getFavoriteVolunteersByStudentId(student.id)
+  const favoriteVolunteers = await StudentsRepo.getFavoriteVolunteersByStudentId(
+    student.id
+  )
 
   const associatedPartner = student.studentPartnerOrg
     ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
@@ -529,10 +530,11 @@ export async function confirmVerification(
 }
 
 export async function beginRegularNotifications(
-  sessionId: Ulid
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
 ): Promise<void> {
-  const session = await getSessionById(sessionId)
-  const isTestUser = await getTestStudentExistsById(session.studentId)
+  const session = await getSessionById(sessionId, tc)
+  const isTestUser = await StudentsRepo.isTestUser(session.studentId, tc)
 
   if (isTestUser) return
   // Delay initial wave of notifications by 1 min to give

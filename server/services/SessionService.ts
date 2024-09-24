@@ -1,4 +1,3 @@
-import Case from 'case'
 import crypto from 'crypto'
 import _ from 'lodash'
 import moment from 'moment'
@@ -19,7 +18,6 @@ import {
 } from '../constants'
 import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
-import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import { DAYS } from '../constants'
 import { NotAllowedError } from '../models/Errors'
 import { getFeedbackBySessionId } from '../models/Feedback'
@@ -45,6 +43,7 @@ import { asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
+import * as AssignmentsService from './AssignmentsService'
 import * as AwsService from './AwsService'
 import { emitter } from './EventsService'
 import * as PushTokenService from './PushTokenService'
@@ -195,12 +194,6 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     )
 }
 
-async function isSessionAssistments(sessionId: Ulid): Promise<boolean> {
-  const ad = await AssistmentsDataRepo.getAssistmentsDataBySession(sessionId)
-  if (ad) return !_.isEmpty(ad)
-  else return false
-}
-
 export async function endSession(
   sessionId: Ulid,
   endedBy: Ulid | null = null,
@@ -246,19 +239,6 @@ export async function endSession(
       ipAddress: reqIdentifiers.ip,
       action: SESSION_USER_ACTIONS.ENDED,
     })
-}
-
-// registered as listener
-export async function processAssistmentsSession(sessionId: Ulid) {
-  const session = await SessionRepo.getSessionById(sessionId)
-  if (session?.volunteerId && (await isSessionAssistments(sessionId))) {
-    logger.info(`Ending an assistments session: ${sessionId}`)
-    await QueueService.add(
-      Jobs.SendAssistmentsData,
-      { sessionId },
-      { removeOnComplete: true, removeOnFail: true }
-    )
-  }
 }
 
 export async function processSessionReported(sessionId: Ulid) {
@@ -529,104 +509,105 @@ export async function adminSessionView(data: unknown) {
   }
 }
 
-export async function startSession(user: UserContactInfo, data: unknown) {
-  const {
-    ip,
-    sessionSubTopic,
-    sessionType,
-    problemId,
-    assignmentId,
-    studentId,
-    userAgent,
-    docEditorVersion,
-  } = sessionUtils.asStartSessionData(data)
-  const subject = Case.camel(sessionSubTopic)
-  const topic = Case.camel(sessionType)
+export async function startSession(
+  user: UserContactInfo,
+  data: sessionUtils.StartSessionData
+) {
+  return await runInTransaction(async (tc: TransactionClient) => {
+    const {
+      subject,
+      topic,
+      assignmentId,
+      docEditorVersion,
+      userAgent,
+      ip,
+    } = data
 
-  const subjectAndTopic = await getSubjectAndTopic(subject, topic)
-  if (!subjectAndTopic)
-    throw new sessionUtils.StartSessionError(
-      `Unable to start new session for the topic ${topic} and subject ${subject}`
-    )
-
-  const userId = user.id
-  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, userId)))
-    throw new sessionUtils.StartSessionError(
-      'Volunteers cannot create new sessions'
-    )
-
-  const userBanned = user.banType === USER_BAN_TYPES.COMPLETE
-
-  if (userBanned)
-    throw new sessionUtils.StartSessionError(
-      'Banned students cannot request a new session'
-    )
-
-  const currentSession = await SessionRepo.getCurrentSessionByUserId(userId)
-  if (currentSession)
-    throw new sessionUtils.StartSessionError(
-      'Student already has an active session'
-    )
-
-  const newSessionId = await SessionRepo.createSession(
-    userId,
-    // NOTE: sessionType and subtopic are kebab-case
-    subject,
-    user.banType === USER_BAN_TYPES.SHADOW
-  )
-
-  if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
-    // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
-    // and looking for this value before it's set
-    await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
-  }
-
-  const numProblemId = Number(problemId)
-  if (numProblemId && assignmentId && studentId)
-    try {
-      await AssistmentsDataRepo.createAssistmentsDataBySessionId(
-        numProblemId,
-        assignmentId,
-        studentId,
-        newSessionId
+    const subjectAndTopic = await getSubjectAndTopic(subject, topic, tc)
+    if (!subjectAndTopic)
+      throw new sessionUtils.StartSessionError(
+        `Unable to start new session for the topic ${topic} and subject ${subject}`
       )
-    } catch (error) {
-      logger.error(
-        `Unable to create ASSISTments data for session: ${newSessionId}, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${
-          (error as Error).message
-        }`
+
+    const userId = user.id
+    if (isVolunteerUserType(getUserTypeFromRoles(user.roles, userId)))
+      throw new sessionUtils.StartSessionError(
+        'Volunteers cannot create new sessions'
+      )
+
+    const userBanned = user.banType === USER_BAN_TYPES.COMPLETE
+
+    if (userBanned)
+      throw new sessionUtils.StartSessionError(
+        'Banned students cannot request a new session'
+      )
+
+    const currentSession = await SessionRepo.getCurrentSessionByUserId(
+      userId,
+      tc
+    )
+    if (currentSession)
+      throw new sessionUtils.StartSessionError(
+        'Student already has an active session'
+      )
+
+    const newSessionId = await SessionRepo.createSession(
+      userId,
+      subject,
+      user.banType === USER_BAN_TYPES.SHADOW,
+      tc
+    )
+
+    if (assignmentId) {
+      await AssignmentsService.linkSessionToAssignment(
+        userId,
+        newSessionId,
+        assignmentId,
+        tc
       )
     }
 
-  if (!userBanned) {
-    await beginRegularNotifications(newSessionId)
-  }
+    if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
+      // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
+      // and looking for this value before it's set
+      await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
+    }
 
-  // Auto end the session after 45 minutes if the session is unmatched
-  const delay = 1000 * 60 * 45
-  await QueueService.add(
-    Jobs.EndUnmatchedSession,
-    { sessionId: newSessionId },
-    { delay, removeOnComplete: true, removeOnFail: true }
-  )
+    if (!userBanned) {
+      await beginRegularNotifications(newSessionId, tc)
+    }
 
-  // Begin chat bot messages immediately.
-  if (isChatBotEnabled())
+    // Auto end the session after 45 minutes if the session is unmatched
+    const delay = 1000 * 60 * 45
     await QueueService.add(
-      Jobs.Chatbot,
+      Jobs.EndUnmatchedSession,
       { sessionId: newSessionId },
-      { removeOnComplete: true, removeOnFail: true }
+      { delay, removeOnComplete: true, removeOnFail: true }
     )
 
-  await createSessionAction({
-    userId: user.id,
-    sessionId: newSessionId,
-    ...getUserAgentInfo(userAgent),
-    ipAddress: ip,
-    action: SESSION_USER_ACTIONS.REQUESTED,
-  })
+    // Begin chat bot messages immediately.
+    if (isChatBotEnabled())
+      await QueueService.add(
+        Jobs.Chatbot,
+        { sessionId: newSessionId },
+        { removeOnComplete: true, removeOnFail: true }
+      )
 
-  return newSessionId
+    await createSessionAction(
+      {
+        userId: user.id,
+        sessionId: newSessionId,
+        ...getUserAgentInfo(userAgent),
+        ipAddress: ip,
+        action: SESSION_USER_ACTIONS.REQUESTED,
+      },
+      tc
+    )
+
+    // TODO: We can just return the session here, instead of the
+    // client then having to fetch it.
+    return newSessionId
+  })
 }
 
 export async function checkSession(data: unknown) {

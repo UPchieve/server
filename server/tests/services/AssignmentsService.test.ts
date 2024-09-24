@@ -3,6 +3,7 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import * as AssignmentRepo from '../../models/Assignments'
 import * as TeacherRepo from '../../models/Teacher'
 import moment from 'moment'
+import { StudentAssignment } from '../../models/Assignments'
 
 jest.mock('../../models/Assignments')
 jest.mock('../../models/Teacher')
@@ -235,5 +236,196 @@ describe('createAssignment', () => {
       data,
       expect.toBeTransactionClient()
     )
+  })
+
+  describe('haveSessionsMetAssignmentRequirements', () => {
+    test('returns true if the sessions have met the assignment requirements', async () => {
+      let assignment = {
+        minDurationInMinutes: 15,
+        numberOfSessions: 1,
+      }
+      let sessions = [
+        {
+          volunteerJoinedAt: moment('2024-09-23 12:00:000').toDate(),
+          endedAt: moment('2024-09-23 12:15:000').toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(true)
+
+      assignment = {
+        minDurationInMinutes: 20,
+        numberOfSessions: 2,
+      }
+      sessions = [
+        // Not meeting requirement:
+        {
+          volunteerJoinedAt: moment('2024-09-22 1:00:000').toDate(),
+          endedAt: moment('2024-09-22 1:19:999').toDate(),
+        },
+        // Meeting requirement:
+        {
+          volunteerJoinedAt: moment('2024-09-18 15:10:000').toDate(),
+          endedAt: moment('2024-09-18 16:01:000').toDate(),
+        },
+        {
+          volunteerJoinedAt: moment('2024-09-14 19:01:000').toDate(),
+          endedAt: moment('2024-09-14 19:21:000').toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(true)
+
+      assignment = {
+        minDurationInMinutes: 30,
+        numberOfSessions: 3,
+      }
+      sessions = [
+        // Not meeting requirement:
+        {
+          // @ts-ignore
+          volunteerJoinedAt: undefined,
+          endedAt: moment('2024-09-14 19:21:000').toDate(),
+        },
+        {
+          volunteerJoinedAt: moment('2024-09-20 1:00:000').toDate(),
+          endedAt: moment('2024-09-20 1:19:999').toDate(),
+        },
+        // Meeting requirement:
+        {
+          volunteerJoinedAt: moment('2024-09-18 15:10:000').toDate(),
+          endedAt: moment('2024-09-18 16:24:000').toDate(),
+        },
+        {
+          volunteerJoinedAt: moment('2024-09-13 19:03:000').toDate(),
+          endedAt: moment('2024-09-13 20:21:000').toDate(),
+        },
+        {
+          volunteerJoinedAt: moment('2024-09-14 19:01:000').toDate(),
+          endedAt: moment('2024-09-14 19:51:000').toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(true)
+    })
+
+    test('returns true if the session is at least of minimum duration', async () => {
+      const assignment = {
+        minDurationInMinutes: 20,
+        numberOfSessions: 1,
+      }
+      const sessions = [
+        {
+          volunteerJoinedAt: moment('2023-08-01 12:00:000').toDate(),
+          endedAt: moment('2023-08-01 12:20:000').toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(true)
+    })
+
+    test('returns false if the session is not of at least minimum duration', async () => {
+      const assignment = {
+        minDurationInMinutes: 20,
+        numberOfSessions: 1,
+      }
+      const sessions = [
+        {
+          volunteerJoinedAt: moment('2023-08-01 12:00:000').toDate(),
+          endedAt: moment('2023-08-01 12:19:999').toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(false)
+    })
+
+    test('returns false if the volunteer never joined the session', async () => {
+      const assignment = {
+        minDurationInMinutes: 1,
+        numberOfSessions: 1,
+      }
+      const sessions = [
+        {
+          volunteerJoinedAt: undefined,
+          endedAt: moment().toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(false)
+    })
+
+    test('returns false if the volunteer never joined the session', async () => {
+      const assignment = {
+        minDurationInMinutes: 1,
+        numberOfSessions: 1,
+      }
+      const sessions = [
+        {
+          volunteerJoinedAt: undefined,
+          endedAt: moment().toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(false)
+    })
+
+    test('returns false if the sessions have not met the assignment requirements', async () => {
+      let assignment = {
+        minDurationInMinutes: 15,
+        numberOfSessions: 1,
+      }
+      let sessions = [
+        {
+          volunteerJoinedAt: moment('2024-09-23 12:00:000').toDate(),
+          endedAt: moment('2024-09-23 12:14:999').toDate(),
+        },
+      ]
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(false)
+
+      assignment = {
+        minDurationInMinutes: 20,
+        numberOfSessions: 2,
+      }
+      sessions = []
+      expect(
+        AssignmentsService.haveSessionsMetAssignmentRequirements(
+          assignment as StudentAssignment,
+          sessions
+        )
+      ).toBe(false)
+    })
   })
 })
