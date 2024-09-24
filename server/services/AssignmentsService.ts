@@ -52,7 +52,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
     )
       throw new InputError('Start date cannot be after the due date.')
 
-    return AssignmentsRepo.createAssignment(
+    const assignment = await AssignmentsRepo.createAssignment(
       {
         classId: data.classId,
         description: data.description,
@@ -66,6 +66,11 @@ export async function createAssignment(data: CreateAssignmentPayload) {
       },
       tc
     )
+
+    const assignmentId = assignment.id
+    await addAssignmentForClass(data.classId, assignmentId)
+
+    return assignment
   })
 }
 
