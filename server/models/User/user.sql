@@ -478,7 +478,8 @@ SELECT
     users_roles.role_id,
     muted_users_subject_alerts_agg.muted_subject_alerts,
     number_of_student_classes.count AS number_of_student_classes,
-    federated_credentials_agg.issuers
+    federated_credentials_agg.issuers,
+    fall_incentive_eligible_students.fall_incentive_eligible
 FROM
     users
     LEFT JOIN (
@@ -613,6 +614,7 @@ FROM
             federated_credentials
         WHERE
             federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE
+    LEFT JOIN fall_incentive_eligible_students ON fall_incentive_eligible_students.user_id = users.id
 WHERE
     users.id = :userId!;
 
