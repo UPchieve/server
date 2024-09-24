@@ -23,12 +23,13 @@ import { asBoolean, asNumber, asString } from '../../utils/type-utils'
 
 export async function getSubjectAndTopic(
   subject: string,
-  topic?: string
+  topic?: string,
+  tc: TransactionClient = getClient()
 ): Promise<SubjectAndTopic | undefined> {
   try {
     const result = await pgQueries.getSubjectAndTopic.run(
       { subject, topic },
-      getClient()
+      tc
     )
 
     if (result.length && makeRequired(result[0])) return makeRequired(result[0])
