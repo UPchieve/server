@@ -1,3 +1,4 @@
+import Case from 'case'
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import { Uuid4, Exception } from 'id128'
@@ -21,6 +22,11 @@ export function asUlid(s: unknown, errMsg = ''): Ulid {
 export function asString(s: unknown, errMsg = ''): string {
   if (typeof s === 'string') return s as string
   throw new InputError(`${errMsg} ${s} is not a string`)
+}
+
+export function asCamelCaseString(s: unknown, errMsg = ''): string {
+  const str = asString(s, errMsg)
+  return Case.camel(str)
 }
 
 export function asNumber(s: unknown, errMsg?: string): number {
