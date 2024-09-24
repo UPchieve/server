@@ -2,7 +2,13 @@ import { getClient, TransactionClient } from '../../db'
 import { RepoReadError, RepoCreateError } from '../Errors'
 import { Assignment, CreateAssignmentInput } from './types'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeSomeOptional, makeSomeRequired } from '../pgUtils'
+import {
+  Ulid,
+  getDbUlid,
+  makeSomeOptional,
+  makeSomeRequired,
+  Uuid,
+} from '../pgUtils'
 
 export async function createAssignment(
   data: CreateAssignmentInput,
@@ -173,5 +179,25 @@ export async function getStudentAssignmentForSession(
     return makeSomeRequired(studentAssignment[0], ['assignedAt'])
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function linkSessionToAssignment(
+  userId: Ulid,
+  sessionId: Uuid,
+  assignmentId: Uuid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.linkSessionToAssignment.run(
+      {
+        sessionId,
+        userId,
+        assignmentId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }
