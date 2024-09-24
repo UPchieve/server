@@ -200,13 +200,11 @@ export type SessionToEnd = Pick<
 } & { volunteer?: SessionToEndUserInfo }
 
 export async function getSessionToEndById(
-  sessionId: Ulid
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
 ): Promise<SessionToEnd> {
   try {
-    const result = await pgQueries.getSessionToEndById.run(
-      { sessionId },
-      getClient()
-    )
+    const result = await pgQueries.getSessionToEndById.run({ sessionId }, tc)
     if (!result.length) throw new RepoReadError('Session not found')
     const rawSession = makeSomeOptional(result[0], [
       'volunteerJoinedAt',
@@ -399,12 +397,13 @@ export async function updateSessionHasWhiteboardDoc(
 export async function updateSessionToEnd(
   sessionId: Ulid,
   endedAt: Date,
-  endedBy: Ulid | null
+  endedBy: Ulid | null,
+  tc: TransactionClient = getClient()
 ): Promise<void> {
   try {
     const result = await pgQueries.updateSessionToEnd.run(
       { sessionId, endedAt, endedBy },
-      getClient()
+      tc
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')
@@ -766,13 +765,13 @@ export async function getMessageInfoByMessageId(
 }
 
 export async function getCurrentSessionBySessionId(
-  sessionId: Ulid
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
 ): Promise<CurrentSession | undefined> {
-  const client = await getClient().connect()
   try {
     const result = await pgQueries.getCurrentSessionBySessionId.run(
       { sessionId },
-      client
+      tc
     )
     const session = makeSomeOptional(result[0], [
       'volunteerJoinedAt',
@@ -780,12 +779,12 @@ export async function getCurrentSessionBySessionId(
       'endedAt',
       'endedBy',
     ])
-    const messages = await getMessagesForFrontend(session.id, client)
+    const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
       session.id,
       session.studentId,
       session.volunteerId,
-      client
+      tc
     )
     return {
       ...session,
@@ -796,8 +795,6 @@ export async function getCurrentSessionBySessionId(
     }
   } catch (error) {
     throw new RepoReadError(error)
-  } finally {
-    client.release()
   }
 }
 
