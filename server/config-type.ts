@@ -152,10 +152,6 @@ export const Config = Record({
 
   clusterServerAddress: String,
 
-  assistmentsBaseURL: String,
-  assistmentsToken: String,
-  assistmentsAuthSchema: String,
-
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String,

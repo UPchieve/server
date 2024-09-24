@@ -19,7 +19,6 @@ import {
 } from '../constants'
 import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
-import * as AssistmentsDataRepo from '../models/AssistmentsData'
 import { DAYS } from '../constants'
 import { NotAllowedError } from '../models/Errors'
 import { getFeedbackBySessionId } from '../models/Feedback'
@@ -195,12 +194,6 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     )
 }
 
-async function isSessionAssistments(sessionId: Ulid): Promise<boolean> {
-  const ad = await AssistmentsDataRepo.getAssistmentsDataBySession(sessionId)
-  if (ad) return !_.isEmpty(ad)
-  else return false
-}
-
 export async function endSession(
   sessionId: Ulid,
   endedBy: Ulid | null = null,
@@ -246,19 +239,6 @@ export async function endSession(
       ipAddress: reqIdentifiers.ip,
       action: SESSION_USER_ACTIONS.ENDED,
     })
-}
-
-// registered as listener
-export async function processAssistmentsSession(sessionId: Ulid) {
-  const session = await SessionRepo.getSessionById(sessionId)
-  if (session?.volunteerId && (await isSessionAssistments(sessionId))) {
-    logger.info(`Ending an assistments session: ${sessionId}`)
-    await QueueService.add(
-      Jobs.SendAssistmentsData,
-      { sessionId },
-      { removeOnComplete: true, removeOnFail: true }
-    )
-  }
 }
 
 export async function processSessionReported(sessionId: Ulid) {
@@ -534,9 +514,6 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     ip,
     sessionSubTopic,
     sessionType,
-    problemId,
-    assignmentId,
-    studentId,
     userAgent,
     docEditorVersion,
   } = sessionUtils.asStartSessionData(data)
@@ -580,23 +557,6 @@ export async function startSession(user: UserContactInfo, data: unknown) {
     // and looking for this value before it's set
     await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
   }
-
-  const numProblemId = Number(problemId)
-  if (numProblemId && assignmentId && studentId)
-    try {
-      await AssistmentsDataRepo.createAssistmentsDataBySessionId(
-        numProblemId,
-        assignmentId,
-        studentId,
-        newSessionId
-      )
-    } catch (error) {
-      logger.error(
-        `Unable to create ASSISTments data for session: ${newSessionId}, ASSISTments studentId: ${studentId}, assignmentId: ${assignmentId}, problemId: ${problemId}, error: ${
-          (error as Error).message
-        }`
-      )
-    }
 
   if (!userBanned) {
     await beginRegularNotifications(newSessionId)
