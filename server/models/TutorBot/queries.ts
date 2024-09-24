@@ -1,4 +1,4 @@
-import { getClient, getRoClient } from '../../db'
+import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import {
   InsertTutorBotConversationMessagePayload,
@@ -7,13 +7,16 @@ import {
 import * as pgQueries from './pg.queries'
 import { makeSomeOptional, makeRequired } from '../pgUtils'
 
-export async function getTutorBotConversationsByUserId(userId: string) {
+export async function getTutorBotConversationsByUserId(
+  userId: string,
+  client: TransactionClient = getRoClient()
+) {
   try {
     const results = await pgQueries.getTutorBotConversationsByUserId.run(
       {
         userId,
       },
-      getRoClient()
+      client
     )
     return results.map(row => makeSomeOptional(row, ['sessionId']))
   } catch (err) {
@@ -22,21 +25,21 @@ export async function getTutorBotConversationsByUserId(userId: string) {
 }
 
 export async function getTutorBotConversationMessagesById(
-  conversationId: string
+  conversationId: string,
+  client: TransactionClient = getClient()
 ) {
   try {
     const conversation = await pgQueries.getTutorBotConversationById.run(
       {
         conversationId,
       },
-
-      getRoClient()
+      client
     )
     const results = await pgQueries.getTutorBotConversationMessagesById.run(
       {
         conversationId,
       },
-      getRoClient()
+      client
     )
     return {
       subjectId: makeSomeOptional(conversation[0], ['sessionId']).subjectId,
@@ -47,13 +50,11 @@ export async function getTutorBotConversationMessagesById(
   }
 }
 export async function insertTutorBotConversation(
-  data: InsertTutorBotConversationPayload
+  data: InsertTutorBotConversationPayload,
+  client: TransactionClient = getClient()
 ) {
   try {
-    const result = await pgQueries.insertTutorBotConversation.run(
-      data,
-      getClient()
-    )
+    const result = await pgQueries.insertTutorBotConversation.run(data, client)
     if (!result.length)
       throw new RepoCreateError('Failed to create conversation')
     return result[0].id
@@ -63,14 +64,15 @@ export async function insertTutorBotConversation(
 }
 
 export async function insertTutorBotConversationMessage(
-  data: InsertTutorBotConversationMessagePayload
+  data: InsertTutorBotConversationMessagePayload,
+  client: TransactionClient = getClient()
 ) {
   try {
     const result = await pgQueries.insertTutorBotConversationMessage.run(
       {
         ...data,
       },
-      getClient()
+      client
     )
     if (result.length) return makeRequired(result[0])
     throw new RepoCreateError('Failed to insert tutor bot conversation message')
