@@ -28,7 +28,6 @@ import endUnmatchedSession from './endUnmatchedSession'
 import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
 import notifyTutors from './notifyTutors'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
-import sendAssistmentsData from './sendAssistmentsData'
 import sendFollowupText from './sendFollowupText'
 import emailSessionReported from './user-emails/emailSessionReported'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
@@ -98,7 +97,6 @@ export enum Jobs {
   EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
   EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  SendAssistmentsData = 'SendAssistmentsData',
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   SendFollowupText = 'SendFollowupText',
   Chatbot = 'Chatbot',
@@ -301,10 +299,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailSessionReported,
     processor: emailSessionReported,
-  },
-  {
-    name: Jobs.SendAssistmentsData,
-    processor: sendAssistmentsData,
   },
   {
     name: Jobs.Chatbot,

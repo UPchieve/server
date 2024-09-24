@@ -1,8 +1,14 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoCreateError } from '../Errors'
+import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
 import { Assignment, CreateAssignmentInput } from './types'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeSomeOptional, makeSomeRequired } from '../pgUtils'
+import {
+  Ulid,
+  getDbUlid,
+  makeSomeOptional,
+  makeSomeRequired,
+  Uuid,
+} from '../pgUtils'
 
 export async function createAssignment(
   data: CreateAssignmentInput,
@@ -111,6 +117,21 @@ export async function createStudentAssignment(
   ])
 }
 
+export async function markStudentAssignmentAsCompleted(
+  userId: Ulid,
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.updateSubmittedAtOfStudentAssignment.run(
+      { userId, assignmentId },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 export async function getAssignmentsByStudentId(
   userId: Ulid,
   tc: TransactionClient = getClient()
@@ -150,11 +171,65 @@ export async function getStudentAssignmentCompletion(
   tc: TransactionClient = getClient()
 ) {
   try {
-    const studentIds = await pgQueries.getStudentAssignmentCompletion.run(
+    const studentAssignments = await pgQueries.getStudentAssignmentCompletion.run(
       { assignmentId },
       tc
     )
-    return studentIds
+    return studentAssignments
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getStudentAssignmentForSession(
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const studentAssignment = await pgQueries.getStudentAssignmentForSession.run(
+      { sessionId },
+      tc
+    )
+    if (!studentAssignment.length) return
+    return makeSomeRequired(studentAssignment[0], ['assignedAt'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function linkSessionToAssignment(
+  userId: Ulid,
+  sessionId: Uuid,
+  assignmentId: Uuid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.linkSessionToAssignment.run(
+      {
+        sessionId,
+        userId,
+        assignmentId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function getSessionsForStudentAssignment(
+  userId: Ulid,
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+): Promise<{ volunteerJoinedAt?: Date; endedAt?: Date }[]> {
+  try {
+    const sessions = await pgQueries.getSessionsForStudentAssignment.run(
+      { userId, assignmentId },
+      tc
+    )
+    return sessions.map(s =>
+      makeSomeOptional(s, ['volunteerJoinedAt', 'endedAt'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

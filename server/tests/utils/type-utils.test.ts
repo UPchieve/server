@@ -6,8 +6,11 @@ import {
   asBoolean,
   asNumber,
   asString,
+  asCamelCaseString,
   asEnum,
   asUnion,
+  asOptional,
+  asFactory,
 } from '../../utils/type-utils'
 
 describe('asNumber', () => {
@@ -28,6 +31,44 @@ describe('asNumber', () => {
     expect(() => asNumber(null as unknown)).toThrow()
     expect(() => asNumber(undefined as unknown)).toThrow()
     expect(() => asNumber([] as unknown)).toThrow()
+  })
+})
+
+describe('asCamelCaseString', () => {
+  test('Should pass if given a string', () => {
+    expect(() => asCamelCaseString('hi')).not.toThrow()
+    expect(() => asCamelCaseString('')).not.toThrow()
+    expect(() =>
+      asCamelCaseString('string with a bunch of spaces and such')
+    ).not.toThrow()
+  })
+
+  test('Should camel case the string', () => {
+    console.log(asCamelCaseString('meow'))
+    expect(asCamelCaseString('ALL CAPS')).toBe('allCaps')
+    expect(asCamelCaseString('all lowercase words to camel case')).toBe(
+      'allLowercaseWordsToCamelCase'
+    )
+  })
+
+  test('Should throw error if not given a string', () => {
+    expect(() => asCamelCaseString({})).toThrow()
+    expect(() => asCamelCaseString(1)).toThrow()
+    expect(() => asCamelCaseString([])).toThrow()
+  })
+
+  test('Should pass if used with isOptional and no string provided', () => {
+    const asTestData = asFactory<{ str?: string }>({
+      str: asOptional(asCamelCaseString),
+    })
+    expect(() => asTestData({ str: undefined })).not.toThrow()
+  })
+
+  test('Should pass if used with isOptional and string provided', () => {
+    const asTestData = asFactory<{ str?: string }>({
+      str: asOptional(asCamelCaseString),
+    })
+    expect(() => asTestData({ str: 'string here' })).not.toThrow()
   })
 })
 

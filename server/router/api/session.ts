@@ -1,12 +1,16 @@
 import { Router } from 'express'
 import SocketService from '../../services/SocketService'
+import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
-import { ReportSessionError } from '../../utils/session-utils'
+import {
+  asStartSessionData,
+  ReportSessionError,
+} from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
-import { asString, asUlid } from '../../utils/type-utils'
+import { asCamelCaseString, asString, asUlid } from '../../utils/type-utils'
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import multer from 'multer'
@@ -19,11 +23,16 @@ export function routeSession(router: Router) {
   router.route('/session/new').post(async function(req, res) {
     try {
       const user = extractUser(req)
-      const sessionId = await SessionService.startSession(user, {
+      const sessionData = asStartSessionData({
         ...req.body,
+        subject: req.body.sessionSubTopic,
+        topic: req.body.sessionType,
         userAgent: req.get('User-Agent'),
         ip: req.ip,
-      } as unknown)
+      })
+      sessionData.subject = asCamelCaseString(sessionData.subject)
+      sessionData.topic = asCamelCaseString(sessionData.topic)
+      const sessionId = await SessionService.startSession(user, sessionData)
       res.json({ sessionId })
     } catch (error) {
       resError(res, error)
@@ -274,6 +283,18 @@ export function routeSession(router: Router) {
       }
     }
   )
+
+  router.get('/session/:sessionId/assignment', async function(req, res) {
+    try {
+      const { sessionId } = req.params
+      const assignment = await AssignmentsService.getStudentAssignmentForSession(
+        sessionId
+      )
+      res.json({ assignment })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
 
   router.get('/sessions/history', async function(req, res) {
     try {

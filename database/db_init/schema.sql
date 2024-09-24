@@ -538,17 +538,6 @@ CREATE MATERIALIZED VIEW upchieve.current_grade_levels_mview AS
 
 
 --
--- Name: fall_incentive_excluded_partner_orgs; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.fall_incentive_excluded_partner_orgs (
-    student_partner_org_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
 -- Name: federated_credentials; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1665,6 +1654,19 @@ CREATE TABLE upchieve.sessions (
 CREATE TABLE upchieve.sessions_session_flags (
     session_id uuid NOT NULL,
     session_flag_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sessions_students_assignments; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.sessions_students_assignments (
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    assignment_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -3085,14 +3087,6 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
--- Name: fall_incentive_excluded_partner_orgs fall_incentive_excluded_partner_orgs_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.fall_incentive_excluded_partner_orgs
-    ADD CONSTRAINT fall_incentive_excluded_partner_orgs_pkey PRIMARY KEY (student_partner_org_id);
-
-
---
 -- Name: federated_credentials federated_credentials_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3690,6 +3684,14 @@ ALTER TABLE ONLY upchieve.sessions
 
 ALTER TABLE ONLY upchieve.sessions_session_flags
     ADD CONSTRAINT sessions_session_flags_pkey PRIMARY KEY (session_id, session_flag_id);
+
+
+--
+-- Name: sessions_students_assignments sessions_students_assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions_students_assignments
+    ADD CONSTRAINT sessions_students_assignments_pkey PRIMARY KEY (session_id, user_id, assignment_id);
 
 
 --
@@ -4631,14 +4633,6 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
--- Name: fall_incentive_excluded_partner_orgs fall_incentive_excluded_partner_org_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.fall_incentive_excluded_partner_orgs
-    ADD CONSTRAINT fall_incentive_excluded_partner_org_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
-
-
---
 -- Name: federated_credentials federated_credentials_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5180,6 +5174,14 @@ ALTER TABLE ONLY upchieve.sessions_session_flags
 
 ALTER TABLE ONLY upchieve.sessions
     ADD CONSTRAINT sessions_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: sessions_students_assignments sessions_students_assignments_user_id_assignment_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions_students_assignments
+    ADD CONSTRAINT sessions_students_assignments_user_id_assignment_id_fkey FOREIGN KEY (user_id, assignment_id) REFERENCES upchieve.students_assignments(user_id, assignment_id);
 
 
 --
@@ -6034,4 +6036,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240910010753'),
     ('20240912141821'),
     ('20240918170007'),
-    ('20240923154317');
+    ('20240918200433');
