@@ -1,5 +1,5 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoCreateError } from '../Errors'
+import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
 import { Assignment, CreateAssignmentInput } from './types'
 import * as pgQueries from './pg.queries'
 import {
@@ -115,6 +115,21 @@ export async function createStudentAssignment(
     'createdAt',
     'updatedAt',
   ])
+}
+
+export async function markStudentAssignmentAsCompleted(
+  userId: Ulid,
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.updateSubmittedAtOfStudentAssignment.run(
+      { userId, assignmentId },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
 }
 
 export async function getAssignmentsByStudentId(

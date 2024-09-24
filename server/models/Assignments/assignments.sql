@@ -32,6 +32,16 @@ RETURNING
     user_id, assignment_id, created_at, updated_at;
 
 
+/* @name updateSubmittedAtOfStudentAssignment */
+UPDATE
+    students_assignments
+SET
+    submitted_at = NOW()
+WHERE
+    user_id = :userId!
+    AND assignment_id = :assignmentId!;
+
+
 /* @name getAssignmentsByStudentId */
 SELECT
     assignments.class_id,
