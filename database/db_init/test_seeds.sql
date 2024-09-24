@@ -468,6 +468,14 @@ COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic,
 
 
 --
+-- Data for Name: fall_incentive_excluded_partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.fall_incentive_excluded_partner_orgs (student_partner_org_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: federated_credentials; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 

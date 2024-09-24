@@ -538,6 +538,17 @@ CREATE MATERIALIZED VIEW upchieve.current_grade_levels_mview AS
 
 
 --
+-- Name: fall_incentive_excluded_partner_orgs; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.fall_incentive_excluded_partner_orgs (
+    student_partner_org_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: federated_credentials; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3087,6 +3098,14 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
+-- Name: fall_incentive_excluded_partner_orgs fall_incentive_excluded_partner_orgs_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.fall_incentive_excluded_partner_orgs
+    ADD CONSTRAINT fall_incentive_excluded_partner_orgs_pkey PRIMARY KEY (student_partner_org_id);
+
+
+--
 -- Name: federated_credentials federated_credentials_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4633,6 +4652,14 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
+-- Name: fall_incentive_excluded_partner_orgs fall_incentive_excluded_partner_org_student_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.fall_incentive_excluded_partner_orgs
+    ADD CONSTRAINT fall_incentive_excluded_partner_org_student_partner_org_id_fkey FOREIGN KEY (student_partner_org_id) REFERENCES upchieve.student_partner_orgs(id);
+
+
+--
 -- Name: federated_credentials federated_credentials_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6036,4 +6063,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240910010753'),
     ('20240912141821'),
     ('20240918170007'),
-    ('20240918200433');
+    ('20240918200433'),
+    ('20240923154317');
