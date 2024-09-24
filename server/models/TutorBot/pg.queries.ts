@@ -253,14 +253,17 @@ export interface IUpdateTutorBotConversationSessionIdQuery {
   result: IUpdateTutorBotConversationSessionIdResult;
 }
 
-const updateTutorBotConversationSessionIdIR: any = {"name":"updateTutorBotConversationSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1720,"b":1729,"line":68,"col":20}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1745,"b":1747,"line":69,"col":14}]}}],"usedParamSet":{"sessionId":true,"id":true},"statement":{"body":"UPDATE tutor_bot_conversations\n    SET session_id=:sessionId!\n    WHERE id=:id!\nRETURNING\n    id","loc":{"a":1669,"b":1764,"line":67,"col":0}}};
+const updateTutorBotConversationSessionIdIR: any = {"name":"updateTutorBotConversationSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1726,"b":1735,"line":70,"col":18}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1753,"b":1755,"line":72,"col":10}]}}],"usedParamSet":{"sessionId":true,"id":true},"statement":{"body":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = :sessionId!\nWHERE\n    id = :id!\nRETURNING\n    id","loc":{"a":1669,"b":1772,"line":67,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * UPDATE tutor_bot_conversations
- *     SET session_id=:sessionId!
- *     WHERE id=:id!
+ * UPDATE
+ *     tutor_bot_conversations
+ * SET
+ *     session_id = :sessionId!
+ * WHERE
+ *     id = :id!
  * RETURNING
  *     id
  * ```
