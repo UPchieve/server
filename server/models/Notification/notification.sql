@@ -39,7 +39,8 @@ FROM
     LEFT JOIN volunteer_profiles ON notifications.user_id = volunteer_profiles.user_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
 WHERE
-    notifications.session_id = :sessionId!;
+    notifications.session_id = :sessionId!
+    AND notification_types.type IS NOT NULL;
 
 
 /* @name getNotificationsForGentleWarning */
