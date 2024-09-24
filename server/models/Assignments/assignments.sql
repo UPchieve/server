@@ -44,17 +44,18 @@ WHERE
 
 /* @name getAssignmentsByStudentId */
 SELECT
+    assignments.id,
+    students_assignments.created_at AS assigned_at,
     assignments.class_id,
     assignments.description,
     assignments.title,
     assignments.number_of_sessions,
     assignments.min_duration_in_minutes,
+    assignments.is_required,
     assignments.due_date,
+    assignments.start_date,
     assignments.subject_id,
     subjects.name AS subject_name,
-    assignments.start_date,
-    assignments.is_required,
-    assignments.id,
     students_assignments.submitted_at
 FROM
     assignments
@@ -88,6 +89,8 @@ WHERE
 
 /* @name getStudentAssignmentForSession */
 SELECT
+    a.id,
+    a.class_id,
     a.title,
     a.description,
     a.number_of_sessions,
@@ -95,6 +98,7 @@ SELECT
     a.due_date,
     a.start_date,
     a.subject_id,
+    a.is_required,
     subjects.name AS subject_name,
     sa.created_at AS assigned_at,
     sa.submitted_at

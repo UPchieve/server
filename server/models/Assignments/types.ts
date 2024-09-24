@@ -30,6 +30,7 @@ export type CreateAssignmentInput = Pick<
 
 export type StudentAssignment = {
   id: Ulid
+  assignedAt: Date
   classId: Ulid
   description?: string
   title?: string
