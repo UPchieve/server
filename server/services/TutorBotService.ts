@@ -10,7 +10,12 @@ import {
 } from '../models/TutorBot'
 import { getDbUlid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
-import { runInTransaction, TransactionClient } from '../db'
+import {
+  getClient,
+  getRoClient,
+  runInTransaction,
+  TransactionClient,
+} from '../db'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -30,9 +35,10 @@ interface TutorBotConversationTranscript {
 }
 
 export const getTranscriptForConversation = async (
-  conversationId: string
+  conversationId: string,
+  tc: TransactionClient = getRoClient()
 ): Promise<TutorBotConversationTranscript> => {
-  const results = await getTutorBotConversationMessagesById(conversationId)
+  const results = await getTutorBotConversationMessagesById(conversationId, tc)
   return {
     conversationId,
     subjectId: results.subjectId,
@@ -57,17 +63,23 @@ export const createTutorBotConversation = async (data: {
   const subjectId = data.subjectId
 
   return await runInTransaction(async (tc: TransactionClient) => {
-    const conversationId = await insertTutorBotConversation({
-      subjectId,
-      userId,
-      sessionId,
-      id: getDbUlid(),
-    })
+    const conversationId = await insertTutorBotConversation(
+      {
+        subjectId,
+        userId,
+        sessionId,
+        id: getDbUlid(),
+      },
+      tc
+    )
     const botResponse = await sendMessageAndGetBotResponse(
-      userId,
-      conversationId,
-      data.message,
-      data.senderUserType
+      {
+        userId,
+        conversationId,
+        message: data.message,
+        senderUserType: data.senderUserType,
+      },
+      tc
     )
     return {
       conversationId,
@@ -101,24 +113,35 @@ export type BotResponse = {
   observationId: string | null
 }
 export const sendMessageAndGetBotResponse = async (
-  userId: string,
-  conversationId: string,
-  message: string,
-  senderUserType: tutor_bot_conversation_user_type
+  {
+    userId,
+    conversationId,
+    message,
+    senderUserType,
+  }: {
+    userId: string
+    conversationId: string
+    message: string
+    senderUserType: tutor_bot_conversation_user_type
+  },
+  tc: TransactionClient = getClient()
 ): Promise<BotResponse> => {
   // Save the latest user message to DB and create the transcript of the conversation so far
-  await insertTutorBotConversationMessage({
-    conversationId,
-    userId,
-    senderUserType,
-    message: removeTurnMarkers(message),
-  })
+  await insertTutorBotConversationMessage(
+    {
+      conversationId,
+      userId,
+      senderUserType,
+      message: removeTurnMarkers(message),
+    },
+    tc
+  )
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     sessionId: conversationId,
   })
 
-  const transcript = await getTranscriptForConversation(conversationId)
+  const transcript = await getTranscriptForConversation(conversationId, tc)
   const prompt = createPromptFromTranscript(transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
@@ -127,12 +150,15 @@ export const sendMessageAndGetBotResponse = async (
   const completion = await createChatCompletion(prompt, conversationId)
   const { assistant: botMessage, system } = getBotResponseMessage(completion)
   // Save bot response to conversation messages and append to the existing transcript
-  const savedBotMessage = await insertTutorBotConversationMessage({
-    conversationId,
-    userId,
-    message: botMessage,
-    senderUserType: 'bot',
-  })
+  const savedBotMessage = await insertTutorBotConversationMessage(
+    {
+      conversationId,
+      userId,
+      message: botMessage,
+      senderUserType: 'bot',
+    },
+    tc
+  )
   gen.end({
     output: botMessage,
     input: { prompt, ...savedBotMessage },
