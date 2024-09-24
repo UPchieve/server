@@ -15,6 +15,18 @@ export function routeTutorBot(router: Router) {
       resError(res, err)
     }
   })
+  router.get('/tutor-bot/conversations', async function(req, res) {
+    try {
+      if (!req.query.sessionId) throw 'param sessionId is required'
+      const botResponse = await TutorBotService.getConversationBySessionId(
+        req.query.sessionId
+      )
+      return res.json(botResponse).status(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.post(
     '/tutor-bot/conversations/:conversationId/message',
     async function(req, res) {
@@ -23,7 +35,8 @@ export function routeTutorBot(router: Router) {
           req.body.userId,
           req.params.conversationId,
           req.body.message,
-          req.body.senderUserType
+          req.body.senderUserType,
+          req.body.sessionId
         )
         return res.json(botResponse).status(200)
       } catch (err) {

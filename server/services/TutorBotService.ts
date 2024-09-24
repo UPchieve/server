@@ -4,14 +4,16 @@ import logger from '../logger'
 import { tutor_bot_conversation_user_type } from '../models/TutorBot/pg.queries'
 import {
   getTutorBotConversationMessagesById,
+  getTutorBotConversationMessagesBySessionId,
   getTutorBotConversationsByUserId,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
 } from '../models/TutorBot'
-import { getDbUlid } from '../models/pgUtils'
+import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { runInTransaction, TransactionClient } from '../db'
-import { getSocket } from '../worker/sockets'
+import getSessionRoom from '../utils/get-session-room'
+import SocketService from './SocketService'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -27,18 +29,36 @@ interface TutorBotConversationMessage {
 interface TutorBotConversationTranscript {
   conversationId: string
   subjectId: number
+  sessionId?: Ulid
   messages: TutorBotConversationMessage[]
 }
 
+export const getConversationBySessionId = async (
+  sessionId: string
+): Promise<TutorBotConversationTranscript> => {
+  const results = await getTutorBotConversationMessagesBySessionId(sessionId)
+  return {
+    conversationId: results.conversationId,
+    sessionId: results.sessionId,
+    subjectId: results.subjectId,
+    messages: results.messages,
+  }
+}
 export const getTranscriptForConversation = async (
   conversationId: string
 ): Promise<TutorBotConversationTranscript> => {
   const results = await getTutorBotConversationMessagesById(conversationId)
-  return {
+  const transcript: TutorBotConversationTranscript = {
     conversationId,
     subjectId: results.subjectId,
     messages: results.messages,
   }
+
+  if (results?.sessionId) {
+    transcript.sessionId = results.sessionId
+  }
+
+  return transcript
 }
 
 export const createTutorBotConversation = async (data: {
@@ -64,6 +84,7 @@ export const createTutorBotConversation = async (data: {
       sessionId,
       id: getDbUlid(),
     })
+    // TODO add sessionId here if we're creating it in a session
     const botResponse = await sendMessageAndGetBotResponse(
       userId,
       conversationId,
@@ -105,24 +126,22 @@ export const sendMessageAndGetBotResponse = async (
   userId: string,
   conversationId: string,
   message: string,
-  senderUserType: tutor_bot_conversation_user_type
+  senderUserType: tutor_bot_conversation_user_type,
+  sessionId?: string
 ): Promise<BotResponse> => {
-  const socket = getSocket()
+  const socketService = SocketService.getInstance()
+  console.log(sessionId)
   // Save the latest user message to DB and create the transcript of the conversation so far
-  await insertTutorBotConversationMessage({
+  const userMessage = await insertTutorBotConversationMessage({
     conversationId,
     userId,
     senderUserType,
     message: removeTurnMarkers(message),
   })
 
-  // TODO emit message from user
-  // if (conversation.sessionId) {
-  //   socket.emit('tutorBotConversationMessage', {
-  //     sessionId,
-  //     message,
-  //   })
-  // }
+  if (sessionId) {
+    socketService.emitTutorBotMessage(sessionId, { ...userMessage, sessionId })
+  }
 
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
@@ -149,36 +168,24 @@ export const sendMessageAndGetBotResponse = async (
     input: { prompt, ...savedBotMessage },
   })
 
-  transcript.messages.push({
+  const result = {
+    traceId: gen.traceId,
+    observationId: gen.observationId,
     senderUserType: 'bot',
     message: botMessage,
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-  } as TutorBotConversationMessage)
-
-  const result = {
-    traceId: gen.traceId,
-    observationId: gen.observationId,
-    message: transcript.messages[transcript.messages.length - 1].message,
+    sessionId,
     status: system.substring(
       system.indexOf('[[') + 2,
       system.lastIndexOf(']]')
     ),
   }
 
-  // TODO if there's a session
-  /*
-  if (conversation.sessionId) {
-    socket.emit('tutorBotConversationMessage', {
-      // socket message handler expects a FRONTEND user-like object
-      user: { _id: chatbot, isVolunteer: true, userType: 'volunteer' },
-      sessionId,
-      message: content,
-    })
+  if (sessionId) {
+    socketService.emitTutorBotMessage(sessionId, result)
   }
-  */
-
   return result
 }
 

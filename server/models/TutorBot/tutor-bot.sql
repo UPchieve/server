@@ -29,6 +29,15 @@ WHERE
     id = :conversationId!;
 
 
+/* @name getTutorBotConversationBySessionId */
+SELECT
+    *
+FROM
+    tutor_bot_conversations
+WHERE
+    session_id = :sessionId!;
+
+
 /* @name getTutorBotConversationMessagesById */
 SELECT
     *
@@ -55,8 +64,12 @@ RETURNING
 
 
 /* @name updateTutorBotConversationSessionId */
-UPDATE tutor_bot_conversations
-    SET session_id=:sessionId!
-    WHERE id=:id!
+UPDATE
+    tutor_bot_conversations
+SET
+    session_id = :sessionId!
+WHERE
+    id = :id!
 RETURNING
     id;
+
