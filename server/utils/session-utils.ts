@@ -1,4 +1,3 @@
-import Case from 'case'
 import { Ulid } from '../models/pgUtils'
 import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
@@ -8,6 +7,7 @@ import { getMessagesForFrontend, Session } from '../models/Session'
 import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
+  asCamelCaseString,
   asFactory,
   asNumber,
   asOptional,
@@ -171,18 +171,20 @@ export const asRequestIdentifiers = asFactory<RequestIdentifier>(
 export interface StartSessionData extends RequestIdentifier {
   sessionSubTopic: string
   sessionType: string
-  problemId?: string
-  assignmentId?: string
   studentId?: string
+  subject: string
+  topic: string
+  assignmentId?: string
   docEditorVersion?: number
 }
 export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
-  sessionSubTopic: asString,
-  sessionType: asString,
-  problemId: asOptional(asString),
-  assignmentId: asOptional(asString),
+  sessionSubTopic: asCamelCaseString,
+  sessionType: asCamelCaseString,
   studentId: asOptional(asString),
+  subject: asCamelCaseString,
+  topic: asCamelCaseString,
+  assignmentId: asOptional(asString),
   docEditorVersion: asOptional(asNumber),
 })
 

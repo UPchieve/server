@@ -10,11 +10,6 @@ export function listeners() {
   )
   register(
     SESSION_EVENTS.SESSION_ENDED,
-    SessionService.processAssistmentsSession,
-    'processAssistmentsSession'
-  )
-  register(
-    SESSION_EVENTS.SESSION_ENDED,
     SessionService.processSessionEditors,
     'processSessionEditors'
   )

@@ -102,12 +102,6 @@ jest.mock('../config', () => {
     priorityMatchingPartnerOrgs,
     priorityMatchingSponsorOrgs,
 
-    assistmentsBaseURL: 'https://example.com',
-
-    assistmentsToken: 'bogus',
-
-    assistmentsAuthSchema: 'token={TOKEN}',
-
     cacheKeys: {
       updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEER_HOURS_LAST_RUN',
     },

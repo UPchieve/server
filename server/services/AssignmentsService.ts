@@ -1,5 +1,6 @@
+import moment from 'moment'
 import { runInTransaction, TransactionClient } from '../db'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import { InputError } from '../models/Errors'
@@ -11,8 +12,10 @@ import {
   asOptional,
   asString,
 } from '../utils/type-utils'
-import moment from 'moment'
-import { CreateStudentAssignmentResult } from '../models/Assignments'
+import {
+  CreateStudentAssignmentResult,
+  StudentAssignment,
+} from '../models/Assignments'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -52,7 +55,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
     )
       throw new InputError('Start date cannot be after the due date.')
 
-    return AssignmentsRepo.createAssignment(
+    const assignment = await AssignmentsRepo.createAssignment(
       {
         classId: data.classId,
         description: data.description,
@@ -66,6 +69,10 @@ export async function createAssignment(data: CreateAssignmentPayload) {
       },
       tc
     )
+
+    await addAssignmentForClass(data.classId, assignment.id, tc)
+
+    return assignment
   })
 }
 
@@ -83,33 +90,40 @@ export async function getAssignmentById(
 
 export async function addAssignmentForStudents(
   studentIds: string[],
-  assignmentId: Ulid
+  assignmentId: Ulid,
+  tc?: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     try {
       const studentAssignments = await Promise.all(
-        studentIds.map(studentId =>
-          AssignmentsRepo.createStudentAssignment(studentId, assignmentId, tc)
-        )
+        studentIds.map(studentId => {
+          console.log(studentId)
+          return AssignmentsRepo.createStudentAssignment(
+            studentId,
+            assignmentId,
+            tc
+          )
+        })
       )
       return studentAssignments
     } catch (err) {
       throw new Error((err as Error).message)
     }
-  })
+  }, tc)
 }
 
 export async function addAssignmentForClass(
   classId: Ulid,
-  assignmentId: Ulid
+  assignmentId: Ulid,
+  tc: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
       classId
     )
-    return addAssignmentForStudents(studentIds, assignmentId)
-  })
+    return addAssignmentForStudents(studentIds, assignmentId, tc)
+  }, tc)
 }
 
 export async function getAssignmentsByStudentId(
@@ -126,4 +140,40 @@ export async function getAllAssignmentsForTeacher(
 
 export async function getStudentAssignmentCompletion(assignmentId: Ulid) {
   return AssignmentsRepo.getStudentAssignmentCompletion(assignmentId)
+}
+
+export async function getStudentAssignmentForSession(sessionId: Uuid) {
+  return AssignmentsRepo.getStudentAssignmentForSession(sessionId)
+}
+
+export async function linkSessionToAssignment(
+  userId: Ulid,
+  sessionId: Uuid,
+  assignmentId: Uuid,
+  tc: TransactionClient
+) {
+  return AssignmentsRepo.linkSessionToAssignment(
+    userId,
+    sessionId,
+    assignmentId,
+    tc
+  )
+}
+
+// Exported for testing.
+export function haveSessionsMetAssignmentRequirements(
+  assignment: Omit<StudentAssignment, 'classId'>,
+  sessions: { volunteerJoinedAt?: Date; endedAt?: Date }[]
+) {
+  const filtered = sessions.filter(session => {
+    if (!session.volunteerJoinedAt) return false
+    if (!session.endedAt) return false
+
+    const timeTutored = moment
+      .duration(moment(session.endedAt).diff(moment(session.volunteerJoinedAt)))
+      .asMinutes()
+    return timeTutored >= (assignment.minDurationInMinutes ?? 0)
+  })
+
+  return filtered.length >= (assignment.numberOfSessions ?? 0)
 }

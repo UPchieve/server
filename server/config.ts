@@ -228,14 +228,6 @@ const config: Static<typeof Config> = {
   clusterServerAddress:
     process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
 
-  assistmentsBaseURL:
-    process.env.SUBWAY_ASSISTMENTS_BASE_URL || 'https://example.com',
-
-  assistmentsToken: process.env.SUBWAY_ASSISTMENTS_TOKEN || 'bogus',
-
-  assistmentsAuthSchema:
-    process.env.SUBWAY_ASSISTMENTS_AUTH_SCHEMA || 'token={TOKEN}',
-
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS',
