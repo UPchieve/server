@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
@@ -11,8 +12,10 @@ import {
   asOptional,
   asString,
 } from '../utils/type-utils'
-import moment from 'moment'
-import { CreateStudentAssignmentResult } from '../models/Assignments'
+import {
+  CreateStudentAssignmentResult,
+  StudentAssignment,
+} from '../models/Assignments'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -155,4 +158,22 @@ export async function linkSessionToAssignment(
     assignmentId,
     tc
   )
+}
+
+// Exported for testing.
+export function haveSessionsMetAssignmentRequirements(
+  assignment: Omit<StudentAssignment, 'classId'>,
+  sessions: { volunteerJoinedAt?: Date; endedAt?: Date }[]
+) {
+  const filtered = sessions.filter(session => {
+    if (!session.volunteerJoinedAt) return false
+    if (!session.endedAt) return false
+
+    const timeTutored = moment
+      .duration(moment(session.endedAt).diff(moment(session.volunteerJoinedAt)))
+      .asMinutes()
+    return timeTutored >= (assignment.minDurationInMinutes ?? 0)
+  })
+
+  return filtered.length >= (assignment.numberOfSessions ?? 0)
 }
