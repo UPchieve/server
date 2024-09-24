@@ -1,5 +1,5 @@
 import { runInTransaction, TransactionClient } from '../db'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import { InputError } from '../models/Errors'
@@ -137,4 +137,8 @@ export async function getAllAssignmentsForTeacher(
 
 export async function getStudentAssignmentCompletion(assignmentId: Ulid) {
   return AssignmentsRepo.getStudentAssignmentCompletion(assignmentId)
+}
+
+export async function getStudentAssignmentForSession(sessionId: Uuid) {
+  return AssignmentsRepo.getStudentAssignmentForSession(sessionId)
 }

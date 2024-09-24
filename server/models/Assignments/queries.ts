@@ -159,3 +159,19 @@ export async function getStudentAssignmentCompletion(
     throw new RepoReadError(err)
   }
 }
+
+export async function getStudentAssignmentForSession(
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const studentAssignment = await pgQueries.getStudentAssignmentForSession.run(
+      { sessionId },
+      tc
+    )
+    if (!studentAssignment.length) return
+    return makeSomeRequired(studentAssignment[0], ['assignedAt'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
