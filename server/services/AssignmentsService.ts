@@ -13,6 +13,7 @@ import {
   asString,
 } from '../utils/type-utils'
 import {
+  Assignment,
   CreateStudentAssignmentResult,
   StudentAssignment,
 } from '../models/Assignments'
@@ -134,7 +135,7 @@ export async function getAssignmentsByStudentId(
 
 export async function getAllAssignmentsForTeacher(
   userId: Ulid
-): Promise<AssignmentsRepo.StudentAssignment[]> {
+): Promise<Assignment[]> {
   return AssignmentsRepo.getAllAssignmentsForTeacher(userId)
 }
 
@@ -142,8 +143,11 @@ export async function getStudentAssignmentCompletion(assignmentId: Ulid) {
   return AssignmentsRepo.getStudentAssignmentCompletion(assignmentId)
 }
 
-export async function getStudentAssignmentForSession(sessionId: Uuid) {
-  return AssignmentsRepo.getStudentAssignmentForSession(sessionId)
+export async function getStudentAssignmentForSession(
+  sessionId: Uuid,
+  tc?: TransactionClient
+) {
+  return AssignmentsRepo.getStudentAssignmentForSession(sessionId, tc)
 }
 
 export async function linkSessionToAssignment(
@@ -158,6 +162,31 @@ export async function linkSessionToAssignment(
     assignmentId,
     tc
   )
+}
+
+export async function updateStudentAssignmentAfterSession(
+  studentId: Ulid,
+  sessionId: Uuid,
+  tc: TransactionClient
+) {
+  await runInTransaction(async (tc: TransactionClient) => {
+    const assignment = await getStudentAssignmentForSession(sessionId, tc)
+    if (!assignment) return
+
+    const assignmentSessions = await AssignmentsRepo.getSessionsForStudentAssignment(
+      studentId,
+      assignment.id,
+      tc
+    )
+
+    if (haveSessionsMetAssignmentRequirements(assignment, assignmentSessions)) {
+      await AssignmentsRepo.markStudentAssignmentAsCompleted(
+        studentId,
+        assignment.id,
+        tc
+      )
+    }
+  }, tc)
 }
 
 // Exported for testing.

@@ -213,6 +213,7 @@ export interface IGetAssignmentsByStudentIdParams {
 
 /** 'GetAssignmentsByStudentId' return type */
 export interface IGetAssignmentsByStudentIdResult {
+  assignedAt: Date;
   classId: string;
   description: string | null;
   dueDate: Date | null;
@@ -233,23 +234,24 @@ export interface IGetAssignmentsByStudentIdQuery {
   result: IGetAssignmentsByStudentIdResult;
 }
 
-const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1882,"b":1888,"line":64,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.due_date,\n    assignments.subject_id,\n    subjects.name AS subject_name,\n    assignments.start_date,\n    assignments.is_required,\n    assignments.id,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\n    LEFT JOIN subjects ON assignments.subject_id = subjects.id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":1300,"b":1888,"line":46,"col":0}}};
+const getAssignmentsByStudentIdIR: any = {"name":"getAssignmentsByStudentId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1934,"b":1940,"line":65,"col":36}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.id,\n    students_assignments.created_at AS assigned_at,\n    assignments.class_id,\n    assignments.description,\n    assignments.title,\n    assignments.number_of_sessions,\n    assignments.min_duration_in_minutes,\n    assignments.is_required,\n    assignments.due_date,\n    assignments.start_date,\n    assignments.subject_id,\n    subjects.name AS subject_name,\n    students_assignments.submitted_at\nFROM\n    assignments\n    LEFT JOIN students_assignments ON assignments.id = students_assignments.assignment_id\n    LEFT JOIN subjects ON assignments.subject_id = subjects.id\nWHERE\n    students_assignments.user_id = :userId!","loc":{"a":1300,"b":1940,"line":46,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     assignments.id,
+ *     students_assignments.created_at AS assigned_at,
  *     assignments.class_id,
  *     assignments.description,
  *     assignments.title,
  *     assignments.number_of_sessions,
  *     assignments.min_duration_in_minutes,
+ *     assignments.is_required,
  *     assignments.due_date,
+ *     assignments.start_date,
  *     assignments.subject_id,
  *     subjects.name AS subject_name,
- *     assignments.start_date,
- *     assignments.is_required,
- *     assignments.id,
  *     students_assignments.submitted_at
  * FROM
  *     assignments
@@ -289,7 +291,7 @@ export interface IGetAllAssignmentsForTeacherQuery {
   result: IGetAllAssignmentsForTeacherResult;
 }
 
-const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2086,"b":2092,"line":74,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.*\nFROM\n    assignments\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    teacher_classes.user_id = :userId!","loc":{"a":1933,"b":2092,"line":68,"col":0}}};
+const getAllAssignmentsForTeacherIR: any = {"name":"getAllAssignmentsForTeacher","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2138,"b":2144,"line":75,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    assignments.*\nFROM\n    assignments\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    teacher_classes.user_id = :userId!","loc":{"a":1985,"b":2144,"line":69,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -324,7 +326,7 @@ export interface IGetStudentAssignmentCompletionQuery {
   result: IGetStudentAssignmentCompletionResult;
 }
 
-const getStudentAssignmentCompletionIR: any = {"name":"getStudentAssignmentCompletion","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2369,"b":2381,"line":86,"col":42}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    users.first_name,\n    users.last_name,\n    students_assignments.submitted_at\nFROM\n    students_assignments\n    LEFT JOIN users ON students_assignments.user_id = users.id\nWHERE\n    students_assignments.assignment_id = :assignmentId!","loc":{"a":2140,"b":2381,"line":78,"col":0}}};
+const getStudentAssignmentCompletionIR: any = {"name":"getStudentAssignmentCompletion","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2421,"b":2433,"line":87,"col":42}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"SELECT\n    users.first_name,\n    users.last_name,\n    students_assignments.submitted_at\nFROM\n    students_assignments\n    LEFT JOIN users ON students_assignments.user_id = users.id\nWHERE\n    students_assignments.assignment_id = :assignmentId!","loc":{"a":2192,"b":2433,"line":79,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -351,8 +353,11 @@ export interface IGetStudentAssignmentForSessionParams {
 /** 'GetStudentAssignmentForSession' return type */
 export interface IGetStudentAssignmentForSessionResult {
   assignedAt: Date;
+  classId: string;
   description: string | null;
   dueDate: Date | null;
+  id: string;
+  isRequired: boolean;
   minDurationInMinutes: number | null;
   numberOfSessions: number | null;
   startDate: Date | null;
@@ -368,12 +373,14 @@ export interface IGetStudentAssignmentForSessionQuery {
   result: IGetStudentAssignmentForSessionResult;
 }
 
-const getStudentAssignmentForSessionIR: any = {"name":"getStudentAssignmentForSession","params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2960,"b":2968,"line":108,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    a.title,\n    a.description,\n    a.number_of_sessions,\n    a.min_duration_in_minutes,\n    a.due_date,\n    a.start_date,\n    a.subject_id,\n    subjects.name AS subject_name,\n    sa.created_at AS assigned_at,\n    sa.submitted_at\nFROM\n    assignments a\n    LEFT JOIN students_assignments sa ON sa.assignment_id = a.id\n    LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id\n        AND ssa.user_id = sa.user_id\n    LEFT JOIN subjects ON a.subject_id = subjects.id\nWHERE\n    ssa.session_id = :sessionId","loc":{"a":2429,"b":2968,"line":90,"col":0}}};
+const getStudentAssignmentForSessionIR: any = {"name":"getStudentAssignmentForSession","params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3057,"b":3065,"line":112,"col":22}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    a.id,\n    a.class_id,\n    a.title,\n    a.description,\n    a.number_of_sessions,\n    a.min_duration_in_minutes,\n    a.due_date,\n    a.start_date,\n    a.subject_id,\n    a.is_required,\n    subjects.name AS subject_name,\n    sa.created_at AS assigned_at,\n    sa.submitted_at\nFROM\n    assignments a\n    LEFT JOIN students_assignments sa ON sa.assignment_id = a.id\n    LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id\n        AND ssa.user_id = sa.user_id\n    LEFT JOIN subjects ON a.subject_id = subjects.id\nWHERE\n    ssa.session_id = :sessionId","loc":{"a":2481,"b":3065,"line":91,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     a.id,
+ *     a.class_id,
  *     a.title,
  *     a.description,
  *     a.number_of_sessions,
@@ -381,6 +388,7 @@ const getStudentAssignmentForSessionIR: any = {"name":"getStudentAssignmentForSe
  *     a.due_date,
  *     a.start_date,
  *     a.subject_id,
+ *     a.is_required,
  *     subjects.name AS subject_name,
  *     sa.created_at AS assigned_at,
  *     sa.submitted_at
@@ -413,7 +421,7 @@ export interface ILinkSessionToAssignmentQuery {
   result: ILinkSessionToAssignmentResult;
 }
 
-const linkSessionToAssignmentIR: any = {"name":"linkSessionToAssignment","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3101,"b":3110,"line":113,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3114,"b":3120,"line":113,"col":26}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3124,"b":3136,"line":113,"col":36}]}}],"usedParamSet":{"sessionId":true,"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO sessions_students_assignments (session_id, user_id, assignment_id)\n    VALUES (:sessionId!, :userId!, :assignmentId!)\nON CONFLICT\n    DO NOTHING","loc":{"a":3009,"b":3164,"line":112,"col":0}}};
+const linkSessionToAssignmentIR: any = {"name":"linkSessionToAssignment","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3198,"b":3207,"line":117,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3211,"b":3217,"line":117,"col":26}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3221,"b":3233,"line":117,"col":36}]}}],"usedParamSet":{"sessionId":true,"userId":true,"assignmentId":true},"statement":{"body":"INSERT INTO sessions_students_assignments (session_id, user_id, assignment_id)\n    VALUES (:sessionId!, :userId!, :assignmentId!)\nON CONFLICT\n    DO NOTHING","loc":{"a":3106,"b":3261,"line":116,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -445,7 +453,7 @@ export interface IGetSessionsForStudentAssignmentQuery {
   result: IGetSessionsForStudentAssignmentResult;
 }
 
-const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3371,"b":3377,"line":126,"col":15}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3404,"b":3416,"line":127,"col":25}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"SELECT\n    s.volunteer_joined_at,\n    s.ended_at\nFROM\n    sessions_students_assignments ssa\n    JOIN sessions s ON s.id = ssa.session_id\nWHERE\n    user_id = :userId!\n    AND assignment_id = :assignmentId!","loc":{"a":3213,"b":3416,"line":119,"col":0}}};
+const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3468,"b":3474,"line":130,"col":15}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3501,"b":3513,"line":131,"col":25}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"SELECT\n    s.volunteer_joined_at,\n    s.ended_at\nFROM\n    sessions_students_assignments ssa\n    JOIN sessions s ON s.id = ssa.session_id\nWHERE\n    user_id = :userId!\n    AND assignment_id = :assignmentId!","loc":{"a":3310,"b":3513,"line":123,"col":0}}};
 
 /**
  * Query generated from SQL:

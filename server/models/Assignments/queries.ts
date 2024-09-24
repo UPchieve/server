@@ -142,7 +142,7 @@ export async function getAssignmentsByStudentId(
       tc
     )
     return assignments.map(a =>
-      makeSomeRequired(a, ['classId', 'id', 'isRequired'])
+      makeSomeRequired(a, ['classId', 'id', 'isRequired', 'assignedAt'])
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -159,7 +159,13 @@ export async function getAllAssignmentsForTeacher(
       tc
     )
     return assignments.map(a =>
-      makeSomeRequired(a, ['classId', 'id', 'isRequired'])
+      makeSomeRequired(a, [
+        'classId',
+        'id',
+        'isRequired',
+        'createdAt',
+        'updatedAt',
+      ])
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -191,7 +197,11 @@ export async function getStudentAssignmentForSession(
       tc
     )
     if (!studentAssignment.length) return
-    return makeSomeRequired(studentAssignment[0], ['assignedAt'])
+    return makeSomeRequired(studentAssignment[0], [
+      'id',
+      'isRequired',
+      'assignedAt',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }
