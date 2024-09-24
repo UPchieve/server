@@ -1660,6 +1660,19 @@ CREATE TABLE upchieve.sessions_session_flags (
 
 
 --
+-- Name: sessions_students_assignments; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.sessions_students_assignments (
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    assignment_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: signup_sources; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3674,6 +3687,14 @@ ALTER TABLE ONLY upchieve.sessions_session_flags
 
 
 --
+-- Name: sessions_students_assignments sessions_students_assignments_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions_students_assignments
+    ADD CONSTRAINT sessions_students_assignments_pkey PRIMARY KEY (session_id, user_id, assignment_id);
+
+
+--
 -- Name: signup_sources signup_sources_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5156,6 +5177,14 @@ ALTER TABLE ONLY upchieve.sessions
 
 
 --
+-- Name: sessions_students_assignments sessions_students_assignments_user_id_assignment_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions_students_assignments
+    ADD CONSTRAINT sessions_students_assignments_user_id_assignment_id_fkey FOREIGN KEY (user_id, assignment_id) REFERENCES upchieve.students_assignments(user_id, assignment_id);
+
+
+--
 -- Name: sessions sessions_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6006,4 +6035,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240910003849'),
     ('20240910010753'),
     ('20240912141821'),
-    ('20240918170007');
+    ('20240918170007'),
+    ('20240918200433');
