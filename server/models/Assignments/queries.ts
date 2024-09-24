@@ -150,11 +150,11 @@ export async function getStudentAssignmentCompletion(
   tc: TransactionClient = getClient()
 ) {
   try {
-    const studentIds = await pgQueries.getStudentAssignmentCompletion.run(
+    const studentAssignments = await pgQueries.getStudentAssignmentCompletion.run(
       { assignmentId },
       tc
     )
-    return studentIds
+    return studentAssignments
   } catch (err) {
     throw new RepoReadError(err)
   }
