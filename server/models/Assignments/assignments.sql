@@ -75,3 +75,25 @@ FROM
 WHERE
     students_assignments.assignment_id = :assignmentId!;
 
+
+/* @name getStudentAssignmentForSession */
+SELECT
+    a.title,
+    a.description,
+    a.number_of_sessions,
+    a.min_duration_in_minutes,
+    a.due_date,
+    a.start_date,
+    a.subject_id,
+    subjects.name AS subject_name,
+    sa.created_at AS assigned_at,
+    sa.submitted_at
+FROM
+    assignments a
+    LEFT JOIN students_assignments sa ON sa.assignment_id = a.id
+    LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id
+        AND ssa.user_id = sa.user_id
+    LEFT JOIN subjects ON a.subject_id = subjects.id
+WHERE
+    ssa.session_id = :sessionId;
+
