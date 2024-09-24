@@ -201,44 +201,56 @@ export async function endSession(
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
 ) {
-  const reqIdentifiers = identifiers
-    ? sessionUtils.asRequestIdentifiers(identifiers)
-    : undefined
+  await runInTransaction(async (tc: TransactionClient) => {
+    const reqIdentifiers = identifiers
+      ? sessionUtils.asRequestIdentifiers(identifiers)
+      : undefined
 
-  const session = await SessionRepo.getSessionToEndById(sessionId)
-  if (session.endedAt)
-    throw new sessionUtils.EndSessionError('Session has already ended')
-  if (
-    !isAdmin &&
-    !sessionUtils.isSessionParticipant(
+    const session = await SessionRepo.getSessionToEndById(sessionId, tc)
+    if (session.endedAt)
+      throw new sessionUtils.EndSessionError('Session has already ended')
+    if (
+      !isAdmin &&
+      !sessionUtils.isSessionParticipant(
+        session.student.id,
+        session.volunteer?.id,
+        endedBy ? endedBy : null
+      )
+    )
+      throw new sessionUtils.EndSessionError(
+        'Only session participants can end a session'
+      )
+
+    await SessionRepo.updateSessionToEnd(
+      session.id,
+      new Date(),
+      // NOTE: endedBy is sometimes null when the session is ended by a worker job
+      //        due to the session being unmatched for an extended period of time
+      endedBy,
+      tc
+    )
+
+    await AssignmentsService.updateStudentAssignmentAfterSession(
       session.student.id,
-      session.volunteer?.id,
-      endedBy ? endedBy : null
-    )
-  )
-    throw new sessionUtils.EndSessionError(
-      'Only session participants can end a session'
+      sessionId,
+      tc
     )
 
-  await SessionRepo.updateSessionToEnd(
-    session.id,
-    new Date(),
-    // NOTE: endedBy is sometimes null when the session is ended by a worker job
-    //        due to the session being unmatched for an extended period of time
-    endedBy
-  )
+    if (socketService) await socketService.emitSessionChange(sessionId, tc)
+    if (endedBy && reqIdentifiers)
+      await createSessionAction(
+        {
+          userId: endedBy,
+          sessionId: sessionId,
+          ...getUserAgentInfo(reqIdentifiers?.userAgent),
+          ipAddress: reqIdentifiers.ip,
+          action: SESSION_USER_ACTIONS.ENDED,
+        },
+        tc
+      )
+  })
 
-  emitter.emit(SESSION_EVENTS.SESSION_ENDED, session.id)
-
-  if (socketService) await socketService.emitSessionChange(sessionId)
-  if (endedBy && reqIdentifiers)
-    await createSessionAction({
-      userId: endedBy,
-      sessionId: sessionId,
-      ...getUserAgentInfo(reqIdentifiers?.userAgent),
-      ipAddress: reqIdentifiers.ip,
-      action: SESSION_USER_ACTIONS.ENDED,
-    })
+  emitter.emit(SESSION_EVENTS.SESSION_ENDED, sessionId)
 }
 
 export async function processSessionReported(sessionId: Ulid) {

@@ -7,6 +7,7 @@ import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { addDocEditorVersionTo } from './SessionService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
+import { TransactionClient } from '../db'
 
 class SocketService {
   private static instance: SocketService
@@ -30,9 +31,12 @@ class SocketService {
    * @param sessionId
    * @returns the session object
    */
-  private async getSessionData(sessionId: Ulid): Promise<CurrentSession> {
+  private async getSessionData(
+    sessionId: Ulid,
+    tc?: TransactionClient
+  ): Promise<CurrentSession> {
     // Replaced by getCurrentSessionBySessionId
-    const populatedSession = await getCurrentSessionBySessionId(sessionId)
+    const populatedSession = await getCurrentSessionBySessionId(sessionId, tc)
 
     if (populatedSession) return populatedSession
     else throw new Error(`Session data for ${sessionId} not found`)
@@ -43,8 +47,11 @@ class SocketService {
     this.io.in('volunteers').emit('sessions', sessions)
   }
 
-  async emitSessionChange(sessionId: Ulid): Promise<void> {
-    const session = await this.getSessionData(sessionId)
+  async emitSessionChange(
+    sessionId: Ulid,
+    tc?: TransactionClient
+  ): Promise<void> {
+    const session = await this.getSessionData(sessionId, tc)
     await addDocEditorVersionTo(session)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
