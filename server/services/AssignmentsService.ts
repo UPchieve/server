@@ -67,8 +67,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
       tc
     )
 
-    const assignmentId = assignment.id
-    await addAssignmentForClass(data.classId, assignmentId)
+    await addAssignmentForClass(data.classId, assignment.id, tc)
 
     return assignment
   })
@@ -88,33 +87,40 @@ export async function getAssignmentById(
 
 export async function addAssignmentForStudents(
   studentIds: string[],
-  assignmentId: Ulid
+  assignmentId: Ulid,
+  tc?: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     try {
       const studentAssignments = await Promise.all(
-        studentIds.map(studentId =>
-          AssignmentsRepo.createStudentAssignment(studentId, assignmentId, tc)
-        )
+        studentIds.map(studentId => {
+          console.log(studentId)
+          return AssignmentsRepo.createStudentAssignment(
+            studentId,
+            assignmentId,
+            tc
+          )
+        })
       )
       return studentAssignments
     } catch (err) {
       throw new Error((err as Error).message)
     }
-  })
+  }, tc)
 }
 
 export async function addAssignmentForClass(
   classId: Ulid,
-  assignmentId: Ulid
+  assignmentId: Ulid,
+  tc: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
       classId
     )
-    return addAssignmentForStudents(studentIds, assignmentId)
-  })
+    return addAssignmentForStudents(studentIds, assignmentId, tc)
+  }, tc)
 }
 
 export async function getAssignmentsByStudentId(
