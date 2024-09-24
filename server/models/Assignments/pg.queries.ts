@@ -427,3 +427,40 @@ const linkSessionToAssignmentIR: any = {"name":"linkSessionToAssignment","params
 export const linkSessionToAssignment = new PreparedQuery<ILinkSessionToAssignmentParams,ILinkSessionToAssignmentResult>(linkSessionToAssignmentIR);
 
 
+/** 'GetSessionsForStudentAssignment' parameters type */
+export interface IGetSessionsForStudentAssignmentParams {
+  assignmentId: string;
+  userId: string;
+}
+
+/** 'GetSessionsForStudentAssignment' return type */
+export interface IGetSessionsForStudentAssignmentResult {
+  endedAt: Date | null;
+  volunteerJoinedAt: Date | null;
+}
+
+/** 'GetSessionsForStudentAssignment' query type */
+export interface IGetSessionsForStudentAssignmentQuery {
+  params: IGetSessionsForStudentAssignmentParams;
+  result: IGetSessionsForStudentAssignmentResult;
+}
+
+const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3371,"b":3377,"line":126,"col":15}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3404,"b":3416,"line":127,"col":25}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"SELECT\n    s.volunteer_joined_at,\n    s.ended_at\nFROM\n    sessions_students_assignments ssa\n    JOIN sessions s ON s.id = ssa.session_id\nWHERE\n    user_id = :userId!\n    AND assignment_id = :assignmentId!","loc":{"a":3213,"b":3416,"line":119,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.volunteer_joined_at,
+ *     s.ended_at
+ * FROM
+ *     sessions_students_assignments ssa
+ *     JOIN sessions s ON s.id = ssa.session_id
+ * WHERE
+ *     user_id = :userId!
+ *     AND assignment_id = :assignmentId!
+ * ```
+ */
+export const getSessionsForStudentAssignment = new PreparedQuery<IGetSessionsForStudentAssignmentParams,IGetSessionsForStudentAssignmentResult>(getSessionsForStudentAssignmentIR);
+
+

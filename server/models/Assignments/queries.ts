@@ -216,3 +216,21 @@ export async function linkSessionToAssignment(
     throw new RepoCreateError(err)
   }
 }
+
+export async function getSessionsForStudentAssignment(
+  userId: Ulid,
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+): Promise<{ volunteerJoinedAt?: Date; endedAt?: Date }[]> {
+  try {
+    const sessions = await pgQueries.getSessionsForStudentAssignment.run(
+      { userId, assignmentId },
+      tc
+    )
+    return sessions.map(s =>
+      makeSomeOptional(s, ['volunteerJoinedAt', 'endedAt'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

@@ -114,3 +114,15 @@ INSERT INTO sessions_students_assignments (session_id, user_id, assignment_id)
 ON CONFLICT
     DO NOTHING;
 
+
+/* @name getSessionsForStudentAssignment */
+SELECT
+    s.volunteer_joined_at,
+    s.ended_at
+FROM
+    sessions_students_assignments ssa
+    JOIN sessions s ON s.id = ssa.session_id
+WHERE
+    user_id = :userId!
+    AND assignment_id = :assignmentId!;
+
