@@ -1252,6 +1252,7 @@ FROM
     JOIN users ON sessions.student_id = users.id
 WHERE
     student_id = :studentId!
+    AND sessions.ended_at IS NOT NULL
 GROUP BY
     sessions.id,
     subjects.name,
