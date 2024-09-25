@@ -3,6 +3,7 @@ import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import { ISODateString } from '../types/dates'
+import * as AnalyticsService from './AnalyticsService'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
@@ -30,10 +31,23 @@ export async function getFeatureFlagPayload(
   })
 }
 
-export async function getAllFlagsForId(id: Ulid, waitInMs?: number) {
+export async function getAllFlagsForId(
+  id: Ulid,
+  personProperties: AnalyticsService.AnalyticPersonProperties,
+  waitInMs?: number
+) {
   return await timeLimit({
-    promise: productClient.getAllFlagsAndPayloads(id),
-    fallbackReturnValue: { featureFlags: {}, featureFlagPayloads: {} },
+    promise: productClient.getAllFlagsAndPayloads(id, {
+      // PostHog has the wrong type for this. It should be similar to their JS SDK
+      // where the type should be Record<string, any>
+      // https://github.com/PostHog/posthog-js-lite/issues/194
+      // @ts-expect-error
+      personProperties,
+    }),
+    fallbackReturnValue: {
+      featureFlags: {},
+      featureFlagPayloads: {},
+    },
     timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
     waitInMs,
   })

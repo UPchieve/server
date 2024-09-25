@@ -20,6 +20,8 @@ import { Server } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
+import { extractUser } from './extract-user'
+import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
 
 export default function(app: Express, io: Server) {
   logger.info('initializing server routing')
@@ -51,14 +53,16 @@ export default function(app: Express, io: Server) {
   })
 
   app.get('/api-public/feature-flags', async function(req, res) {
+    const user = extractUser(req)
     const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
     const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
     try {
+      const personProperties = await getPersonPropertiesForAnalytics(user.id)
       const flags: {
         featureFlags: Record<string, boolean | string>
         featureFlagPayloads: Record<string, unknown>
-      } = await getAllFlagsForId(distinctId)
-      res.status(200).json({ id: distinctId, ...flags })
+      } = await getAllFlagsForId(distinctId, personProperties)
+      res.status(200).json({ id: distinctId, ...flags, personProperties })
     } catch (e) {
       logError(new Error(`Failed to bootstrap feature flags. ${e}`), {
         userId: distinctId,

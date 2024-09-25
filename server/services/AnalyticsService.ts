@@ -1,5 +1,16 @@
 import { client } from '../product-client'
 import { Ulid } from '../models/pgUtils'
+import { GRADES } from '../constants'
+import { UserRole } from '../models/User'
+import { getLegacyUserObject } from '../models/User/legacy-user'
+import { getUPFByUserId } from '../models/UserProductFlags'
+import { ISODateString } from '../types/dates'
+import {
+  isStudentUserType,
+  isTeacherUserType,
+  isVolunteerUserType,
+} from './UserRolesService'
+import logger from '../logger'
 
 export const captureEvent = (
   userId: Ulid,
@@ -22,6 +33,7 @@ export type IdentifyProperties = {
   schoolPartner?: string
   partner?: string
   userType?: string
+  fallIncentiveEnrollmentAt?: Date
 }
 
 export function identify(userId: Ulid, properties: IdentifyProperties) {
@@ -29,4 +41,82 @@ export function identify(userId: Ulid, properties: IdentifyProperties) {
     distinctId: userId.toString(),
     properties,
   })
+}
+
+export type AnalyticCertificationStats = {
+  [subject: string]: boolean
+}
+
+export type AnalyticPersonProperties = {
+  ucId: Ulid
+  userType: UserRole
+  createdAt: ISODateString
+  totalSessions: number
+  banType: string
+  isTestUser: boolean
+  onboarded?: boolean
+  approved?: boolean
+  partner?: string | null
+  schoolPartner?: string | null
+  gradeLevel?: GRADES | null
+  fallIncentiveEnrollmentAt?: ISODateString | null
+  usesClever?: boolean
+  usesGoogle?: boolean
+} & AnalyticCertificationStats
+
+export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
+  let personProperties = {} as AnalyticPersonProperties
+
+  try {
+    if (!userId) return personProperties
+
+    const user = await getLegacyUserObject(userId)
+    if (!user) return personProperties
+
+    const productFlags = await getUPFByUserId(userId)
+
+    personProperties = {
+      ucId: user.id,
+      userType: user.userType,
+      createdAt: user.createdAt.toISOString(),
+      totalSessions: user.pastSessions.length,
+      banType: user.banType,
+      isTestUser: user.isTestUser,
+    } as AnalyticPersonProperties
+
+    if (isVolunteerUserType(user.userType)) {
+      personProperties.onboarded = user.isOnboarded
+      personProperties.approved = user.isApproved
+      personProperties.partner = user.volunteerPartnerOrg ?? null
+
+      const certificationInfo = Object.entries(
+        user.certifications ?? {}
+      ).reduce<AnalyticCertificationStats>((acc, [subject, quizInfo]) => {
+        acc[subject] = quizInfo.passed
+        return acc
+      }, {})
+      return {
+        ...personProperties,
+        ...certificationInfo,
+      }
+    } else if (isStudentUserType(user.userType)) {
+      personProperties.partner = user.studentPartnerOrg ?? null
+      personProperties.gradeLevel = user.gradeLevel ?? null
+      if (user.isSchoolPartner)
+        personProperties.schoolPartner = user.schoolName ?? null
+      personProperties.fallIncentiveEnrollmentAt =
+        productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
+      personProperties.usesClever = user.usesClever
+      personProperties.usesGoogle = user.usesGoogle
+    } else if (isTeacherUserType(user.userType)) {
+      // TODO: TEACHER PROFILES.
+    }
+  } catch (error) {
+    logger.error(
+      `Failed to get person properties for analytics user ${userId ??
+        'Anonymous'} - error ${error}`
+    )
+  }
+
+  return personProperties
 }
