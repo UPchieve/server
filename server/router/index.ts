@@ -57,6 +57,7 @@ export default function(app: Express, io: Server) {
       const flags: {
         featureFlags: Record<string, boolean | string>
         featureFlagPayloads: Record<string, unknown>
+        personProperties: Record<string, any>
       } = await getAllFlagsForId(distinctId)
       res.status(200).json({ id: distinctId, ...flags })
     } catch (e) {
