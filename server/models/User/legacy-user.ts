@@ -79,6 +79,8 @@ export type LegacyUserModel = {
   latestRequestedSubjects?: string[]
   numberOfStudentClasses: number
   issuers: string[]
+  studentPartnerOrg?: string
+  isSchoolPartner: boolean
 }
 
 export async function getLegacyUserObject(
