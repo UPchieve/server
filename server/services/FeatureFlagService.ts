@@ -4,7 +4,6 @@ import { Ulid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import { ISODateString } from '../types/dates'
 import * as AnalyticsService from './AnalyticsService'
-import logger from '../logger'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,

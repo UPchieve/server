@@ -60,6 +60,8 @@ export type AnalyticPersonProperties = {
   schoolPartner?: string | null
   gradeLevel?: GRADES | null
   fallIncentiveEnrollmentAt?: ISODateString | null
+  usesClever?: boolean
+  usesGoogle?: boolean
 } & AnalyticCertificationStats
 
 export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
@@ -104,6 +106,8 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
         personProperties.schoolPartner = user.schoolName ?? null
       personProperties.fallIncentiveEnrollmentAt =
         productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
+      personProperties.usesClever = user.usesClever
+      personProperties.usesGoogle = user.usesGoogle
     } else if (isTeacherUserType(user.userType)) {
       // TODO: TEACHER PROFILES.
     }

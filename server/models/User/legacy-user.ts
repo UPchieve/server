@@ -81,6 +81,8 @@ export type LegacyUserModel = {
   issuers: string[]
   studentPartnerOrg?: string
   isSchoolPartner: boolean
+  usesClever?: boolean
+  usesGoogle?: boolean
 }
 
 export async function getLegacyUserObject(
@@ -133,12 +135,10 @@ export async function getLegacyUserObject(
       studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
         baseUser.id
       )
-      studentUser.usesGoogle = baseUser.issuers?.some(issuer =>
-        issuer.includes('google')
-      )
-      studentUser.usesClever = baseUser.issuers?.some(issuer =>
-        issuer.includes('clever')
-      )
+      studentUser.usesGoogle =
+        baseUser.issuers?.some(issuer => issuer.includes('google')) ?? false
+      studentUser.usesClever =
+        baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
       delete baseUser.issuers
     }
     if (isVolunteerUserType(userType)) {
