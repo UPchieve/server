@@ -10,12 +10,7 @@ import {
 } from '../models/TutorBot'
 import { getDbUlid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
-import {
-  getClient,
-  getRoClient,
-  runInTransaction,
-  TransactionClient,
-} from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -36,7 +31,7 @@ interface TutorBotConversationTranscript {
 
 export const getTranscriptForConversation = async (
   conversationId: string,
-  tc: TransactionClient = getRoClient()
+  tc: TransactionClient = getClient()
 ): Promise<TutorBotConversationTranscript> => {
   const results = await getTutorBotConversationMessagesById(conversationId, tc)
   return {
