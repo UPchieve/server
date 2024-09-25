@@ -48,7 +48,6 @@ export async function getAllFlagsForId(
     fallbackReturnValue: {
       featureFlags: {},
       featureFlagPayloads: {},
-      personProperties: {},
     },
     timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
     waitInMs,
