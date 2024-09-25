@@ -27,6 +27,7 @@ interface TutorBotConversationTranscript {
   conversationId: string
   subjectId: number
   messages: TutorBotConversationMessage[]
+  sessionId?: string
 }
 
 export const getTranscriptForConversation = async (
@@ -37,6 +38,7 @@ export const getTranscriptForConversation = async (
   return {
     conversationId,
     subjectId: results.subjectId,
+    sessionId: results.sessionId,
     messages: results.messages,
   }
 }
@@ -47,12 +49,7 @@ export const createTutorBotConversation = async (data: {
   message: string
   senderUserType: 'student' | 'volunteer'
   subjectId: number
-}): Promise<{
-  conversationId: string
-  userId: string
-  sessionId: string | null
-  botResponse: BotResponse
-}> => {
+}) => {
   const userId = data.userId
   const sessionId = data.sessionId
   const subjectId = data.subjectId
@@ -67,20 +64,23 @@ export const createTutorBotConversation = async (data: {
       },
       tc
     )
-    const botResponse = await sendMessageAndGetBotResponse(
+
+    const { userMessage, botResponse } = await addMessageToConversation(
       {
-        userId,
         conversationId,
-        message: data.message,
+        userId,
         senderUserType: data.senderUserType,
+        message: data.message,
       },
       tc
     )
+
     return {
       conversationId,
       userId,
       sessionId,
-      botResponse,
+      subjectId,
+      messages: [userMessage, botResponse],
     }
   })
 }
@@ -107,7 +107,8 @@ export type BotResponse = {
   traceId: string
   observationId: string | null
 }
-export const sendMessageAndGetBotResponse = async (
+
+export const addMessageToConversation = async (
   {
     userId,
     conversationId,
@@ -119,23 +120,48 @@ export const sendMessageAndGetBotResponse = async (
     message: string
     senderUserType: tutor_bot_conversation_user_type
   },
+  parentTransaction?: TransactionClient
+) => {
+  return await runInTransaction(async (tx: TransactionClient) => {
+    const tc = parentTransaction ?? tx
+    const userMessage = await insertTutorBotConversationMessage(
+      {
+        conversationId,
+        userId,
+        senderUserType,
+        message,
+      },
+      tc
+    )
+
+    const botResponse = await getBotResponse({ userId, conversationId }, tc)
+
+    return {
+      userMessage,
+      botResponse,
+    }
+  })
+}
+
+const getBotResponse = async (
+  {
+    userId,
+    conversationId,
+  }: {
+    userId: string
+    conversationId: string
+  },
   tc: TransactionClient = getClient()
-): Promise<BotResponse> => {
+): Promise<TutorBotConversationMessage & {
+  traceId: string
+  obeservationId: string | null
+  status: string
+}> => {
   // Save the latest user message to DB and create the transcript of the conversation so far
-  await insertTutorBotConversationMessage(
-    {
-      conversationId,
-      userId,
-      senderUserType,
-      message: removeTurnMarkers(message),
-    },
-    tc
-  )
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     sessionId: conversationId,
   })
-
   const transcript = await getTranscriptForConversation(conversationId, tc)
   const prompt = createPromptFromTranscript(transcript)
   const gen = t.generation({
@@ -159,22 +185,18 @@ export const sendMessageAndGetBotResponse = async (
     input: { prompt, ...savedBotMessage },
   })
 
-  transcript.messages.push({
+  return {
     senderUserType: 'bot',
     message: botMessage,
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-  } as TutorBotConversationMessage)
-
-  return {
-    traceId: gen.traceId,
-    observationId: gen.observationId,
-    message: transcript.messages[transcript.messages.length - 1].message,
     status: system.substring(
       system.indexOf('[[') + 2,
       system.lastIndexOf(']]')
     ),
+    traceId: gen.traceId,
+    obeservationId: gen.observationId,
   }
 }
 
@@ -190,6 +212,9 @@ const createChatCompletion = async (
       config.tutorBotBaseUrl,
       {
         inputs: prompt,
+        parameters: {
+          max_new_tokens: 300,
+        },
       },
       {
         headers: {
