@@ -41,8 +41,10 @@ export async function getTutorBotConversationMessagesById(
       },
       client
     )
+    const attrs = makeSomeOptional(conversation[0], ['sessionId'])
     return {
-      subjectId: makeSomeOptional(conversation[0], ['sessionId']).subjectId,
+      subjectId: attrs.subjectId,
+      sessionId: attrs.sessionId,
       messages: results.map(makeRequired),
     }
   } catch (err) {

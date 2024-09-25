@@ -19,7 +19,7 @@ export function routeTutorBot(router: Router) {
     '/tutor-bot/conversations/:conversationId/message',
     async function(req, res) {
       try {
-        const botResponse = await TutorBotService.sendMessageAndGetBotResponse({
+        const botResponse = await TutorBotService.addMessageToConversation({
           userId: req.body.userId,
           conversationId: req.params.conversationId,
           message: req.body.message,
