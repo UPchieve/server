@@ -10,6 +10,7 @@ import {
   isTeacherUserType,
   isVolunteerUserType,
 } from './UserRolesService'
+import logger from '../logger'
 
 export const captureEvent = (
   userId: Ulid,
@@ -61,44 +62,57 @@ export type AnalyticPersonProperties = {
   fallIncentiveEnrollmentAt?: ISODateString | null
 } & AnalyticCertificationStats
 
-export async function getPersonPropertiesForAnalytics(userId: Ulid) {
-  const user = await getLegacyUserObject(userId)
-  if (!user) return {} as AnalyticPersonProperties
+export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
+  let personProperties = {} as AnalyticPersonProperties
 
-  const productFlags = await getUPFByUserId(userId)
+  try {
+    if (!userId) return personProperties
 
-  const userProps = {
-    ucId: user.id,
-    userType: user.userType,
-    createdAt: user.createdAt.toISOString(),
-    totalSessions: user.pastSessions.length,
-    banType: user.banType,
-    isTestUser: user.isTestUser,
-  } as AnalyticPersonProperties
-  if (isVolunteerUserType(user.userType)) {
-    userProps.onboarded = user.isOnboarded
-    userProps.approved = user.isApproved
-    userProps.partner = user.volunteerPartnerOrg ?? null
+    const user = await getLegacyUserObject(userId)
+    if (!user) return personProperties
 
-    const certificationInfo = Object.entries(user.certifications ?? {}).reduce<
-      AnalyticCertificationStats
-    >((acc, [subject, quizInfo]) => {
-      acc[subject] = quizInfo.passed
-      return acc
-    }, {})
-    return {
-      ...userProps,
-      ...certificationInfo,
+    const productFlags = await getUPFByUserId(userId)
+
+    personProperties = {
+      ucId: user.id,
+      userType: user.userType,
+      createdAt: user.createdAt.toISOString(),
+      totalSessions: user.pastSessions.length,
+      banType: user.banType,
+      isTestUser: user.isTestUser,
+    } as AnalyticPersonProperties
+
+    if (isVolunteerUserType(user.userType)) {
+      personProperties.onboarded = user.isOnboarded
+      personProperties.approved = user.isApproved
+      personProperties.partner = user.volunteerPartnerOrg ?? null
+
+      const certificationInfo = Object.entries(
+        user.certifications ?? {}
+      ).reduce<AnalyticCertificationStats>((acc, [subject, quizInfo]) => {
+        acc[subject] = quizInfo.passed
+        return acc
+      }, {})
+      return {
+        ...personProperties,
+        ...certificationInfo,
+      }
+    } else if (isStudentUserType(user.userType)) {
+      personProperties.partner = user.studentPartnerOrg ?? null
+      personProperties.gradeLevel = user.gradeLevel ?? null
+      if (user.isSchoolPartner)
+        personProperties.schoolPartner = user.schoolName ?? null
+      personProperties.fallIncentiveEnrollmentAt =
+        productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
+    } else if (isTeacherUserType(user.userType)) {
+      // TODO: TEACHER PROFILES.
     }
-  } else if (isStudentUserType(user.userType)) {
-    userProps.partner = user.studentPartnerOrg ?? null
-    userProps.gradeLevel = user.gradeLevel ?? null
-    if (user.isSchoolPartner) userProps.schoolPartner = user.schoolName ?? null
-    userProps.fallIncentiveEnrollmentAt =
-      productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
-  } else if (isTeacherUserType(user.userType)) {
-    // TODO: TEACHER PROFILES.
+  } catch (error) {
+    logger.error(
+      `Failed to get person properties for analytics user ${userId ??
+        'Anonymous'} - error ${error}`
+    )
   }
 
-  return userProps
+  return personProperties
 }

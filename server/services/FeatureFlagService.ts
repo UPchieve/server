@@ -32,18 +32,12 @@ export async function getFeatureFlagPayload(
   })
 }
 
-export async function getAllFlagsForId(id: Ulid, waitInMs?: number) {
-  let personProperties = {} as AnalyticsService.AnalyticPersonProperties
-  try {
-    personProperties = await AnalyticsService.getPersonPropertiesForAnalytics(
-      id
-    )
-  } catch (error) {
-    logger.error(
-      `Failed to get person properties for analytics user ${id} - error ${error}`
-    )
-  }
-  const flags = await timeLimit({
+export async function getAllFlagsForId(
+  id: Ulid,
+  personProperties: AnalyticsService.AnalyticPersonProperties,
+  waitInMs?: number
+) {
+  return await timeLimit({
     promise: productClient.getAllFlagsAndPayloads(id, {
       // PostHog has the wrong type for this. It should be similar to their JS SDK
       // where the type should be Record<string, any>
@@ -59,10 +53,6 @@ export async function getAllFlagsForId(id: Ulid, waitInMs?: number) {
     timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
     waitInMs,
   })
-  return {
-    ...flags,
-    personProperties,
-  }
 }
 
 export function isChatBotEnabled() {
