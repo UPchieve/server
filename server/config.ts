@@ -303,6 +303,8 @@ const config: Static<typeof Config> = {
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
+  posthogProjectId: process.env.SUBWAY_POSTHOG_PROJECT_ID || 'bogus',
+  posthogHost: process.env.SUBWAY_POSTHOG_HOST || 'bogus',
 
   /**
    *
@@ -379,6 +381,8 @@ const config: Static<typeof Config> = {
   tutorBotApiKey: process.env.TUTOR_BOT_API_KEY || 'bogus',
   tutorBotBaseUrl: process.env.TUTOR_BOT_BASE_URL || 'bogus',
   tutorBotModelName: process.env.TUTOR_BOT_MODEL_NAME || 'bogus',
+  posthogStandaloneAiTutorFeatureFlagId:
+    process.env.STANDALONE_AI_TUTOR_FEATURE_FLAG_ID || 'bogus',
 }
 
 module.exports = config
