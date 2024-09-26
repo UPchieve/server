@@ -20,6 +20,8 @@ export function routeTutorBot(router: Router) {
     async function(req, res) {
       try {
         const botResponse = await TutorBotService.addMessageToConversation({
+          // TODO test and make this change
+          // userId: req.user.id,
           userId: req.body.userId,
           conversationId: req.params.conversationId,
           message: req.body.message,
@@ -38,6 +40,8 @@ export function routeTutorBot(router: Router) {
         ? req.body.sessionId
         : null
       const conversation = await TutorBotService.createTutorBotConversation({
+        // TODO test and make this change
+        // userId: req.user.id,
         userId: req.body.userId,
         message: req.body.message,
         senderUserType: req.body.senderUserType,

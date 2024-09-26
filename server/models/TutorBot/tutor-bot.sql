@@ -29,6 +29,15 @@ WHERE
     id = :conversationId!;
 
 
+/* @name getTutorBotConversationBySessionId */
+SELECT
+    *
+FROM
+    tutor_bot_conversations
+WHERE
+    session_id = :sessionId!;
+
+
 /* @name getTutorBotConversationMessagesById */
 SELECT
     *
