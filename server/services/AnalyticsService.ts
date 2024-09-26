@@ -66,10 +66,9 @@ export type AnalyticPersonProperties = {
 
 export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
   let personProperties = {} as AnalyticPersonProperties
+  if (!userId) return personProperties
 
   try {
-    if (!userId) return personProperties
-
     const user = await getLegacyUserObject(userId)
     if (!user) return personProperties
 
