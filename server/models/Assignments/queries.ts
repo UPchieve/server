@@ -1,6 +1,11 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
-import { Assignment, CreateAssignmentInput } from './types'
+import {
+  Assignment,
+  CreateAssignmentInput,
+  CreateStudentAssignmentInput,
+  CreateStudentAssignmentResult,
+} from './types'
 import * as pgQueries from './pg.queries'
 import {
   Ulid,
@@ -8,6 +13,7 @@ import {
   makeSomeOptional,
   makeSomeRequired,
   Uuid,
+  makeRequired,
 } from '../pgUtils'
 
 export async function createAssignment(
@@ -115,6 +121,22 @@ export async function createStudentAssignment(
     'createdAt',
     'updatedAt',
   ])
+}
+
+export async function createStudentAssignments(
+  studentAssignments: CreateStudentAssignmentInput[],
+  tc: TransactionClient = getClient()
+): Promise<CreateStudentAssignmentResult[]> {
+  try {
+    if (!studentAssignments.length) return []
+    const result = await pgQueries.createStudentAssignments.run(
+      { studentAssignments },
+      tc
+    )
+    return result.map(r => makeRequired(r))
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
 }
 
 export async function markStudentAssignmentAsCompleted(

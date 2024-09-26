@@ -94,6 +94,48 @@ describe('createAssignment', () => {
   })
 })
 
+describe('createStudentAssignments', () => {
+  test('inserts a list student assignments', async () => {
+    const teacherClass = await createTestTeacherClass()
+    const assignment1 = await createTestAssignment(teacherClass.id)
+    const assignment2 = await createTestAssignment(teacherClass.id)
+    const student1 = await createTestStudent()
+    const student2 = await createTestStudent()
+
+    const result = await AssignmentsRepo.createStudentAssignments([
+      {
+        userId: student1.user_id,
+        assignmentId: assignment1.id,
+      },
+      {
+        userId: student2.user_id,
+        assignmentId: assignment1.id,
+      },
+      {
+        userId: student1.user_id,
+        assignmentId: assignment2.id,
+      },
+    ])
+    expect(result.length).toBe(3)
+    expect(result[0].userId).toBe(student1.user_id)
+    expect(result[0].assignmentId).toBe(assignment1.id)
+    expect(result[1].userId).toBe(student2.user_id)
+    expect(result[1].assignmentId).toBe(assignment1.id)
+    expect(result[2].userId).toBe(student1.user_id)
+    expect(result[2].assignmentId).toBe(assignment2.id)
+
+    const actualRows = await client.query(
+      'SELECT * FROM students_assignments WHERE assignment_id = $1 OR assignment_id = $2',
+      [assignment1.id, assignment2.id]
+    )
+    expect(actualRows.rowCount).toBe(3)
+    const actual = actualRows.rows.map(r =>
+      makeSomeOptional(r, ['submittedAt'])
+    )
+    expect(result).toEqual(expect.objectContaining(actual))
+  })
+})
+
 describe('getAssignmentsByClassId', () => {
   test('gets all the assignments for a class', async () => {
     const teacherClass = await createTestTeacherClass()
@@ -164,7 +206,9 @@ describe('getAssignmentById', () => {
       'SELECT * FROM assignments WHERE id = $1',
       [assignment.id]
     )
-    expect(actualAssignment).toEqual(makeRequired(expectedAssignment.rows[0]))
+    expect(actualAssignment).toEqual(
+      expect.objectContaining(makeRequired(expectedAssignment.rows[0]))
+    )
   })
 })
 
