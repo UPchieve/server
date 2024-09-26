@@ -53,11 +53,17 @@ export default function(app: Express, io: Server) {
   })
 
   app.get('/api-public/feature-flags', async function(req, res) {
-    const user = extractUser(req)
+    let user
+    try {
+      user = extractUser(req)
+    } catch (error) {
+      // Silently ignore authentication errors since this is a public endpoint
+      // accessible by both authenticated and unauthenticated users.
+    }
     const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
     const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
     try {
-      const personProperties = await getPersonPropertiesForAnalytics(user.id)
+      const personProperties = await getPersonPropertiesForAnalytics(user?.id)
       const flags: {
         featureFlags: Record<string, boolean | string>
         featureFlagPayloads: Record<string, unknown>
