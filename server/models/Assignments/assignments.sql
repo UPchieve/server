@@ -32,6 +32,19 @@ RETURNING
     user_id, assignment_id, created_at, updated_at;
 
 
+/*
+ @name createStudentAssignments
+ @param studentAssignments -> ((userId!, assignmentId!)...)
+ */
+INSERT INTO students_assignments (user_id, assignment_id)
+    VALUES
+        :studentAssignments!
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        user_id, assignment_id, created_at, updated_at;
+
+
 /* @name updateSubmittedAtOfStudentAssignment */
 UPDATE
     students_assignments
