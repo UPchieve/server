@@ -20,7 +20,7 @@ import { Server } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
-import { extractUser } from './extract-user'
+import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
 
 export default function(app: Express, io: Server) {
@@ -53,11 +53,11 @@ export default function(app: Express, io: Server) {
   })
 
   app.get('/api-public/feature-flags', async function(req, res) {
-    const user = extractUser(req)
+    const user = extractUserIfExists(req)
     const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
     const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
     try {
-      const personProperties = await getPersonPropertiesForAnalytics(user.id)
+      const personProperties = await getPersonPropertiesForAnalytics(user?.id)
       const flags: {
         featureFlags: Record<string, boolean | string>
         featureFlagPayloads: Record<string, unknown>
