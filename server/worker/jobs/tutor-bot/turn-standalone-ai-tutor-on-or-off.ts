@@ -42,7 +42,7 @@ async function setFeatureFlagEnabled(enable: boolean) {
     },
     {
       headers: {
-        Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`, // @TODO Use a new secret and new token for just this scope.
+        Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`,
       },
     }
   )
@@ -62,7 +62,7 @@ async function pauseTutorBotInstance() {
   const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/pause`
   await axios.post(requestUrl, undefined, {
     headers: {
-      Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
+      Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
     },
     validateStatus: (status: number) => status === 200,
   })
@@ -73,7 +73,7 @@ async function startTutorBotInstance() {
   const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/resume`
   await axios.post(requestUrl, undefined, {
     headers: {
-      Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
+      Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
     },
     validateStatus: (status: number) => status === 200,
   })
