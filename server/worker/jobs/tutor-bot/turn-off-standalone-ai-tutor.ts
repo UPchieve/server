@@ -1,6 +1,6 @@
 import axios from 'axios'
-import config from '../config'
-import logger from '../logger'
+import logger from '../../../logger'
+import config from '../../../config'
 
 export default async function turnOffStandaloneAiTutor() {
   // Turn off the feature flag to hide the tutor bot
@@ -13,9 +13,9 @@ export default async function turnOffStandaloneAiTutor() {
 
   // Now, scale down the Huggingface instance to 0
   try {
-    await forceScaleToZero()
+    await pauseTutorBotInstance()
   } catch (err) {
-    logger.error(err, 'Failed to scale down the tutor bot')
+    logger.error(err, 'Failed to pause the tutor bot instance')
     // @TODO What now? Throw an error I guess?
   }
 }
@@ -42,17 +42,37 @@ async function setFeatureFlagEnabled(enable: boolean) {
   }
 }
 
-async function forceScaleToZero() {
+/**
+ * Pauses the tutor bot Huggingface instance (causing it to scale to zero and stop incurring charges)
+ */
+async function pauseTutorBotInstance() {
   const hfBaseUrl = 'api.endpoints.huggingface.cloud'
-  const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/scale-to-zero`
+  const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/pause`
   try {
     await axios.post(requestUrl, undefined, {
       headers: {
-        Authorization: `Bearer ${config.tutorBotApiKey}`,
+        Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
       },
+      validateStatus: (status: number) => status === 200,
     })
   } catch (err) {
-    logger.error(err, 'Failed to scale tutor bot instance to zero')
+    logger.error(err, 'Failed to pause tutor bot instance')
+    // @TODO What now? Page the on call...
+  }
+}
+
+async function startTutorBotInstance() {
+  const hfBaseUrl = 'api.endpoints.huggingface.cloud'
+  const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/resume`
+  try {
+    await axios.post(requestUrl, undefined, {
+      headers: {
+        Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
+      },
+      validateStatus: (status: number) => status === 200,
+    })
+  } catch (err) {
+    logger.error(err, 'Failed to initiate resume action on tutor bot instance')
     // @TODO What now? Page the on call...
   }
 }
