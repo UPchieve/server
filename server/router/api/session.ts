@@ -258,15 +258,23 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.get('/session/:sessionId/conversation', async function(req, res) {
+  router.get('/session/:sessionId/tutor-bot-conversation', async function(
+    req,
+    res
+  ) {
     try {
-      const botResponse = await TutorBotService.getOrCreateConversationBySessionId(
-        {
-          sessionId: req.params.sessionId,
-          userId: req.user.id,
-        }
-      )
-      return res.json(botResponse).status(200)
+      const userId = req.user?.id
+      if (userId) {
+        const botResponse = await TutorBotService.getOrCreateConversationBySessionId(
+          {
+            sessionId: req.params.sessionId,
+            userId,
+          }
+        )
+        return res.json(botResponse).status(200)
+      } else {
+        throw 'No current user'
+      }
     } catch (err) {
       resError(res, err)
     }

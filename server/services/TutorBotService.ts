@@ -64,7 +64,7 @@ export const getOrCreateConversationBySessionId = async (
     return results
   } else {
     const session = await SessionRepo.getSessionById(sessionId)
-    const subjects = await getSubjectNameIdMapping(session.subject)
+    const subjects = await getSubjectNameIdMapping()
     const subjectId = subjects[session.subject]
     const conversationId = await insertTutorBotConversation(
       {
