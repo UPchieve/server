@@ -95,6 +95,7 @@ const config: Static<typeof Config> = {
     failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
     failedFirstAttemptedTrainingTemplate: 'd-5bf050b4faed477fb84c11557532027f',
     emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
+    favoritingEmail: 'd-14d04d49145448019283306e473bbf13',
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
     fallIncentiveEnrollmentWelcomeTemplate:
       'd-914f98ad37c3461eaacc1c2bf27f097d',
