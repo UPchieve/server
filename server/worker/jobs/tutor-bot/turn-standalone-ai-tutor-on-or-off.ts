@@ -23,8 +23,8 @@ export async function turnOffStandaloneAiTutor() {
  */
 export async function turnOnStandaloneAiTutor() {
   try {
-    await setFeatureFlagEnabled(true)
     await startTutorBotInstance()
+    await setFeatureFlagEnabled(true)
   } catch (err) {
     const errorMsg = 'Failed to turn standalone ai tutor on'
     logger.error(err, errorMsg)
