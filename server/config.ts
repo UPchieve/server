@@ -301,8 +301,11 @@ const config: Static<typeof Config> = {
       process.env.SUBWAY_SESSION_PHOTO_BUCKET || 'session-photo-bucket',
   },
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
+  posthogFeatureFlagApiToken:
+    process.env.SUBWAY_POSTHOG_FEATURE_FLAG_API_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
+  posthogProjectId: process.env.SUBWAY_POSTHOG_PROJECT_ID || 'bogus',
 
   /**
    *
@@ -377,8 +380,16 @@ const config: Static<typeof Config> = {
 
   // Tutor bot POC
   tutorBotApiKey: process.env.TUTOR_BOT_API_KEY || 'bogus',
+  huggingFaceInferenceApiKey:
+    process.env.HUGGING_FACE_INFERENCE_API_KEY || 'bogus',
   tutorBotBaseUrl: process.env.TUTOR_BOT_BASE_URL || 'bogus',
-  tutorBotModelName: process.env.TUTOR_BOT_MODEL_NAME || 'bogus',
+  tutorBotModelName: process.env.TUTOR_BOT_MODEL_NAME || 'bogus', // @TODO remove me.
+  posthogStandaloneAiTutorFeatureFlagId:
+    process.env.STANDALONE_AI_TUTOR_FEATURE_FLAG_ID || 'bogus',
+  tutorBotHuggingfaceNamespace:
+    process.env.TUTOR_BOT_HUGGINGFACE_NAMESPACE || 'bogus',
+  tutorBotHuggingfaceInstanceName:
+    process.env.TUTOR_BOT_HUGGINGFACE_INSTANCE_NAME || 'bogus',
 }
 
 module.exports = config
