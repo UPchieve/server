@@ -253,4 +253,6 @@ export const Config = Record({
   tutorBotBaseUrl: String,
   tutorBotModelName: String,
   posthogStandaloneAiTutorFeatureFlagId: String,
+  tutorBotHuggingfaceNamespace: String,
+  tutorBotHuggingfaceInstanceName: String,
 })

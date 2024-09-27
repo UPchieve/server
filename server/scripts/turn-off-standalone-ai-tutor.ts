@@ -13,7 +13,7 @@ export default async function turnOffStandaloneAiTutor() {
 
   // Now, scale down the Huggingface instance to 0
   try {
-    // @TODO
+    await forceScaleToZero()
   } catch (err) {
     logger.error(err, 'Failed to scale down the tutor bot')
     // @TODO What now? Throw an error I guess?
@@ -39,5 +39,20 @@ async function setFeatureFlagEnabled(enable: boolean) {
     throw new Error(
       `Could not ${enable ? 'enable' : 'disable'} the AI tutor feature flag`
     )
+  }
+}
+
+async function forceScaleToZero() {
+  const hfBaseUrl = 'api.endpoints.huggingface.cloud'
+  const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/scale-to-zero`
+  try {
+    await axios.post(requestUrl, undefined, {
+      headers: {
+        Authorization: `Bearer ${config.tutorBotApiKey}`,
+      },
+    })
+  } catch (err) {
+    logger.error(err, 'Failed to scale tutor bot instance to zero')
+    // @TODO What now? Page the on call...
   }
 }

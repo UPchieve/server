@@ -383,6 +383,10 @@ const config: Static<typeof Config> = {
   tutorBotModelName: process.env.TUTOR_BOT_MODEL_NAME || 'bogus',
   posthogStandaloneAiTutorFeatureFlagId:
     process.env.STANDALONE_AI_TUTOR_FEATURE_FLAG_ID || 'bogus',
+  tutorBotHuggingfaceNamespace:
+    process.env.TUTOR_BOT_HUGGINGFACE_NAMESPACE || 'bogus',
+  tutorBotHuggingfaceInstanceName:
+    process.env.TUTOR_BOT_HUGGINGFACE_INSTANCE_NAME || 'bogus',
 }
 
 module.exports = config
