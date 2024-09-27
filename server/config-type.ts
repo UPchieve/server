@@ -199,6 +199,8 @@ export const Config = Record({
   }),
   posthogToken: String,
   posthogPersonalApiToken: String,
+  posthogFeatureFlagApiToken: String,
+  posthogProjectId: String,
   whiteboardStorageAppId: String,
   whiteboardStorageTenantId: String,
   whiteboardStorageSecret: String,
@@ -248,6 +250,10 @@ export const Config = Record({
 
   // Tutor bot POC
   tutorBotApiKey: String,
+  huggingFaceInferenceApiKey: String,
   tutorBotBaseUrl: String,
-  tutorBotModelName: String,
+  tutorBotModelName: String, // @TODO remove me
+  posthogStandaloneAiTutorFeatureFlagId: String,
+  tutorBotHuggingfaceNamespace: String,
+  tutorBotHuggingfaceInstanceName: String,
 })
