@@ -2,41 +2,39 @@ import axios from 'axios'
 import logger from '../../../logger'
 import config from '../../../config'
 
+/**
+ * Turn off the FF to hide the feature from users,
+ * and permanently scale down Huggingface instances hosting the model.
+ */
 export async function turnOffStandaloneAiTutor() {
   try {
     await setFeatureFlagEnabled(false)
-  } catch (err) {
-    logger.error(err, 'Failed to turn off the standalone AI tutor feature flag')
-    return // @TODO - I think we bail here, if we can't turn the flag off we should leave everything on for users, since they can see the feature.
-  }
-
-  try {
     await pauseTutorBotInstance()
   } catch (err) {
-    logger.error(err, 'Failed to pause the tutor bot instance')
-    // @TODO What now? Throw an error I guess?
+    const errorMsg = 'Failed to turn standalone ai tutor off'
+    logger.error(err, errorMsg)
+    throw new Error(errorMsg)
   }
 }
 
+/**
+ * Turn on the FF to expose the feature to users,
+ * and scale up the Huggingface instances hosting the model.
+ */
 export async function turnOnStandaloneAiTutor() {
   try {
     await setFeatureFlagEnabled(true)
-  } catch (err) {
-    logger.error(err, 'Failed to turn on the standalone AI tutor feature flag')
-    return // @TODO - I think we bail here, and just need to build an alert
-  }
-
-  try {
     await startTutorBotInstance()
   } catch (err) {
-    logger.error(err, 'Failed to initiate start on the tutor bot instance')
-    // @TODO What now? Throw an error I guess?
+    const errorMsg = 'Failed to turn on the standalone AI tutor feature flag'
+    logger.error(err, errorMsg)
+    throw new Error(errorMsg)
   }
 }
 
 async function setFeatureFlagEnabled(enable: boolean) {
   // See https://posthog.com/docs/api/feature-flags#get-api-projects-project_id-feature_flags-id
-  const requestUrl = `${config.posthogHost}/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogStandaloneAiTutorFeatureFlagId}`
+  const requestUrl = `https://${config.posthogHost}/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogStandaloneAiTutorFeatureFlagId}`
   const phResponse = await axios.patch(
     requestUrl,
     {
@@ -44,7 +42,7 @@ async function setFeatureFlagEnabled(enable: boolean) {
     },
     {
       headers: {
-        Authorization: `Bearer ${config.posthogPersonalApiToken}`,
+        Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`, // @TODO Use a new secret and new token for just this scope.
       },
     }
   )
@@ -62,31 +60,21 @@ async function setFeatureFlagEnabled(enable: boolean) {
 async function pauseTutorBotInstance() {
   const hfBaseUrl = 'api.endpoints.huggingface.cloud'
   const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/pause`
-  try {
-    await axios.post(requestUrl, undefined, {
-      headers: {
-        Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
-      },
-      validateStatus: (status: number) => status === 200,
-    })
-  } catch (err) {
-    logger.error(err, 'Failed to pause tutor bot instance')
-    // @TODO What now? Page the on call...
-  }
+  await axios.post(requestUrl, undefined, {
+    headers: {
+      Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
+    },
+    validateStatus: (status: number) => status === 200,
+  })
 }
 
 async function startTutorBotInstance() {
   const hfBaseUrl = 'api.endpoints.huggingface.cloud'
   const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/resume`
-  try {
-    await axios.post(requestUrl, undefined, {
-      headers: {
-        Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
-      },
-      validateStatus: (status: number) => status === 200,
-    })
-  } catch (err) {
-    logger.error(err, 'Failed to initiate resume action on tutor bot instance')
-    // @TODO What now? Page the on call...
-  }
+  await axios.post(requestUrl, undefined, {
+    headers: {
+      Authorization: `Bearer ${config.tutorBotApiKey}`, // @TODO use the cron credential instead
+    },
+    validateStatus: (status: number) => status === 200,
+  })
 }
