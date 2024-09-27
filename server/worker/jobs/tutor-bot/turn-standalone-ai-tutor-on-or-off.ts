@@ -2,8 +2,7 @@ import axios from 'axios'
 import logger from '../../../logger'
 import config from '../../../config'
 
-export default async function turnOffStandaloneAiTutor() {
-  // Turn off the feature flag to hide the tutor bot
+export async function turnOffStandaloneAiTutor() {
   try {
     await setFeatureFlagEnabled(false)
   } catch (err) {
@@ -11,11 +10,26 @@ export default async function turnOffStandaloneAiTutor() {
     return // @TODO - I think we bail here, if we can't turn the flag off we should leave everything on for users, since they can see the feature.
   }
 
-  // Now, scale down the Huggingface instance to 0
   try {
     await pauseTutorBotInstance()
   } catch (err) {
     logger.error(err, 'Failed to pause the tutor bot instance')
+    // @TODO What now? Throw an error I guess?
+  }
+}
+
+export async function turnOnStandaloneAiTutor() {
+  try {
+    await setFeatureFlagEnabled(true)
+  } catch (err) {
+    logger.error(err, 'Failed to turn on the standalone AI tutor feature flag')
+    return // @TODO - I think we bail here, and just need to build an alert
+  }
+
+  try {
+    await startTutorBotInstance()
+  } catch (err) {
+    logger.error(err, 'Failed to initiate start on the tutor bot instance')
     // @TODO What now? Throw an error I guess?
   }
 }
