@@ -1,16 +1,19 @@
 import { mocked } from 'jest-mock'
+import * as AssignmentsService from '../../services/AssignmentsService'
 import * as TeacherService from '../../services/TeacherService'
 import * as StudentRepo from '../../models/Student'
 import * as SubjectsRepo from '../../models/Subjects'
 import * as TeacherRepo from '../../models/Teacher'
-import { InputError } from '../../models/Errors'
+import { TeacherClass } from '../../models/TeacherClass'
 
 jest.mock('../../models/Student')
 jest.mock('../../models/Subjects')
 jest.mock('../../models/Teacher')
+jest.mock('../../services/AssignmentsService')
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedSubjectsRepo = mocked(SubjectsRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
+const mockedAssignmentsService = mocked(AssignmentsService)
 
 describe('createTeacherClass', () => {
   beforeEach(() => {
@@ -300,6 +303,34 @@ describe('addStudentToTeacherClass', () => {
       teacherClass.id
     )
     expect(result).toBe(teacherClass)
+  })
+
+  test('adds the student to all the class assignments', async () => {
+    const teacherClass = {
+      id: 'classId',
+      userId: 'teacher-id',
+      name: 'class name',
+      code: 'AAA111',
+      active: true,
+      topicId: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
+
+    await TeacherService.addStudentToTeacherClass(
+      'studentId',
+      teacherClass.code
+    )
+
+    expect(
+      mockedAssignmentsService.addStudentToClassAssignments
+    ).toHaveBeenCalledWith(
+      'studentId',
+      teacherClass.id,
+      expect.toBeTransactionClient()
+    )
   })
 
   test('throws error if no class with the class code', async () => {
