@@ -34,18 +34,19 @@ export async function turnOnStandaloneAiTutor() {
 
 async function setFeatureFlagEnabled(enable: boolean) {
   // See https://posthog.com/docs/api/feature-flags#get-api-projects-project_id-feature_flags-id
-  const requestUrl = `https://${config.posthogHost}/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogStandaloneAiTutorFeatureFlagId}`
-  const phResponse = await axios.patch(
-    requestUrl,
-    {
-      active: enable,
+  const requestUrl = `https://us.i.posthog.com/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogStandaloneAiTutorFeatureFlagId}`
+  const data = {
+    active: enable,
+  }
+  const phResponse = await axios.patch(requestUrl, data, {
+    headers: {
+      Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
-    {
-      headers: {
-        Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`,
-      },
-    }
-  )
+    validateStatus: (status: number) => status >= 200 && status < 300,
+  })
+
   const isEnabled = phResponse.data.active
   if (isEnabled !== enable) {
     throw new Error(
@@ -64,7 +65,7 @@ async function pauseTutorBotInstance() {
     headers: {
       Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
     },
-    validateStatus: (status: number) => status === 200,
+    validateStatus: (status: number) => status >= 200 && status < 300,
   })
 }
 

@@ -201,7 +201,6 @@ export const Config = Record({
   posthogPersonalApiToken: String,
   posthogFeatureFlagApiToken: String,
   posthogProjectId: String,
-  posthogHost: String,
   whiteboardStorageAppId: String,
   whiteboardStorageTenantId: String,
   whiteboardStorageSecret: String,

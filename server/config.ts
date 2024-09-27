@@ -306,7 +306,6 @@ const config: Static<typeof Config> = {
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
   posthogProjectId: process.env.SUBWAY_POSTHOG_PROJECT_ID || 'bogus',
-  posthogHost: process.env.SUBWAY_POSTHOG_HOST || 'bogus',
 
   /**
    *
