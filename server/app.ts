@@ -9,7 +9,6 @@ import express, { NextFunction, Request, Response } from 'express'
 import cacheControl from 'express-cache-controller'
 import expressWs from 'express-ws'
 import fs from 'fs'
-import helmet from 'helmet'
 import swaggerUi from 'swagger-ui-express'
 import { promisify } from 'util'
 import YAML from 'yaml'
@@ -18,19 +17,6 @@ import logger from './logger'
 import pinoHttp from 'pino-http'
 import router from './router'
 import socketServer from './socket-server'
-import {
-  baseUri,
-  blockAllMixedContent,
-  connectSrc,
-  defaultSrc,
-  fontSrc,
-  imgSrc,
-  objectSrc,
-  scriptSrc,
-  scriptSrcAttr,
-  styleSrc,
-  upgradeInsecureRequests,
-} from './securitySettings'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
 import { Server as Engine } from 'engine.io'
@@ -65,7 +51,6 @@ const app = express()
 /**
  * @note: must typecast many handlers with express.RequestHandler
  * due to @types/node >=15.9.x and @types/express <14.7.1
- * see https://github.com/helmetjs/helmet/issues/325
  * see https://github.com/expressjs/express/issues/4618
  */
 
@@ -76,27 +61,6 @@ app.use(
 )
 
 app.use(timeout('300000'))
-
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        baseUri,
-        blockAllMixedContent,
-        connectSrc,
-        defaultSrc,
-        fontSrc,
-        // frameAncestors,
-        imgSrc,
-        objectSrc,
-        scriptSrc,
-        scriptSrcAttr,
-        styleSrc,
-        upgradeInsecureRequests,
-      },
-    },
-  }) as express.RequestHandler
-)
 
 /**
  * Account for nginx proxy when getting client's IP address
