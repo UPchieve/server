@@ -3623,6 +3623,14 @@ ALTER TABLE ONLY upchieve.session_flags
 
 
 --
+-- Name: tutor_bot_conversations session_id_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.tutor_bot_conversations
+    ADD CONSTRAINT session_id_unique UNIQUE (session_id);
+
+
+--
 -- Name: session_messages session_messages_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6037,4 +6045,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240912141821'),
     ('20240918170007'),
     ('20240918200433'),
-    ('20240925165907');
+    ('20240925165907'),
+    ('20240930173555');
