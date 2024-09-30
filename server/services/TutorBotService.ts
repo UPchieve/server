@@ -6,6 +6,7 @@ import {
   getTutorBotConversationMessagesById,
   getTutorBotConversationMessagesBySessionId,
   getTutorBotConversationsByUserId,
+  getTutorBotConversationById,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
 } from '../models/TutorBot'
@@ -13,7 +14,6 @@ import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
-import { getSubjectNameIdMapping } from '../models/Subjects/queries'
 import SocketService from './SocketService'
 
 const LF_TRACE_NAME = 'tutorBotSession'
@@ -111,7 +111,6 @@ export const createTutorBotConversation = async (data: {
         userId,
         senderUserType: data.senderUserType,
         message: data.message,
-        sessionId,
       },
       tc
     )
@@ -155,13 +154,11 @@ export const addMessageToConversation = async (
     conversationId,
     message,
     senderUserType,
-    sessionId,
   }: {
     userId: string
     conversationId: string
     message: string
     senderUserType: tutor_bot_conversation_user_type
-    sessionId?: Ulid
   },
   parentTransaction?: TransactionClient
 ) => {
@@ -177,7 +174,7 @@ export const addMessageToConversation = async (
       },
       tc
     )
-
+    const { sessionId } = await getTutorBotConversationById(conversationId, tc)
     if (sessionId) {
       socketService.emitTutorBotMessage(sessionId, {
         ...userMessage,
