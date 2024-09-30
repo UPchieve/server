@@ -2,6 +2,7 @@ import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
+import * as FavoritingService from './FavoritingService'
 import * as StudentRepo from '../models/Student/queries'
 import * as TeacherClassRepo from '../models/TeacherClass/queries'
 import config from '../config'
@@ -13,6 +14,7 @@ import {
   StudentSignupSources,
 } from '../models/Student/queries'
 import { TeacherClassResult } from '../models/TeacherClass'
+import { runInTransaction, TransactionClient } from '../db'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -69,31 +71,43 @@ export async function checkAndUpdateVolunteerFavoriting(
   sessionId?: Ulid,
   ip?: string
 ) {
-  if (isFavorite) {
-    const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
-      studentId.toString()
-    )
-    if (config.favoriteVolunteerLimit - totalFavoriteVolunteers > 0) {
+  return await runInTransaction(async (tc: TransactionClient) => {
+    if (isFavorite) {
+      const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
+        studentId.toString()
+      )
+      if (totalFavoriteVolunteers >= config.favoriteVolunteerLimit) {
+        throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
+      }
+      await createAccountAction(
+        {
+          userId: studentId,
+          volunteerId: volunteerId,
+          sessionId: sessionId,
+          action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED,
+        },
+        tc
+      )
+      const favoritedResult = await StudentRepo.addFavoriteVolunteer(
+        studentId,
+        volunteerId,
+        tc
+      )
+      if (favoritedResult) {
+        await FavoritingService.emailFavoritedVolunteer(volunteerId, studentId)
+      }
+      return { isFavorite: true }
+    } else {
       await createAccountAction({
         userId: studentId,
         volunteerId: volunteerId,
         sessionId: sessionId,
-        action: ACCOUNT_USER_ACTIONS.VOLUNTEER_FAVORITED,
+        action: ACCOUNT_USER_ACTIONS.VOLUNTEER_UNFAVORITED,
       })
-      await StudentRepo.addFavoriteVolunteer(studentId, volunteerId)
-      return { isFavorite: true }
+      await StudentRepo.deleteFavoriteVolunteer(studentId, volunteerId, tc)
+      return { isFavorite: false }
     }
-    throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
-  } else {
-    await createAccountAction({
-      userId: studentId,
-      volunteerId: volunteerId,
-      sessionId: sessionId,
-      action: ACCOUNT_USER_ACTIONS.VOLUNTEER_UNFAVORITED,
-    })
-    await StudentRepo.deleteFavoriteVolunteer(studentId, volunteerId)
-    return { isFavorite: false }
-  }
+  })
 }
 
 export async function getFavoriteVolunteersPaginated(
