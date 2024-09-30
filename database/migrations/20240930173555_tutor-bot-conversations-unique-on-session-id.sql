@@ -1,6 +1,6 @@
 -- migrate:up
 ALTER TABLE IF EXISTS upchieve.tutor_bot_conversations
-    ADD CONSTRAINT IF NOT EXISTS session_id_unique UNIQUE (session_id);
+    ADD CONSTRAINT session_id_unique UNIQUE (session_id);
 
 -- migrate:down
 ALTER TABLE IF EXISTS upchieve.tutor_bot_conversations
