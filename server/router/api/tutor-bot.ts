@@ -19,13 +19,18 @@ export function routeTutorBot(router: Router) {
     '/tutor-bot/conversations/:conversationId/message',
     async function(req, res) {
       try {
-        const botResponse = await TutorBotService.addMessageToConversation({
-          userId: req.body.userId,
-          conversationId: req.params.conversationId,
-          message: req.body.message,
-          senderUserType: req.body.senderUserType,
-        })
-        return res.json(botResponse).status(200)
+        const userId = req.user?.id
+        if (userId) {
+          const botResponse = await TutorBotService.addMessageToConversation({
+            userId,
+            conversationId: req.params.conversationId,
+            message: req.body.message,
+            senderUserType: req.body.senderUserType,
+          })
+          return res.json(botResponse).status(200)
+        } else {
+          throw 'No current user'
+        }
       } catch (err) {
         resError(res, err)
       }
@@ -34,17 +39,22 @@ export function routeTutorBot(router: Router) {
 
   router.post('/tutor-bot/conversations', async function(req, res) {
     try {
-      const sessionId = req.body.hasOwnProperty('sessionId')
-        ? req.body.sessionId
-        : null
-      const conversation = await TutorBotService.createTutorBotConversation({
-        userId: req.body.userId,
-        message: req.body.message,
-        senderUserType: req.body.senderUserType,
-        subjectId: req.body.subjectId,
-        sessionId,
-      })
-      return res.json(conversation)
+      const userId = req.user?.id
+      if (userId) {
+        const sessionId = req.body.hasOwnProperty('sessionId')
+          ? req.body.sessionId
+          : null
+        const conversation = await TutorBotService.createTutorBotConversation({
+          userId,
+          message: req.body.message,
+          senderUserType: req.body.senderUserType,
+          subjectId: req.body.subjectId,
+          sessionId,
+        })
+        return res.json(conversation)
+      } else {
+        throw 'No current user'
+      }
     } catch (err) {
       resError(res, err)
     }

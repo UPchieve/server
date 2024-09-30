@@ -4,13 +4,16 @@ import logger from '../logger'
 import { tutor_bot_conversation_user_type } from '../models/TutorBot/pg.queries'
 import {
   getTutorBotConversationMessagesById,
+  getTutorBotConversationMessagesBySessionId,
   getTutorBotConversationsByUserId,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
 } from '../models/TutorBot'
-import { getDbUlid } from '../models/pgUtils'
+import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
+import * as SessionRepo from '../models/Session'
+import { getSubjectNameIdMapping } from '../models/Subjects/queries'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -40,6 +43,44 @@ export const getTranscriptForConversation = async (
     subjectId: results.subjectId,
     sessionId: results.sessionId,
     messages: results.messages,
+  }
+}
+
+export const getOrCreateConversationBySessionId = async (
+  {
+    sessionId,
+    userId,
+  }: {
+    sessionId: Ulid
+    userId: Ulid
+  },
+  tc: TransactionClient = getClient()
+) => {
+  const results = await getTutorBotConversationMessagesBySessionId(
+    sessionId,
+    tc
+  )
+  if (results) {
+    return results
+  } else {
+    const session = await SessionRepo.getSessionById(sessionId)
+    const subjects = await getSubjectNameIdMapping()
+    const subjectId = subjects[session.subject]
+    const conversationId = await insertTutorBotConversation(
+      {
+        subjectId,
+        userId,
+        sessionId,
+        id: getDbUlid(),
+      },
+      tc
+    )
+    return {
+      conversationId,
+      subjectId,
+      sessionId,
+      messages: [],
+    }
   }
 }
 
