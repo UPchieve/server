@@ -21,7 +21,7 @@ export interface EmailFallIncentiveSessionQualificationJobData {
 /**
  *
  * After every session for a student enrolled in the incentive program,
- * we check if it's their first qualifying or non-qualifying session of the week.
+ * we check if it's their first qualifying or non-qualifying session of the week start from Monday.
  *
  * - If it's their first qualifying session, we notify the student that they have
  *   qualified for a gift card, which will be sent at a later date.
