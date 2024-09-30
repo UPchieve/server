@@ -46,7 +46,7 @@ export default async (
   const { user, productFlags, incentiveProgramDate } = data
   const fallIncentiveProgramStartDate = moment(incentiveProgramDate)
   const thisMonday = moment()
-    .startOf('week')
+    .startOf('isoWeek')
     .utc()
   const fallIncentiveEnrollmentAt = moment(
     productFlags?.fallIncentiveEnrollmentAt
