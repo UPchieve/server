@@ -49,10 +49,8 @@ export const getTranscriptForConversation = async (
 
 export const getOrCreateConversationBySessionId = async ({
   sessionId,
-  userId,
 }: {
   sessionId: Ulid
-  userId: Ulid
 }) => {
   return await runInTransaction(async (tc: TransactionClient) => {
     const results = await getTutorBotConversationMessagesBySessionId(
@@ -67,7 +65,7 @@ export const getOrCreateConversationBySessionId = async ({
       const conversationId = await insertTutorBotConversation(
         {
           subjectId,
-          userId,
+          userId: session.studentId, // always create chat under student's user id
           sessionId,
           id: getDbUlid(),
         },
