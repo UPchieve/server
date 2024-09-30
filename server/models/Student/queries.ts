@@ -215,17 +215,13 @@ export async function getFavoriteVolunteersPaginated(
 
 export async function deleteFavoriteVolunteer(
   studentId: Ulid,
-  volunteerId: Ulid
-): Promise<UpdateFavoriteVolunteer> {
+  volunteerId: Ulid,
+  tc?: TransactionClient
+): Promise<void> {
   try {
-    const result = await pgQueries.deleteFavoriteVolunteer.run(
+    await pgQueries.deleteFavoriteVolunteer.run(
       { studentId, volunteerId },
-      getClient()
-    )
-
-    if (result.length) return makeRequired(result[0])
-    throw new RepoDeleteError(
-      'Delete query did not return deleted favorited volunteer'
+      tc ?? getClient()
     )
   } catch (err) {
     throw new RepoDeleteError(err)
@@ -234,17 +230,17 @@ export async function deleteFavoriteVolunteer(
 
 export async function addFavoriteVolunteer(
   studentId: Ulid,
-  volunteerId: Ulid
-): Promise<UpdateFavoriteVolunteer> {
+  volunteerId: Ulid,
+  tc?: TransactionClient
+): Promise<{ studentId: Ulid; volunteerId: Ulid } | undefined> {
   try {
     const result = await pgQueries.addFavoriteVolunteer.run(
       { studentId, volunteerId },
-      getClient()
+      tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0])
-    throw new RepoUpdateError(
-      'Update query did not return added favorite volunteer'
-    )
+    if (result.length) {
+      return makeRequired(result[0])
+    }
   } catch (err) {
     throw new RepoUpdateError(err)
   }
