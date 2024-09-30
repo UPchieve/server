@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - deploy
+  - post-deploy
 
 cache:
   # TODO: Try key as package-lock.json to speed up across branches.
@@ -132,6 +133,21 @@ deploy_staging:
 #   rules:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
+# TODO: Uncomment once production environment is set up.
+# tag_commit_production:
+#   stage: post-deploy
+#   image: registry.gitlab.com/gitlab-org/release-cli:latest
+#   needs:
+#     - job: deploy_production
+#   script:
+#     - echo 'Tag commit $CI_COMMIT_SHA'
+#   release:
+#     tag_name: 'deployed-$(date +%Y-%m-%d_%H-%M-%S)'
+#     description: 'Deployed from GitLab CI.'
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+# TODO: Clean-up.
 build:
   stage: build
   image: "docker:20.10.6"
