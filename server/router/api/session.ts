@@ -258,7 +258,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.get('/session/:sessionId/tutor-bot-conversation', async function(
+  router.put('/session/:sessionId/tutor-bot-conversation', async function(
     req,
     res
   ) {
