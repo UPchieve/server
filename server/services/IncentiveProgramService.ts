@@ -2,7 +2,7 @@ import { Ulid } from '../models/pgUtils'
 import { getSessionById } from '../models/Session'
 import { getUserContactInfoById, UserContactInfo } from '../models/User'
 import { getUPFByUserId, UserProductFlags } from '../models/UserProductFlags'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import { getFallIncentiveProgramPayload } from './FeatureFlagService'
 import QueueService from './QueueService'
 

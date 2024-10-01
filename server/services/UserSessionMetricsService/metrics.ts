@@ -1,6 +1,6 @@
 import { SESSION_REPORT_REASON, USER_SESSION_METRICS } from '../../constants'
 import QueueService from '../QueueService'
-import { Jobs } from '../../worker/jobs'
+import { Jobs } from '../../worker/jobs/jobs'
 import {
   UpdateValueData,
   ProcessorData,

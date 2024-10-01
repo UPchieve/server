@@ -50,7 +50,7 @@ import {
 } from './types'
 import { openai } from '../BotsService'
 import QueueService from '../QueueService'
-import { Jobs } from '../../worker/jobs'
+import { Jobs } from '../../worker/jobs/jobs'
 export * from './types'
 import { ProgressReportNotFoundError } from '../Errors'
 import {

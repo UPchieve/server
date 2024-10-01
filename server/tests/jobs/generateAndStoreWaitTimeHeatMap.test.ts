@@ -1,7 +1,7 @@
 import { mocked } from 'jest-mock'
 import generateAndStoreWaitTimeHeatMap from '../../worker/jobs/generateAndStoreWaitTimeHeatMap'
 import * as SessionService from '../../services/SessionService'
-import { Jobs } from '../../worker/jobs'
+import { Jobs } from '../../worker/jobs/jobs'
 import * as SessionUtils from '../../utils/session-utils'
 jest.mock('../../services/SessionService')
 

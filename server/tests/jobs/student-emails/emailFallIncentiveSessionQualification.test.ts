@@ -10,7 +10,7 @@ import * as IncentiveProgramService from '../../../services/IncentiveProgramServ
 import { Job } from 'bull'
 import { buildUser, buildUserProductFlags } from '../../mocks/generate'
 import { log } from '../../../worker/logger'
-import { Jobs } from '../../../worker/jobs'
+import { Jobs } from '../../../worker/jobs/jobs'
 import config from '../../../config'
 
 jest.mock('../../../logger')

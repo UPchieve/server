@@ -1,5 +1,5 @@
 import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as FavoritingService from './FavoritingService'

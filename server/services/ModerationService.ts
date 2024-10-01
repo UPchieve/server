@@ -5,7 +5,7 @@ import {
   createCensoredMessage,
 } from '../models/CensoredSessionMessage'
 import QueueService from './QueueService'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import { openai } from './BotsService'
 import {
   AI_MODERATION_STATE,

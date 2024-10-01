@@ -12,7 +12,7 @@ import { getTotalElapsedAvailabilityForDateRange } from '../services/Availabilit
 import * as MailService from '../services/MailService'
 import { getTimeTutoredForDateRange } from '../services/SessionService'
 import { getHourSummaryStats } from '../services/VolunteerService'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import { log } from '../worker/logger'
 
 export interface HourSummaryStats {

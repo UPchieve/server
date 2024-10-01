@@ -7,7 +7,7 @@ import * as UserRepo from '../../../models/User'
 import { Job } from 'bull'
 import { buildUser } from '../../mocks/generate'
 import { log } from '../../../worker/logger'
-import { Jobs } from '../../../worker/jobs'
+import { Jobs } from '../../../worker/jobs/jobs'
 
 jest.mock('../../../services/MailService')
 jest.mock('../../../logger')

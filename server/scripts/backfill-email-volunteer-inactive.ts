@@ -1,6 +1,6 @@
 import moment from 'moment'
 import 'moment-timezone'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import {
   VolunteerContactInfo,
   updateVolunteerSentInactive30DayEmail,

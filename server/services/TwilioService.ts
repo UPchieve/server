@@ -22,7 +22,7 @@ import {
   getAssociatedPartnerByPartnerOrg,
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import { getMutedSubjectAlertsFlag } from './FeatureFlagService'
 import { getClient, TransactionClient } from '../db'
 

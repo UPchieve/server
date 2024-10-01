@@ -1,6 +1,6 @@
 import { getVolunteersForNiceToMeetYou } from '../models/Volunteer'
 import * as MailService from '../services/MailService'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 import { Job } from 'bull'
 import { asString } from '../utils/type-utils'
 import { log } from '../worker/logger'

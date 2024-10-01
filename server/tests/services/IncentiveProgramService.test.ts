@@ -11,7 +11,7 @@ import {
   queueFallIncentiveSessionQualificationJob,
   getUserFallIncentiveData,
 } from '../../services/IncentiveProgramService'
-import { Jobs } from '../../worker/jobs'
+import { Jobs } from '../../worker/jobs/jobs'
 import {
   buildSession,
   buildUser,
