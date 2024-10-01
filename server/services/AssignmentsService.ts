@@ -3,6 +3,7 @@ import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
+import * as TeacherClassRepo from '../models/TeacherClass'
 import { InputError } from '../models/Errors'
 import {
   asDate,
@@ -79,7 +80,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
 
 export async function getAssignmentsByClassId(
   classId: Ulid
-): Promise<AssignmentsRepo.CreateAssignmentInput[]> {
+): Promise<AssignmentsRepo.Assignment[]> {
   return AssignmentsRepo.getAssignmentsByClassId(classId)
 }
 
@@ -98,7 +99,6 @@ export async function addAssignmentForStudents(
     try {
       const studentAssignments = await Promise.all(
         studentIds.map(studentId => {
-          console.log(studentId)
           return AssignmentsRepo.createStudentAssignment(
             studentId,
             assignmentId,
@@ -124,6 +124,45 @@ export async function addAssignmentForClass(
       classId
     )
     return addAssignmentForStudents(studentIds, assignmentId, tc)
+  }, tc)
+}
+
+/*
+ * Add the student to all the assignments that are assigned to the entire class.
+ */
+export async function addStudentToClassAssignments(
+  studentId: Ulid,
+  classId: Uuid,
+  tc: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const totalStudentsInClass = await TeacherClassRepo.getTotalStudentsInClass(
+      classId,
+      tc
+    )
+    const assignments = await AssignmentsRepo.getAssignmentsByClassId(
+      classId,
+      tc
+    )
+
+    const assignmentsToAdd = (
+      await Promise.all(
+        assignments.map(async a => {
+          const sa = await AssignmentsRepo.getStudentAssignmentCompletion(
+            a.id,
+            tc
+          )
+          if (sa.length === totalStudentsInClass) {
+            return a
+          }
+        })
+      )
+    ).filter((a): a is Assignment => !!a)
+
+    await AssignmentsRepo.createStudentAssignments(
+      assignmentsToAdd.map(a => ({ userId: studentId, assignmentId: a.id })),
+      tc
+    )
   }, tc)
 }
 

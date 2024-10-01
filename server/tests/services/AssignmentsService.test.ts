@@ -2,13 +2,17 @@ import { mocked } from 'jest-mock'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as AssignmentRepo from '../../models/Assignments'
 import * as TeacherRepo from '../../models/Teacher'
+import * as TeacherClassRepo from '../../models/TeacherClass'
 import moment from 'moment'
-import { StudentAssignment } from '../../models/Assignments'
+import { Assignment, StudentAssignment } from '../../models/Assignments'
+import { TransactionClient } from '../../db'
 
 jest.mock('../../models/Assignments')
 jest.mock('../../models/Teacher')
+jest.mock('../../models/TeacherClass')
 const mockedAssignmentRepo = mocked(AssignmentRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
+const mockedTeacherClassRepo = mocked(TeacherClassRepo)
 
 describe('createAssignment', () => {
   beforeEach(() => {
@@ -427,5 +431,53 @@ describe('createAssignment', () => {
         )
       ).toBe(false)
     })
+  })
+})
+
+describe('addStudentToClassAssignments', () => {
+  test('adds the student to all the assignments that are assigned to the entire class', async () => {
+    const tc = {} as TransactionClient
+    mockedTeacherClassRepo.getTotalStudentsInClass.mockResolvedValue(3)
+    mockedAssignmentRepo.getAssignmentsByClassId.mockResolvedValue([
+      { id: 'assignedToNoOne' } as Assignment,
+      { id: 'assignedToAll' } as Assignment,
+    ])
+    mockedAssignmentRepo.getStudentAssignmentCompletion
+      .mockResolvedValueOnce([]) // Called for 'assignedToNoOne'
+      .mockResolvedValueOnce([
+        // Called for 'assignedToAll'
+        { firstName: '1', lastName: '1', submittedAt: null },
+        { firstName: '2', lastName: '2', submittedAt: moment().toDate() },
+        { firstName: '3', lastName: '3', submittedAt: null },
+      ])
+
+    await AssignmentsService.addStudentToClassAssignments(
+      'studentId',
+      'classId',
+      tc
+    )
+
+    expect(mockedAssignmentRepo.createStudentAssignments).toHaveBeenCalledWith(
+      [{ userId: 'studentId', assignmentId: 'assignedToAll' }],
+      tc
+    )
+  })
+
+  test('does not throw an error if no assignments for the class to add', async () => {
+    const tc = {} as TransactionClient
+    mockedTeacherClassRepo.getTotalStudentsInClass.mockResolvedValue(2)
+    mockedAssignmentRepo.getAssignmentsByClassId.mockResolvedValue([])
+    mockedAssignmentRepo.getStudentAssignmentCompletion.mockResolvedValue([])
+
+    await AssignmentsService.addStudentToClassAssignments(
+      'studentId',
+      'classId',
+      tc
+    )
+
+    expect(mockedAssignmentRepo.createStudentAssignments).toHaveBeenCalledWith(
+      [],
+      tc
+    )
   })
 })
