@@ -1,9 +1,9 @@
 import Queue from 'bull'
 import { find, map } from 'lodash'
 import Redis from 'ioredis'
-import config from '../config'
-import { log } from '../worker/logger'
-import { Jobs } from '../worker/jobs'
+import config from '../../config'
+import { log } from '../logger'
+import { Jobs } from './jobs'
 
 interface JobTemplate {
   name: Jobs
@@ -11,7 +11,7 @@ interface JobTemplate {
   options?: Queue.JobOptions
 }
 
-const jobTemplates: JobTemplate[] = [
+export const CRON_JOBS: JobTemplate[] = [
   {
     name: Jobs.UpdateElapsedAvailability,
     options: { repeat: { cron: '0 4 * * *', tz: 'America/New_York' } }, // each day at 4am
@@ -73,45 +73,35 @@ const jobTemplates: JobTemplate[] = [
     options: { repeat: { cron: '0 13 * * *', tz: 'America/New_York' } }, // Daily at 1pm ET
   },
 ]
+export default async function updateCronJobs() {
+  const queue = new Queue(config.workerQueueName, {
+    createClient: () => new Redis(config.redisConnectionString),
+    settings: {
+      // to prevent stalling long jobs
+      stalledInterval: 1000 * 60 * 30,
+      lockDuration: 1000 * 60 * 30,
+    },
+  })
 
-const main = async (): Promise<void> => {
-  try {
-    const queue = new Queue(config.workerQueueName, {
-      createClient: () => new Redis(config.redisConnectionString),
-      settings: {
-        // to prevent stalling long jobs
-        stalledInterval: 1000 * 60 * 30,
-        lockDuration: 1000 * 60 * 30,
-      },
+  const repeatableJobs = await queue.getRepeatableJobs()
+
+  await Promise.all(
+    map(repeatableJobs, async job => {
+      if (find(CRON_JOBS, template => template.name === job.name)) {
+        log(`Stopping jobs: \n${JSON.stringify(job, null, ' ')}`)
+        await queue.removeRepeatableByKey(job.key)
+      }
     })
+  )
 
-    const repeatableJobs = await queue.getRepeatableJobs()
-
-    await Promise.all(
-      map(repeatableJobs, async job => {
-        if (find(jobTemplates, template => template.name === job.name)) {
-          log(`Stopping jobs: \n${JSON.stringify(job, null, ' ')}`)
-          await queue.removeRepeatableByKey(job.key)
-        }
+  log(`Starting jobs: \n${JSON.stringify(CRON_JOBS, null, ' ')}`)
+  await Promise.all(
+    map(CRON_JOBS, job =>
+      queue.add(job.name, job.data, {
+        ...job.options,
+        removeOnComplete: true,
+        removeOnFail: true,
       })
     )
-
-    log(`Starting jobs: \n${JSON.stringify(jobTemplates, null, ' ')}`)
-    await Promise.all(
-      map(jobTemplates, job =>
-        queue.add(job.name, job.data, {
-          ...job.options,
-          removeOnComplete: true,
-          removeOnFail: true,
-        })
-      )
-    )
-
-    process.exit(0)
-  } catch (error) {
-    console.log(error)
-    process.exit(1)
-  }
+  )
 }
-
-main()

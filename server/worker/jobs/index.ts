@@ -60,98 +60,8 @@ import {
   turnOffStandaloneAiTutor,
   turnOnStandaloneAiTutor,
 } from './tutor-bot/turn-standalone-ai-tutor-on-or-off'
-
-export enum Jobs {
-  NotifyTutors = 'NotifyTutors',
-  UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
-  EndStaleSessions = 'EndStaleSessions',
-  EndUnmatchedSession = 'EndUnmatchedSession',
-  GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
-  EmailReferences = 'EmailReferences',
-  EmailReferencesFormApology = 'EmailReferencesFormApology',
-  EmailReadyToCoach = 'EmailReadyToCoach',
-  EmailReferenceFollowup = 'EmailReferenceFollowup',
-  EmailWaitingOnReferences = 'EmailWaitingOnReferences',
-  EmailNiceToMeetYou = 'EmailNiceToMeetYou',
-  SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
-  EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
-  EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
-  EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
-  EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
-  EmailStudentOnboardingHowItWorks = 'EmailStudentOnboardingHowItWorks',
-  EmailStudentOnboardingMission = 'EmailStudentOnboardingMission',
-  EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
-  EmailStudentOnboardingSurvey = 'EmailStudentOnboardingSurvey',
-  EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
-  EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
-  EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
-  EmailSessionReported = 'EmailSessionReported',
-  EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
-  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
-  EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
-  EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
-  EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
-  EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
-  EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
-  EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
-  EmailVolunteerInactive = 'EmailVolunteerInactive',
-  EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
-  EmailVolunteerAbsentWarning = 'EmailVolunteerAbsentWarning',
-  EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
-  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
-  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
-  SendFollowupText = 'SendFollowupText',
-  Chatbot = 'Chatbot',
-  UpdateGradeLevel = 'UpdateGradeLevel',
-  SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
-  GenerateProgressReport = 'GenerateProgressReport',
-  UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
-  EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
-  EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
-  EmailFallIncentiveLeavingMoneyOnTable = 'EmailFallIncentiveLeavingMoneyOnTable',
-  EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
-  EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
-  EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
-
-  // TODO: remove the following deprecated job names
-  EmailStudentUseCases = 'EmailStudentUseCases',
-  EmailIndependentLearning = 'EmailIndependentLearning',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
-
-  // Backfill scripts
-  BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
-  BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
-  BackfillStudentPosthog = 'BackfillStudentPosthog',
-  SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
-  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
-  BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-
-  // Delete scripts
-  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
-  DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
-  DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
-  DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
-
-  // Migration scripts
-  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
-  UpsertPostalCodes = 'UpsertPostalCodes',
-  TitlecaseSchoolNames = 'TitlecaseSchoolNames',
-  UpsertSchools = 'UpsertSchools',
-  MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
-  MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
-
-  // Eng Tooling Scripts
-  UpdateBasicAccessViews = 'UpdateBasicAccessViews',
-
-  // Moderation
-  ModerateSessionMessage = 'ModerateSessionMessage',
-
-  // AI tutor bot
-  TurnOffStandaloneAiTutor = 'TurnOffStandaloneAiTutor',
-  TurnOnStandaloneAiTutor = 'TurnOnStandaloneAiTutor',
-}
+import updateCronJobs from './updateCronJobs'
+import { Jobs } from './jobs'
 
 // register new job processors here
 interface JobProcessor {
@@ -435,6 +345,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.TurnOnStandaloneAiTutor,
     processor: turnOnStandaloneAiTutor,
+  },
+  {
+    name: Jobs.UpdateCronJobs,
+    processor: updateCronJobs,
   },
 ]
 
