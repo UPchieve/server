@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
-import { makeSomeOptional, Ulid } from '../pgUtils'
+import { makeSomeOptional, Ulid, Uuid } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 import { TeacherClassResult } from './types'
 
@@ -14,6 +14,18 @@ export async function getTeacherClassesForStudent(
       tc
     )
     return teacherClasses.map(c => makeSomeOptional(c, ['topicId']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTotalStudentsInClass(
+  classId: Uuid,
+  tc: TransactionClient
+): Promise<number> {
+  try {
+    const result = await pgQueries.getTotalStudentsInClass.run({ classId }, tc)
+    return result[0]?.count ?? 0
   } catch (err) {
     throw new RepoReadError(err)
   }
