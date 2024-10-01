@@ -92,13 +92,13 @@ describe('queueIncentiveInvitedToEnrollReminderJob', () => {
 
   test('Should queue the EmailFallIncentiveInvitedToEnrollmentReminder job', async () => {
     const userId = getDbUlid()
-    const twelveHours = 1000 * 60 * 60 * 12
+    const twelveHoursInMs = 1000 * 60 * 60 * 12
 
     await queueIncentiveInvitedToEnrollReminderJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveInvitedToEnrollReminder,
       { userId },
-      { removeOnComplete: true, removeOnFail: true, delay: twelveHours }
+      { removeOnComplete: true, removeOnFail: true, delay: twelveHoursInMs }
     )
   })
 })
