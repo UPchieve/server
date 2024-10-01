@@ -1,6 +1,7 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import logger from '../../../logger'
 import config from '../../../config'
+import { backOff } from 'exponential-backoff'
 
 /**
  * Turn off the FF to hide the feature from users,
@@ -38,13 +39,27 @@ async function setFeatureFlagEnabled(enable: boolean) {
   const data = {
     active: enable,
   }
-  const phResponse = await axios.patch(requestUrl, data, {
-    headers: {
-      Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
+  const updateFeatureFlag = async () => {
+    return axios.patch(requestUrl, data, {
+      headers: {
+        Authorization: `Bearer ${config.posthogFeatureFlagApiToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      validateStatus: (status: number) => status >= 200 && status < 300,
+    })
+  }
+
+  const phResponse = await backOff(() => updateFeatureFlag(), {
+    retry: (err: AxiosError, upcomingAttemptNumber: number): boolean => {
+      logger.warn(
+        err,
+        `Failed to ${
+          enable ? 'enable' : 'disable'
+        } tutor bot feature flag. Starting retry #${upcomingAttemptNumber}...`
+      )
+      return true
     },
-    validateStatus: (status: number) => status >= 200 && status < 300,
   })
 
   const isEnabled = phResponse.data.active
