@@ -44,7 +44,6 @@ describe('asCamelCaseString', () => {
   })
 
   test('Should camel case the string', () => {
-    console.log(asCamelCaseString('meow'))
     expect(asCamelCaseString('ALL CAPS')).toBe('allCaps')
     expect(asCamelCaseString('all lowercase words to camel case')).toBe(
       'allLowercaseWordsToCamelCase'

@@ -1,6 +1,7 @@
 import { runInTransaction, TransactionClient } from '../db'
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
+import * as AssignmentsService from './AssignmentsService'
 import * as StudentRepo from '../models/Student'
 import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
@@ -82,6 +83,14 @@ export async function addStudentToTeacherClass(
     )
     if (!teacherClass) throw new InputError('Invalid class code.')
 
+    // Order is important here: when assigning a student to all the class
+    // assignments (i.e. the assignments that are assigned to the entire class),
+    // we don't want to include the newly added student in that count.
+    await AssignmentsService.addStudentToClassAssignments(
+      userId,
+      teacherClass.id,
+      tc
+    )
     await StudentRepo.addStudentToTeacherClass(tc, userId, teacherClass.id)
 
     return teacherClass
