@@ -1377,6 +1377,23 @@ export async function sendStillTimeToHaveQualifyingSessionEmail(
   )
 }
 
+export async function sendStudentFavoritedVolunteerEmail(
+  email: string,
+  volunteerFirstName: string,
+  studentFirstName: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.favoritingEmail,
+    {
+      firstName: volunteerFirstName,
+      studentName: studentFirstName,
+    }
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
   const contacts = []

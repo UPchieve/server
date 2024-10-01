@@ -5,7 +5,7 @@ import {
   InsertTutorBotConversationPayload,
 } from './types'
 import * as pgQueries from './pg.queries'
-import { makeSomeOptional, makeRequired } from '../pgUtils'
+import { makeSomeOptional, makeRequired, Ulid } from '../pgUtils'
 
 export async function getTutorBotConversationsByUserId(
   userId: string,
@@ -51,6 +51,39 @@ export async function getTutorBotConversationMessagesById(
     throw new RepoReadError(err)
   }
 }
+export async function getTutorBotConversationMessagesBySessionId(
+  sessionId: Ulid,
+  client: TransactionClient = getClient()
+) {
+  try {
+    const [
+      conversation,
+    ] = await pgQueries.getTutorBotConversationBySessionId.run(
+      {
+        sessionId,
+      },
+      client
+    )
+    if (conversation) {
+      const results = await pgQueries.getTutorBotConversationMessagesById.run(
+        {
+          conversationId: conversation.id,
+        },
+        client
+      )
+      const attrs = makeSomeOptional(conversation, ['sessionId'])
+      return {
+        conversationId: conversation.id,
+        subjectId: attrs.subjectId,
+        sessionId: attrs.sessionId,
+        messages: results.map(makeRequired),
+      }
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function insertTutorBotConversation(
   data: InsertTutorBotConversationPayload,
   client: TransactionClient = getClient()

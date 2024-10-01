@@ -44,6 +44,10 @@ export type StudentAssignment = {
   submittedAt?: Date
 }
 
+export type CreateStudentAssignmentInput = {
+  userId: Ulid
+  assignmentId: Uuid
+}
 export type CreateStudentAssignmentResult = {
   userId: Ulid
   assignmentId: Uuid

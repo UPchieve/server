@@ -96,7 +96,6 @@
     "express-session": "^1.14.2",
     "express-ws": "^5.0.2",
     "firebase-admin": "^8.10.0",
-    "helmet": "^4.6.0",
     "id128": "^1.6.6",
     "ioredis": "^4.25.0",
     "langfuse": "^3.11.2",
