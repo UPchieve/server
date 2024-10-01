@@ -253,7 +253,6 @@ export const Config = Record({
   tutorBotApiKey: String,
   huggingFaceInferenceApiKey: String,
   tutorBotBaseUrl: String,
-  tutorBotModelName: String, // @TODO remove me
   posthogStandaloneAiTutorFeatureFlagId: String,
   tutorBotHuggingfaceNamespace: String,
   tutorBotHuggingfaceInstanceName: String,
