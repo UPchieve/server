@@ -2,7 +2,7 @@ import { flatten } from 'lodash'
 import { log } from '../logger'
 import { getVolunteersForEmailReferenceApology } from '../../models/Volunteer'
 import * as UserService from '../../services/UserService'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 
 export default async (): Promise<void> => {
   const volunteers = await getVolunteersForEmailReferenceApology()

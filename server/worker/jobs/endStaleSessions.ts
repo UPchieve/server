@@ -1,6 +1,6 @@
 import * as SessionService from '../../services/SessionService'
 import { log } from '../logger'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 
 export default async (): Promise<void> => {
   const staleSessions = await SessionService.getStaleSessions()

@@ -5,7 +5,7 @@ import * as sessionUtils from '../../utils/session-utils'
 import QueueService from '../../services/QueueService'
 import * as TwilioService from '../../services/TwilioService'
 import { log, logError } from '../logger'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 import { asString } from '../../utils/type-utils'
 
 interface NotifyTutorsJobData {

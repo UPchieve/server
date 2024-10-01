@@ -1,4 +1,4 @@
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 import 'moment-timezone'
 import { log } from '../logger'
 import * as db from '../../db'

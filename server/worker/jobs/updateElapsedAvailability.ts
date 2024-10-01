@@ -11,8 +11,8 @@ import {
   getAvailabilityForVolunteer,
   saveCurrentAvailabilityAsHistory,
 } from '../../models/Availability'
-import { Jobs } from '.'
 import countAvailabilitySelected from '../../utils/count-availability-selected'
+import { Jobs } from './jobs'
 
 export default async (): Promise<void> => {
   const volunteerIds = await getVolunteerIdsForElapsedAvailability()

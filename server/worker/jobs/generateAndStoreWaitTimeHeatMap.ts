@@ -1,7 +1,7 @@
 import moment from 'moment'
 import * as SessionService from '../../services/SessionService'
 import { log } from '../logger'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 
 export default async (): Promise<void> => {
   const lastMonday = moment()

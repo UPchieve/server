@@ -11,7 +11,7 @@ import {
 import { getWeeklySummaryAllHoursFlag } from '../../services/FeatureFlagService'
 import { Job } from 'bull'
 import { ISOString } from '../../constants'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 interface EmailWeeklyHourSummaryJobData {
   startDate: ISOString
   endDate: ISOString

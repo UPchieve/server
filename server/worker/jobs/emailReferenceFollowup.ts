@@ -1,4 +1,4 @@
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 import { getReferencesToFollowup } from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import { log } from '../logger'

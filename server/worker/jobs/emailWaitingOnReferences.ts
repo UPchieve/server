@@ -1,7 +1,7 @@
 import { log } from '../logger'
 import { getVolunteersForWaitingReferences } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 
 // Runs every day at 11am EST
 export default async (): Promise<void> => {

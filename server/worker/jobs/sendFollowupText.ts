@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 import { getSessionById } from '../../models/Session'
 import { getVolunteerContactInfoById } from '../../models/Volunteer'
 import * as TwilioService from '../../services/TwilioService'

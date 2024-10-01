@@ -4,7 +4,7 @@ import {
 } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { log } from '../logger'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 
 export default async (): Promise<void> => {
   const volunteers = await getVolunteersForReadyToCoach()

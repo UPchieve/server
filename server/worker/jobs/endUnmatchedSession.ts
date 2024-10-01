@@ -3,7 +3,7 @@ import * as SessionService from '../../services/SessionService'
 import * as sessionUtils from '../../utils/session-utils'
 import * as SessionRepo from '../../models/Session/queries'
 import { log } from '../logger'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 import { asString } from '../../utils/type-utils'
 
 export interface EndUnmatchedSessionJobData {

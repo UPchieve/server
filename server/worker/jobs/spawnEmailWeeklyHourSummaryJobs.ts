@@ -1,6 +1,6 @@
 import moment from 'moment'
 import 'moment-timezone'
-import { Jobs } from '.'
+import { Jobs } from './jobs'
 import { getVolunteersForWeeklyHourSummary } from '../../models/Volunteer/queries'
 import logger from '../../logger'
 import QueueService from '../../services/QueueService'
