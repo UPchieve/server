@@ -1,5 +1,5 @@
 import QueueService from '../services/QueueService'
-import { Jobs } from '../worker/jobs'
+import { Jobs } from '../worker/jobs/jobs'
 
 async function main() {
   let exitCode = 0
