@@ -33,6 +33,8 @@ export async function turnOnStandaloneAiTutor() {
   }
 }
 
+const validateStatus = (status: number) => status >= 200 && status < 300
+
 async function setFeatureFlagEnabled(enable: boolean) {
   // See https://posthog.com/docs/api/feature-flags#get-api-projects-project_id-feature_flags-id
   const requestUrl = `https://us.i.posthog.com/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogStandaloneAiTutorFeatureFlagId}`
@@ -46,7 +48,7 @@ async function setFeatureFlagEnabled(enable: boolean) {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      validateStatus: (status: number) => status >= 200 && status < 300,
+      validateStatus,
     })
   }
 
@@ -76,21 +78,44 @@ async function setFeatureFlagEnabled(enable: boolean) {
 async function pauseTutorBotInstance() {
   const hfBaseUrl = 'api.endpoints.huggingface.cloud'
   const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/pause`
-  await axios.post(requestUrl, undefined, {
-    headers: {
-      Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
+  const pauseInstance = async () => {
+    return axios.post(requestUrl, undefined, {
+      headers: {
+        Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
+      },
+      validateStatus,
+    })
+  }
+  await backOff(() => pauseInstance(), {
+    retry: (err: AxiosError, upcomingAttemptNumber: number): boolean => {
+      logger.warn(
+        err,
+        `Failed to pause tutor bot instance. Starting retry #${upcomingAttemptNumber}...`
+      )
+      return true
     },
-    validateStatus: (status: number) => status >= 200 && status < 300,
   })
 }
 
 async function startTutorBotInstance() {
   const hfBaseUrl = 'api.endpoints.huggingface.cloud'
   const requestUrl = `https://${hfBaseUrl}/v2/endpoint/${config.tutorBotHuggingfaceNamespace}/${config.tutorBotHuggingfaceInstanceName}/resume`
-  await axios.post(requestUrl, undefined, {
-    headers: {
-      Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
+  const startInstance = async () => {
+    return axios.post(requestUrl, undefined, {
+      headers: {
+        Authorization: `Bearer ${config.huggingFaceInferenceApiKey}`,
+      },
+      validateStatus,
+    })
+  }
+
+  await backOff(() => startInstance(), {
+    retry: (err: AxiosError, upcomingAttemptNumber: number): boolean => {
+      logger.warn(
+        err,
+        `Failed to start tutor bot instance. Starting retry #${upcomingAttemptNumber}...`
+      )
+      return true
     },
-    validateStatus: (status: number) => status === 200,
   })
 }
