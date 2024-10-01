@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
-import { Jobs } from '..'
+import { Jobs } from '../jobs'
 import { getFallIncentiveSessionStats } from '../../../services/SessionService'
 import config from '../../../config'
 import {

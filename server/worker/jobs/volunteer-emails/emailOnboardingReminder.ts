@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { getVolunteerForOnboardingById } from '../../../models/Volunteer/queries'
-import { Jobs } from '../index'
+import { Jobs } from '../jobs'
 import { asString } from '../../../utils/type-utils'
 
 interface OnboardingReminder {

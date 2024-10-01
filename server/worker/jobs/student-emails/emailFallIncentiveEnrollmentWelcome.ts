@@ -4,7 +4,7 @@ import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
 import { getUserContactInfoById } from '../../../models/User'
-import { Jobs } from '..'
+import { Jobs } from '../jobs'
 
 export type EmailFallIncentiveEnrollmentWelcomeJobData = {
   userId: Ulid

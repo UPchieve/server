@@ -8,7 +8,7 @@ import { log } from '../logger'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'
 import * as cache from '../../cache'
-import { Jobs } from './index'
+import { Jobs } from './jobs'
 
 async function updateTotalVolunteerHours(): Promise<void> {
   const startDate = moment(

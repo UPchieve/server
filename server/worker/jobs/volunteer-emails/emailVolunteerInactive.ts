@@ -1,6 +1,6 @@
 import moment from 'moment'
 import 'moment-timezone'
-import { Jobs } from '..'
+import { Jobs } from '../jobs'
 import { log } from '../../logger'
 import {
   VolunteerContactInfo,

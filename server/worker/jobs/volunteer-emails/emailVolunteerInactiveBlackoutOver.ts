@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { Jobs } from '../index'
+import { Jobs } from '../jobs'
 import {
   clearAvailabilityForVolunteer,
   saveCurrentAvailabilityAsHistory,
