@@ -3,7 +3,7 @@ import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
 import { Jobs } from '..'
-import { getFallIncentiveSessionStats } from '../../../services/SessionService'
+import { getFallIncentiveSessionOverview } from '../../../services/SessionService'
 import config from '../../../config'
 import {
   hasUserBeenSentEmail,
@@ -15,7 +15,6 @@ import { log } from '../../logger'
 
 export interface EmailFallIncentiveSessionQualificationJobData {
   userId: Ulid
-  sessionId: Ulid
 }
 
 /**
@@ -39,7 +38,6 @@ export default async (
   job: Job<EmailFallIncentiveSessionQualificationJobData>
 ): Promise<void> => {
   const userId = asString(job.data.userId)
-  const sessionId = asString(job.data.sessionId)
   const data = await getUserFallIncentiveData(userId, true)
   if (!data) return
 
@@ -66,23 +64,23 @@ export default async (
   // If they already qualified for this week, do not send any email
   if (qualifiedEmailSent) return
 
-  const sessionStats = await getFallIncentiveSessionStats(
+  const sessionOverview = await getFallIncentiveSessionOverview(
     userId,
     startOfWeek.toDate()
   )
   const { firstName, email } = user
   try {
-    if (sessionStats.totalQualified >= 1) {
+    if (sessionOverview.qualifiedSessions.length >= 1) {
       await MailService.sendQualifiedForGiftCardEmail(email, firstName)
       await createEmailNotification({
         userId,
-        sessionId,
+        sessionId: sessionOverview.qualifiedSessions[0],
         emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
       })
       log(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
-    } else if (sessionStats.totalUnqualified >= 1) {
+    } else if (sessionOverview.unqualifiedSessions.length >= 1) {
       const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
         emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
@@ -95,7 +93,7 @@ export default async (
         )
         await createEmailNotification({
           userId,
-          sessionId,
+          sessionId: sessionOverview.unqualifiedSessions[0],
           emailTemplateId:
             config.sendgrid.stillTimeForQualifyingSessionTemplate,
         })
