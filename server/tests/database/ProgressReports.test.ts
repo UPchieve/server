@@ -189,10 +189,10 @@ async function getProgressReport(
   status: ProgressReportStatuses
 ) {
   const query = `
-  SELECT 
+  SELECT
     *
   FROM progress_reports
-  JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id 
+  JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
     WHERE progress_reports.id = $1
       AND progress_report_statuses.name = $2`
   const result = await client.query(query, [reportId, status])
@@ -257,14 +257,14 @@ describe('insertProgressReportSession', () => {
     )
 
     const actual = await client.query(
-      `SELECT 
+      `SELECT
         *
-      FROM progress_report_sessions 
-      JOIN progress_report_analysis_types 
+      FROM progress_report_sessions
+      JOIN progress_report_analysis_types
         ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
-      WHERE 
-        progress_report_id = $1 
-        AND session_id = $2 
+      WHERE
+        progress_report_id = $1
+        AND session_id = $2
         AND progress_report_analysis_types.name = $3`,
       [reportId, session.id, analysisType]
     )
@@ -282,14 +282,14 @@ describe('insertProgressReportSession', () => {
     )
 
     const actual = await client.query(
-      `SELECT 
+      `SELECT
         *
-      FROM progress_report_sessions 
-      JOIN progress_report_analysis_types 
+      FROM progress_report_sessions
+      JOIN progress_report_analysis_types
         ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
-      WHERE 
-        progress_report_id = $1 
-        AND session_id = $2 
+      WHERE
+        progress_report_id = $1
+        AND session_id = $2
         AND progress_report_analysis_types.name = $3`,
       [reportId, session.id, analysisType]
     )
@@ -306,12 +306,12 @@ describe('insertProgressReportSummary', () => {
     await insertProgressReportSummary(reportId, data, client)
 
     const actual = await client.query(
-      `SELECT 
+      `SELECT
         *
-      FROM progress_report_summaries 
-      WHERE 
-        progress_report_id = $1 
-        AND summary = $2 
+      FROM progress_report_summaries
+      WHERE
+        progress_report_id = $1
+        AND summary = $2
         AND overall_grade = $3`,
       [reportId, data.summary, data.overallGrade]
     )
@@ -331,12 +331,12 @@ describe('insertProgressReportSummary', () => {
     await insertProgressReportSummary(reportId, testDataTwo, client)
 
     const actual = await client.query(
-      `SELECT 
+      `SELECT
         *
-      FROM progress_report_summaries 
-      WHERE 
-        progress_report_id = $1 
-        AND summary = $2 
+      FROM progress_report_summaries
+      WHERE
+        progress_report_id = $1
+        AND summary = $2
         AND overall_grade = $3`,
       [reportId, testDataTwo.summary, testDataTwo.overallGrade]
     )
@@ -367,17 +367,17 @@ describe('insertProgressReportSummaryDetail', () => {
     )
 
     const actual = await client.query(
-      `SELECT 
+      `SELECT
         *
       FROM progress_report_summary_details
-        JOIN progress_report_focus_areas 
+        JOIN progress_report_focus_areas
           ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id
-        JOIN progress_report_info_types 
+        JOIN progress_report_info_types
           ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id
-      WHERE 
-        progress_report_summary_id = $1 
+      WHERE
+        progress_report_summary_id = $1
         AND content = $2
-        AND progress_report_focus_areas.name = $3 
+        AND progress_report_focus_areas.name = $3
         AND progress_report_info_types.name = $4`,
       [
         summaryId,
@@ -399,7 +399,7 @@ describe('insertProgressReportConcept', () => {
     }
     await insertProgressReportConcept(reportId, data, client)
     const query = `
-    SELECT 
+    SELECT
       *
     FROM progress_report_concepts
     WHERE progress_report_id = $1
@@ -444,17 +444,17 @@ describe('insertProgressReportConceptDetail', () => {
     )
 
     const actual = await client.query(
-      `SELECT 
+      `SELECT
         *
       FROM progress_report_concept_details
-        JOIN progress_report_focus_areas 
+        JOIN progress_report_focus_areas
           ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id
-        JOIN progress_report_info_types 
+        JOIN progress_report_info_types
           ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id
-      WHERE 
-        progress_report_concept_id = $1 
+      WHERE
+        progress_report_concept_id = $1
         AND content = $2
-        AND progress_report_focus_areas.name = $3 
+        AND progress_report_focus_areas.name = $3
         AND progress_report_info_types.name = $4`,
       [
         conceptId,
@@ -500,7 +500,9 @@ describe('getProgressReportInfoBySessionId', () => {
       session.id,
       'single'
     )
-    expect(result).toEqual({ id: reportId, status: 'pending' })
+    expect(result).toEqual(
+      expect.objectContaining({ id: reportId, status: 'pending' })
+    )
   })
 })
 
@@ -517,7 +519,9 @@ describe('getProgressReportByReportId', () => {
     })
 
     const result = await getProgressReportByReportId(reportId)
-    expect(result).toEqual({ id: reportId, status: 'pending' })
+    expect(result).toEqual(
+      expect.objectContaining({ id: reportId, status: 'pending' })
+    )
   })
 })
 

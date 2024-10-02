@@ -27,7 +27,7 @@ import { addFavoriteVolunteer } from '../../models/Student'
 
 const client = getClient()
 const TIMEZONE = 'EST'
-let studentId = '01859800-be4b-685f-4130-8709193d461c'
+let studentId = '01919662-885c-d39a-1749-5aaf18cf5d3b'
 let completedUnmatchedSession: any
 
 describe('VolunteerRepo', () => {

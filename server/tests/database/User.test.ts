@@ -4,8 +4,10 @@ import {
   banUserById,
   createUser,
   deleteUserPhoneInfo,
+  getUserContactInfoById,
   getUserIdByEmail,
   upsertUser,
+  UserContactInfo,
 } from '../../models/User'
 import {
   SESSION_REPORT_REASON,
@@ -13,7 +15,7 @@ import {
   USER_BAN_TYPES,
 } from '../../constants'
 import { reportSession } from '../../services/SessionService'
-import { buildSessionRow } from '../mocks/generate'
+import { buildSessionRow, buildUserRole } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 import { adminUpdateUser } from '../../services/UserService'
 
@@ -151,6 +153,16 @@ describe('admin update user', () => {
       phone: '1111111113',
     }
     await createUser(student, client)
+    const studentId = (
+      await client.query('SELECT id FROM upchieve.users WHERE email = $1', [
+        student.email,
+      ])
+    ).rows[0].id
+    await insertSingleRow(
+      'users_roles',
+      buildUserRole(studentId, 'student'),
+      client
+    )
 
     const before = await client.query(
       'SELECT * FROM upchieve.users WHERE email = $1',
@@ -220,9 +232,15 @@ describe('ban type users tests', () => {
       phone: '1111111111',
     }
     await createUser(volunteer, client)
-    const upsertedVolunteer = await client.query(
-      'SELECT * FROM upchieve.users WHERE email = $1',
-      [volunteer.email]
+    const upsertedVolunteerId = (
+      await client.query('SELECT id FROM upchieve.users WHERE email = $1', [
+        volunteer.email,
+      ])
+    ).rows[0].id
+    await insertSingleRow(
+      'users_roles',
+      buildUserRole(upsertedVolunteerId, 'volunteer'),
+      client
     )
 
     const student = {
@@ -244,7 +262,7 @@ describe('ban type users tests', () => {
       await buildSessionRow(
         {
           studentId: before.rows[0].id,
-          volunteerId: upsertedVolunteer.rows[0].id,
+          volunteerId: upsertedVolunteerId,
         },
         client
       ),
@@ -256,8 +274,12 @@ describe('ban type users tests', () => {
     const reportMessage = 'User was rude'
     const source = 'recap'
 
+    const upsertedVolunteerContactInfo = (await getUserContactInfoById(
+      upsertedVolunteerId
+    )) as UserContactInfo
+
     await reportSession(
-      { ...upsertedVolunteer.rows[0], isVolunteer: true },
+      { ...upsertedVolunteerContactInfo, isVolunteer: true },
       {
         sessionId,
         reportReason,
