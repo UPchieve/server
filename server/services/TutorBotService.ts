@@ -97,7 +97,7 @@ export const createTutorBotConversation = async (data: {
       {
         subjectId,
         userId,
-        sessionId: sessionId ?? null,
+        sessionId,
         id: getDbUlid(),
       },
       tc
