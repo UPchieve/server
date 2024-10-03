@@ -13,6 +13,7 @@ import { mockApp, mockPassportMiddleware } from '../mock-app'
 import { CreatedVolunteer } from '../../models/Volunteer'
 import * as UserAction from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import { StudentPartnerOrg } from '../../models/StudentPartnerOrg'
 
 jest.mock('../../services/AuthService')
 const mockedAuthService = mocked(AuthService)
@@ -112,7 +113,9 @@ describe('Test router logic', () => {
   test(`Route ${PARTNER_STUDENT} valid payload`, async () => {
     const partner = buildStudentPartnerOrg()
     const payload = { partnerId: partner.key }
-    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce(partner)
+    mockedAuthService.lookupPartnerStudent.mockResolvedValueOnce(
+      partner as StudentPartnerOrg
+    )
 
     const response = await sendGetQuery(PARTNER_STUDENT, payload)
 
