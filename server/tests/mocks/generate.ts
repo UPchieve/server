@@ -145,6 +145,32 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
   }
 }
 
+export function buildUserRole(userId: Ulid, role: UserRole) {
+  let roleId
+  switch (role) {
+    case 'student':
+      roleId = 1
+      break
+    case 'volunteer':
+      roleId = 2
+      break
+    case 'admin':
+      roleId = 3
+      break
+    case 'teacher':
+      roleId = 4
+      break
+    default:
+      roleId = 1
+      break
+  }
+
+  return {
+    userId,
+    roleId,
+  }
+}
+
 export function buildStudentProfile(overrides: Partial<Student> = {}): Student {
   const userId = buildUser().id
   return {
