@@ -514,26 +514,15 @@ FROM
             SELECT
                 subjects.name AS subject,
                 COUNT(*)::int AS earned_certs,
-                subject_certs.total,
                 subjects.active AS active_subject
             FROM
                 users_certifications
                 JOIN certification_subject_unlocks USING (certification_id)
                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name
-                WHERE
-                    users_certifications.user_id = :userId!
-                GROUP BY
-                    subjects.name,
-                    subject_certs.total,
-                    subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE
+            WHERE
+                users_certifications.user_id = :userId!
+            GROUP BY
+                subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE
     LEFT JOIN (
         SELECT
             array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,
