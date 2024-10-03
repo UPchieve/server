@@ -161,8 +161,7 @@ export const addMessageToConversation = async (
   parentTransaction?: TransactionClient
 ) => {
   const socketService = SocketService.getInstance()
-  return await runInTransaction(async (tx: TransactionClient) => {
-    const tc = parentTransaction ?? tx
+  return await runInTransaction(async (tc: TransactionClient) => {
     const userMessage = await insertTutorBotConversationMessage(
       {
         conversationId,
@@ -190,7 +189,7 @@ export const addMessageToConversation = async (
       userMessage,
       botResponse,
     }
-  })
+  }, parentTransaction)
 }
 
 const getBotResponse = async (
