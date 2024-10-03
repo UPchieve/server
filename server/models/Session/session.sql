@@ -63,6 +63,7 @@ SELECT
     sessions.id,
     student_id,
     volunteer_id,
+    subjects.id AS subject_id,
     subjects.name AS subject,
     subjects.display_name AS subject_display_name,
     topics.name AS topic,

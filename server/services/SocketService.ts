@@ -58,6 +58,11 @@ class SocketService {
     await this.updateSessionList()
   }
 
+  async emitTutorBotMessage(sessionId: Ulid, messageData: any): Promise<void> {
+    const socketRoom = getSessionRoom(sessionId)
+    this.io.in(socketRoom).emit('tutorBotConversationMessage', messageData)
+  }
+
   bump(
     socket: socketio.Socket,
     data: {

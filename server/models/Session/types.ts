@@ -5,6 +5,7 @@ export type Session = {
   studentId: Ulid
   volunteerId?: Ulid
   topic: string
+  subjectId: number
   subject: string
   hasWhiteboardDoc: boolean
   quillDoc?: string

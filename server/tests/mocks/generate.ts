@@ -245,6 +245,7 @@ export function buildSession(
     createdAt: new Date(),
     updatedAt: new Date(),
     shadowbanned: false,
+    subjectId: 1,
     topic: 'math',
     subject: 'algebraOne',
     reported: false,

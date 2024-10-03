@@ -24,6 +24,23 @@ export async function getTutorBotConversationsByUserId(
   }
 }
 
+export async function getTutorBotConversationById(
+  conversationId: Ulid,
+  client: TransactionClient = getClient()
+) {
+  try {
+    const conversation = await pgQueries.getTutorBotConversationById.run(
+      {
+        conversationId,
+      },
+      client
+    )
+    return makeSomeOptional(conversation[0], ['sessionId'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getTutorBotConversationMessagesById(
   conversationId: string,
   client: TransactionClient = getClient()
