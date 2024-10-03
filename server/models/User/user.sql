@@ -508,51 +508,35 @@ FROM
     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN (
         SELECT
-            array_agg(subjects_unlocked.subject) AS subjects,
-            array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_cert IS TRUE) AS active_subjects
+            array_agg(DISTINCT subjects_unlocked.subject) AS subjects,
+            array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_subject IS TRUE) AS active_subjects
         FROM (
             SELECT
                 subjects.name AS subject,
                 COUNT(*)::int AS earned_certs,
-                subject_certs.total,
-                certifications.active AS active_cert
+                subjects.active AS active_subject
             FROM
                 users_certifications
                 JOIN certification_subject_unlocks USING (certification_id)
-                JOIN certifications ON users_certifications.certification_id = certifications.id
                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN users ON users.id = users_certifications.user_id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name
-                WHERE
-                    users.id = :userId!
-                    AND certifications.active = TRUE
-                GROUP BY
-                    subjects.name,
-                    subject_certs.total,
-                    certifications.active) AS subjects_unlocked) AS total_subjects ON TRUE
+            WHERE
+                users_certifications.user_id = :userId!
+            GROUP BY
+                subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE
     LEFT JOIN (
         SELECT
-            array_agg(computed_subjects_unlocked.subject) AS subjects,
-            array_agg(computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_cert IS TRUE) AS active_subjects
+            array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,
+            array_agg(DISTINCT computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_subject IS TRUE) AS active_subjects
         FROM (
             SELECT
                 subjects.name AS subject,
                 COUNT(*)::int AS earned_certs,
                 subject_certs.total,
-                certifications.active AS active_cert
+                subjects.active AS active_subject
             FROM
                 users_certifications
                 JOIN computed_subject_unlocks USING (certification_id)
-                JOIN certifications ON users_certifications.certification_id = certifications.id
                 JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
-                JOIN users ON users.id = users_certifications.user_id
                 JOIN (
                     SELECT
                         subjects.name, COUNT(*)::int AS total
@@ -562,11 +546,11 @@ FROM
                     GROUP BY
                         subjects.name) AS subject_certs ON subject_certs.name = subjects.name
                 WHERE
-                    users.id = :userId!
+                    users_certifications.user_id = :userId!
                 GROUP BY
                     subjects.name,
                     subject_certs.total,
-                    certifications.active
+                    subjects.active
                 HAVING
                     COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE
     LEFT JOIN (
