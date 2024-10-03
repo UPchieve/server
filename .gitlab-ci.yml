@@ -1,5 +1,6 @@
-#include:
-#  - template: Auto-DevOps.gitlab-ci.yml
+stages:
+  - build
+  - test
 
 cache:
   # TODO: Try key as package-lock.json to speed up across branches.
@@ -16,6 +17,65 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
+
+.docker_service:
+  services:
+    - docker:20.10.6-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+
+.build_docker:
+  extends: .docker_service
+  stage: build
+  image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
+  cache: []
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: api://AzureADTokenExchange
+  variables:
+    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    AZURE_TENANT_ID: $AZURE_TENANT_ID
+  environment:
+    action: prepare
+  allow_failure: false
+  before_script:
+    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+    - az acr login --name $AZURE_CONTAINER_REGISTRY
+  script:
+    - echo $IMAGE_TAG
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+
+build_ci:
+  extends: .docker_service
+  stage: build
+  image: docker:20.10.6
+  cache: []
+  script:
+    - docker build .
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+
+build_staging:
+  extends: .build_docker
+  environment:
+    name: staging
+  variables:
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_STAGING
+    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_STAGING
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+# TODO: Uncomment once production environment is set up.
+# build_production:
+#   extends: .build_docker
+#   environment:
+#     name: production
+#   variables:
+#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
+#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 build:
   stage: build
@@ -51,23 +111,7 @@ build:
   rules:
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
 
-build_docker:
-  stage: build
-  image: "docker:20.10.6"
-  when: manual
-  cache: []
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  services:
-    - docker:20.10.6-dind
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --tag "$IMAGE_TAG" .
-    - docker push "$IMAGE_TAG"
-
-testbackend:
+test_backend:
   stage: test
   image: node:20.10.0-bullseye
   variables:
@@ -78,40 +122,11 @@ testbackend:
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run test:backend
-  needs: []
   rules:
     - if: '$TEST_DISABLED'
       when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
-# TODO: commenting out because it appears our current setup doesn't scale to having a lot of test data
-#       tests aren't currently super useful so until this is fixed we're ignoring them
-# testdatabase:
-#   stage: test
-#   image: node:20.10.0-bullseye
-#   tags:
-#     - upchieve
-#   variables:
-#     NODE_OPTIONS: --max_old_space_size=5120
-#     DOCKER_HOST: tcp://docker:2376
-#     DOCKER_TLS_VERIFY: 1
-#     DOCKER_CERT_PATH: "/certs/client"
-#     DOCKER_TLS_CERTDIR: "/certs"
-#     TESTCONTAINERS_HOST_OVERRIDE: docker
-#     CI_CONTAINER: "true"
-#   services:
-#     - docker:20.10.6-dind
-#   before_script:
-#     - npm ci --cache .npm --prefer-offline
-#     - curl -fsSL https://get.docker.com -o get-docker.sh
-#     - VERSION=20.10.6 sh ./get-docker.sh
-#   script:
-#     - npm run test:database
-#   needs: []
-#   rules:
-#     - if: '$TEST_DISABLED'
-#       when: never
-#     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 lint:
   stage: test
@@ -120,11 +135,11 @@ lint:
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run lint
-  needs: []
   rules:
     - if: '$TEST_DISABLED'
       when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 lint_sql:
   stage: test
@@ -133,11 +148,11 @@ lint_sql:
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run lint:sql:check
-  needs: []
   rules:
     - if: '$TEST_DISABLED'
       when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 lint_database:
   stage: test
@@ -146,8 +161,8 @@ lint_database:
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run lint:database:dry
-  needs: []
   rules:
     - if: '$TEST_DISABLED'
       when: never
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
