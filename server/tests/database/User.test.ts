@@ -170,6 +170,15 @@ describe('getLegacyUser', () => {
     return createUser(payload, client)
   }
 
+  const testLegacyUserIsSchoolPartner = async (
+    userId: string,
+    isSchoolPartner: boolean
+  ) => {
+    const legacyUser = await getLegacyUser.run({ userId }, client)
+    expect(legacyUser.length).toEqual(1)
+    expect((legacyUser[0] as any).is_school_partner).toEqual(isSchoolPartner)
+  }
+
   it('gives is_school_partner=false when the school is not a partner', async () => {
     const user = await saveUserToDb()
     await insertSingleRow(
@@ -180,8 +189,7 @@ describe('getLegacyUser', () => {
       }),
       client
     )
-    const legacyUser = await getLegacyUser.run({ userId: user.id }, client)
-    expect((legacyUser[0] as any).is_school_partner).toBeFalsy()
+    await testLegacyUserIsSchoolPartner(user.id, false)
   })
 
   it('gives is_school_partner=false when the school is a partner but has no active instances', async () => {
@@ -194,8 +202,7 @@ describe('getLegacyUser', () => {
       }),
       client
     )
-    const legacyUser = await getLegacyUser.run({ userId: user.id }, client)
-    expect((legacyUser[0] as any).is_school_partner).toBeFalsy()
+    await testLegacyUserIsSchoolPartner(user.id, false)
   })
 
   it('gives is_school_partner=false when the school SPO instance is deactivated', async () => {
@@ -216,8 +223,7 @@ describe('getLegacyUser', () => {
       }),
       client
     )
-    const legacyUser = await getLegacyUser.run({ userId: user.id }, client)
-    expect((legacyUser[0] as any).is_school_partner).toBeFalsy()
+    await testLegacyUserIsSchoolPartner(user.id, false)
   })
 
   it('gives is_school_partner=true when there exists some school SPO instance with deactivated_on=null', async () => {
@@ -255,9 +261,35 @@ describe('getLegacyUser', () => {
       client
     )
 
-    const legacyUser = await getLegacyUser.run({ userId: user.id }, client)
-    expect(legacyUser.length).toEqual(1)
-    expect((legacyUser[0] as any).is_school_partner).toBeTruthy()
+    await testLegacyUserIsSchoolPartner(user.id, true)
+
+    // Now setting schools.partner = false makes the student a non-school partner student
+    await client.query(
+      'UPDATE upchieve.schools SET partner = false WHERE id = $1',
+      [partnerSchool.id]
+    )
+    await testLegacyUserIsSchoolPartner(user.id, false)
+
+    // Now deactivate the partner
+    await client.query(
+      'UPDATE upchieve.student_partner_orgs_upchieve_instances SET deactivated_on = NOW() where student_partner_org_id = $1',
+      [partnerSchoolSpoId]
+    )
+    await testLegacyUserIsSchoolPartner(user.id, false)
+
+    // Now activate the partner again - but still not a school partner student because schools.partner = false
+    await client.query(
+      'INSERT INTO upchieve.student_partner_orgs_upchieve_instances (id, student_partner_org_id, deactivated_on) VALUES ($1, $2, $3)',
+      [getDbUlid(), partnerSchoolSpoId, null]
+    )
+    await testLegacyUserIsSchoolPartner(user.id, false)
+
+    // Now make the school a partner
+    await client.query(
+      'UPDATE upchieve.schools SET partner = true WHERE id = $1',
+      [partnerSchool.id]
+    )
+    await testLegacyUserIsSchoolPartner(user.id, true)
   })
 })
 
