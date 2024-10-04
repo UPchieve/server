@@ -236,3 +236,34 @@ const insertTutorBotConversationMessageIR: any = {"name":"insertTutorBotConversa
 export const insertTutorBotConversationMessage = new PreparedQuery<IInsertTutorBotConversationMessageParams,IInsertTutorBotConversationMessageResult>(insertTutorBotConversationMessageIR);
 
 
+/** 'UpdateTutorBotConversation' parameters type */
+export interface IUpdateTutorBotConversationParams {
+  conversationId: string;
+  sessionId: string | null | void;
+}
+
+/** 'UpdateTutorBotConversation' return type */
+export type IUpdateTutorBotConversationResult = void;
+
+/** 'UpdateTutorBotConversation' query type */
+export interface IUpdateTutorBotConversationQuery {
+  params: IUpdateTutorBotConversationParams;
+  result: IUpdateTutorBotConversationResult;
+}
+
+const updateTutorBotConversationIR: any = {"name":"updateTutorBotConversation","params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1738,"b":1746,"line":70,"col":27}]}},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1777,"b":1791,"line":72,"col":10}]}}],"usedParamSet":{"sessionId":true,"conversationId":true},"statement":{"body":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = COALESCE(:sessionId, session_id)\nWHERE\n    id = :conversationId!","loc":{"a":1672,"b":1791,"line":67,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     tutor_bot_conversations
+ * SET
+ *     session_id = COALESCE(:sessionId, session_id)
+ * WHERE
+ *     id = :conversationId!
+ * ```
+ */
+export const updateTutorBotConversation = new PreparedQuery<IUpdateTutorBotConversationParams,IUpdateTutorBotConversationResult>(updateTutorBotConversationIR);
+
+

@@ -62,3 +62,12 @@ INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id,
 RETURNING
     tutor_bot_conversation_id, user_id, sender_user_type, message, created_at;
 
+
+/* @name updateTutorBotConversation */
+UPDATE
+    tutor_bot_conversations
+SET
+    session_id = COALESCE(:sessionId, session_id)
+WHERE
+    id = :conversationId!;
+

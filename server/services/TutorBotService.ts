@@ -9,12 +9,14 @@ import {
   getTutorBotConversationById,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
+  updateTutorBotConversationById,
 } from '../models/TutorBot'
 import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
+import { asFactory, asOptional, asString } from '../utils/type-utils'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -123,6 +125,27 @@ export const createTutorBotConversation = async (data: {
   })
 }
 
+export type UpdateTutorBotConversationPayload = {
+  conversationId: string
+  sessionId?: string
+}
+
+const asUpdateTutorBotConversationPayload = asFactory<
+  UpdateTutorBotConversationPayload
+>({
+  conversationId: asString,
+  sessionId: asOptional(asString),
+})
+
+export const updateTutorBotConversation = async (
+  conversationId: string,
+  data: any
+) => {
+  if (!Object.keys(data).length) return
+  const payload = asUpdateTutorBotConversationPayload(data)
+  await updateTutorBotConversationById(payload)
+}
+
 export const getAllConversationsForUser = async (userId: string) => {
   return await getTutorBotConversationsByUserId(userId)
 }
@@ -137,13 +160,6 @@ const getBotResponseMessage = (
     assistant: removeTurnMarkers(assistant),
     system,
   }
-}
-
-export type BotResponse = {
-  message: string
-  status: string
-  traceId: string
-  observationId: string | null
 }
 
 export const addMessageToConversation = async (
