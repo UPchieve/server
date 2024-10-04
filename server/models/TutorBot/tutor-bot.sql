@@ -63,13 +63,13 @@ RETURNING
     tutor_bot_conversation_id, user_id, sender_user_type, message, created_at;
 
 
-/* @name updateTutorBotConversation */
+/* @name updateTutorBotConversationSessionId */
 UPDATE
     tutor_bot_conversations
 SET
-    session_id = COALESCE(:sessionId::uuid, session_id)
+    session_id = :sessionId!,
+    updated_at = NOW()
 WHERE
     id = :conversationId!::uuid
-    AND (:sessionId::uuid IS NULL
-        OR session_id IS NULL);
+    AND session_id IS NULL;
 

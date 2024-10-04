@@ -9,14 +9,13 @@ import {
   getTutorBotConversationById,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
-  updateTutorBotConversationById,
+  updateTutorBotConversationSessionIdByConversationId,
 } from '../models/TutorBot'
 import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
-import { asFactory, asOptional, asString } from '../utils/type-utils'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -125,25 +124,14 @@ export const createTutorBotConversation = async (data: {
   })
 }
 
-export type UpdateTutorBotConversationPayload = {
-  conversationId: string
-  sessionId?: string
-}
-
-const asUpdateTutorBotConversationPayload = asFactory<
-  UpdateTutorBotConversationPayload
->({
-  conversationId: asString,
-  sessionId: asOptional(asString),
-})
-
-export const updateTutorBotConversation = async (
+export const updateTutorBotConversationSessionId = async (
   conversationId: string,
-  data: any
+  sessionId: string
 ) => {
-  if (!Object.keys(data).length) return
-  const payload = asUpdateTutorBotConversationPayload(data)
-  await updateTutorBotConversationById(payload)
+  await updateTutorBotConversationSessionIdByConversationId({
+    conversationId,
+    sessionId,
+  })
 }
 
 export const getAllConversationsForUser = async (userId: string) => {
