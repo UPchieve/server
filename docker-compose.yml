@@ -46,7 +46,7 @@ services:
             /entrypoint.sh
             "
         ports:
-            - "80:80"
+            - "8081:80"
         environment:
             - PGADMIN_DEFAULT_EMAIL=admin@upchieve.org
             - PGADMIN_DEFAULT_PASSWORD=Password123
