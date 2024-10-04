@@ -6,6 +6,8 @@ import {
 } from './types'
 import * as pgQueries from './pg.queries'
 import { makeSomeOptional, makeRequired, Ulid } from '../pgUtils'
+import { UpdateTutorBotConversationPayload } from '../../services/TutorBotService'
+import { IUpdateTutorBotConversationParams } from './pg.queries'
 
 export async function getTutorBotConversationsByUserId(
   userId: string,
@@ -133,9 +135,14 @@ export async function insertTutorBotConversationMessage(
   }
 }
 
-export async function updateTutorBotConversationById(data) {
+export async function updateTutorBotConversationById(
+  data: UpdateTutorBotConversationPayload
+) {
   try {
-    await pgQueries.updateTutorBotConversation.run(data, getClient())
+    await pgQueries.updateTutorBotConversation.run(
+      data as IUpdateTutorBotConversationParams,
+      getClient()
+    )
   } catch (err) {
     throw new RepoUpdateError(err)
   }

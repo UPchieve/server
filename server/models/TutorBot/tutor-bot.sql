@@ -67,7 +67,9 @@ RETURNING
 UPDATE
     tutor_bot_conversations
 SET
-    session_id = COALESCE(:sessionId, session_id)
+    session_id = COALESCE(:sessionId::uuid, session_id)
 WHERE
-    id = :conversationId!;
+    id = :conversationId!::uuid
+    AND (:sessionId::uuid IS NULL
+        OR session_id IS NULL);
 

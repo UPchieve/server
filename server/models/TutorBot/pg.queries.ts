@@ -251,7 +251,7 @@ export interface IUpdateTutorBotConversationQuery {
   result: IUpdateTutorBotConversationResult;
 }
 
-const updateTutorBotConversationIR: any = {"name":"updateTutorBotConversation","params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1738,"b":1746,"line":70,"col":27}]}},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1777,"b":1791,"line":72,"col":10}]}}],"usedParamSet":{"sessionId":true,"conversationId":true},"statement":{"body":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = COALESCE(:sessionId, session_id)\nWHERE\n    id = :conversationId!","loc":{"a":1672,"b":1791,"line":67,"col":0}}};
+const updateTutorBotConversationIR: any = {"name":"updateTutorBotConversation","params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1738,"b":1746,"line":70,"col":27},{"a":1815,"b":1823,"line":73,"col":10}]}},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1783,"b":1797,"line":72,"col":10}]}}],"usedParamSet":{"sessionId":true,"conversationId":true},"statement":{"body":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = COALESCE(:sessionId::uuid, session_id)\nWHERE\n    id = :conversationId!::uuid\n    AND (:sessionId::uuid IS NULL\n        OR session_id IS NULL)","loc":{"a":1672,"b":1868,"line":67,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -259,9 +259,11 @@ const updateTutorBotConversationIR: any = {"name":"updateTutorBotConversation","
  * UPDATE
  *     tutor_bot_conversations
  * SET
- *     session_id = COALESCE(:sessionId, session_id)
+ *     session_id = COALESCE(:sessionId::uuid, session_id)
  * WHERE
- *     id = :conversationId!
+ *     id = :conversationId!::uuid
+ *     AND (:sessionId::uuid IS NULL
+ *         OR session_id IS NULL)
  * ```
  */
 export const updateTutorBotConversation = new PreparedQuery<IUpdateTutorBotConversationParams,IUpdateTutorBotConversationResult>(updateTutorBotConversationIR);
