@@ -153,6 +153,8 @@ Project IDX is a browser-based IDE, currently in beta and avialable for free, wh
 4.  \[This step will be unnecessary if/when this change is merged into main\] Open up the terminal and run `git checkout tooling/idx_setup`. When prompted, click "Take me There" and then "Rebuild Environment".
 5.  Wait until you see the README.md, then run `. .idx/idx_setup.sh` in the terminal.
 
+Note: Remember to set your git user.name and user.email if you plan to push your changes.
+
 ### Running the backend
 
 Open up your workspace from https://idx.google.com and run the following in a terminal to start up the backend:
