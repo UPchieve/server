@@ -162,6 +162,7 @@ Open up your workspace from https://idx.google.com and run the following in a te
 1. `docker-compose --profile dev up -d` to start various backend services (e.g. PostgreSQL).
 2. `npm run dev:worker` to start the worker process (necessary for some tasks).
 3. In another terminal, run `npm run dev:backend` for the primary backend server.
+4. Make port 3000 public. (Open up the IDE command pallete, select "Open Public Ports", enter 3000, and click enter.) IMPORTANT: This makes the backend API accessible on the internet. If this is not desirable, another method such as setting up a token would be needed for communication between the frontend and backend.
   
 ## Test Users
 
