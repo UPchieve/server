@@ -1,2 +1,0 @@
-nvm install
-nvm use
