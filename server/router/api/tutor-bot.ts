@@ -37,21 +37,20 @@ export function routeTutorBot(router: Router) {
     }
   )
 
-  router.put(
-    // @TODO switch to patch
-    '/tutor-bot/conversations/:conversationId',
-    async function(req, res) {
-      try {
-        await TutorBotService.updateTutorBotConversation(
-          req.params.conversationId,
-          req.body
-        )
-        return res.sendStatus(204)
-      } catch (err) {
-        resError(res, err)
-      }
+  router.patch('/tutor-bot/conversations/:conversationId', async function(
+    req,
+    res
+  ) {
+    try {
+      await TutorBotService.updateTutorBotConversation(
+        req.params.conversationId,
+        req.body
+      )
+      return res.sendStatus(204)
+    } catch (err) {
+      resError(res, err)
     }
-  )
+  })
 
   router.post('/tutor-bot/conversations', async function(req, res) {
     try {
