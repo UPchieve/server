@@ -143,7 +143,7 @@ Notes:
 
 ## Project IDX Development
 
-Project IDX is a browser-based IDE, currently in Beta and avialable for free, which helps provide a streamlined way to set up a consistent devleopment environment. 
+Project IDX is a browser-based IDE, currently in beta and avialable for free, which helps provide a streamlined way to set up a consistent devleopment environment. 
 
 ### One-time setup
 
