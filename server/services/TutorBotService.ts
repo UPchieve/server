@@ -9,6 +9,7 @@ import {
   getTutorBotConversationById,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
+  updateTutorBotConversationSessionIdByConversationId,
 } from '../models/TutorBot'
 import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
@@ -123,6 +124,16 @@ export const createTutorBotConversation = async (data: {
   })
 }
 
+export const updateTutorBotConversationSessionId = async (
+  conversationId: string,
+  sessionId: string
+) => {
+  await updateTutorBotConversationSessionIdByConversationId({
+    conversationId,
+    sessionId,
+  })
+}
+
 export const getAllConversationsForUser = async (userId: string) => {
   return await getTutorBotConversationsByUserId(userId)
 }
@@ -137,13 +148,6 @@ const getBotResponseMessage = (
     assistant: removeTurnMarkers(assistant),
     system,
   }
-}
-
-export type BotResponse = {
-  message: string
-  status: string
-  traceId: string
-  observationId: string | null
 }
 
 export const addMessageToConversation = async (

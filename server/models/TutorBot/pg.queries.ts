@@ -236,3 +236,36 @@ const insertTutorBotConversationMessageIR: any = {"name":"insertTutorBotConversa
 export const insertTutorBotConversationMessage = new PreparedQuery<IInsertTutorBotConversationMessageParams,IInsertTutorBotConversationMessageResult>(insertTutorBotConversationMessageIR);
 
 
+/** 'UpdateTutorBotConversationSessionId' parameters type */
+export interface IUpdateTutorBotConversationSessionIdParams {
+  conversationId: string;
+  sessionId: string;
+}
+
+/** 'UpdateTutorBotConversationSessionId' return type */
+export type IUpdateTutorBotConversationSessionIdResult = void;
+
+/** 'UpdateTutorBotConversationSessionId' query type */
+export interface IUpdateTutorBotConversationSessionIdQuery {
+  params: IUpdateTutorBotConversationSessionIdParams;
+  result: IUpdateTutorBotConversationSessionIdResult;
+}
+
+const updateTutorBotConversationSessionIdIR: any = {"name":"updateTutorBotConversationSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1738,"b":1747,"line":70,"col":18}]}},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1789,"b":1803,"line":73,"col":10}]}}],"usedParamSet":{"sessionId":true,"conversationId":true},"statement":{"body":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = :sessionId!,\n    updated_at = NOW()\nWHERE\n    id = :conversationId!::uuid\n    AND session_id IS NULL","loc":{"a":1681,"b":1836,"line":67,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     tutor_bot_conversations
+ * SET
+ *     session_id = :sessionId!,
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :conversationId!::uuid
+ *     AND session_id IS NULL
+ * ```
+ */
+export const updateTutorBotConversationSessionId = new PreparedQuery<IUpdateTutorBotConversationSessionIdParams,IUpdateTutorBotConversationSessionIdResult>(updateTutorBotConversationSessionIdIR);
+
+
