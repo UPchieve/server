@@ -26,6 +26,7 @@ This repository is the backend API server and queue worker only. To work on the 
       - [Important files](#important-files)
       - [Package.json Scripts](#packagejson-scripts)
       - [Migrations](#migrations)
+  - [Project IDX Development](#project-idx-development)
   - [Test Users](#test-users)
   - [Structure](#structure)
   - [Server](#server)
@@ -140,6 +141,26 @@ Notes:
 - After verifying the migrations are good dump the schema and data for the next developer with `npm run db:dump`
 - Everything in `db_init` is programmatically generated and can be ignored in diff examinations
 
+## Project IDX Development
+
+Project IDX is a browser-based IDE, currently in Beta and avialable for free, which helps provide a streamlined way to set up a consistent devleopment environment. 
+
+### One-time setup
+
+1.  Navigate to https://idx.google.com.
+2.  Click the top right button to sign in, creating an account if necessary.
+3.  Click import a repository, enter https://gitlab.com/upchieve/subway.git, and click the "Import" button. Once the IDE is loaded, ignore or close the window if and when prompted to set up an IDX profile automatically.
+4.  \[This step will be unnecessary if/when this change is merged into main\] Open up the terminal and run `git checkout tooling/idx_setup`. When prompted, click "Take me There" and then "Rebuild Environment".
+5.  Wait until you see the README.md, then run `. .idx/idx_setup.sh` in the terminal.
+
+### Running the backend
+
+Open up your workspace from https://idx.google.com and run the following in a terminal to start up the backend:
+
+1. `docker-compose --profile dev up -d` to start various backend services (e.g. PostgreSQL).
+2. `npm run dev:worker` to start the worker process (necessary for some tasks).
+3. In another terminal, run `npm run dev:backend` for the primary backend server.
+  
 ## Test Users
 
 The database is populated with the following users for local development:
