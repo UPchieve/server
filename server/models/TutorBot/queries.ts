@@ -6,7 +6,6 @@ import {
 } from './types'
 import * as pgQueries from './pg.queries'
 import { makeSomeOptional, makeRequired, Ulid } from '../pgUtils'
-import { UpdateTutorBotConversationPayload } from '../../services/TutorBotService'
 
 export async function getTutorBotConversationsByUserId(
   userId: string,
