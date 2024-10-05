@@ -147,11 +147,12 @@ Project IDX is a browser-based IDE, currently in beta and avialable for free, wh
 
 ### One-time setup
 
-1.  Navigate to https://idx.google.com.
-2.  Click the top right button to sign in, creating an account if necessary.
-3.  Click import a repository, enter https://gitlab.com/upchieve/subway.git, and click the "Import" button. Once the IDE is loaded, ignore or close the window if and when prompted to set up an IDX profile automatically.
-4.  \[This step will be unnecessary if/when this change is merged into main\] Open up the terminal and run `git checkout tooling/idx-setup`. When prompted, click "Take me There" and then "Rebuild Environment".
-5.  Wait until you see the README.md, then run `. .idx/idx_setup.sh` in the terminal.
+1. Navigate to https://idx.google.com.
+2. Click the top right button to sign in, creating an account if necessary.
+3. Click import a repository, enter https://gitlab.com/upchieve/subway.git, and click the "Import" button. Once the IDE is loaded, ignore or close the window if and when prompted to set up an IDX profile automatically.
+4. \[This step should be unnecessary if/when this change is merged into main\] Open up the terminal and run `git checkout tooling/idx-setup`. When prompted, click "Take me There" and then "Rebuild Environment".
+5. Wait until you see the README.md, then run `. .idx/idx_setup.sh` in the terminal.
+6. [This step should be unnecessary if/when this change is merged into main.] From the IDE command palette, choose "Project IDX: Rebuild Environment".
 
 Note: Remember to set your git user.name and user.email if you plan to push your changes.
 
