@@ -4460,6 +4460,13 @@ CREATE UNIQUE INDEX survey_questions_response_choices_response_survey_question O
 
 
 --
+-- Name: tutor_bot_conversations_unique_non_null_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX tutor_bot_conversations_unique_non_null_session_id ON upchieve.tutor_bot_conversations USING btree (session_id) WHERE (session_id IS NOT NULL);
+
+
+--
 -- Name: user_actions_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6037,4 +6044,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240912141821'),
     ('20240918170007'),
     ('20240918200433'),
-    ('20240925165907');
+    ('20240925165907'),
+    ('20240930195105');

@@ -4,7 +4,7 @@ import { Ulid, Uuid } from '../pgUtils'
 export type InsertTutorBotConversationPayload = {
   userId: Ulid
   subjectId: number
-  sessionId: Ulid | null
+  sessionId: Ulid | undefined
   id: Uuid
 }
 
