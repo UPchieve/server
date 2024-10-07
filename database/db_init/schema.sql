@@ -1471,7 +1471,8 @@ CREATE TABLE upchieve.school_nces_metadata (
     national_school_lunch_program text,
     total_students integer,
     nslp_direct_certification integer,
-    frl_eligible integer
+    frl_eligible integer,
+    title1_school_status text
 );
 
 
@@ -6086,4 +6087,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241009204150'),
     ('20241018205145'),
     ('20241028142054'),
-    ('20241028154216');
+    ('20241028154216'),
+    ('20241028173238');
