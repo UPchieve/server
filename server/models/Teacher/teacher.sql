@@ -90,7 +90,7 @@ WHERE
     class_id = :classId!;
 
 
-/* @name updateClassDetails */
+/* @name updateTeacherClass */
 UPDATE
     teacher_classes
 SET

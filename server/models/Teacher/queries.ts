@@ -1,5 +1,5 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
 import {
   CreateTeacherClassPayload,
   CreateTeacherPayload,
@@ -120,5 +120,25 @@ export async function getStudentIdsInTeacherClass(
     return studentIds.map(s => makeRequired(s).userId)
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function updateTeacherClass(
+  tc: TransactionClient,
+  data: { id: string; name: string; topicId: number; active: boolean }
+) {
+  try {
+    const updatedClass = await pgQueries.updateTeacherClass.run(
+      {
+        id: data.id,
+        name: data.name,
+        topicId: data.topicId,
+        active: data.active,
+      },
+      tc
+    )
+    return makeSomeOptional(updatedClass[0], ['topicId'])
+  } catch (err) {
+    throw new RepoUpsertError(err)
   }
 }

@@ -290,16 +290,16 @@ const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass"
 export const getStudentIdsInTeacherClass = new PreparedQuery<IGetStudentIdsInTeacherClassParams,IGetStudentIdsInTeacherClassResult>(getStudentIdsInTeacherClassIR);
 
 
-/** 'UpdateClassDetails' parameters type */
-export interface IUpdateClassDetailsParams {
+/** 'UpdateTeacherClass' parameters type */
+export interface IUpdateTeacherClassParams {
   active: boolean | null | void;
   id: string | null | void;
   name: string | null | void;
   topicId: number | null | void;
 }
 
-/** 'UpdateClassDetails' return type */
-export interface IUpdateClassDetailsResult {
+/** 'UpdateTeacherClass' return type */
+export interface IUpdateTeacherClassResult {
   active: boolean;
   code: string;
   createdAt: Date;
@@ -310,13 +310,13 @@ export interface IUpdateClassDetailsResult {
   userId: string | null;
 }
 
-/** 'UpdateClassDetails' query type */
-export interface IUpdateClassDetailsQuery {
-  params: IUpdateClassDetailsParams;
-  result: IUpdateClassDetailsResult;
+/** 'UpdateTeacherClass' query type */
+export interface IUpdateTeacherClassQuery {
+  params: IUpdateTeacherClassParams;
+  result: IUpdateTeacherClassResult;
 }
 
-const updateClassDetailsIR: any = {"name":"updateClassDetails","params":[{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1740,"b":1743,"line":97,"col":21}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1778,"b":1784,"line":98,"col":25}]}},{"name":"active","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1821,"b":1826,"line":99,"col":23}]}},{"name":"id","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1877,"b":1878,"line":102,"col":10}]}}],"usedParamSet":{"name":true,"topicId":true,"active":true,"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    name = COALESCE(:name, name),\n    topic_id = COALESCE(:topicId, topic_id),\n    active = COALESCE(:active, active),\n    updated_at = NOW()\nWHERE\n    id = :id\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":1688,"b":1986,"line":94,"col":0}}};
+const updateTeacherClassIR: any = {"name":"updateTeacherClass","params":[{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1740,"b":1743,"line":97,"col":21}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1778,"b":1784,"line":98,"col":25}]}},{"name":"active","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1821,"b":1826,"line":99,"col":23}]}},{"name":"id","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1877,"b":1878,"line":102,"col":10}]}}],"usedParamSet":{"name":true,"topicId":true,"active":true,"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    name = COALESCE(:name, name),\n    topic_id = COALESCE(:topicId, topic_id),\n    active = COALESCE(:active, active),\n    updated_at = NOW()\nWHERE\n    id = :id\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":1688,"b":1986,"line":94,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -341,6 +341,6 @@ const updateClassDetailsIR: any = {"name":"updateClassDetails","params":[{"name"
  *     updated_at
  * ```
  */
-export const updateClassDetails = new PreparedQuery<IUpdateClassDetailsParams,IUpdateClassDetailsResult>(updateClassDetailsIR);
+export const updateTeacherClass = new PreparedQuery<IUpdateTeacherClassParams,IUpdateTeacherClassResult>(updateTeacherClassIR);
 
 
