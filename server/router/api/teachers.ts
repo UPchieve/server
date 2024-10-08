@@ -69,12 +69,12 @@ export function routeTeachers(app: Express, router: Router): void {
   router.route('/assignment').post(async function(req, res) {
     try {
       const assignmentData = AssignmentsService.asAssignment(
-        req.body.assignmentData
+        req.body.assignmentData,
+        req.body.studentIds
       )
-      const studentIds = req.body.studentIds
+      // const studentIds = req.body.studentIds
       const assignment = await AssignmentsService.createAssignment(
-        assignmentData,
-        studentIds
+        assignmentData
       )
       res.json({ assignment })
     } catch (err) {
