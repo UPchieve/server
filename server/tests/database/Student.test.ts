@@ -58,7 +58,7 @@ describe('createStudentProfile', () => {
     expect(createdStudent.grade_level_id).toBe(2)
   })
 
-  test('Parter key not null', async () => {
+  test('Partner key not null', async () => {
     const user = await createUser()
 
     const student = {
@@ -72,7 +72,7 @@ describe('createStudentProfile', () => {
     expect(actual.rows.length).toBe(1)
     const createdStudent = actual.rows[0]
     expect(createdStudent.student_partner_org_id).toBe(
-      '01859800-bbed-b3e3-f1db-a8e79e57e498'
+      '01919662-87dc-5824-8bf6-e5e408bf6f40'
     )
   })
 
@@ -91,10 +91,10 @@ describe('createStudentProfile', () => {
     expect(actual.rows.length).toBe(1)
     const createdStudent = actual.rows[0]
     expect(createdStudent.student_partner_org_id).toBe(
-      '01859800-bbed-150a-2f52-f0856c633b63'
+      '01919662-87dc-1b9c-e053-326c64a2edbc'
     )
     expect(createdStudent.student_partner_org_site_id).toBe(
-      '01859800-bc55-365f-1735-c9d446c9adcc'
+      '01919662-87f5-4c6a-507e-0887e65ba6c7'
     )
   })
 
@@ -153,13 +153,13 @@ describe('upsertStudentProfile', () => {
     )
     expect(before.rows.length).toBe(1)
 
-    const COLLEGE_MENTORS_SPO_ID = '01859800-bbed-150a-2f52-f0856c633b63'
-    const COLLEGE_MENTORS_SPO_SITE_ID = '01859800-bc55-58ea-c1c8-0d8f14d3a1a6'
+    const COLLEGE_MENTORS_SPO_ID = '01919662-87dc-1b9c-e053-326c64a2edbc'
+    const COLLEGE_MENTORS_SPO_SITE_ID = '01919662-87f5-aa97-e107-b2e537409c85'
     const updatedStudent = {
       ...student,
       gradeLevel: '10th',
       zipCode: '00000',
-      schoolId: '01859800-bc76-7db0-734b-b567fa67a568',
+      schoolId: '01919662-87fb-76b3-54f8-db306e73e181',
       studentPartnerOrgKey: 'college-mentors',
       studentPartnerOrgSiteName: 'Brooklyn',
     }
@@ -180,13 +180,13 @@ describe('upsertStudentProfile', () => {
     )
   })
 
-  test('updates only the values that are new, except grade level and parter site', async () => {
+  test('updates only the values that are new, except grade level and partner site', async () => {
     const user = await createUser()
 
     const GRADE_LEVEL_8TH_ID = 1
-    const COLLEGE_MENTORS_SPO_ID = '01859800-bbed-150a-2f52-f0856c633b63'
-    const COLLEGE_MENTORS_SPO_SITE_ID = '01859800-bc55-58ea-c1c8-0d8f14d3a1a6'
-    const UNAPPROVED_SCHOOL_ID = '01859800-bc76-7db0-734b-b567fa67a568'
+    const COLLEGE_MENTORS_SPO_ID = '01919662-87dc-1b9c-e053-326c64a2edbc'
+    const COLLEGE_MENTORS_SPO_SITE_ID = '01919662-87f5-ff78-938f-0a96942eb02f'
+    const UNAPPROVED_SCHOOL_ID = '01919662-87fb-9261-542c-58cbced78fc3'
     await client.query(
       'INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)',
       [
@@ -246,7 +246,7 @@ describe('upsertStudentProfile', () => {
     expect(afterWithUpdate.rows.length).toBe(1)
     expect(afterWithUpdate.rows[0].grade_level_id).toBe(GRADE_LEVEL_8TH_ID)
     expect(afterWithUpdate.rows[0].student_partner_org_id).toBe(
-      '01859800-bbed-b3e3-f1db-a8e79e57e498'
+      '01919662-87dc-5824-8bf6-e5e408bf6f40'
     )
     expect(afterWithUpdate.rows[0].student_partner_org_site_id).toBeNull()
   })

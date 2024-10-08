@@ -14,7 +14,7 @@ describe('getPartnerSchools', () => {
       r => r.schoolName === 'Approved Partner School'
     )
     expect(approvedSchool?.schoolId).toBe(
-      '01859800-bc76-2674-709e-b08a177869f9'
+      '01919662-87fb-d63d-788d-7417e752f5d0'
     )
     expect(approvedSchool?.partnerKey).toBe('approved-partner-school')
     expect(approvedSchool?.partnerSites?.length).toBe(0)
@@ -22,7 +22,7 @@ describe('getPartnerSchools', () => {
       r => r.schoolName === 'Another Approved Partner School'
     )
     expect(anotherApprovedSchool?.schoolId).toBe(
-      '01859800-bc76-4e87-f09a-8d9a672ae4df'
+      '01919662-87fb-6ad2-8227-c1e38adf0907'
     )
     expect(anotherApprovedSchool?.partnerKey).toBe(
       'another-approved-partner-school'

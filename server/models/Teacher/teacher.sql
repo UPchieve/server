@@ -74,7 +74,7 @@ SELECT
         FROM
             student_classes
         WHERE
-            class_id = id) AS total_students
+            class_id = id)::int AS total_students
 FROM
     teacher_classes
 WHERE

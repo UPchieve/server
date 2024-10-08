@@ -20,10 +20,11 @@ export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
 }
 
 export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
+  const twelveHoursInMs = 1000 * 60 * 60 * 12
   await QueueService.add(
     Jobs.EmailFallIncentiveInvitedToEnrollReminder,
     { userId },
-    { removeOnComplete: true, removeOnFail: true }
+    { removeOnComplete: true, removeOnFail: true, delay: twelveHoursInMs }
   )
 }
 

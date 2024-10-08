@@ -14,3 +14,12 @@ WHERE
 ORDER BY
     tc.created_at ASC;
 
+
+/* @name getTotalStudentsInClass */
+SELECT
+    COUNT(*)::int AS count
+FROM
+    student_classes
+WHERE
+    class_id = :classId!;
+
