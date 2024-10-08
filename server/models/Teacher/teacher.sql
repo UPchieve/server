@@ -94,12 +94,29 @@ WHERE
 UPDATE
     teacher_classes
 SET
-    name = COALESCE(:name, name),
-    topic_id = COALESCE(:topicId, topic_id),
-    active = COALESCE(:active, active),
+    name = :name!,
+    topic_id = :topicId!,
     updated_at = NOW()
 WHERE
-    id = :id
+    id = :id!
+RETURNING
+    id,
+    user_id,
+    name,
+    code,
+    topic_id,
+    active,
+    created_at,
+    updated_at;
+
+
+/* @name setActiveStatusOnTeacherClass */
+UPDATE
+    teacher_classes
+SET
+    active = :active!
+WHERE
+    id = :id!
 RETURNING
     id,
     user_id,

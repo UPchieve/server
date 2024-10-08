@@ -111,15 +111,27 @@ async function generateUniqueClassCode(tc: TransactionClient) {
   throw new Error('Could not generate unique class code.')
 }
 
-async function updateTeacherClass(
-  id?: string,
-  name?: string,
-  topicId?: number,
-  active?: boolean
+export async function updateTeacherClass(
+  id: string,
+  name: string,
+  topicId: number
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
     const updatedClass = await TeacherRepo.updateTeacherClass(
-      { id, name, topicId, active },
+      { id, name, topicId },
+      tc
+    )
+    return updatedClass
+  })
+}
+
+export async function setActiveStatusOnTeacherClass(
+  id: string,
+  active: boolean
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const updatedClass = await TeacherRepo.setActiveStatusOnTeacherClass(
+      { id, active },
       tc
     )
     return updatedClass

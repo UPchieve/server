@@ -124,7 +124,7 @@ export async function getStudentIdsInTeacherClass(
 }
 
 export async function updateTeacherClass(
-  data: { id?: string; name?: string; topicId?: number; active?: boolean },
+  data: { id: string; name: string; topicId: number },
   tc: TransactionClient
 ) {
   try {
@@ -133,6 +133,23 @@ export async function updateTeacherClass(
         id: data.id,
         name: data.name,
         topicId: data.topicId,
+      },
+      tc
+    )
+    return makeSomeOptional(updatedClass[0], ['topicId'])
+  } catch (err) {
+    throw new RepoUpsertError(err)
+  }
+}
+
+export async function setActiveStatusOnTeacherClass(
+  data: { id: string; active: boolean },
+  tc: TransactionClient
+) {
+  try {
+    const updatedClass = await pgQueries.setActiveStatusOnTeacherClass.run(
+      {
+        id: data.id,
         active: data.active,
       },
       tc
