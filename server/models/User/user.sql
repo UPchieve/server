@@ -472,22 +472,18 @@ SELECT
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
     (
-        CASE WHEN schools.partner IS FALSE THEN
-            FALSE
+        CASE WHEN EXISTS (
+            SELECT
+                1
+            FROM
+                student_partner_orgs
+            LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spoui.student_partner_org_id = student_partner_orgs.id
+        WHERE
+            student_partner_orgs.school_id = student_profiles.school_id
+            AND spoui.deactivated_on IS NULL) THEN
+            TRUE
         ELSE
-            CASE WHEN EXISTS (
-                SELECT
-                    1
-                FROM
-                    student_partner_orgs spo
-                    JOIN student_partner_orgs_upchieve_instances spoui ON spoui.student_partner_org_id = spo.id
-                WHERE
-                    spo.school_id = schools.id
-                    AND spoui.deactivated_on IS NULL) THEN
-                TRUE
-            ELSE
-                FALSE
-            END
+            FALSE
         END) AS is_school_partner,
 COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
 array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
