@@ -89,3 +89,24 @@ FROM
 WHERE
     class_id = :classId!;
 
+
+/* @name updateClassDetails */
+UPDATE
+    teacher_classes
+SET
+    name = COALESCE(:name, name),
+    topic_id = COALESCE(:topicId, topic_id),
+    active = COALESCE(:active, active),
+    updated_at = NOW()
+WHERE
+    id = :id
+RETURNING
+    id,
+    user_id,
+    name,
+    code,
+    topic_id,
+    active,
+    created_at,
+    updated_at;
+

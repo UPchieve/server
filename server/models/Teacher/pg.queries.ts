@@ -290,3 +290,57 @@ const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass"
 export const getStudentIdsInTeacherClass = new PreparedQuery<IGetStudentIdsInTeacherClassParams,IGetStudentIdsInTeacherClassResult>(getStudentIdsInTeacherClassIR);
 
 
+/** 'UpdateClassDetails' parameters type */
+export interface IUpdateClassDetailsParams {
+  active: boolean | null | void;
+  id: string | null | void;
+  name: string | null | void;
+  topicId: number | null | void;
+}
+
+/** 'UpdateClassDetails' return type */
+export interface IUpdateClassDetailsResult {
+  active: boolean;
+  code: string;
+  createdAt: Date;
+  id: string;
+  name: string;
+  topicId: number | null;
+  updatedAt: Date;
+  userId: string | null;
+}
+
+/** 'UpdateClassDetails' query type */
+export interface IUpdateClassDetailsQuery {
+  params: IUpdateClassDetailsParams;
+  result: IUpdateClassDetailsResult;
+}
+
+const updateClassDetailsIR: any = {"name":"updateClassDetails","params":[{"name":"name","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1740,"b":1743,"line":97,"col":21}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1778,"b":1784,"line":98,"col":25}]}},{"name":"active","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1821,"b":1826,"line":99,"col":23}]}},{"name":"id","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1877,"b":1878,"line":102,"col":10}]}}],"usedParamSet":{"name":true,"topicId":true,"active":true,"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    name = COALESCE(:name, name),\n    topic_id = COALESCE(:topicId, topic_id),\n    active = COALESCE(:active, active),\n    updated_at = NOW()\nWHERE\n    id = :id\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":1688,"b":1986,"line":94,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     teacher_classes
+ * SET
+ *     name = COALESCE(:name, name),
+ *     topic_id = COALESCE(:topicId, topic_id),
+ *     active = COALESCE(:active, active),
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :id
+ * RETURNING
+ *     id,
+ *     user_id,
+ *     name,
+ *     code,
+ *     topic_id,
+ *     active,
+ *     created_at,
+ *     updated_at
+ * ```
+ */
+export const updateClassDetails = new PreparedQuery<IUpdateClassDetailsParams,IUpdateClassDetailsResult>(updateClassDetailsIR);
+
+
