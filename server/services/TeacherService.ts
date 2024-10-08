@@ -29,7 +29,22 @@ export async function createTeacherClass(
 }
 
 export async function getTeacherClasses(userId: Ulid) {
-  return TeacherRepo.getTeacherClassesByUserId(userId)
+  return runInTransaction(async (tc: TransactionClient) => {
+    const teacherClasses = await TeacherRepo.getTeacherClassesByUserId(
+      userId,
+      tc
+    )
+    const teacherClassesAndStudents = await Promise.all(
+      teacherClasses.map(async teacherClass => {
+        const students = await getStudentsInTeacherClass(teacherClass.id)
+        return {
+          ...teacherClass,
+          students,
+        }
+      })
+    )
+    return teacherClassesAndStudents
+  })
 }
 
 export async function getTeacherClassByClassCode(code: string) {
