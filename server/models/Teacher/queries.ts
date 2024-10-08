@@ -124,8 +124,8 @@ export async function getStudentIdsInTeacherClass(
 }
 
 export async function updateTeacherClass(
-  tc: TransactionClient,
-  data: { id: string; name: string; topicId: number; active: boolean }
+  data: { id?: string; name?: string; topicId?: number; active?: boolean },
+  tc: TransactionClient
 ) {
   try {
     const updatedClass = await pgQueries.updateTeacherClass.run(
