@@ -6,7 +6,10 @@ import { faker } from '@faker-js/faker'
 import _ from 'lodash'
 import createNewAvailability from '../../utils/create-new-availability'
 import { VolunteerPartnerOrg } from '../../models/VolunteerPartnerOrg'
-import { StudentPartnerOrg } from '../../models/StudentPartnerOrg'
+import {
+  StudentPartnerOrg,
+  StudentPartnerOrgUpchieveInstance,
+} from '../../models/StudentPartnerOrg'
 import { School } from '../../models/School'
 import { DAYS, GRADES, HOURS } from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
@@ -322,20 +325,30 @@ export function buildVolunteerPartnerOrg(
 }
 
 export function buildStudentPartnerOrg(
-  overrides: Partial<StudentPartnerOrg> = {}
-): StudentPartnerOrg {
+  overrides: Partial<StudentPartnerOrg> & { id?: string | Ulid } = {}
+): Partial<StudentPartnerOrg> & { id: Ulid | string } {
   return {
+    id: getDbUlid(),
     key: 'school-helpers',
     name: 'School Helpers',
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
     signupCode: 'SCHOOLHELPERS',
-    sites: [],
-    isSchool: false,
-    deactivated: false,
     ...overrides,
   }
+}
+
+export function buildStudentPartnerOrgUpchieveInstance(
+  overrides: Partial<StudentPartnerOrgUpchieveInstance> & {
+    studentPartnerOrgId: string
+  }
+): StudentPartnerOrgUpchieveInstance {
+  return {
+    id: getDbUlid(),
+    studentPartnerOrgId: overrides?.studentPartnerOrgId,
+    deactivatedOn: overrides?.deactivatedOn ?? null,
+  } as StudentPartnerOrgUpchieveInstance
 }
 
 export function buildSchool(overrides: Partial<School> = {}): School {
