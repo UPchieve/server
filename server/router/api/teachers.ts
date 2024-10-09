@@ -3,7 +3,6 @@ import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
-import { asString, asArray } from '../../utils/type-utils'
 
 export function routeTeachers(app: Express, router: Router): void {
   /* Classes */
@@ -72,10 +71,8 @@ export function routeTeachers(app: Express, router: Router): void {
         req.body.assignmentData,
         req.body.studentIds
       )
-      // const studentIds = req.body.studentIds
       const assignment = await AssignmentsService.createAssignment(
-        assignmentData,
-        studentIds
+        assignmentData
       )
       res.json({ assignment })
     } catch (err) {
