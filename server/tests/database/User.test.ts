@@ -3,9 +3,9 @@ import { getClient } from '../../db'
 import {
   banUserById,
   createUser,
+  CreateUserPayload,
   deleteUserPhoneInfo,
   getUserContactInfoById,
-  getUserIdByEmail,
   upsertUser,
   UserContactInfo,
 } from '../../models/User'
@@ -15,17 +15,20 @@ import {
   USER_BAN_TYPES,
 } from '../../constants'
 import { reportSession } from '../../services/SessionService'
-import { buildSessionRow, buildUserRole } from '../mocks/generate'
+import {
+  buildSessionRow,
+  buildStudentPartnerOrg,
+  buildStudentPartnerOrgUpchieveInstance,
+  buildStudentProfile,
+  buildUserRole,
+} from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 import { adminUpdateUser } from '../../services/UserService'
+import { getDbUlid } from '../../models/pgUtils'
+import { getLegacyUser } from '../../models/User/pg.queries'
 
 const client = getClient()
 jest.mock('../../services/MailService')
-
-test('Make a connection', async () => {
-  const result = await getUserIdByEmail('student@upchieve.org')
-  expect(result).toBeUndefined()
-})
 
 test('createUser', async () => {
   const user = {
@@ -33,7 +36,7 @@ test('createUser', async () => {
     firstName: 'Test',
     lastName: 'McTest',
     password: 'Pass123',
-    referralCode: '999',
+    referralCode: faker.string.uuid(),
   }
 
   await createUser(user, client)
@@ -83,6 +86,199 @@ test('deleteUserPhoneInfo', async () => {
   )
 })
 
+describe('getLegacyUser', () => {
+  const BROOKLYN_CITY_ID = 2
+  const nonPartnerSchool = {
+    id: getDbUlid(),
+    name: 'Non Partner School',
+    isPartner: false,
+    cityId: BROOKLYN_CITY_ID,
+  }
+  const partnerSchool = {
+    id: getDbUlid(),
+    name: 'Partner School',
+    isPartner: false,
+    cityId: BROOKLYN_CITY_ID,
+  }
+  const partnerSchoolWithNoInstances = {
+    id: getDbUlid(),
+    name: 'Partner School With No Instances',
+    isPartner: false,
+    cityId: BROOKLYN_CITY_ID,
+  }
+  const partnerSchoolSpoId = getDbUlid() as string
+  const partnerSchoolWithNoInstancesSpoId = getDbUlid() as string
+
+  beforeAll(async () => {
+    await client.query(
+      'REFRESH MATERIALIZED VIEW upchieve.current_grade_levels_mview'
+    )
+
+    // Insert schools
+    const insertSchoolSql =
+      'INSERT INTO upchieve.schools (id, name, partner, city_id) VALUES ($1, $2, $3, $4)'
+    await client.query(insertSchoolSql, [
+      nonPartnerSchool.id,
+      nonPartnerSchool.name,
+      nonPartnerSchool.isPartner,
+      nonPartnerSchool.cityId,
+    ])
+    await client.query(insertSchoolSql, [
+      partnerSchool.id,
+      partnerSchool.name,
+      partnerSchool.isPartner,
+      partnerSchool.cityId,
+    ])
+    await client.query(insertSchoolSql, [
+      partnerSchoolWithNoInstances.id,
+      partnerSchoolWithNoInstances.name,
+      partnerSchoolWithNoInstances.isPartner,
+      partnerSchoolWithNoInstances.cityId,
+    ])
+
+    // Insert their related student_partner_orgs
+    await insertSingleRow(
+      'upchieve.student_partner_orgs',
+      buildStudentPartnerOrg({
+        id: partnerSchoolSpoId,
+        key: 'partner school spo',
+        name: 'partner school spo',
+        signupCode: 'PS SPO',
+        schoolId: partnerSchool.id,
+      }),
+      client
+    )
+    await insertSingleRow(
+      'upchieve.student_partner_orgs',
+      buildStudentPartnerOrg({
+        id: partnerSchoolWithNoInstancesSpoId,
+        key: 'partner school spo 2',
+        name: 'partner school spo 2',
+        signupCode: 'PS SPO 2',
+        schoolId: partnerSchoolWithNoInstances.id,
+      }),
+      client
+    )
+  })
+
+  const saveUserToDb = async () => {
+    const payload: CreateUserPayload = {
+      email: faker.internet.email(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+    }
+    return createUser(payload, client)
+  }
+
+  const testIsSchoolPartner = async (
+    userId: string,
+    isSchoolPartner: boolean
+  ) => {
+    const legacyUser = await getLegacyUser.run({ userId }, client)
+    expect(legacyUser.length).toEqual(1)
+    expect((legacyUser[0] as any).is_school_partner).toEqual(isSchoolPartner)
+  }
+
+  it('gives is_school_partner=false when the schools not an SPO', async () => {
+    const user = await saveUserToDb()
+    await insertSingleRow(
+      'student_profiles',
+      buildStudentProfile({
+        userId: user.id,
+        schoolId: nonPartnerSchool.id,
+      }),
+      client
+    )
+    await testIsSchoolPartner(user.id, false)
+  })
+
+  it('gives is_school_partner=true when the school is an SPO but has no instances', async () => {
+    const user = await saveUserToDb()
+    await insertSingleRow(
+      'student_profiles',
+      buildStudentProfile({
+        userId: user.id,
+        schoolId: partnerSchoolWithNoInstances.id,
+      }),
+      client
+    )
+    await testIsSchoolPartner(user.id, true)
+  })
+
+  it('gives is_school_partner=false when the school SPO instance is deactivated', async () => {
+    const user = await saveUserToDb()
+    await insertSingleRow(
+      'student_profiles',
+      buildStudentProfile({
+        userId: user.id,
+        schoolId: partnerSchool.id,
+      }),
+      client
+    )
+    await insertSingleRow(
+      'student_partner_orgs_upchieve_instances',
+      buildStudentPartnerOrgUpchieveInstance({
+        studentPartnerOrgId: partnerSchoolSpoId,
+        deactivatedOn: new Date(),
+      }),
+      client
+    )
+    await testIsSchoolPartner(user.id, false)
+  })
+
+  it('gives is_school_partner=true when there exists some school SPO instance with deactivated_on=null', async () => {
+    const user = await saveUserToDb()
+    await insertSingleRow(
+      'student_profiles',
+      buildStudentProfile({
+        userId: user.id,
+        schoolId: partnerSchool.id,
+      }),
+      client
+    )
+    await insertSingleRow(
+      'student_partner_orgs_upchieve_instances',
+      buildStudentPartnerOrgUpchieveInstance({
+        studentPartnerOrgId: partnerSchoolSpoId,
+        deactivatedOn: new Date(),
+      }),
+      client
+    )
+    await insertSingleRow(
+      'student_partner_orgs_upchieve_instances',
+      buildStudentPartnerOrgUpchieveInstance({
+        studentPartnerOrgId: partnerSchoolSpoId,
+        deactivatedOn: null,
+      }),
+      client
+    )
+    await insertSingleRow(
+      'student_partner_orgs_upchieve_instances',
+      buildStudentPartnerOrgUpchieveInstance({
+        studentPartnerOrgId: partnerSchoolSpoId,
+        deactivatedOn: new Date(),
+      }),
+      client
+    )
+
+    await testIsSchoolPartner(user.id, true)
+
+    // Now deactivate the partner
+    await client.query(
+      'UPDATE upchieve.student_partner_orgs_upchieve_instances SET deactivated_on = NOW() where student_partner_org_id = $1',
+      [partnerSchoolSpoId]
+    )
+    await testIsSchoolPartner(user.id, false)
+
+    // Now activate the partner again
+    await client.query(
+      'INSERT INTO upchieve.student_partner_orgs_upchieve_instances (id, student_partner_org_id, deactivated_on) VALUES ($1, $2, $3)',
+      [getDbUlid(), partnerSchoolSpoId, null]
+    )
+    await testIsSchoolPartner(user.id, true)
+  })
+})
+
 describe('upsertUser', () => {
   test('creates the user if did not exist', async () => {
     const user = {
@@ -90,7 +286,7 @@ describe('upsertUser', () => {
       firstName: 'Create',
       lastName: 'Upsert',
       password: 'Pass123',
-      referralCode: '999',
+      referralCode: faker.string.uuid(),
     }
 
     const before = await client.query('SELECT * FROM users WHERE email = $1', [
