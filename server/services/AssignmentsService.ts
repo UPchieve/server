@@ -42,7 +42,10 @@ export const asAssignment = asFactory<CreateAssignmentPayload>({
   title: asOptional(asString),
 })
 
-export async function createAssignment(data: CreateAssignmentPayload) {
+export async function createAssignment(
+  data: CreateAssignmentPayload,
+  studentIds: string[]
+) {
   return runInTransaction(async (tc: TransactionClient) => {
     const numSessions = data.numberOfSessions
     if (numSessions && numSessions <= 0)
@@ -72,7 +75,11 @@ export async function createAssignment(data: CreateAssignmentPayload) {
       tc
     )
 
-    await addAssignmentForClass(data.classId, assignment.id, tc)
+    if (studentIds.length > 0) {
+      await addAssignmentForStudents(studentIds, assignment.id, tc)
+    } else {
+      await addAssignmentForClass(data.classId, assignment.id, tc)
+    }
 
     return assignment
   })
