@@ -25,21 +25,24 @@ describe('createAssignment', () => {
     }
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = -5
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = -5690
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
@@ -66,7 +69,8 @@ describe('createAssignment', () => {
 
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
@@ -93,21 +97,24 @@ describe('createAssignment', () => {
 
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = 100
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = 679834
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
@@ -128,7 +135,8 @@ describe('createAssignment', () => {
 
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
 
@@ -138,7 +146,8 @@ describe('createAssignment', () => {
     data.startDate = startDate.toDate()
     await expect(
       AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+        data as AssignmentsService.CreateAssignmentPayload,
+        []
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
 
@@ -167,7 +176,8 @@ describe('createAssignment', () => {
     ])
 
     await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+      data as AssignmentsService.CreateAssignmentPayload,
+      []
     )
 
     dueDate = moment()
@@ -175,7 +185,8 @@ describe('createAssignment', () => {
     data.dueDate = dueDate.toDate()
     data.startDate = startDate.toDate()
     await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+      data as AssignmentsService.CreateAssignmentPayload,
+      []
     )
 
     expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledTimes(2)
@@ -199,7 +210,8 @@ describe('createAssignment', () => {
     ])
 
     await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+      data as AssignmentsService.CreateAssignmentPayload,
+      []
     )
 
     expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
@@ -234,7 +246,8 @@ describe('createAssignment', () => {
       'student-id-1',
     ])
     await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+      data as AssignmentsService.CreateAssignmentPayload,
+      []
     )
     expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
       data,

@@ -74,7 +74,8 @@ export function routeTeachers(app: Express, router: Router): void {
       )
       // const studentIds = req.body.studentIds
       const assignment = await AssignmentsService.createAssignment(
-        assignmentData
+        assignmentData,
+        studentIds
       )
       res.json({ assignment })
     } catch (err) {
