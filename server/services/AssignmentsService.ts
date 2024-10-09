@@ -75,7 +75,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
       tc
     )
 
-    if (data.studentIds.length > 0) {
+    if (data.studentIds && data.studentIds.length > 0) {
       await addAssignmentForStudents(data.studentIds, assignment.id, tc)
     } else {
       await addAssignmentForClass(data.classId, assignment.id, tc)
