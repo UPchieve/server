@@ -124,7 +124,7 @@ export async function getStudentIdsInTeacherClass(
 }
 
 export async function updateTeacherClass(
-  data: { id: string; name: string; topicId: number },
+  data: { id: Ulid; name: string; topicId: number },
   tc: TransactionClient
 ) {
   try {
