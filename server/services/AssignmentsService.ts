@@ -12,6 +12,7 @@ import {
   asNumber,
   asOptional,
   asString,
+  asArray,
 } from '../utils/type-utils'
 import {
   Assignment,
@@ -29,6 +30,7 @@ export type CreateAssignmentPayload = {
   startDate?: Date
   subjectId?: number
   title?: string
+  studentIds: Array<string>
 }
 export const asAssignment = asFactory<CreateAssignmentPayload>({
   classId: asString,
@@ -40,12 +42,10 @@ export const asAssignment = asFactory<CreateAssignmentPayload>({
   startDate: asOptional(asDate),
   subjectId: asOptional(asNumber),
   title: asOptional(asString),
+  studentIds: asArray(asString),
 })
 
-export async function createAssignment(
-  data: CreateAssignmentPayload,
-  studentIds: string[]
-) {
+export async function createAssignment(data: CreateAssignmentPayload) {
   return runInTransaction(async (tc: TransactionClient) => {
     const numSessions = data.numberOfSessions
     if (numSessions && numSessions <= 0)
@@ -75,8 +75,8 @@ export async function createAssignment(
       tc
     )
 
-    if (studentIds.length > 0) {
-      await addAssignmentForStudents(studentIds, assignment.id, tc)
+    if (data.studentIds && data.studentIds.length > 0) {
+      await addAssignmentForStudents(data.studentIds, assignment.id, tc)
     } else {
       await addAssignmentForClass(data.classId, assignment.id, tc)
     }
