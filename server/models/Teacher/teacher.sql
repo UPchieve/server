@@ -32,7 +32,8 @@ SELECT
     active,
     COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
-    teacher_classes.updated_at
+    teacher_classes.updated_at,
+    teacher_classes.deactivated_on
 FROM
     teacher_classes
     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
@@ -51,7 +52,8 @@ SELECT
     active,
     topic_id,
     created_at,
-    updated_at
+    updated_at,
+    deactivated_on
 FROM
     teacher_classes
 WHERE

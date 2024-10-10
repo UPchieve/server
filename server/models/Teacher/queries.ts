@@ -74,7 +74,7 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeSomeOptional(c, ['topicId']))
+    return classes.map(c => makeSomeOptional(c, ['topicId', 'deactivatedOn']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -90,7 +90,7 @@ export async function getTeacherClassByClassCode(
       tc
     )
     if (teacherClass.length) {
-      return makeSomeOptional(teacherClass[0], ['topicId'])
+      return makeSomeOptional(teacherClass[0], ['topicId', 'deactivatedOn'])
     }
   } catch (err) {
     throw new RepoReadError(err)
