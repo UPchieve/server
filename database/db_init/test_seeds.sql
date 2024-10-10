@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -241,7 +241,7 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 -- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id) FROM stdin;
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on) FROM stdin;
 \.
 
 

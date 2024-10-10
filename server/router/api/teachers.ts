@@ -3,6 +3,7 @@ import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
+import { asNumber, asString } from '../../utils/type-utils'
 
 export function routeTeachers(app: Express, router: Router): void {
   /* Classes */
@@ -59,6 +60,34 @@ export function routeTeachers(app: Express, router: Router): void {
       const classId = req.params.classId as string
       const teacherClass = await TeacherService.getTeacherClassById(classId)
       res.json({ teacherClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/class/update').post(async function(req, res) {
+    try {
+      const className = asString(req.body.className)
+      const topicId = asNumber(req.body.topicId)
+      const id = asString(req.body.id)
+
+      const updatedClass = await TeacherService.updateTeacherClass(
+        id,
+        className,
+        topicId
+      )
+      res.json({ updatedClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/class/deactivate').post(async function(req, res) {
+    try {
+      const id = asString(req.body.id)
+
+      const updatedClass = await TeacherService.deactivateTeacherClass(id)
+      res.json({ updatedClass })
     } catch (err) {
       resError(res, err)
     }

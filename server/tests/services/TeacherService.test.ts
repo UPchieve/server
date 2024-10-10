@@ -104,6 +104,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'b',
@@ -114,6 +115,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'c',
@@ -124,6 +126,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'd',
@@ -134,6 +137,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'e',
@@ -144,6 +148,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
 
     await expect(async () => {
@@ -164,6 +169,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'b',
@@ -174,6 +180,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'c',
@@ -184,6 +191,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
         id: 'd',
@@ -194,6 +202,7 @@ describe('createTeacherClass', () => {
         topicId: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
+        deactivatedOn: undefined,
       })
       .mockResolvedValueOnce(undefined)
 
@@ -234,6 +243,7 @@ describe('getTeacherSchoolIdFromClassCode', () => {
       topicId: undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
+      deactivatedOn: undefined,
     }
     const teacher = {
       userId: teacherClass.userId,
@@ -267,6 +277,7 @@ describe('getTeacherSchoolIdFromClassCode', () => {
       topicId: undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
+      deactivatedOn: undefined,
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
     mockedTeacherRepo.getTeacherById.mockResolvedValue(undefined)
@@ -289,6 +300,7 @@ describe('addStudentToTeacherClass', () => {
       topicId: undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
+      deactivatedOn: undefined,
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
 
@@ -315,6 +327,7 @@ describe('addStudentToTeacherClass', () => {
       topicId: undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
+      deactivatedOn: undefined,
     }
 
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
