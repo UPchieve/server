@@ -4,7 +4,7 @@ import * as pgQueries from './pg.queries'
 export async function reportReasons(): Promise<NameToId> {
   const reasons = [
     {
-      reason: 'This student was extremely rude or inappropriate',
+      reason: '[Immediate ban] Student extremely rude/inappropriate',
     },
     {
       reason: 'I am worried for the immediate safety of this student',
