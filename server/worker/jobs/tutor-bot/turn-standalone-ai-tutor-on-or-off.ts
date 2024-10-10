@@ -37,7 +37,7 @@ const validateStatus = (status: number) => status >= 200 && status < 300
 
 async function setFeatureFlagEnabled(enable: boolean) {
   // See https://posthog.com/docs/api/feature-flags#get-api-projects-project_id-feature_flags-id
-  const requestUrl = `https://us.i.posthog.com/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogStandaloneAiTutorFeatureFlagId}`
+  const requestUrl = `https://us.i.posthog.com/api/projects/${config.posthogProjectId}/feature_flags/${config.posthogAiTutorBotSubjectModelsFeatureFlagId}`
   const data = {
     active: enable,
   }

@@ -26,6 +26,7 @@ export function routeTutorBot(router: Router) {
             conversationId: req.params.conversationId,
             message: req.body.message,
             senderUserType: req.body.senderUserType,
+            subjectName: req.body.subjectName,
           })
           return res.json(botResponse).status(200)
         } else {
