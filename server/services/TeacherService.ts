@@ -125,15 +125,9 @@ export async function updateTeacherClass(
   })
 }
 
-export async function setActiveStatusOnTeacherClass(
-  id: string,
-  active: boolean
-) {
+export async function deactivateTeacherClass(id: string) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const updatedClass = await TeacherRepo.setActiveStatusOnTeacherClass(
-      { id, active },
-      tc
-    )
+    const updatedClass = await TeacherRepo.deactivateTeacherClass({ id }, tc)
     return updatedClass
   })
 }

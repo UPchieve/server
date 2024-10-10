@@ -342,14 +342,13 @@ const updateTeacherClassIR: any = {"name":"updateTeacherClass","params":[{"name"
 export const updateTeacherClass = new PreparedQuery<IUpdateTeacherClassParams,IUpdateTeacherClassResult>(updateTeacherClassIR);
 
 
-/** 'SetActiveStatusOnTeacherClass' parameters type */
-export interface ISetActiveStatusOnTeacherClassParams {
-  active: boolean;
+/** 'DeactivateTeacherClass' parameters type */
+export interface IDeactivateTeacherClassParams {
   id: string;
 }
 
-/** 'SetActiveStatusOnTeacherClass' return type */
-export interface ISetActiveStatusOnTeacherClassResult {
+/** 'DeactivateTeacherClass' return type */
+export interface IDeactivateTeacherClassResult {
   active: boolean;
   code: string;
   createdAt: Date;
@@ -360,13 +359,13 @@ export interface ISetActiveStatusOnTeacherClassResult {
   userId: string | null;
 }
 
-/** 'SetActiveStatusOnTeacherClass' query type */
-export interface ISetActiveStatusOnTeacherClassQuery {
-  params: ISetActiveStatusOnTeacherClassParams;
-  result: ISetActiveStatusOnTeacherClassResult;
+/** 'DeactivateTeacherClass' query type */
+export interface IDeactivateTeacherClassQuery {
+  params: IDeactivateTeacherClassParams;
+  result: IDeactivateTeacherClassResult;
 }
 
-const setActiveStatusOnTeacherClassIR: any = {"name":"setActiveStatusOnTeacherClass","params":[{"name":"active","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2005,"b":2011,"line":117,"col":14}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2029,"b":2031,"line":119,"col":10}]}}],"usedParamSet":{"active":true,"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    active = :active!\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":1960,"b":2139,"line":114,"col":0}}};
+const deactivateTeacherClassIR: any = {"name":"deactivateTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2027,"b":2029,"line":119,"col":10}]}}],"usedParamSet":{"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    deactivated_on = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":1953,"b":2137,"line":114,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -374,7 +373,7 @@ const setActiveStatusOnTeacherClassIR: any = {"name":"setActiveStatusOnTeacherCl
  * UPDATE
  *     teacher_classes
  * SET
- *     active = :active!
+ *     deactivated_on = NOW()
  * WHERE
  *     id = :id!
  * RETURNING
@@ -388,6 +387,6 @@ const setActiveStatusOnTeacherClassIR: any = {"name":"setActiveStatusOnTeacherCl
  *     updated_at
  * ```
  */
-export const setActiveStatusOnTeacherClass = new PreparedQuery<ISetActiveStatusOnTeacherClassParams,ISetActiveStatusOnTeacherClassResult>(setActiveStatusOnTeacherClassIR);
+export const deactivateTeacherClass = new PreparedQuery<IDeactivateTeacherClassParams,IDeactivateTeacherClassResult>(deactivateTeacherClassIR);
 
 

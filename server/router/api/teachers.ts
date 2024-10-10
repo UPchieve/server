@@ -64,7 +64,7 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/class/edit').post(async function(req, res) {
+  router.route('/class/update').post(async function(req, res) {
     try {
       const className = req.body.className as string
       const topicId = req.body.topicId as number
@@ -81,15 +81,11 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/class/update-status').post(async function(req, res) {
+  router.route('/class/deactivate').post(async function(req, res) {
     try {
       const id = req.body.id as string
-      const active = req.body.active as boolean
 
-      const updatedClass = await TeacherService.setActiveStatusOnTeacherClass(
-        id,
-        active
-      )
+      const updatedClass = await TeacherService.deactivateTeacherClass(id)
       res.json({ updatedClass })
     } catch (err) {
       resError(res, err)

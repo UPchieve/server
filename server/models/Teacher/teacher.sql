@@ -110,11 +110,11 @@ RETURNING
     updated_at;
 
 
-/* @name setActiveStatusOnTeacherClass */
+/* @name deactivateTeacherClass */
 UPDATE
     teacher_classes
 SET
-    active = :active!
+    deactivated_on = NOW()
 WHERE
     id = :id!
 RETURNING

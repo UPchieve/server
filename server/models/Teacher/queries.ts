@@ -142,15 +142,14 @@ export async function updateTeacherClass(
   }
 }
 
-export async function setActiveStatusOnTeacherClass(
-  data: { id: string; active: boolean },
+export async function deactivateTeacherClass(
+  data: { id: string },
   tc: TransactionClient
 ) {
   try {
-    const updatedClass = await pgQueries.setActiveStatusOnTeacherClass.run(
+    const updatedClass = await pgQueries.deactivateTeacherClass.run(
       {
         id: data.id,
-        active: data.active,
       },
       tc
     )
