@@ -2103,7 +2103,8 @@ CREATE TABLE upchieve.teacher_classes (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    topic_id integer
+    topic_id integer,
+    deactivated_on timestamp with time zone
 );
 
 
@@ -6045,4 +6046,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240918170007'),
     ('20240918200433'),
     ('20240925165907'),
-    ('20240930195105');
+    ('20240930195105'),
+    ('20241009204150');
