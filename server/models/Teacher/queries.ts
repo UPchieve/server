@@ -123,9 +123,11 @@ export async function getStudentIdsInTeacherClass(
   }
 }
 
-export async function updateTeacherClass(
-  data: { id: Ulid; name: string; topicId: number },
-) {
+export async function updateTeacherClass(data: {
+  id: Ulid
+  name: string
+  topicId: number
+}) {
   try {
     const updatedClass = await pgQueries.updateTeacherClass.run(
       {
@@ -141,9 +143,7 @@ export async function updateTeacherClass(
   }
 }
 
-export async function deactivateTeacherClass(
-  id: string
-) {
+export async function deactivateTeacherClass(id: string) {
   try {
     const updatedClass = await pgQueries.deactivateTeacherClass.run(
       {

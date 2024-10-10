@@ -116,13 +116,15 @@ export async function updateTeacherClass(
   name: string,
   topicId: number
 ) {
-    const updatedClass = await TeacherRepo.updateTeacherClass(
-      { id, name, topicId }
-    )
-    return updatedClass
+  const updatedClass = await TeacherRepo.updateTeacherClass({
+    id,
+    name,
+    topicId,
+  })
+  return updatedClass
 }
 
 export async function deactivateTeacherClass(id: string) {
-    const updatedClass = await TeacherRepo.deactivateTeacherClass(id)
-    return updatedClass
+  const updatedClass = await TeacherRepo.deactivateTeacherClass(id)
+  return updatedClass
 }
