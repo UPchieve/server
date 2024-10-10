@@ -471,14 +471,27 @@ SELECT
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
-    schools.partner AS is_school_partner,
-    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
-    array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
-    users_quizzes.total::int AS total_quizzes_passed,
-    users_roles.role_id,
-    muted_users_subject_alerts_agg.muted_subject_alerts,
-    number_of_student_classes.count AS number_of_student_classes,
-    federated_credentials_agg.issuers
+    (
+        CASE WHEN EXISTS (
+            SELECT
+                1
+            FROM
+                student_partner_orgs
+            LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spoui.student_partner_org_id = student_partner_orgs.id
+        WHERE
+            student_partner_orgs.school_id = student_profiles.school_id
+            AND spoui.deactivated_on IS NULL) THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_school_partner,
+COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
+array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
+users_quizzes.total::int AS total_quizzes_passed,
+users_roles.role_id,
+muted_users_subject_alerts_agg.muted_subject_alerts,
+number_of_student_classes.count AS number_of_student_classes,
+federated_credentials_agg.issuers
 FROM
     users
     LEFT JOIN (
