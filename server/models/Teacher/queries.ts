@@ -125,7 +125,6 @@ export async function getStudentIdsInTeacherClass(
 
 export async function updateTeacherClass(
   data: { id: Ulid; name: string; topicId: number },
-  tc: TransactionClient
 ) {
   try {
     const updatedClass = await pgQueries.updateTeacherClass.run(
@@ -134,7 +133,7 @@ export async function updateTeacherClass(
         name: data.name,
         topicId: data.topicId,
       },
-      tc
+      getClient()
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
@@ -143,15 +142,14 @@ export async function updateTeacherClass(
 }
 
 export async function deactivateTeacherClass(
-  data: { id: string },
-  tc: TransactionClient
+  id: string
 ) {
   try {
     const updatedClass = await pgQueries.deactivateTeacherClass.run(
       {
-        id: data.id,
+        id,
       },
-      tc
+      getClient()
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {

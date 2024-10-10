@@ -116,18 +116,13 @@ export async function updateTeacherClass(
   name: string,
   topicId: number
 ) {
-  return runInTransaction(async (tc: TransactionClient) => {
     const updatedClass = await TeacherRepo.updateTeacherClass(
-      { id, name, topicId },
-      tc
+      { id, name, topicId }
     )
     return updatedClass
-  })
 }
 
 export async function deactivateTeacherClass(id: string) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const updatedClass = await TeacherRepo.deactivateTeacherClass({ id }, tc)
+    const updatedClass = await TeacherRepo.deactivateTeacherClass(id)
     return updatedClass
-  })
 }
