@@ -103,7 +103,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       user.id,
-      EVENTS.FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+      EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
       {},
       {
         fallIncentiveLimitReachedAt: expect.any(String),

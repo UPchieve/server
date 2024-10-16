@@ -79,7 +79,7 @@ export default async (
     )
     captureEvent(
       userId,
-      EVENTS.FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+      EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
       {},
       {
         fallIncentiveLimitReachedAt: new Date().toISOString(),
