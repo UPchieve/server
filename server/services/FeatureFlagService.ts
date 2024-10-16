@@ -2,7 +2,6 @@ import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
 import { Ulid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
-import { ISODateString } from '../types/dates'
 import * as AnalyticsService from './AnalyticsService'
 
 async function isFeatureEnabled(
@@ -135,11 +134,23 @@ export async function getCollegeListWorkSheetFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.COLLEGE_LIST_WORKSHEET, userId)
 }
 
+export type FallIncentiveFlagPayload = {
+  incentiveStartDate: Date
+  maxQualifiedSessionsPerWeek: number
+}
+
 export async function getFallIncentiveProgramPayload(
   userId: Ulid
-): Promise<ISODateString | null> {
-  return await getFeatureFlagPayload(
+): Promise<FallIncentiveFlagPayload | null> {
+  const payload = await getFeatureFlagPayload(
     FEATURE_FLAGS.FALL_INCENTIVE_PROGRAM,
     userId
   )
+  if (!payload) return null
+  if (!payload.maxQualifiedSessionsPerWeek)
+    payload.maxQualifiedSessionsPerWeek = 1
+  return {
+    incentiveStartDate: new Date(payload.incentiveStartDate),
+    maxQualifiedSessionsPerWeek: payload.maxQualifiedSessionsPerWeek,
+  }
 }
