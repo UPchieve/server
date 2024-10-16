@@ -55,7 +55,7 @@ export async function queueFallIncentiveSessionQualificationJob(
   )
 }
 
-type UserAndFallIncentiveDate = {
+type UserAndFallIncentiveData = {
   user: UserContactInfo
   productFlags: UserProductFlags
   incentivePayload: FallIncentiveFlagPayload
@@ -64,7 +64,7 @@ type UserAndFallIncentiveDate = {
 export async function getUserFallIncentiveData(
   userId: string,
   enrollmentFlag: boolean
-): Promise<UserAndFallIncentiveDate | undefined> {
+): Promise<UserAndFallIncentiveData | undefined> {
   const user = await getUserContactInfoById(userId)
   const productFlags = await getUPFByUserId(userId)
   const incentivePayload = await getFallIncentiveProgramPayload(userId)
