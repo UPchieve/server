@@ -4,7 +4,7 @@ import config from '../../../config'
 import { backOff } from 'exponential-backoff'
 
 /**
- * Turn off the FF to hide the feature from users,
+ * Turn off the FF to that maps subjects to AI models (we'll fall back to gpt-4o),
  * and permanently scale down Huggingface instances hosting the model.
  */
 export async function turnOffStandaloneAiTutor() {
@@ -19,7 +19,7 @@ export async function turnOffStandaloneAiTutor() {
 }
 
 /**
- * Turn on the FF to expose the feature to users,
+ * Turn on the FF to that maps subjects to AI models,
  * and scale up the Huggingface instances hosting the model.
  */
 export async function turnOnStandaloneAiTutor() {

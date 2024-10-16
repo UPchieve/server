@@ -214,7 +214,7 @@ export const addMessageToConversation = async (
 
     const botResponse =
       model === TUTOR_BOT_MODELS.PHI_3
-        ? await getBotResponse({ userId, conversationId }, tc)
+        ? await getBotResponse({ userId, conversationId, subjectName }, tc)
         : await getOpenAiBotResponse(
             { userId, conversationId, subjectName },
             tc
@@ -232,8 +232,9 @@ export const addMessageToConversation = async (
 }
 
 const openAiPrompt = (subject: string, conversation: string) => `
-You are an experienced ${subject} teacher. Your task is to read a conversation snippet of a tutoring session between a student and tutor.
-You should then determine what strategy you want to use to assist the student in learning the subject and completing the problem.
+You are an experienced ${subject} teacher. Your task is to participate in a tutoring session with a student and possibly a volunteer tutor. A conversation snippet
+will be provided for you, each message will start with an identifier (<|student|>, <|volunteer|>, or <|bot|> (you are the bot)) and end with '<|end|>'.
+You should then determine what strategy you want to use to assist the student in learning the subject and completing the problem or answering their questions.
 State your intention in using that strategy. We have a list of common strategies and intentions that teachers use, which you can pick from.
 We also give you the option to write in your own own strategy or intention if none of the options apply.
 
@@ -266,7 +267,7 @@ Intentions:
 Here is the conversation snippet:
 Lesson topic: ${subject}
 Conversation:
-${conversation}
+${conversation}<|end|>
 
 How would you help the student understand and solve the problem and why? Pick the option number from the list of strategies and intentions and provide the reason behind your choices.
 Then, using your choices, respond to the student as an experienced math teacher and helpful tutor. Do not give them a direct answer but use your strategy and intentions to craft a concise, useful, and caring response
@@ -296,17 +297,22 @@ const getOpenAiBotResponse = async (
     sessionId: conversationId,
   })
   const transcript = await getTranscriptForConversation(conversationId, tc)
-  const prompt = createPromptFromTranscript(transcript)
+  const prompt = transcript.messages
+    .map(({ senderUserType, message }) => `<|${senderUserType}|>: ${message}`)
+    .join('<|end|>\n')
+
   const gen = t.generation({
     name: LF_GENERATION_NAME,
     model: TUTOR_BOT_MODELS.CHAT_GPT_4O,
   })
+
   const messagePrompt = openAiPrompt(subjectName, prompt)
+
   const completion = await openai.chat.completions.create({
     model: TUTOR_BOT_MODELS.CHAT_GPT_4O,
     messages: [{ role: 'system', content: messagePrompt }],
     response_format: { type: 'json_object' },
-    max_tokens: 200,
+    max_tokens: 400,
   })
   const response =
     completion?.choices?.[0]?.message?.content ?? CHAT_GPT_ERROR_MESSAGE
@@ -320,7 +326,6 @@ const getOpenAiBotResponse = async (
     })
   }
 
-  // const { assistant: botMessage, system } = getBotResponseMessage(completion)
   // Save bot response to conversation messages and append to the existing transcript
   const content = JSON.parse(response)
   const savedBotMessage = await insertTutorBotConversationMessage(
@@ -334,7 +339,7 @@ const getOpenAiBotResponse = async (
   )
   gen.end({
     output: content.response,
-    input: { prompt, ...savedBotMessage },
+    input: { prompt, ...savedBotMessage, subjectName },
   })
 
   return {
@@ -353,9 +358,11 @@ const getBotResponse = async (
   {
     userId,
     conversationId,
+    subjectName,
   }: {
     userId: string
     conversationId: string
+    subjectName: string
   },
   tc: TransactionClient = getClient()
 ): Promise<TutorBotConversationMessage & {
@@ -388,7 +395,7 @@ const getBotResponse = async (
   )
   gen.end({
     output: botMessage,
-    input: { prompt, ...savedBotMessage },
+    input: { prompt, ...savedBotMessage, subjectName },
   })
 
   return {
