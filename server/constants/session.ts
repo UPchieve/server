@@ -23,7 +23,7 @@ export enum USER_SESSION_METRICS {
 export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 15
 
 export const SESSION_REPORT_REASON = {
-  STUDENT_RUDE: 'This student was extremely rude or inappropriate',
+  STUDENT_RUDE: '[Immediate ban] Student extremely rude/inappropriate',
   STUDENT_SAFETY: 'I am worried for the immediate safety of this student',
   COACH_DM_TO_STUDENT_CONNECT_OFFLINE:
     'Coach asked me to connect off of UPchieve',
