@@ -36,7 +36,6 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: getDbUlid(),
-        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -64,7 +63,6 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
-        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -89,16 +87,14 @@ describe('emailFallIncentiveSessionQualification', () => {
       }
     )
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
-    mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
-      total: 0,
-      totalQualified: 1,
-      totalUnqualified: 5,
+    mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
+      qualifiedSessions: [sessionId],
+      unqualifiedSessions: [getDbUlid(), getDbUlid()],
     })
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
-        sessionId,
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -117,7 +113,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
   })
 
-  test('Should not send reminder email if been sent that email before', async () => {
+  test('Should not send to still have time to have a qualifying session if sent before', async () => {
     const user = buildUser()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
@@ -128,18 +124,18 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
+    // User has not been sent the qualified for gift card email
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
+    // Mock for the user to have had the "still time to qualify for session" email
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
-    mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
-      total: 0,
-      totalQualified: 0,
-      totalUnqualified: 1,
+    mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
+      qualifiedSessions: [],
+      unqualifiedSessions: [getDbUlid(), getDbUlid()],
     })
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
-        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -151,9 +147,9 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
-  test('Should send reminder email if user has exactly one non-qualifying session and hasnt been sent that email before', async () => {
+  test('Should send reminder email if user has had a non-qualifying session and hasnt been sent that email before', async () => {
     const user = buildUser()
-    const sessionId = getDbUlid()
+    const unqualifiedSessionId = getDbUlid()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
         user,
@@ -165,16 +161,14 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
-    mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
-      total: 0,
-      totalQualified: 0,
-      totalUnqualified: 1,
+    mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
+      qualifiedSessions: [],
+      unqualifiedSessions: [unqualifiedSessionId, getDbUlid()],
     })
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
-        sessionId,
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -184,7 +178,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     ).toHaveBeenCalledWith(user.email, user.firstName)
     expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
       userId: user.id,
-      sessionId,
+      sessionId: unqualifiedSessionId,
       emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
     })
     expect(log).toHaveBeenCalledWith(
@@ -205,17 +199,15 @@ describe('emailFallIncentiveSessionQualification', () => {
       }
     )
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
-    mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
-      total: 0,
-      totalQualified: 1,
-      totalUnqualified: 0,
+    mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
+      qualifiedSessions: [getDbUlid()],
+      unqualifiedSessions: [getDbUlid(), getDbUlid()],
     })
     mockedMailService.sendQualifiedForGiftCardEmail.mockRejectedValueOnce(error)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
-        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
@@ -242,10 +234,9 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
-    mockedSessionService.getFallIncentiveSessionStats.mockResolvedValueOnce({
-      total: 0,
-      totalQualified: 0,
-      totalUnqualified: 1,
+    mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
+      qualifiedSessions: [],
+      unqualifiedSessions: [getDbUlid()],
     })
     mockedMailService.sendStillTimeToHaveQualifyingSessionEmail.mockRejectedValueOnce(
       error
@@ -254,7 +245,6 @@ describe('emailFallIncentiveSessionQualification', () => {
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
         userId: user.id,
-        sessionId: getDbUlid(),
       },
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 

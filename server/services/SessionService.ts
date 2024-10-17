@@ -1027,10 +1027,9 @@ export async function getStudentSessionDetails(studentId: Ulid) {
   })
 }
 
-type FallIncentiveSessionStats = {
-  total: number
-  totalQualified: number
-  totalUnqualified: number
+type FallIncentiveSessionOverview = {
+  qualifiedSessions: Ulid[]
+  unqualifiedSessions: Ulid[]
 }
 
 function isQualifiedFallIncentiveSession(
@@ -1046,30 +1045,27 @@ function isQualifiedFallIncentiveSession(
   )
 }
 
-export async function getFallIncentiveSessionStats(
+export async function getFallIncentiveSessionOverview(
   studentId: Ulid,
   start: Date,
   end?: Date
-): Promise<FallIncentiveSessionStats> {
+): Promise<FallIncentiveSessionOverview> {
   const sessions = await SessionRepo.getStudentSessionsForFallIncentive(
     studentId,
     start,
     end
   )
-
-  let total = 0
-  let totalQualified = 0
-  let totalUnqualified = 0
+  const qualifiedSessions: Ulid[] = []
+  const unqualifiedSessions: Ulid[] = []
 
   for (const session of sessions) {
-    if (isQualifiedFallIncentiveSession(session)) totalQualified++
-    else totalUnqualified++
-    total++
+    if (isQualifiedFallIncentiveSession(session))
+      qualifiedSessions.push(session.id)
+    else unqualifiedSessions.push(session.id)
   }
 
   return {
-    total,
-    totalQualified,
-    totalUnqualified,
+    qualifiedSessions,
+    unqualifiedSessions,
   }
 }
