@@ -6,7 +6,10 @@ import { faker } from '@faker-js/faker'
 import _ from 'lodash'
 import createNewAvailability from '../../utils/create-new-availability'
 import { VolunteerPartnerOrg } from '../../models/VolunteerPartnerOrg'
-import { StudentPartnerOrg } from '../../models/StudentPartnerOrg'
+import {
+  StudentPartnerOrg,
+  StudentPartnerOrgUpchieveInstance,
+} from '../../models/StudentPartnerOrg'
 import { School } from '../../models/School'
 import { DAYS, GRADES, HOURS } from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
@@ -145,6 +148,32 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
   }
 }
 
+export function buildUserRole(userId: Ulid, role: UserRole) {
+  let roleId
+  switch (role) {
+    case 'student':
+      roleId = 1
+      break
+    case 'volunteer':
+      roleId = 2
+      break
+    case 'admin':
+      roleId = 3
+      break
+    case 'teacher':
+      roleId = 4
+      break
+    default:
+      roleId = 1
+      break
+  }
+
+  return {
+    userId,
+    roleId,
+  }
+}
+
 export function buildStudentProfile(overrides: Partial<Student> = {}): Student {
   const userId = buildUser().id
   return {
@@ -245,6 +274,7 @@ export function buildSession(
     createdAt: new Date(),
     updatedAt: new Date(),
     shadowbanned: false,
+    subjectId: 1,
     topic: 'math',
     subject: 'algebraOne',
     reported: false,
@@ -295,20 +325,30 @@ export function buildVolunteerPartnerOrg(
 }
 
 export function buildStudentPartnerOrg(
-  overrides: Partial<StudentPartnerOrg> = {}
-): StudentPartnerOrg {
+  overrides: Partial<StudentPartnerOrg> & { id?: string | Ulid } = {}
+): Partial<StudentPartnerOrg> & { id: Ulid | string } {
   return {
+    id: getDbUlid(),
     key: 'school-helpers',
     name: 'School Helpers',
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
     signupCode: 'SCHOOLHELPERS',
-    sites: [],
-    isSchool: false,
-    deactivated: false,
     ...overrides,
   }
+}
+
+export function buildStudentPartnerOrgUpchieveInstance(
+  overrides: Partial<StudentPartnerOrgUpchieveInstance> & {
+    studentPartnerOrgId: string
+  }
+): StudentPartnerOrgUpchieveInstance {
+  return {
+    id: getDbUlid(),
+    studentPartnerOrgId: overrides?.studentPartnerOrgId,
+    deactivatedOn: overrides?.deactivatedOn ?? null,
+  } as StudentPartnerOrgUpchieveInstance
 }
 
 export function buildSchool(overrides: Partial<School> = {}): School {

@@ -12,12 +12,12 @@ describe('backfillStudentUsersRoles', () => {
     await client.query('DELETE FROM users_roles;')
   })
 
-  const APPROVED_PARTNER_SCHOOL_ID = '01859800-bc76-2674-709e-b08a177869f9'
-  const APPROVED_PARTNER_SCHOOL_SPO_ID = '01859800-bc97-8891-3437-c4a01ae9d271'
+  const APPROVED_PARTNER_SCHOOL_ID = '01919662-87fb-d63d-788d-7417e752f5d0'
+  const APPROVED_PARTNER_SCHOOL_SPO_ID = '01919662-87fe-5dbc-4b00-412d50590a2b'
   const ANOTHER_APPROVED_PARTNER_SCHOOL_ID =
-    '01859800-bc76-4e87-f09a-8d9a672ae4df'
+    '01919662-87fb-6ad2-8227-c1e38adf0907'
   const ANOTHER_APPROVED_PARTNER_SCHOOL_SPO_ID =
-    '01859800-bca0-3533-953c-de3c47557aa2'
+    '01919662-8800-b5d6-dff4-97b4627082b9'
 
   test('inserts users_roles for each student', async () => {
     const idStudent1 = await createStudentUser(APPROVED_PARTNER_SCHOOL_ID)

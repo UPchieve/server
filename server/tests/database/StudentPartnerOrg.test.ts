@@ -18,12 +18,12 @@ test('getStudentPartnerOrgByKey', async () => {
   )
 
   expect(actual).toBeTruthy()
-  expect(actual?.partnerId).toBe('01859800-bc97-8891-3437-c4a01ae9d271')
+  expect(actual?.partnerId).toBe('01919662-87fe-5dbc-4b00-412d50590a2b')
   expect(actual?.partnerKey).toBe('approved-partner-school')
   expect(actual?.partnerName).toBe('Approved Partner School')
   expect(actual?.siteId).toBeUndefined()
   expect(actual?.siteName).toBeUndefined()
-  expect(actual?.schoolId).toBe('01859800-bc76-2674-709e-b08a177869f9')
+  expect(actual?.schoolId).toBe('01919662-87fb-d63d-788d-7417e752f5d0')
 })
 
 test('getStudentPartnerOrgByKey with site', async () => {
@@ -34,10 +34,10 @@ test('getStudentPartnerOrgByKey with site', async () => {
   )
 
   expect(actual).toBeTruthy()
-  expect(actual?.partnerId).toBe('01859800-bbed-150a-2f52-f0856c633b63')
+  expect(actual?.partnerId).toBe('01919662-87dc-1b9c-e053-326c64a2edbc')
   expect(actual?.partnerKey).toBe('college-mentors')
   expect(actual?.partnerName).toBe('College Mentors')
-  expect(actual?.siteId).toBe('01859800-bc55-58ea-c1c8-0d8f14d3a1a6')
+  expect(actual?.siteId).toBe('01919662-87f5-aa97-e107-b2e537409c85')
   expect(actual?.siteName).toBe('Brooklyn')
   expect(actual?.schoolId).toBeUndefined()
 })
@@ -46,16 +46,16 @@ test('getStudentPartnerOrgBySchoolId', async () => {
   const actual = await getStudentPartnerOrgBySchoolId(
     client,
     // "Another Approved Partner School"
-    '01859800-bc76-4e87-f09a-8d9a672ae4df'
+    '01919662-87fb-6ad2-8227-c1e38adf0907'
   )
 
   expect(actual).toBeTruthy()
-  expect(actual?.partnerId).toBe('01859800-bca0-3533-953c-de3c47557aa2')
+  expect(actual?.partnerId).toBe('01919662-8800-b5d6-dff4-97b4627082b9')
   expect(actual?.partnerKey).toBe('another-approved-partner-school')
   expect(actual?.partnerName).toBe('Another Approved Partner School')
   expect(actual?.siteId).toBeUndefined()
   expect(actual?.siteName).toBeUndefined()
-  expect(actual?.schoolId).toBe('01859800-bc76-4e87-f09a-8d9a672ae4df')
+  expect(actual?.schoolId).toBe('01919662-87fb-6ad2-8227-c1e38adf0907')
 })
 
 test('createUserStudentPartnerOrgInstance creates the instance', async () => {
@@ -64,7 +64,7 @@ test('createUserStudentPartnerOrgInstance creates the instance', async () => {
   await createUserStudentPartnerOrgInstance(
     {
       userId: user.id,
-      studentPartnerOrgId: '01859800-bbed-9ed8-acba-e2227bf1212f',
+      studentPartnerOrgId: '01919662-87dc-1b9c-e053-326c64a2edbc',
     },
     client
   )
@@ -77,7 +77,7 @@ test('createUserStudentPartnerOrgInstance creates the instance', async () => {
   expect(actual.rows.length).toBe(1)
   const spoi = actual.rows[0]
   expect(spoi.student_partner_org_id).toBe(
-    '01859800-bbed-9ed8-acba-e2227bf1212f'
+    '01919662-87dc-1b9c-e053-326c64a2edbc'
   )
   expect(spoi.student_partner_org_site_id).toBeNull()
   expect(spoi.deactivated_on).toBeNull()
@@ -88,8 +88,8 @@ test('createUserStudentPartnerOrgInstance creates the instance', async () => {
 test('createUserStudentPartnerOrgInstance includes site if provided', async () => {
   const user = await createUser()
 
-  const spoId = '01859800-bbed-150a-2f52-f0856c633b63' // "College Mentors"
-  const sposId = '01859800-bc55-cf29-d368-a659f5bae025' // "Oakland"
+  const spoId = '01919662-87dc-1b9c-e053-326c64a2edbc' // "College Mentors"
+  const sposId = '01919662-87f5-ff78-938f-0a96942eb02f' // "Oakland"
   await createUserStudentPartnerOrgInstance(
     {
       userId: user.id,
@@ -106,12 +106,8 @@ test('createUserStudentPartnerOrgInstance includes site if provided', async () =
 
   expect(actual.rows.length).toBe(1)
   const spoi = actual.rows[0]
-  expect(spoi.student_partner_org_id).toBe(
-    '01859800-bbed-150a-2f52-f0856c633b63'
-  )
-  expect(spoi.student_partner_org_site_id).toBe(
-    '01859800-bc55-cf29-d368-a659f5bae025'
-  )
+  expect(spoi.student_partner_org_id).toBe(spoId)
+  expect(spoi.student_partner_org_site_id).toBe(sposId)
   expect(spoi.deactivated_on).toBeNull()
   expect(spoi.created_at).toBeTruthy()
   expect(spoi.updated_at).toBeTruthy()
@@ -120,8 +116,8 @@ test('createUserStudentPartnerOrgInstance includes site if provided', async () =
 test('deactivateUserStudentPartnerOrgInstance adds deactivated_on if exists', async () => {
   const user = await createUser()
 
-  const spoId = '01859800-bbed-150a-2f52-f0856c633b63' // "College Mentors"
-  const sposId = '01859800-bc55-cf29-d368-a659f5bae025' // "Oakland"
+  const spoId = '01919662-87dc-1b9c-e053-326c64a2edbc' // "College Mentors"
+  const sposId = '01919662-87f5-ff78-938f-0a96942eb02f' // "Oakland"
   await createUserStudentPartnerOrgInstance(
     {
       userId: user.id,
@@ -137,9 +133,7 @@ test('deactivateUserStudentPartnerOrgInstance adds deactivated_on if exists', as
   )
   expect(before.rows.length).toBe(1)
   const beforeInstance = before.rows[0]
-  expect(beforeInstance.student_partner_org_id).toBe(
-    '01859800-bbed-150a-2f52-f0856c633b63'
-  )
+  expect(beforeInstance.student_partner_org_id).toBe(spoId)
   expect(beforeInstance.deactivated_on).toBeNull()
 
   await deactivateUserStudentPartnerOrgInstance(client, user.id, spoId)

@@ -6,14 +6,16 @@ import {
   getTutorBotConversationMessagesById,
   getTutorBotConversationMessagesBySessionId,
   getTutorBotConversationsByUserId,
+  getTutorBotConversationById,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
+  updateTutorBotConversationSessionIdByConversationId,
 } from '../models/TutorBot'
 import { getDbUlid, Ulid } from '../models/pgUtils'
 import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
-import { getSubjectNameIdMapping } from '../models/Subjects/queries'
+import SocketService from './SocketService'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -46,47 +48,43 @@ export const getTranscriptForConversation = async (
   }
 }
 
-export const getOrCreateConversationBySessionId = async (
-  {
-    sessionId,
-    userId,
-  }: {
-    sessionId: Ulid
-    userId: Ulid
-  },
-  tc: TransactionClient = getClient()
-) => {
-  const results = await getTutorBotConversationMessagesBySessionId(
-    sessionId,
-    tc
-  )
-  if (results) {
-    return results
-  } else {
-    const session = await SessionRepo.getSessionById(sessionId)
-    const subjects = await getSubjectNameIdMapping()
-    const subjectId = subjects[session.subject]
-    const conversationId = await insertTutorBotConversation(
-      {
-        subjectId,
-        userId,
-        sessionId,
-        id: getDbUlid(),
-      },
+export const getOrCreateConversationBySessionId = async ({
+  sessionId,
+}: {
+  sessionId: Ulid
+}) => {
+  return await runInTransaction(async (tc: TransactionClient) => {
+    const results = await getTutorBotConversationMessagesBySessionId(
+      sessionId,
       tc
     )
-    return {
-      conversationId,
-      subjectId,
-      sessionId,
-      messages: [],
+    if (results) {
+      return results
+    } else {
+      const session = await SessionRepo.getSessionById(sessionId)
+      const subjectId = session.subjectId
+      const conversationId = await insertTutorBotConversation(
+        {
+          subjectId,
+          userId: session.studentId, // always create chat under student's user id
+          sessionId,
+          id: getDbUlid(),
+        },
+        tc
+      )
+      return {
+        conversationId,
+        subjectId,
+        sessionId,
+        messages: [],
+      }
     }
-  }
+  })
 }
 
 export const createTutorBotConversation = async (data: {
   userId: string
-  sessionId: string | null
+  sessionId?: string
   message: string
   senderUserType: 'student' | 'volunteer'
   subjectId: number
@@ -126,6 +124,16 @@ export const createTutorBotConversation = async (data: {
   })
 }
 
+export const updateTutorBotConversationSessionId = async (
+  conversationId: string,
+  sessionId: string
+) => {
+  await updateTutorBotConversationSessionIdByConversationId({
+    conversationId,
+    sessionId,
+  })
+}
+
 export const getAllConversationsForUser = async (userId: string) => {
   return await getTutorBotConversationsByUserId(userId)
 }
@@ -142,13 +150,6 @@ const getBotResponseMessage = (
   }
 }
 
-export type BotResponse = {
-  message: string
-  status: string
-  traceId: string
-  observationId: string | null
-}
-
 export const addMessageToConversation = async (
   {
     userId,
@@ -163,8 +164,8 @@ export const addMessageToConversation = async (
   },
   parentTransaction?: TransactionClient
 ) => {
-  return await runInTransaction(async (tx: TransactionClient) => {
-    const tc = parentTransaction ?? tx
+  const socketService = SocketService.getInstance()
+  return await runInTransaction(async (tc: TransactionClient) => {
     const userMessage = await insertTutorBotConversationMessage(
       {
         conversationId,
@@ -174,14 +175,25 @@ export const addMessageToConversation = async (
       },
       tc
     )
+    const { sessionId } = await getTutorBotConversationById(conversationId, tc)
+    if (sessionId) {
+      socketService.emitTutorBotMessage(sessionId, {
+        ...userMessage,
+        sessionId,
+      })
+    }
 
     const botResponse = await getBotResponse({ userId, conversationId }, tc)
+
+    if (sessionId) {
+      socketService.emitTutorBotMessage(sessionId, botResponse)
+    }
 
     return {
       userMessage,
       botResponse,
     }
-  })
+  }, parentTransaction)
 }
 
 const getBotResponse = async (

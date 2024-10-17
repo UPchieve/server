@@ -36,7 +36,7 @@ describe('createParentGuardian', () => {
 
 describe('linkParentGuardianToStudent', () => {
   test('creates the parent/guardian and student link', async () => {
-    const STUDENT_1_ID = '01859800-be4b-685f-4130-8709193d461c'
+    const STUDENT_1_ID = '01919662-885c-d39a-1749-5aaf18cf5d3b'
     const parentGuardian = await createTestParentGuardian()
 
     await linkParentGuardianToStudent(parentGuardian.id, STUDENT_1_ID, client)
@@ -49,7 +49,7 @@ describe('linkParentGuardianToStudent', () => {
   })
 
   test('does not create duplicate if parent/guardian and student link already exists', async () => {
-    const STUDENT_2_ID = '01859800-be4b-2870-ad8c-abecfd5c403f'
+    const STUDENT_2_ID = '01919662-885c-2fca-264b-9558f5b20fe4'
     const parentGuardian = await createTestParentGuardian()
 
     await linkParentGuardianToStudent(parentGuardian.id, STUDENT_2_ID, client)
@@ -63,8 +63,8 @@ describe('linkParentGuardianToStudent', () => {
   })
 
   test('can create multiple student to a single parent/guardian', async () => {
-    const STUDENT_1_ID = '01859800-be4b-685f-4130-8709193d461c'
-    const STUDENT_2_ID = '01859800-be4b-2870-ad8c-abecfd5c403f'
+    const STUDENT_1_ID = '01919662-885c-d39a-1749-5aaf18cf5d3b'
+    const STUDENT_2_ID = '01919662-885c-2fca-264b-9558f5b20fe4'
     const parentGuardian = await createTestParentGuardian()
 
     await linkParentGuardianToStudent(parentGuardian.id, STUDENT_1_ID, client)
@@ -78,7 +78,7 @@ describe('linkParentGuardianToStudent', () => {
   })
 
   test('can create multiple parent/guardian to a single student link', async () => {
-    const STUDENT_3_ID = '01859800-be4b-1beb-2b3a-3d26cdb90435'
+    const STUDENT_3_ID = '01919662-885c-a174-3088-998111f7cc80'
     const parentGuardian1 = await createTestParentGuardian()
     const parentGuardian2 = await createTestParentGuardian()
     const parentGuardian3 = await createTestParentGuardian()

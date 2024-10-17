@@ -3,7 +3,7 @@ import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
-import { asString, asArray } from '../../utils/type-utils'
+import { asNumber, asString } from '../../utils/type-utils'
 
 export function routeTeachers(app: Express, router: Router): void {
   /* Classes */
@@ -65,10 +65,41 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  router.route('/class/update').post(async function(req, res) {
+    try {
+      const className = asString(req.body.className)
+      const topicId = asNumber(req.body.topicId)
+      const id = asString(req.body.id)
+
+      const updatedClass = await TeacherService.updateTeacherClass(
+        id,
+        className,
+        topicId
+      )
+      res.json({ updatedClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/class/deactivate').post(async function(req, res) {
+    try {
+      const id = asString(req.body.id)
+
+      const updatedClass = await TeacherService.deactivateTeacherClass(id)
+      res.json({ updatedClass })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   /* Assignments */
   router.route('/assignment').post(async function(req, res) {
     try {
-      const assignmentData = AssignmentsService.asAssignment(req.body)
+      const assignmentData = AssignmentsService.asAssignment(
+        req.body.assignmentData,
+        req.body.studentIds
+      )
       const assignment = await AssignmentsService.createAssignment(
         assignmentData
       )
