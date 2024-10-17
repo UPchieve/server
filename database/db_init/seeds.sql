@@ -42620,7 +42620,7 @@ COPY upchieve.quiz_questions (id, question_text, possible_answers, correct_answe
 --
 
 COPY upchieve.report_reasons (id, reason, created_at, updated_at) FROM stdin;
-1	This student was extremely rude or inappropriate	2022-07-22 16:58:26.704339+00	2022-07-22 16:58:26.704339+00
+1	[Immediate ban] Student extremely rude/inappropriate	2022-07-22 16:58:26.704339+00	2022-07-22 16:58:26.704339+00
 2	I am worried for the immediate safety of this student	2022-07-22 16:58:26.706913+00	2022-07-22 16:58:26.706913+00
 3	LEGACY: Student was unresponsive	2022-07-22 16:58:26.709206+00	2022-07-22 16:58:26.709206+00
 4	LEGACY: Technical issue	2022-07-22 16:58:26.711524+00	2022-07-22 16:58:26.711524+00
