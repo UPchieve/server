@@ -4,6 +4,7 @@ import { Ulid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import { ISODateString } from '../types/dates'
 import * as AnalyticsService from './AnalyticsService'
+import { TUTOR_BOT_MODELS } from './TutorBotService'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
@@ -142,4 +143,15 @@ export async function getFallIncentiveProgramPayload(
     FEATURE_FLAGS.FALL_INCENTIVE_PROGRAM,
     userId
   )
+}
+
+export async function getTutorBotSubjectModelsPayload(
+  userId: Ulid,
+  subjectName: string
+): Promise<TUTOR_BOT_MODELS> {
+  const subjectModels = await getFeatureFlagPayload(
+    FEATURE_FLAGS.AI_TUTOR_BOT_SUBJECT_MODELS,
+    userId
+  )
+  return subjectModels?.[subjectName] ?? TUTOR_BOT_MODELS.CHAT_GPT_4O
 }

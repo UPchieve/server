@@ -16,6 +16,9 @@ import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
+import { openai } from './BotsService'
+import * as FeatureFlagService from './FeatureFlagService'
+import { getSubjectNameIdMapping } from '../models/Subjects'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
@@ -34,6 +37,10 @@ interface TutorBotConversationTranscript {
   messages: TutorBotConversationMessage[]
   sessionId?: string
 }
+
+const CHAT_GPT_ERROR_MESSAGE = JSON.stringify({
+  response: "I'm sorry, I encountered an error. Please try asking again.",
+})
 
 export const getTranscriptForConversation = async (
   conversationId: string,
@@ -104,12 +111,23 @@ export const createTutorBotConversation = async (data: {
       tc
     )
 
+    const subjectNameIds = await getSubjectNameIdMapping()
+    const [subjectName] =
+      Object.entries(subjectNameIds).find(
+        ([_key, value]) => value === subjectId
+      ) ?? []
+
+    if (!subjectName) {
+      throw new Error(`AI tutor: No subject found for id ${subjectId}`)
+    }
+
     const { userMessage, botResponse } = await addMessageToConversation(
       {
         conversationId,
         userId,
         senderUserType: data.senderUserType,
         message: data.message,
+        subjectName,
       },
       tc
     )
@@ -150,20 +168,31 @@ const getBotResponseMessage = (
   }
 }
 
+export enum TUTOR_BOT_MODELS {
+  PHI_3 = 'phi3-upchieve-tutormodel',
+  CHAT_GPT_4O = 'gpt-4o',
+}
+
 export const addMessageToConversation = async (
   {
     userId,
     conversationId,
     message,
     senderUserType,
+    subjectName,
   }: {
     userId: string
     conversationId: string
     message: string
     senderUserType: tutor_bot_conversation_user_type
+    subjectName: string
   },
   parentTransaction?: TransactionClient
 ) => {
+  const model = await FeatureFlagService.getTutorBotSubjectModelsPayload(
+    userId,
+    subjectName
+  )
   const socketService = SocketService.getInstance()
   return await runInTransaction(async (tc: TransactionClient) => {
     const userMessage = await insertTutorBotConversationMessage(
@@ -183,7 +212,13 @@ export const addMessageToConversation = async (
       })
     }
 
-    const botResponse = await getBotResponse({ userId, conversationId }, tc)
+    const botResponse =
+      model === TUTOR_BOT_MODELS.PHI_3
+        ? await getBotResponse({ userId, conversationId, subjectName }, tc)
+        : await getOpenAiBotResponse(
+            { userId, conversationId, subjectName },
+            tc
+          )
 
     if (sessionId) {
       socketService.emitTutorBotMessage(sessionId, botResponse)
@@ -196,13 +231,138 @@ export const addMessageToConversation = async (
   }, parentTransaction)
 }
 
+const openAiPrompt = (subject: string, conversation: string) => `
+You are an experienced ${subject} teacher. Your task is to participate in a tutoring session with a student and possibly a volunteer tutor. A conversation snippet
+will be provided for you, each message will start with an identifier (<|student|>, <|volunteer|>, or <|bot|> (you are the bot)) and end with '<|end|>'.
+You should then determine what strategy you want to use to assist the student in learning the subject and completing the problem or answering their questions.
+State your intention in using that strategy. We have a list of common strategies and intentions that teachers use, which you can pick from.
+We also give you the option to write in your own own strategy or intention if none of the options apply.
+
+Strategies:
+0. Explain a concept
+1. Ask a question
+2. Provide a hint
+3. Provide a strategy
+4. Provide a worked example
+5. Provide a minor correction
+6. Provide a similar problem
+7. Simplify the question
+8. Affirm the correct answer
+9. Encourage the student
+10. Other (please specify in your reasoning)
+
+Intentions:
+0. Motivate the student
+1. Get the student to elaborate their answer
+2. Correct the student's mistake
+3. Hint at the student's mistake
+4. Clarify a student's misunderstanding
+5. Help the student understand the lesson topic or solution strategy
+6. Diagnose the student's mistake
+7. Support the student in their thinking or problem-solving
+8. Explain the student's mistake (eg. what is wrong in their answer or why is it incorrect)
+9. Signal to the student that they have solved or not solved the problem
+10. Other (please specify in your reasoning)
+
+Here is the conversation snippet:
+Lesson topic: ${subject}
+Conversation:
+${conversation}<|end|>
+
+How would you help the student understand and solve the problem and why? Pick the option number from the list of strategies and intentions and provide the reason behind your choices.
+Then, using your choices, respond to the student as an experienced math teacher and helpful tutor. Do not give them a direct answer but use your strategy and intentions to craft a concise, useful, and caring response
+to help the student with the next step in solving the given problem or better understanding the subject.
+Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "write out your reason for picking that strategy and intention", "response": "write out your response to the student's last message"}
+`
+
+const getOpenAiBotResponse = async (
+  {
+    userId,
+    conversationId,
+    subjectName,
+  }: {
+    userId: string
+    conversationId: string
+    subjectName: string
+  },
+  tc: TransactionClient = getClient()
+): Promise<TutorBotConversationMessage & {
+  traceId: string
+  obeservationId: string | null
+  status: string
+}> => {
+  // Save the latest user message to DB and create the transcript of the conversation so far
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    sessionId: conversationId,
+  })
+  const transcript = await getTranscriptForConversation(conversationId, tc)
+  const prompt = transcript.messages
+    .map(({ senderUserType, message }) => `<|${senderUserType}|>: ${message}`)
+    .join('<|end|>\n')
+
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model: TUTOR_BOT_MODELS.CHAT_GPT_4O,
+  })
+
+  const messagePrompt = openAiPrompt(subjectName, prompt)
+
+  const completion = await openai.chat.completions.create({
+    model: TUTOR_BOT_MODELS.CHAT_GPT_4O,
+    messages: [{ role: 'system', content: messagePrompt }],
+    response_format: { type: 'json_object' },
+    max_tokens: 400,
+  })
+  const response =
+    completion?.choices?.[0]?.message?.content ?? CHAT_GPT_ERROR_MESSAGE
+
+  if (response === CHAT_GPT_ERROR_MESSAGE) {
+    // We could add a retry if we see this happening a fair amount
+    logger.error('AI tutor: Unprocessbable response from chatGPT', {
+      messagePrompt,
+      completion,
+      traceName: LF_TRACE_NAME,
+    })
+  }
+
+  // Save bot response to conversation messages and append to the existing transcript
+  const content = JSON.parse(response)
+  const savedBotMessage = await insertTutorBotConversationMessage(
+    {
+      conversationId,
+      userId,
+      message: content.response,
+      senderUserType: 'bot',
+    },
+    tc
+  )
+  gen.end({
+    output: content.response,
+    input: { prompt, ...savedBotMessage, subjectName },
+  })
+
+  return {
+    senderUserType: 'bot',
+    message: content.response,
+    createdAt: savedBotMessage.createdAt,
+    tutorBotConversationId: conversationId,
+    userId,
+    status: content.reason,
+    traceId: gen.traceId,
+    obeservationId: gen.observationId,
+  }
+}
+
 const getBotResponse = async (
   {
     userId,
     conversationId,
+    subjectName,
   }: {
     userId: string
     conversationId: string
+    subjectName: string
   },
   tc: TransactionClient = getClient()
 ): Promise<TutorBotConversationMessage & {
@@ -219,7 +379,7 @@ const getBotResponse = async (
   const prompt = createPromptFromTranscript(transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    model: 'phi3-upchieve-tutormodel',
+    model: TUTOR_BOT_MODELS.PHI_3,
   })
   const completion = await createChatCompletion(prompt, conversationId)
   const { assistant: botMessage, system } = getBotResponseMessage(completion)
@@ -235,7 +395,7 @@ const getBotResponse = async (
   )
   gen.end({
     output: botMessage,
-    input: { prompt, ...savedBotMessage },
+    input: { prompt, ...savedBotMessage, subjectName },
   })
 
   return {
