@@ -15,7 +15,14 @@ export async function getEmailNotificationsByTemplateId(
 
 export async function hasUserBeenSentEmail(
   data: NotificationRepo.GetEmailNotificationsProps
-) {
+): Promise<boolean> {
   const emailActivity = await getEmailNotificationsByTemplateId(data)
   return emailActivity.length > 0
+}
+
+export async function getTotalEmailsSentToUser(
+  data: NotificationRepo.GetEmailNotificationsProps
+): Promise<number> {
+  const emailActivity = await getEmailNotificationsByTemplateId(data)
+  return emailActivity.length
 }

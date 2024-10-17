@@ -3,6 +3,7 @@ import emailFallIncentiveSessionQualification, {
   EmailFallIncentiveSessionQualificationJobData,
 } from '../../../worker/jobs/student-emails/emailFallIncentiveSessionQualification'
 import { getDbUlid } from '../../../models/pgUtils'
+import * as AnalyticsService from '../../../services/AnalyticsService'
 import * as MailService from '../../../services/MailService'
 import * as SessionService from '../../../services/SessionService'
 import * as NotificationService from '../../../services/NotificationService'
@@ -12,8 +13,10 @@ import { buildUser, buildUserProductFlags } from '../../mocks/generate'
 import { log } from '../../../worker/logger'
 import { Jobs } from '../../../worker/jobs'
 import config from '../../../config'
+import { EVENTS } from '../../../constants'
 
 jest.mock('../../../logger')
+jest.mock('../../../services/AnalyticsService')
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/NotificationService')
@@ -74,6 +77,46 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
+  test('Should early exit if the user has reached the limit for gift cards', async () => {
+    const user = buildUser()
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentiveProgramDate: new Date(),
+      }
+    )
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(11)
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
+
+    const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      data: {
+        userId: user.id,
+      },
+    } as Job<EmailFallIncentiveSessionQualificationJobData>
+
+    await emailFallIncentiveSessionQualification(jobData)
+    expect(log).toHaveBeenCalledWith(
+      `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
+    )
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      user.id,
+      EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+      {},
+      {
+        fallIncentiveLimitReachedAt: expect.any(String),
+      }
+    )
+    expect(NotificationService.hasUserBeenSentEmail).not.toHaveBeenCalled()
+    expect(MailService.sendQualifiedForGiftCardEmail).not.toHaveBeenCalled()
+    expect(
+      MailService.sendStillTimeToHaveQualifyingSessionEmail
+    ).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
+  })
+
   test('Should send qualified for gift card email if user has exactly one qualifying session', async () => {
     const user = buildUser()
     const sessionId = getDbUlid()
@@ -86,6 +129,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [sessionId],
@@ -124,6 +168,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     // User has not been sent the qualified for gift card email
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Mock for the user to have had the "still time to qualify for session" email
@@ -159,6 +204,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
@@ -198,6 +244,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [getDbUlid()],
@@ -232,6 +279,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentiveProgramDate: new Date(),
       }
     )
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({

@@ -8,10 +8,13 @@ import config from '../../../config'
 import {
   hasUserBeenSentEmail,
   createEmailNotification,
+  getTotalEmailsSentToUser,
 } from '../../../services/NotificationService'
 import { getUserFallIncentiveData } from '../../../services/IncentiveProgramService'
 import moment from 'moment'
 import { log } from '../../logger'
+import { captureEvent } from '../../../services/AnalyticsService'
+import { EVENTS } from '../../../constants'
 
 export interface EmailFallIncentiveSessionQualificationJobData {
   userId: Ulid
@@ -20,10 +23,13 @@ export interface EmailFallIncentiveSessionQualificationJobData {
 /**
  *
  * After every session for a student enrolled in the incentive program,
- * we check if it's their first qualifying or non-qualifying session of the week start from Monday.
+ * we check if it's their first qualifying or non-qualifying session of the week starting from Monday.
  *
  * - If it's their first qualifying session, we notify the student that they have
  *   qualified for a gift card, which will be sent at a later date.
+ * - Exit if they have reached the maximum number of qualified for gift cards sent (10).
+ *   This is used as a proxy to let us know if they had 10 qualifying sessions since they
+ *   enrolled into the program.
  * - If it's their first non-qualifying session, we inform the student that they
  *   have until Sunday to complete a qualifying session to still be eligible.
  *
@@ -31,7 +37,7 @@ export interface EmailFallIncentiveSessionQualificationJobData {
  * - If they have already received the "qualified" email, they will not receive
  *   the "non-qualified" email even if they have a non-qualifying session later.
  *
- * This hels us ensure that the student only receives relevant notifications once per week.
+ * This helps us ensure that the student only receives relevant notifications once per week.
  *
  */
 export default async (
@@ -55,6 +61,32 @@ export default async (
     fallIncentiveProgramStartDate,
     fallIncentiveEnrollmentAt
   )
+
+  const totalQualifiedForGiftCardsSent = await getTotalEmailsSentToUser({
+    userId,
+    emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
+    start: fallIncentiveEnrollmentAt.toDate(),
+  })
+  const FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT = 10
+
+  // Check if the student has reached the limit for the amount of money they can earn
+  if (
+    totalQualifiedForGiftCardsSent >=
+    FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT
+  ) {
+    log(
+      `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
+    )
+    captureEvent(
+      userId,
+      EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+      {},
+      {
+        fallIncentiveLimitReachedAt: new Date().toISOString(),
+      }
+    )
+    return
+  }
 
   const qualifiedEmailSent = await hasUserBeenSentEmail({
     userId,
