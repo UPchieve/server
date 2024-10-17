@@ -7,9 +7,7 @@ import {
   asOptional,
   asString,
 } from '../../utils/type-utils'
-import { SUBJECTS } from '../../constants'
 import { InputError } from '../../models/Errors'
-import { Message } from 'twilio/lib/twiml/MessagingResponse'
 
 type SenderUserType = 'student' | 'volunteer'
 
@@ -18,7 +16,7 @@ interface MessagePayload {
   conversationId: string
   message: string
   senderUserType: SenderUserType
-  subjectName: SUBJECTS
+  subjectName: string
 }
 
 interface ConversationPayload {
@@ -38,25 +36,12 @@ function asSenderUserType(s: unknown, errMsg = ''): SenderUserType {
   throw new InputError(`${errMsg} ${s} must be 'volunteer' or 'student'`)
 }
 
-function isSubject(s: unknown): s is SUBJECTS {
-  return Object.values(SUBJECTS).some(v => v === s)
-}
-
-function asSubject(s: unknown, errMsg = ''): SUBJECTS {
-  if (isSubject(s)) return s
-  throw new InputError(
-    `${errMsg} ${s} is not a valid subject. Valid subjects: ${Object.values(
-      SUBJECTS
-    ).join(', ')}`
-  )
-}
-
 const messageValidator = asFactory<MessagePayload>({
   userId: asString,
   conversationId: asString,
   message: asString,
   senderUserType: asSenderUserType,
-  subjectName: asSubject,
+  subjectName: asString,
 })
 
 const conversationValidator = asFactory<ConversationPayload>({

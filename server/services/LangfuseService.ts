@@ -22,6 +22,8 @@ let client = createClient()
 
 export enum LangfusePromptNameEnum {
   GET_SESSION_MESSAGE_MODERATION_DECISION = 'get-session-message-moderation-decision',
+  TUTOR_BOT_GENERIC_SUBJECT_PROMPT = 'tutor-bot-generic-subject-prompt',
+  TUTOR_BOT_COLLEGE_COUNSELING_PROMPT = 'tutor-bot-college-counseling-prompt',
 }
 
 export async function getPrompt(
