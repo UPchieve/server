@@ -1,6 +1,72 @@
-import { Router } from 'express'
+import { Router, Send } from 'express'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
+import {
+  asFactory,
+  asNumber,
+  asOptional,
+  asString,
+} from '../../utils/type-utils'
+import { SUBJECTS } from '../../constants'
+import { InputError } from '../../models/Errors'
+import { Message } from 'twilio/lib/twiml/MessagingResponse'
+
+type SenderUserType = 'student' | 'volunteer'
+
+interface MessagePayload {
+  userId: string
+  conversationId: string
+  message: string
+  senderUserType: SenderUserType
+  subjectName: SUBJECTS
+}
+
+interface ConversationPayload {
+  userId: string
+  message: string
+  senderUserType: SenderUserType
+  subjectId: number
+  sessionId?: string
+}
+
+function isSenderUserType(s: unknown): s is SenderUserType {
+  return s === 'student' || s === 'volunteer'
+}
+
+function asSenderUserType(s: unknown, errMsg = ''): SenderUserType {
+  if (isSenderUserType(s)) return s
+  throw new InputError(`${errMsg} ${s} must be 'volunteer' or 'student'`)
+}
+
+function isSubject(s: unknown): s is SUBJECTS {
+  return Object.values(SUBJECTS).some(v => v === s)
+}
+
+function asSubject(s: unknown, errMsg = ''): SUBJECTS {
+  if (isSubject(s)) return s
+  throw new InputError(
+    `${errMsg} ${s} is not a valid subject. Valid subjects: ${Object.values(
+      SUBJECTS
+    ).join(', ')}`
+  )
+}
+
+const messageValidator = asFactory<MessagePayload>({
+  userId: asString,
+  conversationId: asString,
+  message: asString,
+  senderUserType: asSenderUserType,
+  subjectName: asSubject,
+})
+
+const conversationValidator = asFactory<ConversationPayload>({
+  userId: asString,
+  sessionId: asOptional(asString),
+  message: asString,
+  senderUserType: asSenderUserType,
+  subjectId: asNumber,
+})
+
 export function routeTutorBot(router: Router) {
   router.get('/tutor-bot/conversations/:conversationId', async function(
     req,
@@ -19,18 +85,13 @@ export function routeTutorBot(router: Router) {
     '/tutor-bot/conversations/:conversationId/message',
     async function(req, res) {
       try {
-        const userId = req.user?.id
-        if (userId) {
-          const botResponse = await TutorBotService.addMessageToConversation({
-            userId,
-            conversationId: req.params.conversationId,
-            message: req.body.message,
-            senderUserType: req.body.senderUserType,
-          })
-          return res.json(botResponse).status(200)
-        } else {
-          throw 'No current user'
-        }
+        const data = messageValidator({
+          ...req.body,
+          ...req.params,
+          userId: req.user?.id,
+        })
+        const botResponse = await TutorBotService.addMessageToConversation(data)
+        return res.json(botResponse).status(200)
       } catch (err) {
         resError(res, err)
       }
@@ -54,22 +115,14 @@ export function routeTutorBot(router: Router) {
 
   router.post('/tutor-bot/conversations', async function(req, res) {
     try {
-      const userId = req.user?.id
-      if (userId) {
-        const sessionId = req.body.hasOwnProperty('sessionId')
-          ? req.body.sessionId
-          : null
-        const conversation = await TutorBotService.createTutorBotConversation({
-          userId,
-          message: req.body.message,
-          senderUserType: req.body.senderUserType,
-          subjectId: req.body.subjectId,
-          sessionId,
-        })
-        return res.json(conversation)
-      } else {
-        throw 'No current user'
-      }
+      const data = conversationValidator({
+        ...req.body,
+        userId: req.user?.id,
+      })
+      const conversation = await TutorBotService.createTutorBotConversation(
+        data
+      )
+      return res.json(conversation)
     } catch (err) {
       resError(res, err)
     }

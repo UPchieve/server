@@ -384,8 +384,8 @@ const config: Static<typeof Config> = {
   huggingFaceInferenceApiKey:
     process.env.HUGGING_FACE_INFERENCE_API_KEY || 'bogus',
   tutorBotBaseUrl: process.env.TUTOR_BOT_BASE_URL || 'bogus',
-  posthogStandaloneAiTutorFeatureFlagId:
-    process.env.STANDALONE_AI_TUTOR_FEATURE_FLAG_ID || 'bogus',
+  posthogAiTutorBotSubjectModelsFeatureFlagId:
+    process.env.AI_TUTOR_BOT_SUBJECT_MODELS_FEATURE_FLAG_ID || 'bogus',
   tutorBotHuggingfaceNamespace:
     process.env.TUTOR_BOT_HUGGINGFACE_NAMESPACE || 'bogus',
   tutorBotHuggingfaceInstanceName:
