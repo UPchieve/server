@@ -3,7 +3,7 @@ UPDATE
     upchieve.report_reasons
 SET
     reason = '[Immediate ban] Student extremely rude/inappropriate',
-    updated_at = 'now()'
+    updated_at = now()
 WHERE
     reason = 'Student extremely rude/inappropriate';
 
@@ -12,7 +12,7 @@ UPDATE
     upchieve.report_reasons
 SET
     reason = 'Student extremely rude/inappropriate',
-    updated_at = 'now()'
+    updated_at = now()
 WHERE
     reason = '[Immediate ban] Student extremely rude/inappropriate';
 
