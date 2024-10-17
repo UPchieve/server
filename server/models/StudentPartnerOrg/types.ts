@@ -14,6 +14,7 @@ export type StudentPartnerOrg = {
   sites?: string[]
   isSchool: boolean
   deactivated?: boolean
+  schoolId?: string
 }
 
 export type CreateUserStudentPartnerOrgInstancePayload = {
@@ -29,4 +30,9 @@ export type GetStudentPartnerOrgResult = {
   siteId?: string
   siteName?: string
   schoolId?: string
+}
+
+export type StudentPartnerOrgUpchieveInstance = {
+  studentPartnerOrgId: string
+  deactivatedOn: Date | null
 }

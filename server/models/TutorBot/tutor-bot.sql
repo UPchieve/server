@@ -62,3 +62,14 @@ INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id,
 RETURNING
     tutor_bot_conversation_id, user_id, sender_user_type, message, created_at;
 
+
+/* @name updateTutorBotConversationSessionId */
+UPDATE
+    tutor_bot_conversations
+SET
+    session_id = :sessionId!,
+    updated_at = NOW()
+WHERE
+    id = :conversationId!::uuid
+    AND session_id IS NULL;
+
