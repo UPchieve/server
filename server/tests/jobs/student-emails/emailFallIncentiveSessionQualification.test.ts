@@ -50,7 +50,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
-  test('Should do nothing if user has already received qualified for gift card email', async () => {
+  test('Should early exit if the user has reached the overall limit for gift cards', async () => {
     const user = buildUser()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
@@ -58,37 +58,16 @@ describe('emailFallIncentiveSessionQualification', () => {
         productFlags: buildUserProductFlags({
           fallIncentiveEnrollmentAt: new Date(),
         }),
-        incentiveProgramDate: new Date(),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 1,
+        },
       }
     )
-    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
-
-    const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
-      data: {
-        userId: user.id,
-      },
-    } as Job<EmailFallIncentiveSessionQualificationJobData>
-
-    await emailFallIncentiveSessionQualification(jobData)
-    expect(MailService.sendQualifiedForGiftCardEmail).not.toHaveBeenCalled()
-    expect(
-      MailService.sendStillTimeToHaveQualifyingSessionEmail
-    ).not.toHaveBeenCalled()
-    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
-  })
-
-  test('Should early exit if the user has reached the limit for gift cards', async () => {
-    const user = buildUser()
-    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
-      {
-        user,
-        productFlags: buildUserProductFlags({
-          fallIncentiveEnrollmentAt: new Date(),
-        }),
-        incentiveProgramDate: new Date(),
-      }
-    )
+    // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(11)
+    // Weekly gift card limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
@@ -117,7 +96,40 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
-  test('Should send qualified for gift card email if user has exactly one qualifying session', async () => {
+  test('Should not send the "qualified for gift card" email if user has already reached the max qualifying sessions for the week', async () => {
+    const user = buildUser()
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 3,
+        },
+      }
+    )
+    // Fall incentive participation limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(2)
+    // Weekly gift card limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(3)
+
+    const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      data: {
+        userId: user.id,
+      },
+    } as Job<EmailFallIncentiveSessionQualificationJobData>
+
+    await emailFallIncentiveSessionQualification(jobData)
+    expect(MailService.sendQualifiedForGiftCardEmail).not.toHaveBeenCalled()
+    expect(
+      MailService.sendStillTimeToHaveQualifyingSessionEmail
+    ).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
+  })
+
+  test('Should send "qualified for gift card" email if user has a qualifying session and has not met the weekly qualifying session max', async () => {
     const user = buildUser()
     const sessionId = getDbUlid()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
@@ -126,10 +138,16 @@ describe('emailFallIncentiveSessionQualification', () => {
         productFlags: buildUserProductFlags({
           fallIncentiveEnrollmentAt: new Date(),
         }),
-        incentiveProgramDate: new Date(),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 2,
+        },
       }
     )
+    // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Weekly gift card limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [sessionId],
@@ -157,7 +175,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
   })
 
-  test('Should not send to still have time to have a qualifying session if sent before', async () => {
+  test('Should not send to "still have time to have a qualifying session" email if sent before', async () => {
     const user = buildUser()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
@@ -165,13 +183,17 @@ describe('emailFallIncentiveSessionQualification', () => {
         productFlags: buildUserProductFlags({
           fallIncentiveEnrollmentAt: new Date(),
         }),
-        incentiveProgramDate: new Date(),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 1,
+        },
       }
     )
+    // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
-    // User has not been sent the qualified for gift card email
-    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
-    // Mock for the user to have had the "still time to qualify for session" email
+    // Weekly gift card limit - User has not been sent the "qualified for gift card" email
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
+    // Mock sent the user the "still time to qualify for session" email before
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [],
@@ -201,11 +223,16 @@ describe('emailFallIncentiveSessionQualification', () => {
         productFlags: buildUserProductFlags({
           fallIncentiveEnrollmentAt: new Date(),
         }),
-        incentiveProgramDate: new Date(),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 1,
+        },
       }
     )
+    // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
-    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
+    // Weekly gift card limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [],
@@ -241,10 +268,16 @@ describe('emailFallIncentiveSessionQualification', () => {
         productFlags: buildUserProductFlags({
           fallIncentiveEnrollmentAt: new Date(),
         }),
-        incentiveProgramDate: new Date(),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 1,
+        },
       }
     )
+    // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Weekly gift card limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [getDbUlid()],
@@ -276,11 +309,16 @@ describe('emailFallIncentiveSessionQualification', () => {
         productFlags: buildUserProductFlags({
           fallIncentiveEnrollmentAt: new Date(),
         }),
-        incentiveProgramDate: new Date(),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 1,
+        },
       }
     )
+    // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
-    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
+    // Weekly gift card limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     mockedSessionService.getFallIncentiveSessionOverview.mockResolvedValueOnce({
       qualifiedSessions: [],

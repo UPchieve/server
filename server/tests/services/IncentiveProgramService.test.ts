@@ -205,7 +205,10 @@ describe('getUserFallIncentiveData', () => {
       productFlags
     )
     mockedFeatureFlagsService.getFallIncentiveProgramPayload.mockResolvedValueOnce(
-      new Date().toISOString()
+      {
+        incentiveStartDate: new Date(),
+        maxQualifiedSessionsPerWeek: 1,
+      }
     )
 
     const result = await getUserFallIncentiveData(user.id, true)
@@ -217,21 +220,24 @@ describe('getUserFallIncentiveData', () => {
     const productFlags = buildUserProductFlags({
       fallIncentiveEnrollmentAt: new Date(),
     })
-    const incentiveProgramDate = new Date().toISOString()
+    const incentivePayload = {
+      incentiveStartDate: new Date(),
+      maxQualifiedSessionsPerWeek: 1,
+    }
 
     mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValueOnce(
       productFlags
     )
     mockedFeatureFlagsService.getFallIncentiveProgramPayload.mockResolvedValueOnce(
-      incentiveProgramDate
+      incentivePayload
     )
 
     const result = await getUserFallIncentiveData(user.id, true)
     expect(result).toEqual({
       user,
       productFlags,
-      incentiveProgramDate: new Date(incentiveProgramDate),
+      incentivePayload,
     })
   })
 })
