@@ -22,22 +22,11 @@ export interface EmailFallIncentiveSessionQualificationJobData {
 
 /**
  *
- * After every session for a student enrolled in the incentive program,
- * we check if it's their first qualifying or non-qualifying session of the week starting from Monday.
- *
- * - If it's their first qualifying session, we notify the student that they have
- *   qualified for a gift card, which will be sent at a later date.
- * - Exit if they have reached the maximum number of qualified for gift cards sent (10).
- *   This is used as a proxy to let us know if they had 10 qualifying sessions since they
- *   enrolled into the program.
- * - If it's their first non-qualifying session, we inform the student that they
- *   have until Sunday to complete a qualifying session to still be eligible.
- *
- * Each student should only receive one email per week:
- * - If they have already received the "qualified" email, they will not receive
- *   the "non-qualified" email even if they have a non-qualifying session later.
- *
- * This helps us ensure that the student only receives relevant notifications once per week.
+ * - After every session, check if the student has qualifying sessions this week.
+ * - Send "qualified for gift card" emails up to the weekly limit.
+ * - Do not exceed the overall maximum limit of 10 gift cards per student.
+ * - Ensure only the allowed number of emails are sent per week.
+ * - Only send the unqualified emails once from the time the user enrolls into the program
  *
  */
 export default async (
@@ -47,8 +36,10 @@ export default async (
   const data = await getUserFallIncentiveData(userId, true)
   if (!data) return
 
-  const { user, productFlags, incentiveProgramDate } = data
-  const fallIncentiveProgramStartDate = moment(incentiveProgramDate)
+  const { user, productFlags, incentivePayload } = data
+  const fallIncentiveProgramStartDate = moment(
+    incentivePayload.incentiveStartDate
+  )
   // We're using ISO week to have the week's starting point as Monday
   const thisMonday = moment()
     .startOf('isoWeek')
@@ -88,13 +79,21 @@ export default async (
     return
   }
 
-  const qualifiedEmailSent = await hasUserBeenSentEmail({
+  const totalQualifiedEmailsSentThisWeek = await getTotalEmailsSentToUser({
     userId,
     emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     start: startOfWeek.toDate(),
   })
-  // If they already qualified for this week, do not send any email
-  if (qualifiedEmailSent) return
+
+  if (
+    totalQualifiedEmailsSentThisWeek >=
+    incentivePayload.maxQualifiedSessionsPerWeek
+  ) {
+    log(
+      `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the weekly limit of qualified emails (${incentivePayload.maxQualifiedSessionsPerWeek})`
+    )
+    return
+  }
 
   const sessionOverview = await getFallIncentiveSessionOverview(
     userId,
@@ -103,10 +102,12 @@ export default async (
   const { firstName, email } = user
   try {
     if (sessionOverview.qualifiedSessions.length >= 1) {
+      const qualifiedSessionId =
+        sessionOverview.qualifiedSessions[totalQualifiedEmailsSentThisWeek]
       await MailService.sendQualifiedForGiftCardEmail(email, firstName)
       await createEmailNotification({
         userId,
-        sessionId: sessionOverview.qualifiedSessions[0],
+        sessionId: qualifiedSessionId,
         emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
       })
       log(
@@ -116,7 +117,7 @@ export default async (
       const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
         emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
-        start: startOfWeek.toDate(),
+        start: fallIncentiveEnrollmentAt.toDate(),
       })
       if (!unqualifiedEmailSent) {
         await MailService.sendStillTimeToHaveQualifyingSessionEmail(

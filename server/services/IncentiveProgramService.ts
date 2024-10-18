@@ -3,7 +3,10 @@ import { getSessionById } from '../models/Session'
 import { getUserContactInfoById, UserContactInfo } from '../models/User'
 import { getUPFByUserId, UserProductFlags } from '../models/UserProductFlags'
 import { Jobs } from '../worker/jobs'
-import { getFallIncentiveProgramPayload } from './FeatureFlagService'
+import {
+  FallIncentiveFlagPayload,
+  getFallIncentiveProgramPayload,
+} from './FeatureFlagService'
 import QueueService from './QueueService'
 
 export async function isUserInIncentiveProgram(userId: Ulid) {
@@ -52,23 +55,24 @@ export async function queueFallIncentiveSessionQualificationJob(
   )
 }
 
-type UserAndFallIncentiveStartDate = {
+type UserAndFallIncentiveData = {
   user: UserContactInfo
   productFlags: UserProductFlags
-  incentiveProgramDate: Date
+  incentivePayload: FallIncentiveFlagPayload
 }
 
 export async function getUserFallIncentiveData(
   userId: string,
   enrollmentFlag: boolean
-): Promise<UserAndFallIncentiveStartDate | undefined> {
+): Promise<UserAndFallIncentiveData | undefined> {
   const user = await getUserContactInfoById(userId)
   const productFlags = await getUPFByUserId(userId)
-  const incentiveProgramDate = await getFallIncentiveProgramPayload(userId)
+  const incentivePayload = await getFallIncentiveProgramPayload(userId)
 
   if (
     !user ||
-    !incentiveProgramDate ||
+    !incentivePayload ||
+    !incentivePayload.incentiveStartDate ||
     !productFlags ||
     enrollmentFlag !== !!productFlags?.fallIncentiveEnrollmentAt
   )
@@ -77,6 +81,6 @@ export async function getUserFallIncentiveData(
   return {
     user,
     productFlags,
-    incentiveProgramDate: new Date(incentiveProgramDate),
+    incentivePayload,
   }
 }
