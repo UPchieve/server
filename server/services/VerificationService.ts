@@ -23,6 +23,7 @@ import {
   getUserContactInfoById,
   getUserIdByEmail,
   getUserIdByPhone,
+  updateUserProxyEmail,
   updateUserVerifiedInfoById,
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
@@ -38,6 +39,7 @@ export interface InitiateVerificationData {
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   firstName: string
+  isAddingProxyEmail?: boolean
 }
 
 const asInitiateVerificationData = asFactory<InitiateVerificationData>({
@@ -45,6 +47,7 @@ const asInitiateVerificationData = asFactory<InitiateVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   firstName: asString,
+  isAddingProxyEmail: asOptional(asBoolean),
 })
 
 export interface ConfirmVerificationData {
@@ -53,6 +56,7 @@ export interface ConfirmVerificationData {
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
   forSignup?: boolean
+  isAddingProxyEmail?: boolean
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
@@ -61,6 +65,7 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
   forSignup: asOptional(asBoolean),
+  isAddingProxyEmail: asOptional(asBoolean),
 })
 
 export async function initiateVerification(data: unknown): Promise<void> {
@@ -69,6 +74,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
     sendTo,
     verificationMethod,
     firstName,
+    isAddingProxyEmail,
   } = asInitiateVerificationData(data)
 
   if (
@@ -96,7 +102,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
     existingUserErrorMessage = 'The email address you entered is already in use'
     existingUserId = await getUserIdByEmail(sendTo)
 
-    if (!existingUserId) {
+    if (!isAddingProxyEmail && !existingUserId) {
       throw new LookupError(
         'The email address you entered does not match your account email address'
       )
@@ -165,6 +171,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     verificationMethod,
     verificationCode,
     forSignup,
+    isAddingProxyEmail,
   } = asConfirmVerificationData(data)
 
   if (
@@ -203,7 +210,9 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   }
 
   if (isVerified) {
-    await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
+    if (!isPhoneVerification && isAddingProxyEmail)
+      await updateUserProxyEmail(userId, sendTo)
+    else await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
     if (shouldSendOnboardingEmails) {
       await sendEmails(userId)
     }
