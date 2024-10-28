@@ -4455,6 +4455,13 @@ CREATE INDEX session_voice_messages_session_id ON upchieve.session_voice_message
 
 
 --
+-- Name: sessions_idx_volunteer_ended_at_created_at; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX sessions_idx_volunteer_ended_at_created_at ON upchieve.sessions USING btree (volunteer_id, ended_at, created_at);
+
+
+--
 -- Name: sessions_student_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6078,4 +6085,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240930195105'),
     ('20241009204150'),
     ('20241018205145'),
-    ('20241028142054');
+    ('20241028142054'),
+    ('20241028154216');
