@@ -32,6 +32,7 @@ export type LegacyUserModel = {
   _id: Ulid
   createdAt: Date
   email: string
+  proxyEmail?: string
   verified: boolean
   firstname: string
   phone?: string
