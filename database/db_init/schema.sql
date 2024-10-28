@@ -4490,6 +4490,20 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 
 
 --
+-- Name: users_submissions_idx_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_submissions_idx_user_id ON upchieve.users_surveys_submissions USING btree (user_survey_id);
+
+
+--
+-- Name: users_surveys_idx_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_surveys_idx_session_id ON upchieve.users_surveys USING btree (session_id);
+
+
+--
 -- Name: volunteer_partner_orgs_key; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6063,4 +6077,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240925165907'),
     ('20240930195105'),
     ('20241009204150'),
-    ('20241018205145');
+    ('20241018205145'),
+    ('20241028142054');
