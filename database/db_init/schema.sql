@@ -1,6 +1,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -21,6 +22,13 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
+
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
 
 
 --
@@ -4328,6 +4336,13 @@ CREATE INDEX notifications_sent_at_idx ON upchieve.notifications USING btree (se
 
 
 --
+-- Name: notifications_session_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX notifications_session_id ON upchieve.notifications USING btree (session_id);
+
+
+--
 -- Name: notifications_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6047,4 +6062,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20240918200433'),
     ('20240925165907'),
     ('20240930195105'),
-    ('20241009204150');
+    ('20241009204150'),
+    ('20241018205145');
