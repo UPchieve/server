@@ -32,10 +32,6 @@ export class AuthRedirect {
     studentData: Partial<RegisterStudentPayload> = {},
     errorMessage?: string
   ) {
-    console.log('****provider', provider)
-    console.log('****is login', isLogin)
-    console.log('****student data', studentData)
-    console.log('****error msg', errorMessage)
     if (isLogin) {
       return this.loginFailureRedirect(provider)
     }
