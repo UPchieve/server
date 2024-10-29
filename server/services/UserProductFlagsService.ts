@@ -13,15 +13,15 @@ export async function incentiveProgramEnrollmentEnroll(userId: Ulid) {
     throw new Error(`You're already enrolled in the fall incentive program.`)
 
   const user = await getLegacyUserObject(userId)
-  if (!user.isSchoolPartner) {
+  if (user.isSchoolPartner) {
+    if (!user.proxyEmail)
+      throw new Error('Your email must be verified before joining the program.')
+  } else {
     const userVerificationInfo = await getUserVerificationInfoById(userId)
     if (!userVerificationInfo?.phoneVerified)
       throw new Error(
         'Your phone number must be verified before joining the program.'
       )
-  } else {
-    if (!user.proxyEmail)
-      throw new Error('Your email must be verified before joining the program.')
   }
   const enrollmentDate = await enrollStudentToFallIncentiveProgram(userId)
   await queueIncentiveProgramEnrollmentWelcomeJob(userId)
