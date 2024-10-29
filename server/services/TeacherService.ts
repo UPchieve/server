@@ -7,7 +7,6 @@ import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
-import { UUID } from 'typeorm/driver/mongodb/bson.typings'
 
 export async function createTeacherClass(
   userId: Ulid,
