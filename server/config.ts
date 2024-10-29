@@ -105,6 +105,8 @@ const config: Static<typeof Config> = {
       'd-77780e77be46490d963f5ccefe1431bc',
     qualifiedForGiftCardTemplate: 'd-4a5f5e272e3d49e5abf074af32c99813',
     stillTimeForQualifyingSessionTemplate: 'd-61b7eff0a57f4a69a0e11b63c4d15fbe',
+    fallIncentiveCompletedChallengeTemplate:
+      'd-e7e5b09cc1444128aceaa6807981c595',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
