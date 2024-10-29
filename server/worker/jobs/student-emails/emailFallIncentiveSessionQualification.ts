@@ -99,12 +99,15 @@ export default async (
     userId,
     startOfWeek.toDate()
   )
-  const { firstName, email } = user
+  const { firstName, email, proxyEmail } = user
   try {
     if (sessionOverview.qualifiedSessions.length >= 1) {
       const qualifiedSessionId =
         sessionOverview.qualifiedSessions[totalQualifiedEmailsSentThisWeek]
-      await MailService.sendQualifiedForGiftCardEmail(email, firstName)
+      await MailService.sendQualifiedForGiftCardEmail(
+        proxyEmail ?? email,
+        firstName
+      )
       await createEmailNotification({
         userId,
         sessionId: qualifiedSessionId,
@@ -121,7 +124,7 @@ export default async (
       })
       if (!unqualifiedEmailSent) {
         await MailService.sendStillTimeToHaveQualifyingSessionEmail(
-          email,
+          proxyEmail ?? email,
           firstName
         )
         await createEmailNotification({
