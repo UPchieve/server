@@ -66,6 +66,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(11)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
@@ -80,6 +82,9 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(log).toHaveBeenCalledWith(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
     )
+    expect(
+      MailService.sendFallIncentiveCompletedChallengeEmail
+    ).toHaveBeenCalledWith(user.email, user.firstName)
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       user.id,
       EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
@@ -88,12 +93,14 @@ describe('emailFallIncentiveSessionQualification', () => {
         fallIncentiveLimitReachedAt: expect.any(String),
       }
     )
-    expect(NotificationService.hasUserBeenSentEmail).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
+      userId: user.id,
+      emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+    })
     expect(MailService.sendQualifiedForGiftCardEmail).not.toHaveBeenCalled()
     expect(
       MailService.sendStillTimeToHaveQualifyingSessionEmail
     ).not.toHaveBeenCalled()
-    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
   test('Should not send the "qualified for gift card" email if user has already reached the max qualifying sessions for the week', async () => {
@@ -112,6 +119,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(2)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(3)
 
@@ -146,6 +155,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
@@ -191,6 +202,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit - User has not been sent the "qualified for gift card" email
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     // Mock sent the user the "still time to qualify for session" email before
@@ -231,6 +244,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
@@ -276,6 +291,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
@@ -317,6 +334,8 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     // Fall incentive participation limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
+    // Fall incentive challenge completed email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
     // Weekly gift card limit
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(0)
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
