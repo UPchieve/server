@@ -46,7 +46,7 @@ async function passportRegisterUser(
   try {
     const existingFedCred = await getFederatedCredential(profile.id, issuer)
     if (existingFedCred) {
-      return passportLoginUser(profile.id, issuer, done)
+      return done(null, { id: existingFedCred.userId })
     }
 
     const firstName = profile.name?.givenName
