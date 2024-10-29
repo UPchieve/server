@@ -1377,6 +1377,30 @@ export async function sendStillTimeToHaveQualifyingSessionEmail(
   )
 }
 
+export async function sendFallIncentiveCompletedChallengeEmail(
+  email: string,
+  firstName: string
+): Promise<void> {
+  const sender = config.mail.senders.incentive
+  const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
+    reply_to: {
+      email: sender,
+    },
+    categories: ['student fall incentive completed challenge email'],
+  }
+  await sendEmail(
+    email,
+    sender,
+    config.mail.people.incentiveOutreach,
+    config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+    { firstName },
+    overrides
+  )
+}
+
 export async function sendStudentFavoritedVolunteerEmail(
   email: string,
   volunteerFirstName: string,
