@@ -23,3 +23,9 @@ FROM
 WHERE
     class_id = :classId!;
 
+
+/* @name removeStudentFromClass */
+DELETE FROM student_classes
+WHERE user_id = :studentId!
+    AND class_id = :classId!;
+

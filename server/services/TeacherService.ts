@@ -5,7 +5,9 @@ import * as AssignmentsService from './AssignmentsService'
 import * as StudentRepo from '../models/Student'
 import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
+import * as TeacherClassRepo from '../models/TeacherClass'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
+import { UUID } from 'typeorm/driver/mongodb/bson.typings'
 
 export async function createTeacherClass(
   userId: Ulid,
@@ -142,4 +144,11 @@ export async function updateTeacherClass(
 export async function deactivateTeacherClass(id: string) {
   const updatedClass = await TeacherRepo.deactivateTeacherClass(id)
   return updatedClass
+}
+
+export async function removeStudentFromClass(
+  studentId: string,
+  classId: string
+) {
+  return TeacherClassRepo.removeStudentFromClass(studentId, classId)
 }

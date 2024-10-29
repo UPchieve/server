@@ -93,6 +93,18 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  router.route('/class/student/remove').post(async function(req, res) {
+    try {
+      const studentId = asString(req.body.studentId)
+      const classId = asString(req.body.classId)
+
+      await TeacherService.removeStudentFromClass(studentId, classId)
+      res.json({ studentId })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   /* Assignments */
   router.route('/assignment').post(async function(req, res) {
     try {
