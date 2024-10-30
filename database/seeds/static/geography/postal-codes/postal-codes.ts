@@ -1,5 +1,5 @@
 import fs from 'fs'
-import parse from 'csv-parse/lib/sync'
+import { parse } from 'csv-parse/sync'
 import * as pgQueries from '../pg.queries'
 import { wrapInsert } from '../../../utils'
 import { csvPostalCodeRecord } from '../../../../../server/models/ZipCode'
