@@ -1733,3 +1733,28 @@ export async function getVolunteersForAnalyticsReport(
     throw new RepoReadError(err)
   }
 }
+
+export type DeactivatedVolunteerPartnerUser = {
+  userId: string
+  deactivatedOn: Date | null
+  createdAt: Date
+}
+export async function getDeactivatedVolunteerPartnerUsersForPartnerOrg(
+  volunteerPartnerOrgId: string
+): Promise<DeactivatedVolunteerPartnerUser[]> {
+  try {
+    const results = await pgQueries.getDeactivatedUsersForVolunteerPartnerOrg.run(
+      {
+        volunteerPartnerOrgId,
+      },
+      getAnalyticsClient()
+    )
+    return results.map(row => ({
+      userId: row.userId as string,
+      deactivatedOn: row.deactivatedOn,
+      createdAt: row.createdAt,
+    }))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

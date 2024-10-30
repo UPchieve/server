@@ -1727,7 +1727,7 @@ WITH most_recent_instances AS (
         row_number() OVER (PARTITION BY user_id,
             volunteer_partner_org_id ORDER BY created_at DESC)
     FROM users_volunteer_partner_orgs_instances
-    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId
+    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId!
 )
 SELECT
     *

@@ -3614,7 +3614,7 @@ export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IG
 
 /** 'GetDeactivatedUsersForVolunteerPartnerOrg' parameters type */
 export interface IGetDeactivatedUsersForVolunteerPartnerOrgParams {
-  volunteerPartnerOrgId: string | null | void;
+  volunteerPartnerOrgId: string;
 }
 
 /** 'GetDeactivatedUsersForVolunteerPartnerOrg' return type */
@@ -3633,7 +3633,7 @@ export interface IGetDeactivatedUsersForVolunteerPartnerOrgQuery {
   result: IGetDeactivatedUsersForVolunteerPartnerOrgResult;
 }
 
-const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivatedUsersForVolunteerPartnerOrg","params":[{"name":"volunteerPartnerOrgId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":52905,"b":52925,"line":1730,"col":38}]}}],"usedParamSet":{"volunteerPartnerOrgId":true},"statement":{"body":"WITH most_recent_instances AS (\n    SELECT\n        *,\n        row_number() OVER (PARTITION BY user_id,\n            volunteer_partner_org_id ORDER BY created_at DESC)\n    FROM users_volunteer_partner_orgs_instances\n    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId\n)\nSELECT\n    *\nFROM\n    most_recent_instances\nWHERE\n    deactivated_on IS NOT NULL","loc":{"a":52653,"b":53008,"line":1724,"col":0}}};
+const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivatedUsersForVolunteerPartnerOrg","params":[{"name":"volunteerPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":52905,"b":52926,"line":1730,"col":38}]}}],"usedParamSet":{"volunteerPartnerOrgId":true},"statement":{"body":"WITH most_recent_instances AS (\n    SELECT\n        *,\n        row_number() OVER (PARTITION BY user_id,\n            volunteer_partner_org_id ORDER BY created_at DESC)\n    FROM users_volunteer_partner_orgs_instances\n    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId!\n)\nSELECT\n    *\nFROM\n    most_recent_instances\nWHERE\n    deactivated_on IS NOT NULL","loc":{"a":52653,"b":53009,"line":1724,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -3644,7 +3644,7 @@ const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivated
  *         row_number() OVER (PARTITION BY user_id,
  *             volunteer_partner_org_id ORDER BY created_at DESC)
  *     FROM users_volunteer_partner_orgs_instances
- *     WHERE volunteer_partner_org_id = :volunteerPartnerOrgId
+ *     WHERE volunteer_partner_org_id = :volunteerPartnerOrgId!
  * )
  * SELECT
  *     *

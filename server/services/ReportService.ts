@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import moment from 'moment'
 import 'moment-timezone'
-import _ from 'lodash'
+import _, { clamp } from 'lodash'
 import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
@@ -32,6 +32,12 @@ import {
   getAssociatedPartnersAndSchools,
 } from '../models/AssociatedPartner'
 import { Ulid } from '../models/pgUtils'
+import {
+  DeactivatedVolunteerPartnerUser,
+  getDeactivatedVolunteerPartnerUsersForPartnerOrg,
+  getVolunteersForAnalyticsReport,
+} from '../models/Volunteer/queries'
+import { VolunteersForAnalyticsReport } from '../models/Volunteer'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -333,7 +339,10 @@ export async function generatePartnerAnalyticsReport(
     )
   } while (nextCursor)
 
-  logger.info(logData, 'Generated all volunteer rows for analytics report')
+  logger.info(
+    logData,
+    'Generated all active volunteer rows for analytics report'
+  )
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
   if (report.length > 0) {
@@ -341,7 +350,117 @@ export async function generatePartnerAnalyticsReport(
     logger.info(logData, 'Finished generating partner analytics report summary')
   }
 
+  /*
+   * Modify the summary and report to include deactivated (former) partner volunteers' stats from the time in which
+   * they were part of the partner org.
+   */
+  const deactivatedVolunteersReport = await getDeactivatedVolunteerAnalytics({
+    partnerOrgKey: partnerOrg,
+    partnerOrgId: partnerOrgId,
+    associatedPartners,
+    startDate: new Date(startDate),
+    endDate: new Date(endDate),
+  })
+
+  // @TODO merge the reports
+  deactivatedVolunteersReport.allTimeStats.forEach(volunteer => {
+    const correspondingInterval = deactivatedVolunteersReport.intervalStats.find(
+      v => v.userId === volunteer.userId
+    )!
+    volunteer.totalNotifications = volunteer.totalNotificationsWithinRange
+    volunteer.totalNotificationsWithinRange =
+      correspondingInterval.totalNotificationsWithinRange
+    volunteer.totalPartnerSessions = volunteer.totalPartnerSessionsWithinRange
+    volunteer.totalPartnerSessionsWithinRange =
+      correspondingInterval.totalPartnerSessionsWithinRange
+    volunteer.totalPartnerTimeTutored =
+      volunteer.totalPartnerTimeTutoredWithinRange
+    volunteer.totalPartnerTimeTutoredWithinRange =
+      correspondingInterval.totalPartnerTimeTutoredWithinRange
+    volunteer.totalSessions = volunteer.totalSessionsWithinRange
+    volunteer.totalSessionsWithinRange =
+      correspondingInterval.totalSessionsWithinRange
+    volunteer.totalUniquePartnerStudentsHelped =
+      volunteer.totalUniquePartnerStudentsHelpedWithinRange
+    volunteer.totalUniquePartnerStudentsHelpedWithinRange =
+      correspondingInterval.totalUniquePartnerStudentsHelpedWithinRange
+    volunteer.totalUniqueStudentsHelped =
+      volunteer.totalUniqueStudentsHelpedWithinRange
+    volunteer.totalUniqueStudentsHelpedWithinRange =
+      correspondingInterval.totalUniqueStudentsHelpedWithinRange
+  })
+
+  // @TODO Now form these into AnalyticsReportRows and add to `report`
+  // @TODO Then adjust summary.
+
   return { summary, report }
+}
+
+const getDeactivatedVolunteerAnalytics = async (data: {
+  partnerOrgKey: string
+  partnerOrgId: string
+  associatedPartners: AssociatedPartnersAndSchools
+  startDate: Date
+  endDate: Date
+}) => {
+  const deactivatedVolunteerPartnerUsers: DeactivatedVolunteerPartnerUser[] = await getDeactivatedVolunteerPartnerUsersForPartnerOrg(
+    data.partnerOrgId
+  )
+  // @TODO Log info out.
+
+  const allTimeStats: VolunteersForAnalyticsReport[] = []
+  const intervalStats: VolunteersForAnalyticsReport[] = []
+  for (const v of deactivatedVolunteerPartnerUsers) {
+    /**
+     * For volunteers who are no longer actively part of the given partner org, we will calculate:
+     * - All-time stats: the entire time they were a part of the partner org (does not necessarily overlap with [startDate, endDate]
+     * - Specific timeframe stats: the slice of [startDate, endDate] when they were a part of the partner org (could be nothing)
+     */
+
+    const allTimeStart = v.createdAt
+    const allTimeEnd = new Date(
+      clamp(
+        v.deactivatedOn!.getMilliseconds(),
+        data.startDate.getMilliseconds(),
+        data.endDate.getMilliseconds()
+      )
+    )
+
+    const intervalStart = new Date(
+      Math.max(v.createdAt.getMilliseconds(), data.startDate.getMilliseconds())
+    )
+    const intervalEnd = new Date(
+      Math.min(
+        v.deactivatedOn!.getMilliseconds(),
+        data.endDate.getMilliseconds()
+      )
+    )
+
+    // @TODO - Make use of the time range stats only, even for all-time stats
+    const allTime = await getVolunteersForAnalyticsReport(
+      data.partnerOrgKey,
+      allTimeStart,
+      allTimeEnd,
+      data.associatedPartners,
+      1,
+      null,
+      v.userId
+    )
+    allTimeStats.push(allTime[0])
+
+    const interval = await getVolunteersForAnalyticsReport(
+      data.partnerOrgKey,
+      intervalStart,
+      intervalEnd,
+      data.associatedPartners,
+      1,
+      null,
+      v.userId
+    )
+    intervalStats.push(interval[0])
+  }
+
+  return { allTimeStats, intervalStats }
 }
 
 export async function writeAnalyticsReport(
