@@ -1,5 +1,5 @@
 import fs from 'fs'
-import parse from 'csv-parse/lib/sync'
+import { parse } from 'csv-parse/sync'
 import { InputError } from '../models/Errors'
 
 export function readCsvFromBuffer<T>(
