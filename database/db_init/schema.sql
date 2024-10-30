@@ -1,7 +1,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -22,13 +21,6 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
-
-
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
 
 
 --
@@ -257,7 +249,8 @@ CREATE TABLE upchieve.assignments (
     is_required boolean DEFAULT false NOT NULL,
     subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    archived boolean
 );
 
 
@@ -6088,4 +6081,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241018205145'),
     ('20241028142054'),
     ('20241028154216'),
-    ('20241028173238');
+    ('20241028173238'),
+    ('20241030224824');
