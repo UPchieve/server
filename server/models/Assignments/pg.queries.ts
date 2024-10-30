@@ -58,6 +58,7 @@ export interface IGetAssignmentsByClassIdParams {
 
 /** 'GetAssignmentsByClassId' return type */
 export interface IGetAssignmentsByClassIdResult {
+  archived: boolean | null;
   classId: string;
   createdAt: Date;
   description: string | null;
@@ -101,6 +102,7 @@ export interface IGetAssignmentByIdParams {
 
 /** 'GetAssignmentById' return type */
 export interface IGetAssignmentByIdResult {
+  archived: boolean | null;
   classId: string;
   createdAt: Date;
   description: string | null;
@@ -310,6 +312,7 @@ export interface IGetAllAssignmentsForTeacherParams {
 
 /** 'GetAllAssignmentsForTeacher' return type */
 export interface IGetAllAssignmentsForTeacherResult {
+  archived: boolean | null;
   classId: string;
   createdAt: Date;
   description: string | null;
