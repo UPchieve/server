@@ -1739,9 +1739,9 @@ export type DeactivatedVolunteerPartnerUser = {
   deactivatedOn: Date | null
   createdAt: Date
 }
-export async function getDeactivatedVolunteerPartnerUsersForPartnerOrg(
+export async function getDeactivatedVolunteersByPartnerOrg(
   volunteerPartnerOrgId: string
-): Promise<DeactivatedVolunteerPartnerUser[]> {
+) {
   try {
     const results = await pgQueries.getDeactivatedUsersForVolunteerPartnerOrg.run(
       {
@@ -1749,11 +1749,7 @@ export async function getDeactivatedVolunteerPartnerUsersForPartnerOrg(
       },
       getAnalyticsClient()
     )
-    return results.map(row => ({
-      userId: row.userId as string,
-      deactivatedOn: row.deactivatedOn,
-      createdAt: row.createdAt,
-    }))
+    return results.map(r => makeSomeRequired(r, ['userId']))
   } catch (err) {
     throw new RepoReadError(err)
   }

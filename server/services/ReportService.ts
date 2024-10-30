@@ -34,7 +34,7 @@ import {
 import { Ulid } from '../models/pgUtils'
 import {
   DeactivatedVolunteerPartnerUser,
-  getDeactivatedVolunteerPartnerUsersForPartnerOrg,
+  getDeactivatedVolunteersByPartnerOrg,
   getVolunteersForAnalyticsReport,
 } from '../models/Volunteer/queries'
 import { VolunteersForAnalyticsReport } from '../models/Volunteer'
@@ -251,42 +251,60 @@ type FullReport = {
  * This function is written for memory efficiency. As such, the batch should be confined to the scope of this function/
  * not returned.
  *
+ * @param partnerOrgKey - the volunteer_partner_org.key
+ * @param start - The start date of the specific time frame to pull
+ * @param end - The end date of the specific time frame to pull
+ * @param associatedPartners - Student partner orgs and schools sponsored by this partner
  * @param report - A collection of rows for the report. This is mutated by this function.
+ * @param batchInfo
+ * @param deactivatedUsers - If set, this will pull the data just for these specific users.
  * @returns the cursor of the next page, or null if on the last page
  */
 async function processBatch(
-  partnerOrg: string,
+  partnerOrgKey: string,
   start: Date,
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools,
   batchSize: number,
   cursor: null | Ulid,
-  report: AnalyticsReportRow[]
+  report: AnalyticsReportRow[],
+  deactivatedUsers?: { userId: Ulid; deactivatedOn?: Date | null }[]
 ): Promise<Ulid | null> {
   const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
-    partnerOrg,
+    partnerOrgKey,
     start,
     end,
     associatedPartners,
     batchSize + 1, // get an extra row for the cursor
-    cursor
+    cursor,
+    deactivatedUsers?.map(u => u.userId)
   )
   const nextCursor =
     batch.length < batchSize + 1 ? null : batch.pop()?.userId ?? null
 
   // Fetch individual volunteer data
   for (const volunteer of batch) {
-    const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
-      volunteer.userId,
-      new Date(volunteer.createdAt),
+    const deactivatedOn = deactivatedUsers
+      ? deactivatedUsers!.find(user => user.userId === volunteer.userId)
+          ?.deactivatedOn
+      : undefined
+
+    // Count stats until the current date, or if the volunteer has since left the partner org, until their last day with the partner org
+    const endDate =
+      deactivatedOn ??
       moment()
         .utc()
         .toDate()
+
+    const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
+      volunteer.userId,
+      new Date(volunteer.createdAt),
+      endDate
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
-      start,
-      end
+      start, // @TODO: For deactivated volunteers, adjust this
+      endDate
     )
     const volunteerWithAnalytics = {
       ...volunteer,
@@ -316,6 +334,34 @@ export async function generatePartnerAnalyticsReport(
 
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
+  // @TODO Move to the end later.
+  // If any users have been deactivated as part of this partner org, they won't be included in the results so far.
+  // Run another batch for just those users.
+  const deactivatedUsers = await getDeactivatedVolunteersByPartnerOrg(
+    partnerOrgId
+  )
+  if (deactivatedUsers.length) {
+    logger.info(
+      {
+        ...logData,
+        deactivatedUserIds: deactivatedUsers.map(u => u.userId),
+      },
+      `Found ${deactivatedUsers.length} deactivated users. Processing them now...`
+    )
+    await processBatch(
+      partnerOrg,
+      start,
+      end,
+      associatedPartners,
+      deactivatedUsers.length,
+      null,
+      report,
+      deactivatedUsers
+    )
+    logger.info(logData, 'Finished processing deactivated users.')
+    console.debug('deactivated users report', JSON.stringify(report, null, 2))
+  }
+
   let batchNum: number
   let nextCursor: null | Ulid = null
   do {
@@ -333,6 +379,7 @@ export async function generatePartnerAnalyticsReport(
       nextCursor,
       report
     )
+    console.log('processBatch returned nextCursor', nextCursor)
     logger.info(
       logData,
       `Partner analytics report: Completed batch #${batchNum}`
@@ -350,117 +397,7 @@ export async function generatePartnerAnalyticsReport(
     logger.info(logData, 'Finished generating partner analytics report summary')
   }
 
-  /*
-   * Modify the summary and report to include deactivated (former) partner volunteers' stats from the time in which
-   * they were part of the partner org.
-   */
-  const deactivatedVolunteersReport = await getDeactivatedVolunteerAnalytics({
-    partnerOrgKey: partnerOrg,
-    partnerOrgId: partnerOrgId,
-    associatedPartners,
-    startDate: new Date(startDate),
-    endDate: new Date(endDate),
-  })
-
-  // @TODO merge the reports
-  deactivatedVolunteersReport.allTimeStats.forEach(volunteer => {
-    const correspondingInterval = deactivatedVolunteersReport.intervalStats.find(
-      v => v.userId === volunteer.userId
-    )!
-    volunteer.totalNotifications = volunteer.totalNotificationsWithinRange
-    volunteer.totalNotificationsWithinRange =
-      correspondingInterval.totalNotificationsWithinRange
-    volunteer.totalPartnerSessions = volunteer.totalPartnerSessionsWithinRange
-    volunteer.totalPartnerSessionsWithinRange =
-      correspondingInterval.totalPartnerSessionsWithinRange
-    volunteer.totalPartnerTimeTutored =
-      volunteer.totalPartnerTimeTutoredWithinRange
-    volunteer.totalPartnerTimeTutoredWithinRange =
-      correspondingInterval.totalPartnerTimeTutoredWithinRange
-    volunteer.totalSessions = volunteer.totalSessionsWithinRange
-    volunteer.totalSessionsWithinRange =
-      correspondingInterval.totalSessionsWithinRange
-    volunteer.totalUniquePartnerStudentsHelped =
-      volunteer.totalUniquePartnerStudentsHelpedWithinRange
-    volunteer.totalUniquePartnerStudentsHelpedWithinRange =
-      correspondingInterval.totalUniquePartnerStudentsHelpedWithinRange
-    volunteer.totalUniqueStudentsHelped =
-      volunteer.totalUniqueStudentsHelpedWithinRange
-    volunteer.totalUniqueStudentsHelpedWithinRange =
-      correspondingInterval.totalUniqueStudentsHelpedWithinRange
-  })
-
-  // @TODO Now form these into AnalyticsReportRows and add to `report`
-  // @TODO Then adjust summary.
-
   return { summary, report }
-}
-
-const getDeactivatedVolunteerAnalytics = async (data: {
-  partnerOrgKey: string
-  partnerOrgId: string
-  associatedPartners: AssociatedPartnersAndSchools
-  startDate: Date
-  endDate: Date
-}) => {
-  const deactivatedVolunteerPartnerUsers: DeactivatedVolunteerPartnerUser[] = await getDeactivatedVolunteerPartnerUsersForPartnerOrg(
-    data.partnerOrgId
-  )
-  // @TODO Log info out.
-
-  const allTimeStats: VolunteersForAnalyticsReport[] = []
-  const intervalStats: VolunteersForAnalyticsReport[] = []
-  for (const v of deactivatedVolunteerPartnerUsers) {
-    /**
-     * For volunteers who are no longer actively part of the given partner org, we will calculate:
-     * - All-time stats: the entire time they were a part of the partner org (does not necessarily overlap with [startDate, endDate]
-     * - Specific timeframe stats: the slice of [startDate, endDate] when they were a part of the partner org (could be nothing)
-     */
-
-    const allTimeStart = v.createdAt
-    const allTimeEnd = new Date(
-      clamp(
-        v.deactivatedOn!.getMilliseconds(),
-        data.startDate.getMilliseconds(),
-        data.endDate.getMilliseconds()
-      )
-    )
-
-    const intervalStart = new Date(
-      Math.max(v.createdAt.getMilliseconds(), data.startDate.getMilliseconds())
-    )
-    const intervalEnd = new Date(
-      Math.min(
-        v.deactivatedOn!.getMilliseconds(),
-        data.endDate.getMilliseconds()
-      )
-    )
-
-    // @TODO - Make use of the time range stats only, even for all-time stats
-    const allTime = await getVolunteersForAnalyticsReport(
-      data.partnerOrgKey,
-      allTimeStart,
-      allTimeEnd,
-      data.associatedPartners,
-      1,
-      null,
-      v.userId
-    )
-    allTimeStats.push(allTime[0])
-
-    const interval = await getVolunteersForAnalyticsReport(
-      data.partnerOrgKey,
-      intervalStart,
-      intervalEnd,
-      data.associatedPartners,
-      1,
-      null,
-      v.userId
-    )
-    intervalStats.push(interval[0])
-  }
-
-  return { allTimeStats, intervalStats }
 }
 
 export async function writeAnalyticsReport(
