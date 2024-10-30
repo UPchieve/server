@@ -1,5 +1,5 @@
 import { Ulid } from '../models/pgUtils'
-import { VERIFICATION_METHOD } from '../constants'
+import { VERIFICATION_METHOD, VERIFICATION_TYPE } from '../constants'
 import {
   asBoolean,
   asEnum,
@@ -39,7 +39,7 @@ export interface InitiateVerificationData {
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   firstName: string
-  isAddingProxyEmail?: boolean
+  verificationType?: VERIFICATION_TYPE
 }
 
 const asInitiateVerificationData = asFactory<InitiateVerificationData>({
@@ -47,7 +47,7 @@ const asInitiateVerificationData = asFactory<InitiateVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   firstName: asString,
-  isAddingProxyEmail: asOptional(asBoolean),
+  verificationType: asOptional(asEnum(VERIFICATION_TYPE)),
 })
 
 export interface ConfirmVerificationData {
@@ -56,7 +56,7 @@ export interface ConfirmVerificationData {
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
   forSignup?: boolean
-  isAddingProxyEmail?: boolean
+  verificationType?: VERIFICATION_TYPE
 }
 
 const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
@@ -65,18 +65,43 @@ const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
   forSignup: asOptional(asBoolean),
-  isAddingProxyEmail: asOptional(asBoolean),
+  verificationType: asOptional(asEnum(VERIFICATION_TYPE)),
 })
+
+// We're gradually refactoring to use `verificationType` for clearer logic.
+// For backward compatibility, if verificationType is not provided, we use the verificationMethod directly
+function getVerificationMethod(
+  verificationType?: VERIFICATION_TYPE,
+  verificationMethod?: VERIFICATION_METHOD
+): VERIFICATION_METHOD {
+  if (!verificationType && !verificationMethod)
+    throw new Error('Verification type or verification method must be provided')
+  if (!verificationType && verificationMethod) return verificationMethod
+
+  switch (verificationType) {
+    case VERIFICATION_TYPE.PHONE_NUMBER:
+      return VERIFICATION_METHOD.SMS
+    case VERIFICATION_TYPE.EMAIL_FOR_SIGNUP:
+    case VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL:
+      return VERIFICATION_METHOD.EMAIL
+    default:
+      throw new Error('Unknown verification type')
+  }
+}
 
 export async function initiateVerification(data: unknown): Promise<void> {
   const {
     userId,
     sendTo,
-    verificationMethod,
+    verificationMethod: initialVerificationMethod,
+    verificationType,
     firstName,
-    isAddingProxyEmail,
   } = asInitiateVerificationData(data)
 
+  const verificationMethod = getVerificationMethod(
+    verificationType,
+    initialVerificationMethod
+  )
   if (
     verificationMethod === VERIFICATION_METHOD.SMS &&
     !(await getSmsVerificationFeatureFlag(userId))
@@ -102,7 +127,10 @@ export async function initiateVerification(data: unknown): Promise<void> {
     existingUserErrorMessage = 'The email address you entered is already in use'
     existingUserId = await getUserIdByEmail(sendTo)
 
-    if (!isAddingProxyEmail && !existingUserId) {
+    if (
+      verificationType !== VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL &&
+      !existingUserId
+    ) {
       throw new LookupError(
         'The email address you entered does not match your account email address'
       )
@@ -168,12 +196,16 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   const {
     userId,
     sendTo,
-    verificationMethod,
+    verificationMethod: initialVerificationMethod,
     verificationCode,
     forSignup,
-    isAddingProxyEmail,
+    verificationType,
   } = asConfirmVerificationData(data)
 
+  const verificationMethod = getVerificationMethod(
+    verificationType,
+    initialVerificationMethod
+  )
   if (
     verificationMethod === VERIFICATION_METHOD.SMS &&
     !(await getSmsVerificationFeatureFlag(userId))
@@ -210,7 +242,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
   }
 
   if (isVerified) {
-    if (!isPhoneVerification && isAddingProxyEmail)
+    if (verificationType === VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL)
       await updateUserProxyEmail(userId, sendTo)
     else await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
     if (shouldSendOnboardingEmails) {
