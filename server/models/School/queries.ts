@@ -85,7 +85,7 @@ export async function getSchools(
           'isAdminApproved',
           'isPartner',
           'isSchoolWideTitle1',
-          'isTitle1Eligible',
+          'title1SchoolStatus',
         ])
       )
       .map((s: School) => {

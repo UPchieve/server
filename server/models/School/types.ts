@@ -15,7 +15,7 @@ export type School = {
   isPartner?: boolean
   schoolYear?: string
   isSchoolWideTitle1?: boolean
-  isTitle1Eligible?: boolean
+  title1SchoolStatus?: string
   nationalSchoolLunchProgram?: string
   totalStudents?: number
   nslpDirectCertification?: number

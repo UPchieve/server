@@ -145,8 +145,22 @@ export function isSchoolApproved(school?: School) {
     )
   }
 
+  /*
+   * The following are the options for title1SchoolStatus column. Only 3, 4, 5 are eligible.
+   * 1-Title I targeted assistance eligible school-No program
+   * 2-Title I targeted assistance school
+   * 3-Title I schoolwide eligible-Title I targeted assistance program
+   * 4-Title I schoolwide eligible-No program
+   * 5-Title I schoolwide school
+   * 6-Not a Title I school
+   */
   function isTitle1Eligible() {
-    return school?.isSchoolWideTitle1 || school?.isTitle1Eligible
+    return (
+      school?.isSchoolWideTitle1 ||
+      school?.title1SchoolStatus?.startsWith('3') ||
+      school?.title1SchoolStatus?.startsWith('4') ||
+      school?.title1SchoolStatus?.startsWith('5')
+    )
   }
 
   function hasCEONationalSchoolLunch() {
