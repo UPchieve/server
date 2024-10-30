@@ -1,5 +1,5 @@
 import fs from 'fs'
-import parse from 'csv-parse/lib/sync'
+import { parse } from 'csv-parse'
 import * as GeoRepo from '../models/Geography'
 import * as SchoolRepo from '../models/School'
 import { Job } from 'bull'
@@ -74,14 +74,23 @@ export const SCHOOL_RECORD_TRUE_VALUE = '1-Yes'
 export default async function upsertSchools(
   job: Job<UpsertSchoolsData>
 ): Promise<void> {
-  const schoolRecords = await getSchoolRecordsFromCsv()
+  const parser = fs
+    .createReadStream(
+      `${__dirname}/../../database/seeds/static/schools/schools.csv`
+    )
+    .pipe(
+      parse({
+        delimiter: ',',
+        columns: true,
+      })
+    )
 
   let createdCount = 0
   let updatedCount = 0
   let errorCount = 0
   const errors: string[] = []
 
-  for (const school of schoolRecords) {
+  for await (const school of parser) {
     const formattedSchool = getFormattedSchoolForInsert(
       job.data.schoolYear,
       school
@@ -118,7 +127,6 @@ export default async function upsertSchools(
       errors.push(`Failed ${school.ncessch}: ` + err)
     }
   }
-
   logger.info(
     `upsert-schools job complete. Created ${createdCount}; Updated ${updatedCount}; Failed: ${errorCount}; Errors: ${errors}`
   )
@@ -146,20 +154,6 @@ async function addSchool(schoolMetadata: FormattedSchoolNcesMetadataRecord) {
     }
     await createSchoolMetadata(newSchool.id, schoolMetadata, tc)
   })
-}
-
-async function getSchoolRecordsFromCsv() {
-  const schoolRecordFile = fs.readFileSync(
-    `${__dirname}/../../database/seeds/static/schools/schools.csv`
-  )
-  const schoolRecords: SchoolNcesMetadataCsvRecord[] = await parse(
-    schoolRecordFile,
-    {
-      delimiter: ',',
-      columns: true,
-    }
-  )
-  return schoolRecords
 }
 
 function getFormattedSchoolForInsert(
