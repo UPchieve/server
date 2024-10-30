@@ -1667,7 +1667,7 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
       },
-      getRoClient()
+      getAnalyticsClient()
     )
     if (!(result.length && makeRequired(result[0])))
       throw new Error(

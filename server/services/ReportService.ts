@@ -334,7 +334,34 @@ export async function generatePartnerAnalyticsReport(
 
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
-  // @TODO Move to the end later.
+  let batchNum: number
+  let nextCursor: null | Ulid = null
+  do {
+    batchNum = report.length / batchSize + 1
+    logger.info(
+      logData,
+      `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
+    )
+    nextCursor = await processBatch(
+      partnerOrg,
+      start,
+      end,
+      associatedPartners,
+      batchSize,
+      nextCursor,
+      report
+    )
+    logger.info(
+      logData,
+      `Partner analytics report: Completed batch #${batchNum}`
+    )
+  } while (nextCursor)
+
+  logger.info(
+    logData,
+    'Generated all active volunteer rows for analytics report'
+  )
+
   // If any users have been deactivated as part of this partner org, they won't be included in the results so far.
   // Run another batch for just those users.
   const deactivatedUsers = await getDeactivatedVolunteersByPartnerOrg(
@@ -361,35 +388,6 @@ export async function generatePartnerAnalyticsReport(
     logger.info(logData, 'Finished processing deactivated users.')
     console.debug('deactivated users report', JSON.stringify(report, null, 2))
   }
-
-  let batchNum: number
-  let nextCursor: null | Ulid = null
-  do {
-    batchNum = report.length / batchSize + 1
-    logger.info(
-      logData,
-      `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
-    )
-    nextCursor = await processBatch(
-      partnerOrg,
-      start,
-      end,
-      associatedPartners,
-      batchSize,
-      nextCursor,
-      report
-    )
-    console.log('processBatch returned nextCursor', nextCursor)
-    logger.info(
-      logData,
-      `Partner analytics report: Completed batch #${batchNum}`
-    )
-  } while (nextCursor)
-
-  logger.info(
-    logData,
-    'Generated all active volunteer rows for analytics report'
-  )
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
   if (report.length > 0) {
