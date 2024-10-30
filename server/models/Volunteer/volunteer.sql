@@ -1484,12 +1484,14 @@ SELECT
                 NULL
             END), 0)::int AS total_unique_partner_students_helped_within_range
 FROM
-    volunteer_partner_orgs
+    users_volunteer_partner_orgs_instances
+    JOIN volunteer_partner_orgs ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
     LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN sessions ON volunteer_profiles.user_id = sessions.volunteer_id
     LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
 WHERE
-    volunteer_partner_orgs.key = :volunteerPartnerOrg!;
+    users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+    AND volunteer_partner_orgs.key = :volunteerPartnerOrg!;
 
 
 /* @name getVolunteersForAnalyticsReport */
@@ -1517,9 +1519,10 @@ SELECT
     COALESCE(notifications_stats.total, 0) AS total_notifications,
     COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range
 FROM
-    users
+    users_volunteer_partner_orgs_instances
+    JOIN users ON users.id = users_volunteer_partner_orgs_instances.user_id
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
+    LEFT JOIN volunteer_partner_orgs ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
     LEFT JOIN (
         SELECT
             COUNT(*)::int AS total,
@@ -1629,7 +1632,9 @@ WHERE
     WHERE
         volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE
 WHERE
-    volunteer_partner_orgs.key = :volunteerPartnerOrg!
+    users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
+    AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+    AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
     AND (:cursor::uuid IS NULL
         OR users.id <= :cursor::uuid)
 ORDER BY
