@@ -57,8 +57,7 @@ export interface CreateStudentFedCredPayload {
 export async function rosterPartnerStudents(
   students: RosterStudentPayload[],
   schoolId: string,
-  partnerKey?: string,
-  partnerSite?: string
+  shouldSendPasswordResetEmail = true
 ) {
   const newUsers: {
     id: string
@@ -91,9 +90,10 @@ export async function rosterPartnerStudents(
           student.password = await hashPassword(student.password)
         }
 
-        const passwordResetToken = !student.password
-          ? createResetToken()
-          : undefined
+        const passwordResetToken =
+          !student.password && shouldSendPasswordResetEmail
+            ? createResetToken()
+            : undefined
         const userData = {
           email: student.email,
           emailVerified: true,
@@ -116,8 +116,6 @@ export async function rosterPartnerStudents(
           userId: user.id,
           gradeLevel: parseInt(student.gradeLevel).toFixed(0) + 'th',
           schoolId,
-          studentPartnerOrgKey: partnerKey,
-          studentPartnerOrgSiteName: partnerSite,
         }
         await upsertStudent(studentData, tc)
 
@@ -135,13 +133,15 @@ export async function rosterPartnerStudents(
     }
   }
 
-  for (const user of newUsers) {
-    if (user.passwordResetToken) {
-      await sendRosterStudentSetPasswordEmail(
-        user.proxyEmail ?? user.email,
-        user.firstName,
-        user.passwordResetToken
-      )
+  if (shouldSendPasswordResetEmail) {
+    for (const user of newUsers) {
+      if (user.passwordResetToken) {
+        await sendRosterStudentSetPasswordEmail(
+          user.proxyEmail ?? user.email,
+          user.firstName,
+          user.passwordResetToken
+        )
+      }
     }
   }
 

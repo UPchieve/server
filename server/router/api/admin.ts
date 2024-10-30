@@ -1,13 +1,15 @@
 import multer from 'multer'
 import { Express, Router } from 'express'
 import { authPassport } from '../../utils/auth-utils'
-import { getPartnerSchools } from '../../services/SchoolService'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
+import * as CleverRosterService from '../../services/CleverRosterService'
+import { getPartnerSchools } from '../../services/SchoolService'
 import {
   RosterStudentPayload,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
+import { asString } from '../../utils/type-utils'
 
 export function routeAdmin(app: Express, router: Router): void {
   const upload = multer()
@@ -38,11 +40,26 @@ export function routeAdmin(app: Express, router: Router): void {
       )
       const { failed, updated } = await rosterPartnerStudents(
         students,
-        req.body.schoolId,
-        req.body.partnerKey,
-        req.body.partnerSite
+        req.body.schoolId
       )
       res.json({ failed, updated })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.post('/clever/roster', async function(req, res) {
+    const districtId = asString(req.body.districtId)
+
+    if (!districtId) {
+      res.status(422).json({
+        err: 'Missing district id.',
+      })
+    }
+
+    try {
+      const report = await CleverRosterService.rosterDistrict(districtId)
+      res.json({ report })
     } catch (error) {
       resError(res, error)
     }
