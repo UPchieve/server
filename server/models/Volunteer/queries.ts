@@ -1692,7 +1692,7 @@ export async function getVolunteersForAnalyticsReport(
   associatedPartners: AssociatedPartnersAndSchools,
   pageSize: number,
   cursor: Ulid | null,
-  userId?: Ulid
+  userIds?: Ulid[]
 ): Promise<VolunteersForAnalyticsReport[]> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
@@ -1704,7 +1704,7 @@ export async function getVolunteersForAnalyticsReport(
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
         pageSize,
         cursor,
-        userId: userId ?? null,
+        userIds: userIds ?? null,
       },
       getAnalyticsClient()
     )
