@@ -35,7 +35,6 @@ FROM
     users
 WHERE
     email = :email!
-    OR proxy_email = :email!
 LIMIT 1;
 
 
