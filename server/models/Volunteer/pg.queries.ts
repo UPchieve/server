@@ -3612,3 +3612,48 @@ const getPartnerOrgByKeyIR: any = {"name":"getPartnerOrgByKey","params":[{"name"
 export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IGetPartnerOrgByKeyResult>(getPartnerOrgByKeyIR);
 
 
+/** 'GetDeactivatedUsersForVolunteerPartnerOrg' parameters type */
+export interface IGetDeactivatedUsersForVolunteerPartnerOrgParams {
+  volunteerPartnerOrgId: string | null | void;
+}
+
+/** 'GetDeactivatedUsersForVolunteerPartnerOrg' return type */
+export interface IGetDeactivatedUsersForVolunteerPartnerOrgResult {
+  createdAt: Date;
+  deactivatedOn: Date | null;
+  rowNumber: string | null;
+  updatedAt: Date;
+  userId: string | null;
+  volunteerPartnerOrgId: string | null;
+}
+
+/** 'GetDeactivatedUsersForVolunteerPartnerOrg' query type */
+export interface IGetDeactivatedUsersForVolunteerPartnerOrgQuery {
+  params: IGetDeactivatedUsersForVolunteerPartnerOrgParams;
+  result: IGetDeactivatedUsersForVolunteerPartnerOrgResult;
+}
+
+const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivatedUsersForVolunteerPartnerOrg","params":[{"name":"volunteerPartnerOrgId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":52905,"b":52925,"line":1730,"col":38}]}}],"usedParamSet":{"volunteerPartnerOrgId":true},"statement":{"body":"WITH most_recent_instances AS (\n    SELECT\n        *,\n        row_number() OVER (PARTITION BY user_id,\n            volunteer_partner_org_id ORDER BY created_at DESC)\n    FROM users_volunteer_partner_orgs_instances\n    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId\n)\nSELECT\n    *\nFROM\n    most_recent_instances\nWHERE\n    deactivated_on IS NOT NULL","loc":{"a":52653,"b":53008,"line":1724,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH most_recent_instances AS (
+ *     SELECT
+ *         *,
+ *         row_number() OVER (PARTITION BY user_id,
+ *             volunteer_partner_org_id ORDER BY created_at DESC)
+ *     FROM users_volunteer_partner_orgs_instances
+ *     WHERE volunteer_partner_org_id = :volunteerPartnerOrgId
+ * )
+ * SELECT
+ *     *
+ * FROM
+ *     most_recent_instances
+ * WHERE
+ *     deactivated_on IS NOT NULL
+ * ```
+ */
+export const getDeactivatedUsersForVolunteerPartnerOrg = new PreparedQuery<IGetDeactivatedUsersForVolunteerPartnerOrgParams,IGetDeactivatedUsersForVolunteerPartnerOrgResult>(getDeactivatedUsersForVolunteerPartnerOrgIR);
+
+
