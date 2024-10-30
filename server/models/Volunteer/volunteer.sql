@@ -1489,9 +1489,10 @@ FROM
     LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN sessions ON volunteer_profiles.user_id = sessions.volunteer_id
     LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-WHERE
-    users_volunteer_partner_orgs_instances.deactivated_on IS NULL
-    AND volunteer_partner_orgs.key = :volunteerPartnerOrg!;
+WHERE ((:userIds::uuid[] IS NULL
+        AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL)
+    OR (users_volunteer_partner_orgs_instances.user_id = ANY (:userIds::uuid[])))
+AND volunteer_partner_orgs.key = :volunteerPartnerOrg!;
 
 
 /* @name getVolunteersForAnalyticsReport */
