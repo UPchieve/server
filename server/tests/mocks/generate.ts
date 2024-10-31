@@ -40,6 +40,7 @@ import {
 import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
+import { LegacyUserModel } from '../../models/User/legacy-user'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -221,6 +222,85 @@ export function buildStudentRow(overrides: Partial<Student> = {}): Student {
     userId,
     createdAt: new Date(),
     updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildLegacyUser(
+  overrides: Partial<LegacyUserModel> = {}
+): LegacyUserModel {
+  const userRow = buildUserRow()
+  return {
+    ...userRow,
+    _id: userRow.id,
+    firstname: userRow.firstName,
+    proxyEmail: '',
+    isVolunteer: false,
+    isAdmin: false,
+    isBanned: false,
+    banReason: undefined,
+    isTestUser: false,
+    isFakeUser: false,
+    isDeactivated: false,
+    pastSessions: [],
+    lastActivityAt: undefined,
+    referredBy: undefined,
+    type: 'student',
+    userType: 'student',
+    roleId: 1,
+    sessionStats: {},
+    ...overrides,
+  }
+}
+
+export function buildLegacyStudent(
+  overrides: Partial<LegacyUserModel> = {}
+): LegacyUserModel {
+  const legacyUser = buildLegacyUser()
+  return {
+    ...legacyUser,
+    type: 'student',
+    userType: 'student',
+    roleId: 1,
+    gradeLevel: GRADES.NINTH,
+    schoolName: '',
+    latestRequestedSubjects: [],
+    numberOfStudentClasses: 1,
+    issuers: [],
+    studentPartnerOrg: undefined,
+    isSchoolPartner: false,
+    usesClever: false,
+    usesGoogle: false,
+    ...overrides,
+  }
+}
+
+export function buildLegacyVolunteer(
+  overrides: Partial<LegacyUserModel> = {}
+): LegacyUserModel {
+  const legacyUser = buildLegacyUser()
+  return {
+    ...legacyUser,
+    type: 'volunteer',
+    userType: 'volunteer',
+    roleId: 2,
+    volunteerPartnerOrg: undefined,
+    subjects: [],
+    activeSubjects: [],
+    mutedSubjectAlerts: [],
+    totalActiveCertifications: 0,
+    availability: buildAvailability(),
+    certifications: {},
+    availabilityLastModifiedAt: undefined,
+    trainingCourses: undefined,
+    occupation: [],
+    country: undefined,
+    timezone: undefined,
+    totalVolunteerHours: 0,
+    hoursTutored: 0,
+    elapsedAvailability: 0,
+    references: [],
+    photoIdStatus: '',
     ...overrides,
   }
 }

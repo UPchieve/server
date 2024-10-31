@@ -17,10 +17,10 @@ export default async (
   const user = await getUserContactInfoById(userId)
   if (!user) return
 
-  const { firstName, email } = user
+  const { firstName, email, proxyEmail } = user
   try {
     await MailService.sendFallIncentiveInvitedToEnrollReminderEmail(
-      email,
+      proxyEmail ?? email,
       firstName
     )
     log(
