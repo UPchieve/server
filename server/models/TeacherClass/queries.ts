@@ -33,11 +33,11 @@ export async function getTotalStudentsInClass(
 
 export async function removeStudentFromClass(
   studentId: Ulid,
-  classId: Uuid,
+  classId: Ulid,
   tc: TransactionClient = getClient()
 ) {
   try {
-    return pgQueries.removeStudentFromClass.run({ studentId, classId }, tc)
+    return pgQueries.removeStudentFromClass.run({ studentId, classId}, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
   }

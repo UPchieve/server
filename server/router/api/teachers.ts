@@ -3,7 +3,7 @@ import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
-import { asNumber, asString } from '../../utils/type-utils'
+import { asNumber, asString, asUlid } from '../../utils/type-utils'
 
 export function routeTeachers(app: Express, router: Router): void {
   /* Classes */
@@ -93,13 +93,15 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  router.route('/class/student/remove').post(async function(req, res) {
+  router.route('/class/student/remove').delete(async function(req, res) {
     try {
       const studentId = asString(req.body.studentId)
       const classId = asString(req.body.classId)
 
-      await TeacherService.removeStudentFromClass(studentId, classId)
-      res.json({ studentId })
+      if(studentId && classId) {
+        await TeacherService.removeStudentFromClass(studentId, classId)
+        res.json({ studentId })
+      }
     } catch (err) {
       resError(res, err)
     }

@@ -7,6 +7,7 @@ import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
+import { Uuid } from 'id128'
 
 export async function createTeacherClass(
   userId: Ulid,
@@ -146,8 +147,8 @@ export async function deactivateTeacherClass(id: string) {
 }
 
 export async function removeStudentFromClass(
-  studentId: string,
-  classId: string
+  studentId: Ulid,
+  classId: Ulid
 ) {
   return TeacherClassRepo.removeStudentFromClass(studentId, classId)
 }
