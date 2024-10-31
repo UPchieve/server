@@ -1,16 +1,24 @@
 import { mocked } from 'jest-mock'
 import * as UserRepo from '../../models/User'
+import * as LegacyUserRepo from '../../models/User/legacy-user'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
 import { incentiveProgramEnrollmentEnroll } from '../../services/UserProductFlagsService'
-import { buildUser, buildUserProductFlags } from '../mocks/generate'
+import {
+  buildLegacyStudent,
+  buildLegacyUser,
+  buildUser,
+  buildUserProductFlags,
+} from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 
 jest.mock('../../models/User')
+jest.mock('../../models/User/legacy-user')
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../services/IncentiveProgramService')
 
 const mockedUserRepo = mocked(UserRepo)
+const mockedLegacyUserRepo = mocked(LegacyUserRepo)
 const mockedUserProductFlagsRepo = mocked(UserProductFlagsRepo)
 const mockedIncentiveProgramService = mocked(IncentiveProgramService)
 
@@ -33,7 +41,7 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     ).toHaveBeenCalled()
   })
 
-  test('Should throw error if user phone is not verified', async () => {
+  test('Should throw error if user is not a school partner and phone is not verified', async () => {
     const userId = getDbUlid()
     mockedIncentiveProgramService.isUserInIncentiveProgram.mockResolvedValueOnce(
       false
@@ -43,6 +51,9 @@ describe('incentiveProgramEnrollmentEnroll', () => {
         phoneVerified: false,
       })
     )
+    mockedLegacyUserRepo.getLegacyUserObject.mockResolvedValueOnce(
+      buildLegacyStudent({ isSchoolPartner: false })
+    )
 
     await expect(incentiveProgramEnrollmentEnroll(userId)).rejects.toThrow(
       'Your phone number must be verified before joining the program.'
@@ -50,12 +61,36 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     expect(
       mockedIncentiveProgramService.isUserInIncentiveProgram
     ).toHaveBeenCalled()
+    expect(mockedLegacyUserRepo.getLegacyUserObject).toHaveBeenCalledWith(
+      userId
+    )
     expect(mockedUserRepo.getUserVerificationInfoById).toHaveBeenCalledWith(
       userId
     )
   })
 
-  test('Should enroll the user if they are not already enrolled and their phone is verified', async () => {
+  test('Should throw error if user is a school partner and does not have proxy email', async () => {
+    const userId = getDbUlid()
+    mockedIncentiveProgramService.isUserInIncentiveProgram.mockResolvedValueOnce(
+      false
+    )
+    mockedLegacyUserRepo.getLegacyUserObject.mockResolvedValueOnce(
+      buildLegacyStudent({ isSchoolPartner: true })
+    )
+
+    await expect(incentiveProgramEnrollmentEnroll(userId)).rejects.toThrow(
+      'Your email must be verified before joining the program.'
+    )
+    expect(
+      mockedIncentiveProgramService.isUserInIncentiveProgram
+    ).toHaveBeenCalled()
+    expect(mockedLegacyUserRepo.getLegacyUserObject).toHaveBeenCalledWith(
+      userId
+    )
+    expect(mockedUserRepo.getUserVerificationInfoById).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should enroll the non school partner if they are not already enrolled and their phone is verified', async () => {
     const userId = getDbUlid()
     const enrollmentDate = new Date()
     mockedIncentiveProgramService.isUserInIncentiveProgram.mockResolvedValueOnce(
@@ -63,6 +98,9 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     )
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValue(
       buildUserProductFlags()
+    )
+    mockedLegacyUserRepo.getLegacyUserObject.mockResolvedValueOnce(
+      buildLegacyStudent({ isSchoolPartner: false })
     )
     mockedUserRepo.getUserVerificationInfoById.mockResolvedValue(
       buildUser({
@@ -81,6 +119,35 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     expect(mockedUserRepo.getUserVerificationInfoById).toHaveBeenCalledWith(
       userId
     )
+    expect(
+      mockedUserProductFlagsRepo.enrollStudentToFallIncentiveProgram
+    ).toHaveBeenCalledWith(userId)
+    expect(
+      mockedIncentiveProgramService.queueIncentiveProgramEnrollmentWelcomeJob
+    ).toHaveBeenCalled()
+  })
+
+  test('Should enroll the school partner if they are not already enrolled and verified their proxy email', async () => {
+    const userId = getDbUlid()
+    const enrollmentDate = new Date()
+    mockedIncentiveProgramService.isUserInIncentiveProgram.mockResolvedValueOnce(
+      false
+    )
+    mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValue(
+      buildUserProductFlags()
+    )
+    mockedLegacyUserRepo.getLegacyUserObject.mockResolvedValueOnce(
+      buildLegacyStudent({ isSchoolPartner: true, proxyEmail: 'test@test.com' })
+    )
+    mockedUserProductFlagsRepo.enrollStudentToFallIncentiveProgram.mockResolvedValue(
+      enrollmentDate
+    )
+
+    const result = await incentiveProgramEnrollmentEnroll(userId)
+    expect(result).toBe(enrollmentDate)
+    expect(
+      mockedIncentiveProgramService.isUserInIncentiveProgram
+    ).toHaveBeenCalled()
     expect(
       mockedUserProductFlagsRepo.enrollStudentToFallIncentiveProgram
     ).toHaveBeenCalledWith(userId)

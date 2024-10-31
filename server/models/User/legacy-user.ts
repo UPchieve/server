@@ -32,6 +32,7 @@ export type LegacyUserModel = {
   _id: Ulid
   createdAt: Date
   email: string
+  proxyEmail?: string
   verified: boolean
   firstname: string
   phone?: string
@@ -60,7 +61,7 @@ export type LegacyUserModel = {
   subjects?: string[]
   activeSubjects?: string[]
   mutedSubjectAlerts?: string[]
-  totalActiveCertifications: number
+  totalActiveCertifications?: number
   availability?: Availability
   certifications?: Certifications
   availabilityLastModifiedAt?: Date
@@ -74,13 +75,13 @@ export type LegacyUserModel = {
   references?: Reference[]
   photoIdStatus?: string
   // student
-  gradeLevel: GRADES
-  schoolName: string
+  gradeLevel?: GRADES
+  schoolName?: string
   latestRequestedSubjects?: string[]
-  numberOfStudentClasses: number
-  issuers: string[]
+  numberOfStudentClasses?: number
+  issuers?: string[]
   studentPartnerOrg?: string
-  isSchoolPartner: boolean
+  isSchoolPartner?: boolean
   usesClever?: boolean
   usesGoogle?: boolean
 }
