@@ -53,6 +53,7 @@ SELECT
     users.id,
     first_name,
     email,
+    proxy_email,
     ban_type,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -421,6 +422,7 @@ SELECT
     users.created_at,
     users.email,
     users.email_verified,
+    users.proxy_email,
     users.verified,
     users.first_name AS firstname,
     users.phone,
@@ -858,4 +860,16 @@ FROM ( SELECT DISTINCT ON (subjects.name)
 ORDER BY
     recent_sessions.created_at DESC
 LIMIT 3;
+
+
+/* @name updateUserProxyEmail */
+UPDATE
+    users
+SET
+    proxy_email = :proxyEmail!,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+RETURNING
+    id AS ok;
 

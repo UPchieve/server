@@ -1,7 +1,7 @@
 import * as ZCRepo from '../models/ZipCode'
 import logger from '../logger'
 import fs from 'fs'
-import parse from 'csv-parse/lib/sync'
+import { parse } from 'csv-parse/sync'
 
 export default async function upsertPostalCodes(): Promise<void> {
   try {

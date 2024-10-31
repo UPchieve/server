@@ -173,6 +173,7 @@ export async function getUserContactInfoById(
         'phone',
         'banType',
         'roles',
+        'proxyEmail',
       ])
       ret.email = ret.email.toLowerCase()
       const roles = (ret.roles ?? []).filter(r => !!r)
@@ -732,5 +733,21 @@ export async function getUsersLatestSubjectsByUserId(
     return []
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function updateUserProxyEmail(
+  userId: Ulid,
+  proxyEmail: string
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateUserProxyEmail.run(
+      { userId, proxyEmail },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
