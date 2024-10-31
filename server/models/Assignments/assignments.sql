@@ -145,11 +145,7 @@ WHERE
 
 
 /* @name deleteAssignment */
-UPDATE
-    assignments
-SET
-    archived = TRUE
-WHERE
-    id = :assignmentId!
+DELETE FROM assignments
+WHERE id = :assignmentId!
     AND class_id = :classId!;
 

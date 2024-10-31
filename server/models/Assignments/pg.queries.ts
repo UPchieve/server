@@ -529,15 +529,13 @@ export interface IDeleteAssignmentQuery {
   result: IDeleteAssignmentResult;
 }
 
-const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3914,"b":3926,"line":153,"col":10}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3948,"b":3955,"line":154,"col":20}]}}],"usedParamSet":{"assignmentId":true,"classId":true},"statement":{"body":"UPDATE\n    assignments\nSET\n    archived = TRUE\nWHERE\n    id = :assignmentId!\n    AND class_id = :classId!","loc":{"a":3851,"b":3955,"line":148,"col":0}}};
+const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3895,"b":3907,"line":151,"col":10}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3929,"b":3936,"line":152,"col":20}]}}],"usedParamSet":{"assignmentId":true,"classId":true},"statement":{"body":"DELETE FROM\n    assignments\nWHERE\n    id = :assignmentId!\n    AND class_id = :classId!","loc":{"a":3851,"b":3936,"line":148,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * UPDATE
+ * DELETE FROM
  *     assignments
- * SET
- *     archived = TRUE
  * WHERE
  *     id = :assignmentId!
  *     AND class_id = :classId!

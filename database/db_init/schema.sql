@@ -249,8 +249,7 @@ CREATE TABLE upchieve.assignments (
     is_required boolean DEFAULT false NOT NULL,
     subject_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    archived boolean
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -6081,5 +6080,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241018205145'),
     ('20241028142054'),
     ('20241028154216'),
-    ('20241028173238'),
-    ('20241030224824');
+    ('20241028173238');
