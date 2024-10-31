@@ -1617,7 +1617,11 @@ FROM
             sessions
     LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
 WHERE
-    volunteer_profiles.user_id = sessions.volunteer_id) AS sessions_stats ON TRUE
+    volunteer_profiles.user_id = sessions.volunteer_id
+    AND ((:allTimeStartDate::timestamp IS NULL
+            OR sessions.created_at >= :allTimeStartDate::timestamp)
+        AND (:allTimeEndDate::timestamp IS NULL
+            OR sessions.created_at <= :allTimeEndDate::timestamp))) AS sessions_stats ON TRUE
     LEFT JOIN LATERAL (
         SELECT
             COUNT(*)::int AS total,

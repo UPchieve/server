@@ -1692,7 +1692,9 @@ export async function getVolunteersForAnalyticsReport(
   associatedPartners: AssociatedPartnersAndSchools,
   pageSize: number,
   cursor: Ulid | null,
-  userIds?: Ulid[]
+  userIds: string[] | undefined | null = null, // @TODO these type defs are made ugly, fix it later
+  allTimeStartDate: Date | null | undefined = null,
+  allTimeEndDate: Date | null | undefined = null
 ): Promise<VolunteersForAnalyticsReport[]> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
@@ -1704,7 +1706,9 @@ export async function getVolunteersForAnalyticsReport(
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
         pageSize,
         cursor,
-        userIds: userIds ?? null,
+        userIds,
+        allTimeStartDate,
+        allTimeEndDate,
       },
       getAnalyticsClient()
     )

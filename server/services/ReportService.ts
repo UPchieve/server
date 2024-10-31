@@ -257,7 +257,7 @@ type FullReport = {
  * @param associatedPartners - Student partner orgs and schools sponsored by this partner
  * @param report - A collection of rows for the report. This is mutated by this function.
  * @param batchInfo
- * @param deactivatedUsers - If set, this will pull the data just for these specific users.
+ * @param deactivatedUserIds - If set, this will pull the data just for these specific users.
  * @returns the cursor of the next page, or null if on the last page
  */
 async function processBatch(
@@ -268,7 +268,9 @@ async function processBatch(
   batchSize: number,
   cursor: null | Ulid,
   report: AnalyticsReportRow[],
-  deactivatedUsers?: { userId: Ulid; deactivatedOn?: Date | null }[]
+  deactivatedUsers?: { userId: Ulid; deactivatedOn?: Date | null }[],
+  allTimeStart?: Date | null,
+  allTimeEnd?: Date | null
 ): Promise<Ulid | null> {
   const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrgKey,
@@ -277,7 +279,9 @@ async function processBatch(
     associatedPartners,
     batchSize + 1, // get an extra row for the cursor
     cursor,
-    deactivatedUsers?.map(u => u.userId)
+    deactivatedUsers?.map(u => u.userId),
+    allTimeStart,
+    allTimeEnd
   )
   const nextCursor =
     batch.length < batchSize + 1 ? null : batch.pop()?.userId ?? null
@@ -373,20 +377,31 @@ export async function generatePartnerAnalyticsReport(
         ...logData,
         deactivatedUserIds: deactivatedUsers.map(u => u.userId),
       },
-      `Found ${deactivatedUsers.length} deactivated users. Processing them now...`
+      `Found ${deactivatedUsers.length} deactivated users. Processing their stats for the analytics report now...`
     )
-    await processBatch(
-      partnerOrg,
-      start,
-      end,
-      associatedPartners,
-      deactivatedUsers.length,
-      null,
-      report,
-      deactivatedUsers
-    )
-    logger.info(logData, 'Finished processing deactivated users.')
-    console.debug('deactivated users report', JSON.stringify(report, null, 2))
+
+    for (const user of deactivatedUsers) {
+      const allTimeStart = user.createdAt
+      const allTimeEnd = user.deactivatedOn
+      if (!allTimeEnd) continue // Note: This shouldn't happen
+
+      const statsFromActivePeriod = await processBatch(
+        partnerOrg,
+        start,
+        end,
+        associatedPartners,
+        batchSize,
+        nextCursor,
+        report,
+        [{ userId: user.userId, deactivatedOn: user.deactivatedOn }],
+        allTimeStart,
+        allTimeEnd
+      )
+      console.log(
+        `Got stats from active period for user ${user.userId}`,
+        JSON.stringify(report[report.length - 1], null, 2)
+      )
+    }
   }
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
