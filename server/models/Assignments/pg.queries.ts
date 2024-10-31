@@ -58,7 +58,6 @@ export interface IGetAssignmentsByClassIdParams {
 
 /** 'GetAssignmentsByClassId' return type */
 export interface IGetAssignmentsByClassIdResult {
-  archived: boolean | null;
   classId: string;
   createdAt: Date;
   description: string | null;
@@ -102,7 +101,6 @@ export interface IGetAssignmentByIdParams {
 
 /** 'GetAssignmentById' return type */
 export interface IGetAssignmentByIdResult {
-  archived: boolean | null;
   classId: string;
   createdAt: Date;
   description: string | null;
@@ -312,7 +310,6 @@ export interface IGetAllAssignmentsForTeacherParams {
 
 /** 'GetAllAssignmentsForTeacher' return type */
 export interface IGetAllAssignmentsForTeacherResult {
-  archived: boolean | null;
   classId: string;
   createdAt: Date;
   description: string | null;
@@ -512,35 +509,5 @@ const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAss
  * ```
  */
 export const getSessionsForStudentAssignment = new PreparedQuery<IGetSessionsForStudentAssignmentParams,IGetSessionsForStudentAssignmentResult>(getSessionsForStudentAssignmentIR);
-
-
-/** 'DeleteAssignment' parameters type */
-export interface IDeleteAssignmentParams {
-  assignmentId: string;
-  classId: string;
-}
-
-/** 'DeleteAssignment' return type */
-export type IDeleteAssignmentResult = void;
-
-/** 'DeleteAssignment' query type */
-export interface IDeleteAssignmentQuery {
-  params: IDeleteAssignmentParams;
-  result: IDeleteAssignmentResult;
-}
-
-const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3895,"b":3907,"line":151,"col":10}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3929,"b":3936,"line":152,"col":20}]}}],"usedParamSet":{"assignmentId":true,"classId":true},"statement":{"body":"DELETE FROM\n    assignments\nWHERE\n    id = :assignmentId!\n    AND class_id = :classId!","loc":{"a":3851,"b":3936,"line":148,"col":0}}};
-
-/**
- * Query generated from SQL:
- * ```
- * DELETE FROM
- *     assignments
- * WHERE
- *     id = :assignmentId!
- *     AND class_id = :classId!
- * ```
- */
-export const deleteAssignment = new PreparedQuery<IDeleteAssignmentParams,IDeleteAssignmentResult>(deleteAssignmentIR);
 
 
