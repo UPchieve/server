@@ -34,7 +34,7 @@ export function routeAssignments(router: Router): void {
 
       await AssignmentsService.deleteAssignment(assignmentId, classId)
       res.json({ assignmentId })
-    } catch(err) {
+    } catch (err) {
       resError(res, err)
     }
   })

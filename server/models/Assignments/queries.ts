@@ -1,5 +1,10 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoCreateError, RepoUpdateError, RepoDeleteError } from '../Errors'
+import {
+  RepoReadError,
+  RepoCreateError,
+  RepoUpdateError,
+  RepoDeleteError,
+} from '../Errors'
 import {
   Assignment,
   CreateAssignmentInput,
@@ -274,7 +279,7 @@ export async function deleteAssignment(
   tc: TransactionClient = getClient()
 ) {
   try {
-    await pgQueries.deleteAssignment.run( { assignmentId, classId }, tc)
+    await pgQueries.deleteAssignment.run({ assignmentId, classId }, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
   }
