@@ -60,6 +60,10 @@ export async function getSchool(schoolId: Ulid): Promise<SchoolRepo.School> {
   }
 }
 
+export async function getSchoolByNcesId(ncesId: string) {
+  return SchoolRepo.getSchoolByNcesId(ncesId)
+}
+
 interface GetSchoolsPayload {
   name?: string
   state?: string

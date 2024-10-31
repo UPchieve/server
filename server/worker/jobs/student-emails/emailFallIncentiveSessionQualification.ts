@@ -116,6 +116,7 @@ export default async (
     startOfWeek.toDate()
   )
   try {
+    const userEmail = proxyEmail ?? email
     if (sessionOverview.qualifiedSessions.length >= 1) {
       const qualifiedSessionId =
         sessionOverview.qualifiedSessions[totalQualifiedEmailsSentThisWeek]
