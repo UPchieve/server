@@ -74,7 +74,6 @@ export async function getAssignmentsByClassId(
         'dueDate',
         'startDate',
         'subjectId',
-        'archived',
       ])
     )
   } catch (err) {
