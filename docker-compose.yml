@@ -10,6 +10,7 @@ services:
             - POSTGRES_DB=upchieve
             - POSTGRES_USER=admin
             - POSTGRES_PASSWORD=Password123
+        command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
         volumes:
             # SQL files mounted to entrypoint folder are run in alphabetical order
             - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
@@ -65,6 +66,7 @@ services:
         - POSTGRES_DB=upchieve
         - POSTGRES_USER=admin
         - POSTGRES_PASSWORD=Password123
+      command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
       volumes:
         # SQL files mounted to entrypoint folder are run in alphabetical order
         - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
