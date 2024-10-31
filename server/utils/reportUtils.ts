@@ -512,7 +512,12 @@ export async function getAnalyticsReportSummary(
   report: AnalyticsReportRow[],
   startDate: Date,
   endDate: Date,
-  associatedPartners: AssociatedPartnersAndSchools
+  associatedPartners: AssociatedPartnersAndSchools,
+  deactivatedUsers?: {
+    userId: string
+    createdAt: Date
+    deactivatedOn: Date | null
+  }[]
 ): Promise<AnalyticsReportSummary> {
   const defaultData = {
     total: 0,
@@ -607,6 +612,32 @@ export async function getAnalyticsReportSummary(
   summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniqueStudentSummary
     ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange
     : 0
+
+  // Now generate a summary for each deactivated user and add these to the final result
+  if (deactivatedUsers) {
+    for (const user of deactivatedUsers) {
+      const allTimeStartDate = user.createdAt
+      const allTimeEndDate = user.deactivatedOn ?? undefined // @TODO clean me up
+      const individualSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
+        partnerOrg,
+        startDate,
+        endDate,
+        associatedPartners,
+        [user.userId],
+        allTimeStartDate,
+        allTimeEndDate
+      )
+      summary.uniqueStudentsHelped.total +=
+        individualSummary.totalUniqueStudentsHelped
+      summary.uniqueStudentsHelped.totalWithinDateRange +=
+        individualSummary.totalUniqueStudentsHelpedWithinRange
+      summary.uniquePartnerStudentsHelped.total +=
+        individualSummary.totalUniquePartnerStudentsHelped
+      summary.uniquePartnerStudentsHelped.totalWithinDateRange +=
+        individualSummary.totalUniquePartnerStudentsHelpedWithinRange
+    }
+  }
+
   return summary
 }
 

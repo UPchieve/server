@@ -1492,6 +1492,10 @@ FROM
 WHERE ((:userIds::uuid[] IS NULL
         AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL)
     OR (users_volunteer_partner_orgs_instances.user_id = ANY (:userIds::uuid[])))
+AND ((:allTimeStartDate::timestamp IS NULL
+        OR sessions.created_at >= :allTimeStartDate::timestamp)
+    AND (:allTimeEndDate::timestamp IS NULL
+        OR sessions.created_at <= :allTimeEndDate::timestamp))
 AND volunteer_partner_orgs.key = :volunteerPartnerOrg!;
 
 
@@ -1735,9 +1739,14 @@ WITH most_recent_instances AS (
     WHERE volunteer_partner_org_id = :volunteerPartnerOrgId!
 )
 SELECT
-    *
+    mri.user_id,
+    mri.volunteer_partner_org_id,
+    mri.deactivated_on,
+    mri.created_at AS user_partner_instance_created_at,
+    users.created_at AS user_created_at
 FROM
-    most_recent_instances
+    most_recent_instances mri
+    JOIN users ON users.id = mri.user_id
 WHERE
     deactivated_on IS NOT NULL;
 

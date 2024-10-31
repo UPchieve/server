@@ -1649,13 +1649,14 @@ export async function getVolunteersOnDeck(
   }
 }
 
-// TODO: break out anything that uses RO client into their own repo
 export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   volunteerPartnerOrg: string,
   start: Date,
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools,
-  userIds?: Ulid[]
+  userIds?: Ulid[],
+  allTimeStartDate?: Date,
+  allTimeEndDate?: Date
 ): Promise<UniqueStudentsHelped> {
   try {
     const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary.run(
@@ -1666,6 +1667,8 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
         userIds: userIds ?? null,
+        allTimeStartDate,
+        allTimeEndDate,
       },
       getAnalyticsClient()
     )
@@ -1753,7 +1756,7 @@ export async function getDeactivatedVolunteersByPartnerOrg(
       },
       getAnalyticsClient()
     )
-    return results.map(r => makeSomeRequired(r, ['userId']))
+    return results.map(r => makeSomeRequired(r, ['userId', 'userCreatedAt']))
   } catch (err) {
     throw new RepoReadError(err)
   }

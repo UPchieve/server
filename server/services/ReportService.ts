@@ -333,6 +333,7 @@ export async function generatePartnerAnalyticsReport(
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
   const report: AnalyticsReportRow[] = []
+  const deactivatedUsersReport: AnalyticsReportRow[] = []
   const batchSize = config.corporatePartnerReports.batchSize
   logger.info(logData, `Partner analytics report: Using batchSize=${batchSize}`)
 
@@ -381,39 +382,44 @@ export async function generatePartnerAnalyticsReport(
     )
 
     for (const user of deactivatedUsers) {
-      const allTimeStart = user.createdAt
+      const allTimeStart = user.userCreatedAt
       const allTimeEnd = user.deactivatedOn
       if (!allTimeEnd) continue // Note: This shouldn't happen
 
-      const statsFromActivePeriod = await processBatch(
+      await processBatch(
         partnerOrg,
         start,
         end,
         associatedPartners,
         batchSize,
         nextCursor,
-        report,
+        deactivatedUsersReport,
         [{ userId: user.userId, deactivatedOn: user.deactivatedOn }],
         allTimeStart,
         allTimeEnd
-      )
-      console.log(
-        `Got stats from active period for user ${user.userId}`,
-        JSON.stringify(report[report.length - 1], null, 2)
       )
     }
   }
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
-  if (report.length > 0) {
+  if (report.length) {
     summary = await getAnalyticsReportSummary(
       partnerOrg,
       report,
       start,
       end,
-      associatedPartners
+      associatedPartners,
+      // @TODO fix typing ughhh shouldnt have to map() here
+      deactivatedUsers.map(u => ({
+        userId: u.userId,
+        createdAt: u.userCreatedAt,
+        deactivatedOn: u.deactivatedOn ?? null,
+      }))
     )
-    logger.info(logData, 'Finished generating partner analytics report summary')
+    logger.info(
+      logData,
+      'Finished generating active partner analytics report summary'
+    )
   }
 
   return { summary, report }
