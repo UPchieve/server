@@ -1653,12 +1653,11 @@ export async function getVolunteersOnDeck(
 export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   volunteerPartnerOrg: string,
   start: Date,
-  end: Date
+  end: Date,
+  associatedPartners: AssociatedPartnersAndSchools,
+  userIds?: Ulid[]
 ): Promise<UniqueStudentsHelped> {
   try {
-    const associatedPartners = await getAssociatedPartnersAndSchools(
-      volunteerPartnerOrg
-    )
     const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary.run(
       {
         volunteerPartnerOrg,
@@ -1666,6 +1665,7 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
         end,
         studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
         studentSchoolIds: associatedPartners.associatedPartnerSchools,
+        userIds: userIds ?? null,
       },
       getAnalyticsClient()
     )

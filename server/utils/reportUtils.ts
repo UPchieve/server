@@ -28,6 +28,7 @@ import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { ReportNoDataFoundError } from '../services/ReportService'
+import { AssociatedPartnersAndSchools } from '../models/AssociatedPartner'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -510,7 +511,8 @@ export async function getAnalyticsReportSummary(
   partnerOrg: string,
   report: AnalyticsReportRow[],
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  associatedPartners: AssociatedPartnersAndSchools
 ): Promise<AnalyticsReportSummary> {
   const defaultData = {
     total: 0,
@@ -588,7 +590,8 @@ export async function getAnalyticsReportSummary(
   const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
     partnerOrg,
     startDate,
-    endDate
+    endDate,
+    associatedPartners
   )
 
   summary.uniqueStudentsHelped.total = uniqueStudentSummary

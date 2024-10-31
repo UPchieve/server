@@ -391,7 +391,13 @@ export async function generatePartnerAnalyticsReport(
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
   if (report.length > 0) {
-    summary = await getAnalyticsReportSummary(partnerOrg, report, start, end)
+    summary = await getAnalyticsReportSummary(
+      partnerOrg,
+      report,
+      start,
+      end,
+      associatedPartners
+    )
     logger.info(logData, 'Finished generating partner analytics report summary')
   }
 
