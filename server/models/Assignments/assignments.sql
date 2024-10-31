@@ -143,3 +143,13 @@ WHERE
     user_id = :userId!
     AND assignment_id = :assignmentId!;
 
+
+/* @name deleteAssignment */
+UPDATE
+    assignments
+SET
+    archived = TRUE
+WHERE
+    id = :assignmentId!
+    AND class_id = :classId!;
+

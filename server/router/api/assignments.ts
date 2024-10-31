@@ -26,4 +26,16 @@ export function routeAssignments(router: Router): void {
       resError(res, err)
     }
   })
+
+  router.post('/assignment/delete', async function(req, res) {
+    try {
+      const assignmentId = req.body.assignmentId as string
+      const classId = req.body.classId as string
+
+      await AssignmentsService.deleteAssignment(assignmentId, classId)
+      res.json({ assignmentId })
+    } catch(err) {
+      resError(res, err)
+    }
+  })
 }

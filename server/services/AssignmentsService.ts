@@ -235,6 +235,13 @@ export async function updateStudentAssignmentAfterSession(
   }, tc)
 }
 
+export async function deleteAssignment(
+  assignmentId: Uuid,
+  classId: Uuid,
+) {
+  return AssignmentsRepo.deleteAssignment(assignmentId, classId)
+}
+
 // Exported for testing.
 export function haveSessionsMetAssignmentRequirements(
   assignment: Omit<StudentAssignment, 'classId'>,
