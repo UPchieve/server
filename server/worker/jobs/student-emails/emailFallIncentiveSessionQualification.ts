@@ -37,6 +37,8 @@ export default async (
   if (!data) return
 
   const { user, productFlags, incentivePayload } = data
+  const { firstName, email, proxyEmail } = user
+  const userEmail = proxyEmail ?? email
   const fallIncentiveProgramStartDate = moment(
     incentivePayload.incentiveStartDate
   )
@@ -58,6 +60,11 @@ export default async (
     emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     start: fallIncentiveEnrollmentAt.toDate(),
   })
+  const hasReceivedCompletedChallengeEmail = await hasUserBeenSentEmail({
+    userId,
+    emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+    start: fallIncentiveEnrollmentAt.toDate(),
+  })
   const FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT = 10
 
   // Check if the student has reached the limit for the amount of money they can earn
@@ -68,14 +75,25 @@ export default async (
     log(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
     )
-    captureEvent(
-      userId,
-      EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
-      {},
-      {
-        fallIncentiveLimitReachedAt: new Date().toISOString(),
-      }
-    )
+    if (!hasReceivedCompletedChallengeEmail) {
+      await MailService.sendFallIncentiveCompletedChallengeEmail(
+        userEmail,
+        firstName
+      )
+      await createEmailNotification({
+        userId,
+        emailTemplateId:
+          config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+      })
+      captureEvent(
+        userId,
+        EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+        {},
+        {
+          fallIncentiveLimitReachedAt: new Date().toISOString(),
+        }
+      )
+    }
     return
   }
 
@@ -99,7 +117,6 @@ export default async (
     userId,
     startOfWeek.toDate()
   )
-  const { firstName, email, proxyEmail } = user
   try {
     const userEmail = proxyEmail ?? email
     if (sessionOverview.qualifiedSessions.length >= 1) {
