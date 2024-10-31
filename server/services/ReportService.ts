@@ -333,7 +333,7 @@ export async function generatePartnerAnalyticsReport(
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
   const report: AnalyticsReportRow[] = []
-  const deactivatedUsersReport: AnalyticsReportRow[] = []
+  // const deactivatedUsersReport: AnalyticsReportRow[] = []
   const batchSize = config.corporatePartnerReports.batchSize
   logger.info(logData, `Partner analytics report: Using batchSize=${batchSize}`)
 
@@ -393,7 +393,7 @@ export async function generatePartnerAnalyticsReport(
         associatedPartners,
         batchSize,
         nextCursor,
-        deactivatedUsersReport,
+        report,
         [{ userId: user.userId, deactivatedOn: user.deactivatedOn }],
         allTimeStart,
         allTimeEnd

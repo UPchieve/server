@@ -11,7 +11,11 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Quizzes, VolunteersForAnalyticsReport } from './types'
+import {
+  Quizzes,
+  UniqueStudentsHelped2,
+  VolunteersForAnalyticsReport,
+} from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
@@ -1676,6 +1680,57 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
       throw new Error(
         `no volunteer partner org found with key ${volunteerPartnerOrg}`
       )
+    return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getUniqueStudentsHelpedByActiveVolunteers(
+  volunteerPartnerOrgKey: string,
+  start: Date,
+  end: Date,
+  associatedPartners: AssociatedPartnersAndSchools
+): Promise<UniqueStudentsHelped2> {
+  try {
+    const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary2.run(
+      {
+        volunteerPartnerOrgKey,
+        start,
+        end,
+        studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
+        studentSchoolIds: associatedPartners.associatedPartnerSchools,
+      },
+      getAnalyticsClient()
+    )
+    console.log('Query results', JSON.stringify(result))
+    return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getUniqueStudentsHelpedByUserId(
+  volunteerId: string,
+  rangeStartDate: Date,
+  rangeEndDate: Date,
+  allTimeStartDate: Date,
+  allTimeEndDate: Date,
+  associatedPartners: AssociatedPartnersAndSchools
+): Promise<UniqueStudentsHelped2> {
+  try {
+    const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummaryByVolunteerId.run(
+      {
+        volunteerId,
+        rangeStartDate,
+        rangeEndDate,
+        allTimeStartDate,
+        allTimeEndDate,
+        studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
+        studentSchoolIds: associatedPartners.associatedPartnerSchools,
+      },
+      getAnalyticsClient()
+    )
     return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)

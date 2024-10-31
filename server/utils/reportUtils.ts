@@ -11,7 +11,11 @@ import {
 import * as UserActionRepo from '../models/UserAction/queries'
 import * as SessionRepo from '../models/Session/queries'
 import logger from '../logger'
-import { VolunteersForAnalyticsReport } from '../models/Volunteer'
+import {
+  getUniqueStudentsHelpedByUserId,
+  UniqueStudentsHelped2,
+  VolunteersForAnalyticsReport,
+} from '../models/Volunteer'
 import {
   VolunteerForTotalHours,
   VolunteerForTelecomReport,
@@ -592,7 +596,7 @@ export async function getAnalyticsReportSummary(
     ).toFixed(2)
   )
 
-  const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
+  const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedByActiveVolunteers(
     partnerOrg,
     startDate,
     endDate,
@@ -615,27 +619,61 @@ export async function getAnalyticsReportSummary(
 
   // Now generate a summary for each deactivated user and add these to the final result
   if (deactivatedUsers) {
+    const deactivatedVolunteerSummaries: UniqueStudentsHelped2[] = []
     for (const user of deactivatedUsers) {
       const allTimeStartDate = user.createdAt
       const allTimeEndDate = user.deactivatedOn ?? undefined // @TODO clean me up
-      const individualSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
-        partnerOrg,
-        startDate,
-        endDate,
-        associatedPartners,
-        [user.userId],
-        allTimeStartDate,
-        allTimeEndDate
+      console.log(
+        `Generating summary for deactivated user ${user.userId} with startDate=${startDate}, endDate=${endDate}, allTimeStartDate=${allTimeStartDate} and allTimeEndDate=${allTimeEndDate}`
       )
-      summary.uniqueStudentsHelped.total +=
-        individualSummary.totalUniqueStudentsHelped
-      summary.uniqueStudentsHelped.totalWithinDateRange +=
-        individualSummary.totalUniqueStudentsHelpedWithinRange
-      summary.uniquePartnerStudentsHelped.total +=
-        individualSummary.totalUniquePartnerStudentsHelped
-      summary.uniquePartnerStudentsHelped.totalWithinDateRange +=
-        individualSummary.totalUniquePartnerStudentsHelpedWithinRange
+      const individualSummary = await VolunteerRepo.getUniqueStudentsHelpedByUserId(
+        user.userId,
+        startDate, // @TODO I think we have to clamp these to the period in which they were active.
+        endDate,
+        allTimeStartDate,
+        allTimeEndDate ?? new Date(),
+        associatedPartners
+      )
+      deactivatedVolunteerSummaries.push(individualSummary)
+      console.log(
+        'Got summary for deactivated user',
+        JSON.stringify(individualSummary, null, 2)
+      )
+      console.log('Updated main summary', JSON.stringify(summary, null, 2))
     }
+
+    // Merge the unique students helped for active and deactive partner volunteers
+    const uniqueStudentsHelped = new Set<string>([
+      ...deactivatedVolunteerSummaries.flatMap(
+        summary => summary.uniqueStudentsHelped
+      ),
+      ...uniqueStudentSummary.uniqueStudentsHelped,
+    ])
+    const uniqueStudentsHelpedInRange = new Set<string>([
+      ...deactivatedVolunteerSummaries.flatMap(
+        summary => summary.uniqueStudentsHelpedWithinRange
+      ),
+      ...uniqueStudentSummary.uniqueStudentsHelpedWithinRange,
+    ])
+    const uniquePartnerStudentsHelped = new Set<string>([
+      ...deactivatedVolunteerSummaries.flatMap(
+        summary => summary.uniquePartnerStudentsHelped
+      ),
+      ...uniqueStudentSummary.uniquePartnerStudentsHelped,
+    ])
+    const uniquePartnerStudentsHelpedInRange = new Set<string>([
+      ...deactivatedVolunteerSummaries.flatMap(
+        summary => summary.uniquePartnerStudentsHelpedWithinRange
+      ),
+      ...uniqueStudentSummary.uniquePartnerStudentsHelpedWithinRange,
+    ])
+
+    summary.uniqueStudentsHelped.total = uniqueStudentsHelped.size
+    summary.uniqueStudentsHelped.totalWithinDateRange =
+      uniqueStudentsHelpedInRange.size
+    summary.uniquePartnerStudentsHelped.total = uniquePartnerStudentsHelped.size
+    summary.uniquePartnerStudentsHelped.totalWithinDateRange =
+      uniquePartnerStudentsHelpedInRange.size
   }
 
   return summary

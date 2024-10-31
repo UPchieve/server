@@ -1486,7 +1486,7 @@ SELECT
 FROM
     users_volunteer_partner_orgs_instances
     JOIN volunteer_partner_orgs ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
-    LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
+    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users_volunteer_partner_orgs_instances.user_id
     LEFT JOIN sessions ON volunteer_profiles.user_id = sessions.volunteer_id
     LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
 WHERE ((:userIds::uuid[] IS NULL
@@ -1497,6 +1497,195 @@ AND ((:allTimeStartDate::timestamp IS NULL
     AND (:allTimeEndDate::timestamp IS NULL
         OR sessions.created_at <= :allTimeEndDate::timestamp))
 AND volunteer_partner_orgs.key = :volunteerPartnerOrg!;
+
+
+/* @name getUniqueStudentsHelpedForAnalyticsReportSummary2 */
+WITH unique_students_helped_by_active_vols AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        users_volunteer_partner_orgs_instances
+        JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = users_volunteer_partner_orgs_instances.volunteer_partner_org_id
+        LEFT JOIN sessions ON sessions.volunteer_id = users_volunteer_partner_orgs_instances.user_id
+    WHERE
+        volunteer_partner_orgs.key = :volunteerPartnerOrgKey!
+        AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+),
+unique_students_helped_by_active_vols_within_range AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        users_volunteer_partner_orgs_instances
+        JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = users_volunteer_partner_orgs_instances.volunteer_partner_org_id
+        LEFT JOIN sessions ON sessions.volunteer_id = users_volunteer_partner_orgs_instances.user_id
+    WHERE
+        volunteer_partner_orgs.key = :volunteerPartnerOrgKey!
+        AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+        AND sessions.created_at >= :start!
+        AND sessions.created_at <= :end!
+),
+unique_partner_students_helped AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        users_volunteer_partner_orgs_instances
+        JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = users_volunteer_partner_orgs_instances.volunteer_partner_org_id
+        LEFT JOIN sessions ON sessions.volunteer_id = users_volunteer_partner_orgs_instances.user_id
+        JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+    WHERE
+        volunteer_partner_orgs.key = :volunteerPartnerOrgKey!
+        AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+        AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+            OR student_profiles.school_id = ANY (:studentSchoolIds!))
+),
+unique_partner_students_helped_within_range AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        users_volunteer_partner_orgs_instances
+        JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = users_volunteer_partner_orgs_instances.volunteer_partner_org_id
+        LEFT JOIN sessions ON sessions.volunteer_id = users_volunteer_partner_orgs_instances.user_id
+        JOIN student_profiles ON sessions.student_id = student_profiles.user_id
+    WHERE
+        volunteer_partner_orgs.key = :volunteerPartnerOrgKey!
+        AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+        AND sessions.created_at >= :start!
+        AND sessions.created_at <= :end!
+        AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+            OR student_profiles.school_id = ANY (:studentSchoolIds!)))
+SELECT
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id)::text[], '{}')
+        FROM
+            unique_students_helped_by_active_vols) AS unique_students_helped,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_students_helped_by_active_vols) AS total_unique_students_helped,
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id)::text[], '{}')
+        FROM
+            unique_students_helped_by_active_vols_within_range) AS unique_students_helped_within_range,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_students_helped_by_active_vols_within_range) AS total_unique_students_helped_within_range,
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id)::text[], '{}')
+        FROM
+            unique_partner_students_helped) AS unique_partner_students_helped,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_partner_students_helped) AS total_unique_partner_students_helped,
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id)::text[], '{}')
+        FROM
+            unique_partner_students_helped_within_range) AS unique_partner_students_helped_within_range,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_partner_students_helped_within_range) AS total_unique_partner_students_helped_within_range;
+
+
+/* @name getUniqueStudentsHelpedForAnalyticsReportSummaryByVolunteerId */
+WITH unique_students_helped AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        sessions
+    WHERE
+        sessions.volunteer_id = :volunteerId!
+        AND sessions.created_at >= :allTimeStartDate!
+        AND sessions.created_at <= :allTimeEndDate!
+),
+unique_students_helped_within_range AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        sessions
+    WHERE
+        sessions.volunteer_id = :volunteerId
+        AND sessions.created_at >= :rangeStartDate
+        AND sessions.created_at <= :rangeEndDate
+),
+unique_partner_students_helped AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        sessions
+        JOIN student_profiles ON student_profiles.user_id = sessions.student_id
+    WHERE
+        sessions.volunteer_id = :volunteerId
+        AND sessions.created_at >= :allTimeStartDate!
+        AND sessions.created_at <= :allTimeEndDate!
+        AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+            OR student_profiles.school_id = ANY (:studentSchoolIds!))
+),
+unique_partner_students_helped_within_range AS (
+    SELECT DISTINCT
+        sessions.student_id
+    FROM
+        sessions
+        JOIN student_profiles ON student_profiles.user_id = sessions.student_id
+    WHERE
+        sessions.volunteer_id = :volunteerId!
+        AND sessions.created_at >= :allTimeStartDate!
+        AND sessions.created_at <= :allTimeEndDate!
+        AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
+            OR student_profiles.school_id = ANY (:studentSchoolIds!))
+        AND sessions.created_at >= :rangeStartDate!
+        AND sessions.created_at <= :rangeEndDate!
+)
+SELECT
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id), '{}')
+        FROM
+            unique_students_helped) AS unique_students_helped,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_students_helped) AS total_unique_students_helped,
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id), '{}')
+        FROM
+            unique_students_helped_within_range) AS unique_students_helped_within_range,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_students_helped_within_range) AS total_unique_students_helped_within_range,
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id), '{}')
+        FROM
+            unique_partner_students_helped) AS unique_partner_students_helped,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_partner_students_helped) AS total_unique_partner_students_helped,
+    (
+        SELECT
+            COALESCE(ARRAY_AGG(student_id), '{}')
+        FROM
+            unique_partner_students_helped_within_range) AS unique_partner_students_helped_within_range,
+    (
+        SELECT
+            COALESCE(COUNT(*)::int, 0)
+        FROM
+            unique_partner_students_helped_within_range) AS total_unique_partner_students_helped_within_range;
 
 
 /* @name getVolunteersForAnalyticsReport */
@@ -1639,6 +1828,7 @@ WHERE
         FROM
             notifications
     WHERE
+        -- @TODO should this be users_volunteer_partner_orgs_instances.user_id = notifications.user_id ?
         volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE
 WHERE
     users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
