@@ -50,7 +50,43 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
   })
 
-  test('Should early exit if the user has reached the overall limit for gift cards', async () => {
+  test('Should early exit if the user has reached the overall limit for gift cards and has received completed challenge email', async () => {
+    const user = buildUser()
+    mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
+      {
+        user,
+        productFlags: buildUserProductFlags({
+          fallIncentiveEnrollmentAt: new Date(),
+        }),
+        incentivePayload: {
+          incentiveStartDate: new Date(),
+          maxQualifiedSessionsPerWeek: 1,
+        },
+      }
+    )
+    // Fall incentive participation limit
+    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(11)
+    // Fall incentive completed challenge email
+    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
+
+    const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      data: {
+        userId: user.id,
+      },
+    } as Job<EmailFallIncentiveSessionQualificationJobData>
+
+    await emailFallIncentiveSessionQualification(jobData)
+    expect(log).toHaveBeenCalledWith(
+      `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
+    )
+    expect(
+      MailService.sendFallIncentiveCompletedChallengeEmail
+    ).not.toHaveBeenCalled()
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalled()
+    expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
+  })
+
+  test('Should early exit if the user has reached the overall limit for gift cards and has not received completed challenge email', async () => {
     const user = buildUser()
     mockedIncentiveProgramService.getUserFallIncentiveData.mockResolvedValueOnce(
       {
@@ -68,9 +104,6 @@ describe('emailFallIncentiveSessionQualification', () => {
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(11)
     // Fall incentive completed challenge email
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
-    // Weekly gift card limit
-    mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(1)
-    mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
       data: {
@@ -85,6 +118,10 @@ describe('emailFallIncentiveSessionQualification', () => {
     expect(
       MailService.sendFallIncentiveCompletedChallengeEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
+    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
+      userId: user.id,
+      emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+    })
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       user.id,
       EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
@@ -93,10 +130,6 @@ describe('emailFallIncentiveSessionQualification', () => {
         fallIncentiveLimitReachedAt: expect.any(String),
       }
     )
-    expect(NotificationService.createEmailNotification).toHaveBeenCalledWith({
-      userId: user.id,
-      emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
-    })
     expect(MailService.sendQualifiedForGiftCardEmail).not.toHaveBeenCalled()
     expect(
       MailService.sendStillTimeToHaveQualifyingSessionEmail

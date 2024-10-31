@@ -69,29 +69,31 @@ export default async (
 
   // Check if the student has reached the limit for the amount of money they can earn
   if (
-    !hasReceivedCompletedChallengeEmail &&
     totalQualifiedForGiftCardsSent >=
-      FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT
+    FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT
   ) {
     log(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
     )
-    await MailService.sendFallIncentiveCompletedChallengeEmail(
-      userEmail,
-      firstName
-    )
-    await createEmailNotification({
-      userId,
-      emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
-    })
-    captureEvent(
-      userId,
-      EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
-      {},
-      {
-        fallIncentiveLimitReachedAt: new Date().toISOString(),
-      }
-    )
+    if (!hasReceivedCompletedChallengeEmail) {
+      await MailService.sendFallIncentiveCompletedChallengeEmail(
+        userEmail,
+        firstName
+      )
+      await createEmailNotification({
+        userId,
+        emailTemplateId:
+          config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+      })
+      captureEvent(
+        userId,
+        EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+        {},
+        {
+          fallIncentiveLimitReachedAt: new Date().toISOString(),
+        }
+      )
+    }
     return
   }
 
