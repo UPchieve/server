@@ -37,7 +37,7 @@ export async function removeStudentFromClass(
   tc: TransactionClient = getClient()
 ) {
   try {
-    return pgQueries.removeStudentFromClass.run({ studentId, classId}, tc)
+    return pgQueries.removeStudentFromClass.run({ studentId, classId }, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
   }

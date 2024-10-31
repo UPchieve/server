@@ -146,9 +146,6 @@ export async function deactivateTeacherClass(id: string) {
   return updatedClass
 }
 
-export async function removeStudentFromClass(
-  studentId: Ulid,
-  classId: Ulid
-) {
+export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
   return TeacherClassRepo.removeStudentFromClass(studentId, classId)
 }
