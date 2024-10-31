@@ -67,6 +67,7 @@ export type UserContactInfo = Pick<
   | 'phone'
   | 'phoneVerified'
   | 'smsConsent'
+  | 'proxyEmail'
 > & {
   approved?: boolean
   isAdmin: boolean

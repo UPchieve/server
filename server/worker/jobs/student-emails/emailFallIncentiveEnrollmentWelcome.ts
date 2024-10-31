@@ -17,9 +17,12 @@ export default async (
   const user = await getUserContactInfoById(userId)
   if (!user) return
 
-  const { firstName, email } = user
+  const { firstName, email, proxyEmail } = user
   try {
-    await MailService.sendFallIncentiveEnrollmentWelcomeEmail(email, firstName)
+    await MailService.sendFallIncentiveEnrollmentWelcomeEmail(
+      proxyEmail ?? email,
+      firstName
+    )
     log(`Sent ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${userId}`)
   } catch (error) {
     throw new Error(
