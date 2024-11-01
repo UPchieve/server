@@ -1703,7 +1703,6 @@ export async function getUniqueStudentsHelpedByActiveVolunteers(
       },
       getAnalyticsClient()
     )
-    console.log('Query results', JSON.stringify(result))
     return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)

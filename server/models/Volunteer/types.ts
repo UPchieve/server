@@ -56,6 +56,7 @@ export type UniqueStudentsHelped = {
 }
 
 export type UniqueStudentsHelped2 = {
+  // @TODO replace the old one
   uniquePartnerStudentsHelped: string[]
   totalUniquePartnerStudentsHelped: number
   uniquePartnerStudentsHelpedWithinRange: string[]

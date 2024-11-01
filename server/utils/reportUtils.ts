@@ -623,9 +623,6 @@ export async function getAnalyticsReportSummary(
     for (const user of deactivatedUsers) {
       const allTimeStartDate = user.createdAt
       const allTimeEndDate = user.deactivatedOn ?? undefined // @TODO clean me up
-      console.log(
-        `Generating summary for deactivated user ${user.userId} with startDate=${startDate}, endDate=${endDate}, allTimeStartDate=${allTimeStartDate} and allTimeEndDate=${allTimeEndDate}`
-      )
       const individualSummary = await VolunteerRepo.getUniqueStudentsHelpedByUserId(
         user.userId,
         startDate, // @TODO I think we have to clamp these to the period in which they were active.
@@ -635,11 +632,6 @@ export async function getAnalyticsReportSummary(
         associatedPartners
       )
       deactivatedVolunteerSummaries.push(individualSummary)
-      console.log(
-        'Got summary for deactivated user',
-        JSON.stringify(individualSummary, null, 2)
-      )
-      console.log('Updated main summary', JSON.stringify(summary, null, 2))
     }
 
     // Merge the unique students helped for active and deactive partner volunteers
