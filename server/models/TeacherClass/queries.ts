@@ -1,7 +1,7 @@
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
 import { makeSomeOptional, Ulid, Uuid } from '../pgUtils'
-import { RepoReadError } from '../Errors'
+import { RepoDeleteError, RepoReadError } from '../Errors'
 import { TeacherClassResult } from './types'
 
 export async function getTeacherClassesForStudent(
@@ -28,5 +28,17 @@ export async function getTotalStudentsInClass(
     return result[0]?.count ?? 0
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function removeStudentFromClass(
+  studentId: Ulid,
+  classId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    return pgQueries.removeStudentFromClass.run({ studentId, classId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
