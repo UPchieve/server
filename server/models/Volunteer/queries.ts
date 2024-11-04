@@ -13,7 +13,7 @@ import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
   Quizzes,
-  UniqueStudentsHelped2,
+  UniqueStudentsHelpedWithIds,
   VolunteersForAnalyticsReport,
 } from './types'
 import config from '../../config'
@@ -1691,7 +1691,7 @@ export async function getUniqueStudentsHelpedByActiveVolunteers(
   start: Date,
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools
-): Promise<UniqueStudentsHelped2> {
+): Promise<UniqueStudentsHelpedWithIds> {
   try {
     const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary2.run(
       {
@@ -1716,7 +1716,7 @@ export async function getUniqueStudentsHelpedByUserId(
   allTimeStartDate: Date,
   allTimeEndDate: Date,
   associatedPartners: AssociatedPartnersAndSchools
-): Promise<UniqueStudentsHelped2> {
+): Promise<UniqueStudentsHelpedWithIds> {
   try {
     const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummaryByVolunteerId.run(
       {
@@ -1749,9 +1749,9 @@ export async function getVolunteersForAnalyticsReport(
   associatedPartners: AssociatedPartnersAndSchools,
   pageSize: number,
   cursor: Ulid | null,
-  userIds: string[] | undefined | null = null, // @TODO these type defs are made ugly, fix it later
-  allTimeStartDate: Date | null | undefined = null,
-  allTimeEndDate: Date | null | undefined = null
+  allTimeStartDate?: Date,
+  allTimeEndDate?: Date,
+  userIds?: string[]
 ): Promise<VolunteersForAnalyticsReport[]> {
   try {
     const result = await pgQueries.getVolunteersForAnalyticsReport.run(
@@ -1764,8 +1764,8 @@ export async function getVolunteersForAnalyticsReport(
         pageSize,
         cursor,
         userIds,
-        allTimeStartDate,
-        allTimeEndDate,
+        allTimeStartDate: allTimeStartDate ?? null,
+        allTimeEndDate: allTimeEndDate ?? null,
       },
       getAnalyticsClient()
     )
@@ -1774,7 +1774,7 @@ export async function getVolunteersForAnalyticsReport(
       throw new ReportNoDataFoundError('No volunteers found for partner org')
     }
 
-    const volunteers = result.map(row => {
+    return result.map(row => {
       const temp = makeSomeOptional(row, [
         'state',
         'dateOnboarded',
@@ -1789,7 +1789,6 @@ export async function getVolunteersForAnalyticsReport(
         ),
       } as VolunteersForAnalyticsReport
     })
-    return volunteers
   } catch (err) {
     throw new RepoReadError(err)
   }

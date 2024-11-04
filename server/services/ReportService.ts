@@ -279,9 +279,9 @@ async function processBatch(
     associatedPartners,
     batchSize + 1, // get an extra row for the cursor
     cursor,
-    deactivatedUsers?.map(u => u.userId),
     allTimeStart,
-    allTimeEnd
+    allTimeEnd,
+    deactivatedUsers?.map(u => u.userId)
   )
   const nextCursor =
     batch.length < batchSize + 1 ? null : batch.pop()?.userId ?? null
@@ -409,7 +409,6 @@ export async function generatePartnerAnalyticsReport(
       start,
       end,
       associatedPartners,
-      // @TODO fix typing ughhh shouldnt have to map() here
       deactivatedUsers.map(u => ({
         userId: u.userId,
         createdAt: u.userCreatedAt,

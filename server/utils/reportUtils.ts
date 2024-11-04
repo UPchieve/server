@@ -13,7 +13,7 @@ import * as SessionRepo from '../models/Session/queries'
 import logger from '../logger'
 import {
   getUniqueStudentsHelpedByUserId,
-  UniqueStudentsHelped2,
+  UniqueStudentsHelpedWithIds,
   VolunteersForAnalyticsReport,
 } from '../models/Volunteer'
 import {
@@ -619,16 +619,16 @@ export async function getAnalyticsReportSummary(
 
   // Now generate a summary for each deactivated user and add these to the final result
   if (deactivatedUsers) {
-    const deactivatedVolunteerSummaries: UniqueStudentsHelped2[] = []
+    const deactivatedVolunteerSummaries: UniqueStudentsHelpedWithIds[] = []
     for (const user of deactivatedUsers) {
       const allTimeStartDate = user.createdAt
-      const allTimeEndDate = user.deactivatedOn ?? undefined // @TODO clean me up
+      const allTimeEndDate = user.deactivatedOn ?? new Date()
       const individualSummary = await VolunteerRepo.getUniqueStudentsHelpedByUserId(
         user.userId,
-        startDate, // @TODO I think we have to clamp these to the period in which they were active.
+        startDate, // @TODO Potential accuracy issue. I think we have to clamp these to the period in which they were active.
         endDate,
         allTimeStartDate,
-        allTimeEndDate ?? new Date(),
+        allTimeEndDate,
         associatedPartners
       )
       deactivatedVolunteerSummaries.push(individualSummary)
