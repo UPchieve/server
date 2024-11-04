@@ -11,6 +11,7 @@ FROM
     LEFT JOIN student_classes sc ON tc.id = sc.class_id
 WHERE
     sc.user_id = :studentId!
+    AND tc.deactivated_on IS NULL
 ORDER BY
     tc.created_at ASC;
 
