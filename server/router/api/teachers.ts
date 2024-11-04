@@ -100,8 +100,11 @@ export function routeTeachers(app: Express, router: Router): void {
         const studentId = asString(req.params.studentId)
         const classId = asString(req.params.classId)
         if (studentId && classId) {
-          await TeacherService.removeStudentFromClass(studentId, classId)
-          res.json({ studentId })
+          const removedId = await TeacherService.removeStudentFromClass(
+            studentId,
+            classId
+          )
+          res.json({ removedId })
         }
       } catch (err) {
         resError(res, err)

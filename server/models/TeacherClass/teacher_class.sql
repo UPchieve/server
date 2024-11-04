@@ -27,5 +27,7 @@ WHERE
 /* @name removeStudentFromClass */
 DELETE FROM student_classes
 WHERE user_id = :studentId!
-    AND class_id = :classId!;
+    AND class_id = :classId!
+RETURNING
+    user_id AS studentId;
 
