@@ -2,7 +2,6 @@ import path from 'path'
 import fs from 'fs'
 import moment from 'moment'
 import 'moment-timezone'
-import _, { clamp } from 'lodash'
 import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomError } from 'ts-custom-error'
@@ -304,7 +303,7 @@ async function processBatch(
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
-      start, // @TODO: For deactivated volunteers, adjust this
+      start,
       endDate
     )
     const volunteerWithAnalytics = {

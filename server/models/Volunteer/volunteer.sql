@@ -1828,7 +1828,6 @@ WHERE
         FROM
             notifications
     WHERE
-        -- @TODO should this be users_volunteer_partner_orgs_instances.user_id = notifications.user_id ?
         volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE
 WHERE
     users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id

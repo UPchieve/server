@@ -625,8 +625,8 @@ export async function getAnalyticsReportSummary(
       const allTimeEndDate = user.deactivatedOn ?? new Date()
       const individualSummary = await VolunteerRepo.getUniqueStudentsHelpedByUserId(
         user.userId,
-        startDate, // @TODO Potential accuracy issue. I think we have to clamp these to the period in which they were active.
-        endDate,
+        startDate,
+        endDate < allTimeEndDate ? endDate : allTimeStartDate,
         allTimeStartDate,
         allTimeEndDate,
         associatedPartners
