@@ -1460,45 +1460,6 @@ GROUP BY
     volunteer_partner_orgs.key;
 
 
-/* @name getUniqueStudentsHelpedForAnalyticsReportSummary */
-SELECT
-    COALESCE(COUNT(DISTINCT sessions.student_id), 0)::int AS total_unique_students_helped,
-    COALESCE(COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!
-                AND sessions.created_at <= :end! THEN
-                sessions.student_id
-            ELSE
-                NULL
-            END), 0)::int AS total_unique_students_helped_within_range,
-    COALESCE(COUNT(DISTINCT CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
-                OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN
-                sessions.student_id
-            ELSE
-                NULL
-            END), 0)::int AS total_unique_partner_students_helped,
-    COALESCE(COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!
-                AND sessions.created_at <= :end!
-                AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)
-                    OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN
-                sessions.student_id
-            ELSE
-                NULL
-            END), 0)::int AS total_unique_partner_students_helped_within_range
-FROM
-    users_volunteer_partner_orgs_instances
-    JOIN volunteer_partner_orgs ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users_volunteer_partner_orgs_instances.user_id
-    LEFT JOIN sessions ON volunteer_profiles.user_id = sessions.volunteer_id
-    LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id
-WHERE ((:userIds::uuid[] IS NULL
-        AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL)
-    OR (users_volunteer_partner_orgs_instances.user_id = ANY (:userIds::uuid[])))
-AND ((:allTimeStartDate::timestamp IS NULL
-        OR sessions.created_at >= :allTimeStartDate::timestamp)
-    AND (:allTimeEndDate::timestamp IS NULL
-        OR sessions.created_at <= :allTimeEndDate::timestamp))
-AND volunteer_partner_orgs.key = :volunteerPartnerOrg!;
-
-
 /* @name getUniqueStudentsHelpedForAnalyticsReportSummary2 */
 WITH unique_students_helped_by_active_vols AS (
     SELECT DISTINCT
