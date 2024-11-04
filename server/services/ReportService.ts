@@ -271,10 +271,17 @@ async function processBatch(
   allTimeStart?: Date,
   allTimeEnd?: Date
 ): Promise<Ulid | null> {
+  const getRangeEnd = (): Date => {
+    if (!deactivatedUser) return end
+    return deactivatedUser?.deactivatedOn && deactivatedUser.deactivatedOn < end
+      ? (deactivatedUser.deactivatedOn as Date)
+      : end
+  }
+
   const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrgKey,
     start,
-    end,
+    getRangeEnd(),
     associatedPartners,
     batchSize + 1, // get an extra row for the cursor
     cursor,
@@ -290,21 +297,22 @@ async function processBatch(
     const deactivatedOn = deactivatedUser?.deactivatedOn
 
     // Count stats until the current date, or if the volunteer has since left the partner org, until their last day with the partner org
-    const endDate =
-      deactivatedOn ??
-      moment()
-        .utc()
-        .toDate()
+    const now = moment()
+      .utc()
+      .toDate()
 
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
       new Date(volunteer.createdAt),
-      endDate
+      deactivatedOn ?? now
     )
+    // If the user is deactivated, the range end should be the lesser of (deactivatedOn, end)
+    // to get the period in which they were actively with the organization.
+    // Otherwise, the rangeEnd is 'end'.
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
       start,
-      endDate
+      getRangeEnd()
     )
     const volunteerWithAnalytics = {
       ...volunteer,
@@ -379,7 +387,6 @@ export async function generatePartnerAnalyticsReport(
     for (const user of deactivatedUsers) {
       const allTimeStart = user.userCreatedAt
       const allTimeEnd = user.deactivatedOn
-      if (!allTimeEnd) continue // Note: This shouldn't happen
 
       await processBatch(
         partnerOrg,
@@ -404,7 +411,7 @@ export async function generatePartnerAnalyticsReport(
       start,
       end,
       associatedPartners,
-      deactivatedUsers.map(u => ({
+      deactivatedUsers?.map(u => ({
         userId: u.userId,
         createdAt: u.userCreatedAt,
         deactivatedOn: u.deactivatedOn ?? null,

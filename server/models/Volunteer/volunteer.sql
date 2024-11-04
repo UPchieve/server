@@ -1937,5 +1937,6 @@ FROM
     most_recent_instances mri
     JOIN users ON users.id = mri.user_id
 WHERE
-    deactivated_on IS NOT NULL;
+    deactivated_on IS NOT NULL
+    AND row_number = 1;
 

@@ -11,11 +11,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import {
-  Quizzes,
-  UniqueStudentsHelpedWithIds,
-  VolunteersForAnalyticsReport,
-} from './types'
+import { Quizzes, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
@@ -1653,45 +1649,12 @@ export async function getVolunteersOnDeck(
   }
 }
 
-export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
-  volunteerPartnerOrg: string,
-  start: Date,
-  end: Date,
-  associatedPartners: AssociatedPartnersAndSchools,
-  userIds?: Ulid[],
-  allTimeStartDate?: Date,
-  allTimeEndDate?: Date
-): Promise<UniqueStudentsHelped> {
-  try {
-    const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary.run(
-      {
-        volunteerPartnerOrg,
-        start,
-        end,
-        studentPartnerOrgIds: associatedPartners.associatedStudentPartnerOrgs,
-        studentSchoolIds: associatedPartners.associatedPartnerSchools,
-        userIds: userIds ?? null,
-        allTimeStartDate,
-        allTimeEndDate,
-      },
-      getAnalyticsClient()
-    )
-    if (!(result.length && makeRequired(result[0])))
-      throw new Error(
-        `no volunteer partner org found with key ${volunteerPartnerOrg}`
-      )
-    return makeRequired(result[0])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getUniqueStudentsHelpedByActiveVolunteers(
   volunteerPartnerOrgKey: string,
   start: Date,
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools
-): Promise<UniqueStudentsHelpedWithIds> {
+): Promise<UniqueStudentsHelped> {
   try {
     const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary2.run(
       {
@@ -1716,7 +1679,7 @@ export async function getUniqueStudentsHelpedByUserId(
   allTimeStartDate: Date,
   allTimeEndDate: Date,
   associatedPartners: AssociatedPartnersAndSchools
-): Promise<UniqueStudentsHelpedWithIds> {
+): Promise<UniqueStudentsHelped> {
   try {
     const result = await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummaryByVolunteerId.run(
       {

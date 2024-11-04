@@ -6,7 +6,7 @@ import { times } from 'lodash'
 import Logger from '../../logger'
 import { buildTestVolunteerForAnalyticsReport } from '../mocks/generate'
 import { RepoReadError } from '../../models/Errors'
-import { UniqueStudentsHelpedWithIds } from '../../models/Volunteer'
+import { UniqueStudentsHelped } from '../../models/Volunteer'
 
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../models/AssociatedPartner')

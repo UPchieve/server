@@ -12,8 +12,7 @@ import * as UserActionRepo from '../models/UserAction/queries'
 import * as SessionRepo from '../models/Session/queries'
 import logger from '../logger'
 import {
-  getUniqueStudentsHelpedByUserId,
-  UniqueStudentsHelpedWithIds,
+  UniqueStudentsHelped,
   VolunteersForAnalyticsReport,
 } from '../models/Volunteer'
 import {
@@ -619,7 +618,7 @@ export async function getAnalyticsReportSummary(
 
   // Now generate a summary for each deactivated user and add these to the final result
   if (deactivatedUsers) {
-    const deactivatedVolunteerSummaries: UniqueStudentsHelpedWithIds[] = []
+    const deactivatedVolunteerSummaries: UniqueStudentsHelped[] = []
     for (const user of deactivatedUsers) {
       const allTimeStartDate = user.createdAt
       const allTimeEndDate = user.deactivatedOn ?? new Date()

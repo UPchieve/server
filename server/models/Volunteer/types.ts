@@ -53,9 +53,6 @@ export type UniqueStudentsHelped = {
   totalUniquePartnerStudentsHelpedWithinRange: number
   totalUniqueStudentsHelped: number
   totalUniqueStudentsHelpedWithinRange: number
-}
-
-export type UniqueStudentsHelpedWithIds = UniqueStudentsHelped & {
   uniquePartnerStudentsHelped: string[]
   uniquePartnerStudentsHelpedWithinRange: string[]
   uniqueStudentsHelped: string[]

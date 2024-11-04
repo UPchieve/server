@@ -3905,7 +3905,7 @@ export interface IGetDeactivatedUsersForVolunteerPartnerOrgQuery {
   result: IGetDeactivatedUsersForVolunteerPartnerOrgResult;
 }
 
-const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivatedUsersForVolunteerPartnerOrg","params":[{"name":"volunteerPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":60800,"b":60821,"line":1928,"col":38}]}}],"usedParamSet":{"volunteerPartnerOrgId":true},"statement":{"body":"WITH most_recent_instances AS (\n    SELECT\n        *,\n        row_number() OVER (PARTITION BY user_id,\n            volunteer_partner_org_id ORDER BY created_at DESC)\n    FROM users_volunteer_partner_orgs_instances\n    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId!\n)\nSELECT\n    mri.user_id,\n    mri.volunteer_partner_org_id,\n    mri.deactivated_on,\n    mri.created_at AS user_partner_instance_created_at,\n    users.created_at AS user_created_at\nFROM\n    most_recent_instances mri\n    JOIN users ON users.id = mri.user_id\nWHERE\n    deactivated_on IS NOT NULL","loc":{"a":60548,"b":61114,"line":1922,"col":0}}};
+const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivatedUsersForVolunteerPartnerOrg","params":[{"name":"volunteerPartnerOrgId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":60800,"b":60821,"line":1928,"col":38}]}}],"usedParamSet":{"volunteerPartnerOrgId":true},"statement":{"body":"WITH most_recent_instances AS (\n    SELECT\n        *,\n        row_number() OVER (PARTITION BY user_id,\n            volunteer_partner_org_id ORDER BY created_at DESC)\n    FROM users_volunteer_partner_orgs_instances\n    WHERE volunteer_partner_org_id = :volunteerPartnerOrgId!\n)\nSELECT\n    mri.user_id,\n    mri.volunteer_partner_org_id,\n    mri.deactivated_on,\n    mri.created_at AS user_partner_instance_created_at,\n    users.created_at AS user_created_at\nFROM\n    most_recent_instances mri\n    JOIN users ON users.id = mri.user_id\nWHERE\n    deactivated_on IS NOT NULL\n    AND row_number = 1","loc":{"a":60548,"b":61137,"line":1922,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -3929,6 +3929,7 @@ const getDeactivatedUsersForVolunteerPartnerOrgIR: any = {"name":"getDeactivated
  *     JOIN users ON users.id = mri.user_id
  * WHERE
  *     deactivated_on IS NOT NULL
+ *     AND row_number = 1
  * ```
  */
 export const getDeactivatedUsersForVolunteerPartnerOrg = new PreparedQuery<IGetDeactivatedUsersForVolunteerPartnerOrgParams,IGetDeactivatedUsersForVolunteerPartnerOrgResult>(getDeactivatedUsersForVolunteerPartnerOrgIR);
