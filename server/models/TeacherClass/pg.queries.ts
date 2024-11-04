@@ -79,3 +79,35 @@ const getTotalStudentsInClassIR: any = {"name":"getTotalStudentsInClass","params
 export const getTotalStudentsInClass = new PreparedQuery<IGetTotalStudentsInClassParams,IGetTotalStudentsInClassResult>(getTotalStudentsInClassIR);
 
 
+/** 'RemoveStudentFromClass' parameters type */
+export interface IRemoveStudentFromClassParams {
+  classId: string;
+  studentId: string;
+}
+
+/** 'RemoveStudentFromClass' return type */
+export interface IRemoveStudentFromClassResult {
+  studentid: string;
+}
+
+/** 'RemoveStudentFromClass' query type */
+export interface IRemoveStudentFromClassQuery {
+  params: IRemoveStudentFromClassParams;
+  result: IRemoveStudentFromClassResult;
+}
+
+const removeStudentFromClassIR: any = {"name":"removeStudentFromClass","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":496,"b":505,"line":29,"col":17}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":527,"b":534,"line":30,"col":20}]}}],"usedParamSet":{"studentId":true,"classId":true},"statement":{"body":"DELETE FROM student_classes\nWHERE user_id = :studentId!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId","loc":{"a":451,"b":569,"line":28,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM student_classes
+ * WHERE user_id = :studentId!
+ *     AND class_id = :classId!
+ * RETURNING
+ *     user_id AS studentId
+ * ```
+ */
+export const removeStudentFromClass = new PreparedQuery<IRemoveStudentFromClassParams,IRemoveStudentFromClassResult>(removeStudentFromClassIR);
+
+
