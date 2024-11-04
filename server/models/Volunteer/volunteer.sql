@@ -1832,9 +1832,9 @@ WHERE
         volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE
 WHERE
     users_volunteer_partner_orgs_instances.volunteer_partner_org_id = volunteer_partner_orgs.id
-    AND ((:userIds::uuid[] IS NULL
+    AND ((:userId::uuid IS NULL
             AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL)
-        OR (users_volunteer_partner_orgs_instances.user_id = ANY (:userIds::uuid[])))
+        OR (users_volunteer_partner_orgs_instances.user_id = :userId::uuid))
     AND volunteer_partner_orgs.key = :volunteerPartnerOrg!
     AND (:cursor::uuid IS NULL
         OR users.id <= :cursor::uuid)

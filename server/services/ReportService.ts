@@ -268,9 +268,9 @@ async function processBatch(
   batchSize: number,
   cursor: null | Ulid,
   report: AnalyticsReportRow[],
-  deactivatedUsers?: { userId: Ulid; deactivatedOn?: Date | null }[],
-  allTimeStart?: Date | null,
-  allTimeEnd?: Date | null
+  deactivatedUser?: { userId: Ulid; deactivatedOn?: Date | null },
+  allTimeStart?: Date,
+  allTimeEnd?: Date
 ): Promise<Ulid | null> {
   const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrgKey,
@@ -281,17 +281,14 @@ async function processBatch(
     cursor,
     allTimeStart,
     allTimeEnd,
-    deactivatedUsers?.map(u => u.userId)
+    deactivatedUser?.userId ?? undefined
   )
   const nextCursor =
     batch.length < batchSize + 1 ? null : batch.pop()?.userId ?? null
 
   // Fetch individual volunteer data
   for (const volunteer of batch) {
-    const deactivatedOn = deactivatedUsers
-      ? deactivatedUsers!.find(user => user.userId === volunteer.userId)
-          ?.deactivatedOn
-      : undefined
+    const deactivatedOn = deactivatedUser?.deactivatedOn
 
     // Count stats until the current date, or if the volunteer has since left the partner org, until their last day with the partner org
     const endDate =
@@ -333,7 +330,6 @@ export async function generatePartnerAnalyticsReport(
   const start: Date = moment(startDate, 'MM-DD-YYYY').toDate()
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
   const report: AnalyticsReportRow[] = []
-  // const deactivatedUsersReport: AnalyticsReportRow[] = []
   const batchSize = config.corporatePartnerReports.batchSize
   logger.info(logData, `Partner analytics report: Using batchSize=${batchSize}`)
 
@@ -394,7 +390,7 @@ export async function generatePartnerAnalyticsReport(
         batchSize,
         nextCursor,
         report,
-        [{ userId: user.userId, deactivatedOn: user.deactivatedOn }],
+        { userId: user.userId, deactivatedOn: user.deactivatedOn },
         allTimeStart,
         allTimeEnd
       )
