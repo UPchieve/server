@@ -16,6 +16,29 @@ describe('ReportService', () => {
   let mockGetVolunteersForAnalyticsReport: jest.Mock
   let mockGetAssociatedPartnersAndSchools: jest.Mock
   let mockGetHourSummaryStats: jest.Mock
+  let mockGetDeactivatedVolunteersByPartnerOrg: jest.Mock
+  let mockGetUniqueStudentsHelpedByActiveVolunteers: jest.Mock
+  let mockGetUniqueStudentsHelpedByUserId: jest.Mock
+  const uniqueStudentsHelped: UniqueStudentsHelped = {
+    uniquePartnerStudentsHelped: ['1', '2', '3'],
+    totalUniquePartnerStudentsHelped: 3,
+    uniquePartnerStudentsHelpedWithinRange: ['1', '2'],
+    totalUniquePartnerStudentsHelpedWithinRange: 2,
+    uniqueStudentsHelped: ['1', '2', '3', '4'],
+    totalUniqueStudentsHelped: 4,
+    uniqueStudentsHelpedWithinRange: ['1', '2', '3'],
+    totalUniqueStudentsHelpedWithinRange: 3,
+  }
+  const uniqueStudentsHelpedForDeactivatedUser: UniqueStudentsHelped = {
+    uniquePartnerStudentsHelped: ['4'],
+    totalUniquePartnerStudentsHelped: 1,
+    uniquePartnerStudentsHelpedWithinRange: [],
+    totalUniquePartnerStudentsHelpedWithinRange: 0,
+    uniqueStudentsHelped: ['4'],
+    totalUniqueStudentsHelped: 1,
+    uniqueStudentsHelpedWithinRange: ['4'],
+    totalUniqueStudentsHelpedWithinRange: 1,
+  }
 
   beforeEach(() => {
     mockGetAssociatedPartnersAndSchools = AssociatedPartnerRepo.getAssociatedPartnersAndSchools as jest.Mock
@@ -31,6 +54,17 @@ describe('ReportService', () => {
       totalVolunteerHours: 10,
     })
     mockGetVolunteersForAnalyticsReport = VolunteerRepo.getVolunteersForAnalyticsReport as jest.Mock
+    mockGetDeactivatedVolunteersByPartnerOrg = VolunteerRepo.getDeactivatedVolunteersByPartnerOrg as jest.Mock
+    mockGetUniqueStudentsHelpedByActiveVolunteers = VolunteerRepo.getUniqueStudentsHelpedByActiveVolunteers as jest.Mock
+
+    mockGetUniqueStudentsHelpedByUserId = VolunteerRepo.getUniqueStudentsHelpedByUserId as jest.Mock
+    mockGetDeactivatedVolunteersByPartnerOrg.mockResolvedValue([])
+    mockGetUniqueStudentsHelpedByUserId.mockResolvedValue(
+      uniqueStudentsHelpedForDeactivatedUser
+    )
+    mockGetUniqueStudentsHelpedByActiveVolunteers.mockResolvedValue(
+      uniqueStudentsHelped
+    )
   })
 
   afterEach(() => {
