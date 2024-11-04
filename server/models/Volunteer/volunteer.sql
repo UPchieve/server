@@ -118,7 +118,6 @@ SELECT
     users.id,
     first_name,
     last_name,
-    phone,
     email,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     sent_hour_summary_intro_email
