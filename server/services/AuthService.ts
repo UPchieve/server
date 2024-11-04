@@ -308,23 +308,25 @@ export async function confirmReset(data: unknown): Promise<void> {
     newpassword: reenteredPassword,
     token,
   } = asResetConfirmData(data)
-  // make sure token is a valid 16-byte hex string
+  // Make sure token is a valid 16-byte hex string.
   if (!token.match(/^[a-f0-9]{32}$/)) {
-    // early exit
-    throw new ResetError('Invalid password reset token')
+    throw new ResetError(
+      'Invalid password reset token. Please use the link provided in the latest password reset email you received from UPchieve.'
+    )
   }
 
   if (password !== reenteredPassword)
-    throw new ResetError('The passwords you entered do not match')
+    throw new ResetError('The passwords you entered do not match.')
 
   const user = await getUserByResetToken(token)
-
   if (!user)
-    throw new LookupError('No account found with provided password reset token')
+    throw new LookupError(
+      'No account found with provided password reset token. Please use the link provided in the latest password reset email you received from UPchieve.'
+    )
 
   // case match strings
   if (user.email.toLowerCase() !== email.toLowerCase())
-    throw new ResetError('Email did not match the password reset token')
+    throw new ResetError('Email did not match the password reset token.')
 
   checkPassword(password)
 
