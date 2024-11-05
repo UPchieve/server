@@ -278,7 +278,7 @@ export async function deleteAssignment(
   tc: TransactionClient = getClient()
 ) {
   try {
-    await pgQueries.deleteAssignment.run({ assignmentId, classId }, tc)
+    return await pgQueries.deleteAssignment.run({ assignmentId, classId }, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
   }

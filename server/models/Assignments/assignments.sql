@@ -147,5 +147,7 @@ WHERE
 /* @name deleteAssignment */
 DELETE FROM assignments
 WHERE id = :assignmentId!
-    AND class_id = :classId!;
+    AND class_id = :classId!
+RETURNING
+    id AS assignmentId;
 

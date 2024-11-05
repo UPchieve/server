@@ -518,7 +518,9 @@ export interface IDeleteAssignmentParams {
 }
 
 /** 'DeleteAssignment' return type */
-export type IDeleteAssignmentResult = void;
+export interface IDeleteAssignmentResult {
+  assignmentid: string;
+}
 
 /** 'DeleteAssignment' query type */
 export interface IDeleteAssignmentQuery {
@@ -526,7 +528,7 @@ export interface IDeleteAssignmentQuery {
   result: IDeleteAssignmentResult;
 }
 
-const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3887,"b":3899,"line":149,"col":12}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3921,"b":3928,"line":150,"col":20}]}}],"usedParamSet":{"assignmentId":true,"classId":true},"statement":{"body":"DELETE FROM assignments\nWHERE id = :assignmentId!\n    AND class_id = :classId!","loc":{"a":3851,"b":3928,"line":148,"col":0}}};
+const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3887,"b":3899,"line":149,"col":12}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3921,"b":3928,"line":150,"col":20}]}}],"usedParamSet":{"assignmentId":true,"classId":true},"statement":{"body":"DELETE FROM assignments\nWHERE id = :assignmentId!\n    AND class_id = :classId!\nRETURNING\n    id AS assignmentId","loc":{"a":3851,"b":3961,"line":148,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -534,6 +536,8 @@ const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"as
  * DELETE FROM assignments
  * WHERE id = :assignmentId!
  *     AND class_id = :classId!
+ * RETURNING
+ *     id AS assignmentId
  * ```
  */
 export const deleteAssignment = new PreparedQuery<IDeleteAssignmentParams,IDeleteAssignmentResult>(deleteAssignmentIR);
