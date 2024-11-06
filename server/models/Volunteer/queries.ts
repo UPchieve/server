@@ -250,7 +250,10 @@ export async function getActiveQuizzesForVolunteers(
   }
 }
 
-export type VolunteerForWeeklyHourSummary = VolunteerContactInfo & {
+export type VolunteerForWeeklyHourSummary = Omit<
+  VolunteerContactInfo,
+  'phone'
+> & {
   sentHourSummaryIntroEmail: boolean
   quizzes: Quizzes
 }
