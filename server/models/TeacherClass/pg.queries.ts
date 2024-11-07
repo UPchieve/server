@@ -96,7 +96,7 @@ export interface IRemoveStudentFromClassQuery {
   result: IRemoveStudentFromClassResult;
 }
 
-const removeStudentFromClassIR: any = {"name":"removeStudentFromClass","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":496,"b":505,"line":29,"col":17}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":527,"b":534,"line":30,"col":20}]}}],"usedParamSet":{"studentId":true,"classId":true},"statement":{"body":"DELETE FROM student_classes\nWHERE user_id = :studentId!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId","loc":{"a":451,"b":569,"line":28,"col":0}}};
+const removeStudentFromClassIR: any = {"name":"removeStudentFromClass","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":530,"b":539,"line":30,"col":17}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":561,"b":568,"line":31,"col":20}]}}],"usedParamSet":{"studentId":true,"classId":true},"statement":{"body":"DELETE FROM student_classes\nWHERE user_id = :studentId!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId","loc":{"a":485,"b":603,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:

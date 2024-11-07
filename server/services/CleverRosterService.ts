@@ -76,6 +76,8 @@ type TCleverStudentData = {
   uri: string
 }
 
+type UPchieveSchoolId = string
+
 /**
  * Clever Secure Sync Integration (i.e. rostering with Clever).
  *
@@ -91,7 +93,10 @@ type TCleverStudentData = {
  * are using Clever, but there is a lot more data we can pull from Clever that might
  * be useful to integrate with in the future.
  */
-export async function rosterDistrict(districtId: string) {
+export async function rosterDistrict(
+  districtId: string,
+  cleverToUPchieveIds?: { [cleverSchoolId: string]: UPchieveSchoolId }
+) {
   const accessToken = await getDistrictAccessToken(districtId)
   const options = {
     headers: createBearerAuthHeader(accessToken),
@@ -116,19 +121,29 @@ export async function rosterDistrict(districtId: string) {
 
   for (const school of schools) {
     try {
-      if (!school.data.nces_id) {
-        upsertReport.failedSchools[school.data.id] =
-          'Clever school does not contain nces_id.'
-        continue
+      let upchieveSchool
+
+      const upchieveSchoolId = cleverToUPchieveIds?.[school.data.id]
+      if (upchieveSchoolId) {
+        upchieveSchool = await SchoolService.getSchool(upchieveSchoolId)
+      } else if (school.data.nces_id) {
+        upchieveSchool = await SchoolService.getSchoolByNcesId(
+          school.data.nces_id
+        )
       }
 
-      const upchieveSchool = await SchoolService.getSchoolByNcesId(
-        school.data.nces_id
-      )
       if (!upchieveSchool) {
-        upsertReport.failedSchools[
-          school.data.id
-        ] = `No UPchieve school found with nces_id of ${school.data.nces_id}`
+        let failureReason
+        if (upchieveSchoolId) {
+          failureReason = `No UPchieve school found with ID of ${upchieveSchoolId}`
+        } else if (school.data.nces_id) {
+          failureReason = `No UPchieve school found with nces_id of ${school.data.nces_id}`
+        } else {
+          failureReason =
+            'Clever school does not contain nces_id and no mapping to UPchieve school provided.'
+        }
+
+        upsertReport.failedSchools[school.data.id] = failureReason
         continue
       }
 
