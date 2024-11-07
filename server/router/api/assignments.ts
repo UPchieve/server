@@ -27,22 +27,17 @@ export function routeAssignments(router: Router): void {
     }
   })
 
-  router.delete(
-    '/class/:classId/assignment/:assignmentId/delete',
-    async function(req, res) {
-      try {
-        const assignmentId = req.params.assignmentId as string
-        const classId = req.params.classId as string
-        if (assignmentId && classId) {
-          const removedId = await AssignmentsService.deleteAssignment(
-            assignmentId,
-            classId
-          )
-          res.json({ removedId })
-        }
-      } catch (err) {
-        resError(res, err)
+  router.delete('/assignment/:assignmentId/delete', async function(req, res) {
+    try {
+      const assignmentId = req.params.assignmentId as string
+      if (assignmentId) {
+        const removedId = await AssignmentsService.deleteAssignment(
+          assignmentId
+        )
+        res.json({ removedId })
       }
+    } catch (err) {
+      resError(res, err)
     }
-  )
+  })
 }

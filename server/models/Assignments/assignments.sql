@@ -148,21 +148,13 @@ WHERE
 WITH deleted_student_assignments AS (
     DELETE FROM students_assignments
     WHERE assignment_id = :assignmentId!
-        AND user_id IN (
-            SELECT
-                user_id
-            FROM
-                student_classes
-            WHERE
-                class_id = :classId!)
-        RETURNING
-            assignment_id AS assignmentId,
-            user_id AS userId
+    RETURNING
+        assignment_id AS assignmentId,
+        user_id AS userId
 ),
 deleted_assignment AS (
     DELETE FROM assignments
     WHERE id = :assignmentId!
-        AND class_id = :classId!
 )
 SELECT
     *

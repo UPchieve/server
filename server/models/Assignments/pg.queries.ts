@@ -514,7 +514,6 @@ export const getSessionsForStudentAssignment = new PreparedQuery<IGetSessionsFor
 /** 'DeleteAssignment' parameters type */
 export interface IDeleteAssignmentParams {
   assignmentId: string;
-  classId: string;
 }
 
 /** 'DeleteAssignment' return type */
@@ -529,7 +528,7 @@ export interface IDeleteAssignmentQuery {
   result: IDeleteAssignmentResult;
 }
 
-const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3953,"b":3965,"line":150,"col":27},{"a":4302,"b":4314,"line":164,"col":16}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4130,"b":4137,"line":157,"col":28},{"a":4340,"b":4347,"line":165,"col":24}]}}],"usedParamSet":{"assignmentId":true,"classId":true},"statement":{"body":"WITH deleted_student_assignments AS (\n    DELETE FROM students_assignments\n    WHERE assignment_id = :assignmentId!\n        AND user_id IN (\n            SELECT\n                user_id\n            FROM\n                student_classes\n            WHERE\n                class_id = :classId!)\n        RETURNING\n            assignment_id AS assignmentId,\n            user_id AS userId\n),\ndeleted_assignment AS (\n    DELETE FROM assignments\n    WHERE id = :assignmentId!\n        AND class_id = :classId!\n)\nSELECT\n    *\nFROM\n    deleted_student_assignments","loc":{"a":3851,"b":4399,"line":148,"col":0}}};
+const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3953,"b":3965,"line":150,"col":27},{"a":4117,"b":4129,"line":157,"col":16}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"WITH deleted_student_assignments AS (\n    DELETE FROM students_assignments\n    WHERE assignment_id = :assignmentId!\n    RETURNING\n        assignment_id AS assignmentId,\n        user_id AS userId\n),\ndeleted_assignment AS (\n    DELETE FROM assignments\n    WHERE id = :assignmentId!\n)\nSELECT\n    *\nFROM\n    deleted_student_assignments","loc":{"a":3851,"b":4181,"line":148,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -537,21 +536,13 @@ const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"as
  * WITH deleted_student_assignments AS (
  *     DELETE FROM students_assignments
  *     WHERE assignment_id = :assignmentId!
- *         AND user_id IN (
- *             SELECT
- *                 user_id
- *             FROM
- *                 student_classes
- *             WHERE
- *                 class_id = :classId!)
- *         RETURNING
- *             assignment_id AS assignmentId,
- *             user_id AS userId
+ *     RETURNING
+ *         assignment_id AS assignmentId,
+ *         user_id AS userId
  * ),
  * deleted_assignment AS (
  *     DELETE FROM assignments
  *     WHERE id = :assignmentId!
- *         AND class_id = :classId!
  * )
  * SELECT
  *     *

@@ -274,11 +274,10 @@ export async function getSessionsForStudentAssignment(
 
 export async function deleteAssignment(
   assignmentId: Uuid,
-  classId: Uuid,
   tc: TransactionClient = getClient()
 ) {
   try {
-    return await pgQueries.deleteAssignment.run({ assignmentId, classId }, tc)
+    return await pgQueries.deleteAssignment.run({ assignmentId }, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
   }

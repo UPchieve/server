@@ -235,8 +235,8 @@ export async function updateStudentAssignmentAfterSession(
   }, tc)
 }
 
-export async function deleteAssignment(assignmentId: Uuid, classId: Uuid) {
-  return AssignmentsRepo.deleteAssignment(assignmentId, classId)
+export async function deleteAssignment(assignmentId: Uuid) {
+  return AssignmentsRepo.deleteAssignment(assignmentId)
 }
 
 // Exported for testing.
