@@ -110,6 +110,7 @@ export async function rosterDistrict(
         upchieveSchoolId: string
         created: unknown[]
         updated: unknown[]
+        skipped: unknown[]
         failed: unknown[]
       }
     }
@@ -149,35 +150,51 @@ export async function rosterDistrict(
 
       let cleverStudents = await getStudentsInSchool(school.data.id, options)
       while (cleverStudents.length) {
-        const students = cleverStudents.map((s: TCleverStudentData) => {
-          return {
-            firstName: s.data.name.first,
-            lastName: s.data.name.last,
-            email: s.data.email,
-            gradeLevel: s.data.roles.student.grade,
-          }
-        })
+        const filteredOut: {
+          id: string
+          email: string
+          gradeLevel?: string
+          parsedGradeLevel?: number
+        }[] = []
+        const students = cleverStudents
+          .filter((s: TCleverStudentData) => {
+            const grade = parseCleverGrade(s.data.roles.student.grade)
+            if (grade && grade > 5 && grade < 13) {
+              return true
+            }
+            filteredOut.push({
+              id: s.data.id,
+              email: s.data.email,
+              gradeLevel: s.data.roles.student.grade,
+              parsedGradeLevel: grade,
+            })
+            return false
+          })
+          .map((s: TCleverStudentData) => {
+            return {
+              firstName: s.data.name.first,
+              lastName: s.data.name.last,
+              email: s.data.email,
+              gradeLevel: s.data.roles.student.grade,
+            }
+          })
+
         const result = await UserCreationService.rosterPartnerStudents(
           students,
           upchieveSchool.id,
           false
         )
-        if (upsertReport.updatedSchools[school.data.id]) {
-          upsertReport.updatedSchools[school.data.id].failed.push(
-            ...result.failed
-          )
-          upsertReport.updatedSchools[school.data.id].updated.push(
-            ...result.updated
-          )
-          upsertReport.updatedSchools[school.data.id].created.push(
-            ...result.created
-          )
-        } else {
-          upsertReport.updatedSchools[school.data.id] = {
-            upchieveSchoolId: upchieveSchool.id,
-            ...result,
-          }
+
+        const { created = [], updated = [], failed = [] } =
+          upsertReport.updatedSchools[school.data.id] || {}
+        upsertReport.updatedSchools[school.data.id] = {
+          upchieveSchoolId: upchieveSchool.id,
+          created: [...created, ...result.created],
+          updated: [...updated, ...result.updated],
+          skipped: filteredOut,
+          failed: [...failed, ...result.failed],
         }
+
         const lastStudentCleverId =
           cleverStudents[cleverStudents.length - 1].data.id
         cleverStudents = await getStudentsInSchool(
@@ -242,5 +259,12 @@ function createBasicAuthHeader() {
 function createBearerAuthHeader(accessToken: string) {
   return {
     Authorization: `Bearer ${accessToken}`,
+  }
+}
+
+function parseCleverGrade(grade?: string) {
+  if (!grade) return
+  if (!isNaN(parseInt(grade))) {
+    return parseInt(grade)
   }
 }
