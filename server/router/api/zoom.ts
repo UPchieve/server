@@ -2,19 +2,18 @@ import { KJUR } from 'jsrsasign'
 
 export function routeZoom(router: Router): void {
   router.post('/zoom', (req, res) => {
-    const { meetingNumber, role, expirationSeconds } = req.body
+    const { sessionName, role, expirationSeconds } = req.body
     const iat = Math.floor(Date.now() / 1000)
     const exp = expirationSeconds ? iat + expirationSeconds : iat + 60 * 60 * 2
     const oHeader = { alg: 'HS256', typ: 'JWT' }
 
     const oPayload = {
-      appKey: process.env.ZOOM_MEETING_SDK_KEY,
-      sdkKey: process.env.ZOOM_MEETING_SDK_KEY,
-      mn: meetingNumber,
-      role,
+      app_key: process.env.ZOOM_VIDEO_SDK_KEY,
+      tpc: sessionName,
+      role_type: role,
       iat,
       exp,
-      tokenExp: exp,
+      version: 1,
     }
 
     const sHeader = JSON.stringify(oHeader)
@@ -23,7 +22,7 @@ export function routeZoom(router: Router): void {
       'HS256',
       sHeader,
       sPayload,
-      process.env.ZOOM_MEETING_SDK_SECRET
+      process.env.ZOOM_VIDEO_SDK_SECRET
     )
     return res.json({ signature: sdkJWT })
   })
