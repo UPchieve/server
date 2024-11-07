@@ -1,7 +1,7 @@
 import express from 'express'
-import { getUserByReferralCode } from '../../models/User'
 import { asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
+import * as UserService from '../../services/UserService'
 
 export function routes(app: express.Express): void {
   const router = express.Router()
@@ -9,14 +9,8 @@ export function routes(app: express.Express): void {
   router.get('/:referralCode', async function(req, res) {
     try {
       const referralCode = asString(req.params.referralCode)
-      // TODO: is it ok to return no user if code isn't used?
-      const user = await getUserByReferralCode(referralCode)
-      res.json({
-        user: {
-          ...user,
-          firstname: user?.firstName,
-        },
-      })
+      const user = await UserService.getUserByReferralCode(referralCode)
+      res.json({ user })
     } catch (err) {
       resError(res, err)
     }
