@@ -251,7 +251,9 @@ export async function getUserByResetToken(
     if (result.length > 1) {
       throw new RepoReadError('More than one user with reset token.')
     }
-    return makeRequired(result[0])
+    if (result.length) {
+      return makeRequired(result[0])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
