@@ -1,6 +1,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -2126,7 +2127,8 @@ CREATE TABLE upchieve.teacher_classes (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     topic_id integer,
-    deactivated_on timestamp with time zone
+    deactivated_on timestamp with time zone,
+    is_priority boolean
 );
 
 
@@ -6102,4 +6104,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241028142054'),
     ('20241028154216'),
     ('20241028173238'),
-    ('20241031163051');
+    ('20241031163051'),
+    ('20241106175852');

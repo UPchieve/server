@@ -2,12 +2,13 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 17.0
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 17.0 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -58,6 +59,7 @@ COPY upchieve.users (id, verified, email_verified, phone_verified, email, passwo
 01919662-885c-d39a-1749-5aaf18cf5d3b	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.532467+00	2024-08-28 00:28:45.532467+00	\N	f	\N	\N	\N	\N
 01919662-885c-2fca-264b-9558f5b20fe4	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.533913+00	2024-08-28 00:28:45.533913+00	\N	f	\N	\N	\N	\N
 01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N
+019307b5-373c-72d9-81ef-76b3da91a79c	t	f	f	lb+t@upchieve.org	$2b$10$mvBfaYt4.GeZuQmIDTB/neKSbihSNVzrpqYCEXWc855.yWhFUuAtq	\N	Lis	Test	f	2024-11-07 17:38:56.818896+00	AZMHtTc8ctmB73az2pGnnA	\N	f	f	\N	\N	6	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00	\N	f	\N	g	\N	\N
 \.
 
 
@@ -234,6 +236,7 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 --
 
 COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
+019307b5-373c-72d9-81ef-76b3da91a79c	01919662-87fb-76b3-54f8-db306e73e181	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00
 \.
 
 
@@ -241,7 +244,8 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 -- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on) FROM stdin;
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on, is_priority) FROM stdin;
+019307b7-6a5c-24f2-754d-bf8a5d7bd432	019307b5-373c-72d9-81ef-76b3da91a79c	Period 1	TTJKIH	t	2024-11-07 17:41:21.109851+00	2024-11-07 17:41:21.109851+00	2	\N	\N
 \.
 
 
@@ -522,6 +526,7 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
+1	::1	\N	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00	\N
 \.
 
 
@@ -2799,6 +2804,8 @@ COPY upchieve.sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, vol
 --
 
 COPY upchieve.student_classes (user_id, class_id, created_at, updated_at) FROM stdin;
+01919662-885c-d39a-1749-5aaf18cf5d3b	019307b7-6a5c-24f2-754d-bf8a5d7bd432	2024-11-07 17:43:37.226396+00	2024-11-07 17:43:37.226396+00
+01919662-885c-2fca-264b-9558f5b20fe4	019307b7-6a5c-24f2-754d-bf8a5d7bd432	2024-11-07 17:44:01.908197+00	2024-11-07 17:44:01.908197+00
 \.
 
 
@@ -3596,6 +3603,10 @@ COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_ses
 --
 
 COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason) FROM stdin;
+1	019307b5-373c-72d9-81ef-76b3da91a79c	\N	ACCOUNT	CREATED	1	\N	\N	\N	\N	\N	\N	\N	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00	\N	\N	\N	\N
+2	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	LOGGED IN	1	\N	\N	\N	\N	\N	\N	\N	2024-11-07 17:43:02.559916+00	2024-11-07 17:43:02.559916+00	\N	\N	\N	\N
+3	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	LOGGED OUT	1	\N	\N	\N	\N	\N	\N	\N	2024-11-07 17:43:41.928872+00	2024-11-07 17:43:41.928872+00	\N	\N	\N	\N
+4	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	LOGGED IN	1	\N	\N	\N	\N	\N	\N	\N	2024-11-07 17:43:48.834414+00	2024-11-07 17:43:48.834414+00	\N	\N	\N	\N
 \.
 
 
@@ -3613,6 +3624,7 @@ COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_
 01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N
 01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N
 01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N
+019307b5-373c-72d9-81ef-76b3da91a79c	f	f	f	f	f	f	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00	f	f	\N	\N
 \.
 
 
@@ -3630,6 +3642,7 @@ COPY upchieve.user_session_metrics (user_id, absent_student, absent_volunteer, l
 01919662-885c-d39a-1749-5aaf18cf5d3b	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.532873+00	2024-08-28 00:28:45.532873+00	0	0	0	0
 01919662-885c-2fca-264b-9558f5b20fe4	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.534294+00	2024-08-28 00:28:45.534294+00	0	0	0	0
 01919662-885c-a174-3088-998111f7cc80	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.535656+00	2024-08-28 00:28:45.535656+00	0	0	0	0
+019307b5-373c-72d9-81ef-76b3da91a79c	0	0	0	0	0	0	0	0	0	0	0	0	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00	0	0	0	0
 \.
 
 
@@ -3756,6 +3769,7 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 01919662-885c-d39a-1749-5aaf18cf5d3b	1	2024-08-28 00:28:45.533524+00	2024-08-28 00:28:45.533524+00
 01919662-885c-2fca-264b-9558f5b20fe4	1	2024-08-28 00:28:45.534904+00	2024-08-28 00:28:45.534904+00
 01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
+019307b5-373c-72d9-81ef-76b3da91a79c	4	2024-11-07 17:38:56.818896+00	2024-11-07 17:38:56.818896+00
 \.
 
 
@@ -3890,7 +3904,7 @@ SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 9, true);
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 4, true);
 
 
 --
@@ -4093,7 +4107,7 @@ SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 1, true);
 -- Name: user_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 4, true);
 
 
 --

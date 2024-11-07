@@ -1,6 +1,6 @@
 -- migrate:up
 ALTER TABLE upchieve.teacher_classes
-    ADD COLUMN is_priority BOOLEAN DEFAULT NULL;
+    ADD COLUMN is_priority BOOLEAN;
 
 -- migrate:down
 ALTER TABLE upchieve.teacher_classes
