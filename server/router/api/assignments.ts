@@ -28,7 +28,7 @@ export function routeAssignments(router: Router): void {
   })
 
   router.delete(
-    '/assignment/:assignmentId/class/:classId/delete',
+    '/class/:classId//assignment/:assignmentId/delete',
     async function(req, res) {
       try {
         const assignmentId = req.params.assignmentId as string
