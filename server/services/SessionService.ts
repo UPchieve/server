@@ -67,11 +67,11 @@ import { TransactionClient, runInTransaction } from '../db'
 import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
+import * as TeacherClassRepo from '../models/TeacherClass/queries'
 
 export async function reviewSession(data: unknown) {
-  const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
-    data
-  )
+  const { sessionId, reviewed, toReview } =
+    sessionUtils.asReviewSessionData(data)
   return SessionRepo.updateSessionReviewedStatusById(
     sessionId,
     reviewed,
@@ -119,12 +119,8 @@ export async function handleDmReporting(
 }
 
 export async function reportSession(user: UserContactInfo, data: unknown) {
-  const {
-    sessionId,
-    reportReason,
-    reportMessage,
-    source,
-  } = sessionUtils.asReportSessionData(data)
+  const { sessionId, reportReason, reportMessage, source } =
+    sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   // Only matched sessions can be reported
   if (!session.volunteerId)
@@ -526,14 +522,8 @@ export async function startSession(
   data: sessionUtils.StartSessionData
 ) {
   return await runInTransaction(async (tc: TransactionClient) => {
-    const {
-      subject,
-      topic,
-      assignmentId,
-      docEditorVersion,
-      userAgent,
-      ip,
-    } = data
+    const { subject, topic, assignmentId, docEditorVersion, userAgent, ip } =
+      data
 
     const subjectAndTopic = await getSubjectAndTopic(subject, topic, tc)
     if (!subjectAndTopic)
@@ -646,12 +636,8 @@ export async function studentLatestSession(data: unknown) {
 }
 
 export async function sessionTimedOut(user: UserContactInfo, data: unknown) {
-  const {
-    sessionId,
-    timeout,
-    ip,
-    userAgent,
-  } = sessionUtils.asSessionTimedOutData(data)
+  const { sessionId, timeout, ip, userAgent } =
+    sessionUtils.asSessionTimedOutData(data)
   await createSessionAction({
     userId: user.id,
     sessionId: sessionId,
@@ -829,9 +815,7 @@ export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
   )
 
   for (const entry of map) {
-    const day = moment()
-      .weekday(entry.day)
-      .format('dddd')
+    const day = moment().weekday(entry.day).format('dddd')
     const hour = UTC_TO_HOUR_MAPPING[entry.hour as HOURS_UTC]
     heatMap[day as DAYS][hour] = entry.averageWaitTime
   }
@@ -885,17 +869,14 @@ export async function volunteersAvailableForSession(
   sessionId: Ulid,
   subject: string
 ): Promise<boolean> {
-  const [
-    activeVolunteers,
-    notifiedForSession,
-    notifiedLastFifteenMins,
-  ] = await Promise.all([
-    TwilioService.getActiveSessionVolunteers(),
-    VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
-    VolunteerRepo.getVolunteersNotifiedSinceDate(
-      TwilioService.relativeDate(15 * 60 * 1000)
-    ),
-  ])
+  const [activeVolunteers, notifiedForSession, notifiedLastFifteenMins] =
+    await Promise.all([
+      TwilioService.getActiveSessionVolunteers(),
+      VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
+      VolunteerRepo.getVolunteersNotifiedSinceDate(
+        TwilioService.relativeDate(15 * 60 * 1000)
+      ),
+    ])
   const excludedVolunteers = [
     ...activeVolunteers,
     ...notifiedForSession,
@@ -970,9 +951,8 @@ export async function isEligibleForSessionRecap(
   studentId: Ulid,
   volunteerId: Ulid
 ): Promise<boolean> {
-  const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
-    volunteerId
-  )
+  const isAllowDmsToPartnerStudentsActive =
+    await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg) return false
@@ -1001,9 +981,8 @@ export async function isRecapDmsAvailable(
   )
   if (hasBannedParticipant) return false
 
-  const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
-    volunteerId
-  )
+  const isAllowDmsToPartnerStudentsActive =
+    await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg) return false
@@ -1068,4 +1047,20 @@ export async function getFallIncentiveSessionOverview(
     qualifiedSessions,
     unqualifiedSessions,
   }
+}
+
+export async function getUnfulfilledSessions() {
+  const studentsInPriorityClasses =
+    await TeacherClassRepo.getStudentsInPriorityClasses()
+  const unfulfilledSessions = await SessionRepo.getUnfulfilledSessions()
+  const studentIds = studentsInPriorityClasses.map((student) => student.id)
+
+  const updatedUnfulfilledSessions = unfulfilledSessions.map((session) => {
+    if (studentIds.includes(session.studentId)) {
+      session.student.isPriorityStudent = true
+    }
+    return session
+  })
+
+  return updatedUnfulfilledSessions
 }

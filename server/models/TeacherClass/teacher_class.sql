@@ -32,3 +32,13 @@ WHERE user_id = :studentId!
 RETURNING
     user_id AS studentId;
 
+
+/* @name getStudentsInPriorityClasses */
+SELECT
+    sc.user_id AS id
+FROM
+    student_classes sc
+    LEFT JOIN teacher_classes tc ON tc.id = sc.class_id
+WHERE
+    tc.is_priority = TRUE;
+

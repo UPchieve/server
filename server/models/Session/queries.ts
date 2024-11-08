@@ -70,7 +70,9 @@ export async function addSessionNotification(
 
 export type UnfulfilledSessions = {
   _id: Ulid
+  studentId: Ulid
   student: {
+    isPriorityStudent: boolean | null
     firstname: string
     isTestUser: boolean
     isShadowBanned: boolean
@@ -87,22 +89,22 @@ export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
   try {
     const result = await pgQueries.getUnfilledSessions.run(
       {
-        start: moment()
-          .subtract(1, 'day')
-          .toDate(),
+        start: moment().subtract(1, 'day').toDate(),
       },
       getClient()
     )
 
-    return result.map(session => {
+    return result.map((session) => {
       const s = makeSomeOptional(session, ['volunteer', 'studentBanType'])
       return {
         ...s,
         _id: s.id,
+        studentId: s.studentId,
         student: {
           firstname: s.studentFirstName,
           isTestUser: s.studentTestUser,
           isShadowBanned: s.studentBanType === USER_BAN_TYPES.SHADOW,
+          isPriorityStudent: null,
         },
       }
     })
@@ -277,7 +279,7 @@ export async function getSessionsToReview(
       getClient()
     )
     return Promise.all(
-      result.map(async v => {
+      result.map(async (v) => {
         const temp = makeSomeOptional(v, [
           'volunteer',
           'reviewReasons',
@@ -323,7 +325,7 @@ export async function getActiveSessionsWithVolunteers(): Promise<Ulid[]> {
       undefined,
       getClient()
     )
-    return result.map(v => makeRequired(v).volunteerId)
+    return result.map((v) => makeRequired(v).volunteerId)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -421,7 +423,7 @@ export async function getLongRunningSessions(
       { start, end },
       getClient()
     )
-    return result.map(v => makeRequired(v).id)
+    return result.map((v) => makeRequired(v).id)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -509,14 +511,14 @@ export async function getMessagesForFrontend(
   try {
     const result = (
       await pgQueries.getSessionMessagesForFrontend.run({ sessionId }, tc)
-    ).map(v => makeRequired(v))
+    ).map((v) => makeRequired(v))
     const voiceResult = (
       await pgQueries.getSessionVoiceMessagesForFrontend.run({ sessionId }, tc)
-    ).map(v => makeSomeOptional(v, ['transcript']))
+    ).map((v) => makeSomeOptional(v, ['transcript']))
 
     // insert voice messages
     const merged = result
-      .concat(voiceResult.map(r => ({ ...r, type: 'voice', contents: r.id })))
+      .concat(voiceResult.map((r) => ({ ...r, type: 'voice', contents: r.id })))
       .sort((a, b) => {
         return Number(a.createdAt) - Number(b.createdAt)
       })
@@ -724,7 +726,7 @@ export async function getSessionHistoryIdsByUserId(
       client
     )
     if (!result.length) return []
-    else return result.map(v => makeRequired(v))
+    else return result.map((v) => makeRequired(v))
   } catch (error) {
     throw new RepoReadError(error)
   } finally {
@@ -923,7 +925,7 @@ export async function getSessionsWithAvgWaitTimePerDayAndHour(
       { start, end },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map((v) => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -942,7 +944,7 @@ export async function getSessionsVolunteerRating(
       getClient()
     )
     return Promise.all(
-      result.map(async row => {
+      result.map(async (row) => {
         const session = makeSomeOptional(row, ['volunteerFeedback'])
         const sessionVolunteerRating: SessionVolunteerRating = {
           id: session.id,
@@ -980,7 +982,7 @@ export async function getVolunteersForGentleWarning(
       },
       getClient()
     )
-    return result.map(v => {
+    return result.map((v) => {
       const ret = makeRequired(v)
       ret.email = ret.email.toLowerCase()
       return ret
@@ -1079,7 +1081,7 @@ export async function getSessionsForAdminFilter(
       { start, end, limit, offset, ...options },
       getClient()
     )
-    const sessions = sessionResult.map(v =>
+    const sessions = sessionResult.map((v) =>
       makeSomeOptional(v, [
         'volunteerEmail',
         'volunteerFirstName',
@@ -1091,7 +1093,7 @@ export async function getSessionsForAdminFilter(
         'volunteerBanType',
       ])
     )
-    const sessionsInfo = sessions.map(async session => {
+    const sessionsInfo = sessions.map(async (session) => {
       const studentRating = await getSessionRating(
         session.id,
         USER_ROLES.STUDENT
@@ -1225,7 +1227,7 @@ export async function getSessionsForVolunteerHourSummary(
       { volunteerId, start, end },
       getClient()
     )
-    if (result.length) return result.map(row => makeRequired(row))
+    if (result.length) return result.map((row) => makeRequired(row))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -1262,7 +1264,7 @@ export async function getSessionHistory(
       getClient()
     )
 
-    if (result.length) return result.map(v => makeRequired(v))
+    if (result.length) return result.map((v) => makeRequired(v))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -1412,7 +1414,7 @@ export async function getUserSessionsByUserId(
       },
       getClient()
     )
-    return result.map(v => makeSomeOptional(v, ['volunteerId', 'quillDoc']))
+    return result.map((v) => makeSomeOptional(v, ['volunteerId', 'quillDoc']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1430,7 +1432,7 @@ export async function getUserSessionStats(
       getClient()
     )
     const userSessionStats: UserSessionStats = {}
-    for (const subject of result.map(v => makeRequired(v))) {
+    for (const subject of result.map((v) => makeRequired(v))) {
       const { subjectName, topicName, totalRequested, totalHelped } = subject
       userSessionStats[subjectName] = {
         totalRequested,
@@ -1451,7 +1453,7 @@ async function getSessionUsers(
   tc: TransactionClient = getClient()
 ): Promise<{ student: CurrentSessionUser; volunteer?: CurrentSessionUser }> {
   const userResult = await pgQueries.getSessionUsers.run({ sessionId }, tc)
-  const users = userResult.map(v => makeRequired(v))
+  const users = userResult.map((v) => makeRequired(v))
   let student, volunteer
   for (const u of users) {
     if (u.id === sessionStudentId) student = u
@@ -1475,7 +1477,7 @@ export async function getStudentSessionDetails(
       { studentId },
       tc
     )
-    return sessionDetails.map(s => makeRequired(s))
+    return sessionDetails.map((s) => makeRequired(s))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1519,7 +1521,7 @@ export async function getStudentSessionsForFallIncentive(
       },
       getClient()
     )
-    return result.map(row => makeRequired(row))
+    return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

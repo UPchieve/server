@@ -111,3 +111,34 @@ const removeStudentFromClassIR: any = {"name":"removeStudentFromClass","params":
 export const removeStudentFromClass = new PreparedQuery<IRemoveStudentFromClassParams,IRemoveStudentFromClassResult>(removeStudentFromClassIR);
 
 
+/** 'GetStudentsInPriorityClasses' parameters type */
+export type IGetStudentsInPriorityClassesParams = void;
+
+/** 'GetStudentsInPriorityClasses' return type */
+export interface IGetStudentsInPriorityClassesResult {
+  id: string;
+}
+
+/** 'GetStudentsInPriorityClasses' query type */
+export interface IGetStudentsInPriorityClassesQuery {
+  params: IGetStudentsInPriorityClassesParams;
+  result: IGetStudentsInPriorityClassesResult;
+}
+
+const getStudentsInPriorityClassesIR: any = {"name":"getStudentsInPriorityClasses","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    sc.user_id AS id\nFROM\n    student_classes sc\n    LEFT JOIN teacher_classes tc ON tc.id = sc.class_id\nWHERE\n    tc.is_priority = TRUE","loc":{"a":649,"b":791,"line":37,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sc.user_id AS id
+ * FROM
+ *     student_classes sc
+ *     LEFT JOIN teacher_classes tc ON tc.id = sc.class_id
+ * WHERE
+ *     tc.is_priority = TRUE
+ * ```
+ */
+export const getStudentsInPriorityClasses = new PreparedQuery<IGetStudentsInPriorityClassesParams,IGetStudentsInPriorityClassesResult>(getStudentsInPriorityClassesIR);
+
+

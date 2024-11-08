@@ -13,7 +13,7 @@ export async function getTeacherClassesForStudent(
       { studentId },
       tc
     )
-    return teacherClasses.map(c => makeSomeOptional(c, ['topicId']))
+    return teacherClasses.map((c) => makeSomeOptional(c, ['topicId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -40,5 +40,15 @@ export async function removeStudentFromClass(
     return pgQueries.removeStudentFromClass.run({ studentId, classId }, tc)
   } catch (err) {
     throw new RepoDeleteError(err)
+  }
+}
+
+export async function getStudentsInPriorityClasses(
+  tc: TransactionClient = getClient()
+) {
+  try {
+    return pgQueries.getStudentsInPriorityClasses.run(undefined, tc)
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

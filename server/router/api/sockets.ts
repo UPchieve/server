@@ -103,7 +103,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   })
 
   // TODO: handle transport close errors from worker socket disconnecting
-  io.on('connection', async function(socket: SocketUser) {
+  io.on('connection', async function (socket: SocketUser) {
     const {
       request: { user },
       handshake: {
@@ -126,7 +126,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       if (!chatbot) logger.error(`Chatbot user not found`)
       else {
         // chatbot activity prompt handler
-        socket.on('activity-prompt-sent', async function(data) {
+        socket.on('activity-prompt-sent', async function (data) {
           newrelic.startWebTransaction(
             '/socket-io/chatbot',
             () =>
@@ -150,7 +150,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         })
 
         // chatbot end session handler
-        socket.on('auto-end-session', async function(data) {
+        socket.on('auto-end-session', async function (data) {
           newrelic.startWebTransaction(
             '/socket-io/chatbot',
             () =>
@@ -179,7 +179,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     if (socket.recovered) logSocketEvent('recovered', socket)
 
     // Tutor session management
-    socket.on('join', async function(data) {
+    socket.on('join', async function (data) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
@@ -245,7 +245,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 sessionRoom
               )
               const partnerSocketIds = sessionSocketIds.filter(
-                id => !userSocketIds.includes(id)
+                (id) => !userSocketIds.includes(id)
               )
               // Emit to self if session partner is in session or not
               await socket.emit(
@@ -272,7 +272,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('sessions/recap:join', async function(data) {
+    socket.on('sessions/recap:join', async function (data) {
       newrelic.startWebTransaction(
         '/socket-io/sessions/recap:join',
         () =>
@@ -328,7 +328,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
-              const sessions = await SessionRepo.getUnfulfilledSessions()
+              const sessions = await SessionService.getUnfulfilledSessions()
               socket.emit('sessions', sessions)
               callback({
                 status: 200,
@@ -342,7 +342,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('typing', data => {
+    socket.on('typing', (data) => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
         socket
           .to(getSessionRoom(data.sessionId))
@@ -350,7 +350,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('notTyping', data => {
+    socket.on('notTyping', (data) => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
         socket
           .to(getSessionRoom(data.sessionId))
@@ -358,7 +358,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('message', async data => {
+    socket.on('message', async (data) => {
       newrelic.startWebTransaction(
         '/socket-io/message',
         () =>
@@ -537,7 +537,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('error', function(error) {
+    socket.on('error', function (error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
         logger.error(`Socket error: ${error}`)
         Sentry.captureException(error)
@@ -589,7 +589,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       logSocketEvent('transportUpgrade', socket)
     })
 
-    socket.conn.on('packet', packet => {
+    socket.conn.on('packet', (packet) => {
       if (
         packet.type === 'ping' &&
         socket.conn.transport.name !== 'websocket' &&
