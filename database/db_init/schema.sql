@@ -24,13 +24,6 @@ CREATE SCHEMA basic_access;
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -119,6 +112,26 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
     'complete'
+);
+
+
+--
+-- Name: session_media_moderation_job_status; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.session_media_moderation_job_status AS ENUM (
+    'finished',
+    'ongoing'
+);
+
+
+--
+-- Name: session_media_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.session_media_type AS ENUM (
+    'video',
+    'audio'
 );
 
 
@@ -1573,6 +1586,45 @@ CREATE SEQUENCE upchieve.session_flags_id_seq
 --
 
 ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
+
+
+--
+-- Name: session_media; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_media (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    url text NOT NULL,
+    file_type character varying(10) NOT NULL,
+    type upchieve.session_media_type NOT NULL,
+    user_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: session_media_moderation_jobs; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_media_moderation_jobs (
+    session_media_id uuid NOT NULL,
+    job_id character varying(30) NOT NULL,
+    status upchieve.session_media_moderation_job_status NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: session_media_transcripts; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_media_transcripts (
+    session_media_id uuid NOT NULL,
+    transcript json
+);
 
 
 --
@@ -3646,6 +3698,30 @@ ALTER TABLE ONLY upchieve.session_flags
 
 
 --
+-- Name: session_media_moderation_jobs session_media_moderation_jobs_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media_moderation_jobs
+    ADD CONSTRAINT session_media_moderation_jobs_pkey PRIMARY KEY (session_media_id);
+
+
+--
+-- Name: session_media session_media_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media
+    ADD CONSTRAINT session_media_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_media_transcripts session_media_transcripts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media_transcripts
+    ADD CONSTRAINT session_media_transcripts_pkey PRIMARY KEY (session_media_id);
+
+
+--
 -- Name: session_messages session_messages_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5115,6 +5191,38 @@ ALTER TABLE ONLY upchieve.session_failed_joins
 
 
 --
+-- Name: session_media_moderation_jobs session_media_moderation_jobs_session_media_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media_moderation_jobs
+    ADD CONSTRAINT session_media_moderation_jobs_session_media_id_fkey FOREIGN KEY (session_media_id) REFERENCES upchieve.session_media(id);
+
+
+--
+-- Name: session_media session_media_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media
+    ADD CONSTRAINT session_media_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_media_transcripts session_media_transcripts_session_media_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media_transcripts
+    ADD CONSTRAINT session_media_transcripts_session_media_id_fkey FOREIGN KEY (session_media_id) REFERENCES upchieve.session_media(id);
+
+
+--
+-- Name: session_media session_media_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_media
+    ADD CONSTRAINT session_media_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: session_messages session_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6102,4 +6210,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241028142054'),
     ('20241028154216'),
     ('20241028173238'),
-    ('20241031163051');
+    ('20241031163051'),
+    ('20241108192251');
