@@ -99,7 +99,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     expect(response.isEligible).toBe(true)
   })
 
-  test('Should throw when reused user email signs up', async () => {
+  test('Should send isExistingUserTrue when reused user email signs up', async () => {
     const payload = {
       schoolId: school.id,
       zipCode: '11201',
@@ -110,12 +110,9 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
 
     mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(student.id) // email belongs to user
 
-    try {
-      await EligibilityService.checkEligibility(ip, payload)
-      expect(true).toBe(false)
-    } catch (err) {
-      expect(err).toBeInstanceOf(EligibilityService.ExistingUserError)
-    }
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isExistingUser).toBe(true)
   })
 
   test('Should send false when reused ineligible email signs up', async () => {
