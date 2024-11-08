@@ -46,9 +46,7 @@ async function passportRegisterUser(
   try {
     const existingFedCred = await getFederatedCredential(profile.id, issuer)
     if (existingFedCred) {
-      return done(null, false, {
-        errorMessage: `${providerName} account already used with another UPchieve account.`,
-      })
+      return done(null, { id: existingFedCred.userId })
     }
 
     const firstName = profile.name?.givenName
