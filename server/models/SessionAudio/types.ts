@@ -9,3 +9,9 @@ export type SessionAudio = {
   studentJoinedAt?: Date
   volunteerJoinedAt?: Date
 }
+
+export type UpdateSessionAudioPayload = {
+  volunteerJoinedAt?: Date
+  studentJoinedAt?: Date
+  resourceUri?: string
+}
