@@ -1535,7 +1535,8 @@ CREATE TABLE upchieve.session_audio (
     student_joined_at timestamp with time zone,
     volunteer_joined_at timestamp with time zone,
     created_by uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
