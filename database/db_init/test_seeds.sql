@@ -2680,7 +2680,7 @@ COPY upchieve.schools_sponsor_orgs_instances (school_id, sponsor_org_id, deactiv
 -- Data for Name: session_audio; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_by, created_at, updated_at) FROM stdin;
+COPY upchieve.session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at) FROM stdin;
 \.
 
 

@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS upchieve.session_audio (
     resource_uri text,
     student_joined_at timestamptz DEFAULT NULL,
     volunteer_joined_at timestamptz DEFAULT NULL,
-    created_by uuid NOT NULL REFERENCES upchieve.users (id),
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );

@@ -1544,7 +1544,6 @@ CREATE TABLE upchieve.session_audio (
     resource_uri text,
     student_joined_at timestamp with time zone,
     volunteer_joined_at timestamp with time zone,
-    created_by uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -5130,14 +5129,6 @@ ALTER TABLE ONLY upchieve.schools_sponsor_orgs
 
 ALTER TABLE ONLY upchieve.schools_sponsor_orgs
     ADD CONSTRAINT schools_sponsor_orgs_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
-
-
---
--- Name: session_audio session_audio_created_by_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.session_audio
-    ADD CONSTRAINT session_audio_created_by_fkey FOREIGN KEY (created_by) REFERENCES upchieve.users(id);
 
 
 --
