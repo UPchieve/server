@@ -23,7 +23,6 @@ import {
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
-import { PoolClient } from 'pg'
 import { Feedback } from '../Feedback'
 import { isPgId } from '../../utils/type-utils'
 import {
