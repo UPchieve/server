@@ -1,6 +1,12 @@
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { makeRequired, makeSomeOptional, Ulid, getDbUlid } from '../pgUtils'
+import {
+  makeRequired,
+  makeSomeOptional,
+  Ulid,
+  getDbUlid,
+  makeSomeRequired,
+} from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { SessionAudio } from './types'
 
@@ -44,9 +50,9 @@ export async function createSessionAudio({
       getClient()
     )
     return makeSomeOptional(result[0], [
-      'resource_uri',
-      'volunteer_joined_at',
-      'student_joined_at',
+      'resourceUri',
+      'volunteerJoinedAt',
+      'studentJoinedAt',
     ])
   } catch (err) {
     throw new RepoCreateError(err)
@@ -65,7 +71,7 @@ export async function updateSessionAudio({
   resourceUri?: string
 }): Promise<SessionAudio> {
   try {
-    return await pgQueries.updateSessionAudio.run(
+    const result = await pgQueries.updateSessionAudio.run(
       {
         sessionId,
         studentJoinedAt,
@@ -74,6 +80,11 @@ export async function updateSessionAudio({
       },
       getClient()
     )
+    return makeSomeOptional(result[0], [
+      'studentJoinedAt',
+      'volunteerJoinedAt',
+      'resourceUri',
+    ])
   } catch (err) {
     throw new RepoUpdateError(err)
   }

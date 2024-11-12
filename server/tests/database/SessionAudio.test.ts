@@ -1,6 +1,7 @@
 import {
   createSessionAudio,
   getSessionAudioBySessionId,
+  updateSessionAudio,
 } from '../../models/SessionAudio'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { buildSessionAudioRow, buildSessionRow } from '../mocks/generate'
@@ -19,6 +20,8 @@ describe('SessionAudio', () => {
     )
   }
 
+  const normalizeUlid = (str: string) => str.toLowerCase().replace(/-/g, '')
+
   describe('getSessionAudioBySessionId', () => {
     it('Returns undefined if no SessionAudio exists for the sessionId', async () => {
       const sessionId = getDbUlid()
@@ -35,12 +38,9 @@ describe('SessionAudio', () => {
       })
       await insertSingleRow('session_audio', sessionAudioRow, dbClient)
       const result = await getSessionAudioBySessionId(sessionAudioRow.sessionId)
-
-      // @TODO - uncomment me. Ulid formatting difference is just throwing this off.
-      // expect(result).toEqual(expect.objectContaining({
-      //   id: sessionAudioId,
-      //   sessionId
-      // }))
+      expect(normalizeUlid(result?.id as string)).toEqual(
+        normalizeUlid(sessionAudioId)
+      )
     })
   })
 
@@ -49,24 +49,35 @@ describe('SessionAudio', () => {
       const sessionId = await getDbUlid()
       await insertSession(sessionId)
       const resourceUri = 'test-uri'
-      const createdUlid = await createSessionAudio({
+      const created = await createSessionAudio({
         sessionId,
         resourceUri,
       })
-      expect(createdUlid).toBeDefined()
-      const results = await dbClient.query(
-        'SELECT * FROM session_audio WHERE session_id = $1',
-        [sessionId]
-      )
-      expect(results.rows[0].id).toEqual(createdUlid)
+      expect(normalizeUlid(created.sessionId)).toEqual(normalizeUlid(sessionId))
+      expect(created.resourceUri).toEqual(resourceUri)
     })
   })
 
-  describe('updateSessionAudioJoinedAtBySessionId', () => {
-    it.todo('Sets the joinedAt values when given, and leaves others unchanged')
-  })
+  describe('updateSessionAudio', () => {
+    it('Updates just the values passed in', async () => {
+      const sessionId = await getDbUlid()
+      await insertSession(sessionId)
+      const created = await createSessionAudio({
+        sessionId,
+      })
+      expect(normalizeUlid(created.sessionId)).toEqual(normalizeUlid(sessionId))
 
-  // describe('updateSessionAudioResourceUriBySessionId', () => {
-  //   it.todo('Updates the resource URI for the session')
-  // })
+      // Update just joined_at columns
+      const studentJoinedAt = new Date()
+      const volunteerJoinedAt = new Date()
+      const updated = await updateSessionAudio({
+        sessionId,
+        studentJoinedAt,
+        volunteerJoinedAt,
+      })
+      expect(updated.volunteerJoinedAt).toEqual(volunteerJoinedAt)
+      expect(updated.studentJoinedAt).toEqual(studentJoinedAt)
+      expect(updated.resourceUri).toBeUndefined()
+    })
+  })
 })
