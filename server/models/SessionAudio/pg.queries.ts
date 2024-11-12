@@ -9,7 +9,6 @@ export interface IGetSessionAudioBySessionIdParams {
 /** 'GetSessionAudioBySessionId' return type */
 export interface IGetSessionAudioBySessionIdResult {
   createdAt: Date;
-  createdBy: string;
   id: string;
   resourceUri: string | null;
   sessionId: string;
@@ -42,7 +41,6 @@ export const getSessionAudioBySessionId = new PreparedQuery<IGetSessionAudioBySe
 
 /** 'CreateSessionAudio' parameters type */
 export interface ICreateSessionAudioParams {
-  createdByRole: string;
   id: string;
   resourceUri: string | null | void;
   sessionId: string;
@@ -59,13 +57,13 @@ export interface ICreateSessionAudioQuery {
   result: ICreateSessionAudioResult;
 }
 
-const createSessionAudioIR: any = {"name":"createSessionAudio","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":290,"b":292,"line":12,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":296,"b":305,"line":12,"col":19}]}},{"name":"resourceUri","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":309,"b":319,"line":12,"col":32}]}},{"name":"createdByRole","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":335,"b":348,"line":12,"col":58}]}}],"usedParamSet":{"id":true,"sessionId":true,"resourceUri":true,"createdByRole":true},"statement":{"body":"INSERT INTO session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_by, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :resourceUri, NULL, NULL, :createdByRole!, NOW(), NOW())\nRETURNING\n    id AS created_id","loc":{"a":144,"b":394,"line":11,"col":0}}};
+const createSessionAudioIR: any = {"name":"createSessionAudio","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":278,"b":280,"line":12,"col":13}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":284,"b":293,"line":12,"col":19}]}},{"name":"resourceUri","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":297,"b":307,"line":12,"col":32}]}}],"usedParamSet":{"id":true,"sessionId":true,"resourceUri":true},"statement":{"body":"INSERT INTO session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :resourceUri, NULL, NULL, NOW(), NOW())\nRETURNING\n    id AS created_id","loc":{"a":144,"b":365,"line":11,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_by, created_at, updated_at)
- *     VALUES (:id!, :sessionId!, :resourceUri, NULL, NULL, :createdByRole!, NOW(), NOW())
+ * INSERT INTO session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at)
+ *     VALUES (:id!, :sessionId!, :resourceUri, NULL, NULL, NOW(), NOW())
  * RETURNING
  *     id AS created_id
  * ```
@@ -89,7 +87,7 @@ export interface IUpdateSessionAudioJoinedAtBySessionIdQuery {
   result: IUpdateSessionAudioJoinedAtBySessionIdResult;
 }
 
-const updateSessionAudioJoinedAtBySessionIdIR: any = {"name":"updateSessionAudioJoinedAtBySessionId","params":[{"name":"studentJoinedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":512,"b":526,"line":21,"col":34}]}},{"name":"volunteerJoinedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":585,"b":601,"line":22,"col":36}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":673,"b":682,"line":25,"col":18}]}}],"usedParamSet":{"studentJoinedAt":true,"volunteerJoinedAt":true,"sessionId":true},"statement":{"body":"UPDATE\n    session_audio\nSET\n    student_joined_at = COALESCE(:studentJoinedAt, student_joined_at),\n    volunteer_joined_at = COALESCE(:volunteerJoinedAt, volunteer_joined_at),\n    updated_at = NOW()\nWHERE\n    session_id = :sessionId!","loc":{"a":449,"b":682,"line":18,"col":0}}};
+const updateSessionAudioJoinedAtBySessionIdIR: any = {"name":"updateSessionAudioJoinedAtBySessionId","params":[{"name":"studentJoinedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":483,"b":497,"line":21,"col":34}]}},{"name":"volunteerJoinedAt","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":556,"b":572,"line":22,"col":36}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":644,"b":653,"line":25,"col":18}]}}],"usedParamSet":{"studentJoinedAt":true,"volunteerJoinedAt":true,"sessionId":true},"statement":{"body":"UPDATE\n    session_audio\nSET\n    student_joined_at = COALESCE(:studentJoinedAt, student_joined_at),\n    volunteer_joined_at = COALESCE(:volunteerJoinedAt, volunteer_joined_at),\n    updated_at = NOW()\nWHERE\n    session_id = :sessionId!","loc":{"a":420,"b":653,"line":18,"col":0}}};
 
 /**
  * Query generated from SQL:
@@ -122,7 +120,7 @@ export interface IUpdateSessionAudioResourceUriBySessionIdQuery {
   result: IUpdateSessionAudioResourceUriBySessionIdResult;
 }
 
-const updateSessionAudioResourceUriBySessionIdIR: any = {"name":"updateSessionAudioResourceUriBySessionId","params":[{"name":"resourceUri","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":789,"b":800,"line":32,"col":20}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":850,"b":859,"line":35,"col":18}]}}],"usedParamSet":{"resourceUri":true,"sessionId":true},"statement":{"body":"UPDATE\n    session_audio\nSET\n    resource_uri = :resourceUri!,\n    updated_at = NOW()\nWHERE\n    session_id = :sessionId!","loc":{"a":740,"b":859,"line":29,"col":0}}};
+const updateSessionAudioResourceUriBySessionIdIR: any = {"name":"updateSessionAudioResourceUriBySessionId","params":[{"name":"resourceUri","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":760,"b":771,"line":32,"col":20}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":821,"b":830,"line":35,"col":18}]}}],"usedParamSet":{"resourceUri":true,"sessionId":true},"statement":{"body":"UPDATE\n    session_audio\nSET\n    resource_uri = :resourceUri!,\n    updated_at = NOW()\nWHERE\n    session_id = :sessionId!","loc":{"a":711,"b":830,"line":29,"col":0}}};
 
 /**
  * Query generated from SQL:
