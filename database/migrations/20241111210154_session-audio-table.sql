@@ -1,9 +1,4 @@
 -- migrate:up
-CREATE TYPE upchieve.session_audio_created_by AS ENUM (
-    'volunteer',
-    'student'
-);
-
 CREATE TABLE IF NOT EXISTS upchieve.session_audio (
     id uuid NOT NULL PRIMARY KEY,
     session_id uuid NOT NULL REFERENCES upchieve.sessions (id),
@@ -21,6 +16,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS session_audio_session_id_idx ON upchieve.sessi
 DROP TABLE IF EXISTS upchieve.session_audio;
 
 DROP INDEX IF EXISTS session_audio_session_id_idx;
-
-DROP TYPE IF EXISTS upchieve.session_audio_created_by;
 
