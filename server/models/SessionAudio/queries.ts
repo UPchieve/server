@@ -32,7 +32,7 @@ export async function createSessionAudio({
 }: {
   sessionId: Ulid
   resourceUri?: string
-}): Promise<Ulid> {
+}): Promise<SessionAudio> {
   try {
     const id = getDbUlid()
     const result = await pgQueries.createSessionAudio.run(
@@ -43,46 +43,33 @@ export async function createSessionAudio({
       },
       getClient()
     )
-    return makeRequired(result[0].createdId)
+    return makeSomeOptional(result[0], [
+      'resource_uri',
+      'volunteer_joined_at',
+      'student_joined_at',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
   }
 }
 
-export async function updateSessionAudioJoinedAtBySessionId({
+export async function updateSessionAudio({
   sessionId,
   studentJoinedAt,
   volunteerJoinedAt,
+  resourceUri,
 }: {
   sessionId: Ulid
   studentJoinedAt?: Date
   volunteerJoinedAt?: Date
-}): Promise<void> {
+  resourceUri?: string
+}): Promise<SessionAudio> {
   try {
-    await pgQueries.updateSessionAudioJoinedAtBySessionId.run(
+    return await pgQueries.updateSessionAudio.run(
       {
         sessionId,
         studentJoinedAt,
         volunteerJoinedAt,
-      },
-      getClient()
-    )
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function updateSessionAudioResourceUriBySessionId({
-  sessionId,
-  resourceUri,
-}: {
-  sessionId: Ulid
-  resourceUri: string
-}): Promise<void> {
-  try {
-    await pgQueries.updateSessionAudioResourceUriBySessionId.run(
-      {
-        sessionId,
         resourceUri,
       },
       getClient()
