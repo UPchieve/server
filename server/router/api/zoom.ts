@@ -1,4 +1,6 @@
 import { KJUR } from 'jsrsasign'
+import SocketService from '../../services/SocketService'
+import { extractUser } from '../extract-user'
 
 export function routeZoom(router: Router): void {
   router.post('/zoom', (req, res) => {
@@ -25,5 +27,21 @@ export function routeZoom(router: Router): void {
       process.env.ZOOM_VIDEO_SDK_SECRET
     )
     return res.json({ signature: sdkJWT })
+  })
+
+  router.post('/zoom/join/:sessionId', async (req, res) => {
+    const { sessionId } = req.params
+    const user = extractUser(req)
+    const socketService = SocketService.getInstance()
+    await socketService.emitPartnerJoinedCall(sessionId, user.id)
+    return res.status(200).json({ success: true })
+  })
+
+  router.post('/zoom/leave/:sessionId', async (req, res) => {
+    const { sessionId } = req.params
+    const socketService = SocketService.getInstance()
+    const user = extractUser(req)
+    await socketService.emitPartnerLeftCall(sessionId, user.id)
+    return res.status(200).json({ success: true })
   })
 }
