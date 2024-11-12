@@ -1,9 +1,8 @@
-import { SessionAudio } from './types'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { makeRequired, makeSomeOptional, Ulid, getDbUlid } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { SessionAudio, SessionAudioCreatedByRole } from './types'
+import { SessionAudio } from './types'
 
 export async function getSessionAudioBySessionId(
   sessionId: Ulid
@@ -29,11 +28,9 @@ export async function getSessionAudioBySessionId(
 
 export async function createSessionAudio({
   sessionId,
-  createdByRole,
   resourceUri,
 }: {
   sessionId: Ulid
-  createdByRole: SessionAudioCreatedByRole
   resourceUri?: string
 }): Promise<Ulid> {
   try {
@@ -42,7 +39,6 @@ export async function createSessionAudio({
       {
         id,
         sessionId,
-        createdByRole,
         resourceUri,
       },
       getClient()
