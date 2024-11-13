@@ -234,6 +234,7 @@ const config: Static<typeof Config> = {
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS',
+    sessionAudioParticipantsPrefix: 'SESSION_AUDIO_PARTICIPANTS:',
   },
 
   // Sentry Data Source Name

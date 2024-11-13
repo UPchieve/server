@@ -443,4 +443,16 @@ export function routeSession(router: Router) {
       resError(res, err)
     }
   })
+
+  router.get('/sessions/:sessionId/audio/status', async function(req, res) {
+    try {
+      const sessionId = req.params.sessionId as string
+      const participants = await SessionService.getCurrentSessionAudioParticipantIds(
+        sessionId
+      )
+      return res.json({ participants })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

@@ -1103,3 +1103,12 @@ export async function updateSessionAudio(
     ...updates,
   })
 }
+
+export async function getCurrentSessionAudioParticipantIds(
+  sessionId: string
+): Promise<{ participants: string[] }> {
+  const cacheValue = await cache.get(
+    `${config.cacheKeys.sessionAudioParticipantsPrefix}${sessionId}`
+  )
+  return JSON.parse(cacheValue)
+}
