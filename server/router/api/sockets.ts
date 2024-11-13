@@ -575,19 +575,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('sessions:join-call', async () => {
+    socket.on('sessions:join-call', async ({ sessionId }) => {
       console.log('Server is handling sessions:join-call event')
       newrelic.startWebTransaction(
         '/socket-io/sessions:join-call',
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
-              const sessionId = socket.data.sessionId
               const userId = extractSocketUser(socket).id
-              if (!sessionId)
-                throw new Error(
-                  `Could not process join-call event for user ${userId}: No sessionId`
-                )
               await SessionService.addSessionCallParticipant(sessionId, userId)
               await socketService.emitPartnerJoinedSessionCallEvent(
                 sessionId,
@@ -600,19 +595,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('sessions:leave-call', async () => {
+    socket.on('sessions:leave-call', async ({ sessionId }) => {
       console.log('Server is handling sessions:leave-call event')
       newrelic.startWebTransaction(
         '/socket-io/sessions:leave-call',
         () =>
           new Promise<void>(async (resolve, reject) => {
             try {
-              const sessionId = socket.data.sessionId
               const userId = extractSocketUser(socket).id
-              if (!sessionId)
-                throw new Error(
-                  `Could not process leave-call event for user ${userId}: No sessionId`
-                )
               await SessionService.removeSessionCallParticipant(
                 sessionId,
                 userId

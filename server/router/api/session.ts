@@ -418,7 +418,7 @@ export function routeSession(router: Router) {
         sessionId,
         createSessionAudioRequestValidator(req.body)
       )
-      res.json({ sessionAudio: result })
+      return res.json({ sessionAudio: result })
     } catch (err) {
       resError(res, err)
     }
@@ -438,7 +438,22 @@ export function routeSession(router: Router) {
         sessionId,
         updateSessionAudioRequestValidator(req.body)
       )
-      res.json({ sessionAudio: updated })
+      return res.json({ sessionAudio: updated })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/sessions/:sessionId/call/participants', async function(
+    req,
+    res
+  ) {
+    try {
+      const sessionId = req.params.sessionId as string
+      const participants = await SessionService.getSessionCallParticipants(
+        sessionId
+      )
+      return res.json({ participants })
     } catch (err) {
       resError(res, err)
     }
