@@ -49,12 +49,16 @@ describe('SessionAudio', () => {
       const sessionId = await getDbUlid()
       await insertSession(sessionId)
       const resourceUri = 'test-uri'
+      const studentJoinedAt = new Date()
       const created = await createSessionAudio({
         sessionId,
         resourceUri,
+        studentJoinedAt,
       })
       expect(normalizeUlid(created.sessionId)).toEqual(normalizeUlid(sessionId))
       expect(created.resourceUri).toEqual(resourceUri)
+      expect(created.studentJoinedAt).toEqual(studentJoinedAt)
+      expect(created?.volunteerJoinedAt).toBeUndefined()
     })
   })
 

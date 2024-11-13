@@ -1072,7 +1072,16 @@ export async function getFallIncentiveSessionOverview(
 }
 
 export async function getOrCreateSessionAudio(
-  sessionId: string
+  sessionId,
+  {
+    resourceUri,
+    volunteerJoinedAt,
+    studentJoinedAt,
+  }: {
+    resourceUri?: string
+    volunteerJoinedAt?: Date
+    studentJoinedAt?: Date
+  }
 ): Promise<SessionAudioRepo.SessionAudio> {
   const maybeSessionAudio = await SessionAudioRepo.getSessionAudioBySessionId(
     sessionId
@@ -1080,7 +1089,9 @@ export async function getOrCreateSessionAudio(
   if (maybeSessionAudio) return maybeSessionAudio
   return await SessionAudioRepo.createSessionAudio({
     sessionId,
-    resourceUri: undefined, // @TODO Use the right value here
+    resourceUri,
+    volunteerJoinedAt,
+    studentJoinedAt,
   })
 }
 export async function updateSessionAudio(
