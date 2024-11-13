@@ -271,6 +271,38 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           })
       )
     })
+    /*
+    socket.on('sessions/partner:joined-call', async function(data) {
+      newrelic.startWebTransaction('/socket-io/sessions/partner:joined-call', () => {
+        socketService.emitPartnerJoinedCall(data.sessionId, data.userId)
+      })
+    })
+      */
+
+    socket.on('sessions/partner:audio-call-status-request', async function(
+      data
+    ) {
+      newrelic.startWebTransaction(
+        '/socket-io/sessions/partner:audio-call-status-request',
+        () => {
+          socketService.emitPartnerStatusRequest(data.sessionId, data.userId)
+        }
+      )
+    })
+    socket.on('sessions/partner:audio-call-status-report', async function(
+      data
+    ) {
+      newrelic.startWebTransaction(
+        '/socket-io/sessions/partner:audio-call-status-report',
+        () => {
+          socketService.emitPartnerStatusReport(
+            data.sessionId,
+            data.userId,
+            data.status
+          )
+        }
+      )
+    })
 
     socket.on('sessions/recap:join', async function(data) {
       newrelic.startWebTransaction(

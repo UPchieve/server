@@ -111,6 +111,24 @@ class SocketService {
       .except(userId)
       .emit('sessions/partner:left-call', true)
   }
+  async emitPartnerStatusRequest(sessionId: Ulid, userId: Ulid) {
+    const sessionRoom = getSessionRoom(sessionId)
+    this.io
+      .to(sessionRoom)
+      .except(userId)
+      .emit('sessions/partner:audio-call-status-request', userId)
+  }
+  async emitPartnerStatusReport(
+    sessionId: Ulid,
+    userId: Ulid,
+    status: 'in-call' | 'not-in-call'
+  ) {
+    const sessionRoom = getSessionRoom(sessionId)
+    this.io
+      .to(sessionRoom)
+      .except(userId)
+      .emit('sessions/partner:audio-call-status-report', status)
+  }
 }
 
 export default SocketService
