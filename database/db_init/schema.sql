@@ -116,16 +116,6 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 
 --
--- Name: session_audio_created_by; Type: TYPE; Schema: upchieve; Owner: -
---
-
-CREATE TYPE upchieve.session_audio_created_by AS ENUM (
-    'volunteer',
-    'student'
-);
-
-
---
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
