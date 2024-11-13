@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 17.0
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2673,6 +2673,14 @@ COPY upchieve.schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updat
 COPY upchieve.schools_sponsor_orgs_instances (school_id, sponsor_org_id, deactivated_on, created_at, updated_at) FROM stdin;
 01919662-87fb-d63d-788d-7417e752f5d0	01919662-8800-b331-97c6-6521b0dfd65b	\N	2024-08-28 00:28:45.441902+00	2024-08-28 00:28:45.54121+00
 01919662-87fb-6ad2-8227-c1e38adf0907	01919662-8800-b551-5a07-9021855c490c	\N	2024-08-28 00:28:45.442454+00	2024-08-28 00:28:45.54121+00
+\.
+
+
+--
+-- Data for Name: session_audio; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at) FROM stdin;
 \.
 
 

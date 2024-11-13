@@ -24,13 +24,6 @@ CREATE SCHEMA basic_access;
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -1526,6 +1519,21 @@ CREATE TABLE upchieve.schools_sponsor_orgs_instances (
     school_id uuid,
     sponsor_org_id uuid,
     deactivated_on timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: session_audio; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_audio (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    resource_uri text,
+    student_joined_at timestamp with time zone,
+    volunteer_joined_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -3630,6 +3638,14 @@ ALTER TABLE ONLY upchieve.schools_sponsor_orgs
 
 
 --
+-- Name: session_audio session_audio_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio
+    ADD CONSTRAINT session_audio_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: session_flags session_flags_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4441,6 +4457,13 @@ CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_t
 
 
 --
+-- Name: session_audio_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX session_audio_session_id_idx ON upchieve.session_audio USING btree (session_id);
+
+
+--
 -- Name: session_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -5096,6 +5119,14 @@ ALTER TABLE ONLY upchieve.schools_sponsor_orgs
 
 ALTER TABLE ONLY upchieve.schools_sponsor_orgs
     ADD CONSTRAINT schools_sponsor_orgs_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
+-- Name: session_audio session_audio_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio
+    ADD CONSTRAINT session_audio_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -6102,4 +6133,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241028142054'),
     ('20241028154216'),
     ('20241028173238'),
-    ('20241031163051');
+    ('20241031163051'),
+    ('20241111210154');
