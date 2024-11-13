@@ -271,13 +271,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           })
       )
     })
-    /*
-    socket.on('sessions/partner:joined-call', async function(data) {
-      newrelic.startWebTransaction('/socket-io/sessions/partner:joined-call', () => {
-        socketService.emitPartnerJoinedCall(data.sessionId, data.userId)
-      })
-    })
-      */
 
     socket.on('sessions/partner:audio-call-status-request', async function(
       data
