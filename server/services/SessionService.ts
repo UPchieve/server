@@ -1109,7 +1109,7 @@ export async function updateSessionAudio(
   return updated
 }
 
-export async function getSessionCallParticipants( // @TODO Call me from API endpoint
+export async function getSessionCallParticipants(
   sessionId: string
 ): Promise<string[]> {
   const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
