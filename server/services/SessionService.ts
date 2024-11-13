@@ -1072,7 +1072,7 @@ export async function getFallIncentiveSessionOverview(
 }
 
 export async function getOrCreateSessionAudio(
-  sessionId,
+  sessionId: string,
   {
     resourceUri,
     volunteerJoinedAt,
