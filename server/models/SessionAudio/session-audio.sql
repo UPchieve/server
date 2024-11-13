@@ -9,7 +9,7 @@ WHERE
 
 /* @name createSessionAudio */
 INSERT INTO session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at)
-    VALUES (:id!, :sessionId!, :resourceUri, NULL, NULL, NOW(), NOW())
+    VALUES (:id!, :sessionId!, :resourceUri, :studentJoinedAt, :volunteerJoinedAt, NOW(), NOW())
 RETURNING
     *;
 

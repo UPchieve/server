@@ -35,9 +35,13 @@ export async function getSessionAudioBySessionId(
 export async function createSessionAudio({
   sessionId,
   resourceUri,
+  studentJoinedAt,
+  volunteerJoinedAt,
 }: {
   sessionId: Ulid
   resourceUri?: string
+  studentJoinedAt?: Date
+  volunteerJoinedAt?: Date
 }): Promise<SessionAudio> {
   try {
     const id = getDbUlid()
@@ -46,6 +50,8 @@ export async function createSessionAudio({
         id,
         sessionId,
         resourceUri,
+        studentJoinedAt,
+        volunteerJoinedAt,
       },
       getClient()
     )

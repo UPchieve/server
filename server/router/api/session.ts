@@ -22,7 +22,10 @@ import {
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import multer from 'multer'
-import { UpdateSessionAudioPayload } from '../../models/SessionAudio'
+import {
+  CreateSessionAudioPayload,
+  UpdateSessionAudioPayload,
+} from '../../models/SessionAudio'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -401,10 +404,20 @@ export function routeSession(router: Router) {
     }
   })
 
+  const createSessionAudioRequestValidator = asFactory<
+    CreateSessionAudioPayload
+  >({
+    volunteerJoinedAt: asOptional(asDate),
+    studentJoinedAt: asOptional(asDate),
+    resourceUri: asOptional(asString),
+  })
   router.post('/sessions/:sessionId/audio', async function(req, res) {
     try {
       const sessionId = req.params.sessionId as string
-      const result = await SessionService.getOrCreateSessionAudio(sessionId)
+      const result = await SessionService.getOrCreateSessionAudio(
+        sessionId,
+        createSessionAudioRequestValidator(req.body)
+      )
       res.json({ sessionAudio: result })
     } catch (err) {
       resError(res, err)
