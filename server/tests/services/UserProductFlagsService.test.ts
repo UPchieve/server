@@ -144,7 +144,10 @@ describe('incentiveProgramEnrollmentEnroll', () => {
       enrollmentDate
     )
 
-    const result = await incentiveProgramEnrollmentEnroll(userId, 'test@test.com')
+    const result = await incentiveProgramEnrollmentEnroll(
+      userId,
+      'test@test.com'
+    )
     expect(result).toBe(enrollmentDate)
     expect(
       mockedIncentiveProgramService.isUserInIncentiveProgram
