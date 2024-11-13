@@ -411,10 +411,7 @@ export function routeSession(router: Router) {
     studentJoinedAt: asOptional(asDate),
     resourceUri: asOptional(asString),
   })
-  router.post('/sessions/:sessionId/synchronous-call', async function(
-    req,
-    res
-  ) {
+  router.post('/sessions/:sessionId/call', async function(req, res) {
     try {
       const sessionId = req.params.sessionId as string
       const result = await SessionService.getOrCreateSessionAudio(
@@ -434,7 +431,7 @@ export function routeSession(router: Router) {
     studentJoinedAt: asOptional(asDate),
     resourceUri: asOptional(asString),
   })
-  router.put('/sessions/:sessionId/synchronous-call', async function(req, res) {
+  router.put('/sessions/:sessionId/call', async function(req, res) {
     try {
       const sessionId = req.params.sessionId as string
       const updated = await SessionService.updateSessionAudio(
