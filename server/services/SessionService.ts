@@ -19,7 +19,7 @@ import {
 import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
 import { DAYS } from '../constants'
-import { NotAllowedError } from '../models/Errors'
+import { LookupError, NotAllowedError } from '../models/Errors'
 import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
@@ -30,7 +30,7 @@ import {
   updateSessionReviewReasonsById,
 } from '../models/Session'
 import * as SessionRepo from '../models/Session'
-import { User, UserContactInfo } from '../models/User'
+import { UserContactInfo } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
   createAccountAction,
@@ -1098,8 +1098,11 @@ export async function updateSessionAudio(
   sessionId: string,
   updates: SessionAudioRepo.UpdateSessionAudioPayload
 ): Promise<SessionAudioRepo.SessionAudio> {
-  return await SessionAudioRepo.updateSessionAudio({
+  const updated = await SessionAudioRepo.updateSessionAudio({
     sessionId,
     ...updates,
   })
+  if (!updated)
+    throw new LookupError('Audio does not exist for the given session')
+  return updated
 }

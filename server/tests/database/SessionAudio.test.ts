@@ -79,9 +79,9 @@ describe('SessionAudio', () => {
         studentJoinedAt,
         volunteerJoinedAt,
       })
-      expect(updated.volunteerJoinedAt).toEqual(volunteerJoinedAt)
-      expect(updated.studentJoinedAt).toEqual(studentJoinedAt)
-      expect(updated.resourceUri).toBeUndefined()
+      expect(updated?.volunteerJoinedAt).toEqual(volunteerJoinedAt)
+      expect(updated?.studentJoinedAt).toEqual(studentJoinedAt)
+      expect(updated?.resourceUri).toBeUndefined()
     })
   })
 })

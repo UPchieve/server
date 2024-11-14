@@ -75,7 +75,7 @@ export async function updateSessionAudio({
   studentJoinedAt?: Date
   volunteerJoinedAt?: Date
   resourceUri?: string
-}): Promise<SessionAudio> {
+}): Promise<SessionAudio | undefined> {
   try {
     const result = await pgQueries.updateSessionAudio.run(
       {
@@ -86,11 +86,12 @@ export async function updateSessionAudio({
       },
       getClient()
     )
-    return makeSomeOptional(result[0], [
-      'studentJoinedAt',
-      'volunteerJoinedAt',
-      'resourceUri',
-    ])
+    if (result.length)
+      return makeSomeOptional(result[0], [
+        'studentJoinedAt',
+        'volunteerJoinedAt',
+        'resourceUri',
+      ])
   } catch (err) {
     throw new RepoUpdateError(err)
   }
