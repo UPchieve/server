@@ -396,6 +396,8 @@ const config: Static<typeof Config> = {
   // Zoom
   zoomTokenExpirationSeconds:
     Number(process.env.ZOOM_TOKEN_EXPIRATION_SECONDS) || 60 * 60 * 2,
+  zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
+  zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 }
 
 module.exports = config

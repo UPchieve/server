@@ -260,4 +260,6 @@ export const Config = Record({
 
   // Zoom
   zoomTokenExpirationSeconds: Number,
+  zoomVideoSdkKey: String,
+  zoomVideoSdkSecret: String,
 })
