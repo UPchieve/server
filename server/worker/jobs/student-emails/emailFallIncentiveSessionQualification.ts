@@ -20,6 +20,29 @@ export interface EmailFallIncentiveSessionQualificationJobData {
   userId: Ulid
 }
 
+async function processCompletedFallIncentiveChallenge(
+  userId: string,
+  userEmail: string,
+  firstName: string
+) {
+  await MailService.sendFallIncentiveCompletedChallengeEmail(
+    userEmail,
+    firstName
+  )
+  await createEmailNotification({
+    userId,
+    emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
+  })
+  captureEvent(
+    userId,
+    EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
+    {},
+    {
+      fallIncentiveLimitReachedAt: new Date().toISOString(),
+    }
+  )
+}
+
 /**
  *
  * - After every session, check if the student has qualifying sessions this week.
@@ -55,7 +78,7 @@ export default async (
     fallIncentiveEnrollmentAt
   )
 
-  const totalQualifiedForGiftCardsSent = await getTotalEmailsSentToUser({
+  let totalQualifiedForGiftCardsSent = await getTotalEmailsSentToUser({
     userId,
     emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     start: fallIncentiveEnrollmentAt.toDate(),
@@ -75,25 +98,9 @@ export default async (
     log(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
     )
-    if (!hasReceivedCompletedChallengeEmail) {
-      await MailService.sendFallIncentiveCompletedChallengeEmail(
-        userEmail,
-        firstName
-      )
-      await createEmailNotification({
-        userId,
-        emailTemplateId:
-          config.sendgrid.fallIncentiveCompletedChallengeTemplate,
-      })
-      captureEvent(
-        userId,
-        EVENTS.STUDENT_FALL_INCENTIVE_PROGRAM_GIFT_CARD_LIMIT_REACHED,
-        {},
-        {
-          fallIncentiveLimitReachedAt: new Date().toISOString(),
-        }
-      )
-    }
+    if (!hasReceivedCompletedChallengeEmail)
+      await processCompletedFallIncentiveChallenge(userId, userEmail, firstName)
+
     return
   }
 
@@ -131,6 +138,16 @@ export default async (
       log(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
+      // Phase the user out of the program if we just sent their 10th qualified for gift card notification
+      if (
+        !hasReceivedCompletedChallengeEmail &&
+        totalQualifiedForGiftCardsSent === 9
+      )
+        await processCompletedFallIncentiveChallenge(
+          userId,
+          userEmail,
+          firstName
+        )
     } else if (sessionOverview.unqualifiedSessions.length >= 1) {
       const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
