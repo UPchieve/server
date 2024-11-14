@@ -1,11 +1,12 @@
 import { KJUR } from 'jsrsasign'
 import { Router } from 'express'
+import config from '../../config'
 
 export function routeZoom(router: Router): void {
   router.post('/zoom/token', (req, res) => {
-    const { sessionName, role, expirationSeconds } = req.body
+    const { sessionName, role } = req.body
     const iat = Math.floor(Date.now() / 1000)
-    const exp = expirationSeconds ? iat + expirationSeconds : iat + 60 * 60 * 2
+    const exp = iat + config.zoomTokenExpirationSeconds
     const oHeader = { alg: 'HS256', typ: 'JWT' }
 
     const oPayload = {
