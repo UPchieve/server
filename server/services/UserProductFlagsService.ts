@@ -6,6 +6,7 @@ import {
   isUserInIncentiveProgram,
   queueIncentiveProgramEnrollmentWelcomeJob,
 } from './IncentiveProgramService'
+import { createContact } from './MailService'
 
 export async function incentiveProgramEnrollmentEnroll(userId: Ulid) {
   const isInIncentiveProgram = await isUserInIncentiveProgram(userId)
@@ -25,5 +26,6 @@ export async function incentiveProgramEnrollmentEnroll(userId: Ulid) {
   }
   const enrollmentDate = await enrollStudentToFallIncentiveProgram(userId)
   await queueIncentiveProgramEnrollmentWelcomeJob(userId)
+  await createContact([userId])
   return enrollmentDate
 }
