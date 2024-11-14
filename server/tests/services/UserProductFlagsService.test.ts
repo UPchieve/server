@@ -3,10 +3,10 @@ import * as UserRepo from '../../models/User'
 import * as LegacyUserRepo from '../../models/User/legacy-user'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
+import * as MailService from '../../services/MailService'
 import { incentiveProgramEnrollmentEnroll } from '../../services/UserProductFlagsService'
 import {
   buildLegacyStudent,
-  buildLegacyUser,
   buildUser,
   buildUserProductFlags,
 } from '../mocks/generate'
@@ -16,11 +16,13 @@ jest.mock('../../models/User')
 jest.mock('../../models/User/legacy-user')
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../services/IncentiveProgramService')
+jest.mock('../../services/MailService')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedLegacyUserRepo = mocked(LegacyUserRepo)
 const mockedUserProductFlagsRepo = mocked(UserProductFlagsRepo)
 const mockedIncentiveProgramService = mocked(IncentiveProgramService)
+const mockedMailService = mocked(MailService)
 
 describe('incentiveProgramEnrollmentEnroll', () => {
   beforeEach(() => {
@@ -125,6 +127,7 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     expect(
       mockedIncentiveProgramService.queueIncentiveProgramEnrollmentWelcomeJob
     ).toHaveBeenCalled()
+    expect(mockedMailService.createContact).toHaveBeenCalled()
   })
 
   test('Should enroll the school partner if they are not already enrolled and verified their proxy email', async () => {
@@ -154,5 +157,6 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     expect(
       mockedIncentiveProgramService.queueIncentiveProgramEnrollmentWelcomeJob
     ).toHaveBeenCalled()
+    expect(mockedMailService.createContact).toHaveBeenCalled()
   })
 })

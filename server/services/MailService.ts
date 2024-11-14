@@ -15,6 +15,7 @@ import { getUserToCreateSendGridContact } from '../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../models/StudentPartnerOrg'
+import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
@@ -77,6 +78,7 @@ const SG_CUSTOM_FIELDS = {
   passedUpchieve101: 'e17_T',
   studentGradeLevel: 'w20_T',
   userType: 'w21_T',
+  fallIncentiveEnrollmentAt: 'e34_D',
 }
 
 // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
@@ -1425,6 +1427,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   for (const userId of listOfUserIds) {
     const user = await getUserToCreateSendGridContact(userId)
     const userRoles = await UserRolesService.getUserRolesById(userId)
+    const productFlags = await getPublicUPFByUserId(userId)
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(
         user.banType === USER_BAN_TYPES.COMPLETE
@@ -1464,6 +1467,10 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
         customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] = (
           await getFullStudentPartnerOrgByKey(student.studentPartnerOrg)
         ).key
+      }
+      if (productFlags?.fallIncentiveEnrollmentAt) {
+        customFields[SG_CUSTOM_FIELDS.fallIncentiveEnrollmentAt] =
+          productFlags.fallIncentiveEnrollmentAt
       }
     } else if (isTeacherUserType(userRoles.userType)) {
       contactListId = config.sendgrid.contactList.teachers
