@@ -219,7 +219,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
     expect(
       MailService.sendFallIncentiveCompletedChallengeEmail
-    ).not.toHaveBeenCalledWith()
+    ).not.toHaveBeenCalled()
     expect(
       NotificationService.createEmailNotification
     ).not.toHaveBeenCalledWith({
