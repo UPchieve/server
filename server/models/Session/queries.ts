@@ -714,24 +714,6 @@ export async function getRecapSessionForDmsBySessionId(
   }
 }
 
-export async function getSessionHistoryIdsByUserId(
-  userId: Ulid
-): Promise<{ id: Ulid }[]> {
-  const client = await getClient().connect()
-  try {
-    const result = await pgQueries.getSessionHistoryIdsByUserId.run(
-      { userId, minSessionLength: config.minSessionLength },
-      client
-    )
-    if (!result.length) return []
-    else return result.map(v => makeRequired(v))
-  } catch (error) {
-    throw new RepoReadError(error)
-  } finally {
-    client.release()
-  }
-}
-
 export type MessageInfoByMessageId = {
   contents: string
   createdAt: Date
