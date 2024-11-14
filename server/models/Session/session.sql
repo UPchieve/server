@@ -1049,8 +1049,6 @@ WITH results AS (
             AND volunteers.id = favorited.volunteer_id
     WHERE (students.id = :userId!
         OR volunteers.id = :userId!)
-    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-    AND NOW()
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
@@ -1084,27 +1082,6 @@ WHERE
     AND sessions.ended_at IS NOT NULL;
 
 
-/* @name getSessionHistoryIdsByUserId */
-SELECT
-    sessions.id
-FROM
-    sessions
-    JOIN subjects ON subjects.id = sessions.subject_id
-    JOIN topics ON topics.id = subjects.topic_id
-    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
-    LEFT JOIN users students ON sessions.student_id = students.id
-WHERE (students.id = :userId!
-    OR volunteers.id = :userId!)
-AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-AND NOW()
-AND sessions.time_tutored IS NOT NULL
-AND sessions.time_tutored > :minSessionLength!::int
-AND sessions.volunteer_id IS NOT NULL
-AND sessions.ended_at IS NOT NULL
-ORDER BY
-    sessions.created_at DESC;
-
-
 /* @name getTotalSessionHistory */
 SELECT
     count(*)::int AS total
@@ -1114,8 +1091,6 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
 WHERE (students.id = :userId!
     OR volunteers.id = :userId!)
-AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-AND NOW()
 AND sessions.time_tutored IS NOT NULL
 AND sessions.time_tutored > :minSessionLength!::int
 AND sessions.volunteer_id IS NOT NULL;

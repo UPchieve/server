@@ -14,7 +14,6 @@ import config from '../../config'
 import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
-import { getSessionHistoryIdsByUserId, Session } from '../../models/Session'
 import * as SessionRepo from '../../models/Session/queries'
 import {
   getUserContactInfoById,
@@ -78,18 +77,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       maxAge: config.sessionCookieMaxAge,
     },
   })
-
-  async function joinUserToSessionHistoryRooms(io: Server, userId: Ulid) {
-    const sessionHistory = await getSessionHistoryIdsByUserId(userId)
-    for (const session of sessionHistory) {
-      const sessionRoom = getSessionRoom(session.id)
-      const socketIds = await getSocketIdsFromRoom(io, userId)
-      // Have all of the user's socket connections join session history rooms
-      for (const id of socketIds) {
-        await remoteJoinRoom(io, id, sessionRoom)
-      }
-    }
-  }
 
   io.use(wrap(sessionMiddleware))
   io.use(wrap(passport.initialize()))
