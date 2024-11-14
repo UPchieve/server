@@ -1049,8 +1049,6 @@ WITH results AS (
             AND volunteers.id = favorited.volunteer_id
     WHERE (students.id = :userId!
         OR volunteers.id = :userId!)
-    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-    AND NOW()
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
@@ -1095,8 +1093,6 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
 WHERE (students.id = :userId!
     OR volunteers.id = :userId!)
-AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-AND NOW()
 AND sessions.time_tutored IS NOT NULL
 AND sessions.time_tutored > :minSessionLength!::int
 AND sessions.volunteer_id IS NOT NULL
@@ -1114,8 +1110,6 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
 WHERE (students.id = :userId!
     OR volunteers.id = :userId!)
-AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-AND NOW()
 AND sessions.time_tutored IS NOT NULL
 AND sessions.time_tutored > :minSessionLength!::int
 AND sessions.volunteer_id IS NOT NULL;
