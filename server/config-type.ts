@@ -263,4 +263,6 @@ export const Config = Record({
   zoomTokenExpirationSeconds: Number,
   zoomVideoSdkKey: String,
   zoomVideoSdkSecret: String,
+
+  censorshipsPerSessionThreshold: Number,
 })

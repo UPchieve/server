@@ -22,6 +22,7 @@ import ContentSafetyClient, {
 import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
 import { InputError } from '../models/Errors'
+import * as UserCensorshipsRepo from '../models/UserCensorships'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -255,6 +256,17 @@ export async function moderateMessage({
       { censoredSessionMessage, reasons: result },
       'Session message was censored'
     )
+
+    // @TODO Only hit this code if the message is an audio transcript.
+    const censorshipCount = await UserCensorshipsRepo.insertUserCensorship({
+      userId: censoredSessionMessage.senderId,
+      sessionId: censoredSessionMessage.sessionId,
+      reason: JSON.stringify(result), // @TODO Make this a JSON column?
+      medium: 'audio', // @TODO Read this from the request
+    })
+    if (censorshipCount >= config.censorshipsPerSessionThreshold) {
+      // @TODO emit socket event
+    }
   }
 
   return result
