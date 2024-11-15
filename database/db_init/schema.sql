@@ -116,6 +116,16 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 
 --
+-- Name: session_medium; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.session_medium AS ENUM (
+    'audio',
+    'video'
+);
+
+
+--
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -2351,6 +2361,22 @@ ALTER SEQUENCE upchieve.user_actions_id_seq OWNED BY upchieve.user_actions.id;
 
 
 --
+-- Name: user_censorships; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.user_censorships (
+    user_id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    reason text NOT NULL,
+    medium upchieve.session_medium NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    comment text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: user_product_flags; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -4102,6 +4128,14 @@ ALTER TABLE ONLY upchieve.user_actions
 
 
 --
+-- Name: user_censorships user_censorships_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.user_censorships
+    ADD CONSTRAINT user_censorships_pkey PRIMARY KEY (user_id, session_id);
+
+
+--
 -- Name: push_tokens user_id_token; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5682,6 +5716,22 @@ ALTER TABLE ONLY upchieve.user_actions
 
 
 --
+-- Name: user_censorships user_censorships_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.user_censorships
+    ADD CONSTRAINT user_censorships_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: user_censorships user_censorships_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.user_censorships
+    ADD CONSTRAINT user_censorships_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: user_product_flags user_product_flags_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6134,4 +6184,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241028154216'),
     ('20241028173238'),
     ('20241031163051'),
-    ('20241111210154');
+    ('20241111210154'),
+    ('20241115150221');
