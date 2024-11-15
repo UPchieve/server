@@ -7,6 +7,7 @@ import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { buildSessionAudioRow, buildSessionRow } from '../mocks/generate'
 import { getClient } from '../../db'
 import { insertSingleRow } from '../db-utils'
+import { normalizeUlid } from './utils'
 
 describe('SessionAudio', () => {
   const dbClient = getClient()
@@ -19,8 +20,6 @@ describe('SessionAudio', () => {
       dbClient
     )
   }
-
-  const normalizeUlid = (str: string) => str.toLowerCase().replace(/-/g, '')
 
   describe('getSessionAudioBySessionId', () => {
     it('Returns undefined if no SessionAudio exists for the sessionId', async () => {

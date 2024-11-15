@@ -42,6 +42,7 @@ import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
 import { LegacyUserModel } from '../../models/User/legacy-user'
 import { SessionAudio } from '../../models/SessionAudio'
+import { UserCensorship } from '../../models/UserCensorships'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -378,6 +379,25 @@ export const buildUserSession = (
     ...overrides,
   }
   return session
+}
+
+export const buildUserCensorshipRow = (
+  sessionId: string,
+  userId: string,
+  overrides: Partial<UserCensorship> = {}
+): UserCensorship & { id: Ulid } => {
+  return {
+    id: getDbUlid(),
+    userId,
+    sessionId,
+    reason: 'profanity',
+    medium: 'audio',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    active: true,
+    comment: null,
+    ...overrides,
+  }
 }
 
 export const buildSessionAudioRow = (
