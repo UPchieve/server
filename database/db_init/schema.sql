@@ -2365,6 +2365,7 @@ ALTER SEQUENCE upchieve.user_actions_id_seq OWNED BY upchieve.user_actions.id;
 --
 
 CREATE TABLE upchieve.user_censorships (
+    id uuid NOT NULL,
     user_id uuid NOT NULL,
     session_id uuid NOT NULL,
     reason text NOT NULL,
@@ -4132,7 +4133,7 @@ ALTER TABLE ONLY upchieve.user_actions
 --
 
 ALTER TABLE ONLY upchieve.user_censorships
-    ADD CONSTRAINT user_censorships_pkey PRIMARY KEY (user_id, session_id);
+    ADD CONSTRAINT user_censorships_pkey PRIMARY KEY (id);
 
 
 --

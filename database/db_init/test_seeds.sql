@@ -3611,7 +3611,7 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 -- Data for Name: user_censorships; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_censorships (user_id, session_id, reason, medium, active, comment, created_at, updated_at) FROM stdin;
+COPY upchieve.user_censorships (id, user_id, session_id, reason, medium, active, comment, created_at, updated_at) FROM stdin;
 \.
 
 
