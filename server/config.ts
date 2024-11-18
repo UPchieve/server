@@ -392,6 +392,12 @@ const config: Static<typeof Config> = {
     process.env.TUTOR_BOT_HUGGINGFACE_NAMESPACE || 'bogus',
   tutorBotHuggingfaceInstanceName:
     process.env.TUTOR_BOT_HUGGINGFACE_INSTANCE_NAME || 'bogus',
+
+  // Zoom
+  zoomTokenExpirationSeconds:
+    Number(process.env.ZOOM_TOKEN_EXPIRATION_SECONDS) || 60 * 60 * 2,
+  zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
+  zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 }
 
 module.exports = config

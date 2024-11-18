@@ -407,9 +407,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 sessionId,
               }
 
-              if (type === 'voice') {
+              if (type) {
                 messageData.type = type
-                messageData.transcript = transcript
+                if (type === 'voice') {
+                  messageData.transcript = transcript
+                } else if (type === 'session-audio') {
+                  // @TODO Attach timestamp for when it was said?
+                }
               }
 
               // If the message is coming from the recap page, queue the message to send a notification

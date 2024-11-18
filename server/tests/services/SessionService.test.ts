@@ -2,6 +2,7 @@
 
 import * as SessionService from '../../services/SessionService'
 import * as SessionRepo from '../../models/Session/queries'
+import * as SessionAudioRepo from '../../models/SessionAudio'
 import * as UserRepo from '../../models/User/queries'
 import {
   SESSION_REPORT_REASON,
@@ -10,10 +11,12 @@ import {
 } from '../../constants'
 import { mocked } from 'jest-mock'
 import { buildSession, buildVolunteer } from '../mocks/generate'
+import { LookupError } from '../../models/Errors'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
+jest.mock('../../models/SessionAudio')
 
 describe('reportSession', () => {
   const mockSessionRepo = mocked(SessionRepo)
@@ -53,6 +56,37 @@ describe('reportSession', () => {
       USER_BAN_TYPES.COMPLETE,
       USER_BAN_REASONS.SESSION_REPORTED
     )
+  })
+})
+
+describe('Session audio', () => {
+  describe('updateSessionAudio', () => {
+    const mockedSessionAudioRepo = mocked(SessionAudioRepo)
+    it('Throws a LookupError if the session audio does not exist', async () => {
+      mockedSessionAudioRepo.updateSessionAudio.mockResolvedValue(undefined)
+      await expect(() =>
+        SessionService.updateSessionAudio('123', {})
+      ).rejects.toThrow(LookupError)
+    })
+
+    it('Returns the updated SessionAudio', async () => {
+      const sessionId = '123'
+      const volunteerJoinedAt = new Date()
+      const sessionAudio = {
+        id: '123',
+        sessionId,
+        studentJoinedAt: new Date(),
+        volunteerJoinedAt,
+        resourceUri: 'resource-uri',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      mockedSessionAudioRepo.updateSessionAudio.mockResolvedValue(sessionAudio)
+      const result = await SessionService.updateSessionAudio(sessionId, {
+        volunteerJoinedAt,
+      })
+      expect(result).toEqual(sessionAudio)
+    })
   })
 })
 

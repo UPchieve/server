@@ -41,6 +41,7 @@ import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
 import { LegacyUserModel } from '../../models/User/legacy-user'
+import { SessionAudio } from '../../models/SessionAudio'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -377,6 +378,19 @@ export const buildUserSession = (
     ...overrides,
   }
   return session
+}
+
+export const buildSessionAudioRow = (
+  sessionId: string,
+  overrides: Partial<SessionAudio> = {}
+): SessionAudio => {
+  return {
+    id: getDbUlid(),
+    sessionId,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    ...overrides,
+  }
 }
 
 export const buildMessageForFrontend = (
