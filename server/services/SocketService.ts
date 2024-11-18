@@ -96,6 +96,26 @@ class SocketService {
     // A single progress report is ready
     else this.io.to(userId).emit('progress-report:processed:session', data)
   }
+
+  async emitPartnerJoinedSessionCallEvent(
+    sessionId: string,
+    userId: string
+  ): Promise<void> {
+    this.io
+      .to(getSessionRoom(sessionId))
+      .except(userId)
+      .emit('sessions:partner-joined-call')
+  }
+
+  async emitPartnerLeftSessionCallEvent(
+    sessionId: string,
+    userId: string
+  ): Promise<void> {
+    this.io
+      .to(getSessionRoom(sessionId))
+      .except(userId)
+      .emit('sessions:partner-left-call')
+  }
 }
 
 export default SocketService

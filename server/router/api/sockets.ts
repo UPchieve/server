@@ -575,6 +575,56 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
+    socket.on(
+      'sessions:joined-call',
+      async ({ sessionId }: { sessionId: string }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/sessions:joined-call',
+          () =>
+            new Promise<void>(async (resolve, reject) => {
+              try {
+                const userId = extractSocketUser(socket).id
+                await SessionService.addSessionCallParticipant(
+                  sessionId,
+                  userId
+                )
+                await socketService.emitPartnerJoinedSessionCallEvent(
+                  sessionId,
+                  userId
+                )
+              } catch (err) {
+                reject(err)
+              }
+            })
+        )
+      }
+    )
+
+    socket.on(
+      'sessions:left-call',
+      async ({ sessionId }: { sessionId: string }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/sessions:left-call',
+          () =>
+            new Promise<void>(async (resolve, reject) => {
+              try {
+                const userId = extractSocketUser(socket).id
+                await SessionService.removeSessionCallParticipant(
+                  sessionId,
+                  userId
+                )
+                await socketService.emitPartnerLeftSessionCallEvent(
+                  sessionId,
+                  userId
+                )
+              } catch (err) {
+                reject(err)
+              }
+            })
+        )
+      }
+    )
+
     socket.conn.once('upgrade', () => {
       socket.data.downgraded = false
       logSocketEvent('transportUpgrade', socket)
