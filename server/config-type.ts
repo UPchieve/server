@@ -257,4 +257,9 @@ export const Config = Record({
   posthogAiTutorBotSubjectModelsFeatureFlagId: String,
   tutorBotHuggingfaceNamespace: String,
   tutorBotHuggingfaceInstanceName: String,
+
+  // Zoom
+  zoomTokenExpirationSeconds: Number,
+  zoomVideoSdkKey: String,
+  zoomVideoSdkSecret: String,
 })
