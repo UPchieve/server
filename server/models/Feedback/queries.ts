@@ -73,37 +73,3 @@ export async function getFeedbackBySessionId(
     throw new RepoReadError(err)
   }
 }
-
-export type SingleFeedback = Feedback & {
-  userId: Ulid
-  createdAt: Date
-  updatedAt: Date
-}
-
-export async function getFeedbackBySessionIdUserType(
-  sessionId: Ulid,
-  userRole: string
-): Promise<SingleFeedback | undefined> {
-  try {
-    const result = await pgQueries.getFeedbackBySessionIdUserType.run(
-      { sessionId, userRole },
-      getClient()
-    )
-    if (!result.length) return
-    const temp = makeSomeOptional(result[0], [
-      'legacyFeedbacks',
-      'studentCounselingFeedback',
-      'studentTutoringFeedback',
-      'volunteerFeedback',
-      'responseData',
-    ])
-    return {
-      userId: temp.id,
-      createdAt: temp.createdAt,
-      updatedAt: temp.updatedAt,
-      ...buildFeedback([temp]),
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}

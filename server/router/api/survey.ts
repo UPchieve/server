@@ -1,7 +1,5 @@
 import expressWs from 'express-ws'
 import {
-  savePresessionSurvey,
-  getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
   getSimpleSurveyDefinition,
   getPostsessionSurveyDefinition,
@@ -20,22 +18,6 @@ import { resError } from '../res-error'
 import { NotAuthenticatedError } from '../../models/Errors'
 
 export function routeSurvey(router: expressWs.Router): void {
-  router.post('/survey/presession/:sessionId', async (req, res) => {
-    const user = extractUser(req)
-    const { sessionId } = req.params
-    const { responseData } = req.body
-    try {
-      await savePresessionSurvey(
-        user.id,
-        asUlid(sessionId),
-        responseData // TODO: duck type validation
-      )
-      res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.post('/survey/save', async (req, res) => {
     const user = extractUser(req)
     const {
@@ -55,23 +37,6 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       await saveUserSurvey(user.id, data as unknown)
       res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
-  // This route only services the mobile app atm. Remove once
-  // the mobile app uses new presession survey work
-  router.get('/survey/presession/:sessionId', async (req, res) => {
-    const user = extractUser(req)
-    const { sessionId } = req.params
-
-    try {
-      const survey = await getPresessionSurveyForFeedback(
-        user.id,
-        asUlid(sessionId)
-      )
-      res.json({ survey })
     } catch (error) {
       resError(res, error)
     }

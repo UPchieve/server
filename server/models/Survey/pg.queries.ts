@@ -1,61 +1,6 @@
 /** Types generated for queries found in "server/models/Survey/surveys.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-
-/** 'SavePresessionSurvey' parameters type */
-export interface ISavePresessionSurveyParams {
-  id: string;
-  responseData: Json;
-  sessionId: string;
-  userId: string;
-}
-
-/** 'SavePresessionSurvey' return type */
-export interface ISavePresessionSurveyResult {
-  createdAt: Date;
-  id: string;
-  responseData: Json | null;
-  sessionId: string;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'SavePresessionSurvey' query type */
-export interface ISavePresessionSurveyQuery {
-  params: ISavePresessionSurveyParams;
-  result: ISavePresessionSurveyResult;
-}
-
-const savePresessionSurveyIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"responseData":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":118,"b":125}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":142}]},{"name":"responseData","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":162},{"a":253,"b":266}]}],"statement":"INSERT INTO pre_session_surveys (id, user_id, session_id, response_data, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    :sessionId!,\n    :responseData!,\n    NOW(),\n    NOW()\nON CONFLICT (session_id)\n    DO UPDATE SET\n        response_data = :responseData!,\n        updated_at = NOW()::date\n    RETURNING\n        id,\n        user_id,\n        session_id,\n        response_data,\n        created_at,\n        updated_at"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO pre_session_surveys (id, user_id, session_id, response_data, created_at, updated_at)
- * SELECT
- *     :id!,
- *     :userId!,
- *     :sessionId!,
- *     :responseData!,
- *     NOW(),
- *     NOW()
- * ON CONFLICT (session_id)
- *     DO UPDATE SET
- *         response_data = :responseData!,
- *         updated_at = NOW()::date
- *     RETURNING
- *         id,
- *         user_id,
- *         session_id,
- *         response_data,
- *         created_at,
- *         updated_at
- * ```
- */
-export const savePresessionSurvey = new PreparedQuery<ISavePresessionSurveyParams,ISavePresessionSurveyResult>(savePresessionSurveyIR);
-
-
 /** 'SaveUserSurvey' parameters type */
 export interface ISaveUserSurveyParams {
   progressReportId?: string | null | void;
@@ -155,50 +100,6 @@ const saveUserSurveySubmissionsIR: any = {"usedParamSet":{"userSurveyId":true,"q
  * ```
  */
 export const saveUserSurveySubmissions = new PreparedQuery<ISaveUserSurveySubmissionsParams,ISaveUserSurveySubmissionsResult>(saveUserSurveySubmissionsIR);
-
-
-/** 'GetPresessionSurveyForFeedback' parameters type */
-export interface IGetPresessionSurveyForFeedbackParams {
-  sessionId: string;
-  userId: string;
-}
-
-/** 'GetPresessionSurveyForFeedback' return type */
-export interface IGetPresessionSurveyForFeedbackResult {
-  createdAt: Date;
-  id: string;
-  responseData: Json | null;
-  sessionId: string;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetPresessionSurveyForFeedback' query type */
-export interface IGetPresessionSurveyForFeedbackQuery {
-  params: IGetPresessionSurveyForFeedbackParams;
-  result: IGetPresessionSurveyForFeedbackResult;
-}
-
-const getPresessionSurveyForFeedbackIR: any = {"usedParamSet":{"userId":true,"sessionId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":150}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":173,"b":183}]}],"statement":"SELECT\n    id,\n    user_id,\n    session_id,\n    response_data,\n    created_at,\n    updated_at\nFROM\n    pre_session_surveys\nWHERE\n    user_id = :userId!\n    AND session_id = :sessionId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     id,
- *     user_id,
- *     session_id,
- *     response_data,
- *     created_at,
- *     updated_at
- * FROM
- *     pre_session_surveys
- * WHERE
- *     user_id = :userId!
- *     AND session_id = :sessionId!
- * ```
- */
-export const getPresessionSurveyForFeedback = new PreparedQuery<IGetPresessionSurveyForFeedbackParams,IGetPresessionSurveyForFeedbackResult>(getPresessionSurveyForFeedbackIR);
 
 
 /** 'GetStudentsPresessionGoal' parameters type */
