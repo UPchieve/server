@@ -35,6 +35,13 @@ import { logSocketEvent } from '../../utils/log-socket-connection-info'
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
+import * as ModerationService from '../../services/ModerationService'
+
+export enum SessionMessageType {
+  CHAT = 'chat',
+  VOICE = 'voice',
+  AUDIO_TRANSCRIPT = 'session-audio', // @TODO change to 'audio-transcript
+}
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -345,6 +352,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
+    /* @TODO Refactor this so it's like:
+     * <do stuff you need to for all messages>
+     * if (source === 'recap')
+     *    handleDirectMessage()
+     * elif (type === 'voice')
+     *    handleVoiceMessage()
+     * elif (type === 'audio-transcript')
+     *    handleAudioTranscriptMessage()
+     */
     socket.on('message', async data => {
       newrelic.startWebTransaction(
         '/socket-io/message',
@@ -356,35 +372,51 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
-            if (!dbUser) return resolve()
-            if (source === 'recap' && !!dbUser.banType) return resolve()
+            if (!dbUser) {
+              // @TODO notice error
+              return resolve()
+            }
+
+            if (source === 'recap' && !!dbUser.banType) {
+              // @TODO notice error
+              return resolve()
+            }
 
             // TODO: handle this differently?
             if (!sessionId) {
+              // @TODO notice error
               return resolve()
             }
+
             const createdAt = new Date()
             try {
-              // TODO: correctly type user from payload
               const data: {
                 sessionId: Ulid
                 message: string
-                type?: 'voice'
                 transcript?: string
+                saidAt?: Date
+                type?: SessionMessageType
               } = {
                 sessionId,
                 message,
               }
-              if (type === 'voice') {
+
+              // @TODO Why is this if-statement needed? Why do we need to assign data.type and data.transcript, isn't this already in `data` based off how it's defined?
+              if (type && type === SessionMessageType.VOICE) {
                 data.type = type
                 data.transcript = transcript
               }
-              const messageId = await SessionService.saveMessage(
-                user,
-                createdAt,
-                data,
-                chatbot
-              )
+
+              // @TODO Don't do this for audio transcripts until it has been moderated!
+              if (type && type !== SessionMessageType.AUDIO_TRANSCRIPT) {
+                const messageId = await SessionService.saveMessage(
+                  user,
+                  createdAt,
+                  data,
+                  chatbot
+                )
+              }
+
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
@@ -396,7 +428,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 userType: UserRole
                 user: Ulid
                 sessionId: Ulid
-                type?: 'voice'
+                type?: SessionMessageType
                 transcript?: string
               } = {
                 contents: message,
@@ -409,10 +441,40 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
               if (type) {
                 messageData.type = type
-                if (type === 'voice') {
+                if (type && type === SessionMessageType.VOICE) {
                   messageData.transcript = transcript
-                } else if (type === 'session-audio') {
-                  // @TODO Attach timestamp for when it was said?
+                } else if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
+                  console.log('TEST - Received session-audio type message')
+                  const isClean = await ModerationService.moderateMessage({
+                    message,
+                    senderId: user.id,
+                    isVolunteer: messageData.isVolunteer,
+                    sessionId,
+                  })
+                  if (typeof isClean === 'boolean' && isClean) {
+                    await SessionService.saveMessage(
+                      user,
+                      createdAt,
+                      data,
+                      chatbot
+                    )
+                  } else {
+                    // @TODO implement me!
+                    const totalStrikes = await ModerationService.addStrikeForUserAudio(
+                      user.id,
+                      sessionId,
+                      message,
+                      saidAt
+                    )
+                    if (totalStrikes >= config.censorshipsPerSessionThreshold) {
+                      await UserCensorshipsService.insertUserCensorship(
+                        user.id,
+                        sessionId,
+                        saidAt
+                      )
+                      await SocketService.emitUserCensored(user.id, sessionId)
+                    }
+                  }
                 }
               }
 

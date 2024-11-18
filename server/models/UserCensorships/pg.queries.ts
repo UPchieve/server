@@ -58,6 +58,7 @@ export interface IGetUserCensorshipsBySessionIdResult {
   createdAt: Date;
   id: string;
   medium: session_medium;
+  messageSentAt: Date;
   reason: string;
   sessionId: string;
   updatedAt: Date;
