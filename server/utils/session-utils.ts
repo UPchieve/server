@@ -13,6 +13,7 @@ import {
   asOptional,
   asString,
 } from './type-utils'
+import config from '../config'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
@@ -290,3 +291,9 @@ export const asSaveMessageData = asFactory<SaveMessageData>({
   sessionId: asString,
   message: asString,
 })
+
+export const getSessionCallParticipantsCacheKey = (
+  sessionId: string
+): string => {
+  return `${config.cacheKeys.sessionCallParticipantsPrefix}${sessionId}`
+}
