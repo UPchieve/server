@@ -1113,14 +1113,13 @@ export async function getSessionCallParticipants(
   sessionId: string
 ): Promise<string[]> {
   const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  let result: string
   try {
-    result = await cache.get(cacheKey)
+    const result = await cache.get(cacheKey)
+    return JSON.parse(result)
   } catch (err) {
     if (err instanceof KeyNotFoundError) return []
     else throw err
   }
-  return JSON.parse(result)
 }
 
 export async function addSessionCallParticipant(
