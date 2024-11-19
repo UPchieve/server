@@ -390,7 +390,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             const createdAt = new Date()
             try {
-              const data: {
+              const saveMessageData: {
                 sessionId: Ulid
                 message: string
                 transcript?: string
@@ -401,18 +401,18 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 message,
               }
 
-              // @TODO Why is this if-statement needed? Why do we need to assign data.type and data.transcript, isn't this already in `data` based off how it's defined?
-              if (type && type === SessionMessageType.VOICE) {
-                data.type = type
-                data.transcript = transcript
+              if (type) {
+                saveMessageData.type = type
+                if (type === SessionMessageType.VOICE)
+                  saveMessageData.transcript = transcript
               }
 
-              // @TODO Don't do this for audio transcripts until it has been moderated!
               if (type && type !== SessionMessageType.AUDIO_TRANSCRIPT) {
+                // Audio transcripts need to be moderated before they're saved
                 const messageId = await SessionService.saveMessage(
                   user,
                   createdAt,
-                  data,
+                  saveMessageData,
                   chatbot
                 )
               }
@@ -421,7 +421,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 await SessionService.handleMessageActivity(sessionId)
 
               const userType = getUserTypeFromRoles(dbUser.roles, user.id)
-              const messageData: {
+              const messageEventData: {
                 contents: string
                 createdAt: Date
                 isVolunteer: boolean
@@ -440,22 +440,22 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
 
               if (type) {
-                messageData.type = type
+                messageEventData.type = type // @TODO I feel like I don't need this line.
                 if (type && type === SessionMessageType.VOICE) {
-                  messageData.transcript = transcript
+                  messageEventData.transcript = transcript // @TODO same note here, do I need this?
                 } else if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
                   console.log('TEST - Received session-audio type message')
                   const isClean = await ModerationService.moderateMessage({
                     message,
                     senderId: user.id,
-                    isVolunteer: messageData.isVolunteer,
+                    isVolunteer: messageEventData.isVolunteer,
                     sessionId,
                   })
                   if (typeof isClean === 'boolean' && isClean) {
                     await SessionService.saveMessage(
                       user,
                       createdAt,
-                      data,
+                      saveMessageData,
                       chatbot
                     )
                   } else {
@@ -493,8 +493,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 })
               }
 
-              const socketRoom = getSessionRoom(data.sessionId)
-              io.in(socketRoom).emit('messageSend', messageData)
+              const socketRoom = getSessionRoom(saveMessageData.sessionId)
+              io.in(socketRoom).emit('messageSend', messageEventData)
               resolve()
             } catch (error) {
               socket.emit('messageError', { sessionId: data.sessionId })
