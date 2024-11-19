@@ -32,6 +32,7 @@ export async function getUserCensorshipsBySessionId(
  * @param medium
  * @param active
  * @param comment
+ * @param messageSentAt
  */
 export async function insertUserCensorship({
   userId,
@@ -40,11 +41,13 @@ export async function insertUserCensorship({
   medium,
   active,
   comment,
+  messageSentAt,
 }: {
   userId: string
   sessionId: string
   reason: string
   medium: SessionMedium
+  messageSentAt: Date
   active?: boolean
   comment?: string
 }): Promise<number> {
@@ -57,6 +60,7 @@ export async function insertUserCensorship({
         sessionId,
         reason,
         medium: medium as session_medium,
+        messageSentAt,
         active: active ?? true,
         comment: comment ?? null,
       },

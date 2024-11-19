@@ -9,6 +9,7 @@ export interface IInsertUserCensorshipParams {
   comment: string | null | void;
   id: string;
   medium: session_medium;
+  messageSentAt: Date;
   reason: string;
   sessionId: string;
   userId: string;
@@ -25,14 +26,14 @@ export interface IInsertUserCensorshipQuery {
   result: IInsertUserCensorshipResult;
 }
 
-const insertUserCensorshipIR: any = {"name":"insertUserCensorship","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":160,"b":162,"line":4,"col":17}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":166,"b":172,"line":4,"col":23},{"a":394,"b":400,"line":11,"col":27}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":176,"b":185,"line":4,"col":33},{"a":432,"b":441,"line":12,"col":30}]}},{"name":"medium","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":189,"b":195,"line":4,"col":46}]}},{"name":"reason","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":199,"b":205,"line":4,"col":56}]}},{"name":"active","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":209,"b":215,"line":4,"col":66}]}},{"name":"comment","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":219,"b":225,"line":4,"col":76}]}}],"usedParamSet":{"id":true,"userId":true,"sessionId":true,"medium":true,"reason":true,"active":true,"comment":true},"statement":{"body":"WITH insert_rows AS (\nINSERT INTO user_censorships (id, user_id, session_id, medium, reason, active, comment)\n        VALUES (:id!, :userId!, :sessionId!, :medium!, :reason!, :active!, :comment))\n    SELECT\n        1 + count(*) AS count_censorships_by_user_in_session\n    FROM\n        user_censorships\n    WHERE\n        active = TRUE\n            AND user_id = :userId!\n            AND session_id = :sessionId!","loc":{"a":33,"b":441,"line":2,"col":0}}};
+const insertUserCensorshipIR: any = {"name":"insertUserCensorship","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":177,"b":179,"line":4,"col":17}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":183,"b":189,"line":4,"col":23},{"a":428,"b":434,"line":11,"col":27}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":193,"b":202,"line":4,"col":33},{"a":466,"b":475,"line":12,"col":30}]}},{"name":"medium","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":206,"b":212,"line":4,"col":46}]}},{"name":"reason","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":216,"b":222,"line":4,"col":56}]}},{"name":"active","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":226,"b":232,"line":4,"col":66}]}},{"name":"comment","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":236,"b":242,"line":4,"col":76}]}},{"name":"messageSentAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":246,"b":259,"line":4,"col":86}]}}],"usedParamSet":{"id":true,"userId":true,"sessionId":true,"medium":true,"reason":true,"active":true,"comment":true,"messageSentAt":true},"statement":{"body":"WITH insert_rows AS (\nINSERT INTO user_censorships (id, user_id, session_id, medium, reason, active, comment, message_sent_at)\n        VALUES (:id!, :userId!, :sessionId!, :medium!, :reason!, :active!, :comment, :messageSentAt!))\n    SELECT\n        1 + count(*) AS count_censorships_by_user_in_session\n    FROM\n        user_censorships\n    WHERE\n        active = TRUE\n            AND user_id = :userId!\n            AND session_id = :sessionId!","loc":{"a":33,"b":475,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * WITH insert_rows AS (
- * INSERT INTO user_censorships (id, user_id, session_id, medium, reason, active, comment)
- *         VALUES (:id!, :userId!, :sessionId!, :medium!, :reason!, :active!, :comment))
+ * INSERT INTO user_censorships (id, user_id, session_id, medium, reason, active, comment, message_sent_at)
+ *         VALUES (:id!, :userId!, :sessionId!, :medium!, :reason!, :active!, :comment, :messageSentAt!))
  *     SELECT
  *         1 + count(*) AS count_censorships_by_user_in_session
  *     FROM
@@ -71,7 +72,7 @@ export interface IGetUserCensorshipsBySessionIdQuery {
   result: IGetUserCensorshipsBySessionIdResult;
 }
 
-const getUserCensorshipsBySessionIdIR: any = {"name":"getUserCensorshipsBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":551,"b":560,"line":21,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    user_censorships\nWHERE\n    session_id = :sessionId!","loc":{"a":488,"b":560,"line":16,"col":0}}};
+const getUserCensorshipsBySessionIdIR: any = {"name":"getUserCensorshipsBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":585,"b":594,"line":21,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    user_censorships\nWHERE\n    session_id = :sessionId!","loc":{"a":522,"b":594,"line":16,"col":0}}};
 
 /**
  * Query generated from SQL:
