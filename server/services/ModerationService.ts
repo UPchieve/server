@@ -321,8 +321,7 @@ export const addStrikeForUserAudio = async ({
   userId: string
   sessionId: string
 }): Promise<number> => {
-  const prefix = 'MODERATION_STRIKES:' // @TODO move to config
-  const key = `${prefix}${userId}-${sessionId}`
+  const key = `${config.cacheKeys.audioModerationStrikesPrefix}${userId}-${sessionId}`
   let strikes = 0
   try {
     strikes = parseInt(await cache.get(key), 10)
@@ -330,7 +329,7 @@ export const addStrikeForUserAudio = async ({
     if (err instanceof KeyNotFoundError) strikes = 0
     else
       throw new Error(
-        `Failed to get moderation strikes for user ${userId}, session ${sessionId} from cache: ${err}`
+        `Failed to get audio moderation strikes for user ${userId}, session ${sessionId} from cache: ${err}`
       )
   }
   await cache.save(key, (strikes + 1).toString(10))

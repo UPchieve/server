@@ -235,6 +235,7 @@ const config: Static<typeof Config> = {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS',
     sessionCallParticipantsPrefix: 'SESSION_CALL_PARTICIPANTS:',
+    audioModerationStrikesPrefix: 'AUDIO_MODERATION_STRIKES:',
   },
 
   // Sentry Data Source Name

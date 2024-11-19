@@ -158,6 +158,7 @@ export const Config = Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String,
     sessionCallParticipantsPrefix: String,
+    audioModerationStrikesPrefix: String,
   }),
 
   // Sentry Data Source Name

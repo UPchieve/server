@@ -1,4 +1,5 @@
 import {
+  addStrikeForUserAudio,
   createChatCompletion,
   FALLBACK_MODERATION_PROMPT,
   moderateMessage,
@@ -9,6 +10,8 @@ import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
 import logger from '../../logger'
+import * as Cache from '../../cache/index'
+import { KeyNotFoundError } from '../../cache/index'
 
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
@@ -24,10 +27,12 @@ jest.mock('../../services/BotsService', () => {
   }
 })
 jest.mock('../../services/LangfuseService')
+jest.mock('../../cache/index')
 
 describe('ModerationService', () => {
   const isVolunteer = true
   const mockLangfuseService = mocked(LangfuseService)
+  const mockCache = mocked(Cache)
   const senderId = '123'
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
@@ -356,6 +361,25 @@ describe('ModerationService', () => {
         })
         expect(mockGeneration.end).toHaveBeenCalled()
       })
+    })
+  })
+
+  describe('addStrikeForUserAudio', () => {
+    const userId = '123'
+    const sessionId = '456'
+
+    it('Inserts a strike when there are none yet', async () => {
+      mockCache.get.mockRejectedValueOnce(new KeyNotFoundError('testKey'))
+
+      const strikes = await addStrikeForUserAudio({ userId, sessionId })
+      expect(strikes).toEqual(1)
+    })
+
+    it('Increments the strikes', async () => {
+      mockCache.get.mockResolvedValue('1')
+
+      const strikes = await addStrikeForUserAudio({ userId, sessionId })
+      expect(strikes).toEqual(2)
     })
   })
 })
