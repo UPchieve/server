@@ -81,7 +81,8 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     )
 
     await expect(incentiveProgramEnrollmentEnroll(userId)).rejects.toThrow(
-      'No email was provided to enroll into the fall incentive program.'
+      'No email was provided to enroll into the fall incentive program for user: ' +
+        userId
     )
     expect(
       mockedIncentiveProgramService.isUserInIncentiveProgram
