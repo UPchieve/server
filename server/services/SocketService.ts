@@ -116,6 +116,18 @@ class SocketService {
       .except(userId)
       .emit('sessions:partner-left-call')
   }
+
+  async emitUserCensoredEvent({
+    userId,
+    sessionId,
+  }: {
+    userId: string
+    sessionId: string
+  }) {
+    this.io.to(getSessionRoom(sessionId)).emit('sessions:user-censored', {
+      userId,
+    })
+  }
 }
 
 export default SocketService

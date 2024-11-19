@@ -22,7 +22,9 @@ import ContentSafetyClient, {
 import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
 import { InputError } from '../models/Errors'
-import * as UserCensorshipsRepo from '../models/UserCensorships'
+import { SessionMedium } from '../models/UserCensorships'
+import * as cache from '../cache'
+import { KeyNotFoundError } from '../cache'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -256,17 +258,6 @@ export async function moderateMessage({
       { censoredSessionMessage, reasons: result },
       'Session message was censored'
     )
-
-    // @TODO Only hit this code if the message is an audio transcript.
-    const censorshipCount = await UserCensorshipsRepo.insertUserCensorship({
-      userId: censoredSessionMessage.senderId,
-      sessionId: censoredSessionMessage.sessionId,
-      reason: JSON.stringify(result), // @TODO Make this a JSON column?
-      medium: 'audio', // @TODO Read this from the request
-    })
-    if (censorshipCount >= config.censorshipsPerSessionThreshold) {
-      // @TODO emit socket event
-    }
   }
 
   return result
@@ -321,6 +312,29 @@ export const moderateImage = async (
   )
 
   return getImageModerationDecision(result as AnalyzeImage200Response)
+}
+
+export const addStrikeForUserAudio = async ({
+  userId,
+  sessionId,
+}: {
+  userId: string
+  sessionId: string
+}): Promise<number> => {
+  const prefix = 'MODERATION_STRIKES:' // @TODO move to config
+  const key = `${prefix}${userId}-${sessionId}`
+  let strikes = 0
+  try {
+    strikes = parseInt(await cache.get(key), 10)
+  } catch (err) {
+    if (err instanceof KeyNotFoundError) strikes = 0
+    else
+      throw new Error(
+        `Failed to get moderation strikes for user ${userId}, session ${sessionId} from cache: ${err}`
+      )
+  }
+  await cache.save(key, (strikes + 1).toString(10))
+  return strikes + 1
 }
 
 const getImageModerationDecision = (

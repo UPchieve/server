@@ -36,6 +36,7 @@ import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
 import * as ModerationService from '../../services/ModerationService'
+import { insertUserCensorship } from '../../models/UserCensorships'
 
 export enum SessionMessageType {
   CHAT = 'chat',
@@ -366,25 +367,30 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            const { user, sessionId, message, source, type, transcript } = data
+            const {
+              user,
+              sessionId,
+              message,
+              source,
+              type,
+              transcript,
+              saidAt,
+            } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
             const dbUser = await getUserContactInfoById(user.id)
             if (!dbUser) {
-              // @TODO notice error
               return resolve()
             }
 
             if (source === 'recap' && !!dbUser.banType) {
-              // @TODO notice error
               return resolve()
             }
 
             // TODO: handle this differently?
             if (!sessionId) {
-              // @TODO notice error
               return resolve()
             }
 
@@ -394,7 +400,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 sessionId: Ulid
                 message: string
                 transcript?: string
-                saidAt?: Date
                 type?: SessionMessageType
               } = {
                 sessionId,
@@ -440,18 +445,20 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
 
               if (type) {
-                messageEventData.type = type // @TODO I feel like I don't need this line.
+                messageEventData.type = type
                 if (type && type === SessionMessageType.VOICE) {
-                  messageEventData.transcript = transcript // @TODO same note here, do I need this?
+                  messageEventData.transcript = transcript
                 } else if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
-                  console.log('TEST - Received session-audio type message')
-                  const isClean = await ModerationService.moderateMessage({
-                    message,
-                    senderId: user.id,
-                    isVolunteer: messageEventData.isVolunteer,
-                    sessionId,
-                  })
-                  if (typeof isClean === 'boolean' && isClean) {
+                  const moderationResult = await ModerationService.moderateMessage(
+                    {
+                      message,
+                      senderId: user.id,
+                      isVolunteer: messageEventData.isVolunteer,
+                      sessionId,
+                      messageSentAt: saidAt,
+                    }
+                  )
+                  if (!Object.values(moderationResult.failures).length) {
                     await SessionService.saveMessage(
                       user,
                       createdAt,
@@ -459,20 +466,24 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                       chatbot
                     )
                   } else {
-                    // @TODO implement me!
                     const totalStrikes = await ModerationService.addStrikeForUserAudio(
-                      user.id,
-                      sessionId,
-                      message,
-                      saidAt
+                      {
+                        userId: user.id,
+                        sessionId,
+                      }
                     )
                     if (totalStrikes >= config.censorshipsPerSessionThreshold) {
-                      await UserCensorshipsService.insertUserCensorship(
-                        user.id,
+                      await socketService.emitUserCensoredEvent({
+                        userId: user.id,
                         sessionId,
-                        saidAt
-                      )
-                      await SocketService.emitUserCensored(user.id, sessionId)
+                      })
+                      await insertUserCensorship({
+                        userId: user.id,
+                        sessionId,
+                        reason: 'test reason',
+                        medium: 'audio',
+                        messageSentAt: saidAt,
+                      })
                     }
                   }
                 }
