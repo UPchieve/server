@@ -2371,10 +2371,8 @@ CREATE TABLE upchieve.user_censorships (
     reason text NOT NULL,
     medium upchieve.session_medium NOT NULL,
     active boolean DEFAULT true NOT NULL,
-    comment text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    message_sent_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 

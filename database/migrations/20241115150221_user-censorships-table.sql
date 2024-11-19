@@ -11,10 +11,8 @@ CREATE TABLE IF NOT EXISTS upchieve.user_censorships (
     reason text NOT NULL,
     medium upchieve.session_medium NOT NULL,
     active boolean NOT NULL DEFAULT TRUE,
-    comment text DEFAULT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    message_sent_at timestamptz NOT NULL
+    updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 -- migrate:down
