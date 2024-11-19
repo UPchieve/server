@@ -482,7 +482,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                         sessionId,
                         reason: 'test reason',
                         medium: 'audio',
-                        messageSentAt: saidAt,
                       })
                     }
                   }

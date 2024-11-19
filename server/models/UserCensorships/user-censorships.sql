@@ -1,7 +1,7 @@
 /* @name insertUserCensorship */
 WITH insert_rows AS (
-INSERT INTO user_censorships (id, user_id, session_id, medium, reason, active, comment, message_sent_at)
-        VALUES (:id!, :userId!, :sessionId!, :medium!, :reason!, :active!, :comment, :messageSentAt!))
+INSERT INTO user_censorships (id, user_id, session_id, medium, reason, active)
+        VALUES (:id!, :userId!, :sessionId!, :medium!, :reason!, :active!))
     SELECT
         1 + count(*) AS count_censorships_by_user_in_session
     FROM

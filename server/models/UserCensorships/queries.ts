@@ -31,8 +31,6 @@ export async function getUserCensorshipsBySessionId(
  * @param reason - i.e. 'profanity', 'hate_speech'
  * @param medium
  * @param active
- * @param comment
- * @param messageSentAt
  */
 export async function insertUserCensorship({
   userId,
@@ -40,16 +38,12 @@ export async function insertUserCensorship({
   reason,
   medium,
   active,
-  comment,
-  messageSentAt,
 }: {
   userId: string
   sessionId: string
   reason: string
   medium: SessionMedium
-  messageSentAt: Date
   active?: boolean
-  comment?: string
 }): Promise<number> {
   try {
     const client = getClient()
@@ -60,9 +54,7 @@ export async function insertUserCensorship({
         sessionId,
         reason,
         medium: medium as session_medium,
-        messageSentAt,
         active: active ?? true,
-        comment: comment ?? null,
       },
       client
     )
