@@ -299,7 +299,7 @@ export async function updateVolunteerHourSummaryIntroById(
     throw new RepoUpdateError(err)
   }
 }
-//rename to updateTimezoneByUserId
+
 export async function updateTimezoneByUserId(
   userId: Ulid,
   timezone?: string

@@ -1,3 +1,96 @@
+import * as VolunteerService from '../../services/VolunteerService'
+import * as VolunteerRepo from '../../models/Volunteer'
+import QueueService from '../../services/QueueService'
+import * as AnalyticsService from '../../services/AnalyticsService'
+import { createAccountAction } from '../../models/UserAction'
+import { TransactionClient } from '../../db'
+import { EVENTS } from '../../constants'
+
+jest.mock('../../models/Volunteer', () => ({
+  updateVolunteerOnboarded: jest.fn(),
+}))
+jest.mock('../../services/QueueService', () => ({
+  add: jest.fn(),
+}))
+jest.mock('../../services/AnalyticsService', () => ({
+  captureEvent: jest.fn(),
+}))
+jest.mock('../../models/UserAction', () => ({
+  createAccountAction: jest.fn(),
+}))
+
+describe('onboardVolunteer', () => {
+  const mockVolunteer = {
+    id: 'volunteer123',
+    onboarded: false,
+    volunteerPartnerOrg: 'SomeOrg',
+    hasSubjects: true,
+    hasCompletedUpchieve101: true,
+    hasAvailability: true,
+  }
+  const mockIp = 'mock-ip'
+  const tc = {} as TransactionClient
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  test('should call all functions in the if block when conditions are met', async () => {
+    await VolunteerService.onboardVolunteer(mockVolunteer, mockIp, tc)
+
+    expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
+      mockVolunteer.id,
+      tc
+    )
+    expect(QueueService.add).toHaveBeenCalledTimes(2)
+    expect(createAccountAction).toHaveBeenCalledWith(
+      {
+        action: expect.any(String),
+        userId: mockVolunteer.id,
+        ipAddress: mockIp,
+      },
+      tc
+    )
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      mockVolunteer.id,
+      EVENTS.ACCOUNT_ONBOARDED,
+      {
+        event: EVENTS.ACCOUNT_ONBOARDED,
+      }
+    )
+  })
+
+  test.each([
+    ['already onboarded', { onboarded: true }],
+    ['missing subjects', { hasSubjects: false }],
+    ['incomplete Upchieve101', { hasCompletedUpchieve101: false }],
+    ['no availability', { hasAvailability: false }],
+  ])(
+    'should not call functions in the if block if volunteer is %s',
+    async (_, override) => {
+      const modifiedVolunteer = { ...mockVolunteer, ...override }
+
+      await VolunteerService.onboardVolunteer(modifiedVolunteer, mockIp, tc)
+
+      expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+      expect(QueueService.add).not.toHaveBeenCalled()
+      expect(createAccountAction).not.toHaveBeenCalled()
+      expect(AnalyticsService.captureEvent).not.toHaveBeenCalled()
+    }
+  )
+
+  test('should not call partner-specific functions if volunteerPartnerOrg is undefined', async () => {
+    const volunteerWithoutOrg = {
+      ...mockVolunteer,
+      volunteerPartnerOrg: undefined,
+    }
+
+    await VolunteerService.onboardVolunteer(volunteerWithoutOrg, mockIp, tc)
+
+    expect(QueueService.add).toHaveBeenCalledTimes(1)
+  })
+})
+
 test.todo('postgres migration')
 /*import mongoose from 'mongoose'
 import moment from 'moment'

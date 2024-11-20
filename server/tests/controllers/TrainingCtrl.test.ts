@@ -29,6 +29,7 @@ import {
   buildQuizUnlockCert,
 } from '../mocks/repos/question-repo.mock'
 import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
+import { TransactionClient } from '../../db'
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
@@ -170,7 +171,8 @@ describe('getQuizScore', () => {
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      false
+      false,
+      expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
@@ -190,23 +192,24 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert
     )
-    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
-    expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
-    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteer.id,
-      ipAddress: '',
-    })
-    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-      volunteer.id,
-      EVENTS.ACCOUNT_ONBOARDED,
-      {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      }
-    )
+    expect(VolunteerService.onboardVolunteer).not.toHaveBeenCalled()
+    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+    // expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
+    // expect(
+    //   VolunteerService.queuePartnerOnboardingEventEmails
+    // ).not.toHaveBeenCalled()
+    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+    //   userId: volunteer.id,
+    //   ipAddress: '',
+    // })
+    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+    //   volunteer.id,
+    //   EVENTS.ACCOUNT_ONBOARDED,
+    //   {
+    //     event: EVENTS.ACCOUNT_ONBOARDED,
+    //   }
+    // )
     expect(result).toMatchObject(expectedResult)
   })
 
@@ -261,12 +264,13 @@ describe('getQuizScore', () => {
       idCorrectAnswerMap: idAnswerMap,
       isTrainingSubject: false,
     }
+
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      true
+      true,
+      expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     for (const subject of unlockedSubjectNames) {
       expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
         action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
@@ -283,9 +287,23 @@ describe('getQuizScore', () => {
       )
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
-        subject
+        subject,
+        expect.toBeTransactionClient()
       )
     }
+    const onboardVolunteer = {
+      id: volunteer.id,
+      hasAvailability: false,
+      onboarded: false,
+      hasCompletedUpchieve101: true,
+      hasSubjects: true,
+      volunteerPartnerOrg: '',
+    } as VolunteerService.OnboardedVolunteer
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
+      onboardVolunteer,
+      undefined,
+      expect.toBeTransactionClient()
+    )
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
     expect(
@@ -303,6 +321,7 @@ describe('getQuizScore', () => {
         event: EVENTS.ACCOUNT_ONBOARDED,
       }
     )
+    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -360,9 +379,9 @@ describe('getQuizScore', () => {
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      true
+      true,
+      expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     for (const subject of unlockedSubjectNames) {
       expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
         action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
@@ -379,26 +398,41 @@ describe('getQuizScore', () => {
       )
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
-        subject
+        subject,
+        expect.toBeTransactionClient()
       )
     }
-    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
-    expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
-    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteer.id,
-      ipAddress: '',
-    })
-    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-      volunteer.id,
-      EVENTS.ACCOUNT_ONBOARDED,
-      {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      }
+    const onboardVolunteer = {
+      id: volunteer.id,
+      hasAvailability: true,
+      onboarded: false,
+      hasCompletedUpchieve101: false,
+      hasSubjects: true,
+      volunteerPartnerOrg: '',
+    } as VolunteerService.OnboardedVolunteer
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
+      onboardVolunteer,
+      undefined,
+      expect.toBeTransactionClient()
     )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+    // expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
+    // expect(
+    //   VolunteerService.queuePartnerOnboardingEventEmails
+    // ).not.toHaveBeenCalled()
+    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+    //   userId: volunteer.id,
+    //   ipAddress: '',
+    // })
+    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+    //   volunteer.id,
+    //   EVENTS.ACCOUNT_ONBOARDED,
+    //   {
+    //     event: EVENTS.ACCOUNT_ONBOARDED,
+    //   }
+    // )
     expect(result).toEqual(expectedResult)
   })
 
@@ -456,9 +490,10 @@ describe('getQuizScore', () => {
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      true
+      true,
+      expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).toHaveBeenCalled()
+
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
       action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
       userId: volunteer.id,
@@ -476,27 +511,41 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert
     )
-    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
-      volunteer.id
+    const onboardVolunteer = {
+      id: volunteer.id,
+      hasAvailability: true,
+      onboarded: false,
+      hasCompletedUpchieve101: true,
+      hasSubjects: false,
+      volunteerPartnerOrg: '',
+    } as VolunteerService.OnboardedVolunteer
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
+      onboardVolunteer,
+      undefined,
+      expect.toBeTransactionClient()
     )
-    expect(
-      VolunteerService.queueOnboardingEventEmails
-    ).not.toHaveBeenCalledWith(volunteer.id)
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
-    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteer.id,
-      ipAddress: undefined,
-    })
-    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-      volunteer.id,
-      EVENTS.ACCOUNT_ONBOARDED,
-      {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      }
-    )
+    expect(MailService.createContact).toHaveBeenCalled()
+    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
+    //   volunteer.id
+    // )
+    // expect(
+    //   VolunteerService.queueOnboardingEventEmails
+    // ).not.toHaveBeenCalledWith(volunteer.id)
+    // expect(
+    //   VolunteerService.queuePartnerOnboardingEventEmails
+    // ).not.toHaveBeenCalled()
+    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+    //   userId: volunteer.id,
+    //   ipAddress: undefined,
+    // })
+    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+    //   volunteer.id,
+    //   EVENTS.ACCOUNT_ONBOARDED,
+    //   {
+    //     event: EVENTS.ACCOUNT_ONBOARDED,
+    //   }
+    // )
     expect(result).toEqual(expectedResult)
   })
 
@@ -556,9 +605,9 @@ describe('getQuizScore', () => {
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      true
+      true,
+      expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
 
     for (const subject of unlockedSubjectNames) {
       expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
@@ -576,30 +625,24 @@ describe('getQuizScore', () => {
       )
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
-        subject
+        subject,
+        expect.toBeTransactionClient()
       )
     }
-    expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
-      volunteer.id
+    const onboardVolunteer = {
+      id: volunteer.id,
+      hasAvailability: true,
+      onboarded: false,
+      hasCompletedUpchieve101: true,
+      hasSubjects: true,
+      volunteerPartnerOrg: '',
+    } as VolunteerService.OnboardedVolunteer
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
+      onboardVolunteer,
+      undefined,
+      expect.toBeTransactionClient()
     )
-    expect(VolunteerService.queueOnboardingEventEmails).toHaveBeenCalledWith(
-      volunteer.id
-    )
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
-    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteer.id,
-      ipAddress: undefined,
-    })
-    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
-      volunteer.id,
-      EVENTS.ACCOUNT_ONBOARDED,
-      {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      }
-    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -658,9 +701,9 @@ describe('getQuizScore', () => {
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      true
+      true,
+      expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).toHaveBeenCalled()
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
       action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
       userId: volunteer.id,
@@ -678,27 +721,20 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert
     )
-    expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
-      volunteer.id
+    const onboardVolunteer = {
+      id: volunteer.id,
+      hasAvailability: true,
+      onboarded: false,
+      hasCompletedUpchieve101: true,
+      hasSubjects: true,
+      volunteerPartnerOrg: '',
+    } as VolunteerService.OnboardedVolunteer
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
+      onboardVolunteer,
+      undefined,
+      expect.toBeTransactionClient()
     )
-    expect(VolunteerService.queueOnboardingEventEmails).toHaveBeenCalledWith(
-      volunteer.id
-    )
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
-    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteer.id,
-      ipAddress: undefined,
-    })
-    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
-      volunteer.id,
-      EVENTS.ACCOUNT_ONBOARDED,
-      {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      }
-    )
+    expect(MailService.createContact).toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -760,7 +796,8 @@ describe('getQuizScore', () => {
     expect(VolunteerRepo.updateVolunteerQuiz).toHaveBeenCalledWith(
       volunteer.id,
       cert,
-      true
+      true,
+      expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
 
@@ -780,30 +817,45 @@ describe('getQuizScore', () => {
       )
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
-        subject
+        subject,
+        expect.toBeTransactionClient()
       )
     }
-    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
-      volunteer.id
+    const onboardVolunteer = {
+      id: volunteer.id,
+      hasAvailability: true,
+      onboarded: true,
+      hasCompletedUpchieve101: true,
+      hasSubjects: true,
+      volunteerPartnerOrg: '',
+    } as VolunteerService.OnboardedVolunteer
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
+      onboardVolunteer,
+      undefined,
+      expect.toBeTransactionClient()
     )
-    expect(
-      VolunteerService.queueOnboardingEventEmails
-    ).not.toHaveBeenCalledWith(volunteer.id)
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
-    expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteer.id,
-      ipAddress: undefined,
-    })
-    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-      volunteer.id,
-      EVENTS.ACCOUNT_ONBOARDED,
-      {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      }
-    )
+    expect(MailService.createContact).not.toHaveBeenCalled()
+    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
+    //   volunteer.id
+    // )
+    // expect(
+    //   VolunteerService.queueOnboardingEventEmails
+    // ).not.toHaveBeenCalledWith(volunteer.id)
+    // expect(
+    //   VolunteerService.queuePartnerOnboardingEventEmails
+    // ).not.toHaveBeenCalled()
+    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
+    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+    //   userId: volunteer.id,
+    //   ipAddress: undefined,
+    // })
+    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+    //   volunteer.id,
+    //   EVENTS.ACCOUNT_ONBOARDED,
+    //   {
+    //     event: EVENTS.ACCOUNT_ONBOARDED,
+    //   }
+    // )
     expect(result).toEqual(expectedResult)
   })
 })
