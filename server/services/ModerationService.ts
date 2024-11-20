@@ -180,6 +180,42 @@ function formatAiResponse(response: {
   return response.appropriate ? {} : response.reasons
 }
 
+export type RegexModerationResult = {
+  isClean: boolean
+  failedTests: (string | string[])[][] // @TODO change this type later
+  sanitizedMessage: string
+}
+const regexModerate = (message: string): RegexModerationResult => {
+  const failedTests = [
+    ['email', test({ regex: EMAIL_REGEX, message })],
+    ['phone', test({ regex: PHONE_REGEX, message })],
+    ['profanity', test({ regex: PROFANITY_REGEX, message })],
+    ['safety', test({ regex: SAFETY_RESTRICTION_REGEX, message })],
+  ].filter(([, test]) => test.length > 0)
+
+  const sanitize = (message: string): string => {
+    let sanitizedMessage = message
+    failedTests.forEach(([testName, testMatches]) => {
+      ;(testMatches as string[]).forEach(match => {
+        const stars = '*'.repeat(match.length)
+        sanitizedMessage = sanitizedMessage.replace(
+          new RegExp(match, 'g'),
+          stars
+        )
+      })
+    })
+
+    return sanitizedMessage
+  }
+
+  const isClean = failedTests.length === 0
+  return {
+    isClean,
+    failedTests,
+    sanitizedMessage: isClean ? message : sanitize(message),
+  }
+}
+
 export type ModerationFailureReasons = {
   failures: Record<string, string[] | never>
 }
@@ -196,14 +232,7 @@ export async function moderateMessage({
   isVolunteer: boolean
   sessionId?: string
 }): Promise<boolean | ModerationFailureReasons> {
-  // a change to create a new commit
-  const failedTests = [
-    ['email', test({ regex: EMAIL_REGEX, message })],
-    ['phone', test({ regex: PHONE_REGEX, message })],
-    ['profanity', test({ regex: PROFANITY_REGEX, message })],
-    ['safety', test({ regex: SAFETY_RESTRICTION_REGEX, message })],
-  ].filter(([, test]) => test.length > 0)
-  const isClean = failedTests.length === 0
+  const { isClean, failedTests, sanitizedMessage } = regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
