@@ -167,20 +167,22 @@ export async function getQuizScore(
       const passedUpchieve101 =
         volunteerProfile?.hasCompletedUpchieve101 ||
         cert === TRAINING.UPCHIEVE_101
-      if (
-        volunteerProfile &&
-        !volunteerProfile.onboarded &&
-        volunteerProfile.availabilityLastModifiedAt &&
-        hasSubjects &&
-        passedUpchieve101
-      ) {
-        await VolunteerService.onboardVolunteer(
-          user.id,
-          user.volunteerPartnerOrg,
-          ip,
-          tc
-        )
+
+      const volunteer: VolunteerService.OnboardedVolunteer = {
+        id: user.id,
+        onboarded: !!volunteerProfile?.onboarded,
+        volunteerPartnerOrg: user.volunteerPartnerOrg,
+        hasSubjects,
+        hasCompletedUpchieve101: passedUpchieve101,
+        hasAvailability: !!volunteerProfile?.availabilityLastModifiedAt,
       }
+
+      await VolunteerService.onboardVolunteer(
+        volunteer,
+
+        ip,
+        tc
+      )
     }
 
     const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {

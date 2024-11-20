@@ -362,7 +362,7 @@ export type VolunteerForOnboarding = Pick<
 }
 export async function getVolunteerForOnboardingById(
   userId: Ulid,
-  tc: TransactionClient
+  tc?: TransactionClient
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(

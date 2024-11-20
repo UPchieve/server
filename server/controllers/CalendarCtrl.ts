@@ -36,22 +36,16 @@ export async function updateSchedule(
 
     const volunteer = await getVolunteerForScheduleUpdate(user.id)
     // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-    let onboarded = volunteer.onboarded
-    if (
-      //move these checks into service method
-      !volunteer.onboarded &&
-      volunteer.subjects &&
-      volunteer.subjects.length > 0 &&
-      volunteer.passedRequiredTraining
-    ) {
-      onboarded = true
-      VolunteerService.onboardVolunteer(
-        volunteer.id,
-        volunteer.volunteerPartnerOrg,
-        ip,
-        tc
-      )
+    const onboardingVolunteer: VolunteerService.OnboardedVolunteer = {
+      id: volunteer.id,
+      onboarded: false,
+      volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
+      hasSubjects: !!volunteer.subjects && volunteer.subjects.length > 0,
+      hasCompletedUpchieve101: volunteer.passedRequiredTraining,
+      hasAvailability: !!volunteer.availability,
     }
+
+    VolunteerService.onboardVolunteer(onboardingVolunteer, ip, tc)
 
     await executeUpdate(volunteer, newTimezone, newAvailability)
   }, tc)

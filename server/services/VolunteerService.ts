@@ -23,6 +23,15 @@ export interface HourSummaryStats {
   totalVolunteerHours: number
 }
 
+export interface OnboardedVolunteer {
+  id: Ulid
+  onboarded: boolean
+  volunteerPartnerOrg: string | undefined
+  hasSubjects: boolean
+  hasCompletedUpchieve101: boolean
+  hasAvailability: boolean
+}
+
 export async function getHourSummaryStats(
   volunteerId: Ulid,
   fromDate: Date,
@@ -248,26 +257,32 @@ export async function addBackgroundInfo(
 }
 
 export async function onboardVolunteer(
-  volunteerId: Ulid,
-  volunteerPartnerOrg: string | undefined,
+  volunteer: OnboardedVolunteer,
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
-  await VolunteerRepo.updateVolunteerOnboarded(volunteerId, tc)
-  await queueOnboardingEventEmails(volunteerId)
-  // TODO: this should just be done by the generic onboarding email handler above
-  if (volunteerPartnerOrg) {
-    await queuePartnerOnboardingEventEmails(volunteerId)
+  if (
+    !volunteer.onboarded &&
+    volunteer.hasSubjects &&
+    volunteer.hasCompletedUpchieve101 &&
+    volunteer.hasAvailability
+  ) {
+    await VolunteerRepo.updateVolunteerOnboarded(volunteer.id, tc)
+    await queueOnboardingEventEmails(volunteer.id)
+    // TODO: this should just be done by the generic onboarding email handler above
+    if (volunteer.volunteerPartnerOrg) {
+      await queuePartnerOnboardingEventEmails(volunteer.id)
+    }
+    await createAccountAction(
+      {
+        action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+        userId: volunteer.id,
+        ipAddress: ip,
+      },
+      tc
+    )
+    AnalyticsService.captureEvent(volunteer.id, EVENTS.ACCOUNT_ONBOARDED, {
+      event: EVENTS.ACCOUNT_ONBOARDED,
+    })
   }
-  await createAccountAction(
-    {
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      userId: volunteerId,
-      ipAddress: ip,
-    },
-    tc
-  )
-  AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_ONBOARDED, {
-    event: EVENTS.ACCOUNT_ONBOARDED,
-  })
 }
