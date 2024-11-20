@@ -372,7 +372,7 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 CREATE TABLE upchieve.censored_session_audio_transcript_messages (
     session_audio_transcript_message_id uuid NOT NULL,
     message text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    said_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -703,7 +703,7 @@ CREATE TABLE upchieve.moderation_infractions (
     session_id uuid NOT NULL,
     reason text NOT NULL,
     active boolean DEFAULT true NOT NULL,
-    said_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -1575,7 +1575,7 @@ CREATE TABLE upchieve.session_audio_transcript_messages (
     user_id uuid NOT NULL,
     session_id uuid NOT NULL,
     message text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    said_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 

@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS upchieve.moderation_infractions (
     session_id uuid NOT NULL REFERENCES upchieve.sessions (id),
     reason text NOT NULL,
     active boolean NOT NULL DEFAULT TRUE,
-    said_at timestamptz NOT NULL DEFAULT now(),
+    created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
