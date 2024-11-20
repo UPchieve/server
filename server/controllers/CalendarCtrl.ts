@@ -1,24 +1,19 @@
 import _ from 'lodash'
-import { ACCOUNT_USER_ACTIONS, EVENTS, DAYS, HOURS } from '../constants'
-
-import { captureEvent } from '../services/AnalyticsService'
-import {
-  queueOnboardingEventEmails,
-  queuePartnerOnboardingEventEmails,
-} from '../services/VolunteerService'
+import { DAYS, HOURS } from '../constants'
+import * as VolunteerService from '../services/VolunteerService'
 import {
   clearAvailabilityForVolunteer,
   saveCurrentAvailabilityAsHistory,
   updateAvailabilityByVolunteerId,
   Availability,
 } from '../models/Availability'
-import { createAccountAction } from '../models/UserAction'
 import { UserContactInfo } from '../models/User'
 import {
   getVolunteerForScheduleUpdate,
   VolunteerForScheduleUpdate,
-  updateVolunteerThroughAvailability,
+  updateTimezoneByUserId,
 } from '../models/Volunteer'
+import { runInTransaction, TransactionClient } from '../db'
 
 // TODO: duck type validation
 export interface UpdateScheduleOptions {
@@ -30,44 +25,42 @@ export interface UpdateScheduleOptions {
 }
 
 export async function updateSchedule(
-  options: UpdateScheduleOptions
+  options: UpdateScheduleOptions,
+  tc?: TransactionClient
 ): Promise<void> {
-  const user = options.user
-  const newAvailability = options.availability
-  const newTimezone = options.tz
-  const ip = options.ip
+  return runInTransaction(async (tc: TransactionClient) => {
+    const user = options.user
+    const newAvailability = options.availability
+    const newTimezone = options.tz
+    const ip = options.ip
 
-  const volunteer = await getVolunteerForScheduleUpdate(user.id)
-  // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-  let onboarded = volunteer.onboarded
-  if (
-    !volunteer.onboarded &&
-    volunteer.subjects &&
-    volunteer.subjects.length > 0 &&
-    volunteer.passedRequiredTraining
-  ) {
-    onboarded = true
-    await queueOnboardingEventEmails(volunteer.id)
-    if (volunteer.volunteerPartnerOrg)
-      await queuePartnerOnboardingEventEmails(volunteer.id)
-    await createAccountAction({
-      userId: volunteer.id,
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      ipAddress: ip,
-    })
-    captureEvent(volunteer.id, EVENTS.ACCOUNT_ONBOARDED, {
-      event: EVENTS.ACCOUNT_ONBOARDED,
-    })
-  }
+    const volunteer = await getVolunteerForScheduleUpdate(user.id)
+    // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
+    let onboarded = volunteer.onboarded
+    if (
+      //move these checks into service method
+      !volunteer.onboarded &&
+      volunteer.subjects &&
+      volunteer.subjects.length > 0 &&
+      volunteer.passedRequiredTraining
+    ) {
+      onboarded = true
+      VolunteerService.onboardVolunteer(
+        volunteer.id,
+        volunteer.volunteerPartnerOrg,
+        ip,
+        tc
+      )
+    }
 
-  await executeUpdate(volunteer, newTimezone, onboarded, newAvailability)
+    await executeUpdate(volunteer, newTimezone, newAvailability)
+  }, tc)
 }
 
 async function executeUpdate(
   user: VolunteerForScheduleUpdate,
   // @note: this is set to optional to test the absence of an availability object
   tz: string, // FIXME: constrain this to official timezones
-  onboarded: boolean,
   availability?: Availability
 ): Promise<void> {
   // verify that newAvailability is defined and not null
@@ -99,7 +92,7 @@ async function executeUpdate(
   await clearAvailabilityForVolunteer(user.id)
   await Promise.all([
     updateAvailabilityByVolunteerId(user.id, availability, tz),
-    updateVolunteerThroughAvailability(user.id, tz, onboarded),
+    updateTimezoneByUserId(user.id, tz),
   ])
 }
 
@@ -110,5 +103,5 @@ export async function clearSchedule(
   // TODO: run these with the same client
   await saveCurrentAvailabilityAsHistory(user.id)
   await clearAvailabilityForVolunteer(user.id)
-  await updateVolunteerThroughAvailability(user.id, tz)
+  await updateTimezoneByUserId(user.id, tz)
 }

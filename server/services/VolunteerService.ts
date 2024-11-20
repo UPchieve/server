@@ -14,6 +14,7 @@ import * as MailService from './MailService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
+import { TransactionClient } from '../db'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -243,5 +244,30 @@ export async function addBackgroundInfo(
   await VolunteerRepo.updateVolunteerBackgroundInfo(volunteerId, {
     ...update,
     approved,
+  })
+}
+
+export async function onboardVolunteer(
+  volunteerId: Ulid,
+  volunteerPartnerOrg: string | undefined,
+  ip: string,
+  tc: TransactionClient
+): Promise<void> {
+  await VolunteerRepo.updateVolunteerOnboarded(volunteerId, tc)
+  await queueOnboardingEventEmails(volunteerId)
+  // TODO: this should just be done by the generic onboarding email handler above
+  if (volunteerPartnerOrg) {
+    await queuePartnerOnboardingEventEmails(volunteerId)
+  }
+  await createAccountAction(
+    {
+      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+      userId: volunteerId,
+      ipAddress: ip,
+    },
+    tc
+  )
+  AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_ONBOARDED, {
+    event: EVENTS.ACCOUNT_ONBOARDED,
   })
 }
