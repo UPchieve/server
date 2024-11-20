@@ -49,8 +49,6 @@ COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.users (id, verified, email_verified, phone_verified, email, password, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, sms_consent, mongo_id, other_signup_source, proxy_email, ban_type) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.444933+00	2024-08-28 00:28:45.444933+00	+12125551212	f	\N	\N	\N	\N
-01919662-8804-ad82-c517-37eaab0e19c2	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.44726+00	2024-08-28 00:28:45.44726+00	+12125551213	f	\N	\N	\N	\N
 01919662-8804-9ccc-4601-1e98c09c946b	t	f	f	volunteer3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Open Sign Up	UPchieve	f	\N	D	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.448816+00	2024-08-28 00:28:45.448816+00	+12125551214	f	\N	\N	\N	\N
 01919662-8804-29c4-5ff7-cb6803c09fa6	t	f	f	volunteer4@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Onboarding	UPchieve	f	\N	E	\N	f	f	\N	0	\N	2024-08-28 00:28:45.450257+00	2024-08-28 00:28:45.450257+00	+12125551215	f	\N	\N	\N	\N
 01919662-8804-9826-da53-f1b2a1e53205	t	f	f	volunteer5@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Approval	UPchieve	f	\N	Z	\N	f	f	\N	0	\N	2024-08-28 00:28:45.451788+00	2024-08-28 00:28:45.451788+00	+12125551216	f	\N	\N	\N	\N
@@ -58,6 +56,8 @@ COPY upchieve.users (id, verified, email_verified, phone_verified, email, passwo
 01919662-885c-d39a-1749-5aaf18cf5d3b	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.532467+00	2024-08-28 00:28:45.532467+00	\N	f	\N	\N	\N	\N
 01919662-885c-2fca-264b-9558f5b20fe4	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.533913+00	2024-08-28 00:28:45.533913+00	\N	f	\N	\N	\N	\N
 01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N
+01919662-8804-8772-ecf7-b08dfa28c6e4	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.444933+00	2024-08-28 00:28:45.444933+00	+12125551212	f	\N	\N	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.44726+00	2024-08-28 00:28:45.44726+00	+12125551213	f	\N	\N	\N	\N
 \.
 
 
@@ -3894,7 +3894,7 @@ COPY upchieve.volunteer_references (id, user_id, first_name, last_name, email, s
 -- Name: ban_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, true);
 
 
 --
