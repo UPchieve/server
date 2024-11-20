@@ -193,23 +193,6 @@ describe('getQuizScore', () => {
       cert
     )
     expect(VolunteerService.onboardVolunteer).not.toHaveBeenCalled()
-    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
-    // expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
-    // expect(
-    //   VolunteerService.queuePartnerOnboardingEventEmails
-    // ).not.toHaveBeenCalled()
-    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-    //   userId: volunteer.id,
-    //   ipAddress: '',
-    // })
-    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-    //   volunteer.id,
-    //   EVENTS.ACCOUNT_ONBOARDED,
-    //   {
-    //     event: EVENTS.ACCOUNT_ONBOARDED,
-    //   }
-    // )
     expect(result).toMatchObject(expectedResult)
   })
 
@@ -416,23 +399,6 @@ describe('getQuizScore', () => {
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
-    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
-    // expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
-    // expect(
-    //   VolunteerService.queuePartnerOnboardingEventEmails
-    // ).not.toHaveBeenCalled()
-    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-    //   userId: volunteer.id,
-    //   ipAddress: '',
-    // })
-    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-    //   volunteer.id,
-    //   EVENTS.ACCOUNT_ONBOARDED,
-    //   {
-    //     event: EVENTS.ACCOUNT_ONBOARDED,
-    //   }
-    // )
     expect(result).toEqual(expectedResult)
   })
 
@@ -525,27 +491,6 @@ describe('getQuizScore', () => {
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).toHaveBeenCalled()
-    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
-    //   volunteer.id
-    // )
-    // expect(
-    //   VolunteerService.queueOnboardingEventEmails
-    // ).not.toHaveBeenCalledWith(volunteer.id)
-    // expect(
-    //   VolunteerService.queuePartnerOnboardingEventEmails
-    // ).not.toHaveBeenCalled()
-    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-    //   userId: volunteer.id,
-    //   ipAddress: undefined,
-    // })
-    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-    //   volunteer.id,
-    //   EVENTS.ACCOUNT_ONBOARDED,
-    //   {
-    //     event: EVENTS.ACCOUNT_ONBOARDED,
-    //   }
-    // )
     expect(result).toEqual(expectedResult)
   })
 
@@ -835,27 +780,6 @@ describe('getQuizScore', () => {
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
-    // expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalledWith(
-    //   volunteer.id
-    // )
-    // expect(
-    //   VolunteerService.queueOnboardingEventEmails
-    // ).not.toHaveBeenCalledWith(volunteer.id)
-    // expect(
-    //   VolunteerService.queuePartnerOnboardingEventEmails
-    // ).not.toHaveBeenCalled()
-    // expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
-    //   action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-    //   userId: volunteer.id,
-    //   ipAddress: undefined,
-    // })
-    // expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
-    //   volunteer.id,
-    //   EVENTS.ACCOUNT_ONBOARDED,
-    //   {
-    //     event: EVENTS.ACCOUNT_ONBOARDED,
-    //   }
-    // )
     expect(result).toEqual(expectedResult)
   })
 })
