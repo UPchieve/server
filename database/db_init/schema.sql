@@ -4424,6 +4424,13 @@ CREATE INDEX legacy_availability_histories_user_id_recorded_at ON upchieve.legac
 
 
 --
+-- Name: moderation_infractions_user_id_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX moderation_infractions_user_id_session_id_idx ON upchieve.moderation_infractions USING btree (user_id, session_id);
+
+
+--
 -- Name: notifications_sent_at_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4526,6 +4533,13 @@ CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_t
 --
 
 CREATE UNIQUE INDEX session_audio_session_id_idx ON upchieve.session_audio USING btree (session_id);
+
+
+--
+-- Name: session_audio_transcript_messages_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_audio_transcript_messages_session_id_idx ON upchieve.session_audio_transcript_messages USING btree (session_id);
 
 
 --

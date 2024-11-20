@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS upchieve.session_audio_transcript_messages (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS session_audio_transcript_messages_session_id_idx ON upchieve.session_audio_transcript_messages (session_id);
+
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.session_audio_transcript_messages;
 

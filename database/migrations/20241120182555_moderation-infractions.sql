@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS upchieve.moderation_infractions (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS moderation_infractions_user_id_session_id_idx ON upchieve.moderation_infractions (user_id, session_id);
+
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.moderation_infractions;
 
