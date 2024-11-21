@@ -35,6 +35,16 @@ import { logSocketEvent } from '../../utils/log-socket-connection-info'
 import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
+import {
+  moderateTranscript,
+  SanitizedTranscriptModerationResult,
+} from '../../services/ModerationService'
+
+export enum SessionMessageType {
+  CHAT = 'chat',
+  VOICE = 'voice',
+  AUDIO_TRANSCRIPT = 'audio-transcript',
+}
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -350,7 +360,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
-            const { user, sessionId, message, source, type, transcript } = data
+            const {
+              user,
+              sessionId,
+              message,
+              source,
+              type,
+              transcript,
+              saidAt,
+            } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
 
@@ -366,25 +384,38 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             const createdAt = new Date()
             try {
               // TODO: correctly type user from payload
-              const data: {
+              const saveMessageData: {
                 sessionId: Ulid
                 message: string
-                type?: 'voice'
+                type?: SessionMessageType.VOICE
                 transcript?: string
               } = {
                 sessionId,
                 message,
               }
-              if (type === 'voice') {
-                data.type = type
-                data.transcript = transcript
+              if (type) {
+                saveMessageData.type = type
               }
+              if (type === SessionMessageType.VOICE) {
+                saveMessageData.transcript = transcript
+              }
+              if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
+                const result = await moderateTranscript(
+                  message,
+                  sessionId,
+                  user.id
+                )
+                if (!result.isClean)
+                  saveMessageData.message = (result as SanitizedTranscriptModerationResult).sanitizedTranscript
+              }
+
               const messageId = await SessionService.saveMessage(
                 user,
                 createdAt,
-                data,
+                saveMessageData,
                 chatbot
               )
+
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
 
@@ -396,7 +427,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 userType: UserRole
                 user: Ulid
                 sessionId: Ulid
-                type?: 'voice'
+                type?: SessionMessageType
                 transcript?: string
               } = {
                 contents: message,
@@ -409,9 +440,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
               if (type) {
                 messageData.type = type
-                if (type === 'voice') {
+                if (type === SessionMessageType.VOICE) {
                   messageData.transcript = transcript
-                } else if (type === 'session-audio') {
+                } else if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
                   // @TODO Attach timestamp for when it was said?
                 }
               }
@@ -431,7 +462,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 })
               }
 
-              const socketRoom = getSessionRoom(data.sessionId)
+              const socketRoom = getSessionRoom(saveMessageData.sessionId)
               io.in(socketRoom).emit('messageSend', messageData)
               resolve()
             } catch (error) {
