@@ -7,6 +7,7 @@ import {
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { openai } from './BotsService'
+import * as UsersRepo from '../models/User/queries'
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
@@ -15,6 +16,7 @@ import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum } from './LangfuseService'
+import SocketService from './SocketService'
 import ContentSafetyClient, {
   AnalyzeImage200Response,
   AnalyzeImageDefaultResponse,
@@ -22,6 +24,8 @@ import ContentSafetyClient, {
 import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
 import { InputError } from '../models/Errors'
+import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
+import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -289,6 +293,66 @@ export async function moderateMessage({
   }
 
   return result
+}
+
+const handleModerationInfraction = async (
+  userId: string,
+  sessionId: string,
+  reasons: ModerationFailureReasons
+) => {
+  // Write infraction to DB
+  const strikesForUserInSession = await ModerationInfractionsRepo.insertModerationInfraction(
+    {
+      userId,
+      sessionId,
+      reason: JSON.stringify(Object.keys(reasons.failures)), // @TODO is this good enough...?
+    }
+  )
+
+  // If at or over total strikes, emit event and ban user
+  if (strikesForUserInSession >= config.maxModerationInfractionsPerSession) {
+    await UsersRepo.banUserById(
+      userId,
+      USER_BAN_TYPES.LIVE_MEDIA,
+      USER_BAN_REASONS.AUTOMATED_MODERATION
+    ) // @TODO Should we send an email or anything?
+    const socketService = await SocketService.getInstance()
+    await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
+  }
+}
+
+export type CleanTranscriptModerationResult = {
+  isClean: true
+}
+export type SanitizedTranscriptModerationResult = {
+  isClean: false
+  failures: { [key: string]: string[] }
+  sanitizedTranscript: string
+}
+export const moderateTranscript = async ({
+  transcript,
+  sessionId,
+  userId,
+}: {
+  transcript: string
+  sessionId: string
+  userId: string
+}): Promise<
+  CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
+> => {
+  const { isClean, failures, sanitizedMessage } = regexModerate(transcript)
+  if (isClean) return { isClean: true } as CleanTranscriptModerationResult
+
+  // @TODO - Step 1, write to censored_session_transcript_messages
+  // @TODO - Step 2, send to AI moderation as a second layer. Skip for now, let's just do regex.
+  // If the message is unclean, track it as an infraction against the user
+  handleModerationInfraction(userId, sessionId, failures)
+
+  return {
+    isClean: false,
+    failures,
+    sanitizedTranscript: sanitizedMessage,
+  } as SanitizedTranscriptModerationResult
 }
 
 enum AnalyzeImageErrorCodeEnum {
