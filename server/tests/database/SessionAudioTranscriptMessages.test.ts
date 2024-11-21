@@ -31,14 +31,7 @@ describe('SessionAudioTranscriptMessages repo', () => {
         },
         client
       )
-      expect(result).toEqual(
-        expect.objectContaining({
-          userId,
-          sessionId,
-          saidAt,
-          message,
-        })
-      )
+      expect(typeof result).toEqual('string')
     })
   })
 })

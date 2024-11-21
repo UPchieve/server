@@ -15,6 +15,7 @@ import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
+import * as CensoredTranscriptMessagesRepo from '../../models/CensoredSessionAudioTranscriptMessages/queries'
 import {
   getUserContactInfoById,
   UserContactInfo,
@@ -40,11 +41,7 @@ import {
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
 
-export enum SessionMessageType {
-  CHAT = 'chat',
-  VOICE = 'voice',
-  AUDIO_TRANSCRIPT = 'audio-transcript',
-}
+export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
 // Custom API key handlers
 async function handleChatBot(socket: Socket, key: string) {
@@ -370,6 +367,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               saidAt,
             } = data
 
+            logger.debug('Received message', JSON.stringify(data, null, 2))
+
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
@@ -381,32 +380,42 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (!sessionId) {
               return resolve()
             }
+
             const createdAt = new Date()
+            let sanitizedMessage: string
+            let messageIsUnclean = false
             try {
               // TODO: correctly type user from payload
               const saveMessageData: {
                 sessionId: Ulid
                 message: string
-                type?: SessionMessageType.VOICE
+                type?: SessionMessageType
                 transcript?: string
+                saidAt?: Date
               } = {
                 sessionId,
                 message,
+                saidAt,
               }
               if (type) {
                 saveMessageData.type = type
               }
-              if (type === SessionMessageType.VOICE) {
+              if (type === 'voice') {
                 saveMessageData.transcript = transcript
               }
-              if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
-                const result = await moderateTranscript(
-                  message,
+              if (type === 'audio-transcription') {
+                const result = await moderateTranscript({
+                  transcript: message,
                   sessionId,
-                  user.id
-                )
-                if (!result.isClean)
-                  saveMessageData.message = (result as SanitizedTranscriptModerationResult).sanitizedTranscript
+                  userId: user.id,
+                })
+                if (!result.isClean) {
+                  messageIsUnclean = true
+                  const sanitized = (result as SanitizedTranscriptModerationResult)
+                    .sanitizedTranscript
+                  saveMessageData.message = sanitized
+                  sanitizedMessage = sanitized
+                }
               }
 
               const messageId = await SessionService.saveMessage(
@@ -415,6 +424,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 saveMessageData,
                 chatbot
               )
+              if (messageIsUnclean) {
+                await CensoredTranscriptMessagesRepo.insertCensoredSessionAudioTranscriptMessages(
+                  messageId,
+                  message
+                )
+              }
 
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
@@ -430,7 +445,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 type?: SessionMessageType
                 transcript?: string
               } = {
-                contents: message,
+                contents: sanitizedMessage ?? message,
                 createdAt: createdAt,
                 isVolunteer: isVolunteerUserType(userType),
                 userType: userType,
@@ -440,9 +455,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
               if (type) {
                 messageData.type = type
-                if (type === SessionMessageType.VOICE) {
+                if (type === 'voice') {
                   messageData.transcript = transcript
-                } else if (type === SessionMessageType.AUDIO_TRANSCRIPT) {
+                } else if (type === 'audio-transcription') {
                   // @TODO Attach timestamp for when it was said?
                 }
               }

@@ -308,7 +308,6 @@ const handleModerationInfraction = async (
       reason: JSON.stringify(Object.keys(reasons.failures)), // @TODO is this good enough...?
     }
   )
-
   // If at or over total strikes, emit event and ban user
   if (strikesForUserInSession >= config.maxModerationInfractionsPerSession) {
     await UsersRepo.banUserById(
@@ -342,15 +341,21 @@ export const moderateTranscript = async ({
 > => {
   const { isClean, failures, sanitizedMessage } = regexModerate(transcript)
   if (isClean) return { isClean: true } as CleanTranscriptModerationResult
-
-  // @TODO - Step 1, write to censored_session_transcript_messages
   // @TODO - Step 2, send to AI moderation as a second layer. Skip for now, let's just do regex.
+
   // If the message is unclean, track it as an infraction against the user
   handleModerationInfraction(userId, sessionId, failures)
 
+  console.debug(
+    'Failures',
+    JSON.stringify(failures),
+    'sanitizedTranscript',
+    JSON.stringify(sanitizedMessage)
+  )
+
   return {
     isClean: false,
-    failures,
+    failures: failures.failures,
     sanitizedTranscript: sanitizedMessage,
   } as SanitizedTranscriptModerationResult
 }

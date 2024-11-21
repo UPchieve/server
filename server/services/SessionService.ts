@@ -1,5 +1,4 @@
 import crypto from 'crypto'
-import _ from 'lodash'
 import moment from 'moment'
 import * as cache from '../cache'
 import { Ulid } from '../models/pgUtils'
@@ -24,6 +23,7 @@ import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
+import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   Session,
   updateSessionFlagsById,
@@ -70,6 +70,7 @@ import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { getSessionCallParticipantsCacheKey } from '../utils/session-utils'
 import { KeyNotFoundError } from '../cache'
+import { SessionMessageType } from '../router/api/sockets'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -797,7 +798,8 @@ export async function saveMessage(
   data: {
     sessionId: Ulid
     message: string
-    type?: 'voice'
+    type?: SessionMessageType
+    saidAt?: Date // @TODO Improve typing to handle different types of messages
   },
   chatbot: Ulid | undefined
 ): Promise<string> {
@@ -815,6 +817,13 @@ export async function saveMessage(
 
   if (data.type === 'voice') {
     return message
+  } else if (data.type === 'audio-transcription') {
+    return await TranscriptMessagesRepo.insertSessionAudioTranscriptMessage({
+      userId: user.id,
+      sessionId,
+      message,
+      saidAt: data.saidAt!,
+    })
   } else {
     return await SessionRepo.addMessageToSessionById(
       sessionId,
