@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/Geography/geography.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'UpsertCity' parameters type */
 export interface IUpsertCityParams {
@@ -18,7 +18,7 @@ export interface IUpsertCityQuery {
   result: IUpsertCityResult;
 }
 
-const upsertCityIR: any = {"name":"upsertCity","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":95,"b":99,"line":4,"col":17},{"a":319,"b":323,"line":19,"col":16}]}},{"name":"state","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":103,"b":108,"line":4,"col":25},{"a":358,"b":362,"line":20,"col":33}]}}],"usedParamSet":{"name":true,"state":true},"statement":{"body":"WITH ins AS (\nINSERT INTO cities (name, us_state_code)\n        VALUES (:name!, :state!)\n    ON CONFLICT (name, us_state_code)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        id\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        cities\n    WHERE\n        name = :name!\n            AND us_state_code = :state","loc":{"a":23,"b":362,"line":2,"col":0}}};
+const upsertCityIR: any = {"usedParamSet":{"name":true,"state":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":76},{"a":295,"b":300}]},{"name":"state","required":true,"transform":{"type":"scalar"},"locs":[{"a":79,"b":85},{"a":334,"b":339}]}],"statement":"WITH ins AS (\nINSERT INTO cities (name, us_state_code)\n        VALUES (:name!, :state!)\n    ON CONFLICT (name, us_state_code)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        id\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        cities\n    WHERE\n        name = :name!\n            AND us_state_code = :state"};
 
 /**
  * Query generated from SQL:

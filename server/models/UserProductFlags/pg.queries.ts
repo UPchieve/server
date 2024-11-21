@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/UserProductFlags/user_product_flags.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'CreateUpfByUserId' parameters type */
 export interface ICreateUpfByUserIdParams {
@@ -26,7 +26,7 @@ export interface ICreateUpfByUserIdQuery {
   result: ICreateUpfByUserIdResult;
 }
 
-const createUpfByUserIdIR: any = {"name":"createUpfByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":107,"b":113,"line":4,"col":5},{"a":270,"b":276,"line":14,"col":23}]}}],"usedParamSet":{"userId":true},"statement":{"body":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    created_at,\n    updated_at","loc":{"a":30,"b":559,"line":2,"col":0}}};
+const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
@@ -85,7 +85,7 @@ export interface IGetUpfByUserIdQuery {
   result: IGetUpfByUserIdResult;
 }
 
-const getUpfByUserIdIR: any = {"name":"getUpfByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":919,"b":925,"line":43,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!","loc":{"a":591,"b":925,"line":29,"col":0}}};
+const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":327,"b":334}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -128,7 +128,7 @@ export interface IGetPublicUpfByUserIdQuery {
   result: IGetPublicUpfByUserIdResult;
 }
 
-const getPublicUpfByUserIdIR: any = {"name":"getPublicUpfByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1086,"b":1092,"line":54,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!","loc":{"a":963,"b":1092,"line":47,"col":0}}};
+const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":129}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -163,7 +163,7 @@ export interface IUpdateSentInactiveThirtyDayEmailQuery {
   result: IUpdateSentInactiveThirtyDayEmailResult;
 }
 
-const updateSentInactiveThirtyDayEmailIR: any = {"name":"updateSentInactiveThirtyDayEmail","params":[{"name":"sentInactiveThirtyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1214,"b":1240,"line":61,"col":38}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1287,"b":1293,"line":64,"col":15}]}}],"usedParamSet":{"sentInactiveThirtyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = :sentInactiveThirtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1142,"b":1321,"line":58,"col":0}}};
+const updateSentInactiveThirtyDayEmailIR: any = {"usedParamSet":{"sentInactiveThirtyDayEmail":true,"userId":true},"params":[{"name":"sentInactiveThirtyDayEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":98}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":144,"b":151}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = :sentInactiveThirtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -199,7 +199,7 @@ export interface IUpdateSentInactiveSixtyDayEmailQuery {
   result: IUpdateSentInactiveSixtyDayEmailResult;
 }
 
-const updateSentInactiveSixtyDayEmailIR: any = {"name":"updateSentInactiveSixtyDayEmail","params":[{"name":"sentInactiveSixtyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1441,"b":1466,"line":73,"col":37}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1513,"b":1519,"line":76,"col":15}]}}],"usedParamSet":{"sentInactiveSixtyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_sixty_day_email = :sentInactiveSixtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1370,"b":1547,"line":70,"col":0}}};
+const updateSentInactiveSixtyDayEmailIR: any = {"usedParamSet":{"sentInactiveSixtyDayEmail":true,"userId":true},"params":[{"name":"sentInactiveSixtyDayEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":96}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":149}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_sixty_day_email = :sentInactiveSixtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -235,7 +235,7 @@ export interface IUpdateSentInactiveNinetyDayEmailQuery {
   result: IUpdateSentInactiveNinetyDayEmailResult;
 }
 
-const updateSentInactiveNinetyDayEmailIR: any = {"name":"updateSentInactiveNinetyDayEmail","params":[{"name":"sentInactiveNinetyDayEmail","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1669,"b":1695,"line":85,"col":38}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1742,"b":1748,"line":88,"col":15}]}}],"usedParamSet":{"sentInactiveNinetyDayEmail":true,"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = :sentInactiveNinetyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok","loc":{"a":1597,"b":1776,"line":82,"col":0}}};
+const updateSentInactiveNinetyDayEmailIR: any = {"usedParamSet":{"sentInactiveNinetyDayEmail":true,"userId":true},"params":[{"name":"sentInactiveNinetyDayEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":98}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":144,"b":151}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = :sentInactiveNinetyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -270,7 +270,7 @@ export interface IEnrollStudentToFallIncentiveProgramQuery {
   result: IEnrollStudentToFallIncentiveProgramResult;
 }
 
-const enrollStudentToFallIncentiveProgramIR: any = {"name":"enrollStudentToFallIncentiveProgram","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1949,"b":1955,"line":100,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"UPDATE\n    user_product_flags\nSET\n    fall_incentive_enrollment_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    fall_incentive_enrollment_at","loc":{"a":1829,"b":1998,"line":94,"col":0}}};
+const enrollStudentToFallIncentiveProgramIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    fall_incentive_enrollment_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    fall_incentive_enrollment_at"};
 
 /**
  * Query generated from SQL:

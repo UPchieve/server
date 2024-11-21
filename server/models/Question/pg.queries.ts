@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/Question/question.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -10,7 +10,7 @@ export type stringArray = (string)[];
 /** 'List' parameters type */
 export interface IListParams {
   category: string;
-  subcategory: string | null | void;
+  subcategory?: string | null | void;
 }
 
 /** 'List' return type */
@@ -32,7 +32,7 @@ export interface IListQuery {
   result: IListResult;
 }
 
-const listIR: any = {"name":"list","params":[{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":423,"b":431,"line":17,"col":20}]}},{"name":"subcategory","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":455,"b":465,"line":18,"col":22}]}}],"usedParamSet":{"category":true,"subcategory":true},"statement":{"body":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    subcat.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions AS ques\n    LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id\n    LEFT JOIN quizzes ON quizzes.id = subcat.quiz_id\nWHERE\n    quizzes.name = :category!\n    OR subcat.name = :subcategory","loc":{"a":17,"b":465,"line":2,"col":0}}};
+const listIR: any = {"usedParamSet":{"category":true,"subcategory":true},"params":[{"name":"category","required":true,"transform":{"type":"scalar"},"locs":[{"a":405,"b":414}]},{"name":"subcategory","required":false,"transform":{"type":"scalar"},"locs":[{"a":437,"b":448}]}],"statement":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    subcat.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions AS ques\n    LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id\n    LEFT JOIN quizzes ON quizzes.id = subcat.quiz_id\nWHERE\n    quizzes.name = :category!\n    OR subcat.name = :subcategory"};
 
 /**
  * Query generated from SQL:
@@ -62,7 +62,7 @@ export const list = new PreparedQuery<IListParams,IListResult>(listIR);
 /** 'Create' parameters type */
 export interface ICreateParams {
   correctAnswer: string;
-  imageSrc: string | null | void;
+  imageSrc?: string | null | void;
   possibleAnswers: Json;
   questionText: string;
   subcategoryId: number;
@@ -85,7 +85,7 @@ export interface ICreateQuery {
   result: ICreateResult;
 }
 
-const createIR: any = {"name":"create","params":[{"name":"questionText","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":638,"b":650,"line":23,"col":13}]}},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":654,"b":669,"line":23,"col":29}]}},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":673,"b":686,"line":23,"col":48}]}},{"name":"imageSrc","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":690,"b":697,"line":23,"col":65}]}},{"name":"subcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":701,"b":714,"line":23,"col":76}]}}],"usedParamSet":{"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true,"subcategoryId":true},"statement":{"body":"INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)\n    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc, :subcategoryId!, NOW(), NOW())\nRETURNING\n    id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at","loc":{"a":489,"b":846,"line":22,"col":0}}};
+const createIR: any = {"usedParamSet":{"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true,"subcategoryId":true},"params":[{"name":"questionText","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":161}]},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":180}]},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"locs":[{"a":183,"b":197}]},{"name":"imageSrc","required":false,"transform":{"type":"scalar"},"locs":[{"a":200,"b":208}]},{"name":"subcategoryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":225}]}],"statement":"INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)\n    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc, :subcategoryId!, NOW(), NOW())\nRETURNING\n    id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at"};
 
 /**
  * Query generated from SQL:
@@ -115,7 +115,7 @@ export interface IUpsertQuizQuery {
   result: IUpsertQuizResult;
 }
 
-const upsertQuizIR: any = {"name":"upsertQuiz","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":956,"b":960,"line":31,"col":17},{"a":1170,"b":1174,"line":46,"col":16}]}}],"usedParamSet":{"name":true},"statement":{"body":"WITH ins AS (\nINSERT INTO quizzes (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT (name)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        quizzes\n    WHERE\n        name = :name!","loc":{"a":874,"b":1174,"line":29,"col":0}}};
+const upsertQuizIR: any = {"usedParamSet":{"name":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":86},{"a":295,"b":300}]}],"statement":"WITH ins AS (\nINSERT INTO quizzes (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT (name)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        quizzes\n    WHERE\n        name = :name!"};
 
 /**
  * Query generated from SQL:
@@ -160,7 +160,7 @@ export interface IUpsertQuizSubcategoryQuery {
   result: IUpsertQuizSubcategoryResult;
 }
 
-const upsertQuizSubcategoryIR: any = {"name":"upsertQuizSubcategory","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1315,"b":1319,"line":52,"col":17},{"a":1559,"b":1563,"line":67,"col":16}]}},{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1323,"b":1329,"line":52,"col":25}]}}],"usedParamSet":{"name":true,"quizId":true},"statement":{"body":"WITH ins AS (\nINSERT INTO quiz_subcategories (name, quiz_id, created_at, updated_at)\n        VALUES (:name!, :quizId!, NOW(), NOW())\n    ON CONFLICT (name, quiz_id)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        quiz_subcategories\n    WHERE\n        name = :name!","loc":{"a":1213,"b":1563,"line":50,"col":0}}};
+const upsertQuizSubcategoryIR: any = {"usedParamSet":{"name":true,"quizId":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":101,"b":106},{"a":345,"b":350}]},{"name":"quizId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":116}]}],"statement":"WITH ins AS (\nINSERT INTO quiz_subcategories (name, quiz_id, created_at, updated_at)\n        VALUES (:name!, :quizId!, NOW(), NOW())\n    ON CONFLICT (name, quiz_id)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        quiz_subcategories\n    WHERE\n        name = :name!"};
 
 /**
  * Query generated from SQL:
@@ -204,7 +204,7 @@ export interface IDestroyQuery {
   result: IDestroyResult;
 }
 
-const destroyIR: any = {"name":"destroy","params":[{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1642,"b":1652,"line":72,"col":27}]}}],"usedParamSet":{"questionId":true},"statement":{"body":"DELETE FROM quiz_questions\nWHERE quiz_questions.id = :questionId!\nRETURNING\n    id AS ok","loc":{"a":1588,"b":1675,"line":71,"col":0}}};
+const destroyIR: any = {"usedParamSet":{"questionId":true},"params":[{"name":"questionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":64}]}],"statement":"DELETE FROM quiz_questions\nWHERE quiz_questions.id = :questionId!\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -234,7 +234,7 @@ export interface IUpdateSubcategoryQuery {
   result: IUpdateSubcategoryResult;
 }
 
-const updateSubcategoryIR: any = {"name":"updateSubcategory","params":[{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1798,"b":1815,"line":79,"col":13}]}},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1819,"b":1830,"line":79,"col":34}]}},{"name":"quizId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1834,"b":1840,"line":79,"col":49}]}}],"usedParamSet":{"quizSubcategoryId":true,"subcategory":true,"quizId":true},"statement":{"body":"INSERT INTO quiz_subcategories (id, name, quiz_id, created_at, updated_at)\n    VALUES (:quizSubcategoryId!, :subcategory!, :quizId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING","loc":{"a":1710,"b":1882,"line":78,"col":0}}};
+const updateSubcategoryIR: any = {"usedParamSet":{"quizSubcategoryId":true,"subcategory":true,"quizId":true},"params":[{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":105}]},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":120}]},{"name":"quizId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]}],"statement":"INSERT INTO quiz_subcategories (id, name, quiz_id, created_at, updated_at)\n    VALUES (:quizSubcategoryId!, :subcategory!, :quizId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING"};
 
 /**
  * Query generated from SQL:
@@ -251,7 +251,7 @@ export const updateSubcategory = new PreparedQuery<IUpdateSubcategoryParams,IUpd
 /** 'Update' parameters type */
 export interface IUpdateParams {
   correctAnswer: string;
-  imageSrc: string | null | void;
+  imageSrc?: string | null | void;
   possibleAnswers: Json;
   questionId: number;
   questionText: string;
@@ -269,7 +269,7 @@ export interface IUpdateQuery {
   result: IUpdateResult;
 }
 
-const updateIR: any = {"name":"update","params":[{"name":"questionText","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1957,"b":1969,"line":88,"col":21}]}},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2005,"b":2020,"line":89,"col":33}]}},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2064,"b":2077,"line":90,"col":22}]}},{"name":"imageSrc","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2109,"b":2116,"line":91,"col":29}]}},{"name":"subcategoryId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2185,"b":2198,"line":93,"col":27}]}},{"name":"questionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2231,"b":2241,"line":95,"col":25}]}}],"usedParamSet":{"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true,"subcategoryId":true,"questionId":true},"statement":{"body":"UPDATE\n    quiz_questions\nSET\n    question_text = :questionText!,\n    possible_answers = COALESCE(:possibleAnswers!, possible_answers),\n    correct_answer = :correctAnswer!,\n    image_source = COALESCE(:imageSrc, image_source),\n    updated_at = NOW(),\n    quiz_subcategory_id = :subcategoryId!\nWHERE\n    quiz_questions.id = :questionId!\nRETURNING\n    id AS ok","loc":{"a":1906,"b":2264,"line":85,"col":0}}};
+const updateIR: any = {"usedParamSet":{"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true,"subcategoryId":true,"questionId":true},"params":[{"name":"questionText","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":63}]},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"locs":[{"a":98,"b":114}]},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":171}]},{"name":"imageSrc","required":false,"transform":{"type":"scalar"},"locs":[{"a":202,"b":210}]},{"name":"subcategoryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":278,"b":292}]},{"name":"questionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":324,"b":335}]}],"statement":"UPDATE\n    quiz_questions\nSET\n    question_text = :questionText!,\n    possible_answers = COALESCE(:possibleAnswers!, possible_answers),\n    correct_answer = :correctAnswer!,\n    image_source = COALESCE(:imageSrc, image_source),\n    updated_at = NOW(),\n    quiz_subcategory_id = :subcategoryId!\nWHERE\n    quiz_questions.id = :questionId!\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -307,7 +307,7 @@ export interface ICategoriesQuery {
   result: ICategoriesResult;
 }
 
-const categoriesIR: any = {"name":"categories","params":[],"usedParamSet":{},"statement":{"body":"SELECT\n    quizzes.name AS categories,\n    array_agg(quiz_subcategories.name) AS subcategories\nFROM\n    quizzes\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.quiz_id = quizzes.id\nGROUP BY\n    quizzes.name","loc":{"a":2292,"b":2504,"line":101,"col":0}}};
+const categoriesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    quizzes.name AS categories,\n    array_agg(quiz_subcategories.name) AS subcategories\nFROM\n    quizzes\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.quiz_id = quizzes.id\nGROUP BY\n    quizzes.name"};
 
 /**
  * Query generated from SQL:
@@ -341,7 +341,7 @@ export interface IGetSubcategoriesForQuizQuery {
   result: IGetSubcategoriesForQuizResult;
 }
 
-const getSubcategoriesForQuizIR: any = {"name":"getSubcategoriesForQuiz","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2694,"b":2702,"line":118,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    quiz_subcategories.name\nFROM\n    quiz_subcategories\n    JOIN quizzes ON quiz_subcategories.quiz_id = quizzes.id\nWHERE\n    quizzes.name = :quizName!","loc":{"a":2545,"b":2702,"line":112,"col":0}}};
+const getSubcategoriesForQuizIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":157}]}],"statement":"SELECT\n    quiz_subcategories.name\nFROM\n    quiz_subcategories\n    JOIN quizzes ON quiz_subcategories.quiz_id = quizzes.id\nWHERE\n    quizzes.name = :quizName!"};
 
 /**
  * Query generated from SQL:
@@ -382,7 +382,7 @@ export interface IGetMultipleQuestionsByIdQuery {
   result: IGetMultipleQuestionsByIdResult;
 }
 
-const getMultipleQuestionsByIdIR: any = {"name":"getMultipleQuestionsById","params":[{"name":"ids","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3176,"b":3179,"line":137,"col":20}]}}],"usedParamSet":{"ids":true},"statement":{"body":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions ques\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\n    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE\n    ques.id = ANY (:ids!)","loc":{"a":2744,"b":3180,"line":122,"col":0}}};
+const getMultipleQuestionsByIdIR: any = {"usedParamSet":{"ids":true},"params":[{"name":"ids","required":true,"transform":{"type":"scalar"},"locs":[{"a":431,"b":435}]}],"statement":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions ques\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\n    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE\n    ques.id = ANY (:ids!)"};
 
 /**
  * Query generated from SQL:
@@ -434,7 +434,7 @@ export interface IGetQuestionsByCategoryQuery {
   result: IGetQuestionsByCategoryResult;
 }
 
-const getQuestionsByCategoryIR: any = {"name":"getQuestionsByCategory","params":[{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3652,"b":3660,"line":156,"col":20}]}},{"name":"limit","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3670,"b":3675,"line":157,"col":8}]}},{"name":"offset","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3692,"b":3698,"line":157,"col":30}]}}],"usedParamSet":{"category":true,"limit":true,"offset":true},"statement":{"body":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions ques\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\n    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE\n    quizzes.name = :category!\nLIMIT (:limit!)::int OFFSET (:offset!)::int","loc":{"a":3220,"b":3704,"line":141,"col":0}}};
+const getQuestionsByCategoryIR: any = {"usedParamSet":{"category":true,"limit":true,"offset":true},"params":[{"name":"category","required":true,"transform":{"type":"scalar"},"locs":[{"a":431,"b":440}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":449,"b":455}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":471,"b":478}]}],"statement":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions ques\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\n    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE\n    quizzes.name = :category!\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
@@ -480,7 +480,7 @@ export interface IGetQuizReviewMaterialsQuery {
   result: IGetQuizReviewMaterialsResult;
 }
 
-const getQuizReviewMaterialsIR: any = {"name":"getQuizReviewMaterials","params":[{"name":"category","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3932,"b":3940,"line":170,"col":14}]}}],"usedParamSet":{"category":true},"statement":{"body":"SELECT\n    q.name AS category,\n    qm.title,\n    qm.pdf,\n    qm.image\nFROM\n    upchieve.quiz_review_materials AS qm\n    JOIN upchieve.quizzes AS q ON q.id = qm.quiz_id\nWHERE\n    q.name = :category!","loc":{"a":3744,"b":3940,"line":161,"col":0}}};
+const getQuizReviewMaterialsIR: any = {"usedParamSet":{"category":true},"params":[{"name":"category","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":196}]}],"statement":"SELECT\n    q.name AS category,\n    qm.title,\n    qm.pdf,\n    qm.image\nFROM\n    upchieve.quiz_review_materials AS qm\n    JOIN upchieve.quizzes AS q ON q.id = qm.quiz_id\nWHERE\n    q.name = :category!"};
 
 /**
  * Query generated from SQL:
@@ -525,7 +525,7 @@ export interface IGetQuizCertUnlocksByQuizNameQuery {
   result: IGetQuizCertUnlocksByQuizNameResult;
 }
 
-const getQuizCertUnlocksByQuizNameIR: any = {"name":"getQuizCertUnlocksByQuizName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4812,"b":4820,"line":193,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!","loc":{"a":3986,"b":4820,"line":174,"col":0}}};
+const getQuizCertUnlocksByQuizNameIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":825,"b":834}]}],"statement":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!"};
 
 /**
  * Query generated from SQL:
@@ -574,7 +574,7 @@ export interface IGetQuizByNameQuery {
   result: IGetQuizByNameResult;
 }
 
-const getQuizByNameIR: any = {"name":"getQuizByName","params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":4961,"b":4969,"line":205,"col":20}]}}],"usedParamSet":{"quizName":true},"statement":{"body":"SELECT\n    id,\n    name,\n    active,\n    questions_per_subcategory\nFROM\n    quizzes\nWHERE\n    quizzes.name = :quizName!","loc":{"a":4851,"b":4969,"line":197,"col":0}}};
+const getQuizByNameIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":118}]}],"statement":"SELECT\n    id,\n    name,\n    active,\n    questions_per_subcategory\nFROM\n    quizzes\nWHERE\n    quizzes.name = :quizName!"};
 
 /**
  * Query generated from SQL:

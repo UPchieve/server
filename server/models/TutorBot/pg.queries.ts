@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/TutorBot/tutor-bot.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 export type tutor_bot_conversation_user_type = 'bot' | 'student' | 'volunteer';
 
@@ -25,7 +25,7 @@ export interface IGetTutorBotConversationsByUserIdQuery {
   result: IGetTutorBotConversationsByUserIdResult;
 }
 
-const getTutorBotConversationsByUserIdIR: any = {"name":"getTutorBotConversationsByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":377,"b":383,"line":10,"col":23},{"a":613,"b":619,"line":20,"col":19}]}}],"usedParamSet":{"userId":true},"statement":{"body":"WITH ranked_on_created_at AS (\n    SELECT\n        tbcm.*,\n        row_number() OVER (PARTITION BY tbcm.tutor_bot_conversation_id ORDER BY tbcm.created_at) AS rn\n    FROM\n        tutor_bot_conversation_messages tbcm\n        JOIN tutor_bot_conversations tbc ON tbc.id = tbcm.tutor_bot_conversation_id\n    WHERE\n        tbc.user_id = :userId!\n)\nSELECT\n    tbc.*,\n    ranked.message AS message_preview\nFROM\n    tutor_bot_conversations tbc\n    JOIN ranked_on_created_at ranked ON ranked.tutor_bot_conversation_id = tbc.id\n        AND ranked.rn = 1\nWHERE\n    tbc.user_id = :userId!","loc":{"a":45,"b":619,"line":2,"col":0}}};
+const getTutorBotConversationsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":331,"b":338},{"a":567,"b":574}]}],"statement":"WITH ranked_on_created_at AS (\n    SELECT\n        tbcm.*,\n        row_number() OVER (PARTITION BY tbcm.tutor_bot_conversation_id ORDER BY tbcm.created_at) AS rn\n    FROM\n        tutor_bot_conversation_messages tbcm\n        JOIN tutor_bot_conversations tbc ON tbc.id = tbcm.tutor_bot_conversation_id\n    WHERE\n        tbc.user_id = :userId!\n)\nSELECT\n    tbc.*,\n    ranked.message AS message_preview\nFROM\n    tutor_bot_conversations tbc\n    JOIN ranked_on_created_at ranked ON ranked.tutor_bot_conversation_id = tbc.id\n        AND ranked.rn = 1\nWHERE\n    tbc.user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -75,7 +75,7 @@ export interface IGetTutorBotConversationByIdQuery {
   result: IGetTutorBotConversationByIdResult;
 }
 
-const getTutorBotConversationByIdIR: any = {"name":"getTutorBotConversationById","params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":726,"b":740,"line":29,"col":10}]}}],"usedParamSet":{"conversationId":true},"statement":{"body":"SELECT\n    *\nFROM\n    tutor_bot_conversations\nWHERE\n    id = :conversationId!","loc":{"a":664,"b":740,"line":24,"col":0}}};
+const getTutorBotConversationByIdIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":76}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_conversations\nWHERE\n    id = :conversationId!"};
 
 /**
  * Query generated from SQL:
@@ -112,7 +112,7 @@ export interface IGetTutorBotConversationBySessionIdQuery {
   result: IGetTutorBotConversationBySessionIdResult;
 }
 
-const getTutorBotConversationBySessionIdIR: any = {"name":"getTutorBotConversationBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":862,"b":871,"line":38,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    tutor_bot_conversations\nWHERE\n    session_id = :sessionId!","loc":{"a":792,"b":871,"line":33,"col":0}}};
+const getTutorBotConversationBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":69,"b":79}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_conversations\nWHERE\n    session_id = :sessionId!"};
 
 /**
  * Query generated from SQL:
@@ -148,7 +148,7 @@ export interface IGetTutorBotConversationMessagesByIdQuery {
   result: IGetTutorBotConversationMessagesByIdResult;
 }
 
-const getTutorBotConversationMessagesByIdIR: any = {"name":"getTutorBotConversationMessagesById","params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1017,"b":1031,"line":47,"col":33}]}}],"usedParamSet":{"conversationId":true},"statement":{"body":"SELECT\n    *\nFROM\n    tutor_bot_conversation_messages\nWHERE\n    tutor_bot_conversation_id = :conversationId!\nORDER BY\n    created_at ASC","loc":{"a":924,"b":1059,"line":42,"col":0}}};
+const getTutorBotConversationMessagesByIdIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":107}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_conversation_messages\nWHERE\n    tutor_bot_conversation_id = :conversationId!\nORDER BY\n    created_at ASC"};
 
 /**
  * Query generated from SQL:
@@ -169,7 +169,7 @@ export const getTutorBotConversationMessagesById = new PreparedQuery<IGetTutorBo
 /** 'InsertTutorBotConversation' parameters type */
 export interface IInsertTutorBotConversationParams {
   id: string;
-  sessionId: string | null | void;
+  sessionId?: string | null | void;
   subjectId: number;
   userId: string;
 }
@@ -185,7 +185,7 @@ export interface IInsertTutorBotConversationQuery {
   result: IInsertTutorBotConversationResult;
 }
 
-const insertTutorBotConversationIR: any = {"name":"insertTutorBotConversation","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1214,"b":1216,"line":54,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1220,"b":1226,"line":54,"col":19}]}},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1230,"b":1238,"line":54,"col":29}]}},{"name":"subjectId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1256,"b":1265,"line":54,"col":55}]}}],"usedParamSet":{"id":true,"userId":true,"sessionId":true,"subjectId":true},"statement":{"body":"INSERT INTO tutor_bot_conversations (id, user_id, session_id, created_at, updated_at, subject_id)\n    VALUES (:id!, :userId!, :sessionId, NOW(), NOW(), :subjectId!)\nRETURNING\n    id","loc":{"a":1103,"b":1283,"line":53,"col":0}}};
+const insertTutorBotConversationIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"subjectId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":110,"b":113}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":116,"b":123}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":126,"b":135}]},{"name":"subjectId","required":true,"transform":{"type":"scalar"},"locs":[{"a":152,"b":162}]}],"statement":"INSERT INTO tutor_bot_conversations (id, user_id, session_id, created_at, updated_at, subject_id)\n    VALUES (:id!, :userId!, :sessionId, NOW(), NOW(), :subjectId!)\nRETURNING\n    id"};
 
 /**
  * Query generated from SQL:
@@ -222,7 +222,7 @@ export interface IInsertTutorBotConversationMessageQuery {
   result: IInsertTutorBotConversationMessageResult;
 }
 
-const insertTutorBotConversationMessageIR: any = {"name":"insertTutorBotConversationMessage","params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1467,"b":1481,"line":61,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1485,"b":1491,"line":61,"col":31}]}},{"name":"senderUserType","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1495,"b":1509,"line":61,"col":41}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1513,"b":1520,"line":61,"col":59}]}}],"usedParamSet":{"conversationId":true,"userId":true,"senderUserType":true,"message":true},"statement":{"body":"INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)\n    VALUES (:conversationId!, :userId!, :senderUserType!, :message!, CLOCK_TIMESTAMP())\nRETURNING\n    tutor_bot_conversation_id, user_id, sender_user_type, message, created_at","loc":{"a":1334,"b":1628,"line":60,"col":0}}};
+const insertTutorBotConversationMessageIR: any = {"usedParamSet":{"conversationId":true,"userId":true,"senderUserType":true,"message":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":147}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":150,"b":157}]},{"name":"senderUserType","required":true,"transform":{"type":"scalar"},"locs":[{"a":160,"b":175}]},{"name":"message","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":186}]}],"statement":"INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)\n    VALUES (:conversationId!, :userId!, :senderUserType!, :message!, CLOCK_TIMESTAMP())\nRETURNING\n    tutor_bot_conversation_id, user_id, sender_user_type, message, created_at"};
 
 /**
  * Query generated from SQL:
@@ -251,7 +251,7 @@ export interface IUpdateTutorBotConversationSessionIdQuery {
   result: IUpdateTutorBotConversationSessionIdResult;
 }
 
-const updateTutorBotConversationSessionIdIR: any = {"name":"updateTutorBotConversationSessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1738,"b":1747,"line":70,"col":18}]}},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1789,"b":1803,"line":73,"col":10}]}}],"usedParamSet":{"sessionId":true,"conversationId":true},"statement":{"body":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = :sessionId!,\n    updated_at = NOW()\nWHERE\n    id = :conversationId!::uuid\n    AND session_id IS NULL","loc":{"a":1681,"b":1836,"line":67,"col":0}}};
+const updateTutorBotConversationSessionIdIR: any = {"usedParamSet":{"sessionId":true,"conversationId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":66}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":122}]}],"statement":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = :sessionId!,\n    updated_at = NOW()\nWHERE\n    id = :conversationId!::uuid\n    AND session_id IS NULL"};
 
 /**
  * Query generated from SQL:
