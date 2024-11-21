@@ -370,7 +370,7 @@ COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, messag
 -- Data for Name: censored_session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.censored_session_audio_transcript_messages (session_audio_transcript_message_id, message, said_at) FROM stdin;
+COPY upchieve.censored_session_audio_transcript_messages (session_audio_transcript_message_id, message) FROM stdin;
 \.
 
 
