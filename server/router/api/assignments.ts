@@ -27,7 +27,7 @@ export function routeAssignments(router: Router): void {
     }
   })
 
-  router.delete('/assignment/:assignmentId/delete', async function(req, res) {
+  router.delete('/assignment/:assignmentId', async function(req, res) {
     try {
       const assignmentId = req.params.assignmentId as string
       if (assignmentId) {

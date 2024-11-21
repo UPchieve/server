@@ -282,3 +282,14 @@ export async function deleteAssignment(
     throw new RepoDeleteError(err)
   }
 }
+
+export async function deleteStudentAssignment(
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    return await pgQueries.deleteStudentAssignment.run({ assignmentId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}

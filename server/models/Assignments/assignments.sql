@@ -144,20 +144,14 @@ WHERE
     AND assignment_id = :assignmentId!;
 
 
+/* @name deleteStudentAssignment*/
+DELETE FROM students_assignments
+WHERE assignment_id = :assignmentId!;
+
+
 /* @name deleteAssignment */
-WITH deleted_student_assignments AS (
-    DELETE FROM students_assignments
-    WHERE assignment_id = :assignmentId!
-    RETURNING
-        assignment_id AS assignmentId,
-        user_id AS userId
-),
-deleted_assignment AS (
-    DELETE FROM assignments
-    WHERE id = :assignmentId!
-)
-SELECT
-    *
-FROM
-    deleted_student_assignments;
+DELETE FROM assignments
+WHERE id = :assignmentId!
+RETURNING
+    id AS assignmentId;
 

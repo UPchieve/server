@@ -236,7 +236,11 @@ export async function updateStudentAssignmentAfterSession(
 }
 
 export async function deleteAssignment(assignmentId: Uuid) {
-  return AssignmentsRepo.deleteAssignment(assignmentId)
+  return runInTransaction(async (tc: TransactionClient) => {
+    await AssignmentsRepo.deleteStudentAssignment(assignmentId, tc)
+    const data = await AssignmentsRepo.deleteAssignment(assignmentId, tc)
+    return data[0].assignmentid
+  })
 }
 
 // Exported for testing.
