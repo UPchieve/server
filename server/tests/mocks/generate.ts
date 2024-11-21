@@ -499,7 +499,7 @@ export const buildSimpleSurvey = (
   overrides: Partial<SurveyQuestionDefinition> = {}
 ): SurveyQuestionDefinition => {
   const survey = {
-    questionId: '1',
+    questionId: 1,
     questionText: "What is your primary goal for today's session?",
     displayPriority: 1,
     questionType: 'multiple choice',
