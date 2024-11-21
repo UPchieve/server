@@ -1,5 +1,4 @@
 import { Ulid } from '../models/pgUtils'
-import { getSessionById } from '../models/Session'
 import {
   getPresessionSurveyResponse,
   getStudentPostsessionSurveyGoalQuestionRatings,
@@ -7,7 +6,13 @@ import {
   PostsessionSurveyGoalResponse,
   saveUserSurveyAndSubmissions,
   SimpleSurveyResponse,
+  SurveyQueryResponse,
+  SurveyQuestionDefinition,
+  SurveyResponseDefinition,
 } from '../models/Survey'
+import * as SessionRepo from '../models/Session'
+import * as SurveyRepo from '../models/Survey'
+import * as UserRepo from '../models/User'
 import { getTotalSessionsByUserId } from '../models/User'
 import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
 import {
@@ -50,7 +55,7 @@ export async function getContextSharingForVolunteer(
   sessionId: Ulid
 ): Promise<VolunteerContextResponse> {
   const responses = await getPresessionSurveyResponse(sessionId)
-  const session = await getSessionById(sessionId)
+  const session = await SessionRepo.getSessionById(sessionId)
   const totalStudentSessions = await getTotalSessionsByUserId(session.studentId)
   return {
     totalStudentSessions,
@@ -128,4 +133,83 @@ export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)
 export function parseUserRole(param: string) {
   const cleanedInput = asUserRole(param)
   return cleanedInput
+}
+
+export async function getPostsessionSurveyDefinition(
+  sessionId: Ulid,
+  userRole: USER_ROLES_TYPE
+): Promise<SurveyQueryResponse | undefined> {
+  // Get the replacement column options.
+  const session = await SessionRepo.getSessionById(sessionId)
+  const studentName =
+    (await UserRepo.getUserContactInfoById(session.studentId))?.firstName ?? ''
+  let coachName: string = ''
+  if (session.volunteerId) {
+    coachName =
+      (await UserRepo.getUserContactInfoById(session.volunteerId))?.firstName ??
+      ''
+  }
+  const subjectName = session.subjectDisplayName
+  const studentGoal =
+    (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
+
+  const postsessionSurveyDefinition =
+    (await SurveyRepo.getPostsessionSurveyDefinition(sessionId, userRole)) ?? []
+
+  const survey: SurveyQuestionDefinition[] = []
+  for (const question of postsessionSurveyDefinition ?? []) {
+    if (
+      skipQuestion(
+        question.firstReplacementColumn,
+        question.secondReplacementColumn
+      )
+    ) {
+      continue
+    }
+
+    question.questionText = question.questionText
+      .replace(/%s/, getReplacementText(question.firstReplacementColumn))
+      .replace(/%s/, getReplacementText(question.secondReplacementColumn))
+    survey.push({
+      questionId: question.questionId,
+      questionText: question.questionText,
+      displayPriority: question.displayPriority,
+      questionType: question.questionType,
+      responses: (question.responses as SurveyResponseDefinition[]).sort(
+        (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+      ),
+    })
+  }
+
+  if (postsessionSurveyDefinition.length) {
+    return {
+      surveyId: postsessionSurveyDefinition[0].surveyId,
+      surveyTypeId: postsessionSurveyDefinition[0].surveyTypeId,
+      survey,
+    }
+  }
+
+  function skipQuestion(first?: string, second?: string) {
+    // We wouldn't have a student goal if the student didn't fill out a pre-session survey.
+    return (
+      (first === 'student_goal' || second === 'student_goal') && !studentGoal
+    )
+  }
+
+  function getReplacementText(replacementColumn?: string): string {
+    if (!replacementColumn) return ''
+
+    switch (replacementColumn) {
+      case 'student_name':
+        return studentName
+      case 'coach_name':
+        return coachName
+      case 'subject_name':
+        return subjectName
+      case 'student_goal':
+        return studentGoal
+      default:
+        return ''
+    }
+  }
 }

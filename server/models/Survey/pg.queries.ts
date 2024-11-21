@@ -1,6 +1,10 @@
 /** Types generated for queries found in "server/models/Survey/surveys.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
+export type JsonArray = (Json)[];
+
 /** 'SaveUserSurvey' parameters type */
 export interface ISaveUserSurveyParams {
   progressReportId?: string | null | void;
@@ -216,154 +220,75 @@ const getSimpleSurveyDefinitionIR: any = {"usedParamSet":{"surveyType":true,"sub
 export const getSimpleSurveyDefinition = new PreparedQuery<IGetSimpleSurveyDefinitionParams,IGetSimpleSurveyDefinitionResult>(getSimpleSurveyDefinitionIR);
 
 
-/** 'GetPostsessionSurveyReplacementColumns' parameters type */
-export interface IGetPostsessionSurveyReplacementColumnsParams {
+/** 'GetPostsessionSurveyDefinitionForSession' parameters type */
+export interface IGetPostsessionSurveyDefinitionForSessionParams {
   sessionId: string;
-  surveyType: string;
   userRole: string;
 }
 
-/** 'GetPostsessionSurveyReplacementColumns' return type */
-export interface IGetPostsessionSurveyReplacementColumnsResult {
-  id: number;
-  replacementText_1: string | null;
-  replacementText_2: string | null;
-}
-
-/** 'GetPostsessionSurveyReplacementColumns' query type */
-export interface IGetPostsessionSurveyReplacementColumnsQuery {
-  params: IGetPostsessionSurveyReplacementColumnsParams;
-  result: IGetPostsessionSurveyReplacementColumnsResult;
-}
-
-const getPostsessionSurveyReplacementColumnsIR: any = {"usedParamSet":{"surveyType":true,"sessionId":true,"userRole":true},"params":[{"name":"surveyType","required":true,"transform":{"type":"scalar"},"locs":[{"a":1997,"b":2008}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":2025,"b":2035}]},{"name":"userRole","required":true,"transform":{"type":"scalar"},"locs":[{"a":2055,"b":2064}]}],"statement":"SELECT\n    sq.id,\n    CASE WHEN sq.replacement_column_1 = 'student_name' THEN\n        u_student.first_name\n    WHEN sq.replacement_column_1 = 'student_goal'\n        AND src.choice_text = 'Other' THEN\n        COALESCE(uss.open_response, 'get help')\n    WHEN sq.replacement_column_1 = 'student_goal'\n        AND src.choice_text <> 'Other' THEN\n        COALESCE(src.choice_text)\n    WHEN sq.replacement_column_1 = 'coach_name' THEN\n        u_volunteer.first_name\n    WHEN sq.replacement_column_1 = 'subject_name' THEN\n        subjects.display_name\n    END AS replacement_text_1,\n    CASE WHEN sq.replacement_column_2 = 'student_goal'\n        AND src.choice_text = 'Other' THEN\n        COALESCE(uss.open_response, 'get help')\n    WHEN sq.replacement_column_2 = 'student_goal'\n        AND src.choice_text <> 'OTHER' THEN\n        COALESCE(src.choice_text)\n    WHEN sq.replacement_column_2 = 'subject_name' THEN\n        subjects.display_name\n    END AS replacement_text_2\nFROM\n    upchieve.sessions s\n    JOIN upchieve.subjects ON s.subject_id = subjects.id\n    JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id\n    JOIN upchieve.survey_types st ON st.id = sc.survey_type_id\n    JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id\n    JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN upchieve.users u_student ON u_student.id = s.student_id\n    JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id\n    JOIN upchieve.users_surveys us ON us.session_id = s.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id\n        AND sq_goal.question_text = 'What is your primary goal for today''s session?'\n    JOIN upchieve.surveys ON sc.survey_id = surveys.id\n    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\nWHERE\n    st.name = :surveyType!\n    AND s.id = :sessionId!\n    AND ur.name = :userRole!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     sq.id,
- *     CASE WHEN sq.replacement_column_1 = 'student_name' THEN
- *         u_student.first_name
- *     WHEN sq.replacement_column_1 = 'student_goal'
- *         AND src.choice_text = 'Other' THEN
- *         COALESCE(uss.open_response, 'get help')
- *     WHEN sq.replacement_column_1 = 'student_goal'
- *         AND src.choice_text <> 'Other' THEN
- *         COALESCE(src.choice_text)
- *     WHEN sq.replacement_column_1 = 'coach_name' THEN
- *         u_volunteer.first_name
- *     WHEN sq.replacement_column_1 = 'subject_name' THEN
- *         subjects.display_name
- *     END AS replacement_text_1,
- *     CASE WHEN sq.replacement_column_2 = 'student_goal'
- *         AND src.choice_text = 'Other' THEN
- *         COALESCE(uss.open_response, 'get help')
- *     WHEN sq.replacement_column_2 = 'student_goal'
- *         AND src.choice_text <> 'OTHER' THEN
- *         COALESCE(src.choice_text)
- *     WHEN sq.replacement_column_2 = 'subject_name' THEN
- *         subjects.display_name
- *     END AS replacement_text_2
- * FROM
- *     upchieve.sessions s
- *     JOIN upchieve.subjects ON s.subject_id = subjects.id
- *     JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
- *     JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
- *     JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
- *     JOIN upchieve.survey_questions sq ON ssq.survey_question_id = sq.id
- *     JOIN upchieve.users u_student ON u_student.id = s.student_id
- *     JOIN upchieve.users u_volunteer ON u_volunteer.id = s.volunteer_id
- *     JOIN upchieve.users_surveys us ON us.session_id = s.id
- *     JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
- *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
- *     JOIN upchieve.survey_questions sq_goal ON uss.survey_question_id = sq_goal.id
- *         AND sq_goal.question_text = 'What is your primary goal for today''s session?'
- *     JOIN upchieve.surveys ON sc.survey_id = surveys.id
- *     JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
- * WHERE
- *     st.name = :surveyType!
- *     AND s.id = :sessionId!
- *     AND ur.name = :userRole!
- * ```
- */
-export const getPostsessionSurveyReplacementColumns = new PreparedQuery<IGetPostsessionSurveyReplacementColumnsParams,IGetPostsessionSurveyReplacementColumnsResult>(getPostsessionSurveyReplacementColumnsIR);
-
-
-/** 'GetPostsessionSurveyDefinitionWithoutReplacementColumns' parameters type */
-export interface IGetPostsessionSurveyDefinitionWithoutReplacementColumnsParams {
-  sessionId: string;
-  surveyType: string;
-  userRole: string;
-}
-
-/** 'GetPostsessionSurveyDefinitionWithoutReplacementColumns' return type */
-export interface IGetPostsessionSurveyDefinitionWithoutReplacementColumnsResult {
+/** 'GetPostsessionSurveyDefinitionForSession' return type */
+export interface IGetPostsessionSurveyDefinitionForSessionResult {
   displayPriority: number;
+  firstReplacementColumn: string | null;
   name: string;
   questionId: number;
   questionText: string;
   questionType: string;
-  responseDisplayImage: string | null;
-  responseDisplayPriority: number;
-  responseId: number;
-  responseText: string;
+  responses: JsonArray | null;
+  secondReplacementColumn: string | null;
   surveyId: number;
   surveyTypeId: number;
 }
 
-/** 'GetPostsessionSurveyDefinitionWithoutReplacementColumns' query type */
-export interface IGetPostsessionSurveyDefinitionWithoutReplacementColumnsQuery {
-  params: IGetPostsessionSurveyDefinitionWithoutReplacementColumnsParams;
-  result: IGetPostsessionSurveyDefinitionWithoutReplacementColumnsResult;
+/** 'GetPostsessionSurveyDefinitionForSession' query type */
+export interface IGetPostsessionSurveyDefinitionForSessionQuery {
+  params: IGetPostsessionSurveyDefinitionForSessionParams;
+  result: IGetPostsessionSurveyDefinitionForSessionResult;
 }
 
-const getPostsessionSurveyDefinitionWithoutReplacementColumnsIR: any = {"usedParamSet":{"sessionId":true,"surveyType":true,"userRole":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1355,"b":1365}]},{"name":"surveyType","required":true,"transform":{"type":"scalar"},"locs":[{"a":1385,"b":1396}]},{"name":"userRole","required":true,"transform":{"type":"scalar"},"locs":[{"a":1416,"b":1425}]}],"statement":"SELECT\n    surveys.name,\n    sq.id AS question_id,\n    sq.question_text AS question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id,\n    sub.response_text,\n    sub.response_display_priority,\n    sub.response_display_image,\n    surveys.id AS survey_id,\n    survey_types.id AS survey_type_id\nFROM\n    surveys_context\n    JOIN surveys ON survey_id = surveys.id\n    JOIN survey_types ON surveys_context.survey_type_id = survey_types.id\n    JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id\n    JOIN upchieve.user_roles ur ON ur.id = surveys.role_id\n    JOIN upchieve.sessions s ON s.subject_id = subjects.id\n    JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority,\n            display_image AS response_display_image\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE\nWHERE\n    s.id = :sessionId!\n    AND st.name = :surveyType!\n    AND ur.name = :userRole!"};
+const getPostsessionSurveyDefinitionForSessionIR: any = {"usedParamSet":{"sessionId":true,"userRole":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1125,"b":1135}]},{"name":"userRole","required":true,"transform":{"type":"scalar"},"locs":[{"a":1155,"b":1164}]}],"statement":"SELECT\n    s.id AS survey_id,\n    st.id AS survey_type_id,\n    s.name,\n    sq.id AS question_id,\n    sq.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sq.replacement_column_1 AS first_replacement_column,\n    sq.replacement_column_2 AS second_replacement_column,\n    array_agg(json_build_object('responseId', src.id, 'responseText', src.choice_text, 'responseDisplayPriority', sqrc.display_priority, 'responseDisplayImage', src.display_image)) AS responses\nFROM\n    surveys_context sc\n    JOIN surveys s ON s.id = sc.survey_id\n    JOIN survey_types st ON st.id = sc.survey_type_id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = s.id\n    JOIN survey_questions sq ON sq.id = ssq.survey_question_id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN survey_questions_response_choices sqrc ON sqrc.surveys_survey_question_id = ssq.id\n    JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n    JOIN subjects ON sc.subject_id = subjects.id\n    JOIN sessions sess ON sess.subject_id = subjects.id\n    JOIN user_roles ur ON ur.id = s.role_id\nWHERE\n    sess.id = :sessionId!\n    AND ur.name = :userRole!\n    AND st.name = 'postsession'\nGROUP BY\n    s.id,\n    st.id,\n    sq.id,\n    ssq.id,\n    qt.id\nORDER BY\n    ssq.display_priority ASC"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     surveys.name,
+ *     s.id AS survey_id,
+ *     st.id AS survey_type_id,
+ *     s.name,
  *     sq.id AS question_id,
- *     sq.question_text AS question_text,
+ *     sq.question_text,
  *     ssq.display_priority,
  *     qt.name AS question_type,
- *     sub.response_id,
- *     sub.response_text,
- *     sub.response_display_priority,
- *     sub.response_display_image,
- *     surveys.id AS survey_id,
- *     survey_types.id AS survey_type_id
+ *     sq.replacement_column_1 AS first_replacement_column,
+ *     sq.replacement_column_2 AS second_replacement_column,
+ *     array_agg(json_build_object('responseId', src.id, 'responseText', src.choice_text, 'responseDisplayPriority', sqrc.display_priority, 'responseDisplayImage', src.display_image)) AS responses
  * FROM
- *     surveys_context
- *     JOIN surveys ON survey_id = surveys.id
- *     JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
- *     JOIN subjects ON subject_id = subjects.id
- *     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
- *     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
+ *     surveys_context sc
+ *     JOIN surveys s ON s.id = sc.survey_id
+ *     JOIN survey_types st ON st.id = sc.survey_type_id
+ *     JOIN surveys_survey_questions ssq ON ssq.survey_id = s.id
+ *     JOIN survey_questions sq ON sq.id = ssq.survey_question_id
  *     JOIN question_types qt ON qt.id = sq.question_type_id
- *     JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
- *     JOIN upchieve.user_roles ur ON ur.id = surveys.role_id
- *     JOIN upchieve.sessions s ON s.subject_id = subjects.id
- *     JOIN LATERAL (
- *         SELECT
- *             id AS response_id,
- *             choice_text AS response_text,
- *             display_priority AS response_display_priority,
- *             display_image AS response_display_image
- *         FROM
- *             survey_questions_response_choices sqrc
- *             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
- *         WHERE
- *             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
+ *     JOIN survey_questions_response_choices sqrc ON sqrc.surveys_survey_question_id = ssq.id
+ *     JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
+ *     JOIN subjects ON sc.subject_id = subjects.id
+ *     JOIN sessions sess ON sess.subject_id = subjects.id
+ *     JOIN user_roles ur ON ur.id = s.role_id
  * WHERE
- *     s.id = :sessionId!
- *     AND st.name = :surveyType!
+ *     sess.id = :sessionId!
  *     AND ur.name = :userRole!
+ *     AND st.name = 'postsession'
+ * GROUP BY
+ *     s.id,
+ *     st.id,
+ *     sq.id,
+ *     ssq.id,
+ *     qt.id
+ * ORDER BY
+ *     ssq.display_priority ASC
  * ```
  */
-export const getPostsessionSurveyDefinitionWithoutReplacementColumns = new PreparedQuery<IGetPostsessionSurveyDefinitionWithoutReplacementColumnsParams,IGetPostsessionSurveyDefinitionWithoutReplacementColumnsResult>(getPostsessionSurveyDefinitionWithoutReplacementColumnsIR);
+export const getPostsessionSurveyDefinitionForSession = new PreparedQuery<IGetPostsessionSurveyDefinitionForSessionParams,IGetPostsessionSurveyDefinitionForSessionResult>(getPostsessionSurveyDefinitionForSessionIR);
 
 
 /** 'GetPresessionSurveyResponse' parameters type */

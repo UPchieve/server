@@ -60,7 +60,7 @@ export type SurveyResponseDefinition = {
 }
 
 export type SurveyQuestionDefinition = {
-  questionId: string
+  questionId: number
   questionText: string
   displayPriority: number
   questionType: string
