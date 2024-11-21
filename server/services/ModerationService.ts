@@ -182,9 +182,10 @@ function formatAiResponse(response: {
 
 export type RegexModerationResult = {
   isClean: boolean
-  failedTests: (string | string[])[][] // @TODO change this type later
+  failures: ModerationFailureReasons
   sanitizedMessage: string
 }
+
 const regexModerate = (message: string): RegexModerationResult => {
   const failedTests = [
     ['email', test({ regex: EMAIL_REGEX, message })],
@@ -211,17 +212,34 @@ const regexModerate = (message: string): RegexModerationResult => {
   const isClean = failedTests.length === 0
   return {
     isClean,
-    failedTests,
+    failures: { failures: Object.fromEntries(failedTests) },
     sanitizedMessage: isClean ? message : sanitize(message),
   }
+}
+
+const getAiModerationResult = async (
+  censoredSessionMessage: CensoredSessionMessage,
+  isVolunteer: boolean
+) => {
+  return await timeLimit({
+    promise: createChatCompletion({
+      censoredSessionMessage,
+      isVolunteer,
+    }),
+    fallbackReturnValue: null,
+    timeLimitReachedErrorMessage:
+      'AI Moderation time limit reached. Returning regex value',
+    waitInMs: 3000,
+  })
 }
 
 export type ModerationFailureReasons = {
   failures: Record<string, string[] | never>
 }
 
-// Returns whether message is clean
+export type oldClientModerationResult = boolean
 export async function moderateMessage({
+  // @TODO: Test me on old clients again!
   message,
   senderId,
   isVolunteer,
@@ -231,8 +249,8 @@ export async function moderateMessage({
   senderId: string
   isVolunteer: boolean
   sessionId?: string
-}): Promise<boolean | ModerationFailureReasons> {
-  const { isClean, failedTests, sanitizedMessage } = regexModerate(message)
+}): Promise<oldClientModerationResult | ModerationFailureReasons> {
+  const { isClean, failures, sanitizedMessage } = regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
@@ -242,18 +260,7 @@ export async function moderateMessage({
     return isClean
   }
 
-  /*
-   * New clients can recieve a reasons why the message was rejected
-   * @example: {
-   *   failures: {
-   *     email: [ 's@n.com' ],
-   *     phone: [ ' 6152656652.' ],
-   *     profanity: [ 'toke' ],
-   *     safety: [ 'zoom.us', 'meet.google.com' ]
-   *   }
-   * }
-   */
-  let result = { failures: Object.fromEntries(failedTests) }
+  let result = failures
   if (!isClean) {
     const censoredSessionMessage = await createCensoredMessage({
       senderId,
@@ -264,16 +271,11 @@ export async function moderateMessage({
 
     const userTargetStatus = await getAiModerationFeatureFlag(senderId)
     if (userTargetStatus === AI_MODERATION_STATE.targeted) {
-      const response = await timeLimit({
-        promise: createChatCompletion({
-          censoredSessionMessage,
-          isVolunteer,
-        }),
-        fallbackReturnValue: null,
-        timeLimitReachedErrorMessage:
-          'AI Moderation time limit reached. Returning regex value',
-        waitInMs: 3000,
-      })
+      const response = await getAiModerationResult(
+        censoredSessionMessage,
+        isVolunteer
+      )
+      // Override the regex moderation decision with the AI one if it's available
       result.failures =
         response === null ? result.failures : formatAiResponse(response)
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
