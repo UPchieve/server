@@ -1,9 +1,11 @@
 import { Router } from 'express'
 import config from '../../config'
 import * as jwt from 'jsonwebtoken'
+import { extractUser } from '../extract-user'
 
 export function routeZoom(router: Router): void {
   router.post('/zoom/token', (req, res) => {
+    const user = extractUser(req)
     const { sessionName, role } = req.body
     const iat = Math.floor(Date.now() / 1000)
     const exp = iat + config.zoomTokenExpirationSeconds
@@ -15,6 +17,7 @@ export function routeZoom(router: Router): void {
       iat,
       exp,
       version: 1,
+      user_identity: user.id,
     }
 
     const sPayload = JSON.stringify(oPayload)
