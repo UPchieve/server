@@ -1,10 +1,12 @@
 /** Types generated for queries found in "server/models/ModerationInfractions/moderation_infractions.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
 /** 'InsertModerationInfraction' parameters type */
 export interface IInsertModerationInfractionParams {
   id: string;
-  reason: string;
+  reason: Json;
   sessionId: string;
   userId: string;
 }
@@ -82,7 +84,7 @@ export interface IGetModerationInfractionsByUserAndSessionResult {
   active: boolean;
   createdAt: Date;
   id: string;
-  reason: string;
+  reason: Json;
   sessionId: string;
   updatedAt: Date;
   userId: string;

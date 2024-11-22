@@ -743,7 +743,7 @@ export const buildModerationInfractionRow = (
     userId,
     sessionId,
     active: true,
-    reason: 'test reason',
+    reason: { profanity: ['test_profanity'] },
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

@@ -12,6 +12,7 @@ describe('ModerationInfractions', () => {
   const userId = '01919662-885c-d39a-1749-5aaf18cf5d3b'
   let sessionId = getDbUlid()
   let session: any
+  const infractionReason = { profanity: ['blah'] }
 
   beforeAll(async () => {
     session = await buildSessionRow({
@@ -27,7 +28,7 @@ describe('ModerationInfractions', () => {
         {
           userId,
           sessionId,
-          reason: 'test reason',
+          reason: infractionReason,
         },
         dbClient
       )
@@ -40,7 +41,7 @@ describe('ModerationInfractions', () => {
       const id = getDbUlid()
       const result = await dbClient.query(
         'INSERT INTO moderation_infractions (id, user_id, session_id, reason) VALUES ($1, $2, $3, $4) RETURNING id',
-        [id, userId, sessionId, 'reason']
+        [id, userId, sessionId, infractionReason]
       )
       expect(result.rows.length).toEqual(1)
       const infractionId = result.rows[0].id
@@ -69,6 +70,13 @@ describe('ModerationInfractions', () => {
 
   describe('getModerationInfractionsByUserAndSession', () => {
     it('Returns the infractions', async () => {
+      const infractionReason1 = {
+        profanity: ['la', 'di', 'da'],
+      }
+      const infractionReason2 = {
+        ...infractionReason1,
+        phone: ['8608281234'],
+      }
       const sessionId = getDbUlid()
       const session = await buildSessionRow(
         {
@@ -80,8 +88,12 @@ describe('ModerationInfractions', () => {
       await insertSingleRow('sessions', session, dbClient)
 
       const infractions = [
-        buildModerationInfractionRow(userId, sessionId, { reason: 'reason 1' }),
-        buildModerationInfractionRow(userId, sessionId, { reason: 'reason 2' }),
+        buildModerationInfractionRow(userId, sessionId, {
+          reason: infractionReason1,
+        }),
+        buildModerationInfractionRow(userId, sessionId, {
+          reason: infractionReason2,
+        }),
       ]
       await insertSingleRow('moderation_infractions', infractions[0], dbClient)
       await insertSingleRow('moderation_infractions', infractions[1], dbClient)
@@ -92,8 +104,8 @@ describe('ModerationInfractions', () => {
       )
       expect(result.length).toEqual(2)
       expect(result.map(infraction => infraction.reason)).toEqual([
-        'reason 1',
-        'reason 2',
+        infractionReason1,
+        infractionReason2,
       ])
     })
   })

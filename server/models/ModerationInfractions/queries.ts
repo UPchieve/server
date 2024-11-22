@@ -1,4 +1,5 @@
 import {
+  InfractionReasons,
   InsertModerationInfractionArgs,
   ModerationInfraction,
   UpdateModerationInfractionArgs,
@@ -7,6 +8,7 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
+import { camelCaseKeys } from '../../tests/db-utils'
 
 /**
  * Inserts the infraction.
@@ -70,7 +72,18 @@ export async function getModerationInfractionsByUserAndSession(
       client
     )
     if (!result.length) return []
-    return result.map(r => makeRequired(r))
+    return result.map(r => {
+      const camelCase = camelCaseKeys(r)
+      return {
+        id: camelCase.id,
+        userId: camelCase.userId,
+        sessionId: camelCase.sessionId,
+        reason: camelCase.reason as InfractionReasons,
+        active: camelCase.active,
+        createdAt: camelCase.createdAt,
+        updatedAt: camelCase.updatedAt,
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }

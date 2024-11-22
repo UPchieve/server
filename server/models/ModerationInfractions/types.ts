@@ -1,7 +1,9 @@
+export type InfractionReasons = { [key: string]: string[] }
+
 export type InsertModerationInfractionArgs = {
   userId: string
   sessionId: string
-  reason: string
+  reason: InfractionReasons
 }
 
 export type UpdateModerationInfractionArgs = {
@@ -12,7 +14,7 @@ export type ModerationInfraction = {
   id: string
   userId: string
   sessionId: string
-  reason: string
+  reason: InfractionReasons
   active: boolean
   createdAt: Date
   updatedAt: Date
