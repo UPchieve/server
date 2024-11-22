@@ -314,7 +314,7 @@ const handleModerationInfraction = async (
       userId,
       USER_BAN_TYPES.LIVE_MEDIA,
       USER_BAN_REASONS.AUTOMATED_MODERATION
-    ) // @TODO Should we send an email or anything?
+    )
     const socketService = await SocketService.getInstance()
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
   }

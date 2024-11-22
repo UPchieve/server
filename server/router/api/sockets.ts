@@ -457,8 +457,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 messageData.type = type
                 if (type === 'voice') {
                   messageData.transcript = transcript
-                } else if (type === 'audio-transcription') {
-                  // @TODO Attach timestamp for when it was said?
                 }
               }
 
