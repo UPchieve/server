@@ -367,8 +367,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               saidAt,
             } = data
 
-            logger.debug('Received message', JSON.stringify(data, null, 2))
-
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
@@ -382,7 +380,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const createdAt = new Date()
-            let sanitizedMessage: string
+            let sanitizedMessage: string | undefined = undefined
             let messageIsUnclean = false
             try {
               // TODO: correctly type user from payload

@@ -408,4 +408,21 @@ describe('ModerationService', () => {
       })
     })
   })
+
+  describe('moderateMessage - old clients', () => {
+    it.each([
+      ['clean message', true],
+      ['shit', false],
+    ])(
+      'Returns a boolean if no sessionId is provided',
+      async (message: string, isClean: boolean) => {
+        const result = await moderateMessage({
+          message,
+          senderId: 'sender-123',
+          isVolunteer: false,
+        })
+        expect(result).toEqual(isClean)
+      }
+    )
+  })
 })
