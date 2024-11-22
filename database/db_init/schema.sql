@@ -366,16 +366,6 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 
 
 --
--- Name: censored_session_audio_transcript_messages; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.censored_session_audio_transcript_messages (
-    session_audio_transcript_message_id uuid NOT NULL,
-    message text NOT NULL
-);
-
-
---
 -- Name: censored_session_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -385,7 +375,8 @@ CREATE TABLE upchieve.censored_session_messages (
     message text,
     session_id uuid NOT NULL,
     censored_by public.moderation_system NOT NULL,
-    sent_at timestamp with time zone NOT NULL
+    sent_at timestamp with time zone NOT NULL,
+    shown boolean NOT NULL
 );
 
 
@@ -3100,14 +3091,6 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 
 --
--- Name: censored_session_audio_transcript_messages censored_session_audio_transcript_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.censored_session_audio_transcript_messages
-    ADD CONSTRAINT censored_session_audio_transcript_messages_pkey PRIMARY KEY (session_audio_transcript_message_id);
-
-
---
 -- Name: censored_session_messages censored_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4730,14 +4713,6 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 ALTER TABLE ONLY upchieve.availability_histories
     ADD CONSTRAINT availability_histories_weekday_id_fkey FOREIGN KEY (weekday_id) REFERENCES upchieve.weekdays(id);
-
-
---
--- Name: censored_session_audio_transcript_messages censored_session_audio_transc_session_audio_transcript_mes_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.censored_session_audio_transcript_messages
-    ADD CONSTRAINT censored_session_audio_transc_session_audio_transcript_mes_fkey FOREIGN KEY (session_audio_transcript_message_id) REFERENCES upchieve.session_audio_transcript_messages(id);
 
 
 --
