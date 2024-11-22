@@ -362,7 +362,7 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 -- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at) FROM stdin;
+COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at, shown) FROM stdin;
 \.
 
 
@@ -1391,6 +1391,14 @@ COPY upchieve.ineligible_students (id, email, postal_code, ip_address_id, school
 --
 
 COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: moderation_infractions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2681,6 +2689,14 @@ COPY upchieve.schools_sponsor_orgs_instances (school_id, sponsor_org_id, deactiv
 --
 
 COPY upchieve.session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, message, said_at) FROM stdin;
 \.
 
 
