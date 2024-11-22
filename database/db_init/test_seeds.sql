@@ -359,22 +359,6 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 
 
 --
--- Data for Name: session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, message, said_at) FROM stdin;
-\.
-
-
---
--- Data for Name: censored_session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.censored_session_audio_transcript_messages (session_audio_transcript_message_id, message) FROM stdin;
-\.
-
-
---
 -- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -2705,6 +2689,14 @@ COPY upchieve.schools_sponsor_orgs_instances (school_id, sponsor_org_id, deactiv
 --
 
 COPY upchieve.session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, message, said_at) FROM stdin;
 \.
 
 
