@@ -4540,6 +4540,13 @@ CREATE INDEX session_audio_transcript_messages_session_id_idx ON upchieve.sessio
 
 
 --
+-- Name: session_audio_transcript_messages_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_audio_transcript_messages_user_id_idx ON upchieve.users USING btree (id);
+
+
+--
 -- Name: session_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
