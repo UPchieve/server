@@ -329,10 +329,12 @@ export const moderateTranscript = async ({
   transcript,
   sessionId,
   userId,
+  saidAt,
 }: {
   transcript: string
   sessionId: string
   userId: string
+  saidAt: Date
 }): Promise<
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
@@ -341,7 +343,15 @@ export const moderateTranscript = async ({
   // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
-  handleModerationInfraction(userId, sessionId, failures)
+  await handleModerationInfraction(userId, sessionId, failures)
+  await createCensoredMessage({
+    message: transcript,
+    senderId: userId,
+    sessionId,
+    censoredBy: 'regex',
+    sentAt: saidAt,
+    shown: true,
+  })
 
   return {
     isClean: false,

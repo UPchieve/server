@@ -15,7 +15,6 @@ import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import * as CensoredTranscriptMessagesRepo from '../../models/CensoredSessionAudioTranscriptMessages/queries'
 import {
   getUserContactInfoById,
   UserContactInfo,
@@ -406,6 +405,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                   transcript: message,
                   sessionId,
                   userId: user.id,
+                  saidAt: saidAt!,
                 })
                 if (!result.isClean) {
                   messageIsUnclean = true
@@ -422,12 +422,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 saveMessageData,
                 chatbot
               )
-              if (messageIsUnclean) {
-                await CensoredTranscriptMessagesRepo.insertCensoredSessionAudioTranscriptMessages(
-                  messageId,
-                  message
-                )
-              }
 
               if (chatbot && !(chatbot === user.id))
                 await SessionService.handleMessageActivity(sessionId)
