@@ -359,12 +359,11 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 \.
 
 
-
 --
 -- Data for Name: censored_session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.censored_session_audio_transcript_messages (session_audio_transcript_message_id, message, said_at, updated_at) FROM stdin;
+COPY upchieve.censored_session_audio_transcript_messages (session_audio_transcript_message_id, message) FROM stdin;
 \.
 
 
