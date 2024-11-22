@@ -85,8 +85,7 @@ export interface GetQuizScoreOutput {
 }
 
 export async function getQuizScore(
-  options: GetQuizScoreOptions,
-  tc?: TransactionClient
+  options: GetQuizScoreOptions
 ): Promise<GetQuizScoreOutput> {
   return runInTransaction(async (tc: TransactionClient) => {
     const { user, idAnswerMap, ip } = options
@@ -150,11 +149,7 @@ export async function getQuizScore(
             event: EVENTS.SUBJECT_UNLOCKED,
             subject,
           })
-          try {
-            await VolunteerModel.addVolunteerCertification(user.id, subject, tc)
-          } catch (err) {
-            throw new Error((err as Error).message)
-          }
+          await VolunteerModel.addVolunteerCertification(user.id, subject, tc)
         }
       }
       // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
@@ -168,18 +163,9 @@ export async function getQuizScore(
         volunteerProfile?.hasCompletedUpchieve101 ||
         cert === TRAINING.UPCHIEVE_101
 
-      const volunteer: VolunteerService.OnboardedVolunteer = {
-        id: user.id,
-        onboarded: !!volunteerProfile?.onboarded,
-        volunteerPartnerOrg: user.volunteerPartnerOrg,
-        hasSubjects,
-        hasCompletedUpchieve101: passedUpchieve101,
-        hasAvailability: !!volunteerProfile?.availabilityLastModifiedAt,
-      }
-
       await VolunteerService.onboardVolunteer(
-        volunteer,
-
+        user.id,
+        user.volunteerPartnerOrg,
         ip,
         tc
       )
@@ -203,7 +189,7 @@ export async function getQuizScore(
       idCorrectAnswerMap,
       isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
     }
-  }, tc)
+  })
 }
 
 // TODO: Remove in medium-certs-v2 clean up

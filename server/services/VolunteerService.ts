@@ -257,20 +257,25 @@ export async function addBackgroundInfo(
 }
 
 export async function onboardVolunteer(
-  volunteer: OnboardedVolunteer,
+  volunteerId: Ulid,
+  volunteerPartnerOrg: string | undefined,
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
+  const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
+    volunteerId
+  )
+  if (!volunteer) throw new Error('Volunteer not found')
   if (
     !volunteer.onboarded &&
-    volunteer.hasSubjects &&
+    volunteer.subjects &&
     volunteer.hasCompletedUpchieve101 &&
-    volunteer.hasAvailability
+    volunteer.availabilityLastModifiedAt
   ) {
     await VolunteerRepo.updateVolunteerOnboarded(volunteer.id, tc)
     await queueOnboardingEventEmails(volunteer.id)
     // TODO: this should just be done by the generic onboarding email handler above
-    if (volunteer.volunteerPartnerOrg) {
+    if (volunteerPartnerOrg) {
       await queuePartnerOnboardingEventEmails(volunteer.id)
     }
     await createAccountAction(

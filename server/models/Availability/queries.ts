@@ -1,4 +1,4 @@
-import { getClient, TransactionClient } from '../../db'
+import { getClient, runInTransaction, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
 
@@ -205,12 +205,13 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
 }
 
 export async function saveCurrentAvailabilityAsHistory(
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.saveCurrentAvailabilityAsHistory.run(
       { userId },
-      getClient()
+      tc || getClient()
     )
     const errors = []
     for (const row of result) {
@@ -261,10 +262,10 @@ export async function getAvailabilityForVolunteerByDate(
 export async function updateAvailabilityByVolunteerId(
   userId: Ulid,
   availability: Availability,
-  timezone: string
+  timezone: string,
+  tc: TransactionClient
 ): Promise<void> {
-  const client = await getClient().connect()
-  try {
+  return runInTransaction(async (tc: TransactionClient) => {
     const rows: pgQueries.IInsertNewAvailabilityParams[] = []
     for (const day in availability) {
       const availabilityDay = availability[day as DAYS]
@@ -282,34 +283,26 @@ export async function updateAvailabilityByVolunteerId(
       }
     }
     const errors: string[] = []
-    await client.query('BEGIN')
+
     for (const row of rows) {
-      const result = await pgQueries.insertNewAvailability.run(
-        { ...row },
-        client
-      )
+      const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
       if (!(result.length && makeRequired(result[0])))
         errors.push(
           `Availability row ${JSON.stringify(row)} did not save correctly`
         )
     }
     if (errors.length) throw new Error(errors.join('\n'))
-    await client.query('COMMIT')
-  } catch (err) {
-    await client.query('ROLLBACK')
-    throw new RepoUpdateError(err)
-  } finally {
-    client.release()
-  }
+  }, tc)
 }
 
 export async function clearAvailabilityForVolunteer(
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.clearAvailabilityForVolunteer.run(
       { userId },
-      getClient()
+      tc || getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('Update query did not return ok')

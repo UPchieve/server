@@ -36,58 +36,50 @@ export async function updateSchedule(
 
     const volunteer = await getVolunteerForScheduleUpdate(user.id)
     // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-    const onboardingVolunteer: VolunteerService.OnboardedVolunteer = {
-      id: volunteer.id,
-      onboarded: false,
-      volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
-      hasSubjects: !!volunteer.subjects && volunteer.subjects.length > 0,
-      hasCompletedUpchieve101: volunteer.passedRequiredTraining,
-      hasAvailability: !!volunteer.availability,
+    // await executeUpdate(volunteer, newTimezone, newAvailability)
+
+    if (!newAvailability) {
+      //early exit
+      throw new Error('No availability object specified')
     }
 
-    VolunteerService.onboardVolunteer(onboardingVolunteer, ip, tc)
+    if (
+      Object.keys(volunteer.availability).some(key => {
+        if (typeof newAvailability[key as DAYS] === 'undefined') {
+          // day-of-week property needs to be defined
+          return true
+        }
 
-    await executeUpdate(volunteer, newTimezone, newAvailability)
-  }, tc)
-}
+        // time-of-day properties also need to be defined
+        return Object.keys(volunteer.availability[key as DAYS]).some(
+          key2 =>
+            typeof newAvailability[key as DAYS][key2 as HOURS] === 'undefined'
+        )
+      })
+    ) {
+      throw new Error('Availability object missing required keys')
+    }
 
-async function executeUpdate(
-  user: VolunteerForScheduleUpdate,
-  // @note: this is set to optional to test the absence of an availability object
-  tz: string, // FIXME: constrain this to official timezones
-  availability?: Availability
-): Promise<void> {
-  // verify that newAvailability is defined and not null
-  if (!availability) {
-    // early exit
-    throw new Error('No availability object specified')
-  }
+    // TODO: run these with the same client
+    await saveCurrentAvailabilityAsHistory(volunteer.id, tc)
+    await clearAvailabilityForVolunteer(volunteer.id, tc)
+    await Promise.all([
+      updateAvailabilityByVolunteerId(
+        volunteer.id,
+        newAvailability,
+        newTimezone,
+        tc
+      ),
+      updateTimezoneByUserId(volunteer.id, newTimezone, tc),
+    ])
 
-  // verify that all of the day-of-week and time-of-day properties are defined on the
-  // new availability object
-  if (
-    Object.keys(user.availability).some(key => {
-      if (typeof availability[key as DAYS] === 'undefined') {
-        // day-of-week property needs to be defined
-        return true
-      }
-
-      // time-of-day properties also need to be defined
-      return Object.keys(user.availability[key as DAYS]).some(
-        key2 => typeof availability[key as DAYS][key2 as HOURS] === 'undefined'
-      )
-    })
-  ) {
-    throw new Error('Availability object missing required keys')
-  }
-
-  // TODO: run these with the same client
-  await saveCurrentAvailabilityAsHistory(user.id)
-  await clearAvailabilityForVolunteer(user.id)
-  await Promise.all([
-    updateAvailabilityByVolunteerId(user.id, availability, tz),
-    updateTimezoneByUserId(user.id, tz),
-  ])
+    await VolunteerService.onboardVolunteer(
+      user.id,
+      volunteer.volunteerPartnerOrg,
+      ip,
+      tc
+    )
+  })
 }
 
 export async function clearSchedule(

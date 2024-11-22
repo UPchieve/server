@@ -302,12 +302,13 @@ export async function updateVolunteerHourSummaryIntroById(
 
 export async function updateTimezoneByUserId(
   userId: Ulid,
-  timezone?: string
+  timezone?: string,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateTimezoneByUserId.run(
-      { userId, timezone }, //do not update onboarded
-      getClient()
+      { userId, timezone },
+      tc || getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update did not return ok')
@@ -1076,7 +1077,7 @@ export async function updateVolunteerApproved(userId: Ulid): Promise<void> {
 
 export async function updateVolunteerOnboarded(
   userId: Ulid,
-  tc?: TransactionClient
+  tc: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerOnboarded.run(

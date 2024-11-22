@@ -29,7 +29,6 @@ import {
   buildQuizUnlockCert,
 } from '../mocks/repos/question-repo.mock'
 import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
-import { TransactionClient } from '../../db'
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
