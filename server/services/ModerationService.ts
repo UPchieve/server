@@ -305,7 +305,7 @@ const handleModerationInfraction = async (
     {
       userId,
       sessionId,
-      reason: JSON.stringify(Object.keys(reasons.failures)), // @TODO is this good enough...?
+      reason: reasons.failures,
     }
   )
   // If at or over total strikes, emit event and ban user
