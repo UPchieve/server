@@ -5,10 +5,12 @@ import * as AnalyticsService from '../../services/AnalyticsService'
 import { createAccountAction } from '../../models/UserAction'
 import { TransactionClient } from '../../db'
 import { EVENTS } from '../../constants'
+import { mocked } from 'jest-mock'
 
-jest.mock('../../models/Volunteer', () => ({
-  updateVolunteerOnboarded: jest.fn(),
-}))
+// jest.mock('../../models/Volunteer', () => ({
+//   updateVolunteerOnboarded: jest.fn(),
+// }))
+jest.mock('../../models/Volunteer')
 jest.mock('../../services/QueueService', () => ({
   add: jest.fn(),
 }))
@@ -19,14 +21,17 @@ jest.mock('../../models/UserAction', () => ({
   createAccountAction: jest.fn(),
 }))
 
+const mockedVolunteerRepo = mocked(VolunteerRepo)
+
 describe('onboardVolunteer', () => {
   const mockVolunteer = {
     id: 'volunteer123',
+    firstName: 'Volunteer',
+    email: 'volunteer@email.com',
     onboarded: false,
-    volunteerPartnerOrg: 'SomeOrg',
-    hasSubjects: true,
+    subjects: ['algebraOne'],
     hasCompletedUpchieve101: true,
-    hasAvailability: true,
+    availabilityLastModifiedAt: new Date(),
   }
   const mockIp = 'mock-ip'
   const tc = {} as TransactionClient
@@ -36,13 +41,16 @@ describe('onboardVolunteer', () => {
   })
 
   test('should call all functions in the if block when conditions are met', async () => {
-    await VolunteerService.onboardVolunteer(mockVolunteer, mockIp, tc)
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
+      mockVolunteer
+    )
+    await VolunteerService.onboardVolunteer(mockVolunteer.id, '', mockIp, tc)
 
     expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
       mockVolunteer.id,
       tc
     )
-    expect(QueueService.add).toHaveBeenCalledTimes(2)
+    expect(QueueService.add).toHaveBeenCalledTimes(1)
     expect(createAccountAction).toHaveBeenCalledWith(
       {
         action: expect.any(String),
@@ -62,15 +70,22 @@ describe('onboardVolunteer', () => {
 
   test.each([
     ['already onboarded', { onboarded: true }],
-    ['missing subjects', { hasSubjects: false }],
+    ['missing subjects', { subjects: [] }],
     ['incomplete Upchieve101', { hasCompletedUpchieve101: false }],
-    ['no availability', { hasAvailability: false }],
+    ['no availability', { availabilityLastModifiedAt: undefined }],
   ])(
     'should not call functions in the if block if volunteer is %s',
     async (_, override) => {
       const modifiedVolunteer = { ...mockVolunteer, ...override }
-
-      await VolunteerService.onboardVolunteer(modifiedVolunteer, mockIp, tc)
+      mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
+        modifiedVolunteer
+      )
+      await VolunteerService.onboardVolunteer(
+        modifiedVolunteer.id,
+        '',
+        mockIp,
+        tc
+      )
 
       expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
       expect(QueueService.add).not.toHaveBeenCalled()
@@ -80,14 +95,14 @@ describe('onboardVolunteer', () => {
   )
 
   test('should not call partner-specific functions if volunteerPartnerOrg is undefined', async () => {
-    const volunteerWithoutOrg = {
-      ...mockVolunteer,
-      volunteerPartnerOrg: undefined,
-    }
+    await VolunteerService.onboardVolunteer(
+      mockVolunteer.id,
+      undefined,
+      mockIp,
+      tc
+    )
 
-    await VolunteerService.onboardVolunteer(volunteerWithoutOrg, mockIp, tc)
-
-    expect(QueueService.add).toHaveBeenCalledTimes(1)
+    expect(QueueService.add).toHaveBeenCalledTimes(0)
   })
 })
 

@@ -268,7 +268,7 @@ export async function onboardVolunteer(
   if (!volunteer) throw new Error('Volunteer not found')
   if (
     !volunteer.onboarded &&
-    volunteer.subjects &&
+    volunteer.subjects.length &&
     volunteer.hasCompletedUpchieve101 &&
     volunteer.availabilityLastModifiedAt
   ) {

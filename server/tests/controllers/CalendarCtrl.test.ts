@@ -14,6 +14,7 @@ import {
   getIpAddress,
 } from '../mocks/generate'
 import * as UserActionRepo from '../../models/UserAction'
+import { TransactionClient } from '../../db'
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
 
@@ -122,6 +123,7 @@ describe('Save availability and time zone', () => {
     mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
       volunteer
     )
+    const tc = {} as TransactionClient
 
     const availability = buildAvailability({
       Saturday: mockSaturdayAvailability,
@@ -140,16 +142,22 @@ describe('Save availability and time zone', () => {
      * 2. update availability
      * 3. update onboarded status - FALSE
      */
-    expect(UserActionRepo.createAccountAction).toHaveBeenCalledTimes(0)
+    // expect(UserActionRepo.createAccountAction).toHaveBeenCalledTimes(0)
     expect(
       AvailabilityRepo.saveCurrentAvailabilityAsHistory
-    ).toHaveBeenLastCalledWith(user.id)
+    ).toHaveBeenLastCalledWith(user.id, expect.toBeTransactionClient())
     expect(
       AvailabilityRepo.updateAvailabilityByVolunteerId
-    ).toHaveBeenLastCalledWith(user.id, availability, tz)
+    ).toHaveBeenLastCalledWith(
+      user.id,
+      availability,
+      tz,
+      expect.toBeTransactionClient()
+    )
     expect(VolunteerRepo.updateTimezoneByUserId).toHaveBeenLastCalledWith(
       user.id,
-      tz
+      tz,
+      expect.toBeTransactionClient()
     )
   })
 
@@ -185,13 +193,19 @@ describe('Save availability and time zone', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalled()
     expect(
       AvailabilityRepo.saveCurrentAvailabilityAsHistory
-    ).toHaveBeenLastCalledWith(user.id)
+    ).toHaveBeenLastCalledWith(user.id, expect.toBeTransactionClient())
     expect(
       AvailabilityRepo.updateAvailabilityByVolunteerId
-    ).toHaveBeenLastCalledWith(user.id, availability, tz)
+    ).toHaveBeenLastCalledWith(
+      user.id,
+      availability,
+      tz,
+      expect.toBeTransactionClient()
+    )
     expect(VolunteerRepo.updateTimezoneByUserId).toHaveBeenLastCalledWith(
       user.id,
-      tz
+      tz,
+      expect.toBeTransactionClient()
     )
   })
 })

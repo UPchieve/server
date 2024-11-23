@@ -273,16 +273,9 @@ describe('getQuizScore', () => {
         expect.toBeTransactionClient()
       )
     }
-    const onboardVolunteer = {
-      id: volunteer.id,
-      hasAvailability: false,
-      onboarded: false,
-      hasCompletedUpchieve101: true,
-      hasSubjects: true,
-      volunteerPartnerOrg: '',
-    } as VolunteerService.OnboardedVolunteer
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
-      onboardVolunteer,
+      volunteer.id,
+      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -384,16 +377,9 @@ describe('getQuizScore', () => {
         expect.toBeTransactionClient()
       )
     }
-    const onboardVolunteer = {
-      id: volunteer.id,
-      hasAvailability: true,
-      onboarded: false,
-      hasCompletedUpchieve101: false,
-      hasSubjects: true,
-      volunteerPartnerOrg: '',
-    } as VolunteerService.OnboardedVolunteer
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
-      onboardVolunteer,
+      volunteer.id,
+      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -476,16 +462,9 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert
     )
-    const onboardVolunteer = {
-      id: volunteer.id,
-      hasAvailability: true,
-      onboarded: false,
-      hasCompletedUpchieve101: true,
-      hasSubjects: false,
-      volunteerPartnerOrg: '',
-    } as VolunteerService.OnboardedVolunteer
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
-      onboardVolunteer,
+      volunteer.id,
+      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -573,16 +552,9 @@ describe('getQuizScore', () => {
         expect.toBeTransactionClient()
       )
     }
-    const onboardVolunteer = {
-      id: volunteer.id,
-      hasAvailability: true,
-      onboarded: false,
-      hasCompletedUpchieve101: true,
-      hasSubjects: true,
-      volunteerPartnerOrg: '',
-    } as VolunteerService.OnboardedVolunteer
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
-      onboardVolunteer,
+      volunteer.id,
+      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -665,16 +637,9 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert
     )
-    const onboardVolunteer = {
-      id: volunteer.id,
-      hasAvailability: true,
-      onboarded: false,
-      hasCompletedUpchieve101: true,
-      hasSubjects: true,
-      volunteerPartnerOrg: '',
-    } as VolunteerService.OnboardedVolunteer
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
-      onboardVolunteer,
+      volunteer.id,
+      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -765,16 +730,9 @@ describe('getQuizScore', () => {
         expect.toBeTransactionClient()
       )
     }
-    const onboardVolunteer = {
-      id: volunteer.id,
-      hasAvailability: true,
-      onboarded: true,
-      hasCompletedUpchieve101: true,
-      hasSubjects: true,
-      volunteerPartnerOrg: '',
-    } as VolunteerService.OnboardedVolunteer
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
-      onboardVolunteer,
+      volunteer.id,
+      '',
       undefined,
       expect.toBeTransactionClient()
     )
