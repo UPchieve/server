@@ -513,6 +513,21 @@ ORDER BY
     created_at;
 
 
+/* @name getSessionAudioTranscriptMessagesForFrontend */
+SELECT
+    id,
+    user_id AS USER,
+    session_id,
+    message,
+    said_at AS created_at
+FROM
+    session_audio_transcript_messages
+WHERE
+    session_id = :sessionId!
+ORDER BY
+    said_at;
+
+
 /* @name createSession */
 INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
 SELECT
