@@ -525,7 +525,7 @@ export async function getMessagesForFrontend(
       .concat(
         transcriptResult.map(t => ({
           ...t,
-          type: 'audio-transcript',
+          type: 'audio-transcription',
           contents: t.message,
         }))
       )
