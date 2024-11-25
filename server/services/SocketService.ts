@@ -116,6 +116,17 @@ class SocketService {
       .except(userId)
       .emit('sessions:partner-left-call')
   }
+
+  async emitUserLiveMediaBannedEvents(
+    userId: string,
+    sessionId: string
+  ): Promise<void> {
+    this.io
+      .to(getSessionRoom(sessionId))
+      .except(userId)
+      .emit('sessions:partner-banned-from-live-media')
+    this.io.to(userId).emit('sessions:banned-from-live-media')
+  }
 }
 
 export default SocketService
