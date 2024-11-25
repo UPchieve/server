@@ -352,10 +352,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('message', async data => {
-      newrelic.startWebTransaction(
-        '/socket-io/message',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
+      newrelic.startWebTransaction('/socket-io/message', () =>
+        new Promise<void>(async (resolve, reject) => {
+          try {
             const {
               user,
               sessionId,
@@ -381,100 +380,108 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             const createdAt = new Date()
             let sanitizedMessage: string | undefined = undefined
             let messageIsUnclean = false
-            try {
-              // TODO: correctly type user from payload
-              const saveMessageData: {
-                sessionId: Ulid
-                message: string
-                type?: SessionMessageType
-                transcript?: string
-                saidAt?: Date
-              } = {
+            // TODO: correctly type user from payload
+            const saveMessageData: {
+              sessionId: Ulid
+              message: string
+              type?: SessionMessageType
+              transcript?: string
+              saidAt?: Date
+            } = {
+              sessionId,
+              message,
+              saidAt,
+            }
+            if (type) {
+              saveMessageData.type = type
+            }
+            if (type === 'voice') {
+              saveMessageData.transcript = transcript
+            }
+            if (type === 'audio-transcription') {
+              const result = await moderateTranscript({
+                transcript: message,
                 sessionId,
-                message,
-                saidAt,
+                userId: user.id,
+                saidAt: saidAt!,
+              })
+              if (!result.isClean) {
+                messageIsUnclean = true
+                const sanitized = (result as SanitizedTranscriptModerationResult)
+                  .sanitizedTranscript
+                saveMessageData.message = sanitized
+                sanitizedMessage = sanitized
               }
-              if (type) {
-                saveMessageData.type = type
-              }
+            }
+
+            const messageId = await SessionService.saveMessage(
+              user,
+              createdAt,
+              saveMessageData,
+              chatbot
+            )
+
+            if (chatbot && !(chatbot === user.id))
+              await SessionService.handleMessageActivity(sessionId)
+
+            const userType = getUserTypeFromRoles(dbUser.roles, user.id)
+            const messageData: {
+              contents: string
+              createdAt: Date
+              isVolunteer: boolean
+              userType: UserRole
+              user: Ulid
+              sessionId: Ulid
+              type?: SessionMessageType
+              transcript?: string
+            } = {
+              contents: sanitizedMessage ?? message,
+              createdAt: createdAt,
+              isVolunteer: isVolunteerUserType(userType),
+              userType: userType,
+              user: user.id,
+              sessionId,
+            }
+
+            if (type) {
+              messageData.type = type
               if (type === 'voice') {
-                saveMessageData.transcript = transcript
+                messageData.transcript = transcript
               }
-              if (type === 'audio-transcription') {
-                const result = await moderateTranscript({
-                  transcript: message,
-                  sessionId,
-                  userId: user.id,
-                  saidAt: saidAt!,
-                })
-                if (!result.isClean) {
-                  messageIsUnclean = true
-                  const sanitized = (result as SanitizedTranscriptModerationResult)
-                    .sanitizedTranscript
-                  saveMessageData.message = sanitized
-                  sanitizedMessage = sanitized
-                }
-              }
+            }
 
-              const messageId = await SessionService.saveMessage(
-                user,
-                createdAt,
-                saveMessageData,
-                chatbot
+            // If the message is coming from the recap page, queue the message to send a notification
+            if (source === 'recap') {
+              await QueueService.add(
+                Jobs.SendSessionRecapMessageNotification,
+                { messageId },
+                { removeOnComplete: true, removeOnFail: true }
               )
-
-              if (chatbot && !(chatbot === user.id))
-                await SessionService.handleMessageActivity(sessionId)
-
-              const userType = getUserTypeFromRoles(dbUser.roles, user.id)
-              const messageData: {
-                contents: string
-                createdAt: Date
-                isVolunteer: boolean
-                userType: UserRole
-                user: Ulid
-                sessionId: Ulid
-                type?: SessionMessageType
-                transcript?: string
-              } = {
-                contents: sanitizedMessage ?? message,
-                createdAt: createdAt,
+              captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
+                sessionId: sessionId,
+                message,
                 isVolunteer: isVolunteerUserType(userType),
                 userType: userType,
-                user: user.id,
-                sessionId,
-              }
-
-              if (type) {
-                messageData.type = type
-                if (type === 'voice') {
-                  messageData.transcript = transcript
-                }
-              }
-
-              // If the message is coming from the recap page, queue the message to send a notification
-              if (source === 'recap') {
-                await QueueService.add(
-                  Jobs.SendSessionRecapMessageNotification,
-                  { messageId },
-                  { removeOnComplete: true, removeOnFail: true }
-                )
-                captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
-                  sessionId: sessionId,
-                  message,
-                  isVolunteer: isVolunteerUserType(userType),
-                  userType: userType,
-                })
-              }
-
-              const socketRoom = getSessionRoom(saveMessageData.sessionId)
-              io.in(socketRoom).emit('messageSend', messageData)
-              resolve()
-            } catch (error) {
-              socket.emit('messageError', { sessionId: data.sessionId })
-              reject(error)
+              })
             }
-          })
+
+            const socketRoom = getSessionRoom(saveMessageData.sessionId)
+            io.in(socketRoom).emit('messageSend', messageData)
+            resolve()
+          } catch (error) {
+            socket.emit('messageError', { sessionId: data.sessionId })
+            reject(error)
+          }
+        }).catch(err => {
+          logger.error(
+            {
+              error: err?.message,
+              userId: data?.user?.id,
+              sessionId: data?.sessionId,
+            },
+            'Promise rejected whiel handling "message" event'
+          )
+        })
       )
     })
 
