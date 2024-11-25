@@ -8,4 +8,5 @@ export type CensoredSessionMessage = {
   sessionId: Ulid
   censoredBy: keyof typeof CENSORED_BY
   sentAt: Date
+  shown: boolean
 }

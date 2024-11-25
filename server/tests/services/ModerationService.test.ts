@@ -149,6 +149,7 @@ describe('ModerationService', () => {
         senderId,
         sessionId,
         message,
+        shown: false,
       })
 
       expect(
@@ -179,6 +180,7 @@ describe('ModerationService', () => {
         senderId,
         sessionId,
         message: badMessage,
+        shown: false,
       })
       ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
         choices: [
@@ -220,6 +222,7 @@ describe('ModerationService', () => {
         senderId,
         sessionId,
         message,
+        shown: false,
       })
       ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
         choices: [
