@@ -7,6 +7,7 @@ import {
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { openai } from './BotsService'
+import * as UsersRepo from '../models/User/queries'
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
@@ -15,6 +16,7 @@ import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum } from './LangfuseService'
+import SocketService from './SocketService'
 import ContentSafetyClient, {
   AnalyzeImage200Response,
   AnalyzeImageDefaultResponse,
@@ -22,6 +24,8 @@ import ContentSafetyClient, {
 import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
 import { InputError } from '../models/Errors'
+import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
+import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -180,11 +184,64 @@ function formatAiResponse(response: {
   return response.appropriate ? {} : response.reasons
 }
 
+export type RegexModerationResult = {
+  isClean: boolean
+  failures: ModerationFailureReasons
+  sanitizedMessage: string
+}
+
+const regexModerate = (message: string): RegexModerationResult => {
+  const failedTests = [
+    ['email', test({ regex: EMAIL_REGEX, message })],
+    ['phone', test({ regex: PHONE_REGEX, message })],
+    ['profanity', test({ regex: PROFANITY_REGEX, message })],
+    ['safety', test({ regex: SAFETY_RESTRICTION_REGEX, message })],
+  ].filter(([, test]) => test.length > 0)
+
+  const sanitize = (message: string): string => {
+    let sanitizedMessage = message
+    failedTests.forEach(([testName, testMatches]) => {
+      ;(testMatches as string[]).forEach(match => {
+        const stars = '*'.repeat(match.length)
+        sanitizedMessage = sanitizedMessage.replace(
+          new RegExp(match, 'g'),
+          stars
+        )
+      })
+    })
+
+    return sanitizedMessage
+  }
+
+  const isClean = failedTests.length === 0
+  return {
+    isClean,
+    failures: { failures: Object.fromEntries(failedTests) },
+    sanitizedMessage: isClean ? message : sanitize(message),
+  }
+}
+
+const getAiModerationResult = async (
+  censoredSessionMessage: CensoredSessionMessage,
+  isVolunteer: boolean
+) => {
+  return await timeLimit({
+    promise: createChatCompletion({
+      censoredSessionMessage,
+      isVolunteer,
+    }),
+    fallbackReturnValue: null,
+    timeLimitReachedErrorMessage:
+      'AI Moderation time limit reached. Returning regex value',
+    waitInMs: 3000,
+  })
+}
+
 export type ModerationFailureReasons = {
   failures: Record<string, string[] | never>
 }
 
-// Returns whether message is clean
+export type oldClientModerationResult = boolean
 export async function moderateMessage({
   message,
   senderId,
@@ -195,15 +252,8 @@ export async function moderateMessage({
   senderId: string
   isVolunteer: boolean
   sessionId?: string
-}): Promise<boolean | ModerationFailureReasons> {
-  // a change to create a new commit
-  const failedTests = [
-    ['email', test({ regex: EMAIL_REGEX, message })],
-    ['phone', test({ regex: PHONE_REGEX, message })],
-    ['profanity', test({ regex: PROFANITY_REGEX, message })],
-    ['safety', test({ regex: SAFETY_RESTRICTION_REGEX, message })],
-  ].filter(([, test]) => test.length > 0)
-  const isClean = failedTests.length === 0
+}): Promise<oldClientModerationResult | ModerationFailureReasons> {
+  const { isClean, failures, sanitizedMessage } = regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
@@ -213,18 +263,7 @@ export async function moderateMessage({
     return isClean
   }
 
-  /*
-   * New clients can recieve a reasons why the message was rejected
-   * @example: {
-   *   failures: {
-   *     email: [ 's@n.com' ],
-   *     phone: [ ' 6152656652.' ],
-   *     profanity: [ 'toke' ],
-   *     safety: [ 'zoom.us', 'meet.google.com' ]
-   *   }
-   * }
-   */
-  let result = { failures: Object.fromEntries(failedTests) }
+  let result = failures
   if (!isClean) {
     const censoredSessionMessage = await createCensoredMessage({
       senderId,
@@ -235,16 +274,11 @@ export async function moderateMessage({
 
     const userTargetStatus = await getAiModerationFeatureFlag(senderId)
     if (userTargetStatus === AI_MODERATION_STATE.targeted) {
-      const response = await timeLimit({
-        promise: createChatCompletion({
-          censoredSessionMessage,
-          isVolunteer,
-        }),
-        fallbackReturnValue: null,
-        timeLimitReachedErrorMessage:
-          'AI Moderation time limit reached. Returning regex value',
-        waitInMs: 3000,
-      })
+      const response = await getAiModerationResult(
+        censoredSessionMessage,
+        isVolunteer
+      )
+      // Override the regex moderation decision with the AI one if it's available
       result.failures =
         response === null ? result.failures : formatAiResponse(response)
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
@@ -258,6 +292,72 @@ export async function moderateMessage({
   }
 
   return result
+}
+
+const handleModerationInfraction = async (
+  userId: string,
+  sessionId: string,
+  reasons: ModerationFailureReasons
+) => {
+  const strikesForUserInSession = await ModerationInfractionsRepo.insertModerationInfraction(
+    {
+      userId,
+      sessionId,
+      reason: reasons.failures,
+    }
+  )
+  if (strikesForUserInSession >= config.maxModerationInfractionsPerSession) {
+    await UsersRepo.banUserById(
+      userId,
+      USER_BAN_TYPES.LIVE_MEDIA,
+      USER_BAN_REASONS.AUTOMATED_MODERATION
+    )
+    const socketService = await SocketService.getInstance()
+    await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
+  }
+}
+
+export type CleanTranscriptModerationResult = {
+  isClean: true
+}
+export type SanitizedTranscriptModerationResult = {
+  isClean: false
+  failures: { [key: string]: string[] }
+  sanitizedTranscript: string
+}
+export const moderateTranscript = async ({
+  transcript,
+  sessionId,
+  userId,
+  saidAt,
+}: {
+  transcript: string
+  sessionId: string
+  userId: string
+  saidAt: Date
+}): Promise<
+  CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
+> => {
+  const { isClean, failures, sanitizedMessage } = regexModerate(transcript)
+  if (isClean) return { isClean: true } as CleanTranscriptModerationResult
+  // @TODO - run through AI moderation
+
+  // If the message is unclean, track it as an infraction against the user
+  await handleModerationInfraction(userId, sessionId, failures)
+  await createCensoredMessage({
+    message: transcript,
+    senderId: userId,
+    sessionId,
+    censoredBy: 'regex',
+    sentAt: saidAt,
+    shown: true,
+  })
+
+  return {
+    isClean: false,
+    failures: failures.failures,
+    sanitizedTranscript: sanitizedMessage,
+  } as SanitizedTranscriptModerationResult
 }
 
 enum AnalyzeImageErrorCodeEnum {

@@ -399,6 +399,9 @@ const config: Static<typeof Config> = {
     Number(process.env.ZOOM_TOKEN_EXPIRATION_SECONDS) || 60 * 60 * 2,
   zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
+
+  // Live media moderation
+  maxModerationInfractionsPerSession: 6,
 }
 
 module.exports = config

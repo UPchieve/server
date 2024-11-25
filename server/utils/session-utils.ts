@@ -8,6 +8,7 @@ import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
   asCamelCaseString,
+  asDate,
   asFactory,
   asNumber,
   asOptional,
@@ -286,10 +287,12 @@ export const asJoinSessionData = asFactory<JoinSessionData>({
 interface SaveMessageData {
   sessionId: Ulid
   message: string
+  saidAt?: Date
 }
 export const asSaveMessageData = asFactory<SaveMessageData>({
   sessionId: asString,
   message: asString,
+  saidAt: asOptional(asDate),
 })
 
 export const getSessionCallParticipantsCacheKey = (
