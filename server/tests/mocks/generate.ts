@@ -23,7 +23,13 @@ import {
 } from '../../models/Survey'
 import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
-import { MessageForFrontend, Session, UserSessions } from '../../models/Session'
+import {
+  MessageForFrontend,
+  Session,
+  SessionMessage,
+  UserSessions,
+  VoiceMessage,
+} from '../../models/Session'
 import {
   ProgressReport,
   ProgressReportDetail,
@@ -43,6 +49,7 @@ import { UserProductFlags } from '../../models/UserProductFlags'
 import { LegacyUserModel } from '../../models/User/legacy-user'
 import { SessionAudio } from '../../models/SessionAudio'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
+import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -746,6 +753,53 @@ export const buildModerationInfractionRow = (
     reason: { profanity: ['test_profanity'] },
     createdAt: new Date(),
     updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export const buildSessionMessageRow = (
+  senderId: string,
+  sessionId: string,
+  overrides: Partial<SessionMessage> = {}
+): SessionMessage => {
+  return {
+    id: getDbUlid(),
+    senderId,
+    sessionId,
+    contents: 'Test message',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export const buildSessionAudioTranscriptMessageRow = (
+  senderId: string,
+  sessionId: string,
+  overrides: Partial<SessionAudioTranscriptMessage> = {}
+): SessionAudioTranscriptMessage => {
+  return {
+    id: getDbUlid(),
+    userId: senderId,
+    sessionId,
+    message: 'Test message',
+    saidAt: new Date(),
+    ...overrides,
+  }
+}
+
+export const buildSessionVoiceMessage = (
+  senderId: string,
+  sessionId: string,
+  overrides: Partial<VoiceMessage> = {}
+): VoiceMessage => {
+  return {
+    id: getDbUlid(),
+    sessionId,
+    senderId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    transcript: 'test transcript',
     ...overrides,
   }
 }
