@@ -42,6 +42,7 @@ import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
 import { LegacyUserModel } from '../../models/User/legacy-user'
 import { SessionAudio } from '../../models/SessionAudio'
+import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -726,6 +727,23 @@ export const buildUserProductFlags = (
     sentInactiveNinetyDayEmail: false,
     gatesQualified: false,
     fallIncentiveEnrollmentAt: undefined,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export const buildModerationInfractionRow = (
+  userId: string,
+  sessionId: string,
+  overrides: Partial<ModerationInfraction> = {}
+): ModerationInfraction => {
+  return {
+    id: getDbUlid(),
+    userId,
+    sessionId,
+    active: true,
+    reason: { profanity: ['test_profanity'] },
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
