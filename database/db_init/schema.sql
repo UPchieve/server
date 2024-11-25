@@ -111,7 +111,8 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 
 CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
-    'complete'
+    'complete',
+    'live_media'
 );
 
 
@@ -6235,4 +6236,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241111210154'),
     ('20241120182555'),
     ('20241120182804'),
-    ('20241120184235');
+    ('20241120184235'),
+    ('20241120210732');
