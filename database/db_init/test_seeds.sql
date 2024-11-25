@@ -26,6 +26,7 @@ COPY upchieve.ban_reasons (id, name, created_at, updated_at) FROM stdin;
 3	used banned ip	2024-08-28 00:28:43.728966+00	2024-08-28 00:28:43.728966+00
 4	admin	2024-08-28 00:28:43.729273+00	2024-08-28 00:28:43.729273+00
 5	banned service provider	2024-08-28 00:28:43.729617+00	2024-08-28 00:28:43.729617+00
+6	automated moderation	2024-11-20 21:08:19.510606+00	2024-11-20 21:08:19.510606+00
 \.
 
 
@@ -3886,7 +3887,7 @@ COPY upchieve.volunteer_references (id, user_id, first_name, last_name, email, s
 -- Name: ban_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, true);
 
 
 --
