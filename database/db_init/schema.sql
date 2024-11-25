@@ -367,18 +367,6 @@ ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
 
 
 --
--- Name: censored_session_audio_transcript_messages; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.censored_session_audio_transcript_messages (
-    session_audio_transcript_message_id uuid NOT NULL,
-    message text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
 -- Name: censored_session_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
