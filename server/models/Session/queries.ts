@@ -512,10 +512,23 @@ export async function getMessagesForFrontend(
     const voiceResult = (
       await pgQueries.getSessionVoiceMessagesForFrontend.run({ sessionId }, tc)
     ).map(v => makeSomeOptional(v, ['transcript']))
+    const transcriptResult = (
+      await pgQueries.getSessionAudioTranscriptMessagesForFrontend.run(
+        { sessionId },
+        tc
+      )
+    ).map(v => makeRequired(v))
 
     // insert voice messages
     const merged = result
       .concat(voiceResult.map(r => ({ ...r, type: 'voice', contents: r.id })))
+      .concat(
+        transcriptResult.map(t => ({
+          ...t,
+          type: 'audio-transcription',
+          contents: t.message,
+        }))
+      )
       .sort((a, b) => {
         return Number(a.createdAt) - Number(b.createdAt)
       })

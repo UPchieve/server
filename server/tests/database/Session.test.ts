@@ -1,6 +1,15 @@
-import { buildSessionRow } from '../mocks/generate'
+import {
+  buildSessionAudioTranscriptMessageRow,
+  buildSessionMessageRow,
+  buildSessionRow,
+  buildSessionVoiceMessage,
+} from '../mocks/generate'
 import { getClient } from '../../db'
-import { getSessionHistory, getTotalSessionHistory } from '../../models/Session'
+import {
+  getMessagesForFrontend,
+  getSessionHistory,
+  getTotalSessionHistory,
+} from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
@@ -37,6 +46,86 @@ describe('Session repo', () => {
         expect(firstPage.length).toEqual(4)
         expect(secondPage.length).toEqual(1)
       })
+    })
+  })
+
+  describe('getMessagesForFrontend', () => {
+    let sessionId: string
+
+    beforeAll(async () => {
+      const sessionRow = await buildSessionRow(
+        {
+          studentId,
+          volunteerId,
+          volunteerJoinedAt: new Date(),
+        },
+        dbClient
+      )
+      sessionId = (await insertSingleRow('sessions', sessionRow, dbClient)).id
+    })
+
+    it('Returns all session messages', async () => {
+      const t1 = moment()
+        .subtract(5, 'minute')
+        .toDate()
+      const t2 = moment()
+        .subtract(4, 'minutes')
+        .toDate()
+      const t3 = moment()
+        .subtract(3, 'minutes')
+        .toDate()
+      const t4 = moment()
+        .subtract(2, 'minutes')
+        .toDate()
+
+      // A regular chat/text message
+      const firstMessage = buildSessionMessageRow(studentId, sessionId, {
+        contents: '1',
+        createdAt: t1,
+      })
+      // Audio transcript message
+      const secondMessage = buildSessionAudioTranscriptMessageRow(
+        studentId,
+        sessionId,
+        {
+          message: '2',
+          saidAt: t2,
+        }
+      )
+      const thirdMessage = buildSessionMessageRow(volunteerId, sessionId, {
+        contents: '3',
+        createdAt: t3,
+      })
+      const fourthMessage = buildSessionVoiceMessage(volunteerId, sessionId, {
+        transcript: '4',
+        createdAt: t4,
+      })
+
+      await insertSingleRow('session_messages', firstMessage, dbClient)
+      await insertSingleRow(
+        'session_audio_transcript_messages',
+        secondMessage,
+        dbClient
+      )
+      await insertSingleRow('session_messages', thirdMessage, dbClient)
+      const voiceMessageId = (
+        await insertSingleRow('session_voice_messages', fourthMessage, dbClient)
+      ).id
+
+      const messagesInOrder = await getMessagesForFrontend(sessionId, dbClient)
+      expect(messagesInOrder.length).toEqual(4)
+      expect(messagesInOrder.map(message => message.createdAt)).toEqual([
+        t1,
+        t2,
+        t3,
+        t4,
+      ])
+      expect(messagesInOrder.map(message => message.contents)).toEqual([
+        '1',
+        '2',
+        '3',
+        voiceMessageId, // for voice messages, the id is returned as the message
+      ])
     })
   })
 })
