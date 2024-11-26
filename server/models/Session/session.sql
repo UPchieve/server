@@ -555,7 +555,30 @@ SELECT
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    CASE WHEN sessions.volunteer_id IS NULL THEN
+        FALSE
+    WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.volunteer_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS volunteer_banned_from_live_media, CASE WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.student_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS student_banned_from_live_media
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -635,7 +658,30 @@ SELECT
         ELSE
             NULL
         END) AS ended_by,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    CASE WHEN sessions.volunteer_id IS NULL THEN
+        FALSE
+    WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.volunteer_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS volunteer_banned_from_live_media, CASE WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.student_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS student_banned_from_live_media
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
