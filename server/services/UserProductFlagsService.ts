@@ -24,7 +24,7 @@ export async function incentiveProgramEnrollmentEnroll(
     if (proxyEmail) await updateUserProxyEmail(userId, proxyEmail)
     else
       throw new Error(
-        'No email was provided to enroll into the fall incentive program.'
+        `No email was provided to enroll into the fall incentive program for user: ${userId}`
       )
   } else {
     const userVerificationInfo = await getUserVerificationInfoById(userId)
