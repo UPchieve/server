@@ -25,6 +25,7 @@ export type ClientToServerEvents = {
     type?: SessionMessageType
     saidAt?: Date
     transcript?: string
+    zoomMessageId?: string
   }) => void
   requestQuillState: (data: { sessionId: Ulid }) => void
   requestQuillStateV2: (data: { sessionId: Ulid }) => void
