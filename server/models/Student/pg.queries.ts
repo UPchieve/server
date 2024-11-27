@@ -1,7 +1,7 @@
 /** Types generated for queries found in "server/models/Student/student.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
-export type ban_types = 'complete' | 'shadow';
+export type ban_types = 'complete' | 'live_media' | 'shadow';
 
 /** 'GetGatesStudentById' parameters type */
 export interface IGetGatesStudentByIdParams {

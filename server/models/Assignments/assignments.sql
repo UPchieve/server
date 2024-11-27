@@ -151,7 +151,5 @@ WHERE assignment_id = :assignmentId!;
 
 /* @name deleteAssignment */
 DELETE FROM assignments
-WHERE id = :assignmentId!
-RETURNING
-    id AS assignmentId;
+WHERE id = :assignmentId!;
 

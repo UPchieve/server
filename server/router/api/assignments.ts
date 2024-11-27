@@ -31,10 +31,8 @@ export function routeAssignments(router: Router): void {
     try {
       const assignmentId = req.params.assignmentId as string
       if (assignmentId) {
-        const removedId = await AssignmentsService.deleteAssignment(
-          assignmentId
-        )
-        res.json({ removedId })
+        await AssignmentsService.deleteAssignment(assignmentId)
+        res.sendStatus(200)
       }
     } catch (err) {
       resError(res, err)

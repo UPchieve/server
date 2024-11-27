@@ -238,8 +238,7 @@ export async function updateStudentAssignmentAfterSession(
 export async function deleteAssignment(assignmentId: Uuid) {
   return runInTransaction(async (tc: TransactionClient) => {
     await AssignmentsRepo.deleteStudentAssignment(assignmentId, tc)
-    const data = await AssignmentsRepo.deleteAssignment(assignmentId, tc)
-    return data[0].assignmentid
+    await AssignmentsRepo.deleteAssignment(assignmentId, tc)
   })
 }
 
