@@ -3,6 +3,7 @@ import { Socket } from 'socket.io'
 import { Ulid } from '../models/pgUtils'
 import { CurrentSession, UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
+import { SessionMessageType } from '../router/api/sockets'
 
 export type SocketDelta = Delta & {
   id?: string
@@ -21,8 +22,10 @@ export type ClientToServerEvents = {
     sessionId: Ulid
     message: string
     source: 'recap' | ''
-    type?: 'voice'
+    type?: SessionMessageType
+    saidAt?: Date
     transcript?: string
+    zoomMessageId?: string
   }) => void
   requestQuillState: (data: { sessionId: Ulid }) => void
   requestQuillStateV2: (data: { sessionId: Ulid }) => void
@@ -35,6 +38,8 @@ export type ClientToServerEvents = {
   resetWhiteboard: (data: { sessionId: Ulid }) => void
   'sessions:leave': (data: { sessionId: Ulid }) => void
   'sessions/recap:leave': (data: { sessionId: Ulid }) => void
+  'sessions:joined-call': (data: { sessionId: string }) => void
+  'sessions:left-call': (data: { sessionId: string }) => void
 }
 
 export type ServerToClientEvents = {
@@ -58,6 +63,8 @@ export type ServerToClientEvents = {
   }) => void
   resetWhiteboard: () => void
   'session-change': (data: CurrentSession | undefined) => void
+  'sessions:partner-joined-call': () => void
+  'sessions:partner-left-call': () => void
 }
 
 export type InterServerEvents = {}

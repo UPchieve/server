@@ -91,12 +91,14 @@ export const USER_BAN_REASONS = <const>{
   SESSION_REPORTED: 'session reported',
   BANNED_SERVICE_PROVIDER: 'banned service provider',
   ADMIN: 'admin',
+  AUTOMATED_MODERATION: 'automated moderation',
 }
 export type USER_BAN_REASONS = ExtractValues<typeof USER_BAN_REASONS>
 
 export const USER_BAN_TYPES = <const>{
   COMPLETE: 'complete',
   SHADOW: 'shadow',
+  LIVE_MEDIA: 'live_media',
 }
 export type USER_BAN_TYPES = ExtractValues<typeof USER_BAN_TYPES>
 

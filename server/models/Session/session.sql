@@ -513,6 +513,21 @@ ORDER BY
     created_at;
 
 
+/* @name getSessionAudioTranscriptMessagesForFrontend */
+SELECT
+    id,
+    user_id AS USER,
+    session_id,
+    message,
+    said_at AS created_at
+FROM
+    session_audio_transcript_messages
+WHERE
+    session_id = :sessionId!
+ORDER BY
+    said_at;
+
+
 /* @name createSession */
 INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
 SELECT
@@ -540,7 +555,30 @@ SELECT
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    CASE WHEN sessions.volunteer_id IS NULL THEN
+        FALSE
+    WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.volunteer_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS volunteer_banned_from_live_media, CASE WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.student_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS student_banned_from_live_media
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -620,7 +658,30 @@ SELECT
         ELSE
             NULL
         END) AS ended_by,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    CASE WHEN sessions.volunteer_id IS NULL THEN
+        FALSE
+    WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.volunteer_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS volunteer_banned_from_live_media, CASE WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.student_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS student_banned_from_live_media
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -1049,8 +1110,6 @@ WITH results AS (
             AND volunteers.id = favorited.volunteer_id
     WHERE (students.id = :userId!
         OR volunteers.id = :userId!)
-    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-    AND NOW()
     AND sessions.time_tutored IS NOT NULL
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
@@ -1084,27 +1143,6 @@ WHERE
     AND sessions.ended_at IS NOT NULL;
 
 
-/* @name getSessionHistoryIdsByUserId */
-SELECT
-    sessions.id
-FROM
-    sessions
-    JOIN subjects ON subjects.id = sessions.subject_id
-    JOIN topics ON topics.id = subjects.topic_id
-    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
-    LEFT JOIN users students ON sessions.student_id = students.id
-WHERE (students.id = :userId!
-    OR volunteers.id = :userId!)
-AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-AND NOW()
-AND sessions.time_tutored IS NOT NULL
-AND sessions.time_tutored > :minSessionLength!::int
-AND sessions.volunteer_id IS NOT NULL
-AND sessions.ended_at IS NOT NULL
-ORDER BY
-    sessions.created_at DESC;
-
-
 /* @name getTotalSessionHistory */
 SELECT
     count(*)::int AS total
@@ -1114,8 +1152,6 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
 WHERE (students.id = :userId!
     OR volunteers.id = :userId!)
-AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')
-AND NOW()
 AND sessions.time_tutored IS NOT NULL
 AND sessions.time_tutored > :minSessionLength!::int
 AND sessions.volunteer_id IS NOT NULL;

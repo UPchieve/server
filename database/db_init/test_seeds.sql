@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 17.0
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,6 +26,7 @@ COPY upchieve.ban_reasons (id, name, created_at, updated_at) FROM stdin;
 3	used banned ip	2024-08-28 00:28:43.728966+00	2024-08-28 00:28:43.728966+00
 4	admin	2024-08-28 00:28:43.729273+00	2024-08-28 00:28:43.729273+00
 5	banned service provider	2024-08-28 00:28:43.729617+00	2024-08-28 00:28:43.729617+00
+6	automated moderation	2024-11-20 21:08:19.510606+00	2024-11-20 21:08:19.510606+00
 \.
 
 
@@ -362,7 +363,7 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 -- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at) FROM stdin;
+COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at, shown) FROM stdin;
 \.
 
 
@@ -1391,6 +1392,14 @@ COPY upchieve.ineligible_students (id, email, postal_code, ip_address_id, school
 --
 
 COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: moderation_infractions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2677,6 +2686,22 @@ COPY upchieve.schools_sponsor_orgs_instances (school_id, sponsor_org_id, deactiv
 
 
 --
+-- Data for Name: session_audio; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_audio (id, session_id, resource_uri, student_joined_at, volunteer_joined_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_audio_transcript_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, message, said_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_failed_joins; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -3862,7 +3887,7 @@ COPY upchieve.volunteer_references (id, user_id, first_name, last_name, email, s
 -- Name: ban_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, true);
 
 
 --

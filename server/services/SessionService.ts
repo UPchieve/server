@@ -1,5 +1,4 @@
 import crypto from 'crypto'
-import _ from 'lodash'
 import moment from 'moment'
 import * as cache from '../cache'
 import { Ulid } from '../models/pgUtils'
@@ -19,18 +18,19 @@ import {
 import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
 import { DAYS } from '../constants'
-import { NotAllowedError } from '../models/Errors'
+import { LookupError, NotAllowedError } from '../models/Errors'
 import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
+import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   Session,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
 import * as SessionRepo from '../models/Session'
-import { User, UserContactInfo } from '../models/User'
+import { UserContactInfo } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
   createAccountAction,
@@ -67,6 +67,10 @@ import { TransactionClient, runInTransaction } from '../db'
 import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
+import * as SessionAudioRepo from '../models/SessionAudio'
+import { getSessionCallParticipantsCacheKey } from '../utils/session-utils'
+import { KeyNotFoundError } from '../cache'
+import { SessionMessageType } from '../router/api/sockets'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -794,7 +798,8 @@ export async function saveMessage(
   data: {
     sessionId: Ulid
     message: string
-    type?: 'voice'
+    type?: SessionMessageType
+    saidAt?: Date // @TODO Improve typing to handle different types of messages
   },
   chatbot: Ulid | undefined
 ): Promise<string> {
@@ -812,6 +817,13 @@ export async function saveMessage(
 
   if (data.type === 'voice') {
     return message
+  } else if (data.type === 'audio-transcription') {
+    return await TranscriptMessagesRepo.insertSessionAudioTranscriptMessage({
+      userId: user.id,
+      sessionId,
+      message,
+      saidAt: data.saidAt!,
+    })
   } else {
     return await SessionRepo.addMessageToSessionById(
       sessionId,
@@ -1067,5 +1079,90 @@ export async function getFallIncentiveSessionOverview(
   return {
     qualifiedSessions,
     unqualifiedSessions,
+  }
+}
+
+export async function getOrCreateSessionAudio(
+  sessionId: string,
+  {
+    resourceUri,
+    volunteerJoinedAt,
+    studentJoinedAt,
+  }: {
+    resourceUri?: string
+    volunteerJoinedAt?: Date
+    studentJoinedAt?: Date
+  }
+): Promise<SessionAudioRepo.SessionAudio> {
+  const maybeSessionAudio = await SessionAudioRepo.getSessionAudioBySessionId(
+    sessionId
+  )
+  if (maybeSessionAudio) return maybeSessionAudio
+  return await SessionAudioRepo.createSessionAudio({
+    sessionId,
+    resourceUri,
+    volunteerJoinedAt,
+    studentJoinedAt,
+  })
+}
+export async function updateSessionAudio(
+  sessionId: string,
+  updates: SessionAudioRepo.UpdateSessionAudioPayload
+): Promise<SessionAudioRepo.SessionAudio> {
+  const updated = await SessionAudioRepo.updateSessionAudio({
+    sessionId,
+    ...updates,
+  })
+  if (!updated)
+    throw new LookupError('Audio does not exist for the given session')
+  return updated
+}
+
+export async function getSessionCallParticipants(
+  sessionId: string
+): Promise<string[]> {
+  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
+  try {
+    const result = await cache.get(cacheKey)
+    return JSON.parse(result)
+  } catch (err) {
+    if (err instanceof KeyNotFoundError) return []
+    else throw err
+  }
+}
+
+export async function addSessionCallParticipant(
+  sessionId: string,
+  userId: string
+): Promise<void> {
+  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
+  let result: string[]
+  try {
+    result = JSON.parse(await cache.get(cacheKey))
+  } catch (err) {
+    if (err instanceof KeyNotFoundError) result = []
+    else throw err
+  }
+  if (!result.includes(userId)) {
+    result.push(userId)
+  }
+  await cache.save(cacheKey, JSON.stringify(result))
+}
+
+export async function removeSessionCallParticipant(
+  sessionId: string,
+  userId: string
+): Promise<void> {
+  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
+  let result: string[]
+  try {
+    result = JSON.parse(await cache.get(cacheKey))
+  } catch (err) {
+    if (err instanceof KeyNotFoundError) result = []
+    else throw err
+  }
+  if (result.includes(userId)) {
+    result = result.filter(p => p !== userId)
+    await cache.save(cacheKey, JSON.stringify(result))
   }
 }

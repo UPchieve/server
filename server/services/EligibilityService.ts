@@ -38,6 +38,7 @@ type CheckEligibilityResponse = {
   message?: string
   isEligible: boolean
   isCollegeStudent?: boolean
+  isExistingUser?: boolean
 }
 
 export class ExistingUserError extends CustomError {}
@@ -59,7 +60,7 @@ export async function checkEligibility(
 
   if (email) {
     const existingUser = await getUserIdByEmail(email)
-    if (existingUser) throw new ExistingUserError()
+    if (existingUser) return { isExistingUser: true, isEligible: true }
   }
 
   // == Remove after midtown clean-up.

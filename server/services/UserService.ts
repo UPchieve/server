@@ -25,6 +25,7 @@ import {
   updateUserProfileById,
   deleteUserPhoneInfo,
 } from '../models/User'
+import * as UserRepo from '../models/User'
 import {
   UnsentReference,
   VolunteerContactInfo,
@@ -465,4 +466,15 @@ export async function deletePhoneFromAccount(userId: Ulid) {
     )
   }
   await deleteUserPhoneInfo(userId)
+}
+
+export async function getUserByReferralCode(referralCode: string) {
+  const user = await UserRepo.getUserByReferralCode(referralCode)
+  if (user) {
+    const userRoles = await UserRolesService.getUserRolesById(user.id)
+    return {
+      ...user,
+      userType: userRoles.userType,
+    }
+  }
 }

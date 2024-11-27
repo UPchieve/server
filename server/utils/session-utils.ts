@@ -8,11 +8,13 @@ import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
   asCamelCaseString,
+  asDate,
   asFactory,
   asNumber,
   asOptional,
   asString,
 } from './type-utils'
+import config from '../config'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}
@@ -285,8 +287,16 @@ export const asJoinSessionData = asFactory<JoinSessionData>({
 interface SaveMessageData {
   sessionId: Ulid
   message: string
+  saidAt?: Date
 }
 export const asSaveMessageData = asFactory<SaveMessageData>({
   sessionId: asString,
   message: asString,
+  saidAt: asOptional(asDate),
 })
+
+export const getSessionCallParticipantsCacheKey = (
+  sessionId: string
+): string => {
+  return `${config.cacheKeys.sessionCallParticipantsPrefix}${sessionId}`
+}

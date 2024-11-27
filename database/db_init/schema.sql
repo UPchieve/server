@@ -24,13 +24,6 @@ CREATE SCHEMA basic_access;
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -118,7 +111,8 @@ CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
 
 CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
-    'complete'
+    'complete',
+    'live_media'
 );
 
 
@@ -382,7 +376,8 @@ CREATE TABLE upchieve.censored_session_messages (
     message text,
     session_id uuid NOT NULL,
     censored_by public.moderation_system NOT NULL,
-    sent_at timestamp with time zone NOT NULL
+    sent_at timestamp with time zone NOT NULL,
+    shown boolean NOT NULL
 );
 
 
@@ -683,6 +678,21 @@ CREATE TABLE upchieve.legacy_availability_histories (
     timezone text,
     recorded_at timestamp with time zone NOT NULL,
     legacy_availability jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: moderation_infractions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_infractions (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    reason json NOT NULL,
+    active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -1528,6 +1538,34 @@ CREATE TABLE upchieve.schools_sponsor_orgs_instances (
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: session_audio; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_audio (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    resource_uri text,
+    student_joined_at timestamp with time zone,
+    volunteer_joined_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: session_audio_transcript_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_audio_transcript_messages (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    message text NOT NULL,
+    said_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -3214,6 +3252,14 @@ ALTER TABLE ONLY upchieve.legacy_availability_histories
 
 
 --
+-- Name: moderation_infractions moderation_infractions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_infractions
+    ADD CONSTRAINT moderation_infractions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: muted_users_subject_alerts muted_users_subject_alerts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3627,6 +3673,22 @@ ALTER TABLE ONLY upchieve.schools
 
 ALTER TABLE ONLY upchieve.schools_sponsor_orgs
     ADD CONSTRAINT schools_sponsor_orgs_pkey PRIMARY KEY (school_id, sponsor_org_id);
+
+
+--
+-- Name: session_audio session_audio_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio
+    ADD CONSTRAINT session_audio_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_audio_transcript_messages session_audio_transcript_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio_transcript_messages
+    ADD CONSTRAINT session_audio_transcript_messages_pkey PRIMARY KEY (id);
 
 
 --
@@ -4343,6 +4405,13 @@ CREATE INDEX legacy_availability_histories_user_id_recorded_at ON upchieve.legac
 
 
 --
+-- Name: moderation_infractions_user_id_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX moderation_infractions_user_id_session_id_idx ON upchieve.moderation_infractions USING btree (user_id, session_id);
+
+
+--
 -- Name: notifications_sent_at_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4438,6 +4507,27 @@ CREATE INDEX progress_reports_user_id ON upchieve.progress_reports USING btree (
 --
 
 CREATE INDEX school_name_search ON upchieve.schools USING gin (name public.gin_trgm_ops);
+
+
+--
+-- Name: session_audio_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX session_audio_session_id_idx ON upchieve.session_audio USING btree (session_id);
+
+
+--
+-- Name: session_audio_transcript_messages_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_audio_transcript_messages_session_id_idx ON upchieve.session_audio_transcript_messages USING btree (session_id);
+
+
+--
+-- Name: session_audio_transcript_messages_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_audio_transcript_messages_user_id_idx ON upchieve.users USING btree (id);
 
 
 --
@@ -4779,6 +4869,22 @@ ALTER TABLE ONLY upchieve.legacy_availability_histories
 
 
 --
+-- Name: moderation_infractions moderation_infractions_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_infractions
+    ADD CONSTRAINT moderation_infractions_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: moderation_infractions moderation_infractions_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_infractions
+    ADD CONSTRAINT moderation_infractions_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: muted_users_subject_alerts muted_users_subject_alerts_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5096,6 +5202,30 @@ ALTER TABLE ONLY upchieve.schools_sponsor_orgs
 
 ALTER TABLE ONLY upchieve.schools_sponsor_orgs
     ADD CONSTRAINT schools_sponsor_orgs_sponsor_org_id_fkey FOREIGN KEY (sponsor_org_id) REFERENCES upchieve.sponsor_orgs(id);
+
+
+--
+-- Name: session_audio session_audio_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio
+    ADD CONSTRAINT session_audio_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_audio_transcript_messages session_audio_transcript_messages_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio_transcript_messages
+    ADD CONSTRAINT session_audio_transcript_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_audio_transcript_messages session_audio_transcript_messages_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_audio_transcript_messages
+    ADD CONSTRAINT session_audio_transcript_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -6102,4 +6232,9 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241028142054'),
     ('20241028154216'),
     ('20241028173238'),
-    ('20241031163051');
+    ('20241031163051'),
+    ('20241111210154'),
+    ('20241120182555'),
+    ('20241120182804'),
+    ('20241120184235'),
+    ('20241120210732');

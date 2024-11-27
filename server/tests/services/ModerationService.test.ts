@@ -9,7 +9,9 @@ import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
 import logger from '../../logger'
+import { timeLimit } from '../../utils/time-limit'
 
+jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
 jest.mock('../../services/BotsService', () => {
@@ -32,6 +34,7 @@ describe('ModerationService', () => {
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
   let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
+  const mockTimeLimit = jest.mocked(timeLimit)
 
   beforeEach(() => {
     jest.resetAllMocks()
@@ -149,6 +152,7 @@ describe('ModerationService', () => {
         senderId,
         sessionId,
         message,
+        shown: false,
       })
 
       expect(
@@ -179,21 +183,27 @@ describe('ModerationService', () => {
         senderId,
         sessionId,
         message: badMessage,
+        shown: false,
       })
-      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      const mockAiDecision = {
+        appropriate: false,
+        reasons: {
+          phone: ['(555)555-5555'],
+        },
+      }
+      const mockAiResponse = {
         choices: [
           {
             message: {
-              content: JSON.stringify({
-                appropriate: false,
-                reasons: {
-                  phone: ['(555)555-5555'],
-                },
-              }),
+              content: JSON.stringify(mockAiDecision),
             },
           },
         ],
-      })
+      }
+      mockTimeLimit.mockResolvedValue(mockAiDecision)
+      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue(
+        mockAiResponse
+      )
 
       expect(
         await moderateMessage({
@@ -220,6 +230,7 @@ describe('ModerationService', () => {
         senderId,
         sessionId,
         message,
+        shown: false,
       })
       ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
         choices: [
@@ -357,5 +368,61 @@ describe('ModerationService', () => {
         expect(mockGeneration.end).toHaveBeenCalled()
       })
     })
+  })
+
+  describe('Regex and AI moderation together', () => {
+    it("Returns the regex moderation result if it can't get an AI moderation result in time", async () => {
+      const message = '8608281234 is my phone number'
+      const mockAiDecision = {
+        appropriate: true,
+        reasons: {
+          failures: {},
+        },
+        message,
+      }
+      const mockAiResponse = {
+        choices: [
+          {
+            message: {
+              content: JSON.stringify(mockAiDecision),
+            },
+          },
+        ],
+      }
+      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue(
+        mockAiResponse
+      )
+      mockTimeLimit.mockResolvedValue(null)
+
+      const result = await moderateMessage({
+        message,
+        senderId,
+        isVolunteer,
+        sessionId,
+      })
+
+      expect(result).toEqual({
+        failures: {
+          phone: ['8608281234 '],
+        },
+      })
+    })
+  })
+
+  describe('moderateMessage - old clients', () => {
+    it.each([
+      ['clean message', true],
+      ['shit', false],
+    ])(
+      'Returns a boolean if no sessionId is provided',
+      async (message: string, isClean: boolean) => {
+        const result = await moderateMessage({
+          message,
+          senderId: 'sender-123',
+          isVolunteer: false,
+        })
+        expect(result).toEqual(isClean)
+      }
+    )
   })
 })

@@ -157,6 +157,7 @@ export const Config = Record({
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String,
+    sessionCallParticipantsPrefix: String,
   }),
 
   // Sentry Data Source Name
@@ -257,4 +258,12 @@ export const Config = Record({
   posthogAiTutorBotSubjectModelsFeatureFlagId: String,
   tutorBotHuggingfaceNamespace: String,
   tutorBotHuggingfaceInstanceName: String,
+
+  // Zoom
+  zoomTokenExpirationSeconds: Number,
+  zoomVideoSdkKey: String,
+  zoomVideoSdkSecret: String,
+
+  // Live media moderation
+  maxModerationInfractionsPerSession: Number,
 })
