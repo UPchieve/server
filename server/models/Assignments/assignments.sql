@@ -143,3 +143,13 @@ WHERE
     user_id = :userId!
     AND assignment_id = :assignmentId!;
 
+
+/* @name deleteStudentAssignment*/
+DELETE FROM students_assignments
+WHERE assignment_id = :assignmentId!;
+
+
+/* @name deleteAssignment */
+DELETE FROM assignments
+WHERE id = :assignmentId!;
+
