@@ -511,3 +511,55 @@ const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAss
 export const getSessionsForStudentAssignment = new PreparedQuery<IGetSessionsForStudentAssignmentParams,IGetSessionsForStudentAssignmentResult>(getSessionsForStudentAssignmentIR);
 
 
+/** 'DeleteStudentAssignment' parameters type */
+export interface IDeleteStudentAssignmentParams {
+  assignmentId: string;
+}
+
+/** 'DeleteStudentAssignment' return type */
+export type IDeleteStudentAssignmentResult = void;
+
+/** 'DeleteStudentAssignment' query type */
+export interface IDeleteStudentAssignmentQuery {
+  params: IDeleteStudentAssignmentParams;
+  result: IDeleteStudentAssignmentResult;
+}
+
+const deleteStudentAssignmentIR: any = {"name":"deleteStudentAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3913,"b":3925,"line":149,"col":23}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"DELETE FROM students_assignments\nWHERE assignment_id = :assignmentId!","loc":{"a":3857,"b":3925,"line":148,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM students_assignments
+ * WHERE assignment_id = :assignmentId!
+ * ```
+ */
+export const deleteStudentAssignment = new PreparedQuery<IDeleteStudentAssignmentParams,IDeleteStudentAssignmentResult>(deleteStudentAssignmentIR);
+
+
+/** 'DeleteAssignment' parameters type */
+export interface IDeleteAssignmentParams {
+  assignmentId: string;
+}
+
+/** 'DeleteAssignment' return type */
+export type IDeleteAssignmentResult = void;
+
+/** 'DeleteAssignment' query type */
+export interface IDeleteAssignmentQuery {
+  params: IDeleteAssignmentParams;
+  result: IDeleteAssignmentResult;
+}
+
+const deleteAssignmentIR: any = {"name":"deleteAssignment","params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3995,"b":4007,"line":154,"col":12}]}}],"usedParamSet":{"assignmentId":true},"statement":{"body":"DELETE FROM assignments\nWHERE id = :assignmentId!","loc":{"a":3959,"b":4007,"line":153,"col":0}}};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM assignments
+ * WHERE id = :assignmentId!
+ * ```
+ */
+export const deleteAssignment = new PreparedQuery<IDeleteAssignmentParams,IDeleteAssignmentResult>(deleteAssignmentIR);
+
+
