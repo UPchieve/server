@@ -15,6 +15,7 @@ import {
   Uuid,
   makeRequired,
 } from '../pgUtils'
+import moment from 'moment'
 
 export async function createAssignment(
   data: CreateAssignmentInput,
@@ -163,9 +164,38 @@ export async function getAssignmentsByStudentId(
       { userId },
       tc
     )
-    return assignments.map(a =>
-      makeSomeRequired(a, ['classId', 'id', 'isRequired', 'assignedAt'])
+
+    const assignmentsWithSessions = await Promise.all(
+      assignments.map(async assignment => {
+        const temp = makeSomeRequired(assignment, [
+          'classId',
+          'id',
+          'isRequired',
+          'assignedAt',
+        ])
+        const assignmentSessions = await getSessionsForStudentAssignment(
+          userId,
+          assignment.id
+        )
+        const filtered = assignmentSessions.filter(session => {
+          if (!session.volunteerJoinedAt) return false
+          if (!session.endedAt) return false
+
+          const timeTutored = moment
+            .duration(
+              moment(session.endedAt).diff(moment(session.volunteerJoinedAt))
+            )
+            .asMinutes()
+          return timeTutored >= (assignment.minDurationInMinutes ?? 0)
+        })
+        return {
+          ...temp,
+          completedSessions: filtered,
+        }
+      })
     )
+
+    return assignmentsWithSessions
   } catch (err) {
     throw new RepoReadError(err)
   }
