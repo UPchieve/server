@@ -652,17 +652,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on(
-      'sessions:joined-call',
+      'sessions:joined-call', // @TODO is this needed?
       async ({ sessionId }: { sessionId: string }) => {
         newrelic.startWebTransaction('/socket-io/sessions:joined-call', () =>
           new Promise<void>(async (resolve, reject) => {
             try {
               const userId = extractSocketUser(socket).id
               await SessionService.addSessionCallParticipant(sessionId, userId)
-              await socketService.emitPartnerJoinedSessionCallEvent(
-                sessionId,
-                userId
-              )
             } catch (err) {
               reject(err)
             }
@@ -680,17 +676,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     )
 
     socket.on(
-      'sessions:left-call',
+      'sessions:left-call', // @TODO is this needed?
       async ({ sessionId }: { sessionId: string }) => {
         newrelic.startWebTransaction('/socket-io/sessions:left-call', () =>
           new Promise<void>(async (resolve, reject) => {
             try {
               const userId = extractSocketUser(socket).id
               await SessionService.removeSessionCallParticipant(
-                sessionId,
-                userId
-              )
-              await socketService.emitPartnerLeftSessionCallEvent(
                 sessionId,
                 userId
               )

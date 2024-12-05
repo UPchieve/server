@@ -63,8 +63,6 @@ export type ServerToClientEvents = {
   }) => void
   resetWhiteboard: () => void
   'session-change': (data: CurrentSession | undefined) => void
-  'sessions:partner-joined-call': () => void
-  'sessions:partner-left-call': () => void
 }
 
 export type InterServerEvents = {}
