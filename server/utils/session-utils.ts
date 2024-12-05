@@ -294,9 +294,3 @@ export const asSaveMessageData = asFactory<SaveMessageData>({
   message: asString,
   saidAt: asOptional(asDate),
 })
-
-export const getSessionCallParticipantsCacheKey = (
-  sessionId: string
-): string => {
-  return `${config.cacheKeys.sessionCallParticipantsPrefix}${sessionId}`
-}
