@@ -68,8 +68,6 @@ import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
-import { getSessionCallParticipantsCacheKey } from '../utils/session-utils'
-import { KeyNotFoundError } from '../cache'
 import { SessionMessageType } from '../router/api/sockets'
 
 export async function reviewSession(data: unknown) {
@@ -1116,53 +1114,4 @@ export async function updateSessionAudio(
   if (!updated)
     throw new LookupError('Audio does not exist for the given session')
   return updated
-}
-
-export async function getSessionCallParticipants(
-  sessionId: string
-): Promise<string[]> {
-  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  try {
-    const result = await cache.get(cacheKey)
-    return JSON.parse(result)
-  } catch (err) {
-    if (err instanceof KeyNotFoundError) return []
-    else throw err
-  }
-}
-
-export async function addSessionCallParticipant(
-  sessionId: string,
-  userId: string
-): Promise<void> {
-  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  let result: string[]
-  try {
-    result = JSON.parse(await cache.get(cacheKey))
-  } catch (err) {
-    if (err instanceof KeyNotFoundError) result = []
-    else throw err
-  }
-  if (!result.includes(userId)) {
-    result.push(userId)
-  }
-  await cache.save(cacheKey, JSON.stringify(result))
-}
-
-export async function removeSessionCallParticipant(
-  sessionId: string,
-  userId: string
-): Promise<void> {
-  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  let result: string[]
-  try {
-    result = JSON.parse(await cache.get(cacheKey))
-  } catch (err) {
-    if (err instanceof KeyNotFoundError) result = []
-    else throw err
-  }
-  if (result.includes(userId)) {
-    result = result.filter(p => p !== userId)
-    await cache.save(cacheKey, JSON.stringify(result))
-  }
 }

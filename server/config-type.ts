@@ -157,7 +157,6 @@ export const Config = Record({
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String,
-    sessionCallParticipantsPrefix: String,
   }),
 
   // Sentry Data Source Name
