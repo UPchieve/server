@@ -38,8 +38,6 @@ export type ClientToServerEvents = {
   resetWhiteboard: (data: { sessionId: Ulid }) => void
   'sessions:leave': (data: { sessionId: Ulid }) => void
   'sessions/recap:leave': (data: { sessionId: Ulid }) => void
-  'sessions:joined-call': (data: { sessionId: string }) => void
-  'sessions:left-call': (data: { sessionId: string }) => void
 }
 
 export type ServerToClientEvents = {
