@@ -1,7 +1,7 @@
 /** Types generated for queries found in "server/models/Volunteer/volunteer.sql" */
 import { PreparedQuery } from '@pgtyped/query';
 
-export type ban_types = 'complete' | 'shadow';
+export type ban_types = 'complete' | 'live_media' | 'shadow';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 

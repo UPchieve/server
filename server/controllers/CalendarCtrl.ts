@@ -34,14 +34,13 @@ export async function updateSchedule(
     const newTimezone = options.tz
     const ip = options.ip
 
-    const volunteer = await getVolunteerForScheduleUpdate(user.id)
-    // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-    // await executeUpdate(volunteer, newTimezone, newAvailability)
-
     if (!newAvailability) {
       //early exit
       throw new Error('No availability object specified')
     }
+
+    const volunteer = await getVolunteerForScheduleUpdate(user.id)
+    // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
 
     if (
       Object.keys(volunteer.availability).some(key => {
