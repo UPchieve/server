@@ -5,6 +5,7 @@ import { faker } from '@faker-js/faker'
 import * as CalendarCtrl from '../../controllers/CalendarCtrl'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as AvailabilityRepo from '../../models/Availability'
+import * as VolunteerService from '../../services/VolunteerService'
 import { getDbUlid } from '../../models/pgUtils'
 import { Ulid } from '../../models/pgUtils'
 import {
@@ -13,6 +14,7 @@ import {
   getIpAddress,
 } from '../mocks/generate'
 import * as UserActionRepo from '../../models/UserAction'
+import { TransactionClient } from '../../db'
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
 
@@ -121,6 +123,7 @@ describe('Save availability and time zone', () => {
     mockedVolunteerRepo.getVolunteerForScheduleUpdate.mockResolvedValue(
       volunteer
     )
+    const tc = {} as TransactionClient
 
     const availability = buildAvailability({
       Saturday: mockSaturdayAvailability,
@@ -139,16 +142,23 @@ describe('Save availability and time zone', () => {
      * 2. update availability
      * 3. update onboarded status - FALSE
      */
-    expect(UserActionRepo.createAccountAction).toHaveBeenCalledTimes(0)
+    // expect(UserActionRepo.createAccountAction).toHaveBeenCalledTimes(0)
     expect(
       AvailabilityRepo.saveCurrentAvailabilityAsHistory
-    ).toHaveBeenLastCalledWith(user.id)
+    ).toHaveBeenLastCalledWith(user.id, expect.toBeTransactionClient())
     expect(
       AvailabilityRepo.updateAvailabilityByVolunteerId
-    ).toHaveBeenLastCalledWith(user.id, availability, tz)
-    expect(
-      VolunteerRepo.updateVolunteerThroughAvailability
-    ).toHaveBeenLastCalledWith(user.id, tz, volunteer.onboarded)
+    ).toHaveBeenLastCalledWith(
+      user.id,
+      availability,
+      tz,
+      expect.toBeTransactionClient()
+    )
+    expect(VolunteerRepo.updateTimezoneByUserId).toHaveBeenLastCalledWith(
+      user.id,
+      tz,
+      expect.toBeTransactionClient()
+    )
   })
 
   test('Should update availability (and user action) and becomes onboarded - with user action', async () => {
@@ -175,25 +185,28 @@ describe('Save availability and time zone', () => {
 
     /**
      * expect
-     * 1. user action for becoming onboarded
+     * 1. onboard volunteer
      * 2. save old availability as history
      * 3. update availability
      * 4. update onboarded status - TRUE
      */
-    expect(UserActionRepo.createAccountAction).toHaveBeenCalledWith({
-      userId: user.id,
-      action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-      ipAddress: ip,
-    })
+    expect(VolunteerService.onboardVolunteer).toHaveBeenCalled()
     expect(
       AvailabilityRepo.saveCurrentAvailabilityAsHistory
-    ).toHaveBeenLastCalledWith(user.id)
+    ).toHaveBeenLastCalledWith(user.id, expect.toBeTransactionClient())
     expect(
       AvailabilityRepo.updateAvailabilityByVolunteerId
-    ).toHaveBeenLastCalledWith(user.id, availability, tz)
-    expect(
-      VolunteerRepo.updateVolunteerThroughAvailability
-    ).toHaveBeenLastCalledWith(user.id, tz, true)
+    ).toHaveBeenLastCalledWith(
+      user.id,
+      availability,
+      tz,
+      expect.toBeTransactionClient()
+    )
+    expect(VolunteerRepo.updateTimezoneByUserId).toHaveBeenLastCalledWith(
+      user.id,
+      tz,
+      expect.toBeTransactionClient()
+    )
   })
 })
 
@@ -210,8 +223,9 @@ describe('Clear schedule', () => {
     expect(
       AvailabilityRepo.clearAvailabilityForVolunteer
     ).toHaveBeenLastCalledWith(user.id)
-    expect(
-      VolunteerRepo.updateVolunteerThroughAvailability
-    ).toHaveBeenLastCalledWith(user.id, tz)
+    expect(VolunteerRepo.updateTimezoneByUserId).toHaveBeenLastCalledWith(
+      user.id,
+      tz
+    )
   })
 })

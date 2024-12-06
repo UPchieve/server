@@ -14,12 +14,22 @@ import * as MailService from './MailService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
+import { TransactionClient } from '../db'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
   totalQuizzesPassed: number
   totalElapsedAvailability: number
   totalVolunteerHours: number
+}
+
+export interface OnboardedVolunteer {
+  id: Ulid
+  onboarded: boolean
+  volunteerPartnerOrg: string | undefined
+  hasSubjects: boolean
+  hasCompletedUpchieve101: boolean
+  hasAvailability: boolean
 }
 
 export async function getHourSummaryStats(
@@ -244,4 +254,40 @@ export async function addBackgroundInfo(
     ...update,
     approved,
   })
+}
+
+export async function onboardVolunteer(
+  volunteerId: Ulid,
+  volunteerPartnerOrg: string | undefined,
+  ip: string,
+  tc: TransactionClient
+): Promise<void> {
+  const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
+    volunteerId
+  )
+  if (!volunteer) throw new Error('Volunteer not found')
+  if (
+    !volunteer.onboarded &&
+    volunteer.subjects.length &&
+    volunteer.hasCompletedUpchieve101 &&
+    volunteer.availabilityLastModifiedAt
+  ) {
+    await VolunteerRepo.updateVolunteerOnboarded(volunteer.id, tc)
+    await queueOnboardingEventEmails(volunteer.id)
+    // TODO: this should just be done by the generic onboarding email handler above
+    if (volunteerPartnerOrg) {
+      await queuePartnerOnboardingEventEmails(volunteer.id)
+    }
+    await createAccountAction(
+      {
+        action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+        userId: volunteer.id,
+        ipAddress: ip,
+      },
+      tc
+    )
+    AnalyticsService.captureEvent(volunteer.id, EVENTS.ACCOUNT_ONBOARDED, {
+      event: EVENTS.ACCOUNT_ONBOARDED,
+    })
+  }
 }
