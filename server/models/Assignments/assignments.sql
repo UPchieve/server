@@ -135,7 +135,8 @@ ON CONFLICT
 /* @name getSessionsForStudentAssignment */
 SELECT
     s.volunteer_joined_at,
-    s.ended_at
+    s.ended_at,
+    s.time_tutored
 FROM
     sessions_students_assignments ssa
     JOIN sessions s ON s.id = ssa.session_id

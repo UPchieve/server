@@ -178,15 +178,12 @@ export async function getAssignmentsByStudentId(
           assignment.id
         )
         const filtered = assignmentSessions.filter(session => {
-          if (!session.volunteerJoinedAt) return false
-          if (!session.endedAt) return false
+          if (parseInt(session.timeTutored) === 0) return false
 
-          const timeTutored = moment
-            .duration(
-              moment(session.endedAt).diff(moment(session.volunteerJoinedAt))
-            )
-            .asMinutes()
-          return timeTutored >= (assignment.minDurationInMinutes ?? 0)
+          return (
+            parseInt(session.timeTutored) >=
+            (assignment.minDurationInMinutes ?? 0)
+          )
         })
         return {
           ...temp,
@@ -283,7 +280,9 @@ export async function getSessionsForStudentAssignment(
   userId: Ulid,
   assignmentId: Uuid,
   tc: TransactionClient = getClient()
-): Promise<{ volunteerJoinedAt?: Date; endedAt?: Date }[]> {
+): Promise<
+  { volunteerJoinedAt?: Date; endedAt?: Date; timeTutored: string }[]
+> {
   try {
     const sessions = await pgQueries.getSessionsForStudentAssignment.run(
       { userId, assignmentId },

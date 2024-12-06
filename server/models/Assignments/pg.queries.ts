@@ -483,6 +483,7 @@ export interface IGetSessionsForStudentAssignmentParams {
 /** 'GetSessionsForStudentAssignment' return type */
 export interface IGetSessionsForStudentAssignmentResult {
   endedAt: Date | null;
+  timeTutored: string;
   volunteerJoinedAt: Date | null;
 }
 
@@ -492,14 +493,15 @@ export interface IGetSessionsForStudentAssignmentQuery {
   result: IGetSessionsForStudentAssignmentResult;
 }
 
-const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3772,"b":3778,"line":143,"col":15}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3805,"b":3817,"line":144,"col":25}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"SELECT\n    s.volunteer_joined_at,\n    s.ended_at\nFROM\n    sessions_students_assignments ssa\n    JOIN sessions s ON s.id = ssa.session_id\nWHERE\n    user_id = :userId!\n    AND assignment_id = :assignmentId!","loc":{"a":3614,"b":3817,"line":136,"col":0}}};
+const getSessionsForStudentAssignmentIR: any = {"name":"getSessionsForStudentAssignment","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3792,"b":3798,"line":144,"col":15}]}},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":3825,"b":3837,"line":145,"col":25}]}}],"usedParamSet":{"userId":true,"assignmentId":true},"statement":{"body":"SELECT\n    s.volunteer_joined_at,\n    s.ended_at,\n    s.time_tutored\nFROM\n    sessions_students_assignments ssa\n    JOIN sessions s ON s.id = ssa.session_id\nWHERE\n    user_id = :userId!\n    AND assignment_id = :assignmentId!","loc":{"a":3614,"b":3837,"line":136,"col":0}}};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     s.volunteer_joined_at,
- *     s.ended_at
+ *     s.ended_at,
+ *     s.time_tutored
  * FROM
  *     sessions_students_assignments ssa
  *     JOIN sessions s ON s.id = ssa.session_id

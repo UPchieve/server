@@ -24,6 +24,7 @@ import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
+import { StudentAssignment } from '../Assignments/types'
 
 export type LegacyUserModel = {
   // pg
@@ -85,7 +86,7 @@ export type LegacyUserModel = {
   isSchoolPartner?: boolean
   usesClever?: boolean
   usesGoogle?: boolean
-  studentAssignments?: []
+  studentAssignments?: StudentAssignment[]
 }
 
 export async function getLegacyUserObject(
