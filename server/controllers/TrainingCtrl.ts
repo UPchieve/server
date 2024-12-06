@@ -10,10 +10,7 @@ import {
 import { createQuizAction, createAccountAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
 import { Quizzes } from '../models/Volunteer'
-import {
-  queueOnboardingEventEmails,
-  queuePartnerOnboardingEventEmails,
-} from '../services/VolunteerService'
+import * as VolunteerService from '../services/VolunteerService'
 import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
@@ -21,6 +18,8 @@ import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
 import { getStandardizedCertsFlag } from '../services/FeatureFlagService'
+import { runInTransaction, TransactionClient } from '../db'
+import logger from '../logger'
 
 export async function getQuestions(
   category: string,
@@ -88,110 +87,109 @@ export interface GetQuizScoreOutput {
 export async function getQuizScore(
   options: GetQuizScoreOptions
 ): Promise<GetQuizScoreOutput> {
-  const { user, idAnswerMap, ip } = options
-  const cert = options.category
-  const objIDs = Object.keys(idAnswerMap)
-  const numIDs = objIDs.map(id => Number(id))
-  const questions = await QuestionModel.getMultipleQuestionsById(numIDs)
-  const SUBJECT_THRESHOLD = 0.8
-  const TRAINING_THRESHOLD = 0.9
+  return runInTransaction(async (tc: TransactionClient) => {
+    const { user, idAnswerMap, ip } = options
+    const cert = options.category
+    const objIDs = Object.keys(idAnswerMap)
+    const numIDs = objIDs.map(id => Number(id))
+    const questions = await QuestionModel.getMultipleQuestionsById(numIDs)
+    const SUBJECT_THRESHOLD = 0.8
+    const TRAINING_THRESHOLD = 0.9
 
-  const score = questions.filter(
-    question => question.correctAnswer === idAnswerMap[question.id]
-  ).length
+    const score = questions.filter(
+      question => question.correctAnswer === idAnswerMap[question.id]
+    ).length
 
-  const percent = score / questions.length
-  const subjectType = await SubjectsModel.getSubjectType(cert as string)
-  if (!subjectType)
-    throw new Error(`No subject type found for subject: ${cert}`)
-  const threshold =
-    subjectType === SUBJECT_TYPES.TRAINING
-      ? TRAINING_THRESHOLD
-      : SUBJECT_THRESHOLD
-  const passed = percent >= threshold
+    const percent = score / questions.length
+    const subjectType = await SubjectsModel.getSubjectType(cert as string)
+    if (!subjectType)
+      throw new Error(`No subject type found for subject: ${cert}`)
+    const threshold =
+      subjectType === SUBJECT_TYPES.TRAINING
+        ? TRAINING_THRESHOLD
+        : SUBJECT_THRESHOLD
+    const passed = percent >= threshold
 
-  const userQuizzesMap = await VolunteerModel.getQuizzesForVolunteers([user.id])
-  const userQuizzes = userQuizzesMap[user.id]
+    const userQuizzesMap = await VolunteerModel.getQuizzesForVolunteers([
+      user.id,
+    ])
+    const userQuizzes = userQuizzesMap[user.id]
 
-  const tries = userQuizzes[cert] ? userQuizzes[cert].tries : 1
+    const tries = userQuizzes[cert] ? userQuizzes[cert].tries : 1
 
-  await VolunteerModel.updateVolunteerQuiz(
-    user.id,
-    options.category as string,
-    passed
-  )
-
-  if (passed) {
-    const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
-      asString(cert)
+    await VolunteerModel.updateVolunteerQuiz(
+      user.id,
+      options.category as string,
+      passed,
+      tc
     )
-    const unlockedSubjects = quizCertUnlocks.map(cert => cert.unlockedCertName)
 
-    // set custom field passedUpchieve101 in SendGrid
-    if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
+    if (passed) {
+      const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
+        asString(cert),
+        tc
+      )
+      const unlockedSubjects = quizCertUnlocks.map(
+        cert => cert.unlockedCertName
+      )
 
-    const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
-      user.id
-    )
-    // Create a user action for every subject unlocked
-    for (const subject of unlockedSubjects) {
-      if (!currentSubjects.includes(subject)) {
-        await createQuizAction({
-          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-          userId: user.id,
-          quizSubcategory: subject,
-        })
-        captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
-          event: EVENTS.SUBJECT_UNLOCKED,
-          subject,
-        })
-        await VolunteerModel.addVolunteerCertification(user.id, subject)
+      const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
+        user.id,
+        tc
+      )
+      // Create a user action for every subject unlocked
+      for (const subject of unlockedSubjects) {
+        if (!currentSubjects.includes(subject)) {
+          await createQuizAction({
+            action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+            userId: user.id,
+            quizSubcategory: subject,
+          })
+          captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
+            event: EVENTS.SUBJECT_UNLOCKED,
+            subject,
+          })
+          await VolunteerModel.addVolunteerCertification(user.id, subject, tc)
+        }
       }
-    }
-    // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
-    const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
-      user.id
-    )
-    const hasSubjects =
-      unlockedSubjects.length > 0 || currentSubjects.length > 0
-    const passedUpchieve101 =
-      volunteerProfile?.hasCompletedUpchieve101 ||
-      cert === TRAINING.UPCHIEVE_101
-    if (
-      volunteerProfile &&
-      !volunteerProfile.onboarded &&
-      volunteerProfile.availabilityLastModifiedAt &&
-      hasSubjects &&
-      passedUpchieve101
-    ) {
-      await VolunteerModel.updateVolunteerOnboarded(user.id)
-      await queueOnboardingEventEmails(user.id)
-      // TODO: this should just be done by the generic onboarding email handler above
-      if (user.volunteerPartnerOrg)
-        await queuePartnerOnboardingEventEmails(user.id)
-      await createAccountAction({
-        action: ACCOUNT_USER_ACTIONS.ONBOARDED,
-        userId: user.id,
-        ipAddress: ip,
-      })
-      captureEvent(user.id, EVENTS.ACCOUNT_ONBOARDED, {
-        event: EVENTS.ACCOUNT_ONBOARDED,
-      })
-    }
-  }
+      // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
+      const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
+        user.id,
+        tc
+      )
+      const hasSubjects =
+        unlockedSubjects.length > 0 || currentSubjects.length > 0
+      const passedUpchieve101 =
+        volunteerProfile?.hasCompletedUpchieve101 ||
+        cert === TRAINING.UPCHIEVE_101
 
-  const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {
-    correctAnswers[question.id] = question.correctAnswer
-    return correctAnswers
-  }, {} as AnswerMap)
+      await VolunteerService.onboardVolunteer(
+        user.id,
+        user.volunteerPartnerOrg,
+        ip,
+        tc
+      )
+    }
 
-  return {
-    tries,
-    passed,
-    score,
-    idCorrectAnswerMap,
-    isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
-  }
+    const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {
+      correctAnswers[question.id] = question.correctAnswer
+      return correctAnswers
+    }, {} as AnswerMap)
+
+    try {
+      if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
+    } catch (err) {
+      logger.error('Cannot create sendgrid contact: ' + err)
+    }
+
+    return {
+      tries,
+      passed,
+      score,
+      idCorrectAnswerMap,
+      isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
+    }
+  })
 }
 
 // TODO: Remove in medium-certs-v2 clean up

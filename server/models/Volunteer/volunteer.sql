@@ -150,12 +150,11 @@ RETURNING
     user_id AS ok;
 
 
-/* @name updateVolunteerThroughAvailability */
+/* @name updateTimezoneByUserId */
 UPDATE
     volunteer_profiles
 SET
     timezone = COALESCE(:timezone, timezone),
-    onboarded = COALESCE(:onboarded, onboarded),
     updated_at = NOW()
 WHERE
     user_id = :userId!

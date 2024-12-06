@@ -24,6 +24,7 @@ import {
 import { Ulid } from '../../models/pgUtils'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
+import { TransactionClient } from '../../db'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -383,7 +384,12 @@ const loadVolunteerAvailability = async (
   volunteerId: string,
   availability: Availability
 ) => {
-  await updateAvailabilityByVolunteerId(volunteerId, availability, TIMEZONE)
+  await updateAvailabilityByVolunteerId(
+    volunteerId,
+    availability,
+    TIMEZONE,
+    client
+  )
 }
 
 const generateVolunteer = (): CreateVolunteerPayload => {
@@ -419,7 +425,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     v.volunteerPartnerOrg = options.partner as string
   }
   const res = await createVolunteer(v)
-  if (options.onboarded) await updateVolunteerOnboarded(res.id)
+  if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {
       await addVolunteerCertification(res.id, subj)
