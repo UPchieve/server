@@ -20,6 +20,7 @@ import {
   Uuid,
   makeRequired,
 } from '../pgUtils'
+import moment from 'moment'
 
 export async function createAssignment(
   data: CreateAssignmentInput,
@@ -168,9 +169,35 @@ export async function getAssignmentsByStudentId(
       { userId },
       tc
     )
-    return assignments.map(a =>
-      makeSomeRequired(a, ['classId', 'id', 'isRequired', 'assignedAt'])
+
+    const assignmentsWithSessions = await Promise.all(
+      assignments.map(async assignment => {
+        const temp = makeSomeRequired(assignment, [
+          'classId',
+          'id',
+          'isRequired',
+          'assignedAt',
+        ])
+        const assignmentSessions = await getSessionsForStudentAssignment(
+          userId,
+          assignment.id
+        )
+        const filtered = assignmentSessions.filter(session => {
+          if (parseInt(session.timeTutored) === 0) return false
+
+          return (
+            parseInt(session.timeTutored) >=
+            (assignment.minDurationInMinutes ?? 0)
+          )
+        })
+        return {
+          ...temp,
+          completedSessions: filtered,
+        }
+      })
     )
+
+    return assignmentsWithSessions
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -258,7 +285,9 @@ export async function getSessionsForStudentAssignment(
   userId: Ulid,
   assignmentId: Uuid,
   tc: TransactionClient = getClient()
-): Promise<{ volunteerJoinedAt?: Date; endedAt?: Date }[]> {
+): Promise<
+  { volunteerJoinedAt?: Date; endedAt?: Date; timeTutored: string }[]
+> {
   try {
     const sessions = await pgQueries.getSessionsForStudentAssignment.run(
       { userId, assignmentId },

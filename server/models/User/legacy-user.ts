@@ -23,6 +23,8 @@ import { getUsersLatestSubjectsByUserId } from './'
 import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import { UserRole } from './types'
+import * as AssignmentsService from '../../services/AssignmentsService'
+import { StudentAssignment } from '../Assignments/types'
 
 export type LegacyUserModel = {
   // pg
@@ -84,6 +86,7 @@ export type LegacyUserModel = {
   isSchoolPartner?: boolean
   usesClever?: boolean
   usesGoogle?: boolean
+  studentAssignments?: StudentAssignment[]
 }
 
 export async function getLegacyUserObject(
@@ -141,6 +144,9 @@ export async function getLegacyUserObject(
       studentUser.usesClever =
         baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
       delete baseUser.issuers
+      studentUser.studentAssignments = await AssignmentsService.getAssignmentsByStudentId(
+        baseUser.id
+      )
     }
     if (isVolunteerUserType(userType)) {
       if (!baseUser.subjects) baseUser.subjects = []
