@@ -23,7 +23,6 @@ import {
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
 import { getFeedbackBySessionId } from '../Feedback/queries'
-import { PoolClient } from 'pg'
 import { Feedback } from '../Feedback'
 import { isPgId } from '../../utils/type-utils'
 import {
@@ -513,10 +512,23 @@ export async function getMessagesForFrontend(
     const voiceResult = (
       await pgQueries.getSessionVoiceMessagesForFrontend.run({ sessionId }, tc)
     ).map(v => makeSomeOptional(v, ['transcript']))
+    const transcriptResult = (
+      await pgQueries.getSessionAudioTranscriptMessagesForFrontend.run(
+        { sessionId },
+        tc
+      )
+    ).map(v => makeRequired(v))
 
     // insert voice messages
     const merged = result
       .concat(voiceResult.map(r => ({ ...r, type: 'voice', contents: r.id })))
+      .concat(
+        transcriptResult.map(t => ({
+          ...t,
+          type: 'audio-transcription',
+          contents: t.message,
+        }))
+      )
       .sort((a, b) => {
         return Number(a.createdAt) - Number(b.createdAt)
       })
@@ -635,6 +647,8 @@ export type CurrentSession = {
   endedBy?: Ulid
   toolType: string
   docEditorVersion?: number
+  studentBannedFromLiveMedia?: boolean
+  volunteerBannedFromLiveMedia?: boolean
 }
 
 export type SessionInfoForUser = {
@@ -685,6 +699,8 @@ export async function getCurrentSessionByUserId(
         'volunteerId',
         'endedAt',
         'volunteerJoinedAt',
+        'volunteerBannedFromLiveMedia',
+        'studentBannedFromLiveMedia',
       ])
       return handleSessionParsingForUser(session, tc)
     }
@@ -707,24 +723,6 @@ export async function getRecapSessionForDmsBySessionId(
       const session = makeRequired(result[0])
       return handleSessionParsingForUser(session, client)
     }
-  } catch (error) {
-    throw new RepoReadError(error)
-  } finally {
-    client.release()
-  }
-}
-
-export async function getSessionHistoryIdsByUserId(
-  userId: Ulid
-): Promise<{ id: Ulid }[]> {
-  const client = await getClient().connect()
-  try {
-    const result = await pgQueries.getSessionHistoryIdsByUserId.run(
-      { userId, minSessionLength: config.minSessionLength },
-      client
-    )
-    if (!result.length) return []
-    else return result.map(v => makeRequired(v))
   } catch (error) {
     throw new RepoReadError(error)
   } finally {
@@ -778,6 +776,8 @@ export async function getCurrentSessionBySessionId(
       'volunteerId',
       'endedAt',
       'endedBy',
+      'volunteerBannedFromLiveMedia',
+      'studentBannedFromLiveMedia',
     ])
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(

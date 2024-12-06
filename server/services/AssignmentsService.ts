@@ -235,6 +235,13 @@ export async function updateStudentAssignmentAfterSession(
   }, tc)
 }
 
+export async function deleteAssignment(assignmentId: Uuid) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    await AssignmentsRepo.deleteStudentAssignment(assignmentId, tc)
+    await AssignmentsRepo.deleteAssignment(assignmentId, tc)
+  })
+}
+
 // Exported for testing.
 export function haveSessionsMetAssignmentRequirements(
   assignment: Omit<StudentAssignment, 'classId'>,

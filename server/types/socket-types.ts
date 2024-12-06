@@ -3,6 +3,7 @@ import { Socket } from 'socket.io'
 import { Ulid } from '../models/pgUtils'
 import { CurrentSession, UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
+import { SessionMessageType } from '../router/api/sockets'
 
 export type SocketDelta = Delta & {
   id?: string
@@ -21,8 +22,10 @@ export type ClientToServerEvents = {
     sessionId: Ulid
     message: string
     source: 'recap' | ''
-    type?: 'voice'
+    type?: SessionMessageType
+    saidAt?: Date
     transcript?: string
+    zoomMessageId?: string
   }) => void
   requestQuillState: (data: { sessionId: Ulid }) => void
   requestQuillStateV2: (data: { sessionId: Ulid }) => void

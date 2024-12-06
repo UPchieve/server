@@ -51,3 +51,21 @@ export type FallIncentiveSession = {
   totalMessages: number
   createdAt: Date
 }
+
+export type SessionMessage = {
+  id: string
+  senderId: string
+  contents: string
+  sessionId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type VoiceMessage = {
+  id: string
+  senderId: string
+  sessionId: string
+  createdAt: Date
+  updatedAt: Date
+  transcript: string
+}

@@ -3,10 +3,10 @@ import * as UserRepo from '../../models/User'
 import * as LegacyUserRepo from '../../models/User/legacy-user'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
+import * as MailService from '../../services/MailService'
 import { incentiveProgramEnrollmentEnroll } from '../../services/UserProductFlagsService'
 import {
   buildLegacyStudent,
-  buildLegacyUser,
   buildUser,
   buildUserProductFlags,
 } from '../mocks/generate'
@@ -16,11 +16,13 @@ jest.mock('../../models/User')
 jest.mock('../../models/User/legacy-user')
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../services/IncentiveProgramService')
+jest.mock('../../services/MailService')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedLegacyUserRepo = mocked(LegacyUserRepo)
 const mockedUserProductFlagsRepo = mocked(UserProductFlagsRepo)
 const mockedIncentiveProgramService = mocked(IncentiveProgramService)
+const mockedMailService = mocked(MailService)
 
 describe('incentiveProgramEnrollmentEnroll', () => {
   beforeEach(() => {
@@ -79,7 +81,8 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     )
 
     await expect(incentiveProgramEnrollmentEnroll(userId)).rejects.toThrow(
-      'Your email must be verified before joining the program.'
+      'No email was provided to enroll into the fall incentive program for user: ' +
+        userId
     )
     expect(
       mockedIncentiveProgramService.isUserInIncentiveProgram
@@ -125,9 +128,10 @@ describe('incentiveProgramEnrollmentEnroll', () => {
     expect(
       mockedIncentiveProgramService.queueIncentiveProgramEnrollmentWelcomeJob
     ).toHaveBeenCalled()
+    expect(mockedMailService.createContact).toHaveBeenCalled()
   })
 
-  test('Should enroll the school partner if they are not already enrolled and verified their proxy email', async () => {
+  test('Should enroll the school partner if they are not already enrolled and proxy email is provided', async () => {
     const userId = getDbUlid()
     const enrollmentDate = new Date()
     mockedIncentiveProgramService.isUserInIncentiveProgram.mockResolvedValueOnce(
@@ -137,22 +141,28 @@ describe('incentiveProgramEnrollmentEnroll', () => {
       buildUserProductFlags()
     )
     mockedLegacyUserRepo.getLegacyUserObject.mockResolvedValueOnce(
-      buildLegacyStudent({ isSchoolPartner: true, proxyEmail: 'test@test.com' })
+      buildLegacyStudent({ isSchoolPartner: true })
     )
+    mockedUserRepo.updateUserProxyEmail.mockResolvedValueOnce()
     mockedUserProductFlagsRepo.enrollStudentToFallIncentiveProgram.mockResolvedValue(
       enrollmentDate
     )
 
-    const result = await incentiveProgramEnrollmentEnroll(userId)
+    const result = await incentiveProgramEnrollmentEnroll(
+      userId,
+      'test@test.com'
+    )
     expect(result).toBe(enrollmentDate)
     expect(
       mockedIncentiveProgramService.isUserInIncentiveProgram
     ).toHaveBeenCalled()
+    expect(mockedUserRepo.updateUserProxyEmail).toHaveBeenCalled()
     expect(
       mockedUserProductFlagsRepo.enrollStudentToFallIncentiveProgram
     ).toHaveBeenCalledWith(userId)
     expect(
       mockedIncentiveProgramService.queueIncentiveProgramEnrollmentWelcomeJob
     ).toHaveBeenCalled()
+    expect(mockedMailService.createContact).toHaveBeenCalled()
   })
 })

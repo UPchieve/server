@@ -14,11 +14,13 @@ export async function createCensoredMessage({
   sessionId,
   censoredBy,
   sentAt = new Date(),
+  shown = false,
 }: {
   senderId: CensoredSessionMessage['senderId']
   message: CensoredSessionMessage['message']
   sessionId: CensoredSessionMessage['sessionId']
   censoredBy: CensoredSessionMessage['censoredBy']
+  shown?: CensoredSessionMessage['shown']
   sentAt?: CensoredSessionMessage['sentAt']
 }): Promise<CensoredSessionMessage> {
   try {
@@ -29,6 +31,7 @@ export async function createCensoredMessage({
         message,
         sessionId,
         censoredBy,
+        shown,
         sentAt,
       },
       getClient()

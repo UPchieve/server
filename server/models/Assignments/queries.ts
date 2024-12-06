@@ -1,5 +1,10 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoCreateError, RepoUpdateError } from '../Errors'
+import {
+  RepoReadError,
+  RepoCreateError,
+  RepoUpdateError,
+  RepoDeleteError,
+} from '../Errors'
 import {
   Assignment,
   CreateAssignmentInput,
@@ -264,5 +269,27 @@ export async function getSessionsForStudentAssignment(
     )
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function deleteAssignment(
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteAssignment.run({ assignmentId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}
+
+export async function deleteStudentAssignment(
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteStudentAssignment.run({ assignmentId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
