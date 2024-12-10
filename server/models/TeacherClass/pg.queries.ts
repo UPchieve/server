@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/TeacherClass/teacher_class.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'GetTeacherClassesForStudent' parameters type */
 export interface IGetTeacherClassesForStudentParams {
@@ -22,7 +22,7 @@ export interface IGetTeacherClassesForStudentQuery {
   result: IGetTeacherClassesForStudentResult;
 }
 
-const getTeacherClassesForStudentIR: any = {"name":"getTeacherClassesForStudent","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":242,"b":251,"line":13,"col":18}]}}],"usedParamSet":{"studentId":true},"statement":{"body":"SELECT\n    tc.id,\n    tc.name,\n    active,\n    topic_id,\n    tc.created_at,\n    tc.updated_at\nFROM\n    teacher_classes tc\n    LEFT JOIN student_classes sc ON tc.id = sc.class_id\nWHERE\n    sc.user_id = :studentId!\n    AND tc.deactivated_on IS NULL\nORDER BY\n    tc.created_at ASC","loc":{"a":40,"b":316,"line":2,"col":0}}};
+const getTeacherClassesForStudentIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":211}]}],"statement":"SELECT\n    tc.id,\n    tc.name,\n    active,\n    topic_id,\n    tc.created_at,\n    tc.updated_at\nFROM\n    teacher_classes tc\n    LEFT JOIN student_classes sc ON tc.id = sc.class_id\nWHERE\n    sc.user_id = :studentId!\n    AND tc.deactivated_on IS NULL\nORDER BY\n    tc.created_at ASC"};
 
 /**
  * Query generated from SQL:
@@ -63,7 +63,7 @@ export interface IGetTotalStudentsInClassQuery {
   result: IGetTotalStudentsInClassResult;
 }
 
-const getTotalStudentsInClassIR: any = {"name":"getTotalStudentsInClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":438,"b":445,"line":25,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    COUNT(*)::int AS count\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":357,"b":445,"line":20,"col":0}}};
+const getTotalStudentsInClassIR: any = {"usedParamSet":{"classId":true},"params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":80,"b":88}]}],"statement":"SELECT\n    COUNT(*)::int AS count\nFROM\n    student_classes\nWHERE\n    class_id = :classId!"};
 
 /**
  * Query generated from SQL:
@@ -96,7 +96,7 @@ export interface IRemoveStudentFromClassQuery {
   result: IRemoveStudentFromClassResult;
 }
 
-const removeStudentFromClassIR: any = {"name":"removeStudentFromClass","params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":530,"b":539,"line":30,"col":17}]}},{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":561,"b":568,"line":31,"col":20}]}}],"usedParamSet":{"studentId":true,"classId":true},"statement":{"body":"DELETE FROM student_classes\nWHERE user_id = :studentId!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId","loc":{"a":485,"b":603,"line":29,"col":0}}};
+const removeStudentFromClassIR: any = {"usedParamSet":{"studentId":true,"classId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":44,"b":54}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":83}]}],"statement":"DELETE FROM student_classes\nWHERE user_id = :studentId!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId"};
 
 /**
  * Query generated from SQL:

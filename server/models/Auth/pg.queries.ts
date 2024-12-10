@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/Auth/auth.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'DeleteAuthSessionsForUser' parameters type */
 export interface IDeleteAuthSessionsForUserParams {
@@ -17,7 +17,7 @@ export interface IDeleteAuthSessionsForUserQuery {
   result: IDeleteAuthSessionsForUserResult;
 }
 
-const deleteAuthSessionsForUserIR: any = {"name":"deleteAuthSessionsForUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":104,"b":110,"line":3,"col":41}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM auth.session\nWHERE (sess -> 'passport') ->> 'user' = :userId!\nRETURNING\n    sid AS ok","loc":{"a":38,"b":134,"line":2,"col":0}}};
+const deleteAuthSessionsForUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":72}]}],"statement":"DELETE FROM auth.session\nWHERE (sess -> 'passport') ->> 'user' = :userId!\nRETURNING\n    sid AS ok"};
 
 /**
  * Query generated from SQL:

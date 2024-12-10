@@ -1,7 +1,9 @@
 /** Types generated for queries found in "server/models/CensoredSessionMessage/censored_session_message.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 export type moderation_system = 'regex';
+
+export type DateOrString = Date | string;
 
 /** 'CreateCensoredMessage' parameters type */
 export interface ICreateCensoredMessageParams {
@@ -9,7 +11,7 @@ export interface ICreateCensoredMessageParams {
   id: string;
   message: string;
   senderId: string;
-  sentAt: Date;
+  sentAt: DateOrString;
   sessionId: string;
   shown: boolean;
 }
@@ -31,7 +33,7 @@ export interface ICreateCensoredMessageQuery {
   result: ICreateCensoredMessageResult;
 }
 
-const createCensoredMessageIR: any = {"name":"createCensoredMessage","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":151,"b":153,"line":3,"col":13}]}},{"name":"senderId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":157,"b":165,"line":3,"col":19}]}},{"name":"message","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":169,"b":176,"line":3,"col":31}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":180,"b":189,"line":3,"col":42}]}},{"name":"censoredBy","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":193,"b":203,"line":3,"col":55}]}},{"name":"sentAt","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":207,"b":213,"line":3,"col":69}]}},{"name":"shown","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":217,"b":222,"line":3,"col":79}]}}],"usedParamSet":{"id":true,"senderId":true,"message":true,"sessionId":true,"censoredBy":true,"sentAt":true,"shown":true},"statement":{"body":"INSERT INTO censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at, shown)\n    VALUES (:id!, :senderId!, :message!, :sessionId!, :censoredBy!, :sentAt!, :shown!)\nRETURNING\n    id, sender_id, message, session_id, censored_by, sent_at, shown","loc":{"a":34,"b":301,"line":2,"col":0}}};
+const createCensoredMessageIR: any = {"usedParamSet":{"id":true,"senderId":true,"message":true,"sessionId":true,"censoredBy":true,"sentAt":true,"shown":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":116,"b":119}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":131}]},{"name":"message","required":true,"transform":{"type":"scalar"},"locs":[{"a":134,"b":142}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":145,"b":155}]},{"name":"censoredBy","required":true,"transform":{"type":"scalar"},"locs":[{"a":158,"b":169}]},{"name":"sentAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":179}]},{"name":"shown","required":true,"transform":{"type":"scalar"},"locs":[{"a":182,"b":188}]}],"statement":"INSERT INTO censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at, shown)\n    VALUES (:id!, :senderId!, :message!, :sessionId!, :censoredBy!, :sentAt!, :shown!)\nRETURNING\n    id, sender_id, message, session_id, censored_by, sent_at, shown"};
 
 /**
  * Query generated from SQL:

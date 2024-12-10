@@ -1,9 +1,9 @@
 /** Types generated for queries found in "server/models/Teacher/teacher.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'CreateTeacherProfile' parameters type */
 export interface ICreateTeacherProfileParams {
-  schoolId: string | null | void;
+  schoolId?: string | null | void;
   userId: string;
 }
 
@@ -16,7 +16,7 @@ export interface ICreateTeacherProfileQuery {
   result: ICreateTeacherProfileResult;
 }
 
-const createTeacherProfileIR: any = {"name":"createTeacherProfile","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":120,"b":126,"line":3,"col":13}]}},{"name":"schoolId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":130,"b":137,"line":3,"col":23}]}}],"usedParamSet":{"userId":true,"schoolId":true},"statement":{"body":"INSERT INTO teacher_profiles (user_id, school_id, created_at, updated_at)\n    VALUES (:userId!, :schoolId, NOW(), NOW())","loc":{"a":33,"b":152,"line":2,"col":0}}};
+const createTeacherProfileIR: any = {"usedParamSet":{"userId":true,"schoolId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]},{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":96,"b":104}]}],"statement":"INSERT INTO teacher_profiles (user_id, school_id, created_at, updated_at)\n    VALUES (:userId!, :schoolId, NOW(), NOW())"};
 
 /**
  * Query generated from SQL:
@@ -33,7 +33,7 @@ export interface ICreateTeacherClassParams {
   code: string;
   id: string;
   name: string;
-  topicId: number | null | void;
+  topicId?: number | null | void;
   userId: string;
 }
 
@@ -55,7 +55,7 @@ export interface ICreateTeacherClassQuery {
   result: ICreateTeacherClassResult;
 }
 
-const createTeacherClassIR: any = {"name":"createTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":297,"b":299,"line":8,"col":13}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":303,"b":309,"line":8,"col":19}]}},{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":313,"b":317,"line":8,"col":29}]}},{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":321,"b":325,"line":8,"col":37}]}},{"name":"topicId","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":329,"b":335,"line":8,"col":45}]}}],"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true},"statement":{"body":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())\nRETURNING\n    id, user_id, name, code, topic_id, active, created_at, updated_at","loc":{"a":188,"b":436,"line":7,"col":0}}};
+const createTeacherClassIR: any = {"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":121}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":129}]},{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":137}]},{"name":"topicId","required":false,"transform":{"type":"scalar"},"locs":[{"a":140,"b":147}]}],"statement":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())\nRETURNING\n    id, user_id, name, code, topic_id, active, created_at, updated_at"};
 
 /**
  * Query generated from SQL:
@@ -88,7 +88,7 @@ export interface IGetTeacherByIdQuery {
   result: IGetTeacherByIdResult;
 }
 
-const getTeacherByIdIR: any = {"name":"getTeacherById","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":581,"b":587,"line":22,"col":15}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    user_id,\n    school_id,\n    created_at,\n    updated_at\nFROM\n    teacher_profiles\nWHERE\n    user_id = :userId!","loc":{"a":468,"b":587,"line":14,"col":0}}};
+const getTeacherByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":119}]}],"statement":"SELECT\n    user_id,\n    school_id,\n    created_at,\n    updated_at\nFROM\n    teacher_profiles\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -132,7 +132,7 @@ export interface IGetTeacherClassesByUserIdQuery {
   result: IGetTeacherClassesByUserIdResult;
 }
 
-const getTeacherClassesByUserIdIR: any = {"name":"getTeacherClassesByUserId","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1019,"b":1025,"line":41,"col":31}]}}],"usedParamSet":{"userId":true},"statement":{"body":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at,\n    teacher_classes.deactivated_on\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id","loc":{"a":630,"b":1041,"line":26,"col":0}}};
+const getTeacherClassesByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":388,"b":395}]}],"statement":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at,\n    teacher_classes.deactivated_on\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id"};
 
 /**
  * Query generated from SQL:
@@ -184,7 +184,7 @@ export interface IGetTeacherClassByClassCodeQuery {
   result: IGetTeacherClassByClassCodeResult;
 }
 
-const getTeacherClassByClassCodeIR: any = {"name":"getTeacherClassByClassCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1253,"b":1257,"line":60,"col":12}]}}],"usedParamSet":{"code":true},"statement":{"body":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at,\n    deactivated_on\nFROM\n    teacher_classes\nWHERE\n    code = :code!","loc":{"a":1085,"b":1257,"line":47,"col":0}}};
+const getTeacherClassByClassCodeIR: any = {"usedParamSet":{"code":true},"params":[{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":167,"b":172}]}],"statement":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at,\n    deactivated_on\nFROM\n    teacher_classes\nWHERE\n    code = :code!"};
 
 /**
  * Query generated from SQL:
@@ -232,7 +232,7 @@ export interface IGetTeacherClassByIdQuery {
   result: IGetTeacherClassByIdResult;
 }
 
-const getTeacherClassByIdIR: any = {"name":"getTeacherClassById","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1588,"b":1590,"line":83,"col":10}]}}],"usedParamSet":{"id":true},"statement":{"body":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at,\n    (\n        SELECT\n            COUNT(*)\n        FROM\n            student_classes\n        WHERE\n            class_id = id)::int AS total_students\nFROM\n    teacher_classes\nWHERE\n    id = :id!","loc":{"a":1294,"b":1590,"line":64,"col":0}}};
+const getTeacherClassByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":293,"b":296}]}],"statement":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at,\n    (\n        SELECT\n            COUNT(*)\n        FROM\n            student_classes\n        WHERE\n            class_id = id)::int AS total_students\nFROM\n    teacher_classes\nWHERE\n    id = :id!"};
 
 /**
  * Query generated from SQL:
@@ -278,7 +278,7 @@ export interface IGetStudentIdsInTeacherClassQuery {
   result: IGetStudentIdsInTeacherClassResult;
 }
 
-const getStudentIdsInTeacherClassIR: any = {"name":"getStudentIdsInTeacherClass","params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1701,"b":1708,"line":92,"col":16}]}}],"usedParamSet":{"classId":true},"statement":{"body":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!","loc":{"a":1635,"b":1708,"line":87,"col":0}}};
+const getStudentIdsInTeacherClassIR: any = {"usedParamSet":{"classId":true},"params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":73}]}],"statement":"SELECT\n    user_id\nFROM\n    student_classes\nWHERE\n    class_id = :classId!"};
 
 /**
  * Query generated from SQL:
@@ -319,7 +319,7 @@ export interface IUpdateTeacherClassQuery {
   result: IUpdateTeacherClassResult;
 }
 
-const updateTeacherClassIR: any = {"name":"updateTeacherClass","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1787,"b":1791,"line":99,"col":12}]}},{"name":"topicId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1810,"b":1817,"line":100,"col":16}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":1859,"b":1861,"line":103,"col":10}]}}],"usedParamSet":{"name":true,"topicId":true,"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    name = :name!,\n    topic_id = :topicId!,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":1744,"b":1969,"line":96,"col":0}}};
+const updateTeacherClassIR: any = {"usedParamSet":{"name":true,"topicId":true,"id":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":42,"b":47}]},{"name":"topicId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":73}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":117}]}],"statement":"UPDATE\n    teacher_classes\nSET\n    name = :name!,\n    topic_id = :topicId!,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
@@ -369,7 +369,7 @@ export interface IDeactivateTeacherClassQuery {
   result: IDeactivateTeacherClassResult;
 }
 
-const deactivateTeacherClassIR: any = {"name":"deactivateTeacherClass","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":2083,"b":2085,"line":121,"col":10}]}}],"usedParamSet":{"id":true},"statement":{"body":"UPDATE\n    teacher_classes\nSET\n    deactivated_on = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at","loc":{"a":2009,"b":2193,"line":116,"col":0}}};
+const deactivateTeacherClassIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":76}]}],"statement":"UPDATE\n    teacher_classes\nSET\n    deactivated_on = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:

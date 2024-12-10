@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/SignUpSource/signUpSource.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'GetSignUpSourceByName' parameters type */
 export interface IGetSignUpSourceByNameParams {
@@ -18,7 +18,7 @@ export interface IGetSignUpSourceByNameQuery {
   result: IGetSignUpSourceByNameResult;
 }
 
-const getSignUpSourceByNameIR: any = {"name":"getSignUpSourceByName","params":[{"name":"name","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":100,"b":104,"line":8,"col":12}]}}],"usedParamSet":{"name":true},"statement":{"body":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    name = :name!","loc":{"a":34,"b":104,"line":2,"col":0}}};
+const getSignUpSourceByNameIR: any = {"usedParamSet":{"name":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":70}]}],"statement":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    name = :name!"};
 
 /**
  * Query generated from SQL:

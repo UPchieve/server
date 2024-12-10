@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/ZipCode/zipcode.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'GetZipCodeByZipCode' parameters type */
 export interface IGetZipCodeByZipCodeParams {
@@ -22,7 +22,7 @@ export interface IGetZipCodeByZipCodeQuery {
   result: IGetZipCodeByZipCodeResult;
 }
 
-const getZipCodeByZipCodeIR: any = {"name":"getZipCodeByZipCode","params":[{"name":"medianIncomeThreshold","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":237,"b":258,"line":8,"col":22}]}},{"name":"zipCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":316,"b":323,"line":12,"col":12}]}}],"usedParamSet":{"medianIncomeThreshold":true,"zipCode":true},"statement":{"body":"SELECT\n    code AS zip_code,\n    income AS median_income,\n    cbsa_income,\n    state_income,\n    (income <= GREATEST (COALESCE(cbsa_income, 0) * 0.8, COALESCE(state_income, 0) * 0.8)\n        OR income <= :medianIncomeThreshold!) AS is_eligible\nFROM\n    postal_codes\nWHERE\n    code = :zipCode!","loc":{"a":32,"b":323,"line":2,"col":0}}};
+const getZipCodeByZipCodeIR: any = {"usedParamSet":{"medianIncomeThreshold":true,"zipCode":true},"params":[{"name":"medianIncomeThreshold","required":true,"transform":{"type":"scalar"},"locs":[{"a":204,"b":226}]},{"name":"zipCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":283,"b":291}]}],"statement":"SELECT\n    code AS zip_code,\n    income AS median_income,\n    cbsa_income,\n    state_income,\n    (income <= GREATEST (COALESCE(cbsa_income, 0) * 0.8, COALESCE(state_income, 0) * 0.8)\n        OR income <= :medianIncomeThreshold!) AS is_eligible\nFROM\n    postal_codes\nWHERE\n    code = :zipCode!"};
 
 /**
  * Query generated from SQL:
@@ -45,12 +45,12 @@ export const getZipCodeByZipCode = new PreparedQuery<IGetZipCodeByZipCodeParams,
 
 /** 'UpsertZipCode' parameters type */
 export interface IUpsertZipCodeParams {
-  cbsaIncome: number | null | void;
+  cbsaIncome?: number | null | void;
   code: string;
   income: number;
   latitude: number;
   longitude: number;
-  stateIncome: number | null | void;
+  stateIncome?: number | null | void;
   usStateCode: string;
 }
 
@@ -65,7 +65,7 @@ export interface IUpsertZipCodeQuery {
   result: IUpsertZipCodeResult;
 }
 
-const upsertZipCodeIR: any = {"name":"upsertZipCode","params":[{"name":"code","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":483,"b":487,"line":17,"col":13},{"a":809,"b":813,"line":22,"col":29}]}},{"name":"usStateCode","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":491,"b":502,"line":17,"col":21}]}},{"name":"income","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":506,"b":512,"line":17,"col":36},{"a":643,"b":649,"line":20,"col":18}]}},{"name":"cbsaIncome","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":516,"b":525,"line":17,"col":46},{"a":667,"b":676,"line":20,"col":42}]}},{"name":"stateIncome","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":529,"b":539,"line":17,"col":59},{"a":695,"b":705,"line":20,"col":70}]}},{"name":"latitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":549,"b":557,"line":17,"col":79},{"a":726,"b":734,"line":20,"col":101}]}},{"name":"longitude","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":561,"b":570,"line":17,"col":91},{"a":738,"b":747,"line":20,"col":113}]}}],"usedParamSet":{"code":true,"usStateCode":true,"income":true,"cbsaIncome":true,"stateIncome":true,"latitude":true,"longitude":true},"statement":{"body":"INSERT INTO postal_codes (code, us_state_code, income, cbsa_income, state_income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, :cbsaIncome, :stateIncome, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT (code)\n    DO UPDATE SET\n        income = :income!, cbsa_income = :cbsaIncome, state_income = :stateIncome, LOCATION = POINT(:latitude!, :longitude!), updated_at = NOW()\n    WHERE\n        postal_codes.code = :code!\n    RETURNING\n        postal_codes.code AS ok","loc":{"a":354,"b":859,"line":16,"col":0}}};
+const upsertZipCodeIR: any = {"usedParamSet":{"code":true,"usStateCode":true,"income":true,"cbsaIncome":true,"stateIncome":true,"latitude":true,"longitude":true},"params":[{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":133},{"a":454,"b":459}]},{"name":"usStateCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":148}]},{"name":"income","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":158},{"a":288,"b":295}]},{"name":"cbsaIncome","required":false,"transform":{"type":"scalar"},"locs":[{"a":161,"b":171},{"a":312,"b":322}]},{"name":"stateIncome","required":false,"transform":{"type":"scalar"},"locs":[{"a":174,"b":185},{"a":340,"b":351}]},{"name":"latitude","required":true,"transform":{"type":"scalar"},"locs":[{"a":194,"b":203},{"a":371,"b":380}]},{"name":"longitude","required":true,"transform":{"type":"scalar"},"locs":[{"a":206,"b":216},{"a":383,"b":393}]}],"statement":"INSERT INTO postal_codes (code, us_state_code, income, cbsa_income, state_income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, :cbsaIncome, :stateIncome, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT (code)\n    DO UPDATE SET\n        income = :income!, cbsa_income = :cbsaIncome, state_income = :stateIncome, LOCATION = POINT(:latitude!, :longitude!), updated_at = NOW()\n    WHERE\n        postal_codes.code = :code!\n    RETURNING\n        postal_codes.code AS ok"};
 
 /**
  * Query generated from SQL:

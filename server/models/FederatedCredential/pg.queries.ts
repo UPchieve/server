@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/FederatedCredential/federated_credential.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 /** 'GetFederatedCredential' parameters type */
 export interface IGetFederatedCredentialParams {
@@ -20,7 +20,7 @@ export interface IGetFederatedCredentialQuery {
   result: IGetFederatedCredentialResult;
 }
 
-const getFederatedCredentialIR: any = {"name":"getFederatedCredential","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":95,"b":97,"line":7,"col":10}]}},{"name":"issuer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":117,"b":123,"line":8,"col":18}]}}],"usedParamSet":{"id":true,"issuer":true},"statement":{"body":"SELECT\n    *\nFROM\n    federated_credentials\nWHERE\n    id = :id!\n    AND issuer = :issuer!","loc":{"a":35,"b":123,"line":2,"col":0}}};
+const getFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":59,"b":62}]},{"name":"issuer","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]}],"statement":"SELECT\n    *\nFROM\n    federated_credentials\nWHERE\n    id = :id!\n    AND issuer = :issuer!"};
 
 /**
  * Query generated from SQL:
@@ -53,7 +53,7 @@ export interface IInsertFederatedCredentialQuery {
   result: IInsertFederatedCredentialResult;
 }
 
-const insertFederatedCredentialIR: any = {"name":"insertFederatedCredential","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":235,"b":237,"line":13,"col":13}]}},{"name":"issuer","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":241,"b":247,"line":13,"col":19}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":251,"b":257,"line":13,"col":29}]}}],"usedParamSet":{"id":true,"issuer":true,"userId":true},"statement":{"body":"INSERT INTO federated_credentials (id, issuer, user_id)\n    VALUES (:id!, :issuer!, :userId!)","loc":{"a":166,"b":258,"line":12,"col":0}}};
+const insertFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]},{"name":"issuer","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":81}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]}],"statement":"INSERT INTO federated_credentials (id, issuer, user_id)\n    VALUES (:id!, :issuer!, :userId!)"};
 
 /**
  * Query generated from SQL:
@@ -79,7 +79,7 @@ export interface IDeleteFederatedCredentialsForUserQuery {
   result: IDeleteFederatedCredentialsForUserResult;
 }
 
-const deleteFederatedCredentialsForUserIR: any = {"name":"deleteFederatedCredentialsForUser","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":360,"b":366,"line":18,"col":17}]}}],"usedParamSet":{"userId":true},"statement":{"body":"DELETE FROM federated_credentials\nWHERE user_id = :userId!","loc":{"a":309,"b":366,"line":17,"col":0}}};
+const deleteFederatedCredentialsForUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":57}]}],"statement":"DELETE FROM federated_credentials\nWHERE user_id = :userId!"};
 
 /**
  * Query generated from SQL:
