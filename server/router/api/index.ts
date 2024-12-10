@@ -9,7 +9,6 @@ import { routeVolunteers } from './volunteers'
 import { routeVerify } from './verify'
 import { routeSession } from './session'
 import { routeCalendar } from './calendar'
-import { routeFeedback } from './feedback'
 import { routeSockets } from './sockets'
 import { routeModeration } from './moderate'
 import { routePushToken } from './push-token'
@@ -44,7 +43,6 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeVoiceMessages(router)
   routeCalendar(router)
   routeTraining(router)
-  routeFeedback(router)
   routeSockets(io, sessionStore)
   routeModeration(router)
   routePushToken(router)

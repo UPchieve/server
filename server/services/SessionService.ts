@@ -508,7 +508,6 @@ export async function adminSessionView(data: unknown) {
   const sessionUserAgent = await getSessionRequestedUserAgentFromSessionId(
     sessionId
   )
-  const feedback = await getFeedbackBySessionId(sessionId)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
   const sessionPhotos = await AwsService.getObjects(
     bucket,
@@ -518,7 +517,6 @@ export async function adminSessionView(data: unknown) {
   return {
     ...session,
     userAgent: sessionUserAgent,
-    feedbacks: feedback,
     photos: sessionPhotos,
   }
 }

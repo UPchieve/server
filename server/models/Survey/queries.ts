@@ -21,47 +21,6 @@ import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 import _, { result } from 'lodash'
 
-export type LegacySurveyQueryResult = Omit<LegacySurvey, 'responseData'> & {
-  responseData: pgQueries.Json
-}
-
-// parse a query result containing `responseData` from JSON to an object
-export function parseQueryResult(
-  result: LegacySurveyQueryResult
-): LegacySurvey {
-  const responseData =
-    typeof result.responseData === 'string'
-      ? JSON.parse(result.responseData)
-      : result.responseData
-
-  return { ...result, responseData: fixNumberInt(responseData) }
-}
-
-export async function savePresessionSurvey(
-  userId: Ulid,
-  sessionId: Ulid,
-  responseData: object
-): Promise<LegacySurvey> {
-  try {
-    const result = await pgQueries.savePresessionSurvey.run(
-      {
-        id: getDbUlid(),
-        userId,
-        sessionId,
-        responseData: JSON.stringify(responseData),
-      },
-      getClient()
-    )
-    if (result.length) {
-      const survey = makeRequired(result[0])
-      return parseQueryResult(survey)
-    }
-    throw new RepoCreateError('Error upserting presession survey')
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
 export async function saveUserSurveyAndSubmissions(
   userId: Ulid,
   surveyData: SaveUserSurvey,
@@ -116,30 +75,6 @@ export async function saveUserSurveyAndSubmissions(
     throw new RepoCreateError(err)
   } finally {
     client.release()
-  }
-}
-
-// @todo: clean up old presession survey code
-// NOTE: this query can be replaced by a JOIN that happens when we fetch
-// the session on the feedback page
-export async function getPresessionSurveyForFeedback(
-  userId: Ulid,
-  sessionId: Ulid
-): Promise<LegacySurvey | undefined> {
-  try {
-    const result = await pgQueries.getPresessionSurveyForFeedback.run(
-      {
-        userId,
-        sessionId,
-      },
-      getClient()
-    )
-    if (result.length) {
-      const survey = makeRequired(result[0])
-      return parseQueryResult(survey)
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
   }
 }
 
