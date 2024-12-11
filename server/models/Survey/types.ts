@@ -72,3 +72,11 @@ export type SurveyQueryResponse = {
   surveyTypeId: number
   survey: SurveyQuestionDefinition[]
 }
+
+export type PostsessionSurveyGoalResponse = {
+  sessionId: string
+  createdAt: Date
+  surveyResponseChoiceId: number
+  score: number
+  choiceText: string
+}

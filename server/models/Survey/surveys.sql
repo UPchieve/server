@@ -468,20 +468,44 @@ ORDER BY
 
 /* @name getStudentPostsessionSurveyGoalQuestionRatings */
 SELECT
-    us.user_id,
-    us.session_id,
+    s.id AS session_id,
     us.created_at,
     uss.survey_response_choice_id,
-    src.score
+    src.score,
+    src.choice_text
 FROM
-    upchieve.users_surveys us
+    sessions s
+    JOIN upchieve.users_surveys us ON us.session_id = s.id
     JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
     JOIN upchieve.survey_types st ON st.id = us.survey_type_id
-WHERE
-    us.user_id = :userId!
-    AND st.name = 'postsession'
-    AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
-    AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED');
+WHERE (s.student_id = :userId!
+    OR s.volunteer_id = :userId!)
+AND st.name = 'postsession'
+AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
+AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')
+ORDER BY
+    uss.created_at DESC;
+
+
+/* @name getVolunteerPostsessionSurveyGoalQuestionRatings */
+SELECT
+    s.id AS session_id,
+    us.created_at,
+    uss.survey_response_choice_id,
+    src.score,
+    src.choice_text
+FROM
+    sessions s
+    JOIN upchieve.users_surveys us ON us.session_id = s.id
+    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
+    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+    JOIN upchieve.survey_types st ON st.id = us.survey_type_id
+WHERE (s.student_id = :userId!
+    OR s.volunteer_id = :userId!)
+AND st.name = 'postsession'
+AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
+AND src.choice_text IN ('Not at all', 'Sorta but not really', 'Somewhat', 'Mostly', 'A lot');
 

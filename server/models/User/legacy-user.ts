@@ -2,11 +2,11 @@ import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import { GRADES, USER_BAN_REASONS, USER_BAN_TYPES } from '../../constants'
 import {
   Certifications,
-  Reference,
-  TrainingCourses,
-  getVolunteerTrainingCourses,
   getActiveQuizzesForVolunteers,
   getCertificationsForVolunteer,
+  getVolunteerTrainingCourses,
+  Reference,
+  TrainingCourses,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -22,6 +22,8 @@ import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
 import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
+import * as SurveyService from '../../services/SurveyService'
+import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
 import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
@@ -87,6 +89,7 @@ export type LegacyUserModel = {
   usesClever?: boolean
   usesGoogle?: boolean
   studentAssignments?: StudentAssignment[]
+  ratings?: PostsessionSurveyRatingsMetric
 }
 
 export async function getLegacyUserObject(
@@ -135,6 +138,10 @@ export async function getLegacyUserObject(
     const volunteerUser: any = {}
     const studentUser: any = {}
     const userType = (await UserRolesService.getUserRolesById(userId)).userType
+    const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
+      userId,
+      userType
+    )
     if (isStudentUserType(userType)) {
       studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
         baseUser.id
@@ -197,7 +204,8 @@ export async function getLegacyUserObject(
       { isBanned: baseUser.banType === 'complete' },
       {
         sessionStats,
-      }
+      },
+      { ratings }
     )
     return final as LegacyUserModel
   } catch (err) {
