@@ -8,14 +8,12 @@ import {
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
-  getStudentPostsessionGoalRatings,
   parseUserRole,
   saveUserSurvey,
 } from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
-import { NotAuthenticatedError } from '../../models/Errors'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/save', async (req, res) => {

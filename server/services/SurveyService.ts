@@ -3,6 +3,8 @@ import { getSessionById } from '../models/Session'
 import {
   getPresessionSurveyResponse,
   getStudentPostsessionSurveyGoalQuestionRatings,
+  getVolunteerPostsessionSurveyGoalQuestionRatings,
+  PostsessionSurveyGoalResponse,
   saveUserSurveyAndSubmissions,
   SimpleSurveyResponse,
 } from '../models/Survey'
@@ -76,8 +78,49 @@ export async function saveUserSurvey(
     emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
 }
 
-export const getStudentPostsessionGoalRatings = async (userId: string) => {
-  return await getStudentPostsessionSurveyGoalQuestionRatings(userId)
+export type PostsessionSurveyRatingsMetric = {
+  selfReportedRating: {
+    total: number
+    average: number
+  }
+  partnerReportedRating: {
+    total: number
+    average: number
+  }
+}
+export const getUserPostsessionGoalRatingsMetrics = async (
+  userId: string,
+  userRole: string
+): Promise<PostsessionSurveyRatingsMetric> => {
+  const isTutor = userRole === 'volunteer' || userRole === 'admin'
+  const ratingsFromStudentsRaw = await getStudentPostsessionSurveyGoalQuestionRatings(
+    userId
+  )
+  const ratingsFromVolunteersRaw = await getVolunteerPostsessionSurveyGoalQuestionRatings(
+    userId
+  )
+
+  const getAverage = (ratings: PostsessionSurveyGoalResponse[]): number => {
+    if (!ratings.length) return 0
+    return ratings.reduce((acc, next) => acc + next.score, 0) / ratings.length
+  }
+
+  const studentRating = {
+    total: ratingsFromStudentsRaw.length,
+    average: getAverage(ratingsFromStudentsRaw),
+  }
+  const volunteerRating = {
+    total: ratingsFromVolunteersRaw.length,
+    average: getAverage(ratingsFromVolunteersRaw),
+  }
+
+  const selfReportedRating = isTutor ? volunteerRating : studentRating
+  const partnerReportedRating = isTutor ? studentRating : volunteerRating
+
+  return {
+    selfReportedRating,
+    partnerReportedRating,
+  }
 }
 
 export const asUserRole = asEnum<USER_ROLES_TYPE>(USER_ROLES)
