@@ -131,16 +131,4 @@ export function routeSurvey(router: expressWs.Router): void {
       }
     }
   )
-
-  router.get('/survey/postsession/ratings', async (req, res) => {
-    const userId = req.user?.id
-    if (!userId) throw new NotAuthenticatedError()
-
-    try {
-      const ratings = await getStudentPostsessionGoalRatings(userId)
-      return res.json({ ratings })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }
