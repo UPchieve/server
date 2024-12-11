@@ -185,96 +185,102 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     // Tutor session management
     socket.on('join', async function(data) {
-      newrelic.startWebTransaction('/socket-io/join', () =>
-        new Promise<void>(async (resolve, reject) => {
-          if (!data || !data.sessionId) {
-            socket.emit('redirect')
-            resolve()
-            return
-          }
-
-          const { sessionId, joinedFrom } = data
-          const user = extractSocketUser(socket)
-
-          try {
-            // TODO: have middleware handle the auth
-            if (!user) throw new Error('User not authenticated')
-            if (
-              isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)) &&
-              !user.approved
-            )
-              throw new Error('Volunteer not approved')
-          } catch (error) {
-            socket.emit('redirect')
-            reject(error)
-            return
-          }
-
-          try {
-            // TODO: correctly type User from passport
-            await SessionService.joinSession(user, sessionId, {
-              socket,
-              joinedFrom,
-            })
-
-            const sessionRoom = getSessionRoom(sessionId)
-            const userSocketIds = await getSocketIdsFromRoom(io, user.id)
-            // Have all of the user's socket connections join the tutoring session room
-            for (const id of userSocketIds) {
-              await remoteJoinRoom(io, id, sessionRoom)
+      newrelic.startWebTransaction(
+        '/socket-io/join',
+        () =>
+          new Promise<void>(async (resolve, reject) => {
+            if (!data || !data.sessionId) {
+              socket.emit('redirect')
+              resolve()
+              return
             }
 
-            await socketService.emitSessionChange(sessionId)
-            // Attach the sessionId to the socket for analytics and debugging purposes
-            // Currently only one sessionId is attached to a socket at a time
-            socket.data.sessionId = data.sessionId
-            /**
-             *
-             * Emit to all other sockets that are not the users and are connected
-             * to the session room that we're now online.
-             *
-             * This handles cases where a user has
-             * multiple tabs of the session view open
-             *
-             */
-            await socket
-              .to(sessionRoom)
-              .except(user.id)
-              .emit('sessions/partner:in-session', true)
-            const sessionSocketIds = await getSocketIdsFromRoom(io, sessionRoom)
-            const partnerSocketIds = sessionSocketIds.filter(
-              id => !userSocketIds.includes(id)
-            )
-            // Emit to self if session partner is in session or not
-            await socket.emit(
-              'sessions/partner:in-session',
-              !!partnerSocketIds.length
-            )
-            resolve()
-          } catch (error) {
-            const session = await SessionRepo.getSessionById(sessionId)
-            socketService.bump(
-              socket,
-              {
-                endedAt: session.endedAt,
-                volunteer: session.volunteerId,
-                student: session.studentId,
-                sessionId: session.id,
-                userId: user.id,
-              },
-              error as Error
-            )
-            resolve()
-          }
-        }).catch(err => {
-          logger.error(
-            {
-              error: err?.message,
-              sessionId: data?.sessionId,
-            },
-            'Promise rejected while handling "join" event'
-          )
-        })
+            const { sessionId, joinedFrom } = data
+            const user = extractSocketUser(socket)
+
+            try {
+              // TODO: have middleware handle the auth
+              if (!user) throw new Error('User not authenticated')
+              if (
+                isVolunteerUserType(
+                  getUserTypeFromRoles(user.roles, user.id)
+                ) &&
+                !user.approved
+              )
+                throw new Error('Volunteer not approved')
+            } catch (error) {
+              socket.emit('redirect')
+              reject(error)
+              return
+            }
+
+            try {
+              // TODO: correctly type User from passport
+              await SessionService.joinSession(user, sessionId, {
+                socket,
+                joinedFrom,
+              })
+            } catch (error) {
+              logger.error(
+                `User ${user.id} failed to join session ${sessionId}: ${error}`
+              )
+              const session = await SessionRepo.getSessionById(sessionId)
+              socketService.bump(
+                socket,
+                {
+                  endedAt: session.endedAt,
+                  volunteer: session.volunteerId,
+                  student: session.studentId,
+                  sessionId: session.id,
+                  userId: user.id,
+                },
+                error as Error
+              )
+              resolve()
+              return
+            }
+
+            try {
+              const sessionRoom = getSessionRoom(sessionId)
+              const userSocketIds = await getSocketIdsFromRoom(io, user.id)
+              // Have all of the user's socket connections join the tutoring session room
+              for (const id of userSocketIds) {
+                remoteJoinRoom(io, id, sessionRoom)
+              }
+
+              await socketService.emitSessionChange(sessionId)
+              // Attach the sessionId to the socket for analytics and debugging purposes
+              // Currently only one sessionId is attached to a socket at a time
+              socket.data.sessionId = data.sessionId
+              /**
+               *
+               * Emit to all other sockets that are not the users and are connected
+               * to the session room that we're now online.
+               *
+               * This handles cases where a user has
+               * multiple tabs of the session view open
+               *
+               */
+              io.to(sessionRoom)
+                .except(user.id)
+                .emit('sessions/partner:in-session', true)
+              const sessionSocketIds = await getSocketIdsFromRoom(
+                io,
+                sessionRoom
+              )
+              const partnerSocketIds = sessionSocketIds.filter(
+                id => !userSocketIds.includes(id)
+              )
+              // Emit to self if session partner is in session or not
+              io.emit('sessions/partner:in-session', !!partnerSocketIds.length)
+              resolve()
+            } catch (error) {
+              logger.error(
+                `User ${user.id} failed to join sockets to session room for session ${sessionId}: ${error}`
+              )
+              resolve()
+            }
+          })
       )
     })
 

@@ -75,8 +75,7 @@ class SocketService {
     err: Error
   ): void {
     logger.error(
-      `User ${data.userId} could not join session ${data.sessionId}: `,
-      err
+      `User ${data.userId} could not join session ${data.sessionId}: ${err}`
     )
     socket.emit('bump', data, err.toString())
   }
