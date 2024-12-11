@@ -703,37 +703,47 @@ export async function joinSession(
 
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
-    const result = await runInTransaction(async (tc: TransactionClient) => {
-      try {
-        await SessionRepo.updateSessionVolunteerById(session.id, user.id, tc)
-      } catch (err) {
-        return { error: 'A volunteer has already joined the session' }
+    try {
+      await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+    } catch (err) {
+      throw new Error('A volunteer has already joined the session')
+    }
+
+    try {
+      await createSessionAction({
+        userId: user.id,
+        sessionId: session.id,
+        ...getUserAgentInfo(userAgent ? userAgent : ''),
+        ipAddress,
+        action: SESSION_USER_ACTIONS.JOINED,
+      })
+
+      captureEvent(user.id, EVENTS.SESSION_JOINED, {
+        event: EVENTS.SESSION_JOINED,
+        sessionId: session.id,
+        joinedFrom: joinedFrom || '',
+      })
+
+      captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
+        event: EVENTS.SESSION_MATCHED,
+        sessionId: session.id,
+      })
+    } catch (error) {
+      logger.error(
+        `Failed to log user joined session action for user ${user.id} in session ${session.id} : ${error}`
+      )
+    }
+
+    try {
+      const pushTokens = await getPushTokensByUserId(session.studentId)
+      if (pushTokens && pushTokens.length > 0) {
+        const tokens = pushTokens.map((token: PushToken) => token.token)
+        await PushTokenService.sendVolunteerJoined(session as Session, tokens)
       }
-    })
-    if (result?.error) throw new Error(result.error)
-    await createSessionAction({
-      userId: user.id,
-      sessionId: session.id,
-      ...getUserAgentInfo(userAgent ? userAgent : ''),
-      ipAddress,
-      action: SESSION_USER_ACTIONS.JOINED,
-    })
-
-    captureEvent(user.id, EVENTS.SESSION_JOINED, {
-      event: EVENTS.SESSION_JOINED,
-      sessionId: session.id,
-      joinedFrom: joinedFrom || '',
-    })
-
-    captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
-      event: EVENTS.SESSION_MATCHED,
-      sessionId: session.id,
-    })
-
-    const pushTokens = await getPushTokensByUserId(session.studentId)
-    if (pushTokens && pushTokens.length > 0) {
-      const tokens = pushTokens.map((token: PushToken) => token.token)
-      await PushTokenService.sendVolunteerJoined(session as Session, tokens)
+    } catch (error) {
+      logger.error(
+        `Failed to send FCM notifications to student ${session.studentId} for session ${session.id}: ${error}`
+      )
     }
   }
 
@@ -744,17 +754,23 @@ export async function joinSession(
     !isInitialVolunteerJoin &&
     session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
   ) {
-    await createSessionAction({
-      userId: user.id,
-      sessionId: session.id,
-      ...getUserAgentInfo(userAgent ? userAgent : ''),
-      ipAddress,
-      action: SESSION_USER_ACTIONS.REJOINED,
-    })
-    captureEvent(user.id, EVENTS.SESSION_REJOINED, {
-      event: EVENTS.SESSION_REJOINED,
-      sessionId: session.id,
-    })
+    try {
+      await createSessionAction({
+        userId: user.id,
+        sessionId: session.id,
+        ...getUserAgentInfo(userAgent ? userAgent : ''),
+        ipAddress,
+        action: SESSION_USER_ACTIONS.REJOINED,
+      })
+      captureEvent(user.id, EVENTS.SESSION_REJOINED, {
+        event: EVENTS.SESSION_REJOINED,
+        sessionId: session.id,
+      })
+    } catch (error) {
+      logger.error(
+        `Failed to log user rejoined session action for user ${user.id} in session ${session.id} : ${error}`
+      )
+    }
   }
 }
 
