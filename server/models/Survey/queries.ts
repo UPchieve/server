@@ -16,6 +16,7 @@ import {
   SurveyResponseDefinition,
   SurveyQuestionDefinition,
   SurveyType,
+  PostsessionSurveyGoalResponse,
 } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
@@ -347,7 +348,7 @@ export async function getProgressReportSurveyResponse(
 
 export const getStudentPostsessionSurveyGoalQuestionRatings = async (
   userId: string
-) => {
+): Promise<PostsessionSurveyGoalResponse[]> => {
   try {
     const ratings = await pgQueries.getStudentPostsessionSurveyGoalQuestionRatings.run(
       {
@@ -355,7 +356,23 @@ export const getStudentPostsessionSurveyGoalQuestionRatings = async (
       },
       getRoClient()
     )
-    return ratings ?? []
+    return ratings.map(r => makeRequired(r)) ?? []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export const getVolunteerPostsessionSurveyGoalQuestionRatings = async (
+  userId: string
+): Promise<PostsessionSurveyGoalResponse[]> => {
+  try {
+    const ratings = await pgQueries.getVolunteerPostsessionSurveyGoalQuestionRatings.run(
+      {
+        userId,
+      },
+      getRoClient()
+    )
+    return ratings.map(r => makeRequired(r)) ?? []
   } catch (err) {
     throw new RepoReadError(err)
   }
