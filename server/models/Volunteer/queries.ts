@@ -1627,28 +1627,26 @@ export type VolunteerForScheduleUpdate = {
   passedRequiredTraining: boolean
 }
 export async function getVolunteerForScheduleUpdate(
-  userId: Ulid
+  userId: Ulid,
+  tc: TransactionClient
 ): Promise<VolunteerForScheduleUpdate> {
-  const client = await getClient().connect()
   try {
     const result = await pgQueries.getVolunteerForScheduleUpdate.run(
       { userId },
-      client
+      tc
     )
     if (!result.length) throw new RepoReadError('Volunteer not found')
     const volunteer = makeSomeOptional(result[0], [
       'volunteerPartnerOrg',
       'subjects',
     ])
-    const availability = await getAvailabilityForVolunteer(volunteer.id, client)
+    const availability = await getAvailabilityForVolunteer(volunteer.id, tc)
     return {
       ...volunteer,
       availability,
     }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 

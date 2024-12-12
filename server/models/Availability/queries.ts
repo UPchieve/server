@@ -97,7 +97,10 @@ export async function getAvailabilityForVolunteer(
   tc: TransactionClient = getClient()
 ): Promise<Availability> {
   try {
-    const result = await pgQueries.getAvailabilityForVolunteer.run({ userId }, tc)
+    const result = await pgQueries.getAvailabilityForVolunteer.run(
+      { userId },
+      tc
+    )
     return buildAvailabilityModel(result.map(v => makeRequired(v)))
   } catch (err) {
     throw new RepoReadError(err)
