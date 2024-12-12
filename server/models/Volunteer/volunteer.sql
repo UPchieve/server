@@ -227,8 +227,7 @@ FROM
             JOIN users ON users.id = users_certifications.user_id
             JOIN CTE ON CTE.name = subjects.name
         WHERE
-            users.id::uuid = :userId
-            OR users.mongo_id::text = :mongoUserId
+            users.id = :userId
         GROUP BY
             subjects.name, CTE.total) AS subjects_unlocked ON TRUE
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -239,8 +238,7 @@ WHERE
     AND users.deactivated IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
-    AND (users.id::uuid = :userId
-        OR users.mongo_id::text = :mongoUserId)
+    AND users.id = :userId
 GROUP BY
     users.id,
     onboarded,

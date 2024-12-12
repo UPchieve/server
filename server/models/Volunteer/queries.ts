@@ -363,15 +363,14 @@ export type VolunteerForOnboarding = Pick<
 }
 export async function getVolunteerForOnboardingById(
   userId: Ulid,
-  tc?: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
-        userId: isPgId(userId) ? userId : undefined,
-        mongoUserId: isPgId(userId) ? undefined : userId,
+        userId,
       },
-      tc ?? getClient()
+      tc
     )
     if (!result.length) return
     const volunteer = makeSomeOptional(result[0], [
