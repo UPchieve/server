@@ -275,15 +275,11 @@ describe('getQuizScore', () => {
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
-      '',
       undefined,
       expect.toBeTransactionClient()
     )
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
-    expect(
-      VolunteerService.queuePartnerOnboardingEventEmails
-    ).not.toHaveBeenCalled()
     expect(UserActionRepo.createAccountAction).not.toHaveBeenCalledWith({
       action: ACCOUNT_USER_ACTIONS.ONBOARDED,
       userId: volunteer.id,
@@ -379,7 +375,6 @@ describe('getQuizScore', () => {
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
-      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -464,7 +459,6 @@ describe('getQuizScore', () => {
     )
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
-      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -554,7 +548,6 @@ describe('getQuizScore', () => {
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
-      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -639,7 +632,6 @@ describe('getQuizScore', () => {
     )
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
-      '',
       undefined,
       expect.toBeTransactionClient()
     )
@@ -732,7 +724,6 @@ describe('getQuizScore', () => {
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
-      '',
       undefined,
       expect.toBeTransactionClient()
     )
