@@ -567,3 +567,29 @@ const deleteAssignmentIR: any = {"usedParamSet":{"assignmentId":true},"params":[
 export const deleteAssignment = new PreparedQuery<IDeleteAssignmentParams,IDeleteAssignmentResult>(deleteAssignmentIR);
 
 
+/** 'DeleteSessionForStudentAssignment' parameters type */
+export interface IDeleteSessionForStudentAssignmentParams {
+  assignmentId: string;
+}
+
+/** 'DeleteSessionForStudentAssignment' return type */
+export type IDeleteSessionForStudentAssignmentResult = void;
+
+/** 'DeleteSessionForStudentAssignment' query type */
+export interface IDeleteSessionForStudentAssignmentQuery {
+  params: IDeleteSessionForStudentAssignmentParams;
+  result: IDeleteSessionForStudentAssignmentResult;
+}
+
+const deleteSessionForStudentAssignmentIR: any = {"usedParamSet":{"assignmentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":77}]}],"statement":"DELETE FROM sessions_students_assignments\nWHERE assignment_id = :assignmentId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM sessions_students_assignments
+ * WHERE assignment_id = :assignmentId!
+ * ```
+ */
+export const deleteSessionForStudentAssignment = new PreparedQuery<IDeleteSessionForStudentAssignmentParams,IDeleteSessionForStudentAssignmentResult>(deleteSessionForStudentAssignmentIR);
+
+

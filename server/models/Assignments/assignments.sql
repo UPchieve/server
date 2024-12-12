@@ -154,3 +154,8 @@ WHERE assignment_id = :assignmentId!;
 DELETE FROM assignments
 WHERE id = :assignmentId!;
 
+
+/* @name deleteSessionForStudentAssignment */
+DELETE FROM sessions_students_assignments
+WHERE assignment_id = :assignmentId!;
+
