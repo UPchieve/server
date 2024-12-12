@@ -258,16 +258,21 @@ export async function addBackgroundInfo(
 
 export async function onboardVolunteer(
   volunteerId: Ulid,
-  volunteerPartnerOrg: string | undefined,
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
   const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
-    volunteerId
+    volunteerId,
+    tc
   )
-  if (!volunteer) throw new Error('Volunteer not found')
+  if (!volunteer) {
+    // If there is no volunteer, means they've already been onboarded.
+    return
+  }
+
+  // Onboard the volunteer if they were not previously onboarded,
+  // but they have now met the requirements.
   if (
-    !volunteer.onboarded &&
     volunteer.subjects.length &&
     volunteer.hasCompletedUpchieve101 &&
     volunteer.availabilityLastModifiedAt

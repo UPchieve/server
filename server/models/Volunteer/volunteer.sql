@@ -213,7 +213,8 @@ SELECT
     volunteer_profiles.onboarded,
     COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,
     country,
-    MAX(availabilities.updated_at) AS availability_last_modified_at
+    MAX(availabilities.updated_at) AS availability_last_modified_at,
+    volunteer_partner_orgs.key AS volunteer_partner_org_key
 FROM
     users
     LEFT JOIN (
@@ -232,6 +233,7 @@ FROM
             subjects.name, CTE.total) AS subjects_unlocked ON TRUE
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN availabilities ON availabilities.user_id = users.id
+    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
@@ -242,7 +244,8 @@ WHERE
 GROUP BY
     users.id,
     onboarded,
-    country;
+    country,
+    volunteer_partner_org_key;
 
 
 /* @name getVolunteersForTelecomReport */

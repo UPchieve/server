@@ -72,12 +72,7 @@ export async function updateSchedule(
       updateTimezoneByUserId(volunteer.id, newTimezone, tc),
     ])
 
-    await VolunteerService.onboardVolunteer(
-      user.id,
-      volunteer.volunteerPartnerOrg,
-      ip,
-      tc
-    )
+    await VolunteerService.onboardVolunteer(volunteer.id, ip, tc)
   })
 }
 

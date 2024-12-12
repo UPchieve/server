@@ -360,6 +360,7 @@ export type VolunteerForOnboarding = Pick<
   subjects: string[]
   availabilityLastModifiedAt?: Date
   country?: string
+  volunteerPartnerOrgKey?: string
 }
 export async function getVolunteerForOnboardingById(
   userId: Ulid,
@@ -376,6 +377,7 @@ export async function getVolunteerForOnboardingById(
     const volunteer = makeSomeOptional(result[0], [
       'availabilityLastModifiedAt',
       'country',
+      'volunteerPartnerOrgKey',
     ])
     const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
     if (volunteer.email) {
