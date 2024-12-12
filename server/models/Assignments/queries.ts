@@ -322,3 +322,14 @@ export async function deleteStudentAssignment(
     throw new RepoDeleteError(err)
   }
 }
+
+export async function deleteSessionStudentAssignment(
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteSessionStudentAssignment.run({ assignmentId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}

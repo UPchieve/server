@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/Feedback/feedback.sql" */
-import { PreparedQuery } from '@pgtyped/runtime';
+import { PreparedQuery } from '@pgtyped/query';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -27,7 +27,7 @@ export interface IGetFeedbackBySessionIdQuery {
   result: IGetFeedbackBySessionIdResult;
 }
 
-const getFeedbackBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":452,"b":462}]}],"statement":"SELECT\n    feedbacks.id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    user_roles.name AS user_role,\n    user_id,\n    session_id,\n    student_tutoring_feedback,\n    student_counseling_feedback,\n    volunteer_feedback\nFROM\n    feedbacks\n    LEFT JOIN topics ON feedbacks.topic_id = topics.id\n    LEFT JOIN subjects ON feedbacks.subject_id = subjects.id\n    JOIN user_roles ON feedbacks.user_role_id = user_roles.id\nWHERE\n    session_id = :sessionId!"};
+const getFeedbackBySessionIdIR: any = {"name":"getFeedbackBySessionId","params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":488,"b":497,"line":18,"col":18}]}}],"usedParamSet":{"sessionId":true},"statement":{"body":"SELECT\n    feedbacks.id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    user_roles.name AS user_role,\n    user_id,\n    session_id,\n    student_tutoring_feedback,\n    student_counseling_feedback,\n    volunteer_feedback\nFROM\n    feedbacks\n    LEFT JOIN topics ON feedbacks.topic_id = topics.id\n    LEFT JOIN subjects ON feedbacks.subject_id = subjects.id\n    JOIN user_roles ON feedbacks.user_role_id = user_roles.id\nWHERE\n    session_id = :sessionId!","loc":{"a":35,"b":497,"line":2,"col":0}}};
 
 /**
  * Query generated from SQL:
