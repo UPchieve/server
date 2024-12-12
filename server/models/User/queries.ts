@@ -390,7 +390,7 @@ type UserQuery = {
   lastName: string | undefined
   email: string | undefined
   partnerOrg: string | undefined
-  highSchool: string | undefined
+  school: string | undefined
 }
 function cleanPayload(payload: UserQuery): UserQuery {
   const temp: any = {}
@@ -415,7 +415,6 @@ export async function getUsersForAdminSearch(
     return result.map(v => {
       const user = makeSomeOptional(v, ['lastName'])
       return {
-        _id: user.id,
         userType: getUserTypeFromRoles((v.roles ?? []) as UserRole[], user.id),
         ...user,
       }
@@ -489,7 +488,6 @@ export async function getUserForAdminDetail(
       'isAdmin',
       'isDeactivated',
       'isTestUser',
-      'isVolunteer',
       'verified',
       'numPastSessions',
     ])
@@ -523,13 +521,11 @@ export async function getUserForAdminDetail(
       ...user,
       references: references.map(ref => ({
         ...ref,
-        _id: ref.id,
         status: ref.status.toUpperCase(),
       })),
       pastSessions: sessions.sort((a, b) =>
         a.createdAt > b.createdAt ? 1 : -1
       ),
-      _id: user.id,
       photoIdStatus: user.photoIdStatus?.toUpperCase(),
       background,
     }
