@@ -184,16 +184,20 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     sessionId,
   }
 
-  if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, emailData, {
-      removeOnComplete: true,
-      removeOnFail: true,
-    })
-  else
-    await cache.saveWithExpiration(
-      `${sessionId}-reported`,
-      JSON.stringify(emailData)
-    )
+  // @TODO - Update email sent to volunteers reported in-session by students
+  const shouldSendEmail = user.isVolunteer || source === 'recap'
+  if (shouldSendEmail) {
+    if (session.endedAt)
+      await QueueService.add(Jobs.EmailSessionReported, emailData, {
+        removeOnComplete: true,
+        removeOnFail: true,
+      })
+    else
+      await cache.saveWithExpiration(
+        `${sessionId}-reported`,
+        JSON.stringify(emailData)
+      )
+  }
 }
 
 export async function endSession(
