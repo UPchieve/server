@@ -21,12 +21,11 @@ export interface UpdateScheduleOptions {
   user: UserContactInfo
   // @note: this is set to optional to test the absence of an availability object
   availability?: Availability
-  tz: string // TODO: constrain this to official timezones
+  tz: string // TODO: Remove timezones: Use UTC.
 }
 
 export async function updateSchedule(
-  options: UpdateScheduleOptions,
-  tc?: TransactionClient
+  options: UpdateScheduleOptions
 ): Promise<void> {
   return runInTransaction(async (tc: TransactionClient) => {
     const user = options.user
@@ -35,13 +34,10 @@ export async function updateSchedule(
     const ip = options.ip
 
     if (!newAvailability) {
-      //early exit
-      throw new Error('No availability object specified')
+      throw new Error('No availability object specified.')
     }
 
-    const volunteer = await getVolunteerForScheduleUpdate(user.id)
-    // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
-
+    const volunteer = await getVolunteerForScheduleUpdate(user.id, tc)
     if (
       Object.keys(volunteer.availability).some(key => {
         if (typeof newAvailability[key as DAYS] === 'undefined') {
@@ -59,7 +55,6 @@ export async function updateSchedule(
       throw new Error('Availability object missing required keys')
     }
 
-    // TODO: run these with the same client
     await saveCurrentAvailabilityAsHistory(volunteer.id, tc)
     await clearAvailabilityForVolunteer(volunteer.id, tc)
     await Promise.all([
@@ -72,12 +67,7 @@ export async function updateSchedule(
       updateTimezoneByUserId(volunteer.id, newTimezone, tc),
     ])
 
-    await VolunteerService.onboardVolunteer(
-      user.id,
-      volunteer.volunteerPartnerOrg,
-      ip,
-      tc
-    )
+    await VolunteerService.onboardVolunteer(volunteer.id, ip, tc)
   })
 }
 

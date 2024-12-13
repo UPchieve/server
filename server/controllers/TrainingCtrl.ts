@@ -163,12 +163,7 @@ export async function getQuizScore(
         volunteerProfile?.hasCompletedUpchieve101 ||
         cert === TRAINING.UPCHIEVE_101
 
-      await VolunteerService.onboardVolunteer(
-        user.id,
-        user.volunteerPartnerOrg,
-        ip,
-        tc
-      )
+      await VolunteerService.onboardVolunteer(user.id, ip, tc)
     }
 
     const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {

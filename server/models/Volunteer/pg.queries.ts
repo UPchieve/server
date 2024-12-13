@@ -467,7 +467,6 @@ export const getVolunteersForTotalHours = new PreparedQuery<IGetVolunteersForTot
 
 /** 'GetVolunteerForOnboardingById' parameters type */
 export interface IGetVolunteerForOnboardingByIdParams {
-  mongoUserId?: string | null | void;
   userId?: string | null | void;
 }
 
@@ -480,6 +479,7 @@ export interface IGetVolunteerForOnboardingByIdResult {
   id: string;
   onboarded: boolean;
   subjects: stringArray | null;
+  volunteerPartnerOrgKey: string;
 }
 
 /** 'GetVolunteerForOnboardingById' query type */
@@ -488,7 +488,7 @@ export interface IGetVolunteerForOnboardingByIdQuery {
   result: IGetVolunteerForOnboardingByIdResult;
 }
 
-const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1015,"b":1021},{"a":1516,"b":1522}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1061,"b":1072},{"a":1558,"b":1569}]}],"statement":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            subjects.name AS subject,\n            COUNT(*)::int AS earned_certs\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id::uuid = :userId\n            OR users.mongo_id::text = :mongoUserId\n        GROUP BY\n            subjects.name, CTE.total) AS subjects_unlocked ON TRUE\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN availabilities ON availabilities.user_id = users.id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS FALSE\n    AND (users.id::uuid = :userId\n        OR users.mongo_id::text = :mongoUserId)\nGROUP BY\n    users.id,\n    onboarded,\n    country"};
+const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1070,"b":1076},{"a":1625,"b":1631}]}],"statement":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at,\n    volunteer_partner_orgs.key AS volunteer_partner_org_key\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            subjects.name AS subject,\n            COUNT(*)::int AS earned_certs\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id = :userId\n        GROUP BY\n            subjects.name, CTE.total) AS subjects_unlocked ON TRUE\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN availabilities ON availabilities.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS FALSE\n    AND users.id = :userId\nGROUP BY\n    users.id,\n    onboarded,\n    country,\n    volunteer_partner_org_key"};
 
 /**
  * Query generated from SQL:
@@ -510,7 +510,8 @@ const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true,"mon
  *     volunteer_profiles.onboarded,
  *     COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,
  *     country,
- *     MAX(availabilities.updated_at) AS availability_last_modified_at
+ *     MAX(availabilities.updated_at) AS availability_last_modified_at,
+ *     volunteer_partner_orgs.key AS volunteer_partner_org_key
  * FROM
  *     users
  *     LEFT JOIN (
@@ -524,24 +525,24 @@ const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true,"mon
  *             JOIN users ON users.id = users_certifications.user_id
  *             JOIN CTE ON CTE.name = subjects.name
  *         WHERE
- *             users.id::uuid = :userId
- *             OR users.mongo_id::text = :mongoUserId
+ *             users.id = :userId
  *         GROUP BY
  *             subjects.name, CTE.total) AS subjects_unlocked ON TRUE
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
  *     LEFT JOIN availabilities ON availabilities.user_id = users.id
+ *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  * WHERE
  *     users.banned IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND users.deactivated IS FALSE
  *     AND users.test_user IS FALSE
  *     AND volunteer_profiles.onboarded IS FALSE
- *     AND (users.id::uuid = :userId
- *         OR users.mongo_id::text = :mongoUserId)
+ *     AND users.id = :userId
  * GROUP BY
  *     users.id,
  *     onboarded,
- *     country
+ *     country,
+ *     volunteer_partner_org_key
  * ```
  */
 export const getVolunteerForOnboardingById = new PreparedQuery<IGetVolunteerForOnboardingByIdParams,IGetVolunteerForOnboardingByIdResult>(getVolunteerForOnboardingByIdIR);
