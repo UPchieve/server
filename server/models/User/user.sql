@@ -370,6 +370,7 @@ SELECT
     student_partner_orgs.name AS student_partner_org,
     student_partner_org_sites.name AS partner_site,
     -- Student/teacher field:
+    schools.id AS school_id,
     COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name
 FROM
     users
