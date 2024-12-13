@@ -78,18 +78,31 @@ export async function queueOnboardingReminderOneEmail(
 }
 
 export async function queueOnboardingEventEmails(
-  volunteerId: Ulid
+  volunteerId: Ulid,
+  isPartnerVolunteer: boolean = false
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
     { volunteerId },
-    // process job 5 days after the volunteer is onboarded
+    // Process job 5 days after the volunteer is onboarded.
     {
       delay: 1000 * 60 * 60 * 24 * 5,
       removeOnComplete: true,
       removeOnFail: true,
     }
   )
+  if (isPartnerVolunteer) {
+    await QueueService.add(
+      Jobs.EmailPartnerVolunteerLowHoursSelected,
+      { volunteerId },
+      // Process job 10 days after the volunteer is onboarded.
+      {
+        delay: 1000 * 60 * 60 * 24 * 10,
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    )
+  }
 }
 
 export async function queueFailedFirstAttemptedQuizEmail(
@@ -107,21 +120,6 @@ export async function queueFailedFirstAttemptedQuizEmail(
       volunteerId,
     },
     {
-      removeOnComplete: true,
-      removeOnFail: true,
-    }
-  )
-}
-
-export async function queuePartnerOnboardingEventEmails(
-  volunteerId: Ulid
-): Promise<void> {
-  await QueueService.add(
-    Jobs.EmailPartnerVolunteerLowHoursSelected,
-    { volunteerId },
-    // process job 10 days after the volunteer is onboarded
-    {
-      delay: 1000 * 60 * 60 * 24 * 10,
       removeOnComplete: true,
       removeOnFail: true,
     }
@@ -258,26 +256,30 @@ export async function addBackgroundInfo(
 
 export async function onboardVolunteer(
   volunteerId: Ulid,
-  volunteerPartnerOrg: string | undefined,
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
   const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
-    volunteerId
+    volunteerId,
+    tc
   )
-  if (!volunteer) throw new Error('Volunteer not found')
+  if (!volunteer) {
+    // If there is no volunteer, means they've already been onboarded.
+    return
+  }
+
+  // Onboard the volunteer if they were not previously onboarded,
+  // but they have now met the requirements.
   if (
-    !volunteer.onboarded &&
     volunteer.subjects.length &&
     volunteer.hasCompletedUpchieve101 &&
     volunteer.availabilityLastModifiedAt
   ) {
     await VolunteerRepo.updateVolunteerOnboarded(volunteer.id, tc)
-    await queueOnboardingEventEmails(volunteer.id)
-    // TODO: this should just be done by the generic onboarding email handler above
-    if (volunteerPartnerOrg) {
-      await queuePartnerOnboardingEventEmails(volunteer.id)
-    }
+    await queueOnboardingEventEmails(
+      volunteer.id,
+      !!volunteer.volunteerPartnerOrgKey
+    )
     await createAccountAction(
       {
         action: ACCOUNT_USER_ACTIONS.ONBOARDED,

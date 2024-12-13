@@ -360,23 +360,24 @@ export type VolunteerForOnboarding = Pick<
   subjects: string[]
   availabilityLastModifiedAt?: Date
   country?: string
+  volunteerPartnerOrgKey?: string
 }
 export async function getVolunteerForOnboardingById(
   userId: Ulid,
-  tc?: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
-        userId: isPgId(userId) ? userId : undefined,
-        mongoUserId: isPgId(userId) ? undefined : userId,
+        userId,
       },
-      tc ?? getClient()
+      tc
     )
     if (!result.length) return
     const volunteer = makeSomeOptional(result[0], [
       'availabilityLastModifiedAt',
       'country',
+      'volunteerPartnerOrgKey',
     ])
     const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
     if (volunteer.email) {
@@ -1626,28 +1627,26 @@ export type VolunteerForScheduleUpdate = {
   passedRequiredTraining: boolean
 }
 export async function getVolunteerForScheduleUpdate(
-  userId: Ulid
+  userId: Ulid,
+  tc: TransactionClient
 ): Promise<VolunteerForScheduleUpdate> {
-  const client = await getClient().connect()
   try {
     const result = await pgQueries.getVolunteerForScheduleUpdate.run(
       { userId },
-      client
+      tc
     )
     if (!result.length) throw new RepoReadError('Volunteer not found')
     const volunteer = makeSomeOptional(result[0], [
       'volunteerPartnerOrg',
       'subjects',
     ])
-    const availability = await getAvailabilityForVolunteer(volunteer.id, client)
+    const availability = await getAvailabilityForVolunteer(volunteer.id, tc)
     return {
       ...volunteer,
       availability,
     }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 
