@@ -4,9 +4,10 @@ import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as FavoritingService from './FavoritingService'
 import * as StudentRepo from '../models/Student/queries'
+import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg/queries'
 import * as TeacherClassRepo from '../models/TeacherClass/queries'
 import config from '../config'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
 import { createAccountAction } from '../models/UserAction'
 import {
@@ -147,4 +148,48 @@ export async function getActiveClassesForStudent(
     studentId
   )
   return teacherClasses.filter(c => c.active)
+}
+
+export async function updateStudentSchool(
+  studentId: Ulid,
+  newSchoolId: Uuid,
+  previousSchoolId: Uuid | undefined,
+  tc: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    if (newSchoolId === previousSchoolId) return
+
+    await StudentRepo.updateStudentSchool(studentId, newSchoolId, tc)
+
+    // Deactivate the previous school SPO instance if necessary.
+    if (!previousSchoolId) return
+    const previousSchoolSpo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+      tc,
+      previousSchoolId
+    )
+    if (previousSchoolSpo) {
+      await StudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance(
+        tc,
+        studentId,
+        previousSchoolSpo.partnerId
+      )
+    }
+
+    // Activate the new school SPO instance if necessary.
+    if (!newSchoolId) return
+    const newSchoolSpo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+      tc,
+      newSchoolId
+    )
+    if (newSchoolSpo) {
+      await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
+        {
+          userId: studentId,
+          studentPartnerOrgId: newSchoolSpo.partnerId,
+          studentPartnerOrgSiteId: newSchoolSpo.siteId,
+        },
+        tc
+      )
+    }
+  }, tc)
 }

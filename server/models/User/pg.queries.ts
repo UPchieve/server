@@ -1926,3 +1926,51 @@ const updateUserProxyEmailIR: any = {"usedParamSet":{"proxyEmail":true,"userId":
 export const updateUserProxyEmail = new PreparedQuery<IUpdateUserProxyEmailParams,IUpdateUserProxyEmailResult>(updateUserProxyEmailIR);
 
 
+/** 'AdminUpdateUser' parameters type */
+export interface IAdminUpdateUserParams {
+  ban_reason?: string | null | void;
+  banType?: ban_types | null | void;
+  email: string;
+  firstName?: string | null | void;
+  isDeactivated: boolean;
+  isVerified: boolean;
+  lastName?: string | null | void;
+  userId: string;
+}
+
+/** 'AdminUpdateUser' return type */
+export type IAdminUpdateUserResult = void;
+
+/** 'AdminUpdateUser' query type */
+export interface IAdminUpdateUserQuery {
+  params: IAdminUpdateUserParams;
+  result: IAdminUpdateUserResult;
+}
+
+const adminUpdateUserIR: any = {"usedParamSet":{"firstName":true,"lastName":true,"email":true,"isVerified":true,"banType":true,"ban_reason":true,"isDeactivated":true,"userId":true},"params":[{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":47,"b":56}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":105}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":138}]},{"name":"isVerified","required":true,"transform":{"type":"scalar"},"locs":[{"a":156,"b":167}]},{"name":"banType","required":false,"transform":{"type":"scalar"},"locs":[{"a":185,"b":192}]},{"name":"ban_reason","required":false,"transform":{"type":"scalar"},"locs":[{"a":317,"b":327}]},{"name":"isDeactivated","required":true,"transform":{"type":"scalar"},"locs":[{"a":345,"b":359}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":382,"b":389}]}],"statement":"UPDATE\n    users\nSET\n    first_name = COALESCE(:firstName, first_name),\n    last_name = COALESCE(:lastName, last_name),\n    email = :email!,\n    verified = :isVerified!,\n    ban_type = :banType,\n    ban_reason_id = (\n        SELECT\n            id\n        FROM\n            ban_reasons\n        WHERE\n            name = :ban_reason), deactivated = :isDeactivated!\nWHERE\n    users.id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     first_name = COALESCE(:firstName, first_name),
+ *     last_name = COALESCE(:lastName, last_name),
+ *     email = :email!,
+ *     verified = :isVerified!,
+ *     ban_type = :banType,
+ *     ban_reason_id = (
+ *         SELECT
+ *             id
+ *         FROM
+ *             ban_reasons
+ *         WHERE
+ *             name = :ban_reason), deactivated = :isDeactivated!
+ * WHERE
+ *     users.id = :userId!
+ * ```
+ */
+export const adminUpdateUser = new PreparedQuery<IAdminUpdateUserParams,IAdminUpdateUserResult>(adminUpdateUserIR);
+
+

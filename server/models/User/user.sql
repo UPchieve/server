@@ -866,3 +866,23 @@ WHERE
 RETURNING
     id AS ok;
 
+
+/* @name adminUpdateUser */
+UPDATE
+    users
+SET
+    first_name = COALESCE(:firstName, first_name),
+    last_name = COALESCE(:lastName, last_name),
+    email = :email!,
+    verified = :isVerified!,
+    ban_type = :banType,
+    ban_reason_id = (
+        SELECT
+            id
+        FROM
+            ban_reasons
+        WHERE
+            name = :ban_reason), deactivated = :isDeactivated!
+WHERE
+    users.id = :userId!;
+

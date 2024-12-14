@@ -7,6 +7,7 @@ import {
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
+  USER_BAN_REASONS,
   USER_BAN_TYPES,
 } from '../constants'
 import {
@@ -55,6 +56,7 @@ import {
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import * as UserRolesService from './UserRolesService'
+import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
@@ -253,6 +255,7 @@ interface AdminUpdate {
   isApproved?: boolean
   inGatesStudy?: boolean
   partnerSchool?: string
+  schoolId?: string
 }
 const asAdminUpdate = asFactory<AdminUpdate>({
   userId: asString,
@@ -267,6 +270,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
   partnerSchool: asOptional(asString),
+  schoolId: asOptional(asString),
 })
 
 export async function flagForDeletion(user: UserContactInfo) {
@@ -296,6 +300,7 @@ export async function adminUpdateUser(data: unknown) {
     isApproved,
     inGatesStudy,
     partnerSchool,
+    schoolId,
   } = asAdminUpdate(data)
   const userBeforeUpdate = await getUserContactInfoById(userId)
 
@@ -360,8 +365,9 @@ export async function adminUpdateUser(data: unknown) {
     studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
     partnerSite: isStudent && partnerSite ? partnerSite : undefined,
     inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
-    banReason: banType === USER_BAN_TYPES.COMPLETE ? 'admin' : undefined,
+    banReason: banType ? ('admin' as USER_BAN_REASONS) : undefined,
     partnerSchool: isStudent && partnerSchool ? partnerSchool : undefined,
+    schoolId,
   }
 
   if (isStudent) {
@@ -384,7 +390,7 @@ export async function adminUpdateUser(data: unknown) {
   } else if (isStudent) {
     await adminUpdateStudent(userId, update)
   } else if (isTeacher) {
-    // TODO: TEACHER PROFILES.
+    await TeacherService.adminUpdateTeacher(userId, update)
   }
 
   await MailService.createContact(userId)

@@ -1,12 +1,23 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoReadError,
+  RepoUpdateError,
+  RepoUpsertError,
+} from '../Errors'
 import {
   CreateTeacherClassPayload,
   CreateTeacherPayload,
   TeacherClass,
 } from './types'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import {
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  Ulid,
+  Uuid,
+} from '../pgUtils'
 
 export async function createTeacher(
   data: CreateTeacherPayload,
@@ -154,5 +165,23 @@ export async function deactivateTeacherClass(id: string) {
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
     throw new RepoUpsertError(err)
+  }
+}
+
+export async function updateTeacherSchool(
+  teacherId: Ulid,
+  schoolId: Uuid | undefined,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.updateTeacherSchool.run(
+      {
+        userId: teacherId,
+        schoolId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
