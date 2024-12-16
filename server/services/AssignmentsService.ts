@@ -237,6 +237,7 @@ export async function updateStudentAssignmentAfterSession(
 
 export async function deleteAssignment(assignmentId: Uuid) {
   return runInTransaction(async (tc: TransactionClient) => {
+    await AssignmentsRepo.deleteSessionForStudentAssignment(assignmentId, tc)
     await AssignmentsRepo.deleteStudentAssignment(assignmentId, tc)
     await AssignmentsRepo.deleteAssignment(assignmentId, tc)
   })
