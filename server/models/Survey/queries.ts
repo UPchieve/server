@@ -21,6 +21,7 @@ import {
 import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 import _, { result } from 'lodash'
+import { asNumber } from '../../utils/type-utils'
 
 export async function saveUserSurveyAndSubmissions(
   userId: Ulid,
@@ -114,27 +115,26 @@ export async function getSimpleSurveyDefinition(
 }
 
 export async function getPostsessionSurveyDefinition(
-  surveyType: SurveyType,
   sessionId: Ulid,
   userRole: USER_ROLES_TYPE
-): Promise<SurveyQueryResponse> {
+) {
   try {
-    const replacementColumns = await pgQueries.getPostsessionSurveyReplacementColumns.run(
-      { surveyType, sessionId, userRole },
+    const result = await pgQueries.getPostsessionSurveyDefinitionForSession.run(
+      {
+        sessionId,
+        userRole,
+      },
       getClient()
     )
-    const replacementColumnsArr = replacementColumns.map(c =>
-      makeSomeRequired(c, ['id'])
-    )
-    const surveyDefinitionExceptReplacementColumns = await pgQueries.getPostsessionSurveyDefinitionWithoutReplacementColumns.run(
-      { surveyType, sessionId, userRole },
-      getClient()
-    )
-
-    const resultArr = surveyDefinitionExceptReplacementColumns.map(v =>
-      makeSomeOptional(v, ['responseDisplayImage'])
-    )
-    return formatSurveyDefinition(resultArr, replacementColumnsArr)
+    if (result.length) {
+      return result.map(r =>
+        makeSomeOptional(r, [
+          'firstReplacementColumn',
+          'secondReplacementColumn',
+          'responses',
+        ])
+      )
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -161,8 +161,7 @@ export type SurveyReplacementColumn = {
 }
 
 export function formatSurveyDefinition(
-  resultArr: SurveyDefinitionExceptReplacementColumns[],
-  replacementColumns?: SurveyReplacementColumn[]
+  resultArr: SurveyDefinitionExceptReplacementColumns[]
 ): SurveyQueryResponse {
   const rowsByQuestion = _.groupBy(resultArr, v => v.questionId)
   const survey: SurveyQuestionDefinition[] = []
@@ -171,28 +170,8 @@ export function formatSurveyDefinition(
     const temp = rows[0]
 
     let questionText = temp.questionText
-    if (replacementColumns) {
-      const associatedReplacementColumns = replacementColumns.filter(
-        (col: any) => question == col.id
-      )[0]
-      if (
-        associatedReplacementColumns &&
-        associatedReplacementColumns.replacementText1
-      ) {
-        questionText = questionText.replace(
-          /%s/,
-          associatedReplacementColumns.replacementText1
-        )
-        if (associatedReplacementColumns.replacementText2) {
-          questionText = questionText.replace(
-            /%s/,
-            associatedReplacementColumns.replacementText2
-          )
-        }
-      }
-    }
     const questionData = {
-      questionId: question,
+      questionId: asNumber(question),
       questionText: questionText,
       displayPriority: temp.displayPriority,
       questionType: temp.questionType,
@@ -222,7 +201,6 @@ export function formatSurveyDefinition(
     survey,
   }
 }
-
 export type SimpleSurveyResponse = {
   displayLabel: string
   response: string

@@ -2,7 +2,6 @@ import expressWs from 'express-ws'
 import {
   getStudentsPresessionGoal,
   getSimpleSurveyDefinition,
-  getPostsessionSurveyDefinition,
   getPostsessionSurveyResponse,
   getProgressReportSurveyResponse,
 } from '../../models/Survey'
@@ -11,6 +10,7 @@ import {
   parseUserRole,
   saveUserSurvey,
 } from '../../services/SurveyService'
+import * as SurveyService from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
@@ -79,8 +79,7 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const { sessionId, role } = req.query
       let parsedRole = parseUserRole(asString(role))
-      const survey = await getPostsessionSurveyDefinition(
-        'postsession',
+      const survey = await SurveyService.getPostsessionSurveyDefinition(
         asString(sessionId),
         parsedRole
       )
