@@ -33,7 +33,8 @@ SELECT
     COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
     teacher_classes.updated_at,
-    teacher_classes.deactivated_on
+    teacher_classes.deactivated_on,
+    clever_id
 FROM
     teacher_classes
     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id

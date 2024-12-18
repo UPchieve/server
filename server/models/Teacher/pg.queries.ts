@@ -115,6 +115,7 @@ export interface IGetTeacherClassesByUserIdParams {
 /** 'GetTeacherClassesByUserId' return type */
 export interface IGetTeacherClassesByUserIdResult {
   active: boolean;
+  cleverId: string | null;
   code: string;
   createdAt: Date;
   deactivatedOn: Date | null;
@@ -132,7 +133,7 @@ export interface IGetTeacherClassesByUserIdQuery {
   result: IGetTeacherClassesByUserIdResult;
 }
 
-const getTeacherClassesByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":388,"b":395}]}],"statement":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at,\n    teacher_classes.deactivated_on\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id"};
+const getTeacherClassesByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":403,"b":410}]}],"statement":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at,\n    teacher_classes.deactivated_on,\n    clever_id\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id"};
 
 /**
  * Query generated from SQL:
@@ -147,7 +148,8 @@ const getTeacherClassesByUserIdIR: any = {"usedParamSet":{"userId":true},"params
  *     COUNT(student_classes.user_id)::int AS total_students,
  *     teacher_classes.created_at,
  *     teacher_classes.updated_at,
- *     teacher_classes.deactivated_on
+ *     teacher_classes.deactivated_on,
+ *     clever_id
  * FROM
  *     teacher_classes
  *     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id

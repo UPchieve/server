@@ -85,7 +85,9 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeSomeOptional(c, ['topicId', 'deactivatedOn']))
+    return classes.map(c =>
+      makeSomeOptional(c, ['topicId', 'deactivatedOn', 'cleverId'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
