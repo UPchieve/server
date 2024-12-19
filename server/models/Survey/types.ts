@@ -65,7 +65,7 @@ export type SurveyResponseDefinition = {
 }
 
 export type SurveryUserResponseDefinition = {
-  responseId: number
+  responseId?: number
   response: string
 }
 
