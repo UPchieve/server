@@ -16,7 +16,10 @@ export async function createUPFByUserId(
       tc ?? getClient()
     )
     if (result.length) {
-      return makeSomeOptional(result[0], ['fallIncentiveEnrollmentAt'])
+      return makeSomeOptional(result[0], [
+        'fallIncentiveEnrollmentAt',
+        'impactStudyEnrollmentAt',
+      ])
     }
     throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
@@ -36,7 +39,10 @@ export async function getUPFByUserId(
     )
 
     if (result.length) {
-      return makeSomeOptional(result[0], ['fallIncentiveEnrollmentAt'])
+      return makeSomeOptional(result[0], [
+        'fallIncentiveEnrollmentAt',
+        'impactStudyEnrollmentAt',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -55,7 +61,10 @@ export async function getPublicUPFByUserId(
     )
 
     if (result.length)
-      return makeSomeOptional(result[0], ['fallIncentiveEnrollmentAt'])
+      return makeSomeOptional(result[0], [
+        'fallIncentiveEnrollmentAt',
+        'impactStudyEnrollmentAt',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -121,6 +130,20 @@ export async function enrollStudentToFallIncentiveProgram(
       getClient()
     )
     if (result.length) return makeRequired(result[0]).fallIncentiveEnrollmentAt
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function enrollStudentToImpactStudy(userId: Ulid): Promise<Date> {
+  try {
+    const result = await pgQueries.enrollStudentToImpactStudy.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).impactStudyEnrollmentAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
