@@ -2906,6 +2906,10 @@ COPY upchieve.survey_questions (id, question_type_id, question_text, created_at,
 20	1	Rate your analysis	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
 21	1	What was the problem	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
 22	3	Tell us more about the issue or how we can improve	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
+23	3	What's your GPA right now?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+24	3	What's your lowest grade this semester?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+25	3	Where do you hope to go to college?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+26	1	How confident are you about getting in?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
 \.
 
 
@@ -3043,6 +3047,7 @@ COPY upchieve.surveys (id, name, created_at, updated_at, role_id, reward_amount)
 18	Essay Planning Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
 19	Essay Feedback Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
 20	Progress Report Rating Survey	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	1	\N
+21	Impact Study Survey 1.0	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	1	10
 \.
 
 
@@ -3123,6 +3128,10 @@ COPY upchieve.surveys_survey_questions (id, survey_id, survey_question_id, displ
 70	20	20	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
 71	20	21	20	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
 72	20	22	30	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+73	21	23	10	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
+74	21	24	20	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
+75	21	25	30	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
+76	21	26	40	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
 \.
 
 
@@ -3461,6 +3470,11 @@ COPY upchieve.survey_questions_response_choices (response_choice_id, display_pri
 98	50	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
 68	60	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
 68	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	72
+35	10	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	76
+36	20	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	76
+61	30	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	76
+37	40	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	76
+38	50	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	76
 \.
 
 
@@ -3472,6 +3486,7 @@ COPY upchieve.survey_types (id, name, created_at, updated_at) FROM stdin;
 1	presession	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
 2	postsession	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
 4	progress-report	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+5	impact-study	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
 \.
 
 
@@ -3580,6 +3595,7 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 18	32	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
 19	33	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
 20	\N	4	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+21	\N	5	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
 \.
 
 
@@ -3628,16 +3644,16 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N
-01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N
-01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N
-01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N
-01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N
-01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N
-01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N
-01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N
-01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N
+COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at, impact_study_enrollment_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N	\N
+01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N	\N
+01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N	\N
+01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N
 \.
 
 
@@ -4055,7 +4071,7 @@ SELECT pg_catalog.setval('upchieve.subjects_id_seq', 33, true);
 -- Name: survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 22, true);
+SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 26, true);
 
 
 --
@@ -4076,21 +4092,21 @@ SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 98, true);
 -- Name: survey_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 4, true);
+SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 5, true);
 
 
 --
 -- Name: surveys_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_id_seq', 20, true);
+SELECT pg_catalog.setval('upchieve.surveys_id_seq', 21, true);
 
 
 --
 -- Name: surveys_survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 72, true);
+SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 76, true);
 
 
 --
