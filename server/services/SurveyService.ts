@@ -176,7 +176,8 @@ export async function getPostsessionSurveyDefinition(
       displayPriority: question.displayPriority,
       questionType: question.questionType,
       responses: (question.responses as SurveyResponseDefinition[]).sort(
-        (a, b) => (a.responseDisplayPriority ?? 0) - (b.responseDisplayPriority ?? 0)
+        (a, b) =>
+          (a.responseDisplayPriority ?? 0) - (b.responseDisplayPriority ?? 0)
       ),
     })
   }

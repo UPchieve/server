@@ -119,6 +119,28 @@ export async function getSimpleSurveyDefinition(
   }
 }
 
+export async function getSimpleSurveyDefinitionBySurveyId(
+  surveyId: number
+): Promise<SurveyQueryResponse> {
+  try {
+    const result = await pgQueries.getSimpleSurveyDefinition.run(
+      { surveyId },
+      getClient()
+    )
+    const resultArr = result.map(v =>
+      makeSomeOptional(v, [
+        'responseId',
+        'responseDisplayImage',
+        'responseDisplayPriority',
+        'responseText',
+      ])
+    )
+    return formatSurveyDefinition(resultArr)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getPostsessionSurveyDefinition(
   sessionId: Ulid,
   userRole: USER_ROLES_TYPE
@@ -364,6 +386,40 @@ export const getVolunteerPostsessionSurveyGoalQuestionRatings = async (
       getRoClient()
     )
     return ratings.map(r => makeRequired(r)) ?? []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestUserSubmissionsForSurveyBySurveyType(
+  userId: Ulid,
+  surveyType: SurveyType
+): Promise<SimpleSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getLatestUserSubmissionsForSurvey.run(
+      { userId, surveyType },
+      getClient()
+    )
+    if (result.length)
+      return result.map(row => makeSomeOptional(row, ['responseId']))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestUserSubmissionsForSurveyBySurveyId(
+  userId: Ulid,
+  surveyId: number
+): Promise<SimpleSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getLatestUserSubmissionsForSurvey.run(
+      { userId, surveyId },
+      getClient()
+    )
+    if (result.length)
+      return result.map(row => makeSomeOptional(row, ['responseId']))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
