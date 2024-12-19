@@ -170,6 +170,7 @@ SELECT
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
     src.display_image AS display_image,
+    sq.id::int AS question_id,
     src.id AS response_id
 FROM
     users_surveys AS us
@@ -418,6 +419,7 @@ SELECT
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
     src.display_image AS display_image,
+    sq.id::int AS question_id,
     src.id AS response_id
 FROM
     upchieve.users_surveys us

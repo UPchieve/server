@@ -230,6 +230,7 @@ export type SimpleSurveyResponse = {
   response: string
   score: number
   displayOrder: number
+  questionId: number
   displayImage?: string
   responseId?: number
 }
