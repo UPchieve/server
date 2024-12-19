@@ -64,12 +64,18 @@ export type SurveyResponseDefinition = {
   responseDisplayImage?: string
 }
 
+export type SurveryUserResponseDefinition = {
+  responseId: number
+  response: string
+}
+
 export type SurveyQuestionDefinition = {
   questionId: number
   questionText: string
   displayPriority: number
   questionType: string
   responses: SurveyResponseDefinition[]
+  userResponse?: SurveryUserResponseDefinition
 }
 
 export type SurveyQueryResponse = {

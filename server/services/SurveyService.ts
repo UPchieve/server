@@ -9,6 +9,10 @@ import {
   SurveyQueryResponse,
   SurveyQuestionDefinition,
   SurveyResponseDefinition,
+  getSimpleSurveyDefinition,
+  getLatestUserSubmissionsForSurveyBySurveyType,
+  getLatestUserSubmissionsForSurveyBySurveyId,
+  SurveryUserResponseDefinition,
 } from '../models/Survey'
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
@@ -212,5 +216,34 @@ export async function getPostsessionSurveyDefinition(
       default:
         return ''
     }
+  }
+}
+
+export async function getImpactStudySurveyResponses(
+  userId: Ulid
+): Promise<SurveyQueryResponse> {
+  const [submissions, survey] = await Promise.all([
+    getLatestUserSubmissionsForSurveyBySurveyType(userId, 'impact-study'),
+    getSimpleSurveyDefinition('impact-study'),
+  ])
+
+  const surveyWithSubmissions = survey.survey.map(question => {
+    let userResponse
+    for (const submission of submissions) {
+      if (submission.questionId === Number(question.questionId))
+        userResponse = {
+          responseId: submission.responseId,
+          response: submission.response,
+        } as SurveryUserResponseDefinition
+    }
+    return {
+      ...question,
+      userResponse,
+    }
+  })
+
+  return {
+    ...survey,
+    survey: surveyWithSubmissions,
   }
 }
