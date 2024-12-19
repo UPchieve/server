@@ -1,15 +1,8 @@
 import { getClient, getRoClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
-import {
-  getDbUlid,
-  makeRequired,
-  makeSomeRequired,
-  makeSomeOptional,
-  Ulid,
-} from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
-  LegacySurvey,
   SaveUserSurveySubmission,
   SaveUserSurvey,
   SurveyQueryResponse,
@@ -18,9 +11,8 @@ import {
   SurveyType,
   PostsessionSurveyGoalResponse,
 } from './types'
-import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
-import _, { result } from 'lodash'
+import _ from 'lodash'
 import { asNumber } from '../../utils/type-utils'
 
 export async function saveUserSurveyAndSubmissions(
@@ -179,6 +171,7 @@ export type SurveyDefinitionExceptReplacementColumns = {
   responseText?: string
   responseDisplayImage?: string
   responseDisplayPriority?: number
+  rewardAmount?: number
 }
 
 export type SurveyReplacementColumn = {
@@ -229,6 +222,7 @@ export function formatSurveyDefinition(
     surveyId: resultArr[0].surveyId,
     surveyTypeId: resultArr[0].surveyTypeId,
     survey: survey.sort((a, b) => a.displayPriority - b.displayPriority),
+    rewardAmount: resultArr[0].rewardAmount,
   }
 }
 export type SimpleSurveyResponse = {

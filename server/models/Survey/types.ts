@@ -1,6 +1,11 @@
 import { Ulid } from '../pgUtils'
 
-const SURVEY_TYPES = <const>['presession', 'postsession', 'progress-report']
+const SURVEY_TYPES = <const>[
+  'presession',
+  'postsession',
+  'progress-report',
+  'impact-study',
+]
 export type SurveyType = typeof SURVEY_TYPES[number]
 
 export type PresessionSurveyResponseData = {
@@ -71,6 +76,7 @@ export type SurveyQueryResponse = {
   surveyId: number
   surveyTypeId: number
   survey: SurveyQuestionDefinition[]
+  rewardAmount?: number
 }
 
 export type PostsessionSurveyGoalResponse = {

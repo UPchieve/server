@@ -88,7 +88,8 @@ SELECT
     sub.response_display_priority,
     sub.response_display_image,
     most_recent_survey.id::int AS survey_id,
-    survey_types.id AS survey_type_id
+    survey_types.id AS survey_type_id,
+    surveys.reward_amount
 FROM
     most_recent_survey
     JOIN surveys_context ON surveys_context.survey_id = most_recent_survey.id
