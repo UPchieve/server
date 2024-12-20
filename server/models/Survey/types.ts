@@ -57,6 +57,8 @@ export type SaveUserSurveySubmission = Pick<
   'questionId' | 'responseChoiceId' | 'openResponse'
 >
 
+// TODO: Refactor the `SimpleSurveyResponse` type into this type to consolidate
+// the retrieval of both possible responses and user responses for a survey question
 export type SurveyResponseDefinition = {
   responseId?: number
   responseText?: string
@@ -75,6 +77,8 @@ export type SurveyQuestionDefinition = {
   displayPriority: number
   questionType: string
   responses: SurveyResponseDefinition[]
+  // TODO: Refactor in favor of `SurveyResponseDefinition` after `SimpleSurveyResponse`
+  // is refactored into `SurveyResponseDefinition` type
   userResponse?: SurveryUserResponseDefinition
 }
 
