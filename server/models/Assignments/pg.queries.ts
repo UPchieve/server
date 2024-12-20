@@ -606,7 +606,7 @@ export interface IEditAssignmentByIdParams {
   description?: string | null | void;
   dueDate?: DateOrString | null | void;
   id: string;
-  isRequired: boolean;
+  isRequired?: boolean | null | void;
   minDurationInMinutes?: number | null | void;
   numberOfSessions?: number | null | void;
   startDate?: DateOrString | null | void;
@@ -636,7 +636,7 @@ export interface IEditAssignmentByIdQuery {
   result: IEditAssignmentByIdResult;
 }
 
-const editAssignmentByIdIR: any = {"usedParamSet":{"description":true,"title":true,"numberOfSessions":true,"minDurationInMinutes":true,"isRequired":true,"dueDate":true,"startDate":true,"subjectId":true,"id":true},"params":[{"name":"description","required":false,"transform":{"type":"scalar"},"locs":[{"a":45,"b":56}]},{"name":"title","required":false,"transform":{"type":"scalar"},"locs":[{"a":71,"b":76}]},{"name":"numberOfSessions","required":false,"transform":{"type":"scalar"},"locs":[{"a":104,"b":120}]},{"name":"minDurationInMinutes","required":false,"transform":{"type":"scalar"},"locs":[{"a":153,"b":173}]},{"name":"isRequired","required":true,"transform":{"type":"scalar"},"locs":[{"a":194,"b":205}]},{"name":"dueDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":223,"b":230}]},{"name":"startDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":250,"b":259}]},{"name":"subjectId","required":false,"transform":{"type":"scalar"},"locs":[{"a":279,"b":288}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":329,"b":332}]}],"statement":"UPDATE\n    assignments\nSET\n    description = :description,\n    title = :title,\n    number_of_sessions = :numberOfSessions,\n    min_duration_in_minutes = :minDurationInMinutes,\n    is_required = :isRequired!,\n    due_date = :dueDate,\n    start_date = :startDate,\n    subject_id = :subjectId,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at"};
+const editAssignmentByIdIR: any = {"usedParamSet":{"description":true,"title":true,"numberOfSessions":true,"minDurationInMinutes":true,"isRequired":true,"dueDate":true,"startDate":true,"subjectId":true,"id":true},"params":[{"name":"description","required":false,"transform":{"type":"scalar"},"locs":[{"a":54,"b":65}]},{"name":"title","required":false,"transform":{"type":"scalar"},"locs":[{"a":103,"b":108}]},{"name":"numberOfSessions","required":false,"transform":{"type":"scalar"},"locs":[{"a":153,"b":169}]},{"name":"minDurationInMinutes","required":false,"transform":{"type":"scalar"},"locs":[{"a":232,"b":252}]},{"name":"isRequired","required":false,"transform":{"type":"scalar"},"locs":[{"a":308,"b":318}]},{"name":"dueDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":359,"b":366}]},{"name":"startDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":406,"b":415}]},{"name":"subjectId","required":false,"transform":{"type":"scalar"},"locs":[{"a":457,"b":466}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":520,"b":523}]}],"statement":"UPDATE\n    assignments\nSET\n    description = COALESCE(:description, description),\n    title = COALESCE(:title, title),\n    number_of_sessions = COALESCE(:numberOfSessions, number_of_sessions),\n    min_duration_in_minutes = COALESCE(:minDurationInMinutes, min_duration_in_minutes),\n    is_required = COALESCE(:isRequired, is_required),\n    due_date = COALESCE(:dueDate, due_date),\n    start_date = COALESCE(:startDate, start_date),\n    subject_id = COALESCE(:subjectId, subject_id),\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
@@ -644,14 +644,14 @@ const editAssignmentByIdIR: any = {"usedParamSet":{"description":true,"title":tr
  * UPDATE
  *     assignments
  * SET
- *     description = :description,
- *     title = :title,
- *     number_of_sessions = :numberOfSessions,
- *     min_duration_in_minutes = :minDurationInMinutes,
- *     is_required = :isRequired!,
- *     due_date = :dueDate,
- *     start_date = :startDate,
- *     subject_id = :subjectId,
+ *     description = COALESCE(:description, description),
+ *     title = COALESCE(:title, title),
+ *     number_of_sessions = COALESCE(:numberOfSessions, number_of_sessions),
+ *     min_duration_in_minutes = COALESCE(:minDurationInMinutes, min_duration_in_minutes),
+ *     is_required = COALESCE(:isRequired, is_required),
+ *     due_date = COALESCE(:dueDate, due_date),
+ *     start_date = COALESCE(:startDate, start_date),
+ *     subject_id = COALESCE(:subjectId, subject_id),
  *     updated_at = NOW()
  * WHERE
  *     id = :id!
@@ -675,7 +675,7 @@ export const editAssignmentById = new PreparedQuery<IEditAssignmentByIdParams,IE
 
 /** 'DeleteSessionForStudentAssignmentByStudentId' parameters type */
 export interface IDeleteSessionForStudentAssignmentByStudentIdParams {
-  assignmentId?: string | null | void;
+  assignmentId: string;
   studentId: string;
 }
 
@@ -688,13 +688,13 @@ export interface IDeleteSessionForStudentAssignmentByStudentIdQuery {
   result: IDeleteSessionForStudentAssignmentByStudentIdResult;
 }
 
-const deleteSessionForStudentAssignmentByStudentIdIR: any = {"usedParamSet":{"assignmentId":true,"studentId":true},"params":[{"name":"assignmentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":64,"b":76}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":96,"b":106}]}],"statement":"DELETE FROM sessions_students_assignments\nWHERE assignment_id = :assignmentId\n    AND user_id = :studentId!"};
+const deleteSessionForStudentAssignmentByStudentIdIR: any = {"usedParamSet":{"assignmentId":true,"studentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":77}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":107}]}],"statement":"DELETE FROM sessions_students_assignments\nWHERE assignment_id = :assignmentId!\n    AND user_id = :studentId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM sessions_students_assignments
- * WHERE assignment_id = :assignmentId
+ * WHERE assignment_id = :assignmentId!
  *     AND user_id = :studentId!
  * ```
  */
@@ -703,7 +703,7 @@ export const deleteSessionForStudentAssignmentByStudentId = new PreparedQuery<ID
 
 /** 'DeleteStudentAssignmentByStudentId' parameters type */
 export interface IDeleteStudentAssignmentByStudentIdParams {
-  assignmentId?: string | null | void;
+  assignmentId: string;
   studentId: string;
 }
 
@@ -716,13 +716,13 @@ export interface IDeleteStudentAssignmentByStudentIdQuery {
   result: IDeleteStudentAssignmentByStudentIdResult;
 }
 
-const deleteStudentAssignmentByStudentIdIR: any = {"usedParamSet":{"assignmentId":true,"studentId":true},"params":[{"name":"assignmentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":55,"b":67}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":97}]}],"statement":"DELETE FROM students_assignments\nWHERE assignment_id = :assignmentId\n    AND user_id = :studentId!"};
+const deleteStudentAssignmentByStudentIdIR: any = {"usedParamSet":{"assignmentId":true,"studentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":55,"b":68}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":98}]}],"statement":"DELETE FROM students_assignments\nWHERE assignment_id = :assignmentId!\n    AND user_id = :studentId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM students_assignments
- * WHERE assignment_id = :assignmentId
+ * WHERE assignment_id = :assignmentId!
  *     AND user_id = :studentId!
  * ```
  */

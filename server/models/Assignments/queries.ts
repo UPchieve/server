@@ -385,7 +385,7 @@ export async function deleteStudentAssignmentByStudentId(
   }
 }
 
-export async function deleteSessionForStudentAssignmentByStudentId(
+export async function deleteSessionStudentAssignmentByStudentId(
   studentId: Uuid,
   assignmentId: Uuid,
   tc: TransactionClient = getClient()

@@ -73,18 +73,7 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 
 export async function createAssignment(data: CreateAssignmentPayload) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const numSessions = data.numberOfSessions
-    if (numSessions && numSessions <= 0)
-      throw new InputError('Number of sessions must be greater than 0.')
-
-    const startDate = data.startDate
-    const dueDate = data.dueDate
-    if (
-      startDate &&
-      dueDate &&
-      moment(startDate).isSameOrAfter(moment(dueDate))
-    )
-      throw new InputError('Start date cannot be after the due date.')
+    validateAssignmentData(data)
 
     const assignment = await AssignmentsRepo.createAssignment(
       {
@@ -113,18 +102,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
 
 export async function editAssignment(data: EditAssignmentPayload) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const numSessions = data.numberOfSessions
-    if (numSessions && numSessions <= 0)
-      throw new InputError('Number of sessions must be greater than 0.')
-
-    const startDate = data.startDate
-    const dueDate = data.dueDate
-    if (
-      startDate &&
-      dueDate &&
-      moment(startDate).isSameOrAfter(moment(dueDate))
-    )
-      throw new InputError('Start date cannot be after the due date.')
+    validateAssignmentData(data)
 
     const assignment = await AssignmentsRepo.editAssignment(
       {
@@ -142,7 +120,7 @@ export async function editAssignment(data: EditAssignmentPayload) {
     )
 
     if (data.studentsToRemove && data.studentsToRemove.length) {
-      await deleteStudentAssignmentsByStudentId(data.studentsToRemove, data.id)
+      await deleteStudentAssignmentsForStudents(data.studentsToRemove, data.id)
     }
 
     if (data.studentsToAdd && data.studentsToAdd.length) {
@@ -311,27 +289,41 @@ export async function deleteAssignment(assignmentId: Uuid) {
   })
 }
 
-async function deleteStudentAssignmentsByStudentId(
+async function deleteStudentAssignmentsForStudents(
   studentsToRemove: Uuid[],
   assignmentId: Uuid
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
-    await Promise.all(
-      studentsToRemove.map(studentId => {
-        AssignmentsRepo.deleteSessionForStudentAssignmentByStudentId(
-          studentId,
-          assignmentId,
-          tc
-        )
+    studentsToRemove.forEach(async studentId => {
+      await AssignmentsRepo.deleteSessionStudentAssignmentByStudentId(
+        studentId,
+        assignmentId,
+        tc
+      )
 
-        AssignmentsRepo.deleteStudentAssignmentByStudentId(
-          studentId,
-          assignmentId,
-          tc
-        )
-      })
-    )
+      await AssignmentsRepo.deleteStudentAssignmentByStudentId(
+        studentId,
+        assignmentId,
+        tc
+      )
+    })
   })
+}
+
+function validateAssignmentData(
+  data: Pick<
+    CreateAssignmentPayload,
+    'numberOfSessions' | 'startDate' | 'dueDate'
+  >
+) {
+  const numSessions = data.numberOfSessions
+  if (numSessions && numSessions <= 0)
+    throw new InputError('Number of sessions must be greater than 0.')
+
+  const startDate = data.startDate
+  const dueDate = data.dueDate
+  if (startDate && dueDate && moment(startDate).isSameOrAfter(moment(dueDate)))
+    throw new InputError('Start date cannot be after the due date.')
 }
 
 // Exported for testing.

@@ -169,14 +169,14 @@ WHERE assignment_id = :assignmentId!;
 UPDATE
     assignments
 SET
-    description = :description,
-    title = :title,
-    number_of_sessions = :numberOfSessions,
-    min_duration_in_minutes = :minDurationInMinutes,
-    is_required = :isRequired!,
-    due_date = :dueDate,
-    start_date = :startDate,
-    subject_id = :subjectId,
+    description = COALESCE(:description, description),
+    title = COALESCE(:title, title),
+    number_of_sessions = COALESCE(:numberOfSessions, number_of_sessions),
+    min_duration_in_minutes = COALESCE(:minDurationInMinutes, min_duration_in_minutes),
+    is_required = COALESCE(:isRequired, is_required),
+    due_date = COALESCE(:dueDate, due_date),
+    start_date = COALESCE(:startDate, start_date),
+    subject_id = COALESCE(:subjectId, subject_id),
     updated_at = NOW()
 WHERE
     id = :id!
@@ -197,12 +197,12 @@ RETURNING
 
 /* @name deleteSessionForStudentAssignmentByStudentId */
 DELETE FROM sessions_students_assignments
-WHERE assignment_id = :assignmentId
+WHERE assignment_id = :assignmentId!
     AND user_id = :studentId!;
 
 
 /* @name deleteStudentAssignmentByStudentId */
 DELETE FROM students_assignments
-WHERE assignment_id = :assignmentId
+WHERE assignment_id = :assignmentId!
     AND user_id = :studentId!;
 

@@ -56,11 +56,11 @@ import { FederatedCredential } from '../models/FederatedCredential'
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
 
-  if (countryCode && countryCode !== 'US') {
-    throw new NotAllowedError(
-      'Cannot register from an international IP address'
-    )
-  }
+  // if (countryCode && countryCode !== 'US') {
+  //   throw new NotAllowedError(
+  //     'Cannot register from an international IP address'
+  //   )
+  // }
 }
 
 // Handlers
