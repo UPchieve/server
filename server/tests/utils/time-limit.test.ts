@@ -1,5 +1,9 @@
+import { mocked } from 'jest-mock'
 import logger from '../../logger'
 import { timeLimit } from '../../utils/time-limit'
+
+jest.mock('../../logger')
+const mockedLogger = mocked(logger)
 
 describe('timeLimit', () => {
   it('beats the time limit', async () => {
@@ -15,7 +19,7 @@ describe('timeLimit', () => {
     ).toStrictEqual('it won')
     // wait to make sure we successfully cleared the timeout
     await new Promise(r => setTimeout(r, waitInMs + 10))
-    expect(logger.error).toHaveBeenCalledTimes(0)
+    expect(mockedLogger.error).toHaveBeenCalledTimes(0)
   })
 
   it('beats the time limit but returns an error', async () => {
@@ -32,8 +36,8 @@ describe('timeLimit', () => {
     ).toStrictEqual('it lost')
     // wait to make sure we successfully cleared the timeout
     await new Promise(r => setTimeout(r, waitInMs + 10))
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(logger.error).toHaveBeenCalledWith(
+    expect(mockedLogger.error).toHaveBeenCalledTimes(1)
+    expect(mockedLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(partialErrorMessage),
       })
@@ -49,7 +53,7 @@ describe('timeLimit', () => {
       waitInMs: 1,
     })
     expect(result).toBe('it lost')
-    expect(logger.error).toHaveBeenCalledWith(
+    expect(mockedLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(partialMessage),
       })
