@@ -7,11 +7,16 @@ RETURNING
 
 /* @name getAssignmentsByClassId */
 SELECT
-    *
+    assignments.*,
+    ARRAY_AGG(sa.user_id) AS student_ids
 FROM
     assignments
+    LEFT JOIN students_assignments sa ON assignments.id = sa.assignment_id
 WHERE
-    class_id = :classId!;
+    assignments.class_id = :classId!
+GROUP BY
+    assignments.id,
+    assignments.class_id;
 
 
 /* @name getAssignmentById */
@@ -158,4 +163,46 @@ WHERE id = :assignmentId!;
 /* @name deleteSessionForStudentAssignment */
 DELETE FROM sessions_students_assignments
 WHERE assignment_id = :assignmentId!;
+
+
+/* @name editAssignmentById */
+UPDATE
+    assignments
+SET
+    description = :description,
+    title = :title,
+    number_of_sessions = :numberOfSessions,
+    min_duration_in_minutes = :minDurationInMinutes,
+    is_required = :isRequired!,
+    due_date = :dueDate,
+    start_date = :startDate,
+    subject_id = :subjectId,
+    updated_at = NOW()
+WHERE
+    id = :id!
+RETURNING
+    id,
+    class_id,
+    description,
+    title,
+    number_of_sessions,
+    min_duration_in_minutes,
+    is_required,
+    due_date,
+    start_date,
+    subject_id,
+    created_at,
+    updated_at;
+
+
+/* @name deleteSessionForStudentAssignmentByStudentId */
+DELETE FROM sessions_students_assignments
+WHERE assignment_id = :assignmentId
+    AND user_id = :studentId!;
+
+
+/* @name deleteStudentAssignmentByStudentId */
+DELETE FROM students_assignments
+WHERE assignment_id = :assignmentId
+    AND user_id = :studentId!;
 

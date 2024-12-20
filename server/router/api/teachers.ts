@@ -151,5 +151,18 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
+  router.route('/assignment/edit').post(async function(req, res) {
+    try {
+      const assignmentData = AssignmentsService.asEditedAssignment(
+        req.body.assignmentData
+      )
+
+      const assignment = await AssignmentsService.editAssignment(assignmentData)
+      res.json({ assignment })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   app.use('/api/teachers', router)
 }
