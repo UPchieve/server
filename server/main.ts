@@ -1,4 +1,3 @@
-import 'newrelic'
 import rawConfig from './config'
 import { Config } from './config-type'
 import { io, server } from './app'
