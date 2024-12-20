@@ -20,17 +20,14 @@ const logger = {
   debug(...args: any) {
     // @ts-ignore
     pinoLogger.debug(...args)
-    Sentry.captureMessage(args)
   },
   info(...args: any) {
     // @ts-ignore
     pinoLogger.info(...args)
-    Sentry.captureMessage(args)
   },
   warn(...args: any) {
     // @ts-ignore
     pinoLogger.warn(...args)
-    Sentry.captureMessage(args)
   },
   error(...args: any) {
     // @ts-ignore
