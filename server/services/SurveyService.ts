@@ -230,7 +230,7 @@ export async function getImpactStudySurveyResponses(
   const surveyWithSubmissions = survey.survey.map(question => {
     let userResponse
     for (const submission of submissions) {
-      if (submission.questionId === Number(question.questionId))
+      if (submission.questionId === question.questionId)
         userResponse = {
           responseId: submission.responseId,
           response: submission.response,
