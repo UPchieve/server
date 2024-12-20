@@ -1,15 +1,18 @@
+import { mocked } from 'jest-mock'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as AssociatedPartnerRepo from '../../models/AssociatedPartner'
 import * as VolunteerService from '../../services/VolunteerService'
 import { generatePartnerAnalyticsReport } from '../../services/ReportService'
 import { times } from 'lodash'
-import Logger from '../../logger'
+import logger from '../../logger'
 import { buildTestVolunteerForAnalyticsReport } from '../mocks/generate'
 import { RepoReadError } from '../../models/Errors'
 
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../models/AssociatedPartner')
 jest.mock('../../services/VolunteerService')
+jest.mock('../../logger')
+const mockedLogger = mocked(logger)
 
 describe('ReportService', () => {
   let mockGetVolunteersForAnalyticsReport: jest.Mock
@@ -81,7 +84,7 @@ describe('ReportService', () => {
 
       // Verify the expected batch starts/finishes are logged
       times(3, n =>
-        expect(Logger.info).toHaveBeenCalledWith(
+        expect(mockedLogger.info).toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining(
             `Attempting to fetch volunteer batch #${n + 1}`
@@ -89,12 +92,12 @@ describe('ReportService', () => {
         )
       )
       times(3, n =>
-        expect(Logger.info).toHaveBeenCalledWith(
+        expect(mockedLogger.info).toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining(`Completed batch #${n + 1}`)
         )
       )
-      expect(Logger.info).not.toHaveBeenCalledWith(
+      expect(mockedLogger.info).not.toHaveBeenCalledWith(
         expect.anything(),
         expect.stringContaining('batch #4')
       )
@@ -119,15 +122,15 @@ describe('ReportService', () => {
           2 * totalVolunteers
         ) // Called 2x per volunteer
         // Verify the expected batch starts/finishes are logged
-        expect(Logger.info).toHaveBeenCalledWith(
+        expect(mockedLogger.info).toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining('Attempting to fetch volunteer batch #1')
         )
-        expect(Logger.info).toHaveBeenCalledWith(
+        expect(mockedLogger.info).toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining('Completed batch #1')
         )
-        expect(Logger.info).not.toHaveBeenCalledWith(
+        expect(mockedLogger.info).not.toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining('batch #2')
         )
