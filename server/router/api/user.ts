@@ -1,3 +1,4 @@
+import logger from '../../logger'
 import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
@@ -22,6 +23,7 @@ export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user)
+    logger.error('test')
 
     return res.json({ user: parsedUser })
   })
