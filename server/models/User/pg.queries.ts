@@ -825,11 +825,11 @@ export const updateUserBanById = new PreparedQuery<IUpdateUserBanByIdParams,IUpd
 export interface IGetUsersForAdminSearchParams {
   email?: string | null | void;
   firstName?: string | null | void;
-  highSchool?: string | null | void;
   lastName?: string | null | void;
   limit: number;
   offset: number;
   partnerOrg?: string | null | void;
+  school?: string | null | void;
   userId?: string | null | void;
 }
 
@@ -839,7 +839,6 @@ export interface IGetUsersForAdminSearchResult {
   email: string;
   firstName: string;
   id: string;
-  isVolunteer: boolean | null;
   lastName: string | null;
   roles: stringArray | null;
 }
@@ -850,7 +849,7 @@ export interface IGetUsersForAdminSearchQuery {
   result: IGetUsersForAdminSearchResult;
 }
 
-const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":true,"firstName":true,"lastName":true,"partnerOrg":true,"highSchool":true,"limit":true,"offset":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1075,"b":1081},{"a":1116,"b":1122}]},{"name":"email","required":false,"transform":{"type":"scalar"},"locs":[{"a":1131,"b":1136},{"a":1186,"b":1191}]},{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1208,"b":1217},{"a":1272,"b":1281}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1298,"b":1306},{"a":1360,"b":1368}]},{"name":"partnerOrg","required":false,"transform":{"type":"scalar"},"locs":[{"a":1385,"b":1395},{"a":1448,"b":1458},{"a":1494,"b":1504}]},{"name":"highSchool","required":false,"transform":{"type":"scalar"},"locs":[{"a":1513,"b":1523},{"a":1574,"b":1584},{"a":1645,"b":1655}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1727,"b":1733}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1749,"b":1756}]}],"statement":"SELECT\n    users.id,\n    users.email,\n    users.first_name,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            users.last_name\n        ELSE\n            NULL\n        END) AS last_name,\n    users.created_at,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    array_agg(user_roles.name) AS roles\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN schools ON schools.id = student_profiles.school_id\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE ((:userId)::uuid IS NULL\n    OR users.id = :userId)\nAND ((:email)::text IS NULL\n    OR users.email ILIKE ('%' || :email || '%'))\nAND ((:firstName)::text IS NULL\n    OR users.first_name ILIKE ('%' || :firstName || '%'))\nAND ((:lastName)::text IS NULL\n    OR users.last_name ILIKE ('%' || :lastName || '%'))\nAND ((:partnerOrg)::text IS NULL\n    OR volunteer_partner_orgs.key = :partnerOrg\n    OR student_partner_orgs.key = :partnerOrg)\nAND ((:highSchool)::text IS NULL\n    OR schools.name ILIKE ('%' || :highSchool || '%')\n    OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))\nGROUP BY\n    users.id,\n    volunteer_profiles.user_id\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":true,"firstName":true,"lastName":true,"partnerOrg":true,"school":true,"limit":true,"offset":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1035,"b":1041},{"a":1076,"b":1082}]},{"name":"email","required":false,"transform":{"type":"scalar"},"locs":[{"a":1091,"b":1096},{"a":1146,"b":1151}]},{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1168,"b":1177},{"a":1232,"b":1241}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1258,"b":1266},{"a":1320,"b":1328}]},{"name":"partnerOrg","required":false,"transform":{"type":"scalar"},"locs":[{"a":1345,"b":1355},{"a":1408,"b":1418},{"a":1454,"b":1464}]},{"name":"school","required":false,"transform":{"type":"scalar"},"locs":[{"a":1473,"b":1479},{"a":1530,"b":1536},{"a":1597,"b":1603}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1673,"b":1679}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1695,"b":1702}]}],"statement":"SELECT\n    users.id,\n    users.email,\n    users.first_name,\n    (\n        CASE WHEN student_profiles.user_id IS NOT NULL THEN\n            NULL\n        ELSE\n            users.last_name\n        END) AS last_name,\n    users.created_at,\n    array_agg(user_roles.name) AS roles\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE ((:userId)::uuid IS NULL\n    OR users.id = :userId)\nAND ((:email)::text IS NULL\n    OR users.email ILIKE ('%' || :email || '%'))\nAND ((:firstName)::text IS NULL\n    OR users.first_name ILIKE ('%' || :firstName || '%'))\nAND ((:lastName)::text IS NULL\n    OR users.last_name ILIKE ('%' || :lastName || '%'))\nAND ((:partnerOrg)::text IS NULL\n    OR volunteer_partner_orgs.key = :partnerOrg\n    OR student_partner_orgs.key = :partnerOrg)\nAND ((:school)::text IS NULL\n    OR schools.name ILIKE ('%' || :school || '%')\n    OR school_nces_metadata.sch_name ILIKE ('%' || :school || '%'))\nGROUP BY\n    users.id,\n    student_profiles.user_id\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
@@ -860,26 +859,21 @@ const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":tru
  *     users.email,
  *     users.first_name,
  *     (
- *         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
- *             users.last_name
- *         ELSE
+ *         CASE WHEN student_profiles.user_id IS NOT NULL THEN
  *             NULL
+ *         ELSE
+ *             users.last_name
  *         END) AS last_name,
  *     users.created_at,
- *     (
- *         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
- *             TRUE
- *         ELSE
- *             FALSE
- *         END) AS is_volunteer,
  *     array_agg(user_roles.name) AS roles
  * FROM
  *     users
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+ *     LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id
  *     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- *     LEFT JOIN schools ON schools.id = student_profiles.school_id
+ *     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
  *     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
  *     LEFT JOIN users_roles ON users_roles.user_id = users.id
  *     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
@@ -894,12 +888,12 @@ const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":tru
  * AND ((:partnerOrg)::text IS NULL
  *     OR volunteer_partner_orgs.key = :partnerOrg
  *     OR student_partner_orgs.key = :partnerOrg)
- * AND ((:highSchool)::text IS NULL
- *     OR schools.name ILIKE ('%' || :highSchool || '%')
- *     OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))
+ * AND ((:school)::text IS NULL
+ *     OR schools.name ILIKE ('%' || :school || '%')
+ *     OR school_nces_metadata.sch_name ILIKE ('%' || :school || '%'))
  * GROUP BY
  *     users.id,
- *     volunteer_profiles.user_id
+ *     student_profiles.user_id
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
  * ```
  */
@@ -913,7 +907,6 @@ export interface IGetUserForAdminDetailParams {
 
 /** 'GetUserForAdminDetail' return type */
 export interface IGetUserForAdminDetailResult {
-  approvedHighSchool: Json | null;
   banType: ban_types | null;
   city: string | null;
   college: string | null;
@@ -925,13 +918,11 @@ export interface IGetUserForAdminDetailResult {
   experience: Json | null;
   firstName: string;
   id: string;
-  inGatesStudy: boolean;
   isAdmin: boolean | null;
   isApproved: boolean;
   isDeactivated: boolean;
   isOnboarded: boolean;
   isTestUser: boolean;
-  isVolunteer: boolean | null;
   languages: stringArray | null;
   lastName: string | null;
   linkedinUrl: string | null;
@@ -940,6 +931,7 @@ export interface IGetUserForAdminDetailResult {
   partnerSite: string;
   photoIdS3Key: string | null;
   photoIdStatus: string;
+  schoolName: string | null;
   state: string | null;
   studentPartnerOrg: string;
   verified: boolean;
@@ -953,7 +945,7 @@ export interface IGetUserForAdminDetailQuery {
   result: IGetUserForAdminDetailResult;
 }
 
-const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":2672,"b":2679},{"a":2709,"b":2716},{"a":3053,"b":3060},{"a":3144,"b":3151}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            users.last_name\n        ELSE\n            NULL\n        END) AS last_name,\n    users.email,\n    users.created_at,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    volunteer_profiles.approved AS is_approved,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    volunteer_profiles.onboarded AS is_onboarded,\n    users.deactivated AS is_deactivated,\n    users.test_user AS is_test_user,\n    student_profiles.postal_code AS zip_code,\n    student_partner_orgs.name AS student_partner_org,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    volunteer_profiles.photo_id_s3_key,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_profiles.country,\n    volunteer_profiles.linkedin_url,\n    volunteer_profiles.college,\n    volunteer_profiles.company,\n    volunteer_profiles.languages,\n    volunteer_profiles.experience,\n    volunteer_profiles.city,\n    volunteer_profiles.state,\n    users.verified,\n    users.ban_type AS ban_type,\n    user_product_flags.gates_qualified AS in_gates_study,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,\n    student_partner_org_sites.name AS partner_site,\n    session_count.total AS num_past_sessions,\n    occupations.occupation,\n    json_build_object('nameStored', schools.name, 'SCH_NAME', school_nces_metadata.sch_name) AS approved_high_school\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\n    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            volunteer_id = :userId!\n            OR student_id = :userId!) AS session_count ON TRUE\n    LEFT JOIN schools ON schools.id = student_profiles.school_id\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupation\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!\n        GROUP BY\n            user_id) AS occupations ON TRUE\nWHERE\n    users.id = :userId!"};
+const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":2588,"b":2595},{"a":2625,"b":2632},{"a":3007,"b":3014},{"a":3098,"b":3105}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    (\n        CASE WHEN student_profiles.user_id IS NOT NULL THEN\n            NULL\n        ELSE\n            users.last_name\n        END) AS last_name,\n    users.email,\n    users.created_at,\n    users.deactivated AS is_deactivated,\n    users.test_user AS is_test_user,\n    users.verified,\n    users.ban_type AS ban_type,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    session_count.total AS num_past_sessions,\n    -- Volunteer specific fields:\n    volunteer_profiles.approved AS is_approved,\n    volunteer_profiles.onboarded AS is_onboarded,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    volunteer_profiles.photo_id_s3_key,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_profiles.country,\n    volunteer_profiles.linkedin_url,\n    volunteer_profiles.college,\n    volunteer_profiles.company,\n    volunteer_profiles.languages,\n    volunteer_profiles.experience,\n    volunteer_profiles.city,\n    volunteer_profiles.state,\n    occupations.occupation,\n    -- Student specific fields:\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,\n    student_profiles.postal_code AS zip_code,\n    student_partner_orgs.name AS student_partner_org,\n    student_partner_org_sites.name AS partner_site,\n    -- Student/teacher field:\n    COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\n    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            volunteer_id = :userId!\n            OR student_id = :userId!) AS session_count ON TRUE\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupation\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!\n        GROUP BY\n            user_id) AS occupations ON TRUE\nWHERE\n    users.id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -962,31 +954,27 @@ const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{
  *     users.id,
  *     users.first_name AS first_name,
  *     (
- *         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
- *             users.last_name
- *         ELSE
+ *         CASE WHEN student_profiles.user_id IS NOT NULL THEN
  *             NULL
+ *         ELSE
+ *             users.last_name
  *         END) AS last_name,
  *     users.email,
  *     users.created_at,
- *     (
- *         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
- *             TRUE
- *         ELSE
- *             FALSE
- *         END) AS is_volunteer,
- *     volunteer_profiles.approved AS is_approved,
+ *     users.deactivated AS is_deactivated,
+ *     users.test_user AS is_test_user,
+ *     users.verified,
+ *     users.ban_type AS ban_type,
  *     (
  *         CASE WHEN admin_profiles.user_id IS NOT NULL THEN
  *             TRUE
  *         ELSE
  *             FALSE
  *         END) AS is_admin,
+ *     session_count.total AS num_past_sessions,
+ *     -- Volunteer specific fields:
+ *     volunteer_profiles.approved AS is_approved,
  *     volunteer_profiles.onboarded AS is_onboarded,
- *     users.deactivated AS is_deactivated,
- *     users.test_user AS is_test_user,
- *     student_profiles.postal_code AS zip_code,
- *     student_partner_orgs.name AS student_partner_org,
  *     volunteer_partner_orgs.name AS volunteer_partner_org,
  *     volunteer_profiles.photo_id_s3_key,
  *     photo_id_statuses.name AS photo_id_status,
@@ -998,18 +986,19 @@ const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{
  *     volunteer_profiles.experience,
  *     volunteer_profiles.city,
  *     volunteer_profiles.state,
- *     users.verified,
- *     users.ban_type AS ban_type,
- *     user_product_flags.gates_qualified AS in_gates_study,
- *     COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
- *     student_partner_org_sites.name AS partner_site,
- *     session_count.total AS num_past_sessions,
  *     occupations.occupation,
- *     json_build_object('nameStored', schools.name, 'SCH_NAME', school_nces_metadata.sch_name) AS approved_high_school
+ *     -- Student specific fields:
+ *     COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
+ *     student_profiles.postal_code AS zip_code,
+ *     student_partner_orgs.name AS student_partner_org,
+ *     student_partner_org_sites.name AS partner_site,
+ *     -- Student/teacher field:
+ *     COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name
  * FROM
  *     users
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+ *     LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id
  *     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
  *     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
@@ -1026,7 +1015,7 @@ const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{
  *         WHERE
  *             volunteer_id = :userId!
  *             OR student_id = :userId!) AS session_count ON TRUE
- *     LEFT JOIN schools ON schools.id = student_profiles.school_id
+ *     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
  *     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
  *     LEFT JOIN (
  *         SELECT

@@ -92,7 +92,6 @@ export type UserForAdmin = {
   firstName: string
   lastName?: string
   email: string
-  isVolunteer: boolean
   userType: UserRole
   createdAt: Date
 }

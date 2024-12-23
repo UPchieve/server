@@ -396,7 +396,7 @@ interface UserQuery {
   lastName?: string
   email?: string
   partnerOrg?: string
-  highSchool?: string
+  school?: string
   page?: number
 }
 
@@ -406,7 +406,7 @@ const asUserQuery = asFactory<UserQuery>({
   lastName: asOptional(asString),
   email: asOptional(asString),
   partnerOrg: asOptional(asString),
-  highSchool: asOptional(asString),
+  school: asOptional(asString),
   page: asOptional(asNumber),
 })
 
@@ -418,7 +418,7 @@ export async function getUsers(data: unknown) {
     lastName,
     email,
     partnerOrg,
-    highSchool,
+    school,
     page,
   } = asUserQuery(data)
   const pageNum = page || 1
@@ -433,7 +433,7 @@ export async function getUsers(data: unknown) {
         lastName,
         email,
         partnerOrg,
-        highSchool,
+        school,
       },
       PER_PAGE,
       skip

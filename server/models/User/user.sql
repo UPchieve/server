@@ -288,26 +288,21 @@ SELECT
     users.email,
     users.first_name,
     (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            users.last_name
-        ELSE
+        CASE WHEN student_profiles.user_id IS NOT NULL THEN
             NULL
+        ELSE
+            users.last_name
         END) AS last_name,
     users.created_at,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
     array_agg(user_roles.name) AS roles
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN schools ON schools.id = student_profiles.school_id
+    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
@@ -322,12 +317,12 @@ AND ((:lastName)::text IS NULL
 AND ((:partnerOrg)::text IS NULL
     OR volunteer_partner_orgs.key = :partnerOrg
     OR student_partner_orgs.key = :partnerOrg)
-AND ((:highSchool)::text IS NULL
-    OR schools.name ILIKE ('%' || :highSchool || '%')
-    OR school_nces_metadata.sch_name ILIKE ('%' || :highSchool || '%'))
+AND ((:school)::text IS NULL
+    OR schools.name ILIKE ('%' || :school || '%')
+    OR school_nces_metadata.sch_name ILIKE ('%' || :school || '%'))
 GROUP BY
     users.id,
-    volunteer_profiles.user_id
+    student_profiles.user_id
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
@@ -336,31 +331,27 @@ SELECT
     users.id,
     users.first_name AS first_name,
     (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            users.last_name
-        ELSE
+        CASE WHEN student_profiles.user_id IS NOT NULL THEN
             NULL
+        ELSE
+            users.last_name
         END) AS last_name,
     users.email,
     users.created_at,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    volunteer_profiles.approved AS is_approved,
+    users.deactivated AS is_deactivated,
+    users.test_user AS is_test_user,
+    users.verified,
+    users.ban_type AS ban_type,
     (
         CASE WHEN admin_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
             FALSE
         END) AS is_admin,
+    session_count.total AS num_past_sessions,
+    -- Volunteer specific fields:
+    volunteer_profiles.approved AS is_approved,
     volunteer_profiles.onboarded AS is_onboarded,
-    users.deactivated AS is_deactivated,
-    users.test_user AS is_test_user,
-    student_profiles.postal_code AS zip_code,
-    student_partner_orgs.name AS student_partner_org,
     volunteer_partner_orgs.name AS volunteer_partner_org,
     volunteer_profiles.photo_id_s3_key,
     photo_id_statuses.name AS photo_id_status,
@@ -372,18 +363,19 @@ SELECT
     volunteer_profiles.experience,
     volunteer_profiles.city,
     volunteer_profiles.state,
-    users.verified,
-    users.ban_type AS ban_type,
-    user_product_flags.gates_qualified AS in_gates_study,
-    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
-    student_partner_org_sites.name AS partner_site,
-    session_count.total AS num_past_sessions,
     occupations.occupation,
-    json_build_object('nameStored', schools.name, 'SCH_NAME', school_nces_metadata.sch_name) AS approved_high_school
+    -- Student specific fields:
+    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
+    student_profiles.postal_code AS zip_code,
+    student_partner_orgs.name AS student_partner_org,
+    student_partner_org_sites.name AS partner_site,
+    -- Student/teacher field:
+    COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name
 FROM
     users
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
+    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
@@ -400,7 +392,7 @@ FROM
         WHERE
             volunteer_id = :userId!
             OR student_id = :userId!) AS session_count ON TRUE
-    LEFT JOIN schools ON schools.id = student_profiles.school_id
+    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
     LEFT JOIN (
         SELECT
