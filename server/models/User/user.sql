@@ -370,6 +370,7 @@ SELECT
     student_partner_orgs.name AS student_partner_org,
     student_partner_org_sites.name AS partner_site,
     -- Student/teacher field:
+    schools.id AS school_id,
     COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name
 FROM
     users
@@ -864,4 +865,24 @@ WHERE
     id = :userId!
 RETURNING
     id AS ok;
+
+
+/* @name adminUpdateUser */
+UPDATE
+    users
+SET
+    first_name = COALESCE(:firstName, first_name),
+    last_name = COALESCE(:lastName, last_name),
+    email = :email!,
+    verified = :isVerified!,
+    ban_type = :banType,
+    ban_reason_id = (
+        SELECT
+            id
+        FROM
+            ban_reasons
+        WHERE
+            name = :ban_reason), deactivated = :isDeactivated!
+WHERE
+    users.id = :userId!;
 

@@ -749,3 +749,30 @@ export async function updateUserProxyEmail(
     throw new RepoUpdateError(err)
   }
 }
+
+export type TAdminUpdateUserPayload = {
+  firstName?: string
+  lastName?: string
+  email: string
+  isVerified: boolean
+  ban_type?: USER_BAN_TYPES
+  ban_reason?: USER_BAN_REASONS
+  isDeactivated: boolean
+}
+export async function adminUpdateUser(
+  userId: Ulid,
+  updateData: TAdminUpdateUserPayload,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.adminUpdateUser.run(
+      {
+        userId,
+        ...updateData,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}

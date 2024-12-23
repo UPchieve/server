@@ -20,6 +20,7 @@ export type StudentUserProfile = {
   email: string
   firstName: string
   gradeLevel?: string
+  schoolId?: string
   lastName: string
   createdAt: Date
   updatedAt: Date
