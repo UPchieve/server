@@ -1,82 +1,15 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import config from '../config'
-import { ISOString } from '../constants'
+import {
+  getDistrictAccessToken,
+  getSchool,
+  getSchoolsInDistrict,
+  getStudentsInSchool,
+  getUserProfile,
+  parseCleverGrade,
+  TCleverStudents,
+  UPchieveSchoolId,
+} from './CleverAPIService'
 import * as SchoolService from './SchoolService'
 import * as UserCreationService from './UserCreationService'
-
-const OAUTH_BASE_URI = 'https://clever.com/oauth/tokens'
-const API_BASE_URI = 'https://api.clever.com/v3.0'
-
-type TCleverLinks = {
-  rel: string
-  uri: string
-}[]
-
-type TCleverDistrict = {
-  data: {
-    id: string
-    created: ISOString
-    owner: Object
-    access_token: string
-    scopes: string[]
-  }[]
-  links: TCleverLinks
-}
-
-type TCleverSchool = {
-  data: {
-    data: {
-      district: string
-      sis_id: string
-      nces_id?: string
-      last_modified: ISOString
-      name: string
-      school_number: string
-      created: ISOString
-      id: string
-    }
-    uri: string
-  }[]
-  links: TCleverLinks
-}
-
-type TCleverStudent = {
-  data: TCleverStudentData[]
-  links: TCleverLinks
-}
-
-type TCleverStudentData = {
-  data: {
-    created: ISOString
-    district: string
-    email: string
-    last_modified: ISOString
-    name: { first: string; last: string; middle: string }
-    id: string
-    roles: {
-      student: {
-        credentials: { district_username: string }
-        dob: string // Like M/DD/YYYY
-        enrollments: []
-        gender: string
-        grade: string // Like 6, 7, 8, etc.
-        graduation_year: string
-        hispanic_ethnicity: string
-        location: { address: string; city: string; state: string; zip: string }
-        race: string
-        school: string
-        schools: string[]
-        sis_id: string
-        state_id: string
-        student_number: string
-        email: string
-      }
-    }
-  }
-  uri: string
-}
-
-type UPchieveSchoolId = string
 
 /**
  * Clever Secure Sync Integration (i.e. rostering with Clever).
@@ -98,11 +31,7 @@ export async function rosterDistrict(
   cleverToUPchieveIds?: { [cleverSchoolId: string]: UPchieveSchoolId }
 ) {
   const accessToken = await getDistrictAccessToken(districtId)
-  const options = {
-    headers: createBearerAuthHeader(accessToken),
-  }
-
-  const schools = await getSchoolsInDistrict(options)
+  const schools = await getSchoolsInDistrict(accessToken)
 
   const upsertReport: {
     updatedSchools: {
@@ -148,7 +77,10 @@ export async function rosterDistrict(
         continue
       }
 
-      let cleverStudents = await getStudentsInSchool(school.data.id, options)
+      let cleverStudents = await getStudentsInSchool(
+        school.data.id,
+        accessToken
+      )
       while (cleverStudents.length) {
         const filteredOut: {
           id: string
@@ -157,7 +89,7 @@ export async function rosterDistrict(
           parsedGradeLevel?: number
         }[] = []
         const students = cleverStudents
-          .filter((s: TCleverStudentData) => {
+          .filter(s => {
             const grade = parseCleverGrade(s.data.roles.student.grade)
             if (grade && grade > 5 && grade < 13) {
               return true
@@ -170,7 +102,7 @@ export async function rosterDistrict(
             })
             return false
           })
-          .map((s: TCleverStudentData) => {
+          .map(s => {
             return {
               firstName: s.data.name.first,
               lastName: s.data.name.last,
@@ -199,7 +131,7 @@ export async function rosterDistrict(
           cleverStudents[cleverStudents.length - 1].data.id
         cleverStudents = await getStudentsInSchool(
           school.data.id,
-          options,
+          accessToken,
           lastStudentCleverId
         )
       }
@@ -210,61 +142,4 @@ export async function rosterDistrict(
   }
 
   return upsertReport
-}
-
-async function getDistrictAccessToken(districtId: string): Promise<string> {
-  const options = {
-    headers: createBasicAuthHeader(),
-  }
-  const response = await axios.get<TCleverDistrict>(
-    OAUTH_BASE_URI + '?district=' + districtId,
-    options
-  )
-  return response.data.data[0].access_token
-}
-
-async function getSchoolsInDistrict(options: AxiosRequestConfig) {
-  const response = await axios.get<TCleverSchool>(
-    API_BASE_URI + '/schools',
-    options
-  )
-  return response.data.data
-}
-
-async function getStudentsInSchool(
-  cleverSchoolId: string,
-  options: AxiosRequestConfig,
-  startingAfterId?: string
-) {
-  const url =
-    API_BASE_URI +
-    '/schools/' +
-    cleverSchoolId +
-    '/users?primary=true&role=student&limit=500' +
-    (startingAfterId ? `&starting_after=${startingAfterId}` : '')
-  const response = await axios.get(url, options)
-  return response.data.data ?? []
-}
-
-function createBasicAuthHeader() {
-  return {
-    Authorization:
-      'Basic ' +
-      Buffer.from(
-        config.cleverClientId + ':' + config.cleverClientSecret
-      ).toString('base64'),
-  }
-}
-
-function createBearerAuthHeader(accessToken: string) {
-  return {
-    Authorization: `Bearer ${accessToken}`,
-  }
-}
-
-function parseCleverGrade(grade?: string) {
-  if (!grade) return
-  if (!isNaN(parseInt(grade))) {
-    return parseInt(grade)
-  }
 }

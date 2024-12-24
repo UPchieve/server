@@ -176,12 +176,14 @@ export async function registerStudent(data: RegisterStudentPayload) {
       email: data.email,
       emailVerified: useFedCred(data),
       firstName: data.firstName,
+      issuer: data.issuer,
       lastName: data.lastName,
       otherSignupSource: data.otherSignupSource,
       password: usePassword(data)
         ? await hashPassword(data.password)
         : undefined,
       passwordResetToken,
+      profileId: data.profileId,
       referredBy: await getReferredBy(data.referredByCode),
       signupSourceId: data.signupSourceId,
       verified: useFedCred(data),
@@ -210,10 +212,6 @@ export async function registerStudent(data: RegisterStudentPayload) {
       await TeacherService.addStudentToTeacherClass(user.id, data.classCode, tc)
     }
 
-    if (useFedCred(data)) {
-      await insertFederatedCredential(data.profileId, data.issuer, user.id, tc)
-    }
-
     if (useParentGuardianEmail(data) && passwordResetToken) {
       const parentGuardian = await createParentGuardian(
         data.parentGuardianEmail,
@@ -238,13 +236,24 @@ export async function registerStudent(data: RegisterStudentPayload) {
 }
 
 async function createUser(
-  userData: UserRepo.CreateUserPayload,
+  userData: UserRepo.CreateUserPayload & {
+    issuer?: string
+    profileId?: string
+  },
   ip: string | undefined,
   role: USER_ROLES_TYPE,
   tc: TransactionClient
 ) {
   const user = await UserRepo.createUser(userData, tc)
   await createUserMetadata(user.id, ip, role, tc)
+  if (useFedCred(userData)) {
+    await insertFederatedCredential(
+      userData.profileId,
+      userData.issuer,
+      user.id,
+      tc
+    )
+  }
   return user
 }
 
@@ -364,7 +373,9 @@ export async function upsertStudent(
 export async function registerTeacher(data: RegisterTeacherPayload) {
   checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
-  checkPassword(data.password)
+  if (usePassword(data)) {
+    checkPassword(data.password)
+  }
   await checkUser(data.email)
 
   const newTeacher = await runInTransaction(async (tc: TransactionClient) => {
@@ -375,11 +386,17 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
 
     const userData = {
       email: data.email,
+      emailVerified: useFedCred(data),
       firstName: data.firstName,
+      issuer: data.issuer,
       lastName: data.lastName,
-      password: await hashPassword(data.password),
+      password: usePassword(data)
+        ? await hashPassword(data.password)
+        : undefined,
+      profileId: data.profileId,
       signupSourceId: signupSource?.id,
       otherSignupSource: data.signupSource,
+      verified: useFedCred(data),
     }
     const user = await createUser(userData, data.ip, USER_ROLES.TEACHER, tc)
 
