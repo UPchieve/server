@@ -119,7 +119,7 @@ export function addPassportAuthMiddleware() {
       {
         clientID: config.googleClientId,
         clientSecret: config.googleClientSecret,
-        callbackURL: '/auth/oauth2/redirect',
+        callbackURL: getRedirectURI(),
         scope: ['profile', 'email'],
         prompt: 'select_account',
         passReqToCallback: true,
@@ -143,7 +143,7 @@ export function addPassportAuthMiddleware() {
 
   passport.use(
     'clever',
-    new CleverStrategy({ callbackURL: '/auth/oauth2/redirect' }, async function(
+    new CleverStrategy({ callbackURL: getRedirectURI() }, async function(
       req: Request,
       _accessToken: string,
       _refreshToken: string,
@@ -245,4 +245,9 @@ export function addPassportAuthMiddleware() {
   function isTeacher(profile: TCleverPassportProfile) {
     return profile.userType === 'teacher'
   }
+}
+
+function getRedirectURI() {
+  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
+  return `${protocol}://${config.host}/auth/oauth2/redirect`
 }
