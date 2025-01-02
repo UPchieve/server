@@ -265,4 +265,8 @@ export const Config = Record({
 
   // Live media moderation
   maxModerationInfractionsPerSession: Number,
+
+  tremendousDomain: String,
+  tremendousApiKey: String,
+  tremendousImpactStudyCampaign: String,
 })

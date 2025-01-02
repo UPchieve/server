@@ -399,6 +399,14 @@ const config: Static<typeof Config> = {
   zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 
+  tremendousDomain:
+    process.env.SUBWAY_TREMENDOUS_DOMAIN || 'testflight.tremendous.com',
+  tremendousApiKey:
+    process.env.SUBWAY_TREMENDOUS_API_KEY ||
+    'bogus',
+  tremendousImpactStudyCampaign:
+    process.env.SUBWAY_TREMENDOUS_IMPACT_STUDY_CAMPAIGN || 'bogus',
+
   // Live media moderation
   maxModerationInfractionsPerSession: 6,
 }
