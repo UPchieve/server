@@ -165,33 +165,31 @@ export async function getAssignmentsByStudentId(
   tc: TransactionClient = getClient()
 ) {
   try {
-    const assignments = await pgQueries.getAssignmentsByStudentId.run(
-      { userId },
-      tc
-    )
+    const result = await pgQueries.getAssignmentsByStudentId.run({ userId }, tc)
+    const assignments = result.map(assignment => {
+      return makeSomeRequired(assignment, [
+        'classId',
+        'id',
+        'isRequired',
+        'assignedAt',
+      ])
+    })
 
     const assignmentsWithSessions = await Promise.all(
       assignments.map(async assignment => {
-        const temp = makeSomeRequired(assignment, [
-          'classId',
-          'id',
-          'isRequired',
-          'assignedAt',
-        ])
         const assignmentSessions = await getSessionsForStudentAssignment(
           userId,
           assignment.id
         )
         const filtered = assignmentSessions.filter(session => {
           if (parseInt(session.timeTutored) === 0) return false
+          const timeTutoredInMins = parseInt(session.timeTutored) / 60000
 
-          return (
-            parseInt(session.timeTutored) >=
-            (assignment.minDurationInMinutes ?? 0)
-          )
+          return timeTutoredInMins >= (assignment.minDurationInMinutes ?? 0)
         })
+
         return {
-          ...temp,
+          ...assignment,
           completedSessions: filtered,
         }
       })
