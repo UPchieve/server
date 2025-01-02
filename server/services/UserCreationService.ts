@@ -418,17 +418,22 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
 }
 
 function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
-  return 'profileId' in object && 'issuer' in object
+  return (
+    'profileId' in object &&
+    !!object.profileId &&
+    'issuer' in object &&
+    !!object.issuer
+  )
 }
 
 function usePassword(
   object: any
 ): object is RegisterStudentWithPasswordPayload {
-  return 'password' in object && object.password
+  return 'password' in object && !!object.password
 }
 
 function useResetToken(object: any): object is RegisterStudentWithPGPayload {
-  return 'parentGuardianEmail' in object && object.parentGuardianEmail
+  return 'parentGuardianEmail' in object && !!object.parentGuardianEmail
 }
 
 function useParentGuardianEmail(
