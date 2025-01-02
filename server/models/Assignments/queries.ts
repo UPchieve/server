@@ -183,9 +183,9 @@ export async function getAssignmentsByStudentId(
         )
         const filtered = assignmentSessions.filter(session => {
           if (parseInt(session.timeTutored) === 0) return false
-          const timeTutored = parseInt(session.timeTutored) / 60000
+          const timeTutoredInMins = parseInt(session.timeTutored) / 60000
 
-          return timeTutored >= (assignment.minDurationInMinutes ?? 0)
+          return timeTutoredInMins >= (assignment.minDurationInMinutes ?? 0)
         })
 
         return {
