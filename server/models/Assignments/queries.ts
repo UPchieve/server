@@ -10,6 +10,7 @@ import {
   CreateAssignmentInput,
   CreateStudentAssignmentInput,
   CreateStudentAssignmentResult,
+  EditAssignmentInput,
 } from './types'
 import * as pgQueries from './pg.queries'
 import {
@@ -57,6 +58,40 @@ export async function createAssignment(
   }
 }
 
+export async function editAssignment(
+  data: EditAssignmentInput,
+  tc: TransactionClient = getClient()
+): Promise<Assignment> {
+  try {
+    const assignment = await pgQueries.editAssignmentById.run(
+      {
+        id: data.id,
+        description: data.description,
+        dueDate: data.dueDate,
+        isRequired: data.isRequired,
+        minDurationInMinutes: data.minDurationInMinutes,
+        numberOfSessions: data.numberOfSessions,
+        startDate: data.startDate,
+        subjectId: data.subjectId,
+        title: data.title,
+      },
+      tc
+    )
+    if (!assignment.length) {
+      throw new RepoCreateError('Unable to create assignment.')
+    }
+    return makeSomeRequired(assignment[0], [
+      'id',
+      'classId',
+      'isRequired',
+      'createdAt',
+      'updatedAt',
+    ])
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 export async function getAssignmentsByClassId(
   classId: Ulid,
   tc: TransactionClient = getClient()
@@ -75,6 +110,7 @@ export async function getAssignmentsByClassId(
         'dueDate',
         'startDate',
         'subjectId',
+        'studentIds',
       ])
     )
   } catch (err) {
@@ -327,6 +363,36 @@ export async function deleteSessionForStudentAssignment(
 ) {
   try {
     await pgQueries.deleteSessionForStudentAssignment.run({ assignmentId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}
+
+export async function deleteStudentAssignmentByStudentId(
+  studentId: Uuid,
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteStudentAssignmentByStudentId.run(
+      { studentId, assignmentId },
+      tc
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}
+
+export async function deleteSessionStudentAssignmentByStudentId(
+  studentId: Uuid,
+  assignmentId: Uuid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteSessionForStudentAssignmentByStudentId.run(
+      { studentId, assignmentId },
+      tc
+    )
   } catch (err) {
     throw new RepoDeleteError(err)
   }

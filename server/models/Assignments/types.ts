@@ -28,6 +28,11 @@ export type CreateAssignmentInput = Pick<
   | 'title'
 >
 
+export type EditAssignmentInput = Omit<
+  Assignment,
+  'classId' | 'createdAt' | 'updatedAt'
+>
+
 export type StudentAssignment = {
   id: Ulid
   assignedAt: Date
