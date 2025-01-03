@@ -36,7 +36,7 @@ export type EditAssignmentPayload = {
   id: string
   description?: string
   dueDate?: Date
-  isRequired: boolean
+  isRequired?: boolean
   minDurationInMinutes?: number
   numberOfSessions?: number
   startDate?: Date
@@ -61,7 +61,7 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
   id: asString,
   description: asOptional(asString),
   dueDate: asOptional(asDate),
-  isRequired: asBoolean,
+  isRequired: asOptional(asBoolean),
   minDurationInMinutes: asOptional(asNumber),
   numberOfSessions: asOptional(asNumber),
   startDate: asOptional(asDate),
