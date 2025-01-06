@@ -1,4 +1,5 @@
 import { Ulid } from '../pgUtils'
+import { USER_ROLES_TYPE } from '../../constants'
 
 export type Session = {
   id: Ulid
@@ -77,6 +78,7 @@ export type SessionTranscriptItem = {
   createdAt: Date
   message: string
   messageType: MessageType
+  role: USER_ROLES_TYPE
 }
 
 export type SessionTranscript = {

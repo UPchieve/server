@@ -40,7 +40,7 @@ import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
 import {
-  moderateTranscript,
+  moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
 
@@ -414,7 +414,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               saveMessageData.transcript = transcript
             }
             if (type === 'audio-transcription') {
-              const result = await moderateTranscript({
+              const result = await moderateIndividualTranscription({
                 transcript: message,
                 sessionId,
                 userId: user.id,

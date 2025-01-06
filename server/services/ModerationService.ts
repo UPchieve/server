@@ -33,6 +33,7 @@ import {
   DetectLabelsCommand,
   DetectFacesCommand,
 } from '@aws-sdk/client-rekognition'
+import { SessionTranscript } from '../models/Session'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -471,7 +472,7 @@ export type SanitizedTranscriptModerationResult = {
   failures: { [key: string]: string[] }
   sanitizedTranscript: string
 }
-export const moderateTranscript = async ({
+export const moderateIndividualTranscription = async ({
   transcript,
   sessionId,
   userId,
@@ -584,6 +585,36 @@ export const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
+export type TranscriptModerationResult = {
+  confidence: number // higher = more likely to be inappropriate
+  explanation: string
+}
+export const moderateTranscript = async (
+  transcript: SessionTranscript
+): Promise<TranscriptModerationResult> => {
+  let transcriptAsString = ''
+  transcript.messages.forEach(message => {
+    transcriptAsString += `${message.role}: ${message.message}\n`
+  })
+  // @TODO Langfuse trace and generation + pull the prompt from there.
+  // @TODO Use GPT assistant API instead maybe?
+  const result = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      {
+        role: 'system',
+        content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
+      },
+      {
+        role: 'user',
+        content: transcriptAsString,
+      },
+    ],
+    response_format: { type: 'json_object' },
+  })
+  return JSON.parse(result.choices[0].message.content || '')
+}
+
 export const FALLBACK_MODERATION_PROMPT = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
@@ -622,3 +653,15 @@ Acceptable values for the elements of the 'reasons' array are:
 - Direct quotes from literature
 - Profanity that is likely just a typo. In this event, prefer flagging the message as appropriate instead of inappropriate if and only if the context of the message indicates it was likely a mistake.
 </exceptions>`
+
+const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
+You are moderating a tutoring conversation between a student and volunteer tutor.
+Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
+Things that make a conversation inappropriate include:
+- Hate speech
+- Anything sexual and/or flirtatious
+- Intent to circumvent the platform and communicate outside of it (i.e. by sharing social media handles, email addresses, or suggesting communication through some other app)
+- Sharing personally identifiable information (including one's school, place of employment, address) or contact information
+- Child grooming
+Provide your response in this JSON format: "{ confidence: number, explanation: string }"
+`

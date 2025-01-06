@@ -20,6 +20,7 @@ import 'moment-timezone'
 import {
   USER_BAN_TYPES,
   USER_ROLES,
+  USER_ROLES_TYPE,
   USER_SESSION_METRICS,
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -1541,6 +1542,7 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
       return {
         ...camelCased,
         messageType: camelCased.messageType as MessageType,
+        role: camelCased.role as USER_ROLES_TYPE,
       }
     })
   } catch (err) {
