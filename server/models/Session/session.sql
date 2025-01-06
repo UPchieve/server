@@ -1368,7 +1368,9 @@ SELECT
     sender_id AS user_id,
     contents AS message,
     sm.created_at,
-    'chat' AS message_type,
+    CASE WHEN TRUE THEN
+        'chat'
+    END AS message_type,
     CASE WHEN s.volunteer_id = sm.sender_id THEN
         'volunteer'
     ELSE
@@ -1385,7 +1387,9 @@ SELECT
     satm.user_id,
     satm.message,
     satm.said_at AS created_at,
-    'transcription' AS message_type,
+    CASE WHEN TRUE THEN
+        'transcription'
+    END AS message_type,
     CASE WHEN s.volunteer_id = satm.user_id THEN
         'volunteer'
     ELSE
@@ -1402,7 +1406,9 @@ SELECT
     svm.sender_id AS user_id,
     svm.transcript AS message,
     svm.created_at,
-    'voice_message' AS message_type,
+    CASE WHEN TRUE THEN
+        'voice_message'
+    END AS message_type,
     CASE WHEN s.volunteer_id = svm.sender_id THEN
         'volunteer'
     ELSE

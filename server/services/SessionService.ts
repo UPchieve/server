@@ -26,6 +26,7 @@ import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessage
 import {
   Session,
   SessionsToReview,
+  SessionTranscript,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -1147,4 +1148,14 @@ export async function updateSessionAudio(
   if (!updated)
     throw new LookupError('Audio does not exist for the given session')
   return updated
+}
+
+export async function getSessionTranscript(
+  sessionId: string
+): Promise<SessionTranscript> {
+  const messages = await SessionRepo.getSessionTranscriptItems(sessionId)
+  return {
+    sessionId,
+    messages,
+  }
 }
