@@ -399,10 +399,12 @@ const config: Static<typeof Config> = {
   zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 
-  // Live media moderation
+  // Moderation
   maxModerationInfractionsPerSession: 6,
   imageModerationMinConfidence:
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  contextualModerationConfidenceThreshold:
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
 }
 
 module.exports = config

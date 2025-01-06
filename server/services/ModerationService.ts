@@ -598,6 +598,7 @@ export const moderateTranscript = async (
   })
   // @TODO Langfuse trace and generation + pull the prompt from there.
   // @TODO Use GPT assistant API instead maybe?
+  // @TODO batch transcript into chunks
   const result = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
