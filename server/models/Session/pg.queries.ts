@@ -2942,3 +2942,86 @@ const getStudentSessionsForFallIncentiveIR: any = {"usedParamSet":{"studentId":t
 export const getStudentSessionsForFallIncentive = new PreparedQuery<IGetStudentSessionsForFallIncentiveParams,IGetStudentSessionsForFallIncentiveResult>(getStudentSessionsForFallIncentiveIR);
 
 
+/** 'GetSessionTranscript' parameters type */
+export interface IGetSessionTranscriptParams {
+  sessionId: string;
+}
+
+/** 'GetSessionTranscript' return type */
+export interface IGetSessionTranscriptResult {
+  createdAt: Date | null;
+  message: string | null;
+  messageId: string | null;
+  messageType: string | null;
+  role: string | null;
+  userId: string | null;
+}
+
+/** 'GetSessionTranscript' query type */
+export interface IGetSessionTranscriptQuery {
+  params: IGetSessionTranscriptParams;
+  result: IGetSessionTranscriptResult;
+}
+
+const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":341,"b":351},{"a":732,"b":742},{"a":1122,"b":1132}]}],"statement":"SELECT\n    sm.id AS message_id,\n    sender_id AS user_id,\n    contents AS message,\n    sm.created_at,\n    'chat' AS message_type,\n    CASE WHEN s.volunteer_id = sm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_messages sm\n    JOIN sessions s ON sm.session_id = s.id\nWHERE\n    sm.session_id = :sessionId!\nUNION\nSELECT\n    satm.id AS message_id,\n    satm.user_id,\n    satm.message,\n    satm.said_at AS created_at,\n    'transcription' AS message_type,\n    CASE WHEN s.volunteer_id = satm.user_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_audio_transcript_messages satm\n    JOIN sessions s ON satm.session_id = s.id\nWHERE\n    satm.session_id = :sessionId!\nUNION\nSELECT\n    svm.id AS message_id,\n    svm.sender_id AS user_id,\n    svm.transcript AS message,\n    svm.created_at,\n    'voice_message' AS message_type,\n    CASE WHEN s.volunteer_id = svm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_voice_messages svm\n    JOIN sessions s ON svm.session_id = s.id\nWHERE\n    svm.session_id = :sessionId!\nORDER BY\n    created_at ASC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sm.id AS message_id,
+ *     sender_id AS user_id,
+ *     contents AS message,
+ *     sm.created_at,
+ *     'chat' AS message_type,
+ *     CASE WHEN s.volunteer_id = sm.sender_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_messages sm
+ *     JOIN sessions s ON sm.session_id = s.id
+ * WHERE
+ *     sm.session_id = :sessionId!
+ * UNION
+ * SELECT
+ *     satm.id AS message_id,
+ *     satm.user_id,
+ *     satm.message,
+ *     satm.said_at AS created_at,
+ *     'transcription' AS message_type,
+ *     CASE WHEN s.volunteer_id = satm.user_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_audio_transcript_messages satm
+ *     JOIN sessions s ON satm.session_id = s.id
+ * WHERE
+ *     satm.session_id = :sessionId!
+ * UNION
+ * SELECT
+ *     svm.id AS message_id,
+ *     svm.sender_id AS user_id,
+ *     svm.transcript AS message,
+ *     svm.created_at,
+ *     'voice_message' AS message_type,
+ *     CASE WHEN s.volunteer_id = svm.sender_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_voice_messages svm
+ *     JOIN sessions s ON svm.session_id = s.id
+ * WHERE
+ *     svm.session_id = :sessionId!
+ * ORDER BY
+ *     created_at ASC
+ * ```
+ */
+export const getSessionTranscript = new PreparedQuery<IGetSessionTranscriptParams,IGetSessionTranscriptResult>(getSessionTranscriptIR);
+
+

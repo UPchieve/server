@@ -69,3 +69,16 @@ export type VoiceMessage = {
   updatedAt: Date
   transcript: string
 }
+
+export type SessionTranscriptItem = {
+  messageId: string
+  userId: string
+  createdAt: Date
+  message: string
+  messageType: 'chat' | 'voice_message' | 'transcription'
+}
+
+export type SessionTranscript = {
+  sessionId: string
+  messages: SessionTranscriptItem[]
+}
