@@ -246,6 +246,7 @@ export async function deactivateStudentPartnerOrg(
 ): Promise<void> {
   try {
     await pgQueries.deactivateStudentPartnerOrg.run(
+      // @TODO This should take a SPO ID instead of a name and deactivate.
       { spoName },
       client || getClient()
     )

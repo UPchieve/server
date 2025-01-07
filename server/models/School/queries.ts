@@ -128,7 +128,7 @@ export async function updateIsPartner(
     if (school) {
       if (isPartner)
         await createSchoolStudentPartnerOrg(school.name, transactionClient)
-      else await deactivateStudentPartnerOrg(school.name, transactionClient)
+      else await deactivateStudentPartnerOrg(school.name, transactionClient) // @TODO - This should pass the SPO IDs, and if it's a school, get all the SPO IDs with this school.
     }
 
     await transactionClient.query('COMMIT')
