@@ -219,6 +219,10 @@ export async function getPostsessionSurveyDefinition(
   }
 }
 
+export async function getImpactSurveyDefinition() {
+  return getSimpleSurveyDefinition('impact-study')
+}
+
 export async function getImpactStudySurveyResponses(
   userId: Ulid
 ): Promise<SurveyQueryResponse> {
@@ -228,14 +232,17 @@ export async function getImpactStudySurveyResponses(
   ])
 
   const surveyWithSubmissions = survey.survey.map(question => {
-    let userResponse
-    for (const submission of submissions) {
-      if (submission.questionId === question.questionId)
-        userResponse = {
-          responseId: submission.responseId,
-          response: submission.response,
-        } as SurveryUserResponseDefinition
-    }
+    const matchingSubmission = submissions.find(
+      submission => submission.questionId === question.questionId
+    )
+
+    const userResponse = matchingSubmission
+      ? ({
+          responseId: matchingSubmission.responseId,
+          response: matchingSubmission.response,
+        } as SurveryUserResponseDefinition)
+      : undefined
+
     return {
       ...question,
       userResponse,
