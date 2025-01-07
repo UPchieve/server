@@ -219,6 +219,10 @@ export async function getPostsessionSurveyDefinition(
   }
 }
 
+export async function getImpactSurveyDefinition() {
+  return getSimpleSurveyDefinition('impact-study')
+}
+
 export async function getImpactStudySurveyResponses(
   userId: Ulid
 ): Promise<SurveyQueryResponse> {
