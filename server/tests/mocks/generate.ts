@@ -525,6 +525,7 @@ export const buildSimpleSurveyResponse = (
     response: 'Complete a homework assignment',
     score: 1,
     displayOrder: 10,
+    questionId: 1,
     ...overrides,
   }
 
