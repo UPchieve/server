@@ -10,7 +10,7 @@ import {
   getImpactStudySurveyResponses,
   parseUserRole,
   saveUserSurvey,
-  getImpactSurveyDefinition
+  getImpactSurveyDefinition,
 } from '../../services/SurveyService'
 import * as SurveyService from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
