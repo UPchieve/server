@@ -47,7 +47,7 @@ export async function incentiveProgramEnrollmentEnroll(
   return enrollmentDate
 }
 
-export async function attemptImpactStudyEnrollment(
+export async function impactStudyEnrollment(
   userId: Ulid,
   surveyId: number
 ) {
