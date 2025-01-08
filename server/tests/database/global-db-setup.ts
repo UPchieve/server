@@ -82,4 +82,3 @@ class ContainerConfigFactory {
     throw new Error('Could not generate valid port')
   }
 }
-

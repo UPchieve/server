@@ -187,8 +187,10 @@ test_database:
   stage: test
   image: node:20.10.0-bullseye
   services:
-    - postgres:14
+    - name: docker:20.10.6-dind
+      alias: docker
   variables:
+   DOCKER_TLS_CERTDIR: ""
     POSTGRES_DB: upchieve
     POSTGRES_USER: admin
     POSTGRES_PASSWORD: Password123
@@ -196,6 +198,8 @@ test_database:
     NODE_OPTIONS: --max_old_space_size=5120
     __TEST_DB_CONNECTION_STRING__: "postgres://admin:Password123@postgres:5432/upchieve"
   before_script:
+      - apk add --no-cache docker-cli # Install Docker CLI in the Node image
+    - docker info # Verify Docker is working
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run test:database
