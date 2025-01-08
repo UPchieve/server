@@ -197,7 +197,6 @@ test_database:
     __TEST_DB_CONNECTION_STRING__: "postgres://admin:Password123@postgres:5432/upchieve"
   before_script:
     - npm ci --cache .npm --prefer-offline
-    - npx jest --setupFiles ./global-db-setup --teardown ./global-db-teardown
   script:
     - npm run test:database
   rules:
