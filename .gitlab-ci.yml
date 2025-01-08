@@ -191,6 +191,7 @@ test_database:
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: "tcp://docker:2375"
     POSTGRES_DB: upchieve
     POSTGRES_USER: admin
     POSTGRES_PASSWORD: Password123
