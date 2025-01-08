@@ -1,13 +1,26 @@
 /** Types generated for queries found in "server/models/ProgressReports/progress_reports.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** Query 'InsertProgressReport' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertProgressReportResult = never;
+export type stringArray = (string)[];
 
-/** Query 'InsertProgressReport' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertProgressReportParams = never;
+/** 'InsertProgressReport' parameters type */
+export interface IInsertProgressReportParams {
+  id: string;
+  promptId: number;
+  status: string;
+  userId: string;
+}
+
+/** 'InsertProgressReport' return type */
+export interface IInsertProgressReportResult {
+  id: string;
+}
+
+/** 'InsertProgressReport' query type */
+export interface IInsertProgressReportQuery {
+  params: IInsertProgressReportParams;
+  result: IInsertProgressReportResult;
+}
 
 const insertProgressReportIR: any = {"usedParamSet":{"id":true,"userId":true,"promptId":true,"status":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":79}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]},{"name":"promptId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":126}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":231}]}],"statement":"INSERT INTO progress_reports (id, user_id, status_id, prompt_id)\nSELECT\n    :id!,\n    :userId!,\n    subquery.id,\n    :promptId!\nFROM (\n    SELECT\n        id\n    FROM\n        progress_report_statuses\n    WHERE\n        name = :status!) AS subquery\nRETURNING\n    id"};
 
@@ -34,13 +47,23 @@ const insertProgressReportIR: any = {"usedParamSet":{"id":true,"userId":true,"pr
 export const insertProgressReport = new PreparedQuery<IInsertProgressReportParams,IInsertProgressReportResult>(insertProgressReportIR);
 
 
-/** Query 'InsertProgressReportSession' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertProgressReportSessionResult = never;
+/** 'InsertProgressReportSession' parameters type */
+export interface IInsertProgressReportSessionParams {
+  analysisType: string;
+  reportId: string;
+  sessionId: string;
+}
 
-/** Query 'InsertProgressReportSession' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertProgressReportSessionParams = never;
+/** 'InsertProgressReportSession' return type */
+export interface IInsertProgressReportSessionResult {
+  ok: string;
+}
+
+/** 'InsertProgressReportSession' query type */
+export interface IInsertProgressReportSessionQuery {
+  params: IInsertProgressReportSessionParams;
+  result: IInsertProgressReportSessionResult;
+}
 
 const insertProgressReportSessionIR: any = {"usedParamSet":{"reportId":true,"sessionId":true,"analysisType":true},"params":[{"name":"reportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":124}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":141}]},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"locs":[{"a":262,"b":275}]}],"statement":"INSERT INTO progress_report_sessions (progress_report_id, session_id, progress_report_analysis_type_id)\nSELECT\n    :reportId!,\n    :sessionId!,\n    subquery.id\nFROM (\n    SELECT\n        id\n    FROM\n        progress_report_analysis_types\n    WHERE\n        name = :analysisType!) AS subquery\nRETURNING\n    progress_report_id AS ok"};
 
@@ -66,13 +89,24 @@ const insertProgressReportSessionIR: any = {"usedParamSet":{"reportId":true,"ses
 export const insertProgressReportSession = new PreparedQuery<IInsertProgressReportSessionParams,IInsertProgressReportSessionResult>(insertProgressReportSessionIR);
 
 
-/** Query 'InsertProgressReportSummary' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertProgressReportSummaryResult = never;
+/** 'InsertProgressReportSummary' parameters type */
+export interface IInsertProgressReportSummaryParams {
+  id: string;
+  overallGrade: number;
+  reportId: string;
+  summary: string;
+}
 
-/** Query 'InsertProgressReportSummary' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertProgressReportSummaryParams = never;
+/** 'InsertProgressReportSummary' return type */
+export interface IInsertProgressReportSummaryResult {
+  id: string;
+}
+
+/** 'InsertProgressReportSummary' query type */
+export interface IInsertProgressReportSummaryQuery {
+  params: IInsertProgressReportSummaryParams;
+  result: IInsertProgressReportSummaryResult;
+}
 
 const insertProgressReportSummaryIR: any = {"usedParamSet":{"id":true,"reportId":true,"summary":true,"overallGrade":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":102}]},{"name":"reportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":114}]},{"name":"summary","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":125}]},{"name":"overallGrade","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":141}]}],"statement":"INSERT INTO progress_report_summaries (id, progress_report_id, summary, overall_grade)\n    VALUES (:id!, :reportId!, :summary!, :overallGrade!)\nRETURNING\n    id"};
 
@@ -88,13 +122,25 @@ const insertProgressReportSummaryIR: any = {"usedParamSet":{"id":true,"reportId"
 export const insertProgressReportSummary = new PreparedQuery<IInsertProgressReportSummaryParams,IInsertProgressReportSummaryResult>(insertProgressReportSummaryIR);
 
 
-/** Query 'InsertProgressReportConcept' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertProgressReportConceptResult = never;
+/** 'InsertProgressReportConcept' parameters type */
+export interface IInsertProgressReportConceptParams {
+  description: string;
+  grade: number;
+  id: string;
+  name: string;
+  reportId: string;
+}
 
-/** Query 'InsertProgressReportConcept' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertProgressReportConceptParams = never;
+/** 'InsertProgressReportConcept' return type */
+export interface IInsertProgressReportConceptResult {
+  id: string;
+}
+
+/** 'InsertProgressReportConcept' query type */
+export interface IInsertProgressReportConceptQuery {
+  params: IInsertProgressReportConceptParams;
+  result: IInsertProgressReportConceptResult;
+}
 
 const insertProgressReportConceptIR: any = {"usedParamSet":{"id":true,"name":true,"description":true,"grade":true,"reportId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":103}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":111}]},{"name":"description","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":126}]},{"name":"grade","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":135}]},{"name":"reportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":147}]}],"statement":"INSERT INTO progress_report_concepts (id, name, description, grade, progress_report_id)\n    VALUES (:id!, :name!, :description!, :grade!, :reportId!)\nRETURNING\n    id"};
 
@@ -110,13 +156,25 @@ const insertProgressReportConceptIR: any = {"usedParamSet":{"id":true,"name":tru
 export const insertProgressReportConcept = new PreparedQuery<IInsertProgressReportConceptParams,IInsertProgressReportConceptResult>(insertProgressReportConceptIR);
 
 
-/** Query 'InsertProgressReportSummaryDetail' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertProgressReportSummaryDetailResult = never;
+/** 'InsertProgressReportSummaryDetail' parameters type */
+export interface IInsertProgressReportSummaryDetailParams {
+  content: string;
+  focusArea: string;
+  id: string;
+  infoType: string;
+  reportSummaryId: string;
+}
 
-/** Query 'InsertProgressReportSummaryDetail' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertProgressReportSummaryDetailParams = never;
+/** 'InsertProgressReportSummaryDetail' return type */
+export interface IInsertProgressReportSummaryDetailResult {
+  id: string;
+}
+
+/** 'InsertProgressReportSummaryDetail' query type */
+export interface IInsertProgressReportSummaryDetailQuery {
+  params: IInsertProgressReportSummaryDetailParams;
+  result: IInsertProgressReportSummaryDetailResult;
+}
 
 const insertProgressReportSummaryDetailIR: any = {"usedParamSet":{"id":true,"content":true,"reportSummaryId":true,"focusArea":true,"infoType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":158,"b":161}]},{"name":"content","required":true,"transform":{"type":"scalar"},"locs":[{"a":168,"b":176}]},{"name":"reportSummaryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":183,"b":199}]},{"name":"focusArea","required":true,"transform":{"type":"scalar"},"locs":[{"a":324,"b":334}]},{"name":"infoType","required":true,"transform":{"type":"scalar"},"locs":[{"a":455,"b":464}]}],"statement":"INSERT INTO progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportSummaryId!,\n    (\n        SELECT\n            id\n        FROM\n            progress_report_focus_areas\n        WHERE\n            name = :focusArea!), (\n        SELECT\n            id\n        FROM\n            progress_report_info_types\n        WHERE\n            name = :infoType!)\nRETURNING\n    id"};
 
@@ -148,13 +206,25 @@ const insertProgressReportSummaryDetailIR: any = {"usedParamSet":{"id":true,"con
 export const insertProgressReportSummaryDetail = new PreparedQuery<IInsertProgressReportSummaryDetailParams,IInsertProgressReportSummaryDetailResult>(insertProgressReportSummaryDetailIR);
 
 
-/** Query 'InsertProgressReportConceptDetail' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertProgressReportConceptDetailResult = never;
+/** 'InsertProgressReportConceptDetail' parameters type */
+export interface IInsertProgressReportConceptDetailParams {
+  content: string;
+  focusArea: string;
+  id: string;
+  infoType: string;
+  reportConceptId: string;
+}
 
-/** Query 'InsertProgressReportConceptDetail' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertProgressReportConceptDetailParams = never;
+/** 'InsertProgressReportConceptDetail' return type */
+export interface IInsertProgressReportConceptDetailResult {
+  id: string;
+}
+
+/** 'InsertProgressReportConceptDetail' query type */
+export interface IInsertProgressReportConceptDetailQuery {
+  params: IInsertProgressReportConceptDetailParams;
+  result: IInsertProgressReportConceptDetailResult;
+}
 
 const insertProgressReportConceptDetailIR: any = {"usedParamSet":{"id":true,"content":true,"reportConceptId":true,"focusArea":true,"infoType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":158,"b":161}]},{"name":"content","required":true,"transform":{"type":"scalar"},"locs":[{"a":168,"b":176}]},{"name":"reportConceptId","required":true,"transform":{"type":"scalar"},"locs":[{"a":183,"b":199}]},{"name":"focusArea","required":true,"transform":{"type":"scalar"},"locs":[{"a":324,"b":334}]},{"name":"infoType","required":true,"transform":{"type":"scalar"},"locs":[{"a":455,"b":464}]}],"statement":"INSERT INTO progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id)\nSELECT\n    :id!,\n    :content!,\n    :reportConceptId!,\n    (\n        SELECT\n            id\n        FROM\n            progress_report_focus_areas\n        WHERE\n            name = :focusArea!), (\n        SELECT\n            id\n        FROM\n            progress_report_info_types\n        WHERE\n            name = :infoType!)\nRETURNING\n    id"};
 
@@ -186,13 +256,22 @@ const insertProgressReportConceptDetailIR: any = {"usedParamSet":{"id":true,"con
 export const insertProgressReportConceptDetail = new PreparedQuery<IInsertProgressReportConceptDetailParams,IInsertProgressReportConceptDetailResult>(insertProgressReportConceptDetailIR);
 
 
-/** Query 'UpdateProgressReportStatus' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpdateProgressReportStatusResult = never;
+/** 'UpdateProgressReportStatus' parameters type */
+export interface IUpdateProgressReportStatusParams {
+  reportId: string;
+  status: string;
+}
 
-/** Query 'UpdateProgressReportStatus' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpdateProgressReportStatusParams = never;
+/** 'UpdateProgressReportStatus' return type */
+export interface IUpdateProgressReportStatusResult {
+  ok: string;
+}
+
+/** 'UpdateProgressReportStatus' query type */
+export interface IUpdateProgressReportStatusQuery {
+  params: IUpdateProgressReportStatusParams;
+  result: IUpdateProgressReportStatusResult;
+}
 
 const updateProgressReportStatusIR: any = {"usedParamSet":{"status":true,"reportId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":180,"b":187}]},{"name":"reportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":234,"b":243}]}],"statement":"UPDATE\n    progress_reports\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        progress_report_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    progress_reports.id = :reportId!\nRETURNING\n    progress_reports.id AS ok"};
 
@@ -220,13 +299,26 @@ const updateProgressReportStatusIR: any = {"usedParamSet":{"status":true,"report
 export const updateProgressReportStatus = new PreparedQuery<IUpdateProgressReportStatusParams,IUpdateProgressReportStatusResult>(updateProgressReportStatusIR);
 
 
-/** Query 'GetProgressReportInfoBySessionId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetProgressReportInfoBySessionIdResult = never;
+/** 'GetProgressReportInfoBySessionId' parameters type */
+export interface IGetProgressReportInfoBySessionIdParams {
+  analysisType: string;
+  sessionId: string;
+  userId: string;
+}
 
-/** Query 'GetProgressReportInfoBySessionId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetProgressReportInfoBySessionIdParams = never;
+/** 'GetProgressReportInfoBySessionId' return type */
+export interface IGetProgressReportInfoBySessionIdResult {
+  createdAt: Date;
+  id: string;
+  readAt: Date | null;
+  status: string;
+}
+
+/** 'GetProgressReportInfoBySessionId' query type */
+export interface IGetProgressReportInfoBySessionIdQuery {
+  params: IGetProgressReportInfoBySessionIdParams;
+  result: IGetProgressReportInfoBySessionIdResult;
+}
 
 const getProgressReportInfoBySessionIdIR: any = {"usedParamSet":{"userId":true,"sessionId":true,"analysisType":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":612,"b":619}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":643,"b":653}]},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"locs":[{"a":701,"b":714}]}],"statement":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.created_at,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\n    LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND sessions.id = :sessionId!\n    AND progress_report_analysis_types.name = :analysisType!\nORDER BY\n    progress_reports.created_at DESC"};
 
@@ -255,13 +347,24 @@ const getProgressReportInfoBySessionIdIR: any = {"usedParamSet":{"userId":true,"
 export const getProgressReportInfoBySessionId = new PreparedQuery<IGetProgressReportInfoBySessionIdParams,IGetProgressReportInfoBySessionIdResult>(getProgressReportInfoBySessionIdIR);
 
 
-/** Query 'GetProgressReportByReportId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetProgressReportByReportIdResult = never;
+/** 'GetProgressReportByReportId' parameters type */
+export interface IGetProgressReportByReportIdParams {
+  reportId: string;
+}
 
-/** Query 'GetProgressReportByReportId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetProgressReportByReportIdParams = never;
+/** 'GetProgressReportByReportId' return type */
+export interface IGetProgressReportByReportIdResult {
+  createdAt: Date;
+  id: string;
+  readAt: Date | null;
+  status: string;
+}
+
+/** 'GetProgressReportByReportId' query type */
+export interface IGetProgressReportByReportIdQuery {
+  params: IGetProgressReportByReportIdParams;
+  result: IGetProgressReportByReportIdResult;
+}
 
 const getProgressReportByReportIdIR: any = {"usedParamSet":{"reportId":true},"params":[{"name":"reportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":291,"b":300}]}],"statement":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.created_at,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_report_statuses.id = progress_reports.status_id\nWHERE\n    progress_reports.id = :reportId!"};
 
@@ -283,13 +386,31 @@ const getProgressReportByReportIdIR: any = {"usedParamSet":{"reportId":true},"pa
 export const getProgressReportByReportId = new PreparedQuery<IGetProgressReportByReportIdParams,IGetProgressReportByReportIdResult>(getProgressReportByReportIdIR);
 
 
-/** Query 'GetProgressReportSummariesForMany' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetProgressReportSummariesForManyResult = never;
+/** 'GetProgressReportSummariesForMany' parameters type */
+export interface IGetProgressReportSummariesForManyParams {
+  reportIds: stringArray;
+}
 
-/** Query 'GetProgressReportSummariesForMany' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetProgressReportSummariesForManyParams = never;
+/** 'GetProgressReportSummariesForMany' return type */
+export interface IGetProgressReportSummariesForManyResult {
+  content: string;
+  createdAt: Date;
+  detailId: string;
+  focusArea: string;
+  id: string;
+  infoType: string;
+  overallGrade: number;
+  reportId: string;
+  reportReadAt: Date | null;
+  sessionCreatedAt: Date | null;
+  summary: string;
+}
+
+/** 'GetProgressReportSummariesForMany' query type */
+export interface IGetProgressReportSummariesForManyQuery {
+  params: IGetProgressReportSummariesForManyParams;
+  result: IGetProgressReportSummariesForManyResult;
+}
 
 const getProgressReportSummariesForManyIR: any = {"usedParamSet":{"reportIds":true},"params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":1643,"b":1653}]}],"statement":"SELECT\n    progress_report_summaries.id,\n    progress_report_summaries.summary,\n    progress_report_summaries.overall_grade,\n    progress_report_summary_details.id AS detail_id,\n    progress_report_summary_details.content,\n    progress_report_focus_areas.name AS focus_area,\n    progress_report_info_types.name AS info_type,\n    progress_report_summaries.progress_report_id AS report_id,\n    progress_reports.read_at AS report_read_at,\n    progress_report_summaries.created_at,\n    latest_session_for_summary.created_at AS session_created_at\nFROM\n    progress_report_summaries\n    JOIN progress_report_summary_details ON progress_report_summaries.id = progress_report_summary_details.progress_report_summary_id\n    JOIN progress_report_info_types ON progress_report_summary_details.progress_report_info_type_id = progress_report_info_types.id\n    JOIN progress_report_focus_areas ON progress_report_summary_details.progress_report_focus_area_id = progress_report_focus_areas.id\n    JOIN progress_reports ON progress_report_summaries.progress_report_id = progress_reports.id\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN (\n        SELECT\n            progress_report_id,\n            MAX(sessions.created_at) AS created_at\n        FROM\n            progress_report_sessions\n            JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        GROUP BY\n            progress_report_id) AS latest_session_for_summary ON progress_report_summaries.progress_report_id = latest_session_for_summary.progress_report_id\nWHERE\n    progress_report_summaries.progress_report_id = ANY (:reportIds!)\n    AND progress_report_statuses.name = 'complete'\nORDER BY\n    progress_report_summaries.created_at DESC"};
 
@@ -334,13 +455,31 @@ const getProgressReportSummariesForManyIR: any = {"usedParamSet":{"reportIds":tr
 export const getProgressReportSummariesForMany = new PreparedQuery<IGetProgressReportSummariesForManyParams,IGetProgressReportSummariesForManyResult>(getProgressReportSummariesForManyIR);
 
 
-/** Query 'GetProgressReportConceptsByReportId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetProgressReportConceptsByReportIdResult = never;
+/** 'GetProgressReportConceptsByReportId' parameters type */
+export interface IGetProgressReportConceptsByReportIdParams {
+  reportId?: string | null | void;
+}
 
-/** Query 'GetProgressReportConceptsByReportId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetProgressReportConceptsByReportIdParams = never;
+/** 'GetProgressReportConceptsByReportId' return type */
+export interface IGetProgressReportConceptsByReportIdResult {
+  content: string;
+  createdAt: Date;
+  description: string;
+  detailId: string;
+  focusArea: string;
+  grade: number;
+  id: string;
+  infoType: string;
+  name: string;
+  reportId: string;
+  reportReadAt: Date | null;
+}
+
+/** 'GetProgressReportConceptsByReportId' query type */
+export interface IGetProgressReportConceptsByReportIdQuery {
+  params: IGetProgressReportConceptsByReportIdParams;
+  result: IGetProgressReportConceptsByReportIdResult;
+}
 
 const getProgressReportConceptsByReportIdIR: any = {"usedParamSet":{"reportId":true},"params":[{"name":"reportId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1182,"b":1190}]}],"statement":"SELECT\n    progress_report_concepts.id,\n    progress_report_concepts.name,\n    progress_report_concepts.description,\n    progress_report_concepts.grade,\n    progress_report_concept_details.id AS detail_id,\n    progress_report_concept_details.content,\n    progress_report_focus_areas.name AS focus_area,\n    progress_report_info_types.name AS info_type,\n    progress_report_concepts.progress_report_id AS report_id,\n    progress_reports.read_at AS report_read_at,\n    progress_report_concepts.created_at\nFROM\n    progress_report_concepts\n    JOIN progress_report_concept_details ON progress_report_concepts.id = progress_report_concept_details.progress_report_concept_id\n    JOIN progress_report_focus_areas ON progress_report_concept_details.progress_report_focus_area_id = progress_report_focus_areas.id\n    JOIN progress_report_info_types ON progress_report_concept_details.progress_report_info_type_id = progress_report_info_types.id\n    JOIN progress_reports ON progress_report_concepts.progress_report_id = progress_reports.id\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\nWHERE\n    progress_report_concepts.progress_report_id = :reportId\n    AND progress_report_statuses.name = 'complete'"};
 
@@ -374,13 +513,29 @@ const getProgressReportConceptsByReportIdIR: any = {"usedParamSet":{"reportId":t
 export const getProgressReportConceptsByReportId = new PreparedQuery<IGetProgressReportConceptsByReportIdParams,IGetProgressReportConceptsByReportIdResult>(getProgressReportConceptsByReportIdIR);
 
 
-/** Query 'GetProgressReportSessionsForSubjectByPagination' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetProgressReportSessionsForSubjectByPaginationResult = never;
+/** 'GetProgressReportSessionsForSubjectByPagination' parameters type */
+export interface IGetProgressReportSessionsForSubjectByPaginationParams {
+  analysisType: string;
+  limit: number;
+  offset: number;
+  subject: string;
+  userId: string;
+}
 
-/** Query 'GetProgressReportSessionsForSubjectByPagination' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetProgressReportSessionsForSubjectByPaginationParams = never;
+/** 'GetProgressReportSessionsForSubjectByPagination' return type */
+export interface IGetProgressReportSessionsForSubjectByPaginationResult {
+  createdAt: Date;
+  id: string;
+  subject: string;
+  topic: string;
+  topicIconLink: string | null;
+}
+
+/** 'GetProgressReportSessionsForSubjectByPagination' query type */
+export interface IGetProgressReportSessionsForSubjectByPaginationQuery {
+  params: IGetProgressReportSessionsForSubjectByPaginationParams;
+  result: IGetProgressReportSessionsForSubjectByPaginationResult;
+}
 
 const getProgressReportSessionsForSubjectByPaginationIR: any = {"usedParamSet":{"userId":true,"subject":true,"analysisType":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":739,"b":746}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":772,"b":780}]},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"locs":[{"a":828,"b":841}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1108,"b":1114}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1130,"b":1137}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\n    AND sessions.created_at BETWEEN (NOW() - INTERVAL '1 YEAR')\n    AND NOW()\nGROUP BY\n    sessions.id,\n    subjects.display_name,\n    topics.name,\n    topics.icon_link\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
@@ -421,13 +576,23 @@ const getProgressReportSessionsForSubjectByPaginationIR: any = {"usedParamSet":{
 export const getProgressReportSessionsForSubjectByPagination = new PreparedQuery<IGetProgressReportSessionsForSubjectByPaginationParams,IGetProgressReportSessionsForSubjectByPaginationResult>(getProgressReportSessionsForSubjectByPaginationIR);
 
 
-/** Query 'GetAllProgressReportIdsByUserIdAndSubject' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetAllProgressReportIdsByUserIdAndSubjectResult = never;
+/** 'GetAllProgressReportIdsByUserIdAndSubject' parameters type */
+export interface IGetAllProgressReportIdsByUserIdAndSubjectParams {
+  analysisType: string;
+  subject: string;
+  userId: string;
+}
 
-/** Query 'GetAllProgressReportIdsByUserIdAndSubject' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetAllProgressReportIdsByUserIdAndSubjectParams = never;
+/** 'GetAllProgressReportIdsByUserIdAndSubject' return type */
+export interface IGetAllProgressReportIdsByUserIdAndSubjectResult {
+  id: string;
+}
+
+/** 'GetAllProgressReportIdsByUserIdAndSubject' query type */
+export interface IGetAllProgressReportIdsByUserIdAndSubjectQuery {
+  params: IGetAllProgressReportIdsByUserIdAndSubjectParams;
+  result: IGetAllProgressReportIdsByUserIdAndSubjectResult;
+}
 
 const getAllProgressReportIdsByUserIdAndSubjectIR: any = {"usedParamSet":{"userId":true,"subject":true,"analysisType":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1011,"b":1018}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":1048,"b":1056}]},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"locs":[{"a":1108,"b":1121}]}],"statement":"SELECT\n    grouped_reports.id\nFROM (\n    SELECT\n        progress_reports.id,\n        progress_reports.created_at,\n        STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) AS session_group,\n        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num\n    FROM\n        progress_reports\n        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    WHERE\n        progress_reports.user_id = :userId!\n        AND subjects.name = :subject!\n        AND progress_report_analysis_types.name = :analysisType!\n        AND progress_report_statuses.name = 'complete'\n    GROUP BY\n        progress_reports.id,\n        progress_reports.created_at) AS grouped_reports\nWHERE\n    grouped_reports.row_num = 1\nORDER BY\n    grouped_reports.created_at DESC"};
 
@@ -466,13 +631,26 @@ const getAllProgressReportIdsByUserIdAndSubjectIR: any = {"usedParamSet":{"userI
 export const getAllProgressReportIdsByUserIdAndSubject = new PreparedQuery<IGetAllProgressReportIdsByUserIdAndSubjectParams,IGetAllProgressReportIdsByUserIdAndSubjectResult>(getAllProgressReportIdsByUserIdAndSubjectIR);
 
 
-/** Query 'GetLatestProgressReportIdBySubject' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetLatestProgressReportIdBySubjectResult = never;
+/** 'GetLatestProgressReportIdBySubject' parameters type */
+export interface IGetLatestProgressReportIdBySubjectParams {
+  analysisType: string;
+  subject: string;
+  userId: string;
+}
 
-/** Query 'GetLatestProgressReportIdBySubject' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetLatestProgressReportIdBySubjectParams = never;
+/** 'GetLatestProgressReportIdBySubject' return type */
+export interface IGetLatestProgressReportIdBySubjectResult {
+  createdAt: Date;
+  id: string;
+  readAt: Date | null;
+  status: string;
+}
+
+/** 'GetLatestProgressReportIdBySubject' query type */
+export interface IGetLatestProgressReportIdBySubjectQuery {
+  params: IGetLatestProgressReportIdBySubjectParams;
+  result: IGetLatestProgressReportIdBySubjectResult;
+}
 
 const getLatestProgressReportIdBySubjectIR: any = {"usedParamSet":{"userId":true,"subject":true,"analysisType":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":662,"b":669}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":695,"b":703}]},{"name":"analysisType","required":true,"transform":{"type":"scalar"},"locs":[{"a":751,"b":764}]}],"statement":"SELECT\n    progress_reports.id,\n    progress_report_statuses.name AS status,\n    progress_reports.created_at,\n    progress_reports.read_at\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND subjects.name = :subject!\n    AND progress_report_analysis_types.name = :analysisType!\n    AND progress_report_statuses.name = 'complete'\nORDER BY\n    progress_reports.created_at DESC\nLIMIT 1"};
 
@@ -504,13 +682,21 @@ const getLatestProgressReportIdBySubjectIR: any = {"usedParamSet":{"userId":true
 export const getLatestProgressReportIdBySubject = new PreparedQuery<IGetLatestProgressReportIdBySubjectParams,IGetLatestProgressReportIdBySubjectResult>(getLatestProgressReportIdBySubjectIR);
 
 
-/** Query 'UpdateProgressReportsReadAtByReportIds' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpdateProgressReportsReadAtByReportIdsResult = never;
+/** 'UpdateProgressReportsReadAtByReportIds' parameters type */
+export interface IUpdateProgressReportsReadAtByReportIdsParams {
+  reportIds: stringArray;
+}
 
-/** Query 'UpdateProgressReportsReadAtByReportIds' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpdateProgressReportsReadAtByReportIdsParams = never;
+/** 'UpdateProgressReportsReadAtByReportIds' return type */
+export interface IUpdateProgressReportsReadAtByReportIdsResult {
+  ok: string;
+}
+
+/** 'UpdateProgressReportsReadAtByReportIds' query type */
+export interface IUpdateProgressReportsReadAtByReportIdsQuery {
+  params: IUpdateProgressReportsReadAtByReportIdsParams;
+  result: IUpdateProgressReportsReadAtByReportIdsResult;
+}
 
 const updateProgressReportsReadAtByReportIdsIR: any = {"usedParamSet":{"reportIds":true},"params":[{"name":"reportIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":123}]}],"statement":"UPDATE\n    progress_reports\nSET\n    read_at = NOW(),\n    updated_at = NOW()\nWHERE\n    progress_reports.id = ANY (:reportIds!)\nRETURNING\n    progress_reports.id AS ok"};
 
@@ -531,13 +717,22 @@ const updateProgressReportsReadAtByReportIdsIR: any = {"usedParamSet":{"reportId
 export const updateProgressReportsReadAtByReportIds = new PreparedQuery<IUpdateProgressReportsReadAtByReportIdsParams,IUpdateProgressReportsReadAtByReportIdsResult>(updateProgressReportsReadAtByReportIdsIR);
 
 
-/** Query 'GetProgressReportOverviewUnreadStatsByUserId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetProgressReportOverviewUnreadStatsByUserIdResult = never;
+/** 'GetProgressReportOverviewUnreadStatsByUserId' parameters type */
+export interface IGetProgressReportOverviewUnreadStatsByUserIdParams {
+  userId: string;
+}
 
-/** Query 'GetProgressReportOverviewUnreadStatsByUserId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetProgressReportOverviewUnreadStatsByUserIdParams = never;
+/** 'GetProgressReportOverviewUnreadStatsByUserId' return type */
+export interface IGetProgressReportOverviewUnreadStatsByUserIdResult {
+  subject: string;
+  totalUnreadReports: number | null;
+}
+
+/** 'GetProgressReportOverviewUnreadStatsByUserId' query type */
+export interface IGetProgressReportOverviewUnreadStatsByUserIdQuery {
+  params: IGetProgressReportOverviewUnreadStatsByUserIdParams;
+  result: IGetProgressReportOverviewUnreadStatsByUserIdResult;
+}
 
 const getProgressReportOverviewUnreadStatsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":701,"b":708}]}],"statement":"SELECT\n    subjects.name AS subject,\n    COUNT(DISTINCT CASE WHEN progress_reports.read_at IS NULL THEN\n            progress_reports.id\n        END)::int AS total_unread_reports\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\nGROUP BY\n    subjects.name"};
 
@@ -567,13 +762,21 @@ const getProgressReportOverviewUnreadStatsByUserIdIR: any = {"usedParamSet":{"us
 export const getProgressReportOverviewUnreadStatsByUserId = new PreparedQuery<IGetProgressReportOverviewUnreadStatsByUserIdParams,IGetProgressReportOverviewUnreadStatsByUserIdResult>(getProgressReportOverviewUnreadStatsByUserIdIR);
 
 
-/** Query 'GetLatestProgressReportOverviewSubjectByUserId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetLatestProgressReportOverviewSubjectByUserIdResult = never;
+/** 'GetLatestProgressReportOverviewSubjectByUserId' parameters type */
+export interface IGetLatestProgressReportOverviewSubjectByUserIdParams {
+  userId: string;
+}
 
-/** Query 'GetLatestProgressReportOverviewSubjectByUserId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetLatestProgressReportOverviewSubjectByUserIdParams = never;
+/** 'GetLatestProgressReportOverviewSubjectByUserId' return type */
+export interface IGetLatestProgressReportOverviewSubjectByUserIdResult {
+  name: string;
+}
+
+/** 'GetLatestProgressReportOverviewSubjectByUserId' query type */
+export interface IGetLatestProgressReportOverviewSubjectByUserIdQuery {
+  params: IGetLatestProgressReportOverviewSubjectByUserIdParams;
+  result: IGetLatestProgressReportOverviewSubjectByUserIdResult;
+}
 
 const getLatestProgressReportOverviewSubjectByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":533,"b":540},{"a":969,"b":976}]}],"statement":"SELECT\n    subjects.name\nFROM\n    progress_reports\n    JOIN (\n        SELECT\n            progress_report_sessions.progress_report_id,\n            progress_report_sessions.session_id\n        FROM\n            progress_report_sessions\n            JOIN progress_reports ON progress_report_sessions.progress_report_id = progress_reports.id\n            JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        WHERE\n            progress_reports.user_id = :userId!\n            AND progress_report_analysis_types.name = 'group'\n        ORDER BY\n            progress_report_sessions.created_at DESC\n        LIMIT 1) AS latest_progress_report_session ON progress_reports.id = latest_progress_report_session.progress_report_id\n    JOIN sessions ON latest_progress_report_session.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!"};
 
@@ -607,13 +810,22 @@ const getLatestProgressReportOverviewSubjectByUserIdIR: any = {"usedParamSet":{"
 export const getLatestProgressReportOverviewSubjectByUserId = new PreparedQuery<IGetLatestProgressReportOverviewSubjectByUserIdParams,IGetLatestProgressReportOverviewSubjectByUserIdResult>(getLatestProgressReportOverviewSubjectByUserIdIR);
 
 
-/** Query 'GetActiveSubjectPromptBySubjectName' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetActiveSubjectPromptBySubjectNameResult = never;
+/** 'GetActiveSubjectPromptBySubjectName' parameters type */
+export interface IGetActiveSubjectPromptBySubjectNameParams {
+  subject: string;
+}
 
-/** Query 'GetActiveSubjectPromptBySubjectName' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetActiveSubjectPromptBySubjectNameParams = never;
+/** 'GetActiveSubjectPromptBySubjectName' return type */
+export interface IGetActiveSubjectPromptBySubjectNameResult {
+  id: number;
+  prompt: string;
+}
+
+/** 'GetActiveSubjectPromptBySubjectName' query type */
+export interface IGetActiveSubjectPromptBySubjectNameQuery {
+  params: IGetActiveSubjectPromptBySubjectNameParams;
+  result: IGetActiveSubjectPromptBySubjectNameResult;
+}
 
 const getActiveSubjectPromptBySubjectNameIR: any = {"usedParamSet":{"subject":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":179,"b":187}]}],"statement":"SELECT\n    progress_report_prompts.id,\n    prompt\nFROM\n    progress_report_prompts\n    JOIN subjects ON progress_report_prompts.subject_id = subjects.id\nWHERE\n    subjects.name = :subject!\n    AND progress_report_prompts.active IS TRUE"};
 

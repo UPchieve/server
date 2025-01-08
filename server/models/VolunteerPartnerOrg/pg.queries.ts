@@ -1,13 +1,26 @@
 /** Types generated for queries found in "server/models/VolunteerPartnerOrg/volunteer_partner_orgs.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** Query 'GetVolunteerPartnerOrgForRegistrationByKey' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetVolunteerPartnerOrgForRegistrationByKeyResult = never;
+export type DateOrString = Date | string;
 
-/** Query 'GetVolunteerPartnerOrgForRegistrationByKey' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetVolunteerPartnerOrgForRegistrationByKeyParams = never;
+export type stringArray = (string)[];
+
+/** 'GetVolunteerPartnerOrgForRegistrationByKey' parameters type */
+export interface IGetVolunteerPartnerOrgForRegistrationByKeyParams {
+  key: string;
+}
+
+/** 'GetVolunteerPartnerOrgForRegistrationByKey' return type */
+export interface IGetVolunteerPartnerOrgForRegistrationByKeyResult {
+  domains: stringArray | null;
+  key: string;
+}
+
+/** 'GetVolunteerPartnerOrgForRegistrationByKey' query type */
+export interface IGetVolunteerPartnerOrgForRegistrationByKeyQuery {
+  params: IGetVolunteerPartnerOrgForRegistrationByKeyParams;
+  result: IGetVolunteerPartnerOrgForRegistrationByKeyResult;
+}
 
 const getVolunteerPartnerOrgForRegistrationByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":354,"b":358}]}],"statement":"SELECT\n    KEY,\n    COALESCE(domains.domains, '{}'::text[]) AS domains\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN LATERAL (\n        SELECT\n            ARRAY_AGG(DOMAIN) AS domains\n        FROM\n            required_email_domains\n        WHERE\n            required_email_domains.volunteer_partner_org_id = vpo.id) AS domains ON TRUE\nWHERE\n    KEY = :key!"};
 
@@ -33,13 +46,25 @@ const getVolunteerPartnerOrgForRegistrationByKeyIR: any = {"usedParamSet":{"key"
 export const getVolunteerPartnerOrgForRegistrationByKey = new PreparedQuery<IGetVolunteerPartnerOrgForRegistrationByKeyParams,IGetVolunteerPartnerOrgForRegistrationByKeyResult>(getVolunteerPartnerOrgForRegistrationByKeyIR);
 
 
-/** Query 'GetFullVolunteerPartnerOrgByKey' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetFullVolunteerPartnerOrgByKeyResult = never;
+/** 'GetFullVolunteerPartnerOrgByKey' parameters type */
+export interface IGetFullVolunteerPartnerOrgByKeyParams {
+  key: string;
+}
 
-/** Query 'GetFullVolunteerPartnerOrgByKey' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetFullVolunteerPartnerOrgByKeyParams = never;
+/** 'GetFullVolunteerPartnerOrgByKey' return type */
+export interface IGetFullVolunteerPartnerOrgByKeyResult {
+  deactivated: boolean | null;
+  domains: stringArray | null;
+  key: string;
+  name: string | null;
+  receiveWeeklyHourSummaryEmail: boolean | null;
+}
+
+/** 'GetFullVolunteerPartnerOrgByKey' query type */
+export interface IGetFullVolunteerPartnerOrgByKeyQuery {
+  params: IGetFullVolunteerPartnerOrgByKeyParams;
+  result: IGetFullVolunteerPartnerOrgByKeyResult;
+}
 
 const getFullVolunteerPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":724,"b":728}]}],"statement":"SELECT\n    KEY,\n    max(name) AS name,\n    bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,\n    array_agg(DOMAIN) AS domains,\n    CASE WHEN vpoui.deactivated_on IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS deactivated\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\n    JOIN ( SELECT DISTINCT ON (volunteer_partner_org_id)\n            volunteer_partner_org_id,\n            deactivated_on\n        FROM\n            volunteer_partner_orgs_upchieve_instances\n        ORDER BY\n            volunteer_partner_org_id,\n            created_at DESC) AS vpoui ON vpo.id = vpoui.volunteer_partner_org_id\nWHERE\n    KEY = :key!\nGROUP BY\n    vpo.key,\n    vpoui.deactivated_on"};
 
@@ -77,13 +102,23 @@ const getFullVolunteerPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"par
 export const getFullVolunteerPartnerOrgByKey = new PreparedQuery<IGetFullVolunteerPartnerOrgByKeyParams,IGetFullVolunteerPartnerOrgByKeyResult>(getFullVolunteerPartnerOrgByKeyIR);
 
 
-/** Query 'GetVolunteerPartnerOrgs' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetVolunteerPartnerOrgsResult = never;
+/** 'GetVolunteerPartnerOrgs' parameters type */
+export type IGetVolunteerPartnerOrgsParams = void;
 
-/** Query 'GetVolunteerPartnerOrgs' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetVolunteerPartnerOrgsParams = never;
+/** 'GetVolunteerPartnerOrgs' return type */
+export interface IGetVolunteerPartnerOrgsResult {
+  deactivated: boolean | null;
+  domains: stringArray | null;
+  key: string;
+  name: string | null;
+  receiveWeeklyHourSummaryEmail: boolean | null;
+}
+
+/** 'GetVolunteerPartnerOrgs' query type */
+export interface IGetVolunteerPartnerOrgsQuery {
+  params: IGetVolunteerPartnerOrgsParams;
+  result: IGetVolunteerPartnerOrgsResult;
+}
 
 const getVolunteerPartnerOrgsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    KEY,\n    max(name) AS name,\n    bool_or(receive_weekly_hour_summary_email) AS receive_weekly_hour_summary_email,\n    array_agg(DOMAIN) AS domains,\n    CASE WHEN vpoui.deactivated_on IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS deactivated\nFROM\n    volunteer_partner_orgs vpo\n    LEFT JOIN required_email_domains red ON vpo.id = red.volunteer_partner_org_id\n    JOIN ( SELECT DISTINCT ON (volunteer_partner_org_id)\n            volunteer_partner_org_id,\n            deactivated_on\n        FROM\n            volunteer_partner_orgs_upchieve_instances\n        ORDER BY\n            volunteer_partner_org_id,\n            created_at DESC) AS vpoui ON vpo.id = vpoui.volunteer_partner_org_id\nGROUP BY\n    vpo.key,\n    vpoui.deactivated_on"};
 
@@ -119,13 +154,17 @@ const getVolunteerPartnerOrgsIR: any = {"usedParamSet":{},"params":[],"statement
 export const getVolunteerPartnerOrgs = new PreparedQuery<IGetVolunteerPartnerOrgsParams,IGetVolunteerPartnerOrgsResult>(getVolunteerPartnerOrgsIR);
 
 
-/** Query 'MigrateExistingVolunteerPartnerOrgs' is invalid, so its result is assigned type 'never'.
- *  */
-export type IMigrateExistingVolunteerPartnerOrgsResult = never;
+/** 'MigrateExistingVolunteerPartnerOrgs' parameters type */
+export type IMigrateExistingVolunteerPartnerOrgsParams = void;
 
-/** Query 'MigrateExistingVolunteerPartnerOrgs' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IMigrateExistingVolunteerPartnerOrgsParams = never;
+/** 'MigrateExistingVolunteerPartnerOrgs' return type */
+export type IMigrateExistingVolunteerPartnerOrgsResult = void;
+
+/** 'MigrateExistingVolunteerPartnerOrgs' query type */
+export interface IMigrateExistingVolunteerPartnerOrgsQuery {
+  params: IMigrateExistingVolunteerPartnerOrgsParams;
+  result: IMigrateExistingVolunteerPartnerOrgsResult;
+}
 
 const migrateExistingVolunteerPartnerOrgsIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    vpo.id,\n    vpo.created_at,\n    NOW()\nFROM\n    volunteer_partner_orgs vpo"};
 
@@ -145,13 +184,21 @@ const migrateExistingVolunteerPartnerOrgsIR: any = {"usedParamSet":{},"params":[
 export const migrateExistingVolunteerPartnerOrgs = new PreparedQuery<IMigrateExistingVolunteerPartnerOrgsParams,IMigrateExistingVolunteerPartnerOrgsResult>(migrateExistingVolunteerPartnerOrgsIR);
 
 
-/** Query 'GetVolunteerPartnerOrgIdByKey' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetVolunteerPartnerOrgIdByKeyResult = never;
+/** 'GetVolunteerPartnerOrgIdByKey' parameters type */
+export interface IGetVolunteerPartnerOrgIdByKeyParams {
+  volunteerPartnerOrg: string;
+}
 
-/** Query 'GetVolunteerPartnerOrgIdByKey' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetVolunteerPartnerOrgIdByKeyParams = never;
+/** 'GetVolunteerPartnerOrgIdByKey' return type */
+export interface IGetVolunteerPartnerOrgIdByKeyResult {
+  id: string;
+}
+
+/** 'GetVolunteerPartnerOrgIdByKey' query type */
+export interface IGetVolunteerPartnerOrgIdByKeyQuery {
+  params: IGetVolunteerPartnerOrgIdByKeyParams;
+  result: IGetVolunteerPartnerOrgIdByKeyResult;
+}
 
 const getVolunteerPartnerOrgIdByKeyIR: any = {"usedParamSet":{"volunteerPartnerOrg":true},"params":[{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"locs":[{"a":62,"b":82}]}],"statement":"SELECT\n    id\nFROM\n    volunteer_partner_orgs\nWHERE\n    KEY = :volunteerPartnerOrg!"};
 
@@ -169,13 +216,17 @@ const getVolunteerPartnerOrgIdByKeyIR: any = {"usedParamSet":{"volunteerPartnerO
 export const getVolunteerPartnerOrgIdByKey = new PreparedQuery<IGetVolunteerPartnerOrgIdByKeyParams,IGetVolunteerPartnerOrgIdByKeyResult>(getVolunteerPartnerOrgIdByKeyIR);
 
 
-/** Query 'MigrateExistingvolunteerPartnerOrgRelationships' is invalid, so its result is assigned type 'never'.
- *  */
-export type IMigrateExistingvolunteerPartnerOrgRelationshipsResult = never;
+/** 'MigrateExistingvolunteerPartnerOrgRelationships' parameters type */
+export type IMigrateExistingvolunteerPartnerOrgRelationshipsParams = void;
 
-/** Query 'MigrateExistingvolunteerPartnerOrgRelationships' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IMigrateExistingvolunteerPartnerOrgRelationshipsParams = never;
+/** 'MigrateExistingvolunteerPartnerOrgRelationships' return type */
+export type IMigrateExistingvolunteerPartnerOrgRelationshipsResult = void;
+
+/** 'MigrateExistingvolunteerPartnerOrgRelationships' query type */
+export interface IMigrateExistingvolunteerPartnerOrgRelationshipsQuery {
+  params: IMigrateExistingvolunteerPartnerOrgRelationshipsParams;
+  result: IMigrateExistingvolunteerPartnerOrgRelationshipsResult;
+}
 
 const migrateExistingvolunteerPartnerOrgRelationshipsIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL"};
 
@@ -198,13 +249,23 @@ const migrateExistingvolunteerPartnerOrgRelationshipsIR: any = {"usedParamSet":{
 export const migrateExistingvolunteerPartnerOrgRelationships = new PreparedQuery<IMigrateExistingvolunteerPartnerOrgRelationshipsParams,IMigrateExistingvolunteerPartnerOrgRelationshipsResult>(migrateExistingvolunteerPartnerOrgRelationshipsIR);
 
 
-/** Query 'BackfillVolunteerPartnerOrgStartDates' is invalid, so its result is assigned type 'never'.
- *  */
-export type IBackfillVolunteerPartnerOrgStartDatesResult = never;
+/** 'BackfillVolunteerPartnerOrgStartDates' parameters type */
+export interface IBackfillVolunteerPartnerOrgStartDatesParams {
+  createdAt: DateOrString;
+  endedAt?: DateOrString | null | void;
+  vpoName: string;
+}
 
-/** Query 'BackfillVolunteerPartnerOrgStartDates' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IBackfillVolunteerPartnerOrgStartDatesParams = never;
+/** 'BackfillVolunteerPartnerOrgStartDates' return type */
+export interface IBackfillVolunteerPartnerOrgStartDatesResult {
+  ok: string;
+}
+
+/** 'BackfillVolunteerPartnerOrgStartDates' query type */
+export interface IBackfillVolunteerPartnerOrgStartDatesQuery {
+  params: IBackfillVolunteerPartnerOrgStartDatesParams;
+  result: IBackfillVolunteerPartnerOrgStartDatesResult;
+}
 
 const backfillVolunteerPartnerOrgStartDatesIR: any = {"usedParamSet":{"createdAt":true,"endedAt":true,"vpoName":true},"params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":84}]},{"name":"endedAt","required":false,"transform":{"type":"scalar"},"locs":[{"a":108,"b":115}]},{"name":"vpoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":282,"b":290}]}],"statement":"UPDATE\n    volunteer_partner_orgs_upchieve_instances\nSET\n    created_at = :createdAt!,\n    deactivated_on = :endedAt,\n    updated_at = NOW()\nFROM\n    volunteer_partner_orgs vpo\nWHERE\n    vpo.id = volunteer_partner_orgs_upchieve_instances.volunteer_partner_org_id\n    AND vpo.name = :vpoName!\nRETURNING\n    volunteer_partner_orgs_upchieve_instances.id AS ok"};
 

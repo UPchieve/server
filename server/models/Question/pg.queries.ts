@@ -1,13 +1,36 @@
 /** Types generated for queries found in "server/models/Question/question.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** Query 'List' is invalid, so its result is assigned type 'never'.
- *  */
-export type IListResult = never;
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
-/** Query 'List' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IListParams = never;
+export type numberArray = (number)[];
+
+export type stringArray = (string)[];
+
+/** 'List' parameters type */
+export interface IListParams {
+  category: string;
+  subcategory?: string | null | void;
+}
+
+/** 'List' return type */
+export interface IListResult {
+  category: string;
+  correctAnswer: string;
+  createdAt: Date;
+  id: number;
+  imageSrc: string | null;
+  possibleAnswers: Json | null;
+  questionText: string;
+  subcategory: string;
+  updatedAt: Date;
+}
+
+/** 'List' query type */
+export interface IListQuery {
+  params: IListParams;
+  result: IListResult;
+}
 
 const listIR: any = {"usedParamSet":{"category":true,"subcategory":true},"params":[{"name":"category","required":true,"transform":{"type":"scalar"},"locs":[{"a":405,"b":414}]},{"name":"subcategory","required":false,"transform":{"type":"scalar"},"locs":[{"a":437,"b":448}]}],"statement":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    subcat.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions AS ques\n    LEFT JOIN quiz_subcategories subcat ON ques.quiz_subcategory_id = subcat.id\n    LEFT JOIN quizzes ON quizzes.id = subcat.quiz_id\nWHERE\n    quizzes.name = :category!\n    OR subcat.name = :subcategory"};
 
@@ -36,13 +59,31 @@ const listIR: any = {"usedParamSet":{"category":true,"subcategory":true},"params
 export const list = new PreparedQuery<IListParams,IListResult>(listIR);
 
 
-/** Query 'Create' is invalid, so its result is assigned type 'never'.
- *  */
-export type ICreateResult = never;
+/** 'Create' parameters type */
+export interface ICreateParams {
+  correctAnswer: string;
+  imageSrc?: string | null | void;
+  possibleAnswers: Json;
+  questionText: string;
+  subcategoryId: number;
+}
 
-/** Query 'Create' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ICreateParams = never;
+/** 'Create' return type */
+export interface ICreateResult {
+  correctAnswer: string;
+  createdAt: Date;
+  id: number;
+  imageSrc: string | null;
+  possibleAnswers: Json | null;
+  questionText: string;
+  updatedAt: Date;
+}
+
+/** 'Create' query type */
+export interface ICreateQuery {
+  params: ICreateParams;
+  result: ICreateResult;
+}
 
 const createIR: any = {"usedParamSet":{"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true,"subcategoryId":true},"params":[{"name":"questionText","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":161}]},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":180}]},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"locs":[{"a":183,"b":197}]},{"name":"imageSrc","required":false,"transform":{"type":"scalar"},"locs":[{"a":200,"b":208}]},{"name":"subcategoryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":225}]}],"statement":"INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, image_source, quiz_subcategory_id, created_at, updated_at)\n    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :imageSrc, :subcategoryId!, NOW(), NOW())\nRETURNING\n    id, question_text, possible_answers, correct_answer, image_source AS image_src, created_at, updated_at"};
 
@@ -58,13 +99,21 @@ const createIR: any = {"usedParamSet":{"questionText":true,"possibleAnswers":tru
 export const create = new PreparedQuery<ICreateParams,ICreateResult>(createIR);
 
 
-/** Query 'UpsertQuiz' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpsertQuizResult = never;
+/** 'UpsertQuiz' parameters type */
+export interface IUpsertQuizParams {
+  name: string;
+}
 
-/** Query 'UpsertQuiz' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpsertQuizParams = never;
+/** 'UpsertQuiz' return type */
+export interface IUpsertQuizResult {
+  id: number | null;
+}
+
+/** 'UpsertQuiz' query type */
+export interface IUpsertQuizQuery {
+  params: IUpsertQuizParams;
+  result: IUpsertQuizResult;
+}
 
 const upsertQuizIR: any = {"usedParamSet":{"name":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":86},{"a":295,"b":300}]}],"statement":"WITH ins AS (\nINSERT INTO quizzes (name, created_at, updated_at)\n        VALUES (:name!, NOW(), NOW())\n    ON CONFLICT (name)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        quizzes\n    WHERE\n        name = :name!"};
 
@@ -94,13 +143,22 @@ const upsertQuizIR: any = {"usedParamSet":{"name":true},"params":[{"name":"name"
 export const upsertQuiz = new PreparedQuery<IUpsertQuizParams,IUpsertQuizResult>(upsertQuizIR);
 
 
-/** Query 'UpsertQuizSubcategory' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpsertQuizSubcategoryResult = never;
+/** 'UpsertQuizSubcategory' parameters type */
+export interface IUpsertQuizSubcategoryParams {
+  name: string;
+  quizId: number;
+}
 
-/** Query 'UpsertQuizSubcategory' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpsertQuizSubcategoryParams = never;
+/** 'UpsertQuizSubcategory' return type */
+export interface IUpsertQuizSubcategoryResult {
+  id: number | null;
+}
+
+/** 'UpsertQuizSubcategory' query type */
+export interface IUpsertQuizSubcategoryQuery {
+  params: IUpsertQuizSubcategoryParams;
+  result: IUpsertQuizSubcategoryResult;
+}
 
 const upsertQuizSubcategoryIR: any = {"usedParamSet":{"name":true,"quizId":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":101,"b":106},{"a":345,"b":350}]},{"name":"quizId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":116}]}],"statement":"WITH ins AS (\nINSERT INTO quiz_subcategories (name, quiz_id, created_at, updated_at)\n        VALUES (:name!, :quizId!, NOW(), NOW())\n    ON CONFLICT (name, quiz_id)\n        DO NOTHING\n    RETURNING\n        id)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        quiz_subcategories\n    WHERE\n        name = :name!"};
 
@@ -130,13 +188,21 @@ const upsertQuizSubcategoryIR: any = {"usedParamSet":{"name":true,"quizId":true}
 export const upsertQuizSubcategory = new PreparedQuery<IUpsertQuizSubcategoryParams,IUpsertQuizSubcategoryResult>(upsertQuizSubcategoryIR);
 
 
-/** Query 'Destroy' is invalid, so its result is assigned type 'never'.
- *  */
-export type IDestroyResult = never;
+/** 'Destroy' parameters type */
+export interface IDestroyParams {
+  questionId: number;
+}
 
-/** Query 'Destroy' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IDestroyParams = never;
+/** 'Destroy' return type */
+export interface IDestroyResult {
+  ok: number;
+}
+
+/** 'Destroy' query type */
+export interface IDestroyQuery {
+  params: IDestroyParams;
+  result: IDestroyResult;
+}
 
 const destroyIR: any = {"usedParamSet":{"questionId":true},"params":[{"name":"questionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":64}]}],"statement":"DELETE FROM quiz_questions\nWHERE quiz_questions.id = :questionId!\nRETURNING\n    id AS ok"};
 
@@ -152,13 +218,21 @@ const destroyIR: any = {"usedParamSet":{"questionId":true},"params":[{"name":"qu
 export const destroy = new PreparedQuery<IDestroyParams,IDestroyResult>(destroyIR);
 
 
-/** Query 'UpdateSubcategory' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpdateSubcategoryResult = never;
+/** 'UpdateSubcategory' parameters type */
+export interface IUpdateSubcategoryParams {
+  quizId: number;
+  quizSubcategoryId: number;
+  subcategory: string;
+}
 
-/** Query 'UpdateSubcategory' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpdateSubcategoryParams = never;
+/** 'UpdateSubcategory' return type */
+export type IUpdateSubcategoryResult = void;
+
+/** 'UpdateSubcategory' query type */
+export interface IUpdateSubcategoryQuery {
+  params: IUpdateSubcategoryParams;
+  result: IUpdateSubcategoryResult;
+}
 
 const updateSubcategoryIR: any = {"usedParamSet":{"quizSubcategoryId":true,"subcategory":true,"quizId":true},"params":[{"name":"quizSubcategoryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":105}]},{"name":"subcategory","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":120}]},{"name":"quizId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]}],"statement":"INSERT INTO quiz_subcategories (id, name, quiz_id, created_at, updated_at)\n    VALUES (:quizSubcategoryId!, :subcategory!, :quizId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING"};
 
@@ -174,13 +248,26 @@ const updateSubcategoryIR: any = {"usedParamSet":{"quizSubcategoryId":true,"subc
 export const updateSubcategory = new PreparedQuery<IUpdateSubcategoryParams,IUpdateSubcategoryResult>(updateSubcategoryIR);
 
 
-/** Query 'Update' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpdateResult = never;
+/** 'Update' parameters type */
+export interface IUpdateParams {
+  correctAnswer: string;
+  imageSrc?: string | null | void;
+  possibleAnswers: Json;
+  questionId: number;
+  questionText: string;
+  subcategoryId: number;
+}
 
-/** Query 'Update' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpdateParams = never;
+/** 'Update' return type */
+export interface IUpdateResult {
+  ok: number;
+}
+
+/** 'Update' query type */
+export interface IUpdateQuery {
+  params: IUpdateParams;
+  result: IUpdateResult;
+}
 
 const updateIR: any = {"usedParamSet":{"questionText":true,"possibleAnswers":true,"correctAnswer":true,"imageSrc":true,"subcategoryId":true,"questionId":true},"params":[{"name":"questionText","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":63}]},{"name":"possibleAnswers","required":true,"transform":{"type":"scalar"},"locs":[{"a":98,"b":114}]},{"name":"correctAnswer","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":171}]},{"name":"imageSrc","required":false,"transform":{"type":"scalar"},"locs":[{"a":202,"b":210}]},{"name":"subcategoryId","required":true,"transform":{"type":"scalar"},"locs":[{"a":278,"b":292}]},{"name":"questionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":324,"b":335}]}],"statement":"UPDATE\n    quiz_questions\nSET\n    question_text = :questionText!,\n    possible_answers = COALESCE(:possibleAnswers!, possible_answers),\n    correct_answer = :correctAnswer!,\n    image_source = COALESCE(:imageSrc, image_source),\n    updated_at = NOW(),\n    quiz_subcategory_id = :subcategoryId!\nWHERE\n    quiz_questions.id = :questionId!\nRETURNING\n    id AS ok"};
 
@@ -205,13 +292,20 @@ const updateIR: any = {"usedParamSet":{"questionText":true,"possibleAnswers":tru
 export const update = new PreparedQuery<IUpdateParams,IUpdateResult>(updateIR);
 
 
-/** Query 'Categories' is invalid, so its result is assigned type 'never'.
- *  */
-export type ICategoriesResult = never;
+/** 'Categories' parameters type */
+export type ICategoriesParams = void;
 
-/** Query 'Categories' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ICategoriesParams = never;
+/** 'Categories' return type */
+export interface ICategoriesResult {
+  categories: string;
+  subcategories: stringArray | null;
+}
+
+/** 'Categories' query type */
+export interface ICategoriesQuery {
+  params: ICategoriesParams;
+  result: ICategoriesResult;
+}
 
 const categoriesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    quizzes.name AS categories,\n    array_agg(quiz_subcategories.name) AS subcategories\nFROM\n    quizzes\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.quiz_id = quizzes.id\nGROUP BY\n    quizzes.name"};
 
@@ -231,13 +325,21 @@ const categoriesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n  
 export const categories = new PreparedQuery<ICategoriesParams,ICategoriesResult>(categoriesIR);
 
 
-/** Query 'GetSubcategoriesForQuiz' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetSubcategoriesForQuizResult = never;
+/** 'GetSubcategoriesForQuiz' parameters type */
+export interface IGetSubcategoriesForQuizParams {
+  quizName: string;
+}
 
-/** Query 'GetSubcategoriesForQuiz' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetSubcategoriesForQuizParams = never;
+/** 'GetSubcategoriesForQuiz' return type */
+export interface IGetSubcategoriesForQuizResult {
+  name: string;
+}
+
+/** 'GetSubcategoriesForQuiz' query type */
+export interface IGetSubcategoriesForQuizQuery {
+  params: IGetSubcategoriesForQuizParams;
+  result: IGetSubcategoriesForQuizResult;
+}
 
 const getSubcategoriesForQuizIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":157}]}],"statement":"SELECT\n    quiz_subcategories.name\nFROM\n    quiz_subcategories\n    JOIN quizzes ON quiz_subcategories.quiz_id = quizzes.id\nWHERE\n    quizzes.name = :quizName!"};
 
@@ -256,13 +358,29 @@ const getSubcategoriesForQuizIR: any = {"usedParamSet":{"quizName":true},"params
 export const getSubcategoriesForQuiz = new PreparedQuery<IGetSubcategoriesForQuizParams,IGetSubcategoriesForQuizResult>(getSubcategoriesForQuizIR);
 
 
-/** Query 'GetMultipleQuestionsById' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetMultipleQuestionsByIdResult = never;
+/** 'GetMultipleQuestionsById' parameters type */
+export interface IGetMultipleQuestionsByIdParams {
+  ids: numberArray;
+}
 
-/** Query 'GetMultipleQuestionsById' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetMultipleQuestionsByIdParams = never;
+/** 'GetMultipleQuestionsById' return type */
+export interface IGetMultipleQuestionsByIdResult {
+  category: string;
+  correctAnswer: string;
+  createdAt: Date;
+  id: number;
+  imageSrc: string | null;
+  possibleAnswers: Json | null;
+  questionText: string;
+  subcategory: string;
+  updatedAt: Date;
+}
+
+/** 'GetMultipleQuestionsById' query type */
+export interface IGetMultipleQuestionsByIdQuery {
+  params: IGetMultipleQuestionsByIdParams;
+  result: IGetMultipleQuestionsByIdResult;
+}
 
 const getMultipleQuestionsByIdIR: any = {"usedParamSet":{"ids":true},"params":[{"name":"ids","required":true,"transform":{"type":"scalar"},"locs":[{"a":431,"b":435}]}],"statement":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions ques\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\n    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE\n    ques.id = ANY (:ids!)"};
 
@@ -290,13 +408,31 @@ const getMultipleQuestionsByIdIR: any = {"usedParamSet":{"ids":true},"params":[{
 export const getMultipleQuestionsById = new PreparedQuery<IGetMultipleQuestionsByIdParams,IGetMultipleQuestionsByIdResult>(getMultipleQuestionsByIdIR);
 
 
-/** Query 'GetQuestionsByCategory' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetQuestionsByCategoryResult = never;
+/** 'GetQuestionsByCategory' parameters type */
+export interface IGetQuestionsByCategoryParams {
+  category: string;
+  limit: number;
+  offset: number;
+}
 
-/** Query 'GetQuestionsByCategory' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetQuestionsByCategoryParams = never;
+/** 'GetQuestionsByCategory' return type */
+export interface IGetQuestionsByCategoryResult {
+  category: string;
+  correctAnswer: string;
+  createdAt: Date;
+  id: number;
+  imageSrc: string | null;
+  possibleAnswers: Json | null;
+  questionText: string;
+  subcategory: string;
+  updatedAt: Date;
+}
+
+/** 'GetQuestionsByCategory' query type */
+export interface IGetQuestionsByCategoryQuery {
+  params: IGetQuestionsByCategoryParams;
+  result: IGetQuestionsByCategoryResult;
+}
 
 const getQuestionsByCategoryIR: any = {"usedParamSet":{"category":true,"limit":true,"offset":true},"params":[{"name":"category","required":true,"transform":{"type":"scalar"},"locs":[{"a":431,"b":440}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":449,"b":455}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":471,"b":478}]}],"statement":"SELECT\n    ques.id,\n    question_text,\n    possible_answers,\n    correct_answer,\n    quizzes.name AS category,\n    quiz_subcategories.name AS subcategory,\n    image_source AS image_src,\n    ques.created_at,\n    ques.updated_at\nFROM\n    quiz_questions ques\n    LEFT JOIN quiz_subcategories ON quiz_subcategories.id = ques.quiz_subcategory_id\n    LEFT JOIN quizzes ON quizzes.id = quiz_subcategories.quiz_id\nWHERE\n    quizzes.name = :category!\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
@@ -325,13 +461,24 @@ const getQuestionsByCategoryIR: any = {"usedParamSet":{"category":true,"limit":t
 export const getQuestionsByCategory = new PreparedQuery<IGetQuestionsByCategoryParams,IGetQuestionsByCategoryResult>(getQuestionsByCategoryIR);
 
 
-/** Query 'GetQuizReviewMaterials' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetQuizReviewMaterialsResult = never;
+/** 'GetQuizReviewMaterials' parameters type */
+export interface IGetQuizReviewMaterialsParams {
+  category: string;
+}
 
-/** Query 'GetQuizReviewMaterials' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetQuizReviewMaterialsParams = never;
+/** 'GetQuizReviewMaterials' return type */
+export interface IGetQuizReviewMaterialsResult {
+  category: string;
+  image: string;
+  pdf: string;
+  title: string;
+}
+
+/** 'GetQuizReviewMaterials' query type */
+export interface IGetQuizReviewMaterialsQuery {
+  params: IGetQuizReviewMaterialsParams;
+  result: IGetQuizReviewMaterialsResult;
+}
 
 const getQuizReviewMaterialsIR: any = {"usedParamSet":{"category":true},"params":[{"name":"category","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":196}]}],"statement":"SELECT\n    q.name AS category,\n    qm.title,\n    qm.pdf,\n    qm.image\nFROM\n    upchieve.quiz_review_materials AS qm\n    JOIN upchieve.quizzes AS q ON q.id = qm.quiz_id\nWHERE\n    q.name = :category!"};
 
@@ -353,13 +500,30 @@ const getQuizReviewMaterialsIR: any = {"usedParamSet":{"category":true},"params"
 export const getQuizReviewMaterials = new PreparedQuery<IGetQuizReviewMaterialsParams,IGetQuizReviewMaterialsResult>(getQuizReviewMaterialsIR);
 
 
-/** Query 'GetQuizCertUnlocksByQuizName' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetQuizCertUnlocksByQuizNameResult = never;
+/** 'GetQuizCertUnlocksByQuizName' parameters type */
+export interface IGetQuizCertUnlocksByQuizNameParams {
+  quizName: string;
+}
 
-/** Query 'GetQuizCertUnlocksByQuizName' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetQuizCertUnlocksByQuizNameParams = never;
+/** 'GetQuizCertUnlocksByQuizName' return type */
+export interface IGetQuizCertUnlocksByQuizNameResult {
+  quizDisplayName: string;
+  quizDisplayOrder: number;
+  quizName: string;
+  topicDashboardOrder: number;
+  topicDisplayName: string;
+  topicName: string;
+  topicTrainingOrder: number;
+  unlockedCertDisplayName: string;
+  unlockedCertDisplayOrder: number;
+  unlockedCertName: string;
+}
+
+/** 'GetQuizCertUnlocksByQuizName' query type */
+export interface IGetQuizCertUnlocksByQuizNameQuery {
+  params: IGetQuizCertUnlocksByQuizNameParams;
+  result: IGetQuizCertUnlocksByQuizNameResult;
+}
 
 const getQuizCertUnlocksByQuizNameIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":825,"b":834}]}],"statement":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!"};
 
@@ -391,13 +555,24 @@ const getQuizCertUnlocksByQuizNameIR: any = {"usedParamSet":{"quizName":true},"p
 export const getQuizCertUnlocksByQuizName = new PreparedQuery<IGetQuizCertUnlocksByQuizNameParams,IGetQuizCertUnlocksByQuizNameResult>(getQuizCertUnlocksByQuizNameIR);
 
 
-/** Query 'GetQuizByName' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetQuizByNameResult = never;
+/** 'GetQuizByName' parameters type */
+export interface IGetQuizByNameParams {
+  quizName: string;
+}
 
-/** Query 'GetQuizByName' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetQuizByNameParams = never;
+/** 'GetQuizByName' return type */
+export interface IGetQuizByNameResult {
+  active: boolean;
+  id: number;
+  name: string;
+  questionsPerSubcategory: number;
+}
+
+/** 'GetQuizByName' query type */
+export interface IGetQuizByNameQuery {
+  params: IGetQuizByNameParams;
+  result: IGetQuizByNameResult;
+}
 
 const getQuizByNameIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":118}]}],"statement":"SELECT\n    id,\n    name,\n    active,\n    questions_per_subcategory\nFROM\n    quizzes\nWHERE\n    quizzes.name = :quizName!"};
 

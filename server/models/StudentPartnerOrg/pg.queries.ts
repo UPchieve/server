@@ -1,13 +1,28 @@
 /** Types generated for queries found in "server/models/StudentPartnerOrg/student_partner_orgs.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** Query 'GetStudentPartnerOrgForRegistrationByKey' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgForRegistrationByKeyResult = never;
+export type DateOrString = Date | string;
 
-/** Query 'GetStudentPartnerOrgForRegistrationByKey' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgForRegistrationByKeyParams = never;
+export type stringArray = (string)[];
+
+/** 'GetStudentPartnerOrgForRegistrationByKey' parameters type */
+export interface IGetStudentPartnerOrgForRegistrationByKeyParams {
+  key: string;
+}
+
+/** 'GetStudentPartnerOrgForRegistrationByKey' return type */
+export interface IGetStudentPartnerOrgForRegistrationByKeyResult {
+  key: string;
+  name: string;
+  schoolSignupRequired: boolean;
+  sites: stringArray | null;
+}
+
+/** 'GetStudentPartnerOrgForRegistrationByKey' query type */
+export interface IGetStudentPartnerOrgForRegistrationByKeyQuery {
+  params: IGetStudentPartnerOrgForRegistrationByKeyParams;
+  result: IGetStudentPartnerOrgForRegistrationByKeyResult;
+}
 
 const getStudentPartnerOrgForRegistrationByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":345,"b":349}]}],"statement":"SELECT\n    KEY,\n    spo.name,\n    spo.school_signup_required,\n    sites.sites\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\nWHERE\n    spo.key = :key!"};
 
@@ -35,13 +50,27 @@ const getStudentPartnerOrgForRegistrationByKeyIR: any = {"usedParamSet":{"key":t
 export const getStudentPartnerOrgForRegistrationByKey = new PreparedQuery<IGetStudentPartnerOrgForRegistrationByKeyParams,IGetStudentPartnerOrgForRegistrationByKeyResult>(getStudentPartnerOrgForRegistrationByKeyIR);
 
 
-/** Query 'GetStudentPartnerOrgByKey' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgByKeyResult = never;
+/** 'GetStudentPartnerOrgByKey' parameters type */
+export interface IGetStudentPartnerOrgByKeyParams {
+  partnerKey: string;
+  partnerSite?: string | null | void;
+}
 
-/** Query 'GetStudentPartnerOrgByKey' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgByKeyParams = never;
+/** 'GetStudentPartnerOrgByKey' return type */
+export interface IGetStudentPartnerOrgByKeyResult {
+  partnerId: string;
+  partnerKey: string;
+  partnerName: string;
+  schoolId: string | null;
+  siteId: string;
+  siteName: string;
+}
+
+/** 'GetStudentPartnerOrgByKey' query type */
+export interface IGetStudentPartnerOrgByKeyQuery {
+  params: IGetStudentPartnerOrgByKeyParams;
+  result: IGetStudentPartnerOrgByKeyResult;
+}
 
 const getStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerKey":true,"partnerSite":true},"params":[{"name":"partnerKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":313,"b":324}]},{"name":"partnerSite","required":false,"transform":{"type":"scalar"},"locs":[{"a":336,"b":347},{"a":387,"b":398}]}],"statement":"SELECT\n    spo.id AS partner_id,\n    spo.key AS partner_key,\n    spo.name AS partner_name,\n    spos.id AS site_id,\n    spos.name AS site_name,\n    spo.school_id AS school_id\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\nWHERE\n    spo.key = :partnerKey!\n    AND ((:partnerSite)::text IS NULL\n        OR spos.name = :partnerSite)"};
 
@@ -67,13 +96,26 @@ const getStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerKey":true,"par
 export const getStudentPartnerOrgByKey = new PreparedQuery<IGetStudentPartnerOrgByKeyParams,IGetStudentPartnerOrgByKeyResult>(getStudentPartnerOrgByKeyIR);
 
 
-/** Query 'GetStudentPartnerOrgBySchoolId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgBySchoolIdResult = never;
+/** 'GetStudentPartnerOrgBySchoolId' parameters type */
+export interface IGetStudentPartnerOrgBySchoolIdParams {
+  schoolId: string;
+}
 
-/** Query 'GetStudentPartnerOrgBySchoolId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgBySchoolIdParams = never;
+/** 'GetStudentPartnerOrgBySchoolId' return type */
+export interface IGetStudentPartnerOrgBySchoolIdResult {
+  partnerId: string;
+  partnerKey: string;
+  partnerName: string;
+  schoolId: string | null;
+  siteId: string;
+  siteName: string;
+}
+
+/** 'GetStudentPartnerOrgBySchoolId' query type */
+export interface IGetStudentPartnerOrgBySchoolIdQuery {
+  params: IGetStudentPartnerOrgBySchoolIdParams;
+  result: IGetStudentPartnerOrgBySchoolIdResult;
+}
 
 const getStudentPartnerOrgBySchoolIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":373,"b":382}]}],"statement":"SELECT\n    spo.id AS partner_id,\n    spo.key AS partner_key,\n    spo.name AS partner_name,\n    spos.id AS site_id,\n    spos.name AS site_name,\n    spo.school_id AS school_id\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\n    LEFT JOIN schools school ON spo.school_id = school.id\nWHERE\n    school.id = :schoolId!\n    AND school.partner = TRUE"};
 
@@ -99,13 +141,29 @@ const getStudentPartnerOrgBySchoolIdIR: any = {"usedParamSet":{"schoolId":true},
 export const getStudentPartnerOrgBySchoolId = new PreparedQuery<IGetStudentPartnerOrgBySchoolIdParams,IGetStudentPartnerOrgBySchoolIdResult>(getStudentPartnerOrgBySchoolIdIR);
 
 
-/** Query 'GetFullStudentPartnerOrgByKey' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetFullStudentPartnerOrgByKeyResult = never;
+/** 'GetFullStudentPartnerOrgByKey' parameters type */
+export interface IGetFullStudentPartnerOrgByKeyParams {
+  key: string;
+}
 
-/** Query 'GetFullStudentPartnerOrgByKey' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetFullStudentPartnerOrgByKeyParams = never;
+/** 'GetFullStudentPartnerOrgByKey' return type */
+export interface IGetFullStudentPartnerOrgByKeyResult {
+  collegeSignup: boolean;
+  deactivated: boolean | null;
+  highSchoolSignup: boolean;
+  isSchool: boolean | null;
+  key: string;
+  name: string;
+  schoolSignupRequired: boolean;
+  signupCode: string | null;
+  sites: stringArray | null;
+}
+
+/** 'GetFullStudentPartnerOrgByKey' query type */
+export interface IGetFullStudentPartnerOrgByKeyQuery {
+  params: IGetFullStudentPartnerOrgByKeyParams;
+  result: IGetFullStudentPartnerOrgByKeyResult;
+}
 
 const getFullStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":976,"b":980}]}],"statement":"SELECT\n    KEY,\n    spo.name,\n    signup_code,\n    high_school_signup,\n    college_signup,\n    school_signup_required,\n    sites.sites,\n    (\n        CASE WHEN school_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_school,\n    CASE WHEN spoui.deactivated_on IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS deactivated\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\n    JOIN ( SELECT DISTINCT ON (student_partner_org_id)\n            student_partner_org_id,\n            deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances\n        ORDER BY\n            student_partner_org_id,\n            created_at DESC,\n            updated_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id\nWHERE\n    KEY = :key!"};
 
@@ -156,13 +214,27 @@ const getFullStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"param
 export const getFullStudentPartnerOrgByKey = new PreparedQuery<IGetFullStudentPartnerOrgByKeyParams,IGetFullStudentPartnerOrgByKeyResult>(getFullStudentPartnerOrgByKeyIR);
 
 
-/** Query 'GetStudentPartnerOrgs' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgsResult = never;
+/** 'GetStudentPartnerOrgs' parameters type */
+export type IGetStudentPartnerOrgsParams = void;
 
-/** Query 'GetStudentPartnerOrgs' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgsParams = never;
+/** 'GetStudentPartnerOrgs' return type */
+export interface IGetStudentPartnerOrgsResult {
+  collegeSignup: boolean;
+  deactivated: boolean | null;
+  highSchoolSignup: boolean;
+  isSchool: boolean | null;
+  key: string;
+  name: string;
+  schoolSignupRequired: boolean;
+  signupCode: string | null;
+  sites: stringArray | null;
+}
+
+/** 'GetStudentPartnerOrgs' query type */
+export interface IGetStudentPartnerOrgsQuery {
+  params: IGetStudentPartnerOrgsParams;
+  result: IGetStudentPartnerOrgsResult;
+}
 
 const getStudentPartnerOrgsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    KEY,\n    spo.name AS name,\n    signup_code,\n    high_school_signup,\n    college_signup,\n    school_signup_required,\n    sites.sites,\n    (\n        CASE WHEN school_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_school,\n    CASE WHEN spoui.deactivated_on IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS deactivated\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\n    JOIN ( SELECT DISTINCT ON (student_partner_org_id)\n            student_partner_org_id,\n            deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances\n        ORDER BY\n            student_partner_org_id,\n            created_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id"};
 
@@ -210,13 +282,21 @@ const getStudentPartnerOrgsIR: any = {"usedParamSet":{},"params":[],"statement":
 export const getStudentPartnerOrgs = new PreparedQuery<IGetStudentPartnerOrgsParams,IGetStudentPartnerOrgsResult>(getStudentPartnerOrgsIR);
 
 
-/** Query 'GetStudentPartnerOrgKeyByCode' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgKeyByCodeResult = never;
+/** 'GetStudentPartnerOrgKeyByCode' parameters type */
+export interface IGetStudentPartnerOrgKeyByCodeParams {
+  signupCode: string;
+}
 
-/** Query 'GetStudentPartnerOrgKeyByCode' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetStudentPartnerOrgKeyByCodeParams = never;
+/** 'GetStudentPartnerOrgKeyByCode' return type */
+export interface IGetStudentPartnerOrgKeyByCodeResult {
+  key: string;
+}
+
+/** 'GetStudentPartnerOrgKeyByCode' query type */
+export interface IGetStudentPartnerOrgKeyByCodeQuery {
+  params: IGetStudentPartnerOrgKeyByCodeParams;
+  result: IGetStudentPartnerOrgKeyByCodeResult;
+}
 
 const getStudentPartnerOrgKeyByCodeIR: any = {"usedParamSet":{"signupCode":true},"params":[{"name":"signupCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":69,"b":80}]}],"statement":"SELECT\n    KEY\nFROM\n    student_partner_orgs\nWHERE\n    signup_code = :signupCode!"};
 
@@ -234,13 +314,21 @@ const getStudentPartnerOrgKeyByCodeIR: any = {"usedParamSet":{"signupCode":true}
 export const getStudentPartnerOrgKeyByCode = new PreparedQuery<IGetStudentPartnerOrgKeyByCodeParams,IGetStudentPartnerOrgKeyByCodeResult>(getStudentPartnerOrgKeyByCodeIR);
 
 
-/** Query 'CreateUserStudentPartnerOrgInstance' is invalid, so its result is assigned type 'never'.
- *  */
-export type ICreateUserStudentPartnerOrgInstanceResult = never;
+/** 'CreateUserStudentPartnerOrgInstance' parameters type */
+export interface ICreateUserStudentPartnerOrgInstanceParams {
+  spoId: string;
+  sposId?: string | null | void;
+  userId: string;
+}
 
-/** Query 'CreateUserStudentPartnerOrgInstance' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ICreateUserStudentPartnerOrgInstanceParams = never;
+/** 'CreateUserStudentPartnerOrgInstance' return type */
+export type ICreateUserStudentPartnerOrgInstanceResult = void;
+
+/** 'CreateUserStudentPartnerOrgInstance' query type */
+export interface ICreateUserStudentPartnerOrgInstanceQuery {
+  params: ICreateUserStudentPartnerOrgInstanceParams;
+  result: ICreateUserStudentPartnerOrgInstanceResult;
+}
 
 const createUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":true,"spoId":true,"sposId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":131}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":134,"b":140}]},{"name":"sposId","required":false,"transform":{"type":"scalar"},"locs":[{"a":143,"b":149}]}],"statement":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id)\n    VALUES (:userId!, :spoId!, :sposId)"};
 
@@ -254,13 +342,17 @@ const createUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":tru
 export const createUserStudentPartnerOrgInstance = new PreparedQuery<ICreateUserStudentPartnerOrgInstanceParams,ICreateUserStudentPartnerOrgInstanceResult>(createUserStudentPartnerOrgInstanceIR);
 
 
-/** Query 'MigrateExistingStudentPartnerOrgs' is invalid, so its result is assigned type 'never'.
- *  */
-export type IMigrateExistingStudentPartnerOrgsResult = never;
+/** 'MigrateExistingStudentPartnerOrgs' parameters type */
+export type IMigrateExistingStudentPartnerOrgsParams = void;
 
-/** Query 'MigrateExistingStudentPartnerOrgs' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IMigrateExistingStudentPartnerOrgsParams = never;
+/** 'MigrateExistingStudentPartnerOrgs' return type */
+export type IMigrateExistingStudentPartnerOrgsResult = void;
+
+/** 'MigrateExistingStudentPartnerOrgs' query type */
+export interface IMigrateExistingStudentPartnerOrgsQuery {
+  params: IMigrateExistingStudentPartnerOrgsParams;
+  result: IMigrateExistingStudentPartnerOrgsResult;
+}
 
 const migrateExistingStudentPartnerOrgsIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo"};
 
@@ -280,13 +372,23 @@ const migrateExistingStudentPartnerOrgsIR: any = {"usedParamSet":{},"params":[],
 export const migrateExistingStudentPartnerOrgs = new PreparedQuery<IMigrateExistingStudentPartnerOrgsParams,IMigrateExistingStudentPartnerOrgsResult>(migrateExistingStudentPartnerOrgsIR);
 
 
-/** Query 'BackfillStudentPartnerOrgStartDates' is invalid, so its result is assigned type 'never'.
- *  */
-export type IBackfillStudentPartnerOrgStartDatesResult = never;
+/** 'BackfillStudentPartnerOrgStartDates' parameters type */
+export interface IBackfillStudentPartnerOrgStartDatesParams {
+  createdAt: DateOrString;
+  endedAt?: DateOrString | null | void;
+  spoName: string;
+}
 
-/** Query 'BackfillStudentPartnerOrgStartDates' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IBackfillStudentPartnerOrgStartDatesParams = never;
+/** 'BackfillStudentPartnerOrgStartDates' return type */
+export interface IBackfillStudentPartnerOrgStartDatesResult {
+  ok: string;
+}
+
+/** 'BackfillStudentPartnerOrgStartDates' query type */
+export interface IBackfillStudentPartnerOrgStartDatesQuery {
+  params: IBackfillStudentPartnerOrgStartDatesParams;
+  result: IBackfillStudentPartnerOrgStartDatesResult;
+}
 
 const backfillStudentPartnerOrgStartDatesIR: any = {"usedParamSet":{"createdAt":true,"endedAt":true,"spoName":true},"params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":72,"b":82}]},{"name":"endedAt","required":false,"transform":{"type":"scalar"},"locs":[{"a":106,"b":113}]},{"name":"spoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":274,"b":282}]}],"statement":"UPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    created_at = :createdAt!,\n    deactivated_on = :endedAt,\n    updated_at = NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id\n    AND spo.name = :spoName!\nRETURNING\n    student_partner_orgs_upchieve_instances.id AS ok"};
 
@@ -311,13 +413,19 @@ const backfillStudentPartnerOrgStartDatesIR: any = {"usedParamSet":{"createdAt":
 export const backfillStudentPartnerOrgStartDates = new PreparedQuery<IBackfillStudentPartnerOrgStartDatesParams,IBackfillStudentPartnerOrgStartDatesResult>(backfillStudentPartnerOrgStartDatesIR);
 
 
-/** Query 'CreateStudentPartnerOrgInstance' is invalid, so its result is assigned type 'never'.
- *  */
-export type ICreateStudentPartnerOrgInstanceResult = never;
+/** 'CreateStudentPartnerOrgInstance' parameters type */
+export interface ICreateStudentPartnerOrgInstanceParams {
+  spoName: string;
+}
 
-/** Query 'CreateStudentPartnerOrgInstance' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ICreateStudentPartnerOrgInstanceParams = never;
+/** 'CreateStudentPartnerOrgInstance' return type */
+export type ICreateStudentPartnerOrgInstanceResult = void;
+
+/** 'CreateStudentPartnerOrgInstance' query type */
+export interface ICreateStudentPartnerOrgInstanceQuery {
+  params: ICreateStudentPartnerOrgInstanceParams;
+  result: ICreateStudentPartnerOrgInstanceResult;
+}
 
 const createStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"spoName":true},"params":[{"name":"spoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":231,"b":239}]}],"statement":"INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.name = :spoName!"};
 
@@ -339,13 +447,19 @@ const createStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"spoName":true},
 export const createStudentPartnerOrgInstance = new PreparedQuery<ICreateStudentPartnerOrgInstanceParams,ICreateStudentPartnerOrgInstanceResult>(createStudentPartnerOrgInstanceIR);
 
 
-/** Query 'CreateSchoolStudentPartnerOrg' is invalid, so its result is assigned type 'never'.
- *  */
-export type ICreateSchoolStudentPartnerOrgResult = never;
+/** 'CreateSchoolStudentPartnerOrg' parameters type */
+export interface ICreateSchoolStudentPartnerOrgParams {
+  schoolName: string;
+}
 
-/** Query 'CreateSchoolStudentPartnerOrg' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ICreateSchoolStudentPartnerOrgParams = never;
+/** 'CreateSchoolStudentPartnerOrg' return type */
+export type ICreateSchoolStudentPartnerOrgResult = void;
+
+/** 'CreateSchoolStudentPartnerOrg' query type */
+export interface ICreateSchoolStudentPartnerOrgQuery {
+  params: ICreateSchoolStudentPartnerOrgParams;
+  result: ICreateSchoolStudentPartnerOrgResult;
+}
 
 const createSchoolStudentPartnerOrgIR: any = {"usedParamSet":{"schoolName":true},"params":[{"name":"schoolName","required":true,"transform":{"type":"scalar"},"locs":[{"a":452,"b":463}]}],"statement":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    COALESCE(schools.id, NULL),\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!\nON CONFLICT (name)\n    DO UPDATE SET\n        updated_at = NOW()"};
 
@@ -377,13 +491,21 @@ const createSchoolStudentPartnerOrgIR: any = {"usedParamSet":{"schoolName":true}
 export const createSchoolStudentPartnerOrg = new PreparedQuery<ICreateSchoolStudentPartnerOrgParams,ICreateSchoolStudentPartnerOrgResult>(createSchoolStudentPartnerOrgIR);
 
 
-/** Query 'DeactivateStudentPartnerOrg' is invalid, so its result is assigned type 'never'.
- *  */
-export type IDeactivateStudentPartnerOrgResult = never;
+/** 'DeactivateStudentPartnerOrg' parameters type */
+export interface IDeactivateStudentPartnerOrgParams {
+  spoName: string;
+}
 
-/** Query 'DeactivateStudentPartnerOrg' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IDeactivateStudentPartnerOrgParams = never;
+/** 'DeactivateStudentPartnerOrg' return type */
+export interface IDeactivateStudentPartnerOrgResult {
+  ok: string;
+}
+
+/** 'DeactivateStudentPartnerOrg' query type */
+export interface IDeactivateStudentPartnerOrgQuery {
+  params: IDeactivateStudentPartnerOrgParams;
+  result: IDeactivateStudentPartnerOrgResult;
+}
 
 const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"spoName":true},"params":[{"name":"spoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":241,"b":249}]}],"statement":"UPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id\n    AND spo.name = :spoName!\nRETURNING\n    student_partner_orgs_upchieve_instances.id AS ok"};
 
@@ -407,13 +529,20 @@ const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"spoName":true},"par
 export const deactivateStudentPartnerOrg = new PreparedQuery<IDeactivateStudentPartnerOrgParams,IDeactivateStudentPartnerOrgResult>(deactivateStudentPartnerOrgIR);
 
 
-/** Query 'DeactivateUserStudentPartnerOrgInstance' is invalid, so its result is assigned type 'never'.
- *  */
-export type IDeactivateUserStudentPartnerOrgInstanceResult = never;
+/** 'DeactivateUserStudentPartnerOrgInstance' parameters type */
+export interface IDeactivateUserStudentPartnerOrgInstanceParams {
+  spoId: string;
+  userId: string;
+}
 
-/** Query 'DeactivateUserStudentPartnerOrgInstance' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IDeactivateUserStudentPartnerOrgInstanceParams = never;
+/** 'DeactivateUserStudentPartnerOrgInstance' return type */
+export type IDeactivateUserStudentPartnerOrgInstanceResult = void;
+
+/** 'DeactivateUserStudentPartnerOrgInstance' query type */
+export interface IDeactivateUserStudentPartnerOrgInstanceQuery {
+  params: IDeactivateUserStudentPartnerOrgInstanceParams;
+  result: IDeactivateUserStudentPartnerOrgInstanceResult;
+}
 
 const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":true,"spoId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":165,"b":171}]}],"statement":"UPDATE\n    users_student_partner_orgs_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND student_partner_org_id = :spoId!"};
 
@@ -433,13 +562,20 @@ const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId"
 export const deactivateUserStudentPartnerOrgInstance = new PreparedQuery<IDeactivateUserStudentPartnerOrgInstanceParams,IDeactivateUserStudentPartnerOrgInstanceResult>(deactivateUserStudentPartnerOrgInstanceIR);
 
 
-/** Query 'MigratePartnerSchoolsToPartnerOrgs' is invalid, so its result is assigned type 'never'.
- *  */
-export type IMigratePartnerSchoolsToPartnerOrgsResult = never;
+/** 'MigratePartnerSchoolsToPartnerOrgs' parameters type */
+export interface IMigratePartnerSchoolsToPartnerOrgsParams {
+  createdAt: DateOrString;
+  schoolName: string;
+}
 
-/** Query 'MigratePartnerSchoolsToPartnerOrgs' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IMigratePartnerSchoolsToPartnerOrgsParams = never;
+/** 'MigratePartnerSchoolsToPartnerOrgs' return type */
+export type IMigratePartnerSchoolsToPartnerOrgsResult = void;
+
+/** 'MigratePartnerSchoolsToPartnerOrgs' query type */
+export interface IMigratePartnerSchoolsToPartnerOrgsQuery {
+  params: IMigratePartnerSchoolsToPartnerOrgsParams;
+  result: IMigratePartnerSchoolsToPartnerOrgsResult;
+}
 
 const migratePartnerSchoolsToPartnerOrgsIR: any = {"usedParamSet":{"createdAt":true,"schoolName":true},"params":[{"name":"createdAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":361,"b":371}]},{"name":"schoolName","required":true,"transform":{"type":"scalar"},"locs":[{"a":442,"b":453}]}],"statement":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    schools.id,\n    :createdAt!,\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!"};
 
@@ -468,13 +604,17 @@ const migratePartnerSchoolsToPartnerOrgsIR: any = {"usedParamSet":{"createdAt":t
 export const migratePartnerSchoolsToPartnerOrgs = new PreparedQuery<IMigratePartnerSchoolsToPartnerOrgsParams,IMigratePartnerSchoolsToPartnerOrgsResult>(migratePartnerSchoolsToPartnerOrgsIR);
 
 
-/** Query 'MigrateExistingStudentPartnerOrgRelationships' is invalid, so its result is assigned type 'never'.
- *  */
-export type IMigrateExistingStudentPartnerOrgRelationshipsResult = never;
+/** 'MigrateExistingStudentPartnerOrgRelationships' parameters type */
+export type IMigrateExistingStudentPartnerOrgRelationshipsParams = void;
 
-/** Query 'MigrateExistingStudentPartnerOrgRelationships' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IMigrateExistingStudentPartnerOrgRelationshipsParams = never;
+/** 'MigrateExistingStudentPartnerOrgRelationships' return type */
+export type IMigrateExistingStudentPartnerOrgRelationshipsResult = void;
+
+/** 'MigrateExistingStudentPartnerOrgRelationships' query type */
+export interface IMigrateExistingStudentPartnerOrgRelationshipsQuery {
+  params: IMigrateExistingStudentPartnerOrgRelationshipsParams;
+  result: IMigrateExistingStudentPartnerOrgRelationshipsResult;
+}
 
 const migrateExistingStudentPartnerOrgRelationshipsIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    sp.student_partner_org_site_id,\n    sp.student_partner_org_user_id,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\nWHERE\n    sp.student_partner_org_id IS NOT NULL"};
 
@@ -499,13 +639,17 @@ const migrateExistingStudentPartnerOrgRelationshipsIR: any = {"usedParamSet":{},
 export const migrateExistingStudentPartnerOrgRelationships = new PreparedQuery<IMigrateExistingStudentPartnerOrgRelationshipsParams,IMigrateExistingStudentPartnerOrgRelationshipsResult>(migrateExistingStudentPartnerOrgRelationshipsIR);
 
 
-/** Query 'MigrateExistingPartnerSchoolRelationships' is invalid, so its result is assigned type 'never'.
- *  */
-export type IMigrateExistingPartnerSchoolRelationshipsResult = never;
+/** 'MigrateExistingPartnerSchoolRelationships' parameters type */
+export type IMigrateExistingPartnerSchoolRelationshipsParams = void;
 
-/** Query 'MigrateExistingPartnerSchoolRelationships' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IMigrateExistingPartnerSchoolRelationshipsParams = never;
+/** 'MigrateExistingPartnerSchoolRelationships' return type */
+export type IMigrateExistingPartnerSchoolRelationshipsResult = void;
+
+/** 'MigrateExistingPartnerSchoolRelationships' query type */
+export interface IMigrateExistingPartnerSchoolRelationshipsQuery {
+  params: IMigrateExistingPartnerSchoolRelationshipsParams;
+  result: IMigrateExistingPartnerSchoolRelationshipsResult;
+}
 
 const migrateExistingPartnerSchoolRelationshipsIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    spo.id,\n    NULL,\n    NULL,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\n    JOIN student_partner_orgs spo ON spo.school_id = sp.school_id"};
 

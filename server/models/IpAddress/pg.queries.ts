@@ -1,13 +1,27 @@
 /** Types generated for queries found in "server/models/IpAddress/ip_address.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** Query 'GetIpByRawString' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetIpByRawStringResult = never;
+export type NumberOrString = number | string;
 
-/** Query 'GetIpByRawString' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetIpByRawStringParams = never;
+/** 'GetIpByRawString' parameters type */
+export interface IGetIpByRawStringParams {
+  ip: string;
+}
+
+/** 'GetIpByRawString' return type */
+export interface IGetIpByRawStringResult {
+  createdAt: Date;
+  id: string;
+  ip: string;
+  status: string | null;
+  updatedAt: Date;
+}
+
+/** 'GetIpByRawString' query type */
+export interface IGetIpByRawStringQuery {
+  params: IGetIpByRawStringParams;
+  result: IGetIpByRawStringResult;
+}
 
 const getIpByRawStringIR: any = {"usedParamSet":{"ip":true},"params":[{"name":"ip","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":106}]}],"statement":"SELECT\n    id,\n    ip,\n    status,\n    created_at,\n    updated_at\nFROM\n    ip_addresses\nWHERE\n    ip = :ip!"};
 
@@ -29,13 +43,26 @@ const getIpByRawStringIR: any = {"usedParamSet":{"ip":true},"params":[{"name":"i
 export const getIpByRawString = new PreparedQuery<IGetIpByRawStringParams,IGetIpByRawStringResult>(getIpByRawStringIR);
 
 
-/** Query 'InsertIpByRawString' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertIpByRawStringResult = never;
+/** 'InsertIpByRawString' parameters type */
+export interface IInsertIpByRawStringParams {
+  id: NumberOrString;
+  ip: string;
+}
 
-/** Query 'InsertIpByRawString' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertIpByRawStringParams = never;
+/** 'InsertIpByRawString' return type */
+export interface IInsertIpByRawStringResult {
+  createdAt: Date;
+  id: string;
+  ip: string;
+  status: string | null;
+  updatedAt: Date;
+}
+
+/** 'InsertIpByRawString' query type */
+export interface IInsertIpByRawStringQuery {
+  params: IInsertIpByRawStringParams;
+  result: IInsertIpByRawStringResult;
+}
 
 const insertIpByRawStringIR: any = {"usedParamSet":{"id":true,"ip":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":73}]},{"name":"ip","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":79}]}],"statement":"INSERT INTO ip_addresses (id, ip, created_at, updated_at)\n    VALUES (:id!, :ip!, NOW(), NOW())\nRETURNING\n    id, ip, status, created_at, updated_at"};
 
@@ -51,13 +78,23 @@ const insertIpByRawStringIR: any = {"usedParamSet":{"id":true,"ip":true},"params
 export const insertIpByRawString = new PreparedQuery<IInsertIpByRawStringParams,IInsertIpByRawStringResult>(insertIpByRawStringIR);
 
 
-/** Query 'InsertUsersIpById' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertUsersIpByIdResult = never;
+/** 'InsertUsersIpById' parameters type */
+export interface IInsertUsersIpByIdParams {
+  id: string;
+  ipId: number;
+  userId: string;
+}
 
-/** Query 'InsertUsersIpById' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertUsersIpByIdParams = never;
+/** 'InsertUsersIpById' return type */
+export interface IInsertUsersIpByIdResult {
+  ok: string;
+}
+
+/** 'InsertUsersIpById' query type */
+export interface IInsertUsersIpByIdQuery {
+  params: IInsertUsersIpByIdParams;
+  result: IInsertUsersIpByIdResult;
+}
 
 const insertUsersIpByIdIR: any = {"usedParamSet":{"id":true,"ipId":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":96,"b":99}]},{"name":"ipId","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":107}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":110,"b":117}]}],"statement":"INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)\n    VALUES (:id!, :ipId!, :userId!, NOW(), NOW())\nRETURNING\n    id AS ok"};
 
@@ -73,13 +110,22 @@ const insertUsersIpByIdIR: any = {"usedParamSet":{"id":true,"ipId":true,"userId"
 export const insertUsersIpById = new PreparedQuery<IInsertUsersIpByIdParams,IInsertUsersIpByIdResult>(insertUsersIpByIdIR);
 
 
-/** Query 'UpdateIpStatusByUserId' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpdateIpStatusByUserIdResult = never;
+/** 'UpdateIpStatusByUserId' parameters type */
+export interface IUpdateIpStatusByUserIdParams {
+  status: string;
+  userId?: string | null | void;
+}
 
-/** Query 'UpdateIpStatusByUserId' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpdateIpStatusByUserIdParams = never;
+/** 'UpdateIpStatusByUserId' return type */
+export interface IUpdateIpStatusByUserIdResult {
+  ok: string;
+}
+
+/** 'UpdateIpStatusByUserId' query type */
+export interface IUpdateIpStatusByUserIdQuery {
+  params: IUpdateIpStatusByUserIdParams;
+  result: IUpdateIpStatusByUserIdResult;
+}
 
 const updateIpStatusByUserIdIR: any = {"usedParamSet":{"status":true,"userId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":46,"b":53}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":221,"b":227}]}],"statement":"UPDATE\n    ONLY ip_addresses\nSET\n    status = :status!,\n    updated_at = NOW()\nWHERE\n    id = ANY (\n        SELECT\n            ip_address_id\n        FROM\n            users_ip_addresses\n        WHERE\n            user_id = :userId)\nRETURNING\n    id AS ok"};
 
