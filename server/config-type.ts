@@ -268,5 +268,8 @@ export const Config = Record({
 
   tremendousDomain: String,
   tremendousApiKey: String,
+  tremendousRewardDomain: String,
   tremendousImpactStudyCampaign: String,
+  tremendousCustomFieldsCacheExpirationSeconds: Number,
+  tremendousCampaignCacheExpirationSeconds: Number,
 })
