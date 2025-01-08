@@ -2,62 +2,78 @@ import { check } from 'tcp-port-used'
 import { PostgreSqlContainer, Wait } from 'testcontainers'
 
 export default async function setup() {
+  try {
+      console.log('Setting up the PostgreSQL container...')
   const { path, host, port } = await ContainerConfigFactory.getContainerConfig()
+  console.log(
+    `Container configuration: path=${path}, host=${host}, port=${port}`
+  )
   const container = await createTestDbContainer(path, host, port).start()
+  console.log('PostgreSQL container started.')
 
   process.env.__TEST_DB_CONNECTION_STRING__ = container.getConnectionUri()
   // @ts-ignore
   global.__TEST_DB_CONTAINER__ = container
+
+  console.log('PostgreSQL container setup complete.')
+  } catch (err) {
+    console.error('Error setting up the PostgreSQL container:', err)
+  }
 }
 
 function createTestDbContainer(path: string, host: string, port: number) {
-  return new PostgreSqlContainer('postgres:14')
-    .withHealthCheck({
-      test: [
-        'CMD',
-        'pg_isready',
-        '-h',
-        host,
-        '-U',
-        'admin',
-        '-d',
-        'upchieve',
-        '-p',
-        String(port),
-      ],
-      interval: 1, // ping every second
-      retries: 60,
-      startPeriod: 5, // wait 5 seconds before counting against retries
-    })
-    .withWaitStrategy(Wait.forHealthCheck())
-    .withExposedPorts(port)
-    .withUsername('admin')
-    .withPassword('Password123')
-    .withDatabase('upchieve')
-    .withEnvironment({
-      POSTGRES_PASSWORD: 'Password123',
-      POSTGRES_DB: 'upchieve',
-      POSTGRES_USER: 'admin',
-      PGPORT: String(port),
-    })
-    .withCopyFilesToContainer([
-      {
-        source: `${path}/database/db_init/schema.sql`,
-        target: '/docker-entrypoint-initdb.d/a.sql',
-      },
-      {
-        source: `${path}/database/db_init/auth.sql`,
-        target: '/docker-entrypoint-initdb.d/b.sql',
-      },
-      {
-        source: `${path}/database/db_init/test_seeds.sql`,
-        target: '/docker-entrypoint-initdb.d/c.sql',
-      },
-      {
-        source: `${path}/database/db_init/seed_migrations.sql`,
-        target: '/docker-entrypoint-initdb.d/d.sql',
-      },
-    ])
+  return (
+    new PostgreSqlContainer('postgres:14')
+      .withHealthCheck({
+        test: [
+          'CMD',
+          'pg_isready',
+          '-h',
+          host,
+          '-U',
+          'admin',
+          '-d',
+          'upchieve',
+          '-p',
+          String(port),
+        ],
+        interval: 1, // ping every second
+        retries: 60,
+        startPeriod: 5, // wait 5 seconds before counting against retries
+      })
+      .withWaitStrategy(
+        Wait.forLogMessage(/database system is ready to accept connections/)
+      ) // Explicit log wait
+      // .withWaitStrategy(Wait.forHealthCheck())
+      .withExposedPorts(port)
+      .withUsername('admin')
+      .withPassword('Password123')
+      .withDatabase('upchieve')
+      .withEnvironment({
+        POSTGRES_PASSWORD: 'Password123',
+        POSTGRES_DB: 'upchieve',
+        POSTGRES_USER: 'admin',
+        PGPORT: String(port),
+      })
+      .withCopyFilesToContainer([
+        {
+          source: `${path}/database/db_init/schema.sql`,
+          target: '/docker-entrypoint-initdb.d/a.sql',
+        },
+        {
+          source: `${path}/database/db_init/auth.sql`,
+          target: '/docker-entrypoint-initdb.d/b.sql',
+        },
+        {
+          source: `${path}/database/db_init/test_seeds.sql`,
+          target: '/docker-entrypoint-initdb.d/c.sql',
+        },
+        {
+          source: `${path}/database/db_init/seed_migrations.sql`,
+          target: '/docker-entrypoint-initdb.d/d.sql',
+        },
+      ])
+  )
 }
 
 class ContainerConfigFactory {
