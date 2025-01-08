@@ -47,10 +47,7 @@ export async function incentiveProgramEnrollmentEnroll(
   return enrollmentDate
 }
 
-export async function impactStudyEnrollment(
-  userId: Ulid,
-  surveyId: number
-) {
+export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
   const user = await getUserContactInfoById(userId)
   if (!user) throw new NotAllowedError('No user found')
 
