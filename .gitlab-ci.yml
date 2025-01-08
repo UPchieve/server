@@ -188,7 +188,6 @@ test_database:
   image: node:20.10.0-bullseye
   services:
     - name: docker:20.10.6-dind
-      alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
     POSTGRES_DB: upchieve
