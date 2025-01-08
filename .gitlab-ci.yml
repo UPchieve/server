@@ -190,7 +190,7 @@ test_database:
     - name: docker:20.10.6-dind
       alias: docker
   variables:
-   DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_CERTDIR: ""
     POSTGRES_DB: upchieve
     POSTGRES_USER: admin
     POSTGRES_PASSWORD: Password123
