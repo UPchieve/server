@@ -66,8 +66,8 @@ class ContainerConfigFactory {
   static async getContainerConfig() {
     const isCI = Boolean(process.env.CI)
     const path = isCI ? '/builds/upchieve.subway' : '.'
-    const host = isCI ? 'docker' : 'localhost'
-    const port = isCI ? await this.genPort(host) : 5432
+    const host = isCI ? 'postgres' : 'localhost' // Use 'postgres' for the GitLab CI service hostname
+    const port = isCI ? 5432 : await this.genPort(host) // Default PostgreSQL port in CI
 
     return { path, host, port }
   }
@@ -75,10 +75,11 @@ class ContainerConfigFactory {
   private static async genPort(host: string): Promise<number> {
     let iter = 0
     while (iter < 100) {
-      const port = Math.floor(Math.random() * (65535 - 1024 + 1) + 1024) // tcp ports range 1024-65535
+      const port = Math.floor(Math.random() * (65535 - 1024 + 1) + 1024) // TCP ports range 1024-65535
       if (!(await check(port, host))) return port
       iter += 1
     }
     throw new Error('Could not generate valid port')
   }
 }
+
