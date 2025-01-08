@@ -1,26 +1,13 @@
 /** Types generated for queries found in "server/models/ModerationInfractions/moderation_infractions.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+/** Query 'InsertModerationInfraction' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertModerationInfractionResult = never;
 
-/** 'InsertModerationInfraction' parameters type */
-export interface IInsertModerationInfractionParams {
-  id: string;
-  reason: Json;
-  sessionId: string;
-  userId: string;
-}
-
-/** 'InsertModerationInfraction' return type */
-export interface IInsertModerationInfractionResult {
-  infractionCount: string | null;
-}
-
-/** 'InsertModerationInfraction' query type */
-export interface IInsertModerationInfractionQuery {
-  params: IInsertModerationInfractionParams;
-  result: IInsertModerationInfractionResult;
-}
+/** Query 'InsertModerationInfraction' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertModerationInfractionParams = never;
 
 const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":116}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126},{"a":273,"b":280}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139},{"a":311,"b":321}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":149}]}],"statement":"WITH insert_infraction AS (\nINSERT INTO moderation_infractions (id, user_id, session_id, reason)\n        VALUES (:id!, :userId!, :sessionId!, :reason!))\n    SELECT\n        1 + count(*) AS infraction_count\n    FROM\n        moderation_infractions\n    WHERE\n        user_id = :userId!\n            AND session_id = :sessionId!"};
 
@@ -42,20 +29,13 @@ const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":tr
 export const insertModerationInfraction = new PreparedQuery<IInsertModerationInfractionParams,IInsertModerationInfractionResult>(insertModerationInfractionIR);
 
 
-/** 'UpdateModerationInfractionById' parameters type */
-export interface IUpdateModerationInfractionByIdParams {
-  active?: boolean | null | void;
-  id: string;
-}
+/** Query 'UpdateModerationInfractionById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateModerationInfractionByIdResult = never;
 
-/** 'UpdateModerationInfractionById' return type */
-export type IUpdateModerationInfractionByIdResult = void;
-
-/** 'UpdateModerationInfractionById' query type */
-export interface IUpdateModerationInfractionByIdQuery {
-  params: IUpdateModerationInfractionByIdParams;
-  result: IUpdateModerationInfractionByIdResult;
-}
+/** Query 'UpdateModerationInfractionById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateModerationInfractionByIdParams = never;
 
 const updateModerationInfractionByIdIR: any = {"usedParamSet":{"active":true,"id":true},"params":[{"name":"active","required":false,"transform":{"type":"scalar"},"locs":[{"a":60,"b":66}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":95}]}],"statement":"UPDATE\n    moderation_infractions\nSET\n    active = COALESCE(:active, active)\nWHERE\n    id = :id!"};
 
@@ -73,28 +53,13 @@ const updateModerationInfractionByIdIR: any = {"usedParamSet":{"active":true,"id
 export const updateModerationInfractionById = new PreparedQuery<IUpdateModerationInfractionByIdParams,IUpdateModerationInfractionByIdResult>(updateModerationInfractionByIdIR);
 
 
-/** 'GetModerationInfractionsByUserAndSession' parameters type */
-export interface IGetModerationInfractionsByUserAndSessionParams {
-  sessionId: string;
-  userId: string;
-}
+/** Query 'GetModerationInfractionsByUserAndSession' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetModerationInfractionsByUserAndSessionResult = never;
 
-/** 'GetModerationInfractionsByUserAndSession' return type */
-export interface IGetModerationInfractionsByUserAndSessionResult {
-  active: boolean;
-  createdAt: Date;
-  id: string;
-  reason: Json;
-  sessionId: string;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetModerationInfractionsByUserAndSession' query type */
-export interface IGetModerationInfractionsByUserAndSessionQuery {
-  params: IGetModerationInfractionsByUserAndSessionParams;
-  result: IGetModerationInfractionsByUserAndSessionResult;
-}
+/** Query 'GetModerationInfractionsByUserAndSession' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetModerationInfractionsByUserAndSessionParams = never;
 
 const getModerationInfractionsByUserAndSessionIR: any = {"usedParamSet":{"userId":true,"sessionId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":72}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":105}]}],"statement":"SELECT\n    *\nFROM\n    moderation_infractions\nWHERE\n    user_id = :userId!\n    AND session_id = :sessionId!"};
 

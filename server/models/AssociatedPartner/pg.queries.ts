@@ -1,27 +1,13 @@
 /** Types generated for queries found in "server/models/AssociatedPartner/associated_partners.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** 'GetAssociatedPartners' parameters type */
-export type IGetAssociatedPartnersParams = void;
+/** Query 'GetAssociatedPartners' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnersResult = never;
 
-/** 'GetAssociatedPartners' return type */
-export interface IGetAssociatedPartnersResult {
-  key: string;
-  studentOrgDisplay: string | null;
-  studentPartnerOrg: string;
-  studentPartnerOrgId: string;
-  studentSponsorOrg: string;
-  studentSponsorOrgId: string;
-  volunteerOrgDisplay: string;
-  volunteerPartnerOrg: string;
-  volunteerPartnerOrgId: string;
-}
-
-/** 'GetAssociatedPartners' query type */
-export interface IGetAssociatedPartnersQuery {
-  params: IGetAssociatedPartnersParams;
-  result: IGetAssociatedPartnersResult;
-}
+/** Query 'GetAssociatedPartners' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnersParams = never;
 
 const getAssociatedPartnersIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id"};
 
@@ -48,29 +34,13 @@ const getAssociatedPartnersIR: any = {"usedParamSet":{},"params":[],"statement":
 export const getAssociatedPartners = new PreparedQuery<IGetAssociatedPartnersParams,IGetAssociatedPartnersResult>(getAssociatedPartnersIR);
 
 
-/** 'GetAssociatedPartnerByKey' parameters type */
-export interface IGetAssociatedPartnerByKeyParams {
-  key: string;
-}
+/** Query 'GetAssociatedPartnerByKey' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerByKeyResult = never;
 
-/** 'GetAssociatedPartnerByKey' return type */
-export interface IGetAssociatedPartnerByKeyResult {
-  key: string;
-  studentOrgDisplay: string | null;
-  studentPartnerOrg: string;
-  studentPartnerOrgId: string;
-  studentSponsorOrg: string;
-  studentSponsorOrgId: string;
-  volunteerOrgDisplay: string;
-  volunteerPartnerOrg: string;
-  volunteerPartnerOrgId: string;
-}
-
-/** 'GetAssociatedPartnerByKey' query type */
-export interface IGetAssociatedPartnerByKeyQuery {
-  params: IGetAssociatedPartnerByKeyParams;
-  result: IGetAssociatedPartnerByKeyResult;
-}
+/** Query 'GetAssociatedPartnerByKey' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerByKeyParams = never;
 
 const getAssociatedPartnerByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":615,"b":619}]}],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    ap.key = :key!"};
 
@@ -99,29 +69,13 @@ const getAssociatedPartnerByKeyIR: any = {"usedParamSet":{"key":true},"params":[
 export const getAssociatedPartnerByKey = new PreparedQuery<IGetAssociatedPartnerByKeyParams,IGetAssociatedPartnerByKeyResult>(getAssociatedPartnerByKeyIR);
 
 
-/** 'GetAssociatedPartnerBySponsorOrgKey' parameters type */
-export interface IGetAssociatedPartnerBySponsorOrgKeyParams {
-  key: string;
-}
+/** Query 'GetAssociatedPartnerBySponsorOrgKey' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerBySponsorOrgKeyResult = never;
 
-/** 'GetAssociatedPartnerBySponsorOrgKey' return type */
-export interface IGetAssociatedPartnerBySponsorOrgKeyResult {
-  key: string;
-  studentOrgDisplay: string | null;
-  studentPartnerOrg: string;
-  studentPartnerOrgId: string;
-  studentSponsorOrg: string;
-  studentSponsorOrgId: string;
-  volunteerOrgDisplay: string;
-  volunteerPartnerOrg: string;
-  volunteerPartnerOrgId: string;
-}
-
-/** 'GetAssociatedPartnerBySponsorOrgKey' query type */
-export interface IGetAssociatedPartnerBySponsorOrgKeyQuery {
-  params: IGetAssociatedPartnerBySponsorOrgKeyParams;
-  result: IGetAssociatedPartnerBySponsorOrgKeyResult;
-}
+/** Query 'GetAssociatedPartnerBySponsorOrgKey' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerBySponsorOrgKeyParams = never;
 
 const getAssociatedPartnerBySponsorOrgKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":615,"b":619}]}],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    so.key = :key!"};
 
@@ -150,29 +104,13 @@ const getAssociatedPartnerBySponsorOrgKeyIR: any = {"usedParamSet":{"key":true},
 export const getAssociatedPartnerBySponsorOrgKey = new PreparedQuery<IGetAssociatedPartnerBySponsorOrgKeyParams,IGetAssociatedPartnerBySponsorOrgKeyResult>(getAssociatedPartnerBySponsorOrgKeyIR);
 
 
-/** 'GetAssociatedPartnerByPartnerOrgKey' parameters type */
-export interface IGetAssociatedPartnerByPartnerOrgKeyParams {
-  key: string;
-}
+/** Query 'GetAssociatedPartnerByPartnerOrgKey' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerByPartnerOrgKeyResult = never;
 
-/** 'GetAssociatedPartnerByPartnerOrgKey' return type */
-export interface IGetAssociatedPartnerByPartnerOrgKeyResult {
-  key: string;
-  studentOrgDisplay: string | null;
-  studentPartnerOrg: string;
-  studentPartnerOrgId: string;
-  studentSponsorOrg: string;
-  studentSponsorOrgId: string;
-  volunteerOrgDisplay: string;
-  volunteerPartnerOrg: string;
-  volunteerPartnerOrgId: string;
-}
-
-/** 'GetAssociatedPartnerByPartnerOrgKey' query type */
-export interface IGetAssociatedPartnerByPartnerOrgKeyQuery {
-  params: IGetAssociatedPartnerByPartnerOrgKeyParams;
-  result: IGetAssociatedPartnerByPartnerOrgKeyResult;
-}
+/** Query 'GetAssociatedPartnerByPartnerOrgKey' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerByPartnerOrgKeyParams = never;
 
 const getAssociatedPartnerByPartnerOrgKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":616,"b":620}]}],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    spo.key = :key!"};
 
@@ -201,29 +139,13 @@ const getAssociatedPartnerByPartnerOrgKeyIR: any = {"usedParamSet":{"key":true},
 export const getAssociatedPartnerByPartnerOrgKey = new PreparedQuery<IGetAssociatedPartnerByPartnerOrgKeyParams,IGetAssociatedPartnerByPartnerOrgKeyResult>(getAssociatedPartnerByPartnerOrgKeyIR);
 
 
-/** 'GetAssociatedPartnerByVolunteerPartnerKey' parameters type */
-export interface IGetAssociatedPartnerByVolunteerPartnerKeyParams {
-  key: string;
-}
+/** Query 'GetAssociatedPartnerByVolunteerPartnerKey' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerByVolunteerPartnerKeyResult = never;
 
-/** 'GetAssociatedPartnerByVolunteerPartnerKey' return type */
-export interface IGetAssociatedPartnerByVolunteerPartnerKeyResult {
-  key: string;
-  studentOrgDisplay: string | null;
-  studentPartnerOrg: string;
-  studentPartnerOrgId: string;
-  studentSponsorOrg: string;
-  studentSponsorOrgId: string;
-  volunteerOrgDisplay: string;
-  volunteerPartnerOrg: string;
-  volunteerPartnerOrgId: string;
-}
-
-/** 'GetAssociatedPartnerByVolunteerPartnerKey' query type */
-export interface IGetAssociatedPartnerByVolunteerPartnerKeyQuery {
-  params: IGetAssociatedPartnerByVolunteerPartnerKeyParams;
-  result: IGetAssociatedPartnerByVolunteerPartnerKeyResult;
-}
+/** Query 'GetAssociatedPartnerByVolunteerPartnerKey' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetAssociatedPartnerByVolunteerPartnerKeyParams = never;
 
 const getAssociatedPartnerByVolunteerPartnerKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":616,"b":620}]}],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    vpo.key = :key!"};
 
@@ -252,17 +174,13 @@ const getAssociatedPartnerByVolunteerPartnerKeyIR: any = {"usedParamSet":{"key":
 export const getAssociatedPartnerByVolunteerPartnerKey = new PreparedQuery<IGetAssociatedPartnerByVolunteerPartnerKeyParams,IGetAssociatedPartnerByVolunteerPartnerKeyResult>(getAssociatedPartnerByVolunteerPartnerKeyIR);
 
 
-/** 'MigrateStudentPartnerOrgAssociatedPartners' parameters type */
-export type IMigrateStudentPartnerOrgAssociatedPartnersParams = void;
+/** Query 'MigrateStudentPartnerOrgAssociatedPartners' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IMigrateStudentPartnerOrgAssociatedPartnersResult = never;
 
-/** 'MigrateStudentPartnerOrgAssociatedPartners' return type */
-export type IMigrateStudentPartnerOrgAssociatedPartnersResult = void;
-
-/** 'MigrateStudentPartnerOrgAssociatedPartners' query type */
-export interface IMigrateStudentPartnerOrgAssociatedPartnersQuery {
-  params: IMigrateStudentPartnerOrgAssociatedPartnersParams;
-  result: IMigrateStudentPartnerOrgAssociatedPartnersResult;
-}
+/** Query 'MigrateStudentPartnerOrgAssociatedPartners' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IMigrateStudentPartnerOrgAssociatedPartnersParams = never;
 
 const migrateStudentPartnerOrgAssociatedPartnersIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_partner_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_partner_org_id IS NOT NULL"};
 
@@ -284,17 +202,13 @@ const migrateStudentPartnerOrgAssociatedPartnersIR: any = {"usedParamSet":{},"pa
 export const migrateStudentPartnerOrgAssociatedPartners = new PreparedQuery<IMigrateStudentPartnerOrgAssociatedPartnersParams,IMigrateStudentPartnerOrgAssociatedPartnersResult>(migrateStudentPartnerOrgAssociatedPartnersIR);
 
 
-/** 'MigrateSponsorOrgAssociatedPartners' parameters type */
-export type IMigrateSponsorOrgAssociatedPartnersParams = void;
+/** Query 'MigrateSponsorOrgAssociatedPartners' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IMigrateSponsorOrgAssociatedPartnersResult = never;
 
-/** 'MigrateSponsorOrgAssociatedPartners' return type */
-export type IMigrateSponsorOrgAssociatedPartnersResult = void;
-
-/** 'MigrateSponsorOrgAssociatedPartners' query type */
-export interface IMigrateSponsorOrgAssociatedPartnersQuery {
-  params: IMigrateSponsorOrgAssociatedPartnersParams;
-  result: IMigrateSponsorOrgAssociatedPartnersResult;
-}
+/** Query 'MigrateSponsorOrgAssociatedPartners' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IMigrateSponsorOrgAssociatedPartnersParams = never;
 
 const migrateSponsorOrgAssociatedPartnersIR: any = {"usedParamSet":{},"params":[],"statement":"INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_sponsor_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_sponsor_org_id IS NOT NULL"};
 

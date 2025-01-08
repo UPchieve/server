@@ -1,31 +1,13 @@
 /** Types generated for queries found in "server/models/Feedback/feedback.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+/** Query 'GetFeedbackBySessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetFeedbackBySessionIdResult = never;
 
-/** 'GetFeedbackBySessionId' parameters type */
-export interface IGetFeedbackBySessionIdParams {
-  sessionId: string;
-}
-
-/** 'GetFeedbackBySessionId' return type */
-export interface IGetFeedbackBySessionIdResult {
-  id: string;
-  sessionId: string;
-  studentCounselingFeedback: Json | null;
-  studentTutoringFeedback: Json | null;
-  subTopic: string;
-  type: string;
-  userId: string;
-  userRole: string;
-  volunteerFeedback: Json | null;
-}
-
-/** 'GetFeedbackBySessionId' query type */
-export interface IGetFeedbackBySessionIdQuery {
-  params: IGetFeedbackBySessionIdParams;
-  result: IGetFeedbackBySessionIdResult;
-}
+/** Query 'GetFeedbackBySessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetFeedbackBySessionIdParams = never;
 
 const getFeedbackBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":452,"b":462}]}],"statement":"SELECT\n    feedbacks.id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    user_roles.name AS user_role,\n    user_id,\n    session_id,\n    student_tutoring_feedback,\n    student_counseling_feedback,\n    volunteer_feedback\nFROM\n    feedbacks\n    LEFT JOIN topics ON feedbacks.topic_id = topics.id\n    LEFT JOIN subjects ON feedbacks.subject_id = subjects.id\n    JOIN user_roles ON feedbacks.user_role_id = user_roles.id\nWHERE\n    session_id = :sessionId!"};
 

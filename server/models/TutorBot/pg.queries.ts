@@ -1,29 +1,13 @@
 /** Types generated for queries found in "server/models/TutorBot/tutor-bot.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type tutor_bot_conversation_user_type = 'bot' | 'student' | 'volunteer';
+/** Query 'GetTutorBotConversationsByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationsByUserIdResult = never;
 
-/** 'GetTutorBotConversationsByUserId' parameters type */
-export interface IGetTutorBotConversationsByUserIdParams {
-  userId: string;
-}
-
-/** 'GetTutorBotConversationsByUserId' return type */
-export interface IGetTutorBotConversationsByUserIdResult {
-  createdAt: Date;
-  id: string;
-  messagePreview: string;
-  sessionId: string | null;
-  subjectId: number;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetTutorBotConversationsByUserId' query type */
-export interface IGetTutorBotConversationsByUserIdQuery {
-  params: IGetTutorBotConversationsByUserIdParams;
-  result: IGetTutorBotConversationsByUserIdResult;
-}
+/** Query 'GetTutorBotConversationsByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationsByUserIdParams = never;
 
 const getTutorBotConversationsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":331,"b":338},{"a":567,"b":574}]}],"statement":"WITH ranked_on_created_at AS (\n    SELECT\n        tbcm.*,\n        row_number() OVER (PARTITION BY tbcm.tutor_bot_conversation_id ORDER BY tbcm.created_at) AS rn\n    FROM\n        tutor_bot_conversation_messages tbcm\n        JOIN tutor_bot_conversations tbc ON tbc.id = tbcm.tutor_bot_conversation_id\n    WHERE\n        tbc.user_id = :userId!\n)\nSELECT\n    tbc.*,\n    ranked.message AS message_preview\nFROM\n    tutor_bot_conversations tbc\n    JOIN ranked_on_created_at ranked ON ranked.tutor_bot_conversation_id = tbc.id\n        AND ranked.rn = 1\nWHERE\n    tbc.user_id = :userId!"};
 
@@ -54,26 +38,13 @@ const getTutorBotConversationsByUserIdIR: any = {"usedParamSet":{"userId":true},
 export const getTutorBotConversationsByUserId = new PreparedQuery<IGetTutorBotConversationsByUserIdParams,IGetTutorBotConversationsByUserIdResult>(getTutorBotConversationsByUserIdIR);
 
 
-/** 'GetTutorBotConversationById' parameters type */
-export interface IGetTutorBotConversationByIdParams {
-  conversationId: string;
-}
+/** Query 'GetTutorBotConversationById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationByIdResult = never;
 
-/** 'GetTutorBotConversationById' return type */
-export interface IGetTutorBotConversationByIdResult {
-  createdAt: Date;
-  id: string;
-  sessionId: string | null;
-  subjectId: number;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetTutorBotConversationById' query type */
-export interface IGetTutorBotConversationByIdQuery {
-  params: IGetTutorBotConversationByIdParams;
-  result: IGetTutorBotConversationByIdResult;
-}
+/** Query 'GetTutorBotConversationById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationByIdParams = never;
 
 const getTutorBotConversationByIdIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":76}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_conversations\nWHERE\n    id = :conversationId!"};
 
@@ -91,26 +62,13 @@ const getTutorBotConversationByIdIR: any = {"usedParamSet":{"conversationId":tru
 export const getTutorBotConversationById = new PreparedQuery<IGetTutorBotConversationByIdParams,IGetTutorBotConversationByIdResult>(getTutorBotConversationByIdIR);
 
 
-/** 'GetTutorBotConversationBySessionId' parameters type */
-export interface IGetTutorBotConversationBySessionIdParams {
-  sessionId: string;
-}
+/** Query 'GetTutorBotConversationBySessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationBySessionIdResult = never;
 
-/** 'GetTutorBotConversationBySessionId' return type */
-export interface IGetTutorBotConversationBySessionIdResult {
-  createdAt: Date;
-  id: string;
-  sessionId: string | null;
-  subjectId: number;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetTutorBotConversationBySessionId' query type */
-export interface IGetTutorBotConversationBySessionIdQuery {
-  params: IGetTutorBotConversationBySessionIdParams;
-  result: IGetTutorBotConversationBySessionIdResult;
-}
+/** Query 'GetTutorBotConversationBySessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationBySessionIdParams = never;
 
 const getTutorBotConversationBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":69,"b":79}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_conversations\nWHERE\n    session_id = :sessionId!"};
 
@@ -128,25 +86,13 @@ const getTutorBotConversationBySessionIdIR: any = {"usedParamSet":{"sessionId":t
 export const getTutorBotConversationBySessionId = new PreparedQuery<IGetTutorBotConversationBySessionIdParams,IGetTutorBotConversationBySessionIdResult>(getTutorBotConversationBySessionIdIR);
 
 
-/** 'GetTutorBotConversationMessagesById' parameters type */
-export interface IGetTutorBotConversationMessagesByIdParams {
-  conversationId: string;
-}
+/** Query 'GetTutorBotConversationMessagesById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationMessagesByIdResult = never;
 
-/** 'GetTutorBotConversationMessagesById' return type */
-export interface IGetTutorBotConversationMessagesByIdResult {
-  createdAt: Date;
-  message: string;
-  senderUserType: tutor_bot_conversation_user_type;
-  tutorBotConversationId: string;
-  userId: string;
-}
-
-/** 'GetTutorBotConversationMessagesById' query type */
-export interface IGetTutorBotConversationMessagesByIdQuery {
-  params: IGetTutorBotConversationMessagesByIdParams;
-  result: IGetTutorBotConversationMessagesByIdResult;
-}
+/** Query 'GetTutorBotConversationMessagesById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTutorBotConversationMessagesByIdParams = never;
 
 const getTutorBotConversationMessagesByIdIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":107}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_conversation_messages\nWHERE\n    tutor_bot_conversation_id = :conversationId!\nORDER BY\n    created_at ASC"};
 
@@ -166,24 +112,13 @@ const getTutorBotConversationMessagesByIdIR: any = {"usedParamSet":{"conversatio
 export const getTutorBotConversationMessagesById = new PreparedQuery<IGetTutorBotConversationMessagesByIdParams,IGetTutorBotConversationMessagesByIdResult>(getTutorBotConversationMessagesByIdIR);
 
 
-/** 'InsertTutorBotConversation' parameters type */
-export interface IInsertTutorBotConversationParams {
-  id: string;
-  sessionId?: string | null | void;
-  subjectId: number;
-  userId: string;
-}
+/** Query 'InsertTutorBotConversation' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertTutorBotConversationResult = never;
 
-/** 'InsertTutorBotConversation' return type */
-export interface IInsertTutorBotConversationResult {
-  id: string;
-}
-
-/** 'InsertTutorBotConversation' query type */
-export interface IInsertTutorBotConversationQuery {
-  params: IInsertTutorBotConversationParams;
-  result: IInsertTutorBotConversationResult;
-}
+/** Query 'InsertTutorBotConversation' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertTutorBotConversationParams = never;
 
 const insertTutorBotConversationIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"subjectId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":110,"b":113}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":116,"b":123}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":126,"b":135}]},{"name":"subjectId","required":true,"transform":{"type":"scalar"},"locs":[{"a":152,"b":162}]}],"statement":"INSERT INTO tutor_bot_conversations (id, user_id, session_id, created_at, updated_at, subject_id)\n    VALUES (:id!, :userId!, :sessionId, NOW(), NOW(), :subjectId!)\nRETURNING\n    id"};
 
@@ -199,28 +134,13 @@ const insertTutorBotConversationIR: any = {"usedParamSet":{"id":true,"userId":tr
 export const insertTutorBotConversation = new PreparedQuery<IInsertTutorBotConversationParams,IInsertTutorBotConversationResult>(insertTutorBotConversationIR);
 
 
-/** 'InsertTutorBotConversationMessage' parameters type */
-export interface IInsertTutorBotConversationMessageParams {
-  conversationId: string;
-  message: string;
-  senderUserType: tutor_bot_conversation_user_type;
-  userId: string;
-}
+/** Query 'InsertTutorBotConversationMessage' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertTutorBotConversationMessageResult = never;
 
-/** 'InsertTutorBotConversationMessage' return type */
-export interface IInsertTutorBotConversationMessageResult {
-  createdAt: Date;
-  message: string;
-  senderUserType: tutor_bot_conversation_user_type;
-  tutorBotConversationId: string;
-  userId: string;
-}
-
-/** 'InsertTutorBotConversationMessage' query type */
-export interface IInsertTutorBotConversationMessageQuery {
-  params: IInsertTutorBotConversationMessageParams;
-  result: IInsertTutorBotConversationMessageResult;
-}
+/** Query 'InsertTutorBotConversationMessage' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertTutorBotConversationMessageParams = never;
 
 const insertTutorBotConversationMessageIR: any = {"usedParamSet":{"conversationId":true,"userId":true,"senderUserType":true,"message":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":147}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":150,"b":157}]},{"name":"senderUserType","required":true,"transform":{"type":"scalar"},"locs":[{"a":160,"b":175}]},{"name":"message","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":186}]}],"statement":"INSERT INTO tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)\n    VALUES (:conversationId!, :userId!, :senderUserType!, :message!, CLOCK_TIMESTAMP())\nRETURNING\n    tutor_bot_conversation_id, user_id, sender_user_type, message, created_at"};
 
@@ -236,20 +156,13 @@ const insertTutorBotConversationMessageIR: any = {"usedParamSet":{"conversationI
 export const insertTutorBotConversationMessage = new PreparedQuery<IInsertTutorBotConversationMessageParams,IInsertTutorBotConversationMessageResult>(insertTutorBotConversationMessageIR);
 
 
-/** 'UpdateTutorBotConversationSessionId' parameters type */
-export interface IUpdateTutorBotConversationSessionIdParams {
-  conversationId: string;
-  sessionId: string;
-}
+/** Query 'UpdateTutorBotConversationSessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateTutorBotConversationSessionIdResult = never;
 
-/** 'UpdateTutorBotConversationSessionId' return type */
-export type IUpdateTutorBotConversationSessionIdResult = void;
-
-/** 'UpdateTutorBotConversationSessionId' query type */
-export interface IUpdateTutorBotConversationSessionIdQuery {
-  params: IUpdateTutorBotConversationSessionIdParams;
-  result: IUpdateTutorBotConversationSessionIdResult;
-}
+/** Query 'UpdateTutorBotConversationSessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateTutorBotConversationSessionIdParams = never;
 
 const updateTutorBotConversationSessionIdIR: any = {"usedParamSet":{"sessionId":true,"conversationId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":66}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":122}]}],"statement":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = :sessionId!,\n    updated_at = NOW()\nWHERE\n    id = :conversationId!::uuid\n    AND session_id IS NULL"};
 

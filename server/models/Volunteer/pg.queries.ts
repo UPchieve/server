@@ -1,36 +1,13 @@
 /** Types generated for queries found in "server/models/Volunteer/volunteer.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type ban_types = 'complete' | 'live_media' | 'shadow';
+/** Query 'GetVolunteerContactInfoById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerContactInfoByIdResult = never;
 
-export type DateOrString = Date | string;
-
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-
-export type NumberOrString = number | string;
-
-export type stringArray = (string)[];
-
-/** 'GetVolunteerContactInfoById' parameters type */
-export interface IGetVolunteerContactInfoByIdParams {
-  userId: string;
-}
-
-/** 'GetVolunteerContactInfoById' return type */
-export interface IGetVolunteerContactInfoByIdResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteerContactInfoById' query type */
-export interface IGetVolunteerContactInfoByIdQuery {
-  params: IGetVolunteerContactInfoByIdParams;
-  result: IGetVolunteerContactInfoByIdResult;
-}
+/** Query 'GetVolunteerContactInfoById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerContactInfoByIdParams = never;
 
 const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":352,"b":359}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE"};
 
@@ -59,26 +36,13 @@ const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true},"para
 export const getVolunteerContactInfoById = new PreparedQuery<IGetVolunteerContactInfoByIdParams,IGetVolunteerContactInfoByIdResult>(getVolunteerContactInfoByIdIR);
 
 
-/** 'GetVolunteerContactInfoByIds' parameters type */
-export interface IGetVolunteerContactInfoByIdsParams {
-  userIds: stringArray;
-}
+/** Query 'GetVolunteerContactInfoByIds' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerContactInfoByIdsResult = never;
 
-/** 'GetVolunteerContactInfoByIds' return type */
-export interface IGetVolunteerContactInfoByIdsResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteerContactInfoByIds' query type */
-export interface IGetVolunteerContactInfoByIdsQuery {
-  params: IGetVolunteerContactInfoByIdsParams;
-  result: IGetVolunteerContactInfoByIdsResult;
-}
+/** Query 'GetVolunteerContactInfoByIds' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerContactInfoByIdsParams = never;
 
 const getVolunteerContactInfoByIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":357,"b":365}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = ANY (:userIds!)\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE                                                                                                                                                            "};
 
@@ -107,26 +71,13 @@ const getVolunteerContactInfoByIdsIR: any = {"usedParamSet":{"userIds":true},"pa
 export const getVolunteerContactInfoByIds = new PreparedQuery<IGetVolunteerContactInfoByIdsParams,IGetVolunteerContactInfoByIdsResult>(getVolunteerContactInfoByIdsIR);
 
 
-/** 'GetVolunteersForBlackoutOver' parameters type */
-export interface IGetVolunteersForBlackoutOverParams {
-  startDate: DateOrString;
-}
+/** Query 'GetVolunteersForBlackoutOver' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForBlackoutOverResult = never;
 
-/** 'GetVolunteersForBlackoutOver' return type */
-export interface IGetVolunteersForBlackoutOverResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersForBlackoutOver' query type */
-export interface IGetVolunteersForBlackoutOverQuery {
-  params: IGetVolunteersForBlackoutOverParams;
-  result: IGetVolunteersForBlackoutOverResult;
-}
+/** Query 'GetVolunteersForBlackoutOver' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForBlackoutOverParams = never;
 
 const getVolunteersForBlackoutOverIR: any = {"usedParamSet":{"startDate":true},"params":[{"name":"startDate","required":true,"transform":{"type":"scalar"},"locs":[{"a":361,"b":371}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.last_activity_at < :startDate!\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.volunteer_partner_org_id IS NULL"};
 
@@ -157,27 +108,13 @@ const getVolunteersForBlackoutOverIR: any = {"usedParamSet":{"startDate":true},"
 export const getVolunteersForBlackoutOver = new PreparedQuery<IGetVolunteersForBlackoutOverParams,IGetVolunteersForBlackoutOverResult>(getVolunteersForBlackoutOverIR);
 
 
-/** 'GetVolunteerForQuickTips' parameters type */
-export interface IGetVolunteerForQuickTipsParams {
-  mongoUserId?: string | null | void;
-  userId?: string | null | void;
-}
+/** Query 'GetVolunteerForQuickTips' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerForQuickTipsResult = never;
 
-/** 'GetVolunteerForQuickTips' return type */
-export interface IGetVolunteerForQuickTipsResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteerForQuickTips' query type */
-export interface IGetVolunteerForQuickTipsQuery {
-  params: IGetVolunteerForQuickTipsParams;
-  result: IGetVolunteerForQuickTipsResult;
-}
+/** Query 'GetVolunteerForQuickTips' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerForQuickTipsParams = never;
 
 const getVolunteerForQuickTipsIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":350,"b":356}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":388,"b":399}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE (users.id::uuid = :userId\n    OR users.mongo_id::text = :mongoUserId)\nAND volunteer_profiles.onboarded IS TRUE\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE"};
 
@@ -207,27 +144,13 @@ const getVolunteerForQuickTipsIR: any = {"usedParamSet":{"userId":true,"mongoUse
 export const getVolunteerForQuickTips = new PreparedQuery<IGetVolunteerForQuickTipsParams,IGetVolunteerForQuickTipsResult>(getVolunteerForQuickTipsIR);
 
 
-/** 'GetPartnerVolunteerForLowHours' parameters type */
-export interface IGetPartnerVolunteerForLowHoursParams {
-  mongoUserId?: string | null | void;
-  userId?: string | null | void;
-}
+/** Query 'GetPartnerVolunteerForLowHours' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetPartnerVolunteerForLowHoursResult = never;
 
-/** 'GetPartnerVolunteerForLowHours' return type */
-export interface IGetPartnerVolunteerForLowHoursResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetPartnerVolunteerForLowHours' query type */
-export interface IGetPartnerVolunteerForLowHoursQuery {
-  params: IGetPartnerVolunteerForLowHoursParams;
-  result: IGetPartnerVolunteerForLowHoursResult;
-}
+/** Query 'GetPartnerVolunteerForLowHours' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetPartnerVolunteerForLowHoursParams = never;
 
 const getPartnerVolunteerForLowHoursIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":476,"b":482},{"a":535,"b":541}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":573,"b":584}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = :userId) AS total_sessions ON TRUE\nWHERE (users.id::uuid = :userId\n    OR users.mongo_id::text = :mongoUserId)\nAND volunteer_profiles.onboarded IS TRUE\nAND volunteer_profiles.volunteer_partner_org_id IS NOT NULL\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND total_sessions.total > 0\nAND users.test_user IS FALSE"};
 
@@ -266,24 +189,13 @@ const getPartnerVolunteerForLowHoursIR: any = {"usedParamSet":{"userId":true,"mo
 export const getPartnerVolunteerForLowHours = new PreparedQuery<IGetPartnerVolunteerForLowHoursParams,IGetPartnerVolunteerForLowHoursResult>(getPartnerVolunteerForLowHoursIR);
 
 
-/** 'GetVolunteersForWeeklyHourSummary' parameters type */
-export type IGetVolunteersForWeeklyHourSummaryParams = void;
+/** Query 'GetVolunteersForWeeklyHourSummary' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForWeeklyHourSummaryResult = never;
 
-/** 'GetVolunteersForWeeklyHourSummary' return type */
-export interface IGetVolunteersForWeeklyHourSummaryResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  sentHourSummaryIntroEmail: boolean;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersForWeeklyHourSummary' query type */
-export interface IGetVolunteersForWeeklyHourSummaryQuery {
-  params: IGetVolunteersForWeeklyHourSummaryParams;
-  result: IGetVolunteersForWeeklyHourSummaryResult;
-}
+/** Query 'GetVolunteersForWeeklyHourSummary' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForWeeklyHourSummaryParams = never;
 
 const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE (volunteer_partner_orgs.id IS NULL\n    OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE\nGROUP BY\n    users.id,\n    volunteer_partner_org,\n    sent_hour_summary_intro_email"};
 
@@ -317,21 +229,13 @@ const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],
 export const getVolunteersForWeeklyHourSummary = new PreparedQuery<IGetVolunteersForWeeklyHourSummaryParams,IGetVolunteersForWeeklyHourSummaryResult>(getVolunteersForWeeklyHourSummaryIR);
 
 
-/** 'UpdateVolunteerHourSummaryIntroById' parameters type */
-export interface IUpdateVolunteerHourSummaryIntroByIdParams {
-  userId: string;
-}
+/** Query 'UpdateVolunteerHourSummaryIntroById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerHourSummaryIntroByIdResult = never;
 
-/** 'UpdateVolunteerHourSummaryIntroById' return type */
-export interface IUpdateVolunteerHourSummaryIntroByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerHourSummaryIntroById' query type */
-export interface IUpdateVolunteerHourSummaryIntroByIdQuery {
-  params: IUpdateVolunteerHourSummaryIntroByIdParams;
-  result: IUpdateVolunteerHourSummaryIntroByIdResult;
-}
+/** Query 'UpdateVolunteerHourSummaryIntroById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerHourSummaryIntroByIdParams = never;
 
 const updateVolunteerHourSummaryIntroByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_hour_summary_intro_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -352,22 +256,13 @@ const updateVolunteerHourSummaryIntroByIdIR: any = {"usedParamSet":{"userId":tru
 export const updateVolunteerHourSummaryIntroById = new PreparedQuery<IUpdateVolunteerHourSummaryIntroByIdParams,IUpdateVolunteerHourSummaryIntroByIdResult>(updateVolunteerHourSummaryIntroByIdIR);
 
 
-/** 'UpdateTimezoneByUserId' parameters type */
-export interface IUpdateTimezoneByUserIdParams {
-  timezone?: string | null | void;
-  userId: string;
-}
+/** Query 'UpdateTimezoneByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateTimezoneByUserIdResult = never;
 
-/** 'UpdateTimezoneByUserId' return type */
-export interface IUpdateTimezoneByUserIdResult {
-  ok: string;
-}
-
-/** 'UpdateTimezoneByUserId' query type */
-export interface IUpdateTimezoneByUserIdQuery {
-  params: IUpdateTimezoneByUserIdParams;
-  result: IUpdateTimezoneByUserIdResult;
-}
+/** Query 'UpdateTimezoneByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateTimezoneByUserIdParams = never;
 
 const updateTimezoneByUserIdIR: any = {"usedParamSet":{"timezone":true,"userId":true},"params":[{"name":"timezone","required":false,"transform":{"type":"scalar"},"locs":[{"a":58,"b":66}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    timezone = COALESCE(:timezone, timezone),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -388,19 +283,13 @@ const updateTimezoneByUserIdIR: any = {"usedParamSet":{"timezone":true,"userId":
 export const updateTimezoneByUserId = new PreparedQuery<IUpdateTimezoneByUserIdParams,IUpdateTimezoneByUserIdResult>(updateTimezoneByUserIdIR);
 
 
-/** 'GetVolunteerIdsForElapsedAvailability' parameters type */
-export type IGetVolunteerIdsForElapsedAvailabilityParams = void;
+/** Query 'GetVolunteerIdsForElapsedAvailability' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerIdsForElapsedAvailabilityResult = never;
 
-/** 'GetVolunteerIdsForElapsedAvailability' return type */
-export interface IGetVolunteerIdsForElapsedAvailabilityResult {
-  userId: string;
-}
-
-/** 'GetVolunteerIdsForElapsedAvailability' query type */
-export interface IGetVolunteerIdsForElapsedAvailabilityQuery {
-  params: IGetVolunteerIdsForElapsedAvailabilityParams;
-  result: IGetVolunteerIdsForElapsedAvailabilityResult;
-}
+/** Query 'GetVolunteerIdsForElapsedAvailability' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerIdsForElapsedAvailabilityParams = never;
 
 const getVolunteerIdsForElapsedAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    user_id\nFROM\n    volunteer_profiles\n    JOIN users ON volunteer_profiles.user_id = users.id\nWHERE\n    users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE"};
 
@@ -422,21 +311,13 @@ const getVolunteerIdsForElapsedAvailabilityIR: any = {"usedParamSet":{},"params"
 export const getVolunteerIdsForElapsedAvailability = new PreparedQuery<IGetVolunteerIdsForElapsedAvailabilityParams,IGetVolunteerIdsForElapsedAvailabilityResult>(getVolunteerIdsForElapsedAvailabilityIR);
 
 
-/** 'GetVolunteersForTotalHours' parameters type */
-export interface IGetVolunteersForTotalHoursParams {
-  targetPartnerOrgs: stringArray;
-}
+/** Query 'GetVolunteersForTotalHours' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForTotalHoursResult = never;
 
-/** 'GetVolunteersForTotalHours' return type */
-export interface IGetVolunteersForTotalHoursResult {
-  id: string;
-}
-
-/** 'GetVolunteersForTotalHours' query type */
-export interface IGetVolunteersForTotalHoursQuery {
-  params: IGetVolunteersForTotalHoursParams;
-  result: IGetVolunteersForTotalHoursResult;
-}
+/** Query 'GetVolunteersForTotalHours' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForTotalHoursParams = never;
 
 const getVolunteersForTotalHoursIR: any = {"usedParamSet":{"targetPartnerOrgs":true},"params":[{"name":"targetPartnerOrgs","required":true,"transform":{"type":"scalar"},"locs":[{"a":334,"b":352}]}],"statement":"SELECT\n    users.id\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    volunteer_partner_orgs.key = ANY (:targetPartnerOrgs!)\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\nGROUP BY\n    users.id"};
 
@@ -465,28 +346,13 @@ const getVolunteersForTotalHoursIR: any = {"usedParamSet":{"targetPartnerOrgs":t
 export const getVolunteersForTotalHours = new PreparedQuery<IGetVolunteersForTotalHoursParams,IGetVolunteersForTotalHoursResult>(getVolunteersForTotalHoursIR);
 
 
-/** 'GetVolunteerForOnboardingById' parameters type */
-export interface IGetVolunteerForOnboardingByIdParams {
-  userId?: string | null | void;
-}
+/** Query 'GetVolunteerForOnboardingById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerForOnboardingByIdResult = never;
 
-/** 'GetVolunteerForOnboardingById' return type */
-export interface IGetVolunteerForOnboardingByIdResult {
-  availabilityLastModifiedAt: Date | null;
-  country: string | null;
-  email: string;
-  firstName: string;
-  id: string;
-  onboarded: boolean;
-  subjects: stringArray | null;
-  volunteerPartnerOrgKey: string;
-}
-
-/** 'GetVolunteerForOnboardingById' query type */
-export interface IGetVolunteerForOnboardingByIdQuery {
-  params: IGetVolunteerForOnboardingByIdParams;
-  result: IGetVolunteerForOnboardingByIdResult;
-}
+/** Query 'GetVolunteerForOnboardingById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerForOnboardingByIdParams = never;
 
 const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1070,"b":1076},{"a":1625,"b":1631}]}],"statement":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at,\n    volunteer_partner_orgs.key AS volunteer_partner_org_key\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            subjects.name AS subject,\n            COUNT(*)::int AS earned_certs\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id = :userId\n        GROUP BY\n            subjects.name, CTE.total) AS subjects_unlocked ON TRUE\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN availabilities ON availabilities.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS FALSE\n    AND users.id = :userId\nGROUP BY\n    users.id,\n    onboarded,\n    country,\n    volunteer_partner_org_key"};
 
@@ -548,26 +414,13 @@ const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true},"pa
 export const getVolunteerForOnboardingById = new PreparedQuery<IGetVolunteerForOnboardingByIdParams,IGetVolunteerForOnboardingByIdResult>(getVolunteerForOnboardingByIdIR);
 
 
-/** 'GetVolunteersForTelecomReport' parameters type */
-export interface IGetVolunteersForTelecomReportParams {
-  partnerOrg: string;
-}
+/** Query 'GetVolunteersForTelecomReport' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForTelecomReportResult = never;
 
-/** 'GetVolunteersForTelecomReport' return type */
-export interface IGetVolunteersForTelecomReportResult {
-  createdAt: Date;
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersForTelecomReport' query type */
-export interface IGetVolunteersForTelecomReportQuery {
-  params: IGetVolunteersForTelecomReportParams;
-  result: IGetVolunteersForTelecomReportResult;
-}
+/** Query 'GetVolunteersForTelecomReport' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForTelecomReportParams = never;
 
 const getVolunteersForTelecomReportIR: any = {"usedParamSet":{"partnerOrg":true},"params":[{"name":"partnerOrg","required":true,"transform":{"type":"scalar"},"locs":[{"a":376,"b":387}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    users.created_at\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    volunteer_partner_orgs.key = :partnerOrg!\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\nGROUP BY\n    users.id,\n    volunteer_partner_org"};
 
@@ -601,21 +454,13 @@ const getVolunteersForTelecomReportIR: any = {"usedParamSet":{"partnerOrg":true}
 export const getVolunteersForTelecomReport = new PreparedQuery<IGetVolunteersForTelecomReportParams,IGetVolunteersForTelecomReportResult>(getVolunteersForTelecomReportIR);
 
 
-/** 'GetVolunteersNotifiedSinceDate' parameters type */
-export interface IGetVolunteersNotifiedSinceDateParams {
-  sinceDate: DateOrString;
-}
+/** Query 'GetVolunteersNotifiedSinceDate' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersNotifiedSinceDateResult = never;
 
-/** 'GetVolunteersNotifiedSinceDate' return type */
-export interface IGetVolunteersNotifiedSinceDateResult {
-  id: string;
-}
-
-/** 'GetVolunteersNotifiedSinceDate' query type */
-export interface IGetVolunteersNotifiedSinceDateQuery {
-  params: IGetVolunteersNotifiedSinceDateParams;
-  result: IGetVolunteersNotifiedSinceDateResult;
-}
+/** Query 'GetVolunteersNotifiedSinceDate' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersNotifiedSinceDateParams = never;
 
 const getVolunteersNotifiedSinceDateIR: any = {"usedParamSet":{"sinceDate":true},"params":[{"name":"sinceDate","required":true,"transform":{"type":"scalar"},"locs":[{"a":161,"b":171}]}],"statement":"SELECT\n    users.id\nFROM\n    users\n    LEFT JOIN notifications ON users.id = notifications.user_id\nGROUP BY\n    users.id\nHAVING\n    MAX(notifications.sent_at) > :sinceDate!"};
 
@@ -636,21 +481,13 @@ const getVolunteersNotifiedSinceDateIR: any = {"usedParamSet":{"sinceDate":true}
 export const getVolunteersNotifiedSinceDate = new PreparedQuery<IGetVolunteersNotifiedSinceDateParams,IGetVolunteersNotifiedSinceDateResult>(getVolunteersNotifiedSinceDateIR);
 
 
-/** 'GetVolunteersNotifiedBySessionId' parameters type */
-export interface IGetVolunteersNotifiedBySessionIdParams {
-  sessionId: string;
-}
+/** Query 'GetVolunteersNotifiedBySessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersNotifiedBySessionIdResult = never;
 
-/** 'GetVolunteersNotifiedBySessionId' return type */
-export interface IGetVolunteersNotifiedBySessionIdResult {
-  userId: string;
-}
-
-/** 'GetVolunteersNotifiedBySessionId' query type */
-export interface IGetVolunteersNotifiedBySessionIdQuery {
-  params: IGetVolunteersNotifiedBySessionIdParams;
-  result: IGetVolunteersNotifiedBySessionIdResult;
-}
+/** Query 'GetVolunteersNotifiedBySessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersNotifiedBySessionIdParams = never;
 
 const getVolunteersNotifiedBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":93,"b":103}]}],"statement":"SELECT\n    notifications.user_id\nFROM\n    notifications\nWHERE\n    notifications.session_id = :sessionId!"};
 
@@ -668,22 +505,13 @@ const getVolunteersNotifiedBySessionIdIR: any = {"usedParamSet":{"sessionId":tru
 export const getVolunteersNotifiedBySessionId = new PreparedQuery<IGetVolunteersNotifiedBySessionIdParams,IGetVolunteersNotifiedBySessionIdResult>(getVolunteersNotifiedBySessionIdIR);
 
 
-/** 'GetVolunteerByReference' parameters type */
-export interface IGetVolunteerByReferenceParams {
-  referenceId: string;
-}
+/** Query 'GetVolunteerByReference' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerByReferenceResult = never;
 
-/** 'GetVolunteerByReference' return type */
-export interface IGetVolunteerByReferenceResult {
-  referenceEmail: string;
-  volunteerId: string;
-}
-
-/** 'GetVolunteerByReference' query type */
-export interface IGetVolunteerByReferenceQuery {
-  params: IGetVolunteerByReferenceParams;
-  result: IGetVolunteerByReferenceResult;
-}
+/** Query 'GetVolunteerByReference' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerByReferenceParams = never;
 
 const getVolunteerByReferenceIR: any = {"usedParamSet":{"referenceId":true},"params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":284,"b":296}]}],"statement":"SELECT\n    volunteer_references.user_id AS volunteer_id,\n    volunteer_references.email AS reference_email\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_references.id = :referenceId!\n    AND volunteer_reference_statuses.name <> 'removed'\nLIMIT 1"};
 
@@ -705,25 +533,13 @@ const getVolunteerByReferenceIR: any = {"usedParamSet":{"referenceId":true},"par
 export const getVolunteerByReference = new PreparedQuery<IGetVolunteerByReferenceParams,IGetVolunteerByReferenceResult>(getVolunteerByReferenceIR);
 
 
-/** 'AddVolunteerReferenceById' parameters type */
-export interface IAddVolunteerReferenceByIdParams {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  userId: string;
-}
+/** Query 'AddVolunteerReferenceById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IAddVolunteerReferenceByIdResult = never;
 
-/** 'AddVolunteerReferenceById' return type */
-export interface IAddVolunteerReferenceByIdResult {
-  ok: string;
-}
-
-/** 'AddVolunteerReferenceById' query type */
-export interface IAddVolunteerReferenceByIdQuery {
-  params: IAddVolunteerReferenceByIdParams;
-  result: IAddVolunteerReferenceByIdResult;
-}
+/** Query 'AddVolunteerReferenceById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IAddVolunteerReferenceByIdParams = never;
 
 const addVolunteerReferenceByIdIR: any = {"usedParamSet":{"id":true,"userId":true,"firstName":true,"lastName":true,"email":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":126}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":140}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":157}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":173}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":180,"b":186}]}],"statement":"INSERT INTO volunteer_references (id, user_id, first_name, last_name, email, status_id, created_at, updated_at)\nSELECT\n    :id!,\n    :userId!,\n    :firstName!,\n    :lastName!,\n    :email!,\n    volunteer_reference_statuses.id,\n    NOW(),\n    NOW()\nFROM\n    volunteer_reference_statuses\nWHERE\n    name = 'unsent'::text\nRETURNING\n    id AS ok"};
 
@@ -751,30 +567,13 @@ const addVolunteerReferenceByIdIR: any = {"usedParamSet":{"id":true,"userId":tru
 export const addVolunteerReferenceById = new PreparedQuery<IAddVolunteerReferenceByIdParams,IAddVolunteerReferenceByIdResult>(addVolunteerReferenceByIdIR);
 
 
-/** 'UpdateVolunteerReferenceSubmission' parameters type */
-export interface IUpdateVolunteerReferenceSubmissionParams {
-  additionalInfo?: string | null | void;
-  affiliation?: string | null | void;
-  agreeableAndApproachable?: number | null | void;
-  communicatesEffectively?: number | null | void;
-  patient?: number | null | void;
-  positiveRoleModel?: number | null | void;
-  referenceId: string;
-  rejectionReason?: string | null | void;
-  relationshipLength?: string | null | void;
-  trustworthyWithChildren?: number | null | void;
-}
+/** Query 'UpdateVolunteerReferenceSubmission' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceSubmissionResult = never;
 
-/** 'UpdateVolunteerReferenceSubmission' return type */
-export interface IUpdateVolunteerReferenceSubmissionResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerReferenceSubmission' query type */
-export interface IUpdateVolunteerReferenceSubmissionQuery {
-  params: IUpdateVolunteerReferenceSubmissionParams;
-  result: IUpdateVolunteerReferenceSubmissionResult;
-}
+/** Query 'UpdateVolunteerReferenceSubmission' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceSubmissionParams = never;
 
 const updateVolunteerReferenceSubmissionIR: any = {"usedParamSet":{"affiliation":true,"relationshipLength":true,"rejectionReason":true,"additionalInfo":true,"patient":true,"positiveRoleModel":true,"agreeableAndApproachable":true,"communicatesEffectively":true,"trustworthyWithChildren":true,"referenceId":true},"params":[{"name":"affiliation","required":false,"transform":{"type":"scalar"},"locs":[{"a":92,"b":103}]},{"name":"relationshipLength","required":false,"transform":{"type":"scalar"},"locs":[{"a":155,"b":173}]},{"name":"rejectionReason","required":false,"transform":{"type":"scalar"},"locs":[{"a":230,"b":245}]},{"name":"additionalInfo","required":false,"transform":{"type":"scalar"},"locs":[{"a":298,"b":312}]},{"name":"patient","required":false,"transform":{"type":"scalar"},"locs":[{"a":356,"b":363}]},{"name":"positiveRoleModel","required":false,"transform":{"type":"scalar"},"locs":[{"a":411,"b":428}]},{"name":"agreeableAndApproachable","required":false,"transform":{"type":"scalar"},"locs":[{"a":495,"b":519}]},{"name":"communicatesEffectively","required":false,"transform":{"type":"scalar"},"locs":[{"a":591,"b":614}]},{"name":"trustworthyWithChildren","required":false,"transform":{"type":"scalar"},"locs":[{"a":685,"b":708}]},{"name":"referenceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":923,"b":935}]}],"statement":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    affiliation = COALESCE(:affiliation, affiliation),\n    relationship_length = COALESCE(:relationshipLength, relationship_length),\n    rejection_reason = COALESCE(:rejectionReason, rejection_reason),\n    additional_info = COALESCE(:additionalInfo, additional_info),\n    patient = COALESCE(:patient, patient),\n    positive_role_model = COALESCE(:positiveRoleModel, positive_role_model),\n    agreeable_and_approachable = COALESCE(:agreeableAndApproachable, agreeable_and_approachable),\n    communicates_effectively = COALESCE(:communicatesEffectively, communicates_effectively),\n    trustworthy_with_children = COALESCE(:trustworthyWithChildren, trustworthy_with_children),\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = 'submitted') AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok"};
 
@@ -811,27 +610,13 @@ const updateVolunteerReferenceSubmissionIR: any = {"usedParamSet":{"affiliation"
 export const updateVolunteerReferenceSubmission = new PreparedQuery<IUpdateVolunteerReferenceSubmissionParams,IUpdateVolunteerReferenceSubmissionResult>(updateVolunteerReferenceSubmissionIR);
 
 
-/** 'GetInactiveVolunteers' parameters type */
-export interface IGetInactiveVolunteersParams {
-  end: DateOrString;
-  start: DateOrString;
-}
+/** Query 'GetInactiveVolunteers' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetInactiveVolunteersResult = never;
 
-/** 'GetInactiveVolunteers' return type */
-export interface IGetInactiveVolunteersResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetInactiveVolunteers' query type */
-export interface IGetInactiveVolunteersQuery {
-  params: IGetInactiveVolunteersParams;
-  result: IGetInactiveVolunteersResult;
-}
+/** Query 'GetInactiveVolunteers' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetInactiveVolunteersParams = never;
 
 const getInactiveVolunteersIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":362,"b":368}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":403,"b":407}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.last_activity_at >= :start!\n    AND users.last_activity_at < :end!\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE"};
 
@@ -862,21 +647,13 @@ const getInactiveVolunteersIR: any = {"usedParamSet":{"start":true,"end":true},"
 export const getInactiveVolunteers = new PreparedQuery<IGetInactiveVolunteersParams,IGetInactiveVolunteersResult>(getInactiveVolunteersIR);
 
 
-/** 'UpdateVolunteerReferenceSentById' parameters type */
-export interface IUpdateVolunteerReferenceSentByIdParams {
-  referenceId: string;
-}
+/** Query 'UpdateVolunteerReferenceSentById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceSentByIdResult = never;
 
-/** 'UpdateVolunteerReferenceSentById' return type */
-export interface IUpdateVolunteerReferenceSentByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerReferenceSentById' query type */
-export interface IUpdateVolunteerReferenceSentByIdQuery {
-  params: IUpdateVolunteerReferenceSentByIdParams;
-  result: IUpdateVolunteerReferenceSentByIdResult;
-}
+/** Query 'UpdateVolunteerReferenceSentById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceSentByIdParams = never;
 
 const updateVolunteerReferenceSentByIdIR: any = {"usedParamSet":{"referenceId":true},"params":[{"name":"referenceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":265,"b":277}]}],"statement":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    sent_at = NOW(),\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = 'sent') AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok"};
 
@@ -905,22 +682,13 @@ const updateVolunteerReferenceSentByIdIR: any = {"usedParamSet":{"referenceId":t
 export const updateVolunteerReferenceSentById = new PreparedQuery<IUpdateVolunteerReferenceSentByIdParams,IUpdateVolunteerReferenceSentByIdResult>(updateVolunteerReferenceSentByIdIR);
 
 
-/** 'UpdateVolunteerReferenceStatusById' parameters type */
-export interface IUpdateVolunteerReferenceStatusByIdParams {
-  referenceId: string;
-  status: string;
-}
+/** Query 'UpdateVolunteerReferenceStatusById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceStatusByIdResult = never;
 
-/** 'UpdateVolunteerReferenceStatusById' return type */
-export interface IUpdateVolunteerReferenceStatusByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerReferenceStatusById' query type */
-export interface IUpdateVolunteerReferenceStatusByIdQuery {
-  params: IUpdateVolunteerReferenceStatusByIdParams;
-  result: IUpdateVolunteerReferenceStatusByIdResult;
-}
+/** Query 'UpdateVolunteerReferenceStatusById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceStatusByIdParams = never;
 
 const updateVolunteerReferenceStatusByIdIR: any = {"usedParamSet":{"status":true,"referenceId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":209,"b":216}]},{"name":"referenceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":267,"b":279}]}],"statement":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    sent_at = NOW(),\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok"};
 
@@ -949,22 +717,13 @@ const updateVolunteerReferenceStatusByIdIR: any = {"usedParamSet":{"status":true
 export const updateVolunteerReferenceStatusById = new PreparedQuery<IUpdateVolunteerReferenceStatusByIdParams,IUpdateVolunteerReferenceStatusByIdResult>(updateVolunteerReferenceStatusByIdIR);
 
 
-/** 'DeleteVolunteerReferenceById' parameters type */
-export interface IDeleteVolunteerReferenceByIdParams {
-  referenceEmail: string;
-  userId: string;
-}
+/** Query 'DeleteVolunteerReferenceById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IDeleteVolunteerReferenceByIdResult = never;
 
-/** 'DeleteVolunteerReferenceById' return type */
-export interface IDeleteVolunteerReferenceByIdResult {
-  ok: string;
-}
-
-/** 'DeleteVolunteerReferenceById' query type */
-export interface IDeleteVolunteerReferenceByIdQuery {
-  params: IDeleteVolunteerReferenceByIdParams;
-  result: IDeleteVolunteerReferenceByIdResult;
-}
+/** Query 'DeleteVolunteerReferenceById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IDeleteVolunteerReferenceByIdParams = never;
 
 const deleteVolunteerReferenceByIdIR: any = {"usedParamSet":{"referenceEmail":true,"userId":true},"params":[{"name":"referenceEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":265}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":306,"b":313}]}],"statement":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = 'removed') AS subquery\nWHERE\n    volunteer_references.email = :referenceEmail!\n    AND volunteer_references.user_id = :userId!\nRETURNING\n    volunteer_references.id AS ok"};
 
@@ -993,21 +752,13 @@ const deleteVolunteerReferenceByIdIR: any = {"usedParamSet":{"referenceEmail":tr
 export const deleteVolunteerReferenceById = new PreparedQuery<IDeleteVolunteerReferenceByIdParams,IDeleteVolunteerReferenceByIdResult>(deleteVolunteerReferenceByIdIR);
 
 
-/** 'UpdateVolunteersReadyToCoachByIds' parameters type */
-export interface IUpdateVolunteersReadyToCoachByIdsParams {
-  userIds: stringArray;
-}
+/** Query 'UpdateVolunteersReadyToCoachByIds' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteersReadyToCoachByIdsResult = never;
 
-/** 'UpdateVolunteersReadyToCoachByIds' return type */
-export interface IUpdateVolunteersReadyToCoachByIdsResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteersReadyToCoachByIds' query type */
-export interface IUpdateVolunteersReadyToCoachByIdsQuery {
-  params: IUpdateVolunteersReadyToCoachByIdsParams;
-  result: IUpdateVolunteersReadyToCoachByIdsResult;
-}
+/** Query 'UpdateVolunteersReadyToCoachByIds' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteersReadyToCoachByIdsParams = never;
 
 const updateVolunteersReadyToCoachByIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":128}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_ready_to_coach_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = ANY (:userIds!)\nRETURNING\n    user_id AS ok"};
 
@@ -1028,22 +779,13 @@ const updateVolunteersReadyToCoachByIdsIR: any = {"usedParamSet":{"userIds":true
 export const updateVolunteersReadyToCoachByIds = new PreparedQuery<IUpdateVolunteersReadyToCoachByIdsParams,IUpdateVolunteersReadyToCoachByIdsResult>(updateVolunteersReadyToCoachByIdsIR);
 
 
-/** 'UpdateVolunteerElapsedAvailabilityById' parameters type */
-export interface IUpdateVolunteerElapsedAvailabilityByIdParams {
-  elapsedAvailability: number;
-  userId: string;
-}
+/** Query 'UpdateVolunteerElapsedAvailabilityById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerElapsedAvailabilityByIdResult = never;
 
-/** 'UpdateVolunteerElapsedAvailabilityById' return type */
-export interface IUpdateVolunteerElapsedAvailabilityByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerElapsedAvailabilityById' query type */
-export interface IUpdateVolunteerElapsedAvailabilityByIdQuery {
-  params: IUpdateVolunteerElapsedAvailabilityByIdParams;
-  result: IUpdateVolunteerElapsedAvailabilityByIdResult;
-}
+/** Query 'UpdateVolunteerElapsedAvailabilityById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerElapsedAvailabilityByIdParams = never;
 
 const updateVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedAvailability":true,"userId":true},"params":[{"name":"elapsedAvailability","required":true,"transform":{"type":"scalar"},"locs":[{"a":139,"b":159}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":240,"b":247},{"a":282,"b":289}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    elapsed_availability = subquery.total\nFROM (\n    SELECT\n        COALESCE(elapsed_availability, 0) + (:elapsedAvailability!)::int AS total\n    FROM\n        volunteer_profiles\n    WHERE\n        user_id = :userId!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -1070,22 +812,13 @@ const updateVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedA
 export const updateVolunteerElapsedAvailabilityById = new PreparedQuery<IUpdateVolunteerElapsedAvailabilityByIdParams,IUpdateVolunteerElapsedAvailabilityByIdResult>(updateVolunteerElapsedAvailabilityByIdIR);
 
 
-/** 'UpdateVolunteerTotalHoursById' parameters type */
-export interface IUpdateVolunteerTotalHoursByIdParams {
-  totalHours: NumberOrString;
-  userId: string;
-}
+/** Query 'UpdateVolunteerTotalHoursById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerTotalHoursByIdResult = never;
 
-/** 'UpdateVolunteerTotalHoursById' return type */
-export interface IUpdateVolunteerTotalHoursByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerTotalHoursById' query type */
-export interface IUpdateVolunteerTotalHoursByIdQuery {
-  params: IUpdateVolunteerTotalHoursByIdParams;
-  result: IUpdateVolunteerTotalHoursByIdResult;
-}
+/** Query 'UpdateVolunteerTotalHoursById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerTotalHoursByIdParams = never;
 
 const updateVolunteerTotalHoursByIdIR: any = {"usedParamSet":{"totalHours":true,"userId":true},"params":[{"name":"totalHours","required":true,"transform":{"type":"scalar"},"locs":[{"a":141,"b":152}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":237,"b":244},{"a":279,"b":286}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    total_volunteer_hours = subquery.total\nFROM (\n    SELECT\n        COALESCE(total_volunteer_hours, 0) + (:totalHours!)::numeric AS total\n    FROM\n        volunteer_profiles\n    WHERE\n        user_id = :userId!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -1112,27 +845,13 @@ const updateVolunteerTotalHoursByIdIR: any = {"usedParamSet":{"totalHours":true,
 export const updateVolunteerTotalHoursById = new PreparedQuery<IUpdateVolunteerTotalHoursByIdParams,IUpdateVolunteerTotalHoursByIdResult>(updateVolunteerTotalHoursByIdIR);
 
 
-/** 'GetVolunteerTrainingCourses' parameters type */
-export interface IGetVolunteerTrainingCoursesParams {
-  userId: string;
-}
+/** Query 'GetVolunteerTrainingCourses' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerTrainingCoursesResult = never;
 
-/** 'GetVolunteerTrainingCourses' return type */
-export interface IGetVolunteerTrainingCoursesResult {
-  complete: boolean;
-  completedMaterials: stringArray | null;
-  createdAt: Date;
-  progress: number;
-  trainingCourse: string;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetVolunteerTrainingCourses' query type */
-export interface IGetVolunteerTrainingCoursesQuery {
-  params: IGetVolunteerTrainingCoursesParams;
-  result: IGetVolunteerTrainingCoursesResult;
-}
+/** Query 'GetVolunteerTrainingCourses' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerTrainingCoursesParams = never;
 
 const getVolunteerTrainingCoursesIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":369,"b":376}]}],"statement":"SELECT\n    user_id,\n    complete,\n    training_courses.name AS training_course,\n    progress,\n    completed_materials,\n    users_training_courses.created_at,\n    users_training_courses.updated_at\nFROM\n    users_training_courses\n    LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id\nWHERE\n    users_training_courses.user_id = :userId!"};
 
@@ -1157,25 +876,13 @@ const getVolunteerTrainingCoursesIR: any = {"usedParamSet":{"userId":true},"para
 export const getVolunteerTrainingCourses = new PreparedQuery<IGetVolunteerTrainingCoursesParams,IGetVolunteerTrainingCoursesResult>(getVolunteerTrainingCoursesIR);
 
 
-/** 'UpdateVolunteerTrainingById' parameters type */
-export interface IUpdateVolunteerTrainingByIdParams {
-  complete: boolean;
-  materialKey: string;
-  progress: number;
-  trainingCourse: string;
-  userId: string;
-}
+/** Query 'UpdateVolunteerTrainingById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerTrainingByIdResult = never;
 
-/** 'UpdateVolunteerTrainingById' return type */
-export interface IUpdateVolunteerTrainingByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerTrainingById' query type */
-export interface IUpdateVolunteerTrainingByIdQuery {
-  params: IUpdateVolunteerTrainingByIdParams;
-  result: IUpdateVolunteerTrainingByIdResult;
-}
+/** Query 'UpdateVolunteerTrainingById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerTrainingByIdParams = never;
 
 const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"complete":true,"progress":true,"materialKey":true,"trainingCourse":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":155}]},{"name":"complete","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":196},{"a":430,"b":439}]},{"name":"progress","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":212},{"a":461,"b":470}]},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":226,"b":238},{"a":541,"b":553},{"a":606,"b":618}]},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"locs":[{"a":330,"b":345}]}],"statement":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)\nSELECT\n    :userId!,\n    training_courses.id,\n    :complete!,\n    :progress!,\n    ARRAY[(:materialKey!)::text],\n    NOW(),\n    NOW()\nFROM\n    training_courses\nWHERE\n    training_courses.name = :trainingCourse!\nON CONFLICT (user_id,\n    training_course_id)\n    DO UPDATE SET\n        complete = :complete!,\n        progress = :progress!,\n        completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n        updated_at = NOW()\n    WHERE\n        NOT :materialKey! = ANY (ins.completed_materials)\n    RETURNING\n        user_id AS ok"};
 
@@ -1211,23 +918,13 @@ const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"compl
 export const updateVolunteerTrainingById = new PreparedQuery<IUpdateVolunteerTrainingByIdParams,IUpdateVolunteerTrainingByIdResult>(updateVolunteerTrainingByIdIR);
 
 
-/** 'UpdateVolunteerPhotoIdById' parameters type */
-export interface IUpdateVolunteerPhotoIdByIdParams {
-  key: string;
-  status: string;
-  userId: string;
-}
+/** Query 'UpdateVolunteerPhotoIdById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerPhotoIdByIdResult = never;
 
-/** 'UpdateVolunteerPhotoIdById' return type */
-export interface IUpdateVolunteerPhotoIdByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerPhotoIdById' query type */
-export interface IUpdateVolunteerPhotoIdByIdQuery {
-  params: IUpdateVolunteerPhotoIdByIdParams;
-  result: IUpdateVolunteerPhotoIdByIdResult;
-}
+/** Query 'UpdateVolunteerPhotoIdById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerPhotoIdByIdParams = never;
 
 const updateVolunteerPhotoIdByIdIR: any = {"usedParamSet":{"key":true,"status":true,"userId":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":60}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":186,"b":193}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":228,"b":235}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    photo_id_s3_key = :key!,\n    photo_id_status = subquery.id\nFROM (\n    SELECT\n        id\n    FROM\n        photo_id_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -1255,21 +952,13 @@ const updateVolunteerPhotoIdByIdIR: any = {"usedParamSet":{"key":true,"status":t
 export const updateVolunteerPhotoIdById = new PreparedQuery<IUpdateVolunteerPhotoIdByIdParams,IUpdateVolunteerPhotoIdByIdResult>(updateVolunteerPhotoIdByIdIR);
 
 
-/** 'UpdateVolunteerSentInactive30DayEmail' parameters type */
-export interface IUpdateVolunteerSentInactive30DayEmailParams {
-  userId: string;
-}
+/** Query 'UpdateVolunteerSentInactive30DayEmail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerSentInactive30DayEmailResult = never;
 
-/** 'UpdateVolunteerSentInactive30DayEmail' return type */
-export interface IUpdateVolunteerSentInactive30DayEmailResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerSentInactive30DayEmail' query type */
-export interface IUpdateVolunteerSentInactive30DayEmailQuery {
-  params: IUpdateVolunteerSentInactive30DayEmailParams;
-  result: IUpdateVolunteerSentInactive30DayEmailResult;
-}
+/** Query 'UpdateVolunteerSentInactive30DayEmail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerSentInactive30DayEmailParams = never;
 
 const updateVolunteerSentInactive30DayEmailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":127}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -1290,21 +979,13 @@ const updateVolunteerSentInactive30DayEmailIR: any = {"usedParamSet":{"userId":t
 export const updateVolunteerSentInactive30DayEmail = new PreparedQuery<IUpdateVolunteerSentInactive30DayEmailParams,IUpdateVolunteerSentInactive30DayEmailResult>(updateVolunteerSentInactive30DayEmailIR);
 
 
-/** 'UpdateVolunteerSentInactive60DayEmail' parameters type */
-export interface IUpdateVolunteerSentInactive60DayEmailParams {
-  userId: string;
-}
+/** Query 'UpdateVolunteerSentInactive60DayEmail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerSentInactive60DayEmailResult = never;
 
-/** 'UpdateVolunteerSentInactive60DayEmail' return type */
-export interface IUpdateVolunteerSentInactive60DayEmailResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerSentInactive60DayEmail' query type */
-export interface IUpdateVolunteerSentInactive60DayEmailQuery {
-  params: IUpdateVolunteerSentInactive60DayEmailParams;
-  result: IUpdateVolunteerSentInactive60DayEmailResult;
-}
+/** Query 'UpdateVolunteerSentInactive60DayEmail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerSentInactive60DayEmailParams = never;
 
 const updateVolunteerSentInactive60DayEmailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":162,"b":169}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = TRUE,\n    sent_inactive_sixty_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -1326,21 +1007,13 @@ const updateVolunteerSentInactive60DayEmailIR: any = {"usedParamSet":{"userId":t
 export const updateVolunteerSentInactive60DayEmail = new PreparedQuery<IUpdateVolunteerSentInactive60DayEmailParams,IUpdateVolunteerSentInactive60DayEmailResult>(updateVolunteerSentInactive60DayEmailIR);
 
 
-/** 'UpdateVolunteerSentInactive90DayEmail' parameters type */
-export interface IUpdateVolunteerSentInactive90DayEmailParams {
-  userId: string;
-}
+/** Query 'UpdateVolunteerSentInactive90DayEmail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerSentInactive90DayEmailResult = never;
 
-/** 'UpdateVolunteerSentInactive90DayEmail' return type */
-export interface IUpdateVolunteerSentInactive90DayEmailResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerSentInactive90DayEmail' query type */
-export interface IUpdateVolunteerSentInactive90DayEmailQuery {
-  params: IUpdateVolunteerSentInactive90DayEmailParams;
-  result: IUpdateVolunteerSentInactive90DayEmailResult;
-}
+/** Query 'UpdateVolunteerSentInactive90DayEmail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerSentInactive90DayEmailParams = never;
 
 const updateVolunteerSentInactive90DayEmailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":127}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = TRUE,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -1361,24 +1034,13 @@ const updateVolunteerSentInactive90DayEmailIR: any = {"usedParamSet":{"userId":t
 export const updateVolunteerSentInactive90DayEmail = new PreparedQuery<IUpdateVolunteerSentInactive90DayEmailParams,IUpdateVolunteerSentInactive90DayEmailResult>(updateVolunteerSentInactive90DayEmailIR);
 
 
-/** 'GetVolunteerUnsentReferences' parameters type */
-export type IGetVolunteerUnsentReferencesParams = void;
+/** Query 'GetVolunteerUnsentReferences' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerUnsentReferencesResult = never;
 
-/** 'GetVolunteerUnsentReferences' return type */
-export interface IGetVolunteerUnsentReferencesResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  status: string;
-  userId: string;
-}
-
-/** 'GetVolunteerUnsentReferences' query type */
-export interface IGetVolunteerUnsentReferencesQuery {
-  params: IGetVolunteerUnsentReferencesParams;
-  result: IGetVolunteerUnsentReferencesResult;
-}
+/** Query 'GetVolunteerUnsentReferences' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerUnsentReferencesParams = never;
 
 const getVolunteerUnsentReferencesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_references.id,\n    user_id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_reference_statuses.name = 'unsent'"};
 
@@ -1402,24 +1064,13 @@ const getVolunteerUnsentReferencesIR: any = {"usedParamSet":{},"params":[],"stat
 export const getVolunteerUnsentReferences = new PreparedQuery<IGetVolunteerUnsentReferencesParams,IGetVolunteerUnsentReferencesResult>(getVolunteerUnsentReferencesIR);
 
 
-/** 'GetReferencesForReferenceFormApology' parameters type */
-export type IGetReferencesForReferenceFormApologyParams = void;
+/** Query 'GetReferencesForReferenceFormApology' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetReferencesForReferenceFormApologyResult = never;
 
-/** 'GetReferencesForReferenceFormApology' return type */
-export interface IGetReferencesForReferenceFormApologyResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  status: string;
-  userId: string;
-}
-
-/** 'GetReferencesForReferenceFormApology' query type */
-export interface IGetReferencesForReferenceFormApologyQuery {
-  params: IGetReferencesForReferenceFormApologyParams;
-  result: IGetReferencesForReferenceFormApologyResult;
-}
+/** Query 'GetReferencesForReferenceFormApology' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetReferencesForReferenceFormApologyParams = never;
 
 const getReferencesForReferenceFormApologyIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_references.id,\n    user_id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at <= '2022-04-12 18:00:00.000'\n    AND volunteer_references.sent_at >= '2022-02-26 00:00:00.000'"};
 
@@ -1445,25 +1096,13 @@ const getReferencesForReferenceFormApologyIR: any = {"usedParamSet":{},"params":
 export const getReferencesForReferenceFormApology = new PreparedQuery<IGetReferencesForReferenceFormApologyParams,IGetReferencesForReferenceFormApologyResult>(getReferencesForReferenceFormApologyIR);
 
 
-/** 'GetReferencesByVolunteer' parameters type */
-export interface IGetReferencesByVolunteerParams {
-  userId: string;
-}
+/** Query 'GetReferencesByVolunteer' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetReferencesByVolunteerResult = never;
 
-/** 'GetReferencesByVolunteer' return type */
-export interface IGetReferencesByVolunteerResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  status: string;
-}
-
-/** 'GetReferencesByVolunteer' query type */
-export interface IGetReferencesByVolunteerQuery {
-  params: IGetReferencesByVolunteerParams;
-  result: IGetReferencesByVolunteerResult;
-}
+/** Query 'GetReferencesByVolunteer' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetReferencesByVolunteerParams = never;
 
 const getReferencesByVolunteerIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":308,"b":315}]}],"statement":"SELECT\n    volunteer_references.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_references.user_id = :userId!\n    AND volunteer_reference_statuses.name != 'removed'"};
 
@@ -1487,27 +1126,13 @@ const getReferencesByVolunteerIR: any = {"usedParamSet":{"userId":true},"params"
 export const getReferencesByVolunteer = new PreparedQuery<IGetReferencesByVolunteerParams,IGetReferencesByVolunteerResult>(getReferencesByVolunteerIR);
 
 
-/** 'CheckReferenceExistsBeforeAdding' parameters type */
-export interface ICheckReferenceExistsBeforeAddingParams {
-  email: string;
-  userId: string;
-}
+/** Query 'CheckReferenceExistsBeforeAdding' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICheckReferenceExistsBeforeAddingResult = never;
 
-/** 'CheckReferenceExistsBeforeAdding' return type */
-export interface ICheckReferenceExistsBeforeAddingResult {
-  actions: stringArray | null;
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  status: string;
-}
-
-/** 'CheckReferenceExistsBeforeAdding' query type */
-export interface ICheckReferenceExistsBeforeAddingQuery {
-  params: ICheckReferenceExistsBeforeAddingParams;
-  result: ICheckReferenceExistsBeforeAddingResult;
-}
+/** Query 'CheckReferenceExistsBeforeAdding' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICheckReferenceExistsBeforeAddingParams = never;
 
 const checkReferenceExistsBeforeAddingIR: any = {"usedParamSet":{"userId":true,"email":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":443,"b":450},{"a":561,"b":568}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":499,"b":505},{"a":607,"b":613}]}],"statement":"SELECT\n    volunteer_references.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status,\n    sub.actions\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\n    LEFT JOIN (\n        SELECT\n            array_agg(action) AS actions\n        FROM\n            user_actions\n        WHERE\n            user_actions.user_id = :userId!\n            AND user_actions.reference_email = :email!) sub ON TRUE\nWHERE\n    volunteer_references.user_id = :userId!\n    AND volunteer_references.email = :email!"};
 
@@ -1540,34 +1165,13 @@ const checkReferenceExistsBeforeAddingIR: any = {"usedParamSet":{"userId":true,"
 export const checkReferenceExistsBeforeAdding = new PreparedQuery<ICheckReferenceExistsBeforeAddingParams,ICheckReferenceExistsBeforeAddingResult>(checkReferenceExistsBeforeAddingIR);
 
 
-/** 'GetReferencesByVolunteerForAdminDetail' parameters type */
-export interface IGetReferencesByVolunteerForAdminDetailParams {
-  userId: string;
-}
+/** Query 'GetReferencesByVolunteerForAdminDetail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetReferencesByVolunteerForAdminDetailResult = never;
 
-/** 'GetReferencesByVolunteerForAdminDetail' return type */
-export interface IGetReferencesByVolunteerForAdminDetailResult {
-  additionalInfo: string | null;
-  affiliation: string | null;
-  agreeableAndApproachable: number | null;
-  communicatesEffectively: number | null;
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  patient: number | null;
-  positiveRoleModel: number | null;
-  rejectionReason: string | null;
-  relationshipLength: string | null;
-  status: string;
-  trustworthyWithChildren: number | null;
-}
-
-/** 'GetReferencesByVolunteerForAdminDetail' query type */
-export interface IGetReferencesByVolunteerForAdminDetailQuery {
-  params: IGetReferencesByVolunteerForAdminDetailParams;
-  result: IGetReferencesByVolunteerForAdminDetailResult;
-}
+/** Query 'GetReferencesByVolunteerForAdminDetail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetReferencesByVolunteerForAdminDetailParams = never;
 
 const getReferencesByVolunteerForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":524,"b":531}]}],"statement":"SELECT\n    volunteer_references.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status,\n    affiliation,\n    relationship_length,\n    patient,\n    positive_role_model,\n    agreeable_and_approachable,\n    communicates_effectively,\n    rejection_reason,\n    additional_info,\n    trustworthy_with_children\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_references.user_id = :userId!\n    AND volunteer_reference_statuses.name != 'removed'"};
 
@@ -1600,31 +1204,13 @@ const getReferencesByVolunteerForAdminDetailIR: any = {"usedParamSet":{"userId":
 export const getReferencesByVolunteerForAdminDetail = new PreparedQuery<IGetReferencesByVolunteerForAdminDetailParams,IGetReferencesByVolunteerForAdminDetailResult>(getReferencesByVolunteerForAdminDetailIR);
 
 
-/** 'GetVolunteerForPendingStatus' parameters type */
-export interface IGetVolunteerForPendingStatusParams {
-  userId: string;
-}
+/** Query 'GetVolunteerForPendingStatus' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerForPendingStatusResult = never;
 
-/** 'GetVolunteerForPendingStatus' return type */
-export interface IGetVolunteerForPendingStatusResult {
-  approved: boolean;
-  country: string | null;
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  occupations: stringArray | null;
-  onboarded: boolean;
-  phone: string | null;
-  photoIdStatus: string;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteerForPendingStatus' query type */
-export interface IGetVolunteerForPendingStatusQuery {
-  params: IGetVolunteerForPendingStatusParams;
-  result: IGetVolunteerForPendingStatusResult;
-}
+/** Query 'GetVolunteerForPendingStatus' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerForPendingStatusParams = never;
 
 const getVolunteerForPendingStatusIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":757,"b":764},{"a":811,"b":818}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_profiles.approved,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.country,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    occupations.occupations\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupations\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!) AS occupations ON TRUE\nWHERE\n    users.id = :userId!"};
 
@@ -1662,22 +1248,13 @@ const getVolunteerForPendingStatusIR: any = {"usedParamSet":{"userId":true},"par
 export const getVolunteerForPendingStatus = new PreparedQuery<IGetVolunteerForPendingStatusParams,IGetVolunteerForPendingStatusResult>(getVolunteerForPendingStatusIR);
 
 
-/** 'UpdateVolunteerReferenceStatus' parameters type */
-export interface IUpdateVolunteerReferenceStatusParams {
-  referenceId: string;
-  status: string;
-}
+/** Query 'UpdateVolunteerReferenceStatus' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceStatusResult = never;
 
-/** 'UpdateVolunteerReferenceStatus' return type */
-export interface IUpdateVolunteerReferenceStatusResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerReferenceStatus' query type */
-export interface IUpdateVolunteerReferenceStatusQuery {
-  params: IUpdateVolunteerReferenceStatusParams;
-  result: IUpdateVolunteerReferenceStatusResult;
-}
+/** Query 'UpdateVolunteerReferenceStatus' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerReferenceStatusParams = never;
 
 const updateVolunteerReferenceStatusIR: any = {"usedParamSet":{"status":true,"referenceId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":195}]},{"name":"referenceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":246,"b":258}]}],"statement":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok"};
 
@@ -1705,21 +1282,13 @@ const updateVolunteerReferenceStatusIR: any = {"usedParamSet":{"status":true,"re
 export const updateVolunteerReferenceStatus = new PreparedQuery<IUpdateVolunteerReferenceStatusParams,IUpdateVolunteerReferenceStatusResult>(updateVolunteerReferenceStatusIR);
 
 
-/** 'UpdateVolunteerApproved' parameters type */
-export interface IUpdateVolunteerApprovedParams {
-  userId: string;
-}
+/** Query 'UpdateVolunteerApproved' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerApprovedResult = never;
 
-/** 'UpdateVolunteerApproved' return type */
-export interface IUpdateVolunteerApprovedResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerApproved' query type */
-export interface IUpdateVolunteerApprovedQuery {
-  params: IUpdateVolunteerApprovedParams;
-  result: IUpdateVolunteerApprovedResult;
-}
+/** Query 'UpdateVolunteerApproved' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerApprovedParams = never;
 
 const updateVolunteerApprovedIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":124}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    approved = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
 
@@ -1740,23 +1309,13 @@ const updateVolunteerApprovedIR: any = {"usedParamSet":{"userId":true},"params":
 export const updateVolunteerApproved = new PreparedQuery<IUpdateVolunteerApprovedParams,IUpdateVolunteerApprovedResult>(updateVolunteerApprovedIR);
 
 
-/** 'UpdateVolunteerPending' parameters type */
-export interface IUpdateVolunteerPendingParams {
-  approved: boolean;
-  status: string;
-  userId: string;
-}
+/** Query 'UpdateVolunteerPending' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerPendingResult = never;
 
-/** 'UpdateVolunteerPending' return type */
-export interface IUpdateVolunteerPendingResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerPending' query type */
-export interface IUpdateVolunteerPendingQuery {
-  params: IUpdateVolunteerPendingParams;
-  result: IUpdateVolunteerPendingResult;
-}
+/** Query 'UpdateVolunteerPending' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerPendingParams = never;
 
 const updateVolunteerPendingIR: any = {"usedParamSet":{"approved":true,"status":true,"userId":true},"params":[{"name":"approved","required":true,"transform":{"type":"scalar"},"locs":[{"a":49,"b":58}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":208,"b":215}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":269,"b":276}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    approved = :approved!,\n    photo_id_status = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        photo_id_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
 
@@ -1785,21 +1344,13 @@ const updateVolunteerPendingIR: any = {"usedParamSet":{"approved":true,"status":
 export const updateVolunteerPending = new PreparedQuery<IUpdateVolunteerPendingParams,IUpdateVolunteerPendingResult>(updateVolunteerPendingIR);
 
 
-/** 'UpdateVolunteerOnboarded' parameters type */
-export interface IUpdateVolunteerOnboardedParams {
-  userId: string;
-}
+/** Query 'UpdateVolunteerOnboarded' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerOnboardedResult = never;
 
-/** 'UpdateVolunteerOnboarded' return type */
-export interface IUpdateVolunteerOnboardedResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerOnboarded' query type */
-export interface IUpdateVolunteerOnboardedQuery {
-  params: IUpdateVolunteerOnboardedParams;
-  result: IUpdateVolunteerOnboardedResult;
-}
+/** Query 'UpdateVolunteerOnboarded' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerOnboardedParams = never;
 
 const updateVolunteerOnboardedIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":118,"b":125}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    onboarded = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
 
@@ -1820,27 +1371,13 @@ const updateVolunteerOnboardedIR: any = {"usedParamSet":{"userId":true},"params"
 export const updateVolunteerOnboarded = new PreparedQuery<IUpdateVolunteerOnboardedParams,IUpdateVolunteerOnboardedResult>(updateVolunteerOnboardedIR);
 
 
-/** 'GetVolunteersForNiceToMeetYou' parameters type */
-export interface IGetVolunteersForNiceToMeetYouParams {
-  end: DateOrString;
-  start: DateOrString;
-}
+/** Query 'GetVolunteersForNiceToMeetYou' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForNiceToMeetYouResult = never;
 
-/** 'GetVolunteersForNiceToMeetYou' return type */
-export interface IGetVolunteersForNiceToMeetYouResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersForNiceToMeetYou' query type */
-export interface IGetVolunteersForNiceToMeetYouQuery {
-  params: IGetVolunteersForNiceToMeetYouParams;
-  result: IGetVolunteersForNiceToMeetYouResult;
-}
+/** Query 'GetVolunteersForNiceToMeetYou' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForNiceToMeetYouParams = never;
 
 const getVolunteersForNiceToMeetYouIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":505,"b":511}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":540,"b":544}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND users.created_at >= :start!\n    AND users.created_at < :end!"};
 
@@ -1870,24 +1407,13 @@ const getVolunteersForNiceToMeetYouIR: any = {"usedParamSet":{"start":true,"end"
 export const getVolunteersForNiceToMeetYou = new PreparedQuery<IGetVolunteersForNiceToMeetYouParams,IGetVolunteersForNiceToMeetYouResult>(getVolunteersForNiceToMeetYouIR);
 
 
-/** 'GetVolunteersForReadyToCoach' parameters type */
-export type IGetVolunteersForReadyToCoachParams = void;
+/** Query 'GetVolunteersForReadyToCoach' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForReadyToCoachResult = never;
 
-/** 'GetVolunteersForReadyToCoach' return type */
-export interface IGetVolunteersForReadyToCoachResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersForReadyToCoach' query type */
-export interface IGetVolunteersForReadyToCoachQuery {
-  params: IGetVolunteersForReadyToCoachParams;
-  result: IGetVolunteersForReadyToCoachResult;
-}
+/** Query 'GetVolunteersForReadyToCoach' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForReadyToCoachParams = never;
 
 const getVolunteersForReadyToCoachIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\n    AND user_product_flags.sent_ready_to_coach_email IS FALSE"};
 
@@ -1919,27 +1445,13 @@ const getVolunteersForReadyToCoachIR: any = {"usedParamSet":{},"params":[],"stat
 export const getVolunteersForReadyToCoach = new PreparedQuery<IGetVolunteersForReadyToCoachParams,IGetVolunteersForReadyToCoachResult>(getVolunteersForReadyToCoachIR);
 
 
-/** 'GetVolunteersForWaitingReferences' parameters type */
-export interface IGetVolunteersForWaitingReferencesParams {
-  end: DateOrString;
-  start: DateOrString;
-}
+/** Query 'GetVolunteersForWaitingReferences' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForWaitingReferencesResult = never;
 
-/** 'GetVolunteersForWaitingReferences' return type */
-export interface IGetVolunteersForWaitingReferencesResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersForWaitingReferences' query type */
-export interface IGetVolunteersForWaitingReferencesQuery {
-  params: IGetVolunteersForWaitingReferencesParams;
-  result: IGetVolunteersForWaitingReferencesResult;
-}
+/** Query 'GetVolunteersForWaitingReferences' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForWaitingReferencesParams = never;
 
 const getVolunteersForWaitingReferencesIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":780,"b":786}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":827,"b":831}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.phone,\n    users.email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at > :start!\n    AND volunteer_references.sent_at < :end!\nGROUP BY\n    users.id,\n    volunteer_partner_orgs.key"};
 
@@ -1975,22 +1487,13 @@ const getVolunteersForWaitingReferencesIR: any = {"usedParamSet":{"start":true,"
 export const getVolunteersForWaitingReferences = new PreparedQuery<IGetVolunteersForWaitingReferencesParams,IGetVolunteersForWaitingReferencesResult>(getVolunteersForWaitingReferencesIR);
 
 
-/** 'AddVolunteerCertification' parameters type */
-export interface IAddVolunteerCertificationParams {
-  subject: string;
-  userId: string;
-}
+/** Query 'AddVolunteerCertification' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IAddVolunteerCertificationResult = never;
 
-/** 'AddVolunteerCertification' return type */
-export interface IAddVolunteerCertificationResult {
-  ok: string;
-}
-
-/** 'AddVolunteerCertification' query type */
-export interface IAddVolunteerCertificationQuery {
-  params: IAddVolunteerCertificationParams;
-  result: IAddVolunteerCertificationResult;
-}
+/** Query 'AddVolunteerCertification' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IAddVolunteerCertificationParams = never;
 
 const addVolunteerCertificationIR: any = {"usedParamSet":{"userId":true,"subject":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":96,"b":103}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":312,"b":320}]}],"statement":"INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        certifications.id\n    FROM\n        certifications\n        JOIN quizzes ON quizzes.name = certifications.name\n    WHERE\n        quizzes.name = :subject!) AS subquery\nON CONFLICT (user_id,\n    certification_id)\n    DO NOTHING\nRETURNING\n    user_id AS ok"};
 
@@ -2021,23 +1524,13 @@ const addVolunteerCertificationIR: any = {"usedParamSet":{"userId":true,"subject
 export const addVolunteerCertification = new PreparedQuery<IAddVolunteerCertificationParams,IAddVolunteerCertificationResult>(addVolunteerCertificationIR);
 
 
-/** 'UpdateVolunteerQuiz' parameters type */
-export interface IUpdateVolunteerQuizParams {
-  passed: boolean;
-  quiz: string;
-  userId: string;
-}
+/** Query 'UpdateVolunteerQuiz' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerQuizResult = never;
 
-/** 'UpdateVolunteerQuiz' return type */
-export interface IUpdateVolunteerQuizResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerQuiz' query type */
-export interface IUpdateVolunteerQuizQuery {
-  params: IUpdateVolunteerQuizParams;
-  result: IUpdateVolunteerQuizResult;
-}
+/** Query 'UpdateVolunteerQuiz' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerQuizParams = never;
 
 const updateVolunteerQuizIR: any = {"usedParamSet":{"userId":true,"passed":true,"quiz":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":112}]},{"name":"passed","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":150},{"a":396,"b":403}]},{"name":"quiz","required":true,"transform":{"type":"scalar"},"locs":[{"a":269,"b":274}]}],"statement":"INSERT INTO users_quizzes AS ins (user_id, quiz_id, attempts, passed, created_at, updated_at)\nSELECT\n    :userId!,\n    subquery.id,\n    1,\n    :passed!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        quizzes.id\n    FROM\n        quizzes\n    WHERE\n        quizzes.name = :quiz!) AS subquery\nON CONFLICT (user_id,\n    quiz_id)\n    DO UPDATE SET\n        attempts = ins.attempts + 1,\n        passed = :passed!,\n        updated_at = NOW()\n    RETURNING\n        user_id AS ok"};
 
@@ -2072,26 +1565,13 @@ const updateVolunteerQuizIR: any = {"usedParamSet":{"userId":true,"passed":true,
 export const updateVolunteerQuiz = new PreparedQuery<IUpdateVolunteerQuizParams,IUpdateVolunteerQuizResult>(updateVolunteerQuizIR);
 
 
-/** 'GetVolunteerForTextResponse' parameters type */
-export interface IGetVolunteerForTextResponseParams {
-  phone: string;
-}
+/** Query 'GetVolunteerForTextResponse' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerForTextResponseResult = never;
 
-/** 'GetVolunteerForTextResponse' return type */
-export interface IGetVolunteerForTextResponseResult {
-  endedAt: Date | null;
-  sessionId: string;
-  subject: string;
-  topic: string;
-  volunteerId: string;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetVolunteerForTextResponse' query type */
-export interface IGetVolunteerForTextResponseQuery {
-  params: IGetVolunteerForTextResponseParams;
-  result: IGetVolunteerForTextResponseResult;
-}
+/** Query 'GetVolunteerForTextResponse' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerForTextResponseParams = never;
 
 const getVolunteerForTextResponseIR: any = {"usedParamSet":{"phone":true},"params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":531,"b":537}]}],"statement":"SELECT\n    users.id AS volunteer_id,\n    sessions.id AS session_id,\n    sessions.volunteer_joined_at,\n    sessions.ended_at,\n    subjects.name AS subject,\n    topics.name AS topic\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN notifications ON notifications.user_id = users.id\n    LEFT JOIN sessions ON sessions.id = notifications.session_id\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    users.phone = :phone!\nORDER BY\n    notifications.created_at DESC\nLIMIT 1"};
 
@@ -2122,29 +1602,13 @@ const getVolunteerForTextResponseIR: any = {"usedParamSet":{"phone":true},"param
 export const getVolunteerForTextResponse = new PreparedQuery<IGetVolunteerForTextResponseParams,IGetVolunteerForTextResponseResult>(getVolunteerForTextResponseIR);
 
 
-/** 'GetVolunteersToReview' parameters type */
-export interface IGetVolunteersToReviewParams {
-  limit: number;
-  offset: number;
-}
+/** Query 'GetVolunteersToReview' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersToReviewResult = never;
 
-/** 'GetVolunteersToReview' return type */
-export interface IGetVolunteersToReviewResult {
-  createdAt: Date;
-  email: string;
-  firstname: string;
-  firstName: string;
-  id: string;
-  lastname: string;
-  lastName: string;
-  readyForReviewAt: Date | null;
-}
-
-/** 'GetVolunteersToReview' query type */
-export interface IGetVolunteersToReviewQuery {
-  params: IGetVolunteersToReviewParams;
-  result: IGetVolunteersToReviewResult;
-}
+/** Query 'GetVolunteersToReview' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersToReviewParams = never;
 
 const getVolunteersToReviewIR: any = {"usedParamSet":{"limit":true,"offset":true},"params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1267,"b":1273}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1289,"b":1296}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    users.last_name AS last_name,\n    users.first_name AS firstname,\n    users.last_name AS lastname,\n    users.email,\n    users.created_at,\n    MAX(user_actions.created_at) AS ready_for_review_at\nFROM\n    users\n    JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\n    JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    JOIN volunteer_occupations ON volunteer_occupations.user_id = users.id -- user is only ready for review if they submitted background info\n    JOIN user_actions ON user_actions.user_id = users.id\nWHERE\n    volunteer_profiles.approved IS FALSE\n    AND NOT volunteer_profiles.country IS NULL\n    AND NOT volunteer_profiles.photo_id_s3_key IS NULL\n    AND photo_id_statuses.name = ANY ('{ \"submitted\", \"approved\" }')\n    AND user_actions.action = ANY ('{ \"ADDED PHOTO ID\", \"COMPLETED BACKGROUND INFO\" }')\n    AND (\n        SELECT\n            MAX(user_actions.created_at)\n        FROM\n            user_actions\n        WHERE\n            action = ANY ('{ \"ADDED PHOTO ID\", \"COMPLETED BACKGROUND INFO\" }')\n            AND user_id = users.id) > CURRENT_DATE - INTERVAL '3 MONTHS'\nGROUP BY\n    users.id\nORDER BY\n    ready_for_review_at ASC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
@@ -2190,28 +1654,13 @@ const getVolunteersToReviewIR: any = {"usedParamSet":{"limit":true,"offset":true
 export const getVolunteersToReview = new PreparedQuery<IGetVolunteersToReviewParams,IGetVolunteersToReviewResult>(getVolunteersToReviewIR);
 
 
-/** 'GetReferencesToFollowup' parameters type */
-export interface IGetReferencesToFollowupParams {
-  end: DateOrString;
-  start: DateOrString;
-}
+/** Query 'GetReferencesToFollowup' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetReferencesToFollowupResult = never;
 
-/** 'GetReferencesToFollowup' return type */
-export interface IGetReferencesToFollowupResult {
-  referenceEmail: string;
-  referenceFirstName: string;
-  referenceId: string;
-  referenceLastName: string;
-  volunteerFirstName: string;
-  volunteerId: string;
-  volunteerLastName: string;
-}
-
-/** 'GetReferencesToFollowup' query type */
-export interface IGetReferencesToFollowupQuery {
-  params: IGetReferencesToFollowupParams;
-  result: IGetReferencesToFollowupResult;
-}
+/** Query 'GetReferencesToFollowup' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetReferencesToFollowupParams = never;
 
 const getReferencesToFollowupIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":851,"b":857}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":898,"b":902}]}],"statement":"SELECT\n    users.id AS volunteer_id,\n    users.first_name AS volunteer_first_name,\n    users.last_name AS volunteer_last_name,\n    volunteer_references.id AS reference_id,\n    volunteer_references.first_name AS reference_first_name,\n    volunteer_references.last_name AS reference_last_name,\n    volunteer_references.email AS reference_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN volunteer_references ON volunteer_references.user_id = users.id\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at > :start!\n    AND volunteer_references.sent_at < :end!"};
 
@@ -2244,36 +1693,13 @@ const getReferencesToFollowupIR: any = {"usedParamSet":{"start":true,"end":true}
 export const getReferencesToFollowup = new PreparedQuery<IGetReferencesToFollowupParams,IGetReferencesToFollowupResult>(getReferencesToFollowupIR);
 
 
-/** 'UpdateVolunteerBackgroundInfo' parameters type */
-export interface IUpdateVolunteerBackgroundInfoParams {
-  approved?: boolean | null | void;
-  city?: string | null | void;
-  college?: string | null | void;
-  company?: string | null | void;
-  country?: string | null | void;
-  experience?: Json | null | void;
-  languages?: stringArray | null | void;
-  linkedInUrl?: string | null | void;
-  occupation: readonly ({
-    userId: string | null | void,
-    occupation: string | null | void,
-    createdAt: DateOrString | null | void,
-    updatedAt: DateOrString | null | void
-  })[];
-  state?: string | null | void;
-  userId: string;
-}
+/** Query 'UpdateVolunteerBackgroundInfo' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerBackgroundInfoResult = never;
 
-/** 'UpdateVolunteerBackgroundInfo' return type */
-export interface IUpdateVolunteerBackgroundInfoResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerBackgroundInfo' query type */
-export interface IUpdateVolunteerBackgroundInfoQuery {
-  params: IUpdateVolunteerBackgroundInfoParams;
-  result: IUpdateVolunteerBackgroundInfoResult;
-}
+/** Query 'UpdateVolunteerBackgroundInfo' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerBackgroundInfoParams = never;
 
 const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occupation":true,"approved":true,"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true},"params":[{"name":"occupation","required":true,"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":false},{"name":"occupation","required":false},{"name":"createdAt","required":false},{"name":"updatedAt","required":false}]},"locs":[{"a":210,"b":221}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":78,"b":85},{"a":868,"b":875}]},{"name":"approved","required":false,"transform":{"type":"scalar"},"locs":[{"a":357,"b":365}]},{"name":"experience","required":false,"transform":{"type":"scalar"},"locs":[{"a":413,"b":423}]},{"name":"company","required":false,"transform":{"type":"scalar"},"locs":[{"a":470,"b":477}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":521,"b":528}]},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"locs":[{"a":577,"b":588}]},{"name":"country","required":false,"transform":{"type":"scalar"},"locs":[{"a":637,"b":644}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":686,"b":691}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":730,"b":734}]},{"name":"languages","required":false,"transform":{"type":"scalar"},"locs":[{"a":777,"b":786}]}],"statement":"WITH clear_occ AS (\n    DELETE FROM volunteer_occupations\n    WHERE user_id = :userId!\n),\nins_occ AS (\nINSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)\n        VALUES\n            :occupation!\n        ON CONFLICT\n            DO NOTHING)\n        UPDATE\n            volunteer_profiles\n        SET\n            approved = COALESCE(:approved, approved),\n            experience = COALESCE(:experience, experience),\n            company = COALESCE(:company, company),\n            college = COALESCE(:college, college),\n            linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n            country = COALESCE(:country, country),\n            state = COALESCE(:state, state),\n            city = COALESCE(:city, city),\n            languages = COALESCE(:languages, languages),\n            updated_at = NOW()\n        WHERE\n            user_id = :userId!\n        RETURNING\n            user_id AS ok"};
 
@@ -2312,23 +1738,13 @@ const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occ
 export const updateVolunteerBackgroundInfo = new PreparedQuery<IUpdateVolunteerBackgroundInfoParams,IUpdateVolunteerBackgroundInfoResult>(updateVolunteerBackgroundInfoIR);
 
 
-/** 'GetQuizzesPassedForDateRange' parameters type */
-export interface IGetQuizzesPassedForDateRangeParams {
-  end: DateOrString;
-  start: DateOrString;
-  userId: string;
-}
+/** Query 'GetQuizzesPassedForDateRange' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetQuizzesPassedForDateRangeResult = never;
 
-/** 'GetQuizzesPassedForDateRange' return type */
-export interface IGetQuizzesPassedForDateRangeResult {
-  total: number | null;
-}
-
-/** 'GetQuizzesPassedForDateRange' query type */
-export interface IGetQuizzesPassedForDateRangeQuery {
-  params: IGetQuizzesPassedForDateRangeParams;
-  result: IGetQuizzesPassedForDateRangeResult;
-}
+/** Query 'GetQuizzesPassedForDateRange' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetQuizzesPassedForDateRangeParams = never;
 
 const getQuizzesPassedForDateRangeIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":77,"b":84}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":114}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":142}]}],"statement":"SELECT\n    COUNT(*)::int AS total\nFROM\n    users_quizzes\nWHERE\n    user_id = :userId!\n    AND updated_at >= :start!\n    AND updated_at <= :end!\n    AND passed IS TRUE"};
 
@@ -2349,27 +1765,13 @@ const getQuizzesPassedForDateRangeIR: any = {"usedParamSet":{"userId":true,"star
 export const getQuizzesPassedForDateRange = new PreparedQuery<IGetQuizzesPassedForDateRangeParams,IGetQuizzesPassedForDateRangeResult>(getQuizzesPassedForDateRangeIR);
 
 
-/** 'UpdateVolunteerUserForAdmin' parameters type */
-export interface IUpdateVolunteerUserForAdminParams {
-  banType?: ban_types | null | void;
-  email: string;
-  firstName?: string | null | void;
-  isDeactivated: boolean;
-  isVerified: boolean;
-  lastName?: string | null | void;
-  userId: string;
-}
+/** Query 'UpdateVolunteerUserForAdmin' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerUserForAdminResult = never;
 
-/** 'UpdateVolunteerUserForAdmin' return type */
-export interface IUpdateVolunteerUserForAdminResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerUserForAdmin' query type */
-export interface IUpdateVolunteerUserForAdminQuery {
-  params: IUpdateVolunteerUserForAdminParams;
-  result: IUpdateVolunteerUserForAdminResult;
-}
+/** Query 'UpdateVolunteerUserForAdmin' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerUserForAdminParams = never;
 
 const updateVolunteerUserForAdminIR: any = {"usedParamSet":{"firstName":true,"lastName":true,"email":true,"isVerified":true,"banType":true,"isDeactivated":true,"userId":true},"params":[{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":47,"b":56}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":105}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":138}]},{"name":"isVerified","required":true,"transform":{"type":"scalar"},"locs":[{"a":156,"b":167}]},{"name":"banType","required":false,"transform":{"type":"scalar"},"locs":[{"a":185,"b":192}]},{"name":"isDeactivated","required":true,"transform":{"type":"scalar"},"locs":[{"a":213,"b":227}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":257}]}],"statement":"UPDATE\n    users\nSET\n    first_name = COALESCE(:firstName, first_name),\n    last_name = COALESCE(:lastName, last_name),\n    email = :email!,\n    verified = :isVerified!,\n    ban_type = :banType,\n    deactivated = :isDeactivated!\nWHERE\n    users.id = :userId!\nRETURNING\n    id AS ok"};
 
@@ -2394,23 +1796,13 @@ const updateVolunteerUserForAdminIR: any = {"usedParamSet":{"firstName":true,"la
 export const updateVolunteerUserForAdmin = new PreparedQuery<IUpdateVolunteerUserForAdminParams,IUpdateVolunteerUserForAdminResult>(updateVolunteerUserForAdminIR);
 
 
-/** 'UpdateVolunteerProfilesForAdmin' parameters type */
-export interface IUpdateVolunteerProfilesForAdminParams {
-  approved?: boolean | null | void;
-  partnerOrgId?: string | null | void;
-  userId: string;
-}
+/** Query 'UpdateVolunteerProfilesForAdmin' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateVolunteerProfilesForAdminResult = never;
 
-/** 'UpdateVolunteerProfilesForAdmin' return type */
-export interface IUpdateVolunteerProfilesForAdminResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerProfilesForAdmin' query type */
-export interface IUpdateVolunteerProfilesForAdminQuery {
-  params: IUpdateVolunteerProfilesForAdminParams;
-  result: IUpdateVolunteerProfilesForAdminResult;
-}
+/** Query 'UpdateVolunteerProfilesForAdmin' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateVolunteerProfilesForAdminParams = never;
 
 const updateVolunteerProfilesForAdminIR: any = {"usedParamSet":{"partnerOrgId":true,"approved":true,"userId":true},"params":[{"name":"partnerOrgId","required":false,"transform":{"type":"scalar"},"locs":[{"a":65,"b":77}]},{"name":"approved","required":false,"transform":{"type":"scalar"},"locs":[{"a":104,"b":112}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":145,"b":152}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    volunteer_partner_org_id = :partnerOrgId,\n    approved = COALESCE(:approved, approved)\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -2431,39 +1823,13 @@ const updateVolunteerProfilesForAdminIR: any = {"usedParamSet":{"partnerOrgId":t
 export const updateVolunteerProfilesForAdmin = new PreparedQuery<IUpdateVolunteerProfilesForAdminParams,IUpdateVolunteerProfilesForAdminResult>(updateVolunteerProfilesForAdminIR);
 
 
-/** 'CreateVolunteerUser' parameters type */
-export interface ICreateVolunteerUserParams {
-  email: string;
-  firstName: string;
-  lastName: string;
-  otherSignupSource?: string | null | void;
-  password: string;
-  phone: string;
-  referralCode: string;
-  referredBy?: string | null | void;
-  signupSourceId?: number | null | void;
-  userId: string;
-}
+/** Query 'CreateVolunteerUser' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICreateVolunteerUserResult = never;
 
-/** 'CreateVolunteerUser' return type */
-export interface ICreateVolunteerUserResult {
-  banned: boolean;
-  banType: ban_types | null;
-  createdAt: Date;
-  deactivated: boolean;
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  testUser: boolean;
-}
-
-/** 'CreateVolunteerUser' query type */
-export interface ICreateVolunteerUserQuery {
-  params: ICreateVolunteerUserParams;
-  result: ICreateVolunteerUserResult;
-}
+/** Query 'CreateVolunteerUser' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICreateVolunteerUserParams = never;
 
 const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":208}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":217}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":226}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":239}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":242,"b":251}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":254,"b":263}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":273,"b":283}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":286,"b":299}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":302,"b":316}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":319,"b":336}]}],"statement":"INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at"};
 
@@ -2481,22 +1847,13 @@ const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"
 export const createVolunteerUser = new PreparedQuery<ICreateVolunteerUserParams,ICreateVolunteerUserResult>(createVolunteerUserIR);
 
 
-/** 'CreateUserVolunteerPartnerOrgInstance' parameters type */
-export interface ICreateUserVolunteerPartnerOrgInstanceParams {
-  userId: string;
-  vpoName: string;
-}
+/** Query 'CreateUserVolunteerPartnerOrgInstance' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICreateUserVolunteerPartnerOrgInstanceResult = never;
 
-/** 'CreateUserVolunteerPartnerOrgInstance' return type */
-export interface ICreateUserVolunteerPartnerOrgInstanceResult {
-  ok: string | null;
-}
-
-/** 'CreateUserVolunteerPartnerOrgInstance' query type */
-export interface ICreateUserVolunteerPartnerOrgInstanceQuery {
-  params: ICreateUserVolunteerPartnerOrgInstanceParams;
-  result: ICreateUserVolunteerPartnerOrgInstanceResult;
-}
+/** Query 'CreateUserVolunteerPartnerOrgInstance' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICreateUserVolunteerPartnerOrgInstanceParams = never;
 
 const createUserVolunteerPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":true,"vpoName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":129}]},{"name":"vpoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":222,"b":230}]}],"statement":"INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    :userId!,\n    vpo.id,\n    NOW(),\n    NOW()\nFROM\n    volunteer_partner_orgs vpo\nWHERE\n    vpo.name = :vpoName!\nLIMIT 1\nRETURNING\n    user_id AS ok"};
 
@@ -2521,23 +1878,13 @@ const createUserVolunteerPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":t
 export const createUserVolunteerPartnerOrgInstance = new PreparedQuery<ICreateUserVolunteerPartnerOrgInstanceParams,ICreateUserVolunteerPartnerOrgInstanceResult>(createUserVolunteerPartnerOrgInstanceIR);
 
 
-/** 'CreateVolunteerProfile' parameters type */
-export interface ICreateVolunteerProfileParams {
-  partnerOrgId?: string | null | void;
-  timezone?: string | null | void;
-  userId: string;
-}
+/** Query 'CreateVolunteerProfile' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICreateVolunteerProfileResult = never;
 
-/** 'CreateVolunteerProfile' return type */
-export interface ICreateVolunteerProfileResult {
-  ok: string;
-}
-
-/** 'CreateVolunteerProfile' query type */
-export interface ICreateVolunteerProfileQuery {
-  params: ICreateVolunteerProfileParams;
-  result: ICreateVolunteerProfileResult;
-}
+/** Query 'CreateVolunteerProfile' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICreateVolunteerProfileParams = never;
 
 const createVolunteerProfileIR: any = {"usedParamSet":{"userId":true,"partnerOrgId":true,"timezone":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]},{"name":"partnerOrgId","required":false,"transform":{"type":"scalar"},"locs":[{"a":140,"b":152}]},{"name":"timezone","required":false,"transform":{"type":"scalar"},"locs":[{"a":155,"b":163}]}],"statement":"INSERT INTO volunteer_profiles (user_id, approved, volunteer_partner_org_id, timezone, created_at, updated_at)\n    VALUES (:userId!, FALSE, :partnerOrgId, :timezone, NOW(), NOW())\nRETURNING\n    user_id AS ok"};
 
@@ -2553,26 +1900,13 @@ const createVolunteerProfileIR: any = {"usedParamSet":{"userId":true,"partnerOrg
 export const createVolunteerProfile = new PreparedQuery<ICreateVolunteerProfileParams,ICreateVolunteerProfileResult>(createVolunteerProfileIR);
 
 
-/** 'GetQuizzesForVolunteers' parameters type */
-export interface IGetQuizzesForVolunteersParams {
-  userIds: stringArray;
-}
+/** Query 'GetQuizzesForVolunteers' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetQuizzesForVolunteersResult = never;
 
-/** 'GetQuizzesForVolunteers' return type */
-export interface IGetQuizzesForVolunteersResult {
-  active: boolean;
-  lastAttemptedAt: Date;
-  name: string;
-  passed: boolean;
-  tries: number;
-  userId: string;
-}
-
-/** 'GetQuizzesForVolunteers' query type */
-export interface IGetQuizzesForVolunteersQuery {
-  params: IGetQuizzesForVolunteersParams;
-  result: IGetQuizzesForVolunteersResult;
-}
+/** Query 'GetQuizzesForVolunteers' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetQuizzesForVolunteersParams = never;
 
 const getQuizzesForVolunteersIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":246,"b":254}]}],"statement":"SELECT\n    user_id,\n    attempts AS tries,\n    users_quizzes.updated_at AS last_attempted_at,\n    passed,\n    quizzes.name,\n    quizzes.active\nFROM\n    users_quizzes\n    JOIN quizzes ON users_quizzes.quiz_id = quizzes.id\nWHERE\n    user_id = ANY (:userIds!)"};
 
@@ -2596,24 +1930,13 @@ const getQuizzesForVolunteersIR: any = {"usedParamSet":{"userIds":true},"params"
 export const getQuizzesForVolunteers = new PreparedQuery<IGetQuizzesForVolunteersParams,IGetQuizzesForVolunteersResult>(getQuizzesForVolunteersIR);
 
 
-/** 'GetCertificationsForVolunteer' parameters type */
-export interface IGetCertificationsForVolunteerParams {
-  userIds: stringArray;
-}
+/** Query 'GetCertificationsForVolunteer' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetCertificationsForVolunteerResult = never;
 
-/** 'GetCertificationsForVolunteer' return type */
-export interface IGetCertificationsForVolunteerResult {
-  active: boolean;
-  lastAttemptedAt: Date;
-  name: string;
-  userId: string;
-}
-
-/** 'GetCertificationsForVolunteer' query type */
-export interface IGetCertificationsForVolunteerQuery {
-  params: IGetCertificationsForVolunteerParams;
-  result: IGetCertificationsForVolunteerResult;
-}
+/** Query 'GetCertificationsForVolunteer' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetCertificationsForVolunteerParams = never;
 
 const getCertificationsForVolunteerIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":269,"b":277}]}],"statement":"SELECT\n    user_id,\n    users_certifications.updated_at AS last_attempted_at,\n    certifications.name,\n    certifications.active\nFROM\n    users_certifications\n    JOIN certifications ON users_certifications.certification_id = certifications.id\nWHERE\n    user_id = ANY (:userIds!)"};
 
@@ -2635,25 +1958,13 @@ const getCertificationsForVolunteerIR: any = {"usedParamSet":{"userIds":true},"p
 export const getCertificationsForVolunteer = new PreparedQuery<IGetCertificationsForVolunteerParams,IGetCertificationsForVolunteerResult>(getCertificationsForVolunteerIR);
 
 
-/** 'GetActiveQuizzesForVolunteers' parameters type */
-export interface IGetActiveQuizzesForVolunteersParams {
-  userIds: stringArray;
-}
+/** Query 'GetActiveQuizzesForVolunteers' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetActiveQuizzesForVolunteersResult = never;
 
-/** 'GetActiveQuizzesForVolunteers' return type */
-export interface IGetActiveQuizzesForVolunteersResult {
-  lastAttemptedAt: Date;
-  name: string;
-  passed: boolean;
-  tries: number;
-  userId: string;
-}
-
-/** 'GetActiveQuizzesForVolunteers' query type */
-export interface IGetActiveQuizzesForVolunteersQuery {
-  params: IGetActiveQuizzesForVolunteersParams;
-  result: IGetActiveQuizzesForVolunteersResult;
-}
+/** Query 'GetActiveQuizzesForVolunteers' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetActiveQuizzesForVolunteersParams = never;
 
 const getActiveQuizzesForVolunteersIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":226,"b":234}]}],"statement":"SELECT\n    user_id,\n    attempts AS tries,\n    users_quizzes.updated_at AS last_attempted_at,\n    passed,\n    quizzes.name\nFROM\n    users_quizzes\n    JOIN quizzes ON users_quizzes.quiz_id = quizzes.id\nWHERE\n    user_id = ANY (:userIds!)\n    AND quizzes.active IS TRUE"};
 
@@ -2677,21 +1988,13 @@ const getActiveQuizzesForVolunteersIR: any = {"usedParamSet":{"userIds":true},"p
 export const getActiveQuizzesForVolunteers = new PreparedQuery<IGetActiveQuizzesForVolunteersParams,IGetActiveQuizzesForVolunteersResult>(getActiveQuizzesForVolunteersIR);
 
 
-/** 'GetSubjectsForVolunteer' parameters type */
-export interface IGetSubjectsForVolunteerParams {
-  userId: string;
-}
+/** Query 'GetSubjectsForVolunteer' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSubjectsForVolunteerResult = never;
 
-/** 'GetSubjectsForVolunteer' return type */
-export interface IGetSubjectsForVolunteerResult {
-  subject: string;
-}
-
-/** 'GetSubjectsForVolunteer' query type */
-export interface IGetSubjectsForVolunteerQuery {
-  params: IGetSubjectsForVolunteerParams;
-  result: IGetSubjectsForVolunteerResult;
-}
+/** Query 'GetSubjectsForVolunteer' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSubjectsForVolunteerParams = never;
 
 const getSubjectsForVolunteerIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":708,"b":715}]}],"statement":"WITH subject_cert_total AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    subjects_unlocked.subject\nFROM (\n    SELECT\n        subjects.name AS subject,\n        COUNT(*)::int AS earned_certs,\n        subject_cert_total.total\n    FROM\n        users_certifications\n        JOIN certification_subject_unlocks USING (certification_id)\n        JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n        JOIN subject_cert_total ON subject_cert_total.name = subjects.name\n    WHERE\n        user_id = :userId!\n    GROUP BY\n        subjects.name, subject_cert_total.total\n    HAVING\n        COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked"};
 
@@ -2731,33 +2034,13 @@ const getSubjectsForVolunteerIR: any = {"usedParamSet":{"userId":true},"params":
 export const getSubjectsForVolunteer = new PreparedQuery<IGetSubjectsForVolunteerParams,IGetSubjectsForVolunteerResult>(getSubjectsForVolunteerIR);
 
 
-/** 'GetNextVolunteerToNotify' parameters type */
-export interface IGetNextVolunteerToNotifyParams {
-  disqualifiedVolunteers?: stringArray | null | void;
-  favoriteVolunteers?: stringArray | null | void;
-  highLevelSubjects?: stringArray | null | void;
-  isPartner?: boolean | null | void;
-  lastNotified?: DateOrString | null | void;
-  specificPartner?: string | null | void;
-  subject?: string | null | void;
-}
+/** Query 'GetNextVolunteerToNotify' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetNextVolunteerToNotifyResult = never;
 
-/** 'GetNextVolunteerToNotify' return type */
-export interface IGetNextVolunteerToNotifyResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  rn: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetNextVolunteerToNotify' query type */
-export interface IGetNextVolunteerToNotifyQuery {
-  params: IGetNextVolunteerToNotifyParams;
-  result: IGetNextVolunteerToNotifyResult;
-}
+/** Query 'GetNextVolunteerToNotify' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetNextVolunteerToNotifyParams = never;
 
 const getNextVolunteerToNotifyIR: any = {"usedParamSet":{"subject":true,"highLevelSubjects":true,"disqualifiedVolunteers":true,"favoriteVolunteers":true,"isPartner":true,"specificPartner":true,"lastNotified":true},"params":[{"name":"subject","required":false,"transform":{"type":"scalar"},"locs":[{"a":262,"b":269},{"a":613,"b":620},{"a":3259,"b":3266},{"a":3314,"b":3321}]},{"name":"highLevelSubjects","required":false,"transform":{"type":"scalar"},"locs":[{"a":284,"b":301},{"a":635,"b":652},{"a":3441,"b":3458},{"a":3489,"b":3506}]},{"name":"disqualifiedVolunteers","required":false,"transform":{"type":"scalar"},"locs":[{"a":1300,"b":1322},{"a":1376,"b":1398}]},{"name":"favoriteVolunteers","required":false,"transform":{"type":"scalar"},"locs":[{"a":4885,"b":4903},{"a":4951,"b":4969}]},{"name":"isPartner","required":false,"transform":{"type":"scalar"},"locs":[{"a":5019,"b":5028},{"a":5060,"b":5069},{"a":5161,"b":5170}]},{"name":"specificPartner","required":false,"transform":{"type":"scalar"},"locs":[{"a":5264,"b":5279},{"a":5336,"b":5351}]},{"name":"lastNotified","required":false,"transform":{"type":"scalar"},"locs":[{"a":5523,"b":5535}]}],"statement":"WITH subject_totals AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    WHERE\n        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))\n    GROUP BY\n        subjects.name\n),\ncomputed_subject_totals AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        computed_subject_unlocks\n        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n    WHERE\n        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))\n    GROUP BY\n        subjects.name\n),\nready_to_tutor_volunteers AS (\n    SELECT\n        users.id AS userId,\n        first_name,\n        last_name,\n        phone,\n        email\n    FROM\n        users\n        JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    WHERE\n        test_user IS FALSE\n        AND banned IS FALSE\n        AND ban_type IS DISTINCT FROM 'complete'\n        AND deactivated IS FALSE\n        AND volunteer_profiles.onboarded IS TRUE\n        AND volunteer_profiles.approved IS TRUE\n        AND ( -- user is not part of disqualified group (like active session volunteers) if provided\n            (:disqualifiedVolunteers)::uuid[] IS NULL\n            OR NOT users.id = ANY (:disqualifiedVolunteers))\n),\n-- The above volunteers, narrowed down to those who can tutor in the given subject\nvolunteers_with_needed_certification AS (\n    SELECT\n        userId,\n        first_name,\n        last_name,\n        phone,\n        email\n    FROM\n        ready_to_tutor_volunteers\n        LEFT JOIN LATERAL (\n            SELECT\n                array_agg(sub_unlocked.subject)::text[] AS subjects\n            FROM (\n                SELECT\n                    subjects.name AS subject\n                FROM\n                    users_certifications\n                    JOIN certification_subject_unlocks USING (certification_id)\n                    JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                    JOIN subject_totals ON subject_totals.name = subjects.name\n                WHERE\n                    users_certifications.user_id = userId\n                GROUP BY\n                    user_id, subjects.name, subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE\n        LEFT JOIN LATERAL (\n            SELECT\n                array_agg(sub_unlocked.subject)::text[] AS subjects\n            FROM (\n                SELECT\n                    subjects.name AS subject\n                FROM\n                    users_certifications\n                    JOIN computed_subject_unlocks USING (certification_id)\n                    JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n                    JOIN computed_subject_totals ON computed_subject_totals.name = subjects.name\n                WHERE\n                    users_certifications.user_id = userId\n                GROUP BY\n                    user_id, subjects.name, computed_subject_totals.total\n                HAVING\n                    COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE\n    WHERE (:subject = ANY (subjects_unlocked.subjects)\n        OR :subject = ANY (computed_subjects_unlocked.subjects))\n    AND ( -- user does not have high level subjects if provided\n        (:highLevelSubjects)::text[] IS NULL\n        OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)\n),\n-- The above volunteers, narrowed down to those with availability\nvolunteers_with_availability AS (\n    SELECT\n        vwnc.userId,\n        vwnc.first_name,\n        vwnc.last_name,\n        vwnc.phone,\n        vwnc.email\n    FROM\n        volunteers_with_needed_certification vwnc\n        JOIN availabilities ON userId = availabilities.user_id\n        JOIN weekdays ON weekdays.id = availabilities.weekday_id\n    WHERE\n        -- availabilities are all stored in EST so convert server time to EST to be safe\n        TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\n        AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start\n        AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end\n),\ncandidates AS (\n    SELECT\n        vol.userId AS id,\n        vol.first_name,\n        vol.last_name,\n        vol.phone,\n        vol.email,\n        volunteer_partner_orgs.key AS volunteer_partner_org,\n        row_number() OVER () AS rn\nFROM\n    volunteers_with_availability vol\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId\n        LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    WHERE ( -- user is a favorite volunteer\n        (:favoriteVolunteers)::uuid[] IS NULL\n        OR vol.userId = ANY (:favoriteVolunteers))\n    AND ( -- user is partner or open\n        (:isPartner)::boolean IS NULL\n        OR (:isPartner IS FALSE\n            AND volunteer_profiles.volunteer_partner_org_id IS NULL)\n        OR (:isPartner IS TRUE\n            AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))\n    AND ((:specificPartner)::text IS NULL\n        OR volunteer_partner_orgs.key = :specificPartner)\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = vol.userId\n            AND sent_at >= :lastNotified)\n),\nrow_count AS (\n    SELECT\n        max(rn) AS total_rows\nFROM\n    candidates\n),\nrandom_row AS (\n    SELECT\n        floor(random() * row_count.total_rows + 1) AS random_rn\nFROM\n    row_count\n)\nSELECT\n    *\nFROM\n    candidates\nWHERE\n    rn = (\n        SELECT\n            random_rn\n        FROM\n            random_row\n        LIMIT 1)\nLIMIT 1"};
 
@@ -2937,22 +2220,13 @@ const getNextVolunteerToNotifyIR: any = {"usedParamSet":{"subject":true,"highLev
 export const getNextVolunteerToNotify = new PreparedQuery<IGetNextVolunteerToNotifyParams,IGetNextVolunteerToNotifyResult>(getNextVolunteerToNotifyIR);
 
 
-/** 'CheckIfVolunteerMutedSubject' parameters type */
-export interface ICheckIfVolunteerMutedSubjectParams {
-  subjectName?: string | null | void;
-  userId?: string | null | void;
-}
+/** Query 'CheckIfVolunteerMutedSubject' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICheckIfVolunteerMutedSubjectResult = never;
 
-/** 'CheckIfVolunteerMutedSubject' return type */
-export interface ICheckIfVolunteerMutedSubjectResult {
-  userId: string;
-}
-
-/** 'CheckIfVolunteerMutedSubject' query type */
-export interface ICheckIfVolunteerMutedSubjectQuery {
-  params: ICheckIfVolunteerMutedSubjectParams;
-  result: ICheckIfVolunteerMutedSubjectResult;
-}
+/** Query 'CheckIfVolunteerMutedSubject' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICheckIfVolunteerMutedSubjectParams = never;
 
 const checkIfVolunteerMutedSubjectIR: any = {"usedParamSet":{"userId":true,"subjectName":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":175,"b":181}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":207,"b":218}]}],"statement":"SELECT\n    user_id\nFROM\n    muted_users_subject_alerts\n    JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id\nWHERE\n    muted_users_subject_alerts.user_id = :userId\n    AND subjects.name = :subjectName"};
 
@@ -2972,25 +2246,13 @@ const checkIfVolunteerMutedSubjectIR: any = {"usedParamSet":{"userId":true,"subj
 export const checkIfVolunteerMutedSubject = new PreparedQuery<ICheckIfVolunteerMutedSubjectParams,ICheckIfVolunteerMutedSubjectResult>(checkIfVolunteerMutedSubjectIR);
 
 
-/** 'GetVolunteerForScheduleUpdate' parameters type */
-export interface IGetVolunteerForScheduleUpdateParams {
-  userId: string;
-}
+/** Query 'GetVolunteerForScheduleUpdate' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerForScheduleUpdateResult = never;
 
-/** 'GetVolunteerForScheduleUpdate' return type */
-export interface IGetVolunteerForScheduleUpdateResult {
-  id: string;
-  onboarded: boolean;
-  passedRequiredTraining: boolean | null;
-  subjects: stringArray | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteerForScheduleUpdate' query type */
-export interface IGetVolunteerForScheduleUpdateQuery {
-  params: IGetVolunteerForScheduleUpdateParams;
-  result: IGetVolunteerForScheduleUpdateResult;
-}
+/** Query 'GetVolunteerForScheduleUpdate' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerForScheduleUpdateParams = never;
 
 const getVolunteerForScheduleUpdateIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1334,"b":1341}]}],"statement":"SELECT\n    users.id,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_profiles.onboarded,\n    subjects_unlocked.subjects,\n    COALESCE(training_quizzes.passed, FALSE) AS passed_required_training\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sub_unlocked.subject) AS subjects\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            WHERE\n                users_certifications.user_id = users.id\n            GROUP BY\n                user_id, subjects.name) AS sub_unlocked) AS subjects_unlocked ON TRUE\n    LEFT JOIN (\n        SELECT\n            passed,\n            user_id\n        FROM\n            users_quizzes\n            JOIN quizzes ON users_quizzes.quiz_id = quizzes.id\n        WHERE\n            quizzes.name = 'upchieve101') AS training_quizzes ON training_quizzes.user_id = volunteer_profiles.user_id\nWHERE\n    users.id = :userId!\nLIMIT 1"};
 
@@ -3039,27 +2301,13 @@ const getVolunteerForScheduleUpdateIR: any = {"usedParamSet":{"userId":true},"pa
 export const getVolunteerForScheduleUpdate = new PreparedQuery<IGetVolunteerForScheduleUpdateParams,IGetVolunteerForScheduleUpdateResult>(getVolunteerForScheduleUpdateIR);
 
 
-/** 'GetVolunteersOnDeck' parameters type */
-export interface IGetVolunteersOnDeckParams {
-  excludedIds: stringArray;
-  subject: string;
-}
+/** Query 'GetVolunteersOnDeck' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersOnDeckResult = never;
 
-/** 'GetVolunteersOnDeck' return type */
-export interface IGetVolunteersOnDeckResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetVolunteersOnDeck' query type */
-export interface IGetVolunteersOnDeckQuery {
-  params: IGetVolunteersOnDeckParams;
-  result: IGetVolunteersOnDeckResult;
-}
+/** Query 'GetVolunteersOnDeck' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersOnDeckParams = never;
 
 const getVolunteersOnDeckIR: any = {"usedParamSet":{"excludedIds":true,"subject":true},"params":[{"name":"excludedIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":3065,"b":3077}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":3415,"b":3423},{"a":3473,"b":3481}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    JOIN availabilities ON users.id = availabilities.user_id\n    JOIN weekdays ON weekdays.id = availabilities.weekday_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        certification_subject_unlocks\n                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            sub_unlocked.user_id,\n            subjects.name AS subject\n        FROM (\n            SELECT\n                user_id,\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_total.total\n            FROM\n                users_certifications\n                JOIN computed_subject_unlocks USING (certification_id)\n                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        computed_subject_unlocks\n                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_total ON subject_total.name = subjects.name\n                GROUP BY\n                    user_id,\n                    subjects.name,\n                    subject_total.total\n                HAVING\n                    COUNT(*)::int >= subject_total.total) AS sub_unlocked\n                JOIN subjects ON sub_unlocked.subject = subjects.name) AS computed_subjects_unlocked ON computed_subjects_unlocked.user_id = users.id\nWHERE\n    test_user IS FALSE\n    AND banned IS FALSE\n    AND ban_type IS DISTINCT FROM 'complete'\n    AND deactivated IS FALSE\n    AND NOT users.id = ANY (:excludedIds!)\nAND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start\n    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end\n    AND (subjects_unlocked.subject = :subject!\n        OR computed_subjects_unlocked.subject = :subject!)\nGROUP BY\n    users.id,\n    volunteer_partner_orgs.key"};
 
@@ -3154,28 +2402,13 @@ const getVolunteersOnDeckIR: any = {"usedParamSet":{"excludedIds":true,"subject"
 export const getVolunteersOnDeck = new PreparedQuery<IGetVolunteersOnDeckParams,IGetVolunteersOnDeckResult>(getVolunteersOnDeckIR);
 
 
-/** 'GetUniqueStudentsHelpedForAnalyticsReportSummary' parameters type */
-export interface IGetUniqueStudentsHelpedForAnalyticsReportSummaryParams {
-  end: DateOrString;
-  start: DateOrString;
-  studentPartnerOrgIds: stringArray;
-  studentSchoolIds: stringArray;
-  volunteerPartnerOrg: string;
-}
+/** Query 'GetUniqueStudentsHelpedForAnalyticsReportSummary' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetUniqueStudentsHelpedForAnalyticsReportSummaryResult = never;
 
-/** 'GetUniqueStudentsHelpedForAnalyticsReportSummary' return type */
-export interface IGetUniqueStudentsHelpedForAnalyticsReportSummaryResult {
-  totalUniquePartnerStudentsHelped: number | null;
-  totalUniquePartnerStudentsHelpedWithinRange: number | null;
-  totalUniqueStudentsHelped: number | null;
-  totalUniqueStudentsHelpedWithinRange: number | null;
-}
-
-/** 'GetUniqueStudentsHelpedForAnalyticsReportSummary' query type */
-export interface IGetUniqueStudentsHelpedForAnalyticsReportSummaryQuery {
-  params: IGetUniqueStudentsHelpedForAnalyticsReportSummaryParams;
-  result: IGetUniqueStudentsHelpedForAnalyticsReportSummaryResult;
-}
+/** Query 'GetUniqueStudentsHelpedForAnalyticsReportSummary' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetUniqueStudentsHelpedForAnalyticsReportSummaryParams = never;
 
 const getUniqueStudentsHelpedForAnalyticsReportSummaryIR: any = {"usedParamSet":{"start":true,"end":true,"studentPartnerOrgIds":true,"studentSchoolIds":true,"volunteerPartnerOrg":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":159,"b":165},{"a":756,"b":762}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":210,"b":214},{"a":807,"b":811}]},{"name":"studentPartnerOrgIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":452,"b":473},{"a":881,"b":902}]},{"name":"studentSchoolIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":529,"b":546},{"a":962,"b":979}]},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"locs":[{"a":1478,"b":1498}]}],"statement":"SELECT\n    COALESCE(COUNT(DISTINCT sessions.student_id), 0)::int AS total_unique_students_helped,\n    COALESCE(COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!\n                AND sessions.created_at <= :end! THEN\n                sessions.student_id\n            ELSE\n                NULL\n            END), 0)::int AS total_unique_students_helped_within_range,\n    COALESCE(COUNT(DISTINCT CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN\n                sessions.student_id\n            ELSE\n                NULL\n            END), 0)::int AS total_unique_partner_students_helped,\n    COALESCE(COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!\n                AND sessions.created_at <= :end!\n                AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                    OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN\n                sessions.student_id\n            ELSE\n                NULL\n            END), 0)::int AS total_unique_partner_students_helped_within_range\nFROM\n    volunteer_partner_orgs\n    LEFT JOIN volunteer_profiles ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN sessions ON volunteer_profiles.user_id = sessions.volunteer_id\n    LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\nWHERE\n    volunteer_partner_orgs.key = :volunteerPartnerOrg!"};
 
@@ -3216,48 +2449,13 @@ const getUniqueStudentsHelpedForAnalyticsReportSummaryIR: any = {"usedParamSet":
 export const getUniqueStudentsHelpedForAnalyticsReportSummary = new PreparedQuery<IGetUniqueStudentsHelpedForAnalyticsReportSummaryParams,IGetUniqueStudentsHelpedForAnalyticsReportSummaryResult>(getUniqueStudentsHelpedForAnalyticsReportSummaryIR);
 
 
-/** 'GetVolunteersForAnalyticsReport' parameters type */
-export interface IGetVolunteersForAnalyticsReportParams {
-  cursor?: string | null | void;
-  end: DateOrString;
-  pageSize: number;
-  start: DateOrString;
-  studentPartnerOrgIds: stringArray;
-  studentSchoolIds: stringArray;
-  volunteerPartnerOrg: string;
-}
+/** Query 'GetVolunteersForAnalyticsReport' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForAnalyticsReportResult = never;
 
-/** 'GetVolunteersForAnalyticsReport' return type */
-export interface IGetVolunteersForAnalyticsReportResult {
-  availabilityLastModifiedAt: Date | null;
-  createdAt: Date;
-  dateOnboarded: Date;
-  email: string;
-  firstName: string;
-  isOnboarded: boolean;
-  lastName: string;
-  state: string | null;
-  totalNotifications: number | null;
-  totalNotificationsWithinRange: number | null;
-  totalPartnerSessions: number | null;
-  totalPartnerSessionsWithinRange: number | null;
-  totalPartnerTimeTutored: string | null;
-  totalPartnerTimeTutoredWithinRange: string | null;
-  totalQuizzesPassed: number | null;
-  totalSessions: number | null;
-  totalSessionsWithinRange: number | null;
-  totalUniquePartnerStudentsHelped: number | null;
-  totalUniquePartnerStudentsHelpedWithinRange: number | null;
-  totalUniqueStudentsHelped: number | null;
-  totalUniqueStudentsHelpedWithinRange: number | null;
-  userId: string;
-}
-
-/** 'GetVolunteersForAnalyticsReport' query type */
-export interface IGetVolunteersForAnalyticsReportQuery {
-  params: IGetVolunteersForAnalyticsReportParams;
-  result: IGetVolunteersForAnalyticsReportResult;
-}
+/** Query 'GetVolunteersForAnalyticsReport' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForAnalyticsReportParams = never;
 
 const getVolunteersForAnalyticsReportIR: any = {"usedParamSet":{"start":true,"end":true,"studentPartnerOrgIds":true,"studentSchoolIds":true,"volunteerPartnerOrg":true,"cursor":true,"pageSize":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":2748,"b":2754},{"a":3366,"b":3372},{"a":3842,"b":3848},{"a":4411,"b":4417},{"a":5193,"b":5199},{"a":5926,"b":5932}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":2803,"b":2807},{"a":3421,"b":3425},{"a":3897,"b":3901},{"a":4466,"b":4470},{"a":5248,"b":5252},{"a":5969,"b":5973}]},{"name":"studentPartnerOrgIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":3047,"b":3068},{"a":3499,"b":3520},{"a":4121,"b":4142},{"a":4544,"b":4565},{"a":4876,"b":4897},{"a":5326,"b":5347}]},{"name":"studentSchoolIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":3128,"b":3145},{"a":3584,"b":3601},{"a":4202,"b":4219},{"a":4629,"b":4646},{"a":4957,"b":4974},{"a":5411,"b":5428}]},{"name":"volunteerPartnerOrg","required":true,"transform":{"type":"scalar"},"locs":[{"a":6272,"b":6292}]},{"name":"cursor","required":false,"transform":{"type":"scalar"},"locs":[{"a":6303,"b":6309},{"a":6348,"b":6354}]},{"name":"pageSize","required":true,"transform":{"type":"scalar"},"locs":[{"a":6397,"b":6406}]}],"statement":"SELECT\n    users.id AS user_id,\n    users.first_name AS first_name,\n    users.last_name AS last_name,\n    users.email AS email,\n    users.created_at AS created_at,\n    volunteer_profiles.state AS state,\n    volunteer_profiles.onboarded AS is_onboarded,\n    user_actions.created_at AS date_onboarded,\n    COALESCE(users_quizzes.total, 0) AS total_quizzes_passed,\n    availabilities.updated_at AS availability_last_modified_at,\n    COALESCE(sessions_stats.total_unique_students_helped, 0) AS total_unique_students_helped,\n    COALESCE(sessions_stats.total_unique_students_helped_within_range, 0) AS total_unique_students_helped_within_range,\n    COALESCE(sessions_stats.total_unique_partner_students_helped, 0) AS total_unique_partner_students_helped,\n    COALESCE(sessions_stats.total_unique_partner_students_helped_within_range, 0) AS total_unique_partner_students_helped_within_range,\n    COALESCE(sessions_stats.total_sessions, 0) AS total_sessions,\n    COALESCE(sessions_stats.total_sessions_within_range, 0) AS total_sessions_within_range,\n    COALESCE(sessions_stats.total_partner_sessions, 0) AS total_partner_sessions,\n    COALESCE(sessions_stats.total_partner_sessions_within_range, 0) AS total_partner_sessions_within_range,\n    COALESCE(sessions_stats.total_partner_time_tutored, 0) AS total_partner_time_tutored,\n    COALESCE(sessions_stats.total_partner_time_tutored_within_range, 0) AS total_partner_time_tutored_within_range,\n    COALESCE(notifications_stats.total, 0) AS total_notifications,\n    COALESCE(notifications_stats.total_within_range, 0) AS total_notifications_within_range\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\n    LEFT JOIN (\n        SELECT\n            COUNT(*)::int AS total,\n            user_id\n        FROM\n            users_quizzes\n        WHERE\n            passed = TRUE\n        GROUP BY\n            user_id) AS users_quizzes ON users_quizzes.user_id = volunteer_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            MAX(updated_at) AS updated_at,\n            user_id\n        FROM\n            availabilities\n        GROUP BY\n            user_id) AS availabilities ON availabilities.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            created_at,\n            user_id\n        FROM\n            user_actions\n        WHERE\n            action = 'ONBOARDED') AS user_actions ON user_actions.user_id = volunteer_profiles.user_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total_sessions,\n            COUNT(DISTINCT student_id)::int AS total_unique_students_helped,\n            COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!\n                    AND sessions.created_at <= :end! THEN\n                    student_id\n                ELSE\n                    NULL\n                END)::int AS total_unique_students_helped_within_range,\n            COUNT(DISTINCT CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                    OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN\n                    sessions.student_id\n                ELSE\n                    NULL\n                END)::int AS total_unique_partner_students_helped,\n            COUNT(DISTINCT CASE WHEN sessions.created_at >= :start!\n                    AND sessions.created_at <= :end!\n                    AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                        OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN\n                    sessions.student_id\n                ELSE\n                    NULL\n                END)::int AS total_unique_partner_students_helped_within_range,\n            SUM(\n                CASE WHEN sessions.created_at >= :start!\n                    AND sessions.created_at <= :end! THEN\n                    1\n                ELSE\n                    0\n                END)::int AS total_sessions_within_range,\n            SUM(\n                CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                    OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN\n                    1\n                ELSE\n                    0\n                END)::int AS total_partner_sessions,\n            SUM(\n                CASE WHEN sessions.created_at >= :start!\n                    AND sessions.created_at <= :end!\n                    AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                        OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN\n                    1\n                ELSE\n                    0\n                END)::int AS total_partner_sessions_within_range,\n            SUM(\n                CASE WHEN student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                    OR student_profiles.school_id = ANY (:studentSchoolIds!) THEN\n                    sessions.time_tutored\n                ELSE\n                    0\n                END)::bigint AS total_partner_time_tutored,\n            SUM(\n                CASE WHEN sessions.created_at >= :start!\n                    AND sessions.created_at <= :end!\n                    AND (student_profiles.student_partner_org_id = ANY (:studentPartnerOrgIds!)\n                        OR student_profiles.school_id = ANY (:studentSchoolIds!)) THEN\n                    sessions.time_tutored\n                ELSE\n                    0\n                END)::bigint AS total_partner_time_tutored_within_range\n        FROM\n            sessions\n    LEFT JOIN student_profiles ON sessions.student_id = student_profiles.user_id\nWHERE\n    volunteer_profiles.user_id = sessions.volunteer_id) AS sessions_stats ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total,\n            SUM(\n                CASE WHEN sent_at >= :start!\n                    AND sent_at <= :end! THEN\n                    1\n                ELSE\n                    0\n                END)::int AS total_within_range\n        FROM\n            notifications\n    WHERE\n        volunteer_profiles.user_id = notifications.user_id) AS notifications_stats ON TRUE\nWHERE\n    volunteer_partner_orgs.key = :volunteerPartnerOrg!\n    AND (:cursor::uuid IS NULL\n        OR users.id <= :cursor::uuid)\nORDER BY\n    users.id DESC\nLIMIT (:pageSize!::int)"};
 
@@ -3411,19 +2609,13 @@ const getVolunteersForAnalyticsReportIR: any = {"usedParamSet":{"start":true,"en
 export const getVolunteersForAnalyticsReport = new PreparedQuery<IGetVolunteersForAnalyticsReportParams,IGetVolunteersForAnalyticsReportResult>(getVolunteersForAnalyticsReportIR);
 
 
-/** 'RemoveOnboardedStatusForUnqualifiedVolunteers' parameters type */
-export type IRemoveOnboardedStatusForUnqualifiedVolunteersParams = void;
+/** Query 'RemoveOnboardedStatusForUnqualifiedVolunteers' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IRemoveOnboardedStatusForUnqualifiedVolunteersResult = never;
 
-/** 'RemoveOnboardedStatusForUnqualifiedVolunteers' return type */
-export interface IRemoveOnboardedStatusForUnqualifiedVolunteersResult {
-  ok: string;
-}
-
-/** 'RemoveOnboardedStatusForUnqualifiedVolunteers' query type */
-export interface IRemoveOnboardedStatusForUnqualifiedVolunteersQuery {
-  params: IRemoveOnboardedStatusForUnqualifiedVolunteersParams;
-  result: IRemoveOnboardedStatusForUnqualifiedVolunteersResult;
-}
+/** Query 'RemoveOnboardedStatusForUnqualifiedVolunteers' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IRemoveOnboardedStatusForUnqualifiedVolunteersParams = never;
 
 const removeOnboardedStatusForUnqualifiedVolunteersIR: any = {"usedParamSet":{},"params":[],"statement":"UPDATE\n    volunteer_profiles\nSET\n    onboarded = FALSE,\n    updated_at = NOW()\nFROM (\n    SELECT\n        users_training_courses.complete AS training_course_complete,\n        users_training_courses.user_id,\n        users_quizzes.passed AS training_quiz_passed\n    FROM\n        users_training_courses\n    LEFT JOIN (\n        SELECT\n            users_quizzes.passed,\n            users_quizzes.user_id,\n            quizzes.name\n        FROM\n            users_quizzes\n            LEFT JOIN quizzes ON users_quizzes.quiz_id = quizzes.id) AS users_quizzes ON users_quizzes.user_id = users_training_courses.user_id\n            AND users_quizzes.name = 'upchieve101') AS subquery\nWHERE\n    volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.created_at >= '2022-01-01 00:00:00.000000+00'\n    AND subquery.training_course_complete IS TRUE\n    AND (subquery.training_quiz_passed IS FALSE\n        OR subquery.training_quiz_passed IS NULL)\nAND volunteer_profiles.user_id = subquery.user_id\nRETURNING\n    volunteer_profiles.user_id AS ok"};
 
@@ -3465,22 +2657,13 @@ const removeOnboardedStatusForUnqualifiedVolunteersIR: any = {"usedParamSet":{},
 export const removeOnboardedStatusForUnqualifiedVolunteers = new PreparedQuery<IRemoveOnboardedStatusForUnqualifiedVolunteersParams,IRemoveOnboardedStatusForUnqualifiedVolunteersResult>(removeOnboardedStatusForUnqualifiedVolunteersIR);
 
 
-/** 'GetPartnerOrgsByVolunteer' parameters type */
-export interface IGetPartnerOrgsByVolunteerParams {
-  volunteerId: string;
-}
+/** Query 'GetPartnerOrgsByVolunteer' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetPartnerOrgsByVolunteerResult = never;
 
-/** 'GetPartnerOrgsByVolunteer' return type */
-export interface IGetPartnerOrgsByVolunteerResult {
-  id: string;
-  name: string;
-}
-
-/** 'GetPartnerOrgsByVolunteer' query type */
-export interface IGetPartnerOrgsByVolunteerQuery {
-  params: IGetPartnerOrgsByVolunteerParams;
-  result: IGetPartnerOrgsByVolunteerResult;
-}
+/** Query 'GetPartnerOrgsByVolunteer' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetPartnerOrgsByVolunteerParams = never;
 
 const getPartnerOrgsByVolunteerIR: any = {"usedParamSet":{"volunteerId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":191,"b":203}]}],"statement":"SELECT\n    vpo.name,\n    vpo.id\nFROM\n    users_volunteer_partner_orgs_instances uvpoi\n    JOIN volunteer_partner_orgs vpo ON vpo.id = uvpoi.volunteer_partner_org_id\nWHERE\n    uvpoi.user_id = :volunteerId!\n    AND deactivated_on IS NULL"};
 
@@ -3501,22 +2684,13 @@ const getPartnerOrgsByVolunteerIR: any = {"usedParamSet":{"volunteerId":true},"p
 export const getPartnerOrgsByVolunteer = new PreparedQuery<IGetPartnerOrgsByVolunteerParams,IGetPartnerOrgsByVolunteerResult>(getPartnerOrgsByVolunteerIR);
 
 
-/** 'AdminDeactivateVolunteerPartnershipInstance' parameters type */
-export interface IAdminDeactivateVolunteerPartnershipInstanceParams {
-  userId: string;
-  vpoId: string;
-}
+/** Query 'AdminDeactivateVolunteerPartnershipInstance' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IAdminDeactivateVolunteerPartnershipInstanceResult = never;
 
-/** 'AdminDeactivateVolunteerPartnershipInstance' return type */
-export interface IAdminDeactivateVolunteerPartnershipInstanceResult {
-  ok: string | null;
-}
-
-/** 'AdminDeactivateVolunteerPartnershipInstance' query type */
-export interface IAdminDeactivateVolunteerPartnershipInstanceQuery {
-  params: IAdminDeactivateVolunteerPartnershipInstanceParams;
-  result: IAdminDeactivateVolunteerPartnershipInstanceResult;
-}
+/** Query 'AdminDeactivateVolunteerPartnershipInstance' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IAdminDeactivateVolunteerPartnershipInstanceParams = never;
 
 const adminDeactivateVolunteerPartnershipInstanceIR: any = {"usedParamSet":{"userId":true,"vpoId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":101,"b":108}]},{"name":"vpoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":145,"b":151}]}],"statement":"UPDATE\n    users_volunteer_partner_orgs_instances\nSET\n    deactivated_on = NOW()\nWHERE\n    user_id = :userId!\n    AND volunteer_partner_org_id = :vpoId!\nRETURNING\n    user_id AS ok"};
 
@@ -3537,22 +2711,13 @@ const adminDeactivateVolunteerPartnershipInstanceIR: any = {"usedParamSet":{"use
 export const adminDeactivateVolunteerPartnershipInstance = new PreparedQuery<IAdminDeactivateVolunteerPartnershipInstanceParams,IAdminDeactivateVolunteerPartnershipInstanceResult>(adminDeactivateVolunteerPartnershipInstanceIR);
 
 
-/** 'AdminInsertVolunteerPartnershipInstance' parameters type */
-export interface IAdminInsertVolunteerPartnershipInstanceParams {
-  partnerOrgId: string;
-  userId: string;
-}
+/** Query 'AdminInsertVolunteerPartnershipInstance' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IAdminInsertVolunteerPartnershipInstanceResult = never;
 
-/** 'AdminInsertVolunteerPartnershipInstance' return type */
-export interface IAdminInsertVolunteerPartnershipInstanceResult {
-  ok: string | null;
-}
-
-/** 'AdminInsertVolunteerPartnershipInstance' query type */
-export interface IAdminInsertVolunteerPartnershipInstanceQuery {
-  params: IAdminInsertVolunteerPartnershipInstanceParams;
-  result: IAdminInsertVolunteerPartnershipInstanceResult;
-}
+/** Query 'AdminInsertVolunteerPartnershipInstance' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IAdminInsertVolunteerPartnershipInstanceParams = never;
 
 const adminInsertVolunteerPartnershipInstanceIR: any = {"usedParamSet":{"userId":true,"partnerOrgId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]},{"name":"partnerOrgId","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":146}]}],"statement":"INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\n    VALUES (:userId!, :partnerOrgId!, NOW(), NOW())\nRETURNING\n    user_id AS ok"};
 
@@ -3568,23 +2733,13 @@ const adminInsertVolunteerPartnershipInstanceIR: any = {"usedParamSet":{"userId"
 export const adminInsertVolunteerPartnershipInstance = new PreparedQuery<IAdminInsertVolunteerPartnershipInstanceParams,IAdminInsertVolunteerPartnershipInstanceResult>(adminInsertVolunteerPartnershipInstanceIR);
 
 
-/** 'GetPartnerOrgByKey' parameters type */
-export interface IGetPartnerOrgByKeyParams {
-  partnerOrgKey?: string | null | void;
-}
+/** Query 'GetPartnerOrgByKey' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetPartnerOrgByKeyResult = never;
 
-/** 'GetPartnerOrgByKey' return type */
-export interface IGetPartnerOrgByKeyResult {
-  partnerId: string;
-  partnerKey: string;
-  partnerName: string;
-}
-
-/** 'GetPartnerOrgByKey' query type */
-export interface IGetPartnerOrgByKeyQuery {
-  params: IGetPartnerOrgByKeyParams;
-  result: IGetPartnerOrgByKeyResult;
-}
+/** Query 'GetPartnerOrgByKey' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetPartnerOrgByKeyParams = never;
 
 const getPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgKey":true},"params":[{"name":"partnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":218,"b":231}]}],"statement":"SELECT\n    volunteer_partner_orgs.id AS partner_id,\n    volunteer_partner_orgs.key AS partner_key,\n    volunteer_partner_orgs.name AS partner_name\nFROM\n    volunteer_partner_orgs\nWHERE\n    volunteer_partner_orgs.key = :partnerOrgKey\nLIMIT 1"};
 

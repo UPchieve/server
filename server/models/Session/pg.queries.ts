@@ -1,37 +1,13 @@
 /** Types generated for queries found in "server/models/Session/session.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type ban_types = 'complete' | 'live_media' | 'shadow';
+/** Query 'AddNotification' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IAddNotificationResult = never;
 
-export type tutor_bot_session_user_type = 'bot' | 'student';
-
-export type DateOrString = Date | string;
-
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-
-export type stringArray = (string)[];
-
-/** 'AddNotification' parameters type */
-export interface IAddNotificationParams {
-  id: string;
-  method: string;
-  priorityGroup: string;
-  sessionId: string;
-  type: string;
-  volunteer: string;
-  wasSuccessful: boolean;
-}
-
-/** 'AddNotification' return type */
-export interface IAddNotificationResult {
-  ok: string;
-}
-
-/** 'AddNotification' query type */
-export interface IAddNotificationQuery {
-  params: IAddNotificationParams;
-  result: IAddNotificationResult;
-}
+/** Query 'AddNotification' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IAddNotificationParams = never;
 
 const addNotificationIR: any = {"usedParamSet":{"id":true,"volunteer":true,"wasSuccessful":true,"sessionId":true,"type":true,"method":true,"priorityGroup":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":150}]},{"name":"volunteer","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":167}]},{"name":"wasSuccessful","required":true,"transform":{"type":"scalar"},"locs":[{"a":278,"b":292}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":299,"b":309}]},{"name":"type","required":true,"transform":{"type":"scalar"},"locs":[{"a":481,"b":486}]},{"name":"method","required":true,"transform":{"type":"scalar"},"locs":[{"a":526,"b":533}]},{"name":"priorityGroup","required":true,"transform":{"type":"scalar"},"locs":[{"a":579,"b":593}]}],"statement":"INSERT INTO notifications (id, user_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)\nSELECT\n    :id!,\n    :volunteer!,\n    NOW(),\n    notification_types.id,\n    notification_methods.id,\n    notification_priority_groups.id,\n    :wasSuccessful!,\n    :sessionId!,\n    NOW(),\n    NOW()\nFROM\n    notification_types\n    JOIN notification_methods ON TRUE\n    JOIN notification_priority_groups ON TRUE\nWHERE\n    notification_types.type = :type!\n    AND notification_methods.method = :method!\n    AND notification_priority_groups.name = :priorityGroup!\nRETURNING\n    id AS ok"};
 
@@ -65,30 +41,13 @@ const addNotificationIR: any = {"usedParamSet":{"id":true,"volunteer":true,"wasS
 export const addNotification = new PreparedQuery<IAddNotificationParams,IAddNotificationResult>(addNotificationIR);
 
 
-/** 'GetUnfilledSessions' parameters type */
-export interface IGetUnfilledSessionsParams {
-  start: DateOrString;
-}
+/** Query 'GetUnfilledSessions' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetUnfilledSessionsResult = never;
 
-/** 'GetUnfilledSessions' return type */
-export interface IGetUnfilledSessionsResult {
-  createdAt: Date;
-  id: string;
-  isFirstTimeStudent: boolean | null;
-  studentBanType: ban_types | null;
-  studentFirstName: string;
-  studentTestUser: boolean;
-  subjectDisplayName: string;
-  subTopic: string;
-  type: string;
-  volunteer: string | null;
-}
-
-/** 'GetUnfilledSessions' query type */
-export interface IGetUnfilledSessionsQuery {
-  params: IGetUnfilledSessionsParams;
-  result: IGetUnfilledSessionsResult;
-}
+/** Query 'GetUnfilledSessions' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetUnfilledSessionsParams = never;
 
 const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":833,"b":839}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
 
@@ -130,41 +89,13 @@ const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"na
 export const getUnfilledSessions = new PreparedQuery<IGetUnfilledSessionsParams,IGetUnfilledSessionsResult>(getUnfilledSessionsIR);
 
 
-/** 'GetSessionById' parameters type */
-export interface IGetSessionByIdParams {
-  sessionId: string;
-}
+/** Query 'GetSessionById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionByIdResult = never;
 
-/** 'GetSessionById' return type */
-export interface IGetSessionByIdResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  endedByRole: string;
-  flags: stringArray | null;
-  hasWhiteboardDoc: boolean;
-  id: string;
-  quillDoc: string | null;
-  reported: boolean | null;
-  reviewed: boolean;
-  shadowbanned: boolean | null;
-  studentId: string;
-  subject: string;
-  subjectDisplayName: string;
-  subjectId: number;
-  timeTutored: number | null;
-  toolType: string;
-  topic: string;
-  toReview: boolean;
-  updatedAt: Date;
-  volunteerId: string | null;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetSessionById' query type */
-export interface IGetSessionByIdQuery {
-  params: IGetSessionByIdParams;
-  result: IGetSessionByIdResult;
-}
+/** Query 'GetSessionById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionByIdParams = never;
 
 const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1491,"b":1501}]}],"statement":"SELECT\n    sessions.id,\n    student_id,\n    volunteer_id,\n    subjects.id AS subject_id,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic,\n    has_whiteboard_doc,\n    quill_doc,\n    volunteer_joined_at,\n    ended_at,\n    user_roles.name AS ended_by_role,\n    reviewed,\n    to_review,\n    shadowbanned,\n    (time_tutored)::float,\n    sessions.created_at,\n    sessions.updated_at,\n    session_reported_count.total <> 0 AS reported,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
 
@@ -222,22 +153,13 @@ const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"nam
 export const getSessionById = new PreparedQuery<IGetSessionByIdParams,IGetSessionByIdResult>(getSessionByIdIR);
 
 
-/** 'InsertSessionFlagById' parameters type */
-export interface IInsertSessionFlagByIdParams {
-  flag: string;
-  sessionId: string;
-}
+/** Query 'InsertSessionFlagById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertSessionFlagByIdResult = never;
 
-/** 'InsertSessionFlagById' return type */
-export interface IInsertSessionFlagByIdResult {
-  ok: string;
-}
-
-/** 'InsertSessionFlagById' query type */
-export interface IInsertSessionFlagByIdQuery {
-  params: IInsertSessionFlagByIdParams;
-  result: IInsertSessionFlagByIdResult;
-}
+/** Query 'InsertSessionFlagById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertSessionFlagByIdParams = never;
 
 const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"flag","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":201}]}],"statement":"INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    name = :flag!\nON CONFLICT (session_id,\n    session_flag_id)\n    DO UPDATE SET\n        updated_at = NOW()\n    RETURNING\n        session_id AS ok"};
 
@@ -265,22 +187,13 @@ const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":tr
 export const insertSessionFlagById = new PreparedQuery<IInsertSessionFlagByIdParams,IInsertSessionFlagByIdResult>(insertSessionFlagByIdIR);
 
 
-/** 'UpdateSessionToReview' parameters type */
-export interface IUpdateSessionToReviewParams {
-  reviewed?: boolean | null | void;
-  sessionId: string;
-}
+/** Query 'UpdateSessionToReview' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionToReviewResult = never;
 
-/** 'UpdateSessionToReview' return type */
-export interface IUpdateSessionToReviewResult {
-  ok: string;
-}
-
-/** 'UpdateSessionToReview' query type */
-export interface IUpdateSessionToReviewQuery {
-  params: IUpdateSessionToReviewParams;
-  result: IUpdateSessionToReviewResult;
-}
+/** Query 'UpdateSessionToReview' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionToReviewParams = never;
 
 const updateSessionToReviewIR: any = {"usedParamSet":{"reviewed":true,"sessionId":true},"params":[{"name":"reviewed","required":false,"transform":{"type":"scalar"},"locs":[{"a":70,"b":78}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":116}]}],"statement":"UPDATE\n    sessions\nSET\n    to_review = TRUE,\n    reviewed = COALESCE(:reviewed, reviewed)\nWHERE\n    id = :sessionId!\nRETURNING\n    id AS ok"};
 
@@ -301,23 +214,13 @@ const updateSessionToReviewIR: any = {"usedParamSet":{"reviewed":true,"sessionId
 export const updateSessionToReview = new PreparedQuery<IUpdateSessionToReviewParams,IUpdateSessionToReviewResult>(updateSessionToReviewIR);
 
 
-/** 'UpdateSessionReviewedStatusById' parameters type */
-export interface IUpdateSessionReviewedStatusByIdParams {
-  reviewed: boolean;
-  sessionId: string;
-  toReview: boolean;
-}
+/** Query 'UpdateSessionReviewedStatusById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionReviewedStatusByIdResult = never;
 
-/** 'UpdateSessionReviewedStatusById' return type */
-export interface IUpdateSessionReviewedStatusByIdResult {
-  ok: string;
-}
-
-/** 'UpdateSessionReviewedStatusById' query type */
-export interface IUpdateSessionReviewedStatusByIdQuery {
-  params: IUpdateSessionReviewedStatusByIdParams;
-  result: IUpdateSessionReviewedStatusByIdResult;
-}
+/** Query 'UpdateSessionReviewedStatusById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionReviewedStatusByIdParams = never;
 
 const updateSessionReviewedStatusByIdIR: any = {"usedParamSet":{"reviewed":true,"toReview":true,"sessionId":true},"params":[{"name":"reviewed","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":48}]},{"name":"toReview","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":76}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":127}]}],"statement":"UPDATE\n    sessions\nSET\n    reviewed = :reviewed!,\n    to_review = :toReview!,\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\nRETURNING\n    id AS ok"};
 
@@ -339,37 +242,13 @@ const updateSessionReviewedStatusByIdIR: any = {"usedParamSet":{"reviewed":true,
 export const updateSessionReviewedStatusById = new PreparedQuery<IUpdateSessionReviewedStatusByIdParams,IUpdateSessionReviewedStatusByIdResult>(updateSessionReviewedStatusByIdIR);
 
 
-/** 'GetSessionToEndById' parameters type */
-export interface IGetSessionToEndByIdParams {
-  sessionId: string;
-}
+/** Query 'GetSessionToEndById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionToEndByIdResult = never;
 
-/** 'GetSessionToEndById' return type */
-export interface IGetSessionToEndByIdResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  reported: boolean | null;
-  studentEmail: string;
-  studentFirstName: string;
-  studentId: string;
-  studentNumPastSessions: number | null;
-  subject: string;
-  topic: string;
-  updatedAt: Date;
-  volunteerEmail: string;
-  volunteerFirstName: string;
-  volunteerId: string | null;
-  volunteerJoinedAt: Date | null;
-  volunteerNumPastSessions: number | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetSessionToEndById' query type */
-export interface IGetSessionToEndByIdQuery {
-  params: IGetSessionToEndByIdParams;
-  result: IGetSessionToEndByIdResult;
-}
+/** Query 'GetSessionToEndById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionToEndByIdParams = never;
 
 const getSessionToEndByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1709,"b":1719}]}],"statement":"SELECT\n    sessions.id,\n    student_id,\n    volunteer_id,\n    subjects.name AS subject,\n    topics.name AS topic,\n    volunteer_joined_at,\n    ended_at,\n    sessions.created_at,\n    sessions.updated_at,\n    students.first_name AS student_first_name,\n    students.email AS student_email,\n    student_sessions.total AS student_num_past_sessions,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.email AS volunteer_email,\n    volunteer_sessions.total AS volunteer_num_past_sessions,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    session_reported_count.total <> 0 AS reported\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users students ON students.id = sessions.student_id\n    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = students.id) AS student_sessions ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = volunteers.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    sessions.id = :sessionId!"};
 
@@ -430,35 +309,13 @@ const getSessionToEndByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[
 export const getSessionToEndById = new PreparedQuery<IGetSessionToEndByIdParams,IGetSessionToEndByIdResult>(getSessionToEndByIdIR);
 
 
-/** 'GetSessionsToReview' parameters type */
-export interface IGetSessionsToReviewParams {
-  limit: number;
-  offset: number;
-  withStudentFirstName?: string | null | void;
-}
+/** Query 'GetSessionsToReview' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionsToReviewResult = never;
 
-/** 'GetSessionsToReview' return type */
-export interface IGetSessionsToReviewResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  flags: stringArray | null;
-  id: string;
-  isReported: boolean | null;
-  reviewReasons: stringArray | null;
-  studentCounselingFeedback: Json | null;
-  studentFirstName: string;
-  subTopic: string;
-  toReview: boolean;
-  totalMessages: number | null;
-  type: string;
-  volunteer: string | null;
-}
-
-/** 'GetSessionsToReview' query type */
-export interface IGetSessionsToReviewQuery {
-  params: IGetSessionsToReviewParams;
-  result: IGetSessionsToReviewResult;
-}
+/** Query 'GetSessionsToReview' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionsToReviewParams = never;
 
 const getSessionsToReviewIR: any = {"usedParamSet":{"withStudentFirstName":true,"limit":true,"offset":true},"params":[{"name":"withStudentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":2036,"b":2056}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":2133,"b":2139}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":2155,"b":2162}]}],"statement":"SELECT\n    sessions.id,\n    sessions.ended_at,\n    sessions.created_at,\n    sessions.volunteer_id AS volunteer,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    students.first_name AS student_first_name,\n    session_reported_count.total <> 0 AS is_reported,\n    flags.flags,\n    messages.total AS total_messages,\n    session_review_reason.review_reasons,\n    sessions.to_review,\n    student_feedback.student_counseling_feedback\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users students ON students.id = sessions.student_id\n    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id\n            AND student_feedback.user_id = sessions.student_id)\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS flags\n        FROM\n            sessions_session_flags\n            JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            session_id = sessions.id\n        GROUP BY\n            session_id) AS flags ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_review_reasons.session_id = sessions.id) AS session_review_reason ON TRUE\nWHERE\n    sessions.to_review IS TRUE\n    AND sessions.reviewed IS FALSE\n    AND LOWER(students.first_name) = LOWER(COALESCE(NULLIF (:withStudentFirstName, ''), students.first_name))\nORDER BY\n    (sessions.created_at) DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
@@ -530,23 +387,13 @@ const getSessionsToReviewIR: any = {"usedParamSet":{"withStudentFirstName":true,
 export const getSessionsToReview = new PreparedQuery<IGetSessionsToReviewParams,IGetSessionsToReviewResult>(getSessionsToReviewIR);
 
 
-/** 'GetTotalTimeTutoredForDateRange' parameters type */
-export interface IGetTotalTimeTutoredForDateRangeParams {
-  end: DateOrString;
-  start: DateOrString;
-  volunteerId: string;
-}
+/** Query 'GetTotalTimeTutoredForDateRange' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTotalTimeTutoredForDateRangeResult = never;
 
-/** 'GetTotalTimeTutoredForDateRange' return type */
-export interface IGetTotalTimeTutoredForDateRangeResult {
-  total: string | null;
-}
-
-/** 'GetTotalTimeTutoredForDateRange' query type */
-export interface IGetTotalTimeTutoredForDateRangeQuery {
-  params: IGetTotalTimeTutoredForDateRangeParams;
-  result: IGetTotalTimeTutoredForDateRangeResult;
-}
+/** Query 'GetTotalTimeTutoredForDateRange' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTotalTimeTutoredForDateRangeParams = never;
 
 const getTotalTimeTutoredForDateRangeIR: any = {"usedParamSet":{"volunteerId":true,"start":true,"end":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":89,"b":101}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":125,"b":131}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":159}]}],"statement":"SELECT\n    SUM(time_tutored)::bigint AS total\nFROM\n    sessions\nWHERE\n    volunteer_id = :volunteerId!\n    AND created_at >= :start!\n    AND created_at <= :end!"};
 
@@ -566,19 +413,13 @@ const getTotalTimeTutoredForDateRangeIR: any = {"usedParamSet":{"volunteerId":tr
 export const getTotalTimeTutoredForDateRange = new PreparedQuery<IGetTotalTimeTutoredForDateRangeParams,IGetTotalTimeTutoredForDateRangeResult>(getTotalTimeTutoredForDateRangeIR);
 
 
-/** 'GetActiveSessionVolunteers' parameters type */
-export type IGetActiveSessionVolunteersParams = void;
+/** Query 'GetActiveSessionVolunteers' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetActiveSessionVolunteersResult = never;
 
-/** 'GetActiveSessionVolunteers' return type */
-export interface IGetActiveSessionVolunteersResult {
-  volunteerId: string | null;
-}
-
-/** 'GetActiveSessionVolunteers' query type */
-export interface IGetActiveSessionVolunteersQuery {
-  params: IGetActiveSessionVolunteersParams;
-  result: IGetActiveSessionVolunteersResult;
-}
+/** Query 'GetActiveSessionVolunteers' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetActiveSessionVolunteersParams = never;
 
 const getActiveSessionVolunteersIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_id\nFROM\n    sessions\nWHERE\n    ended_at IS NULL\n    AND NOT volunteer_id IS NULL"};
 
@@ -597,24 +438,13 @@ const getActiveSessionVolunteersIR: any = {"usedParamSet":{},"params":[],"statem
 export const getActiveSessionVolunteers = new PreparedQuery<IGetActiveSessionVolunteersParams,IGetActiveSessionVolunteersResult>(getActiveSessionVolunteersIR);
 
 
-/** 'UpdateSessionReported' parameters type */
-export interface IUpdateSessionReportedParams {
-  id: string;
-  reportMessage: string;
-  reportReason: string;
-  sessionId: string;
-}
+/** Query 'UpdateSessionReported' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionReportedResult = never;
 
-/** 'UpdateSessionReported' return type */
-export interface IUpdateSessionReportedResult {
-  ok: string;
-}
-
-/** 'UpdateSessionReported' query type */
-export interface IUpdateSessionReportedQuery {
-  params: IUpdateSessionReportedParams;
-  result: IUpdateSessionReportedResult;
-}
+/** Query 'UpdateSessionReported' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionReportedParams = never;
 
 const updateSessionReportedIR: any = {"usedParamSet":{"id":true,"reportMessage":true,"reportReason":true,"sessionId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":154}]},{"name":"reportMessage","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":198}]},{"name":"reportReason","required":true,"transform":{"type":"scalar"},"locs":[{"a":360,"b":373}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":399,"b":409}]}],"statement":"INSERT INTO session_reports (id, report_reason_id, report_message, reporting_user_id, session_id, reported_user_id, created_at, updated_at)\nSELECT\n    :id!,\n    report_reasons.id,\n    :reportMessage!,\n    sessions.volunteer_id,\n    sessions.id,\n    sessions.student_id,\n    NOW(),\n    NOW()\nFROM\n    sessions\n    JOIN report_reasons ON report_reasons.reason = :reportReason!\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    id AS ok"};
 
@@ -643,22 +473,13 @@ const updateSessionReportedIR: any = {"usedParamSet":{"id":true,"reportMessage":
 export const updateSessionReported = new PreparedQuery<IUpdateSessionReportedParams,IUpdateSessionReportedResult>(updateSessionReportedIR);
 
 
-/** 'UpdateSessionTimeTutored' parameters type */
-export interface IUpdateSessionTimeTutoredParams {
-  sessionId: string;
-  timeTutored: number;
-}
+/** Query 'UpdateSessionTimeTutored' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionTimeTutoredResult = never;
 
-/** 'UpdateSessionTimeTutored' return type */
-export interface IUpdateSessionTimeTutoredResult {
-  ok: string;
-}
-
-/** 'UpdateSessionTimeTutored' query type */
-export interface IUpdateSessionTimeTutoredQuery {
-  params: IUpdateSessionTimeTutoredParams;
-  result: IUpdateSessionTimeTutoredResult;
-}
+/** Query 'UpdateSessionTimeTutored' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionTimeTutoredParams = never;
 
 const updateSessionTimeTutoredIR: any = {"usedParamSet":{"timeTutored":true,"sessionId":true},"params":[{"name":"timeTutored","required":true,"transform":{"type":"scalar"},"locs":[{"a":44,"b":56}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":113}]}],"statement":"UPDATE\n    sessions\nSET\n    time_tutored = (:timeTutored!)::int,\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\nRETURNING\n    id AS ok"};
 
@@ -679,22 +500,13 @@ const updateSessionTimeTutoredIR: any = {"usedParamSet":{"timeTutored":true,"ses
 export const updateSessionTimeTutored = new PreparedQuery<IUpdateSessionTimeTutoredParams,IUpdateSessionTimeTutoredResult>(updateSessionTimeTutoredIR);
 
 
-/** 'UpdateSessionQuillDoc' parameters type */
-export interface IUpdateSessionQuillDocParams {
-  quillDoc: string;
-  sessionId: string;
-}
+/** Query 'UpdateSessionQuillDoc' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionQuillDocResult = never;
 
-/** 'UpdateSessionQuillDoc' return type */
-export interface IUpdateSessionQuillDocResult {
-  ok: string;
-}
-
-/** 'UpdateSessionQuillDoc' query type */
-export interface IUpdateSessionQuillDocQuery {
-  params: IUpdateSessionQuillDocParams;
-  result: IUpdateSessionQuillDocResult;
-}
+/** Query 'UpdateSessionQuillDoc' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionQuillDocParams = never;
 
 const updateSessionQuillDocIR: any = {"usedParamSet":{"quillDoc":true,"sessionId":true},"params":[{"name":"quillDoc","required":true,"transform":{"type":"scalar"},"locs":[{"a":41,"b":50}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":102}]}],"statement":"UPDATE\n    sessions\nSET\n    quill_doc = (:quillDoc!),\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\nRETURNING\n    id AS ok"};
 
@@ -715,22 +527,13 @@ const updateSessionQuillDocIR: any = {"usedParamSet":{"quillDoc":true,"sessionId
 export const updateSessionQuillDoc = new PreparedQuery<IUpdateSessionQuillDocParams,IUpdateSessionQuillDocResult>(updateSessionQuillDocIR);
 
 
-/** 'UpdateSessionHasWhiteboardDoc' parameters type */
-export interface IUpdateSessionHasWhiteboardDocParams {
-  hasWhiteboardDoc: boolean;
-  sessionId: string;
-}
+/** Query 'UpdateSessionHasWhiteboardDoc' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionHasWhiteboardDocResult = never;
 
-/** 'UpdateSessionHasWhiteboardDoc' return type */
-export interface IUpdateSessionHasWhiteboardDocResult {
-  ok: string;
-}
-
-/** 'UpdateSessionHasWhiteboardDoc' query type */
-export interface IUpdateSessionHasWhiteboardDocQuery {
-  params: IUpdateSessionHasWhiteboardDocParams;
-  result: IUpdateSessionHasWhiteboardDocResult;
-}
+/** Query 'UpdateSessionHasWhiteboardDoc' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionHasWhiteboardDocParams = never;
 
 const updateSessionHasWhiteboardDocIR: any = {"usedParamSet":{"hasWhiteboardDoc":true,"sessionId":true},"params":[{"name":"hasWhiteboardDoc","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":67}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":118,"b":128}]}],"statement":"UPDATE\n    sessions\nSET\n    has_whiteboard_doc = (:hasWhiteboardDoc!)::boolean,\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\nRETURNING\n    id AS ok"};
 
@@ -751,23 +554,13 @@ const updateSessionHasWhiteboardDocIR: any = {"usedParamSet":{"hasWhiteboardDoc"
 export const updateSessionHasWhiteboardDoc = new PreparedQuery<IUpdateSessionHasWhiteboardDocParams,IUpdateSessionHasWhiteboardDocResult>(updateSessionHasWhiteboardDocIR);
 
 
-/** 'UpdateSessionToEnd' parameters type */
-export interface IUpdateSessionToEndParams {
-  endedAt: DateOrString;
-  endedBy?: string | null | void;
-  sessionId: string;
-}
+/** Query 'UpdateSessionToEnd' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionToEndResult = never;
 
-/** 'UpdateSessionToEnd' return type */
-export interface IUpdateSessionToEndResult {
-  ok: string;
-}
-
-/** 'UpdateSessionToEnd' query type */
-export interface IUpdateSessionToEndQuery {
-  params: IUpdateSessionToEndParams;
-  result: IUpdateSessionToEndResult;
-}
+/** Query 'UpdateSessionToEnd' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionToEndParams = never;
 
 const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":true,"endedBy":true},"params":[{"name":"endedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":47}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":232,"b":242},{"a":506,"b":516}]},{"name":"endedBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":314,"b":321},{"a":387,"b":394}]}],"statement":"UPDATE\n    sessions\nSET\n    ended_at = :endedAt!,\n    ended_by_role_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        user_roles.id\n    FROM\n        sessions\n    LEFT JOIN user_roles ON TRUE\nWHERE\n    sessions.id = :sessionId!\n    AND user_roles.name = (\n        CASE WHEN sessions.volunteer_id = :endedBy THEN\n            'volunteer'\n        WHEN sessions.student_id = :endedBy THEN\n            'student'\n        ELSE\n            'admin'\n        END)) AS subquery\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    sessions.id AS ok"};
 
@@ -805,22 +598,13 @@ const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":tr
 export const updateSessionToEnd = new PreparedQuery<IUpdateSessionToEndParams,IUpdateSessionToEndResult>(updateSessionToEndIR);
 
 
-/** 'GetLongRunningSessions' parameters type */
-export interface IGetLongRunningSessionsParams {
-  end: DateOrString;
-  start: DateOrString;
-}
+/** Query 'GetLongRunningSessions' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetLongRunningSessionsResult = never;
 
-/** 'GetLongRunningSessions' return type */
-export interface IGetLongRunningSessionsResult {
-  id: string;
-}
-
-/** 'GetLongRunningSessions' query type */
-export interface IGetLongRunningSessionsQuery {
-  params: IGetLongRunningSessionsParams;
-  result: IGetLongRunningSessionsResult;
-}
+/** Query 'GetLongRunningSessions' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetLongRunningSessionsParams = never;
 
 const getLongRunningSessionsIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":71}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":99}]}],"statement":"SELECT\n    sessions.id\nFROM\n    sessions\nWHERE\n    created_at >= :start!\n    AND created_at <= :end!\n    AND ended_at IS NULL"};
 
@@ -840,29 +624,13 @@ const getLongRunningSessionsIR: any = {"usedParamSet":{"start":true,"end":true},
 export const getLongRunningSessions = new PreparedQuery<IGetLongRunningSessionsParams,IGetLongRunningSessionsResult>(getLongRunningSessionsIR);
 
 
-/** 'GetPublicSessionById' parameters type */
-export interface IGetPublicSessionByIdParams {
-  sessionId: string;
-}
+/** Query 'GetPublicSessionById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetPublicSessionByIdResult = never;
 
-/** 'GetPublicSessionById' return type */
-export interface IGetPublicSessionByIdResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  studentFirstName: string;
-  studentId: string;
-  subTopic: string;
-  type: string;
-  volunteerFirstName: string;
-  volunteerId: string | null;
-}
-
-/** 'GetPublicSessionById' query type */
-export interface IGetPublicSessionByIdQuery {
-  params: IGetPublicSessionByIdParams;
-  result: IGetPublicSessionByIdResult;
-}
+/** Query 'GetPublicSessionById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetPublicSessionByIdParams = never;
 
 const getPublicSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":572,"b":582}]}],"statement":"SELECT\n    sessions.id,\n    sessions.ended_at,\n    sessions.created_at,\n    sessions.student_id,\n    sessions.volunteer_id,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    students.first_name AS student_first_name,\n    volunteers.first_name AS volunteer_first_name\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users students ON students.id = sessions.student_id\n    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id\nWHERE\n    sessions.id = :sessionId!"};
 
@@ -892,37 +660,13 @@ const getPublicSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":
 export const getPublicSessionById = new PreparedQuery<IGetPublicSessionByIdParams,IGetPublicSessionByIdResult>(getPublicSessionByIdIR);
 
 
-/** 'GetSessionForAdminView' parameters type */
-export interface IGetSessionForAdminViewParams {
-  sessionId: string;
-}
+/** Query 'GetSessionForAdminView' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionForAdminViewResult = never;
 
-/** 'GetSessionForAdminView' return type */
-export interface IGetSessionForAdminViewResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  endedBy: string | null;
-  id: string;
-  photos: stringArray | null;
-  quillDoc: string | null;
-  reportMessage: string | null;
-  reportReason: string;
-  reviewReasons: stringArray | null;
-  studentId: string;
-  subTopic: string;
-  timeTutored: number | null;
-  toolType: string;
-  toReview: boolean;
-  type: string;
-  volunteerId: string | null;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetSessionForAdminView' query type */
-export interface IGetSessionForAdminViewQuery {
-  params: IGetSessionForAdminViewParams;
-  result: IGetSessionForAdminViewResult;
-}
+/** Query 'GetSessionForAdminView' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionForAdminViewParams = never;
 
 const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1122,"b":1132},{"a":1959,"b":1969}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    sessions.quill_doc,\n    sessions.time_tutored::int,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    session_reports.report_message,\n    report_reasons.reason AS report_reason,\n    session_review_reason.review_reasons,\n    session_photo.photos,\n    sessions.to_review,\n    tool_types.name AS tool_type,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN (\n        SELECT\n            report_reason_id,\n            report_message\n        FROM\n            session_reports\n        WHERE\n            session_id = :sessionId!\n        ORDER BY\n            created_at DESC\n        LIMIT 1) AS session_reports ON TRUE\n    LEFT JOIN report_reasons ON report_reasons.id = session_reports.report_reason_id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_review_reasons.session_id = sessions.id) AS session_review_reason ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(photo_key) AS photos\n        FROM\n            session_photos\n        WHERE\n            session_photos.session_id = sessions.id) AS session_photo ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
 
@@ -995,25 +739,13 @@ const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params
 export const getSessionForAdminView = new PreparedQuery<IGetSessionForAdminViewParams,IGetSessionForAdminViewResult>(getSessionForAdminViewIR);
 
 
-/** 'GetSessionUserAgent' parameters type */
-export interface IGetSessionUserAgentParams {
-  sessionId: string;
-}
+/** Query 'GetSessionUserAgent' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionUserAgentResult = never;
 
-/** 'GetSessionUserAgent' return type */
-export interface IGetSessionUserAgentResult {
-  browser: string | null;
-  browserVersion: string | null;
-  device: string | null;
-  operatingSystem: string | null;
-  operatingSystemVersion: string | null;
-}
-
-/** 'GetSessionUserAgent' query type */
-export interface IGetSessionUserAgentQuery {
-  params: IGetSessionUserAgentParams;
-  result: IGetSessionUserAgentResult;
-}
+/** Query 'GetSessionUserAgent' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionUserAgentParams = never;
 
 const getSessionUserAgentIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":162,"b":172}]}],"statement":"SELECT\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    user_actions.session_id = :sessionId!\n    AND user_actions.action = 'REQUESTED SESSION'\nLIMIT 1"};
 
@@ -1037,25 +769,13 @@ const getSessionUserAgentIR: any = {"usedParamSet":{"sessionId":true},"params":[
 export const getSessionUserAgent = new PreparedQuery<IGetSessionUserAgentParams,IGetSessionUserAgentResult>(getSessionUserAgentIR);
 
 
-/** 'GetSessionMessagesForFrontend' parameters type */
-export interface IGetSessionMessagesForFrontendParams {
-  sessionId: string;
-}
+/** Query 'GetSessionMessagesForFrontend' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionMessagesForFrontendResult = never;
 
-/** 'GetSessionMessagesForFrontend' return type */
-export interface IGetSessionMessagesForFrontendResult {
-  contents: string;
-  createdAt: Date;
-  id: string;
-  sessionId: string;
-  user: string;
-}
-
-/** 'GetSessionMessagesForFrontend' query type */
-export interface IGetSessionMessagesForFrontendQuery {
-  params: IGetSessionMessagesForFrontendParams;
-  result: IGetSessionMessagesForFrontendResult;
-}
+/** Query 'GetSessionMessagesForFrontend' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionMessagesForFrontendParams = never;
 
 const getSessionMessagesForFrontendIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":142}]}],"statement":"SELECT\n    id,\n    sender_id AS USER,\n    contents,\n    created_at,\n    session_id\nFROM\n    session_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    created_at"};
 
@@ -1079,25 +799,13 @@ const getSessionMessagesForFrontendIR: any = {"usedParamSet":{"sessionId":true},
 export const getSessionMessagesForFrontend = new PreparedQuery<IGetSessionMessagesForFrontendParams,IGetSessionMessagesForFrontendResult>(getSessionMessagesForFrontendIR);
 
 
-/** 'GetSessionVoiceMessagesForFrontend' parameters type */
-export interface IGetSessionVoiceMessagesForFrontendParams {
-  sessionId: string;
-}
+/** Query 'GetSessionVoiceMessagesForFrontend' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionVoiceMessagesForFrontendResult = never;
 
-/** 'GetSessionVoiceMessagesForFrontend' return type */
-export interface IGetSessionVoiceMessagesForFrontendResult {
-  createdAt: Date;
-  id: string;
-  sessionId: string;
-  transcript: string | null;
-  user: string;
-}
-
-/** 'GetSessionVoiceMessagesForFrontend' query type */
-export interface IGetSessionVoiceMessagesForFrontendQuery {
-  params: IGetSessionVoiceMessagesForFrontendParams;
-  result: IGetSessionVoiceMessagesForFrontendResult;
-}
+/** Query 'GetSessionVoiceMessagesForFrontend' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionVoiceMessagesForFrontendParams = never;
 
 const getSessionVoiceMessagesForFrontendIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":140,"b":150}]}],"statement":"SELECT\n    id,\n    sender_id AS USER,\n    created_at,\n    session_id,\n    transcript\nFROM\n    session_voice_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    created_at"};
 
@@ -1121,25 +829,13 @@ const getSessionVoiceMessagesForFrontendIR: any = {"usedParamSet":{"sessionId":t
 export const getSessionVoiceMessagesForFrontend = new PreparedQuery<IGetSessionVoiceMessagesForFrontendParams,IGetSessionVoiceMessagesForFrontendResult>(getSessionVoiceMessagesForFrontendIR);
 
 
-/** 'GetSessionAudioTranscriptMessagesForFrontend' parameters type */
-export interface IGetSessionAudioTranscriptMessagesForFrontendParams {
-  sessionId: string;
-}
+/** Query 'GetSessionAudioTranscriptMessagesForFrontend' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionAudioTranscriptMessagesForFrontendResult = never;
 
-/** 'GetSessionAudioTranscriptMessagesForFrontend' return type */
-export interface IGetSessionAudioTranscriptMessagesForFrontendResult {
-  createdAt: Date;
-  id: string;
-  message: string;
-  sessionId: string;
-  user: string;
-}
-
-/** 'GetSessionAudioTranscriptMessagesForFrontend' query type */
-export interface IGetSessionAudioTranscriptMessagesForFrontendQuery {
-  params: IGetSessionAudioTranscriptMessagesForFrontendParams;
-  result: IGetSessionAudioTranscriptMessagesForFrontendResult;
-}
+/** Query 'GetSessionAudioTranscriptMessagesForFrontend' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionAudioTranscriptMessagesForFrontendParams = never;
 
 const getSessionAudioTranscriptMessagesForFrontendIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":167}]}],"statement":"SELECT\n    id,\n    user_id AS USER,\n    session_id,\n    message,\n    said_at AS created_at\nFROM\n    session_audio_transcript_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    said_at"};
 
@@ -1163,24 +859,13 @@ const getSessionAudioTranscriptMessagesForFrontendIR: any = {"usedParamSet":{"se
 export const getSessionAudioTranscriptMessagesForFrontend = new PreparedQuery<IGetSessionAudioTranscriptMessagesForFrontendParams,IGetSessionAudioTranscriptMessagesForFrontendResult>(getSessionAudioTranscriptMessagesForFrontendIR);
 
 
-/** 'CreateSession' parameters type */
-export interface ICreateSessionParams {
-  id: string;
-  shadowbanned: boolean;
-  studentId: string;
-  subject: string;
-}
+/** Query 'CreateSession' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICreateSessionResult = never;
 
-/** 'CreateSession' return type */
-export interface ICreateSessionResult {
-  id: string;
-}
-
-/** 'CreateSession' query type */
-export interface ICreateSessionQuery {
-  params: ICreateSessionParams;
-  result: ICreateSessionResult;
-}
+/** Query 'CreateSession' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICreateSessionParams = never;
 
 const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":102}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":156}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":232}]}],"statement":"INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)\nSELECT\n    :id!,\n    :studentId!,\n    subjects.id,\n    :shadowbanned!,\n    NOW(),\n    NOW()\nFROM\n    subjects\nWHERE\n    subjects.name = :subject!\nRETURNING\n    sessions.id"};
 
@@ -1206,31 +891,13 @@ const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadow
 export const createSession = new PreparedQuery<ICreateSessionParams,ICreateSessionResult>(createSessionIR);
 
 
-/** 'GetCurrentSessionByUserId' parameters type */
-export interface IGetCurrentSessionByUserIdParams {
-  userId: string;
-}
+/** Query 'GetCurrentSessionByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetCurrentSessionByUserIdResult = never;
 
-/** 'GetCurrentSessionByUserId' return type */
-export interface IGetCurrentSessionByUserIdResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  studentBannedFromLiveMedia: boolean | null;
-  studentId: string;
-  subTopic: string;
-  toolType: string;
-  type: string;
-  volunteerBannedFromLiveMedia: boolean | null;
-  volunteerId: string | null;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetCurrentSessionByUserId' query type */
-export interface IGetCurrentSessionByUserIdQuery {
-  params: IGetCurrentSessionByUserIdParams;
-  result: IGetCurrentSessionByUserIdResult;
-}
+/** Query 'GetCurrentSessionByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetCurrentSessionByUserIdParams = never;
 
 const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1063,"b":1070},{"a":1103,"b":1110}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    tool_types.name AS tool_type,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
 
@@ -1284,29 +951,13 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
 export const getCurrentSessionByUserId = new PreparedQuery<IGetCurrentSessionByUserIdParams,IGetCurrentSessionByUserIdResult>(getCurrentSessionByUserIdIR);
 
 
-/** 'GetRecapSessionForDmsBySessionId' parameters type */
-export interface IGetRecapSessionForDmsBySessionIdParams {
-  sessionId: string;
-}
+/** Query 'GetRecapSessionForDmsBySessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetRecapSessionForDmsBySessionIdResult = never;
 
-/** 'GetRecapSessionForDmsBySessionId' return type */
-export interface IGetRecapSessionForDmsBySessionIdResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  studentId: string;
-  subTopic: string;
-  toolType: string;
-  type: string;
-  volunteerId: string | null;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetRecapSessionForDmsBySessionId' query type */
-export interface IGetRecapSessionForDmsBySessionIdQuery {
-  params: IGetRecapSessionForDmsBySessionIdParams;
-  result: IGetRecapSessionForDmsBySessionIdResult;
-}
+/** Query 'GetRecapSessionForDmsBySessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetRecapSessionForDmsBySessionIdParams = never;
 
 const getRecapSessionForDmsBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":514,"b":524}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!\n    AND sessions.ended_at IS NOT NULL"};
 
@@ -1337,32 +988,13 @@ const getRecapSessionForDmsBySessionIdIR: any = {"usedParamSet":{"sessionId":tru
 export const getRecapSessionForDmsBySessionId = new PreparedQuery<IGetRecapSessionForDmsBySessionIdParams,IGetRecapSessionForDmsBySessionIdResult>(getRecapSessionForDmsBySessionIdIR);
 
 
-/** 'GetMessageInfoByMessageId' parameters type */
-export interface IGetMessageInfoByMessageIdParams {
-  messageId: string;
-}
+/** Query 'GetMessageInfoByMessageId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetMessageInfoByMessageIdResult = never;
 
-/** 'GetMessageInfoByMessageId' return type */
-export interface IGetMessageInfoByMessageIdResult {
-  contents: string;
-  createdAt: Date;
-  senderId: string;
-  sentAfterSession: boolean | null;
-  sessionEndedAt: Date | null;
-  sessionId: string;
-  studentEmail: string;
-  studentFirstName: string;
-  studentUserId: string;
-  volunteerEmail: string;
-  volunteerFirstName: string;
-  volunteerUserId: string;
-}
-
-/** 'GetMessageInfoByMessageId' query type */
-export interface IGetMessageInfoByMessageIdQuery {
-  params: IGetMessageInfoByMessageIdParams;
-  result: IGetMessageInfoByMessageIdResult;
-}
+/** Query 'GetMessageInfoByMessageId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetMessageInfoByMessageIdParams = never;
 
 const getMessageInfoByMessageIdIR: any = {"usedParamSet":{"messageId":true},"params":[{"name":"messageId","required":true,"transform":{"type":"scalar"},"locs":[{"a":811,"b":821}]}],"statement":"SELECT\n    sessions.id AS session_id,\n    sessions.ended_at AS session_ended_at,\n    students.id AS student_user_id,\n    students.first_name AS student_first_name,\n    students.email AS student_email,\n    volunteers.id AS volunteer_user_id,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.email AS volunteer_email,\n    session_messages.contents,\n    session_messages.created_at,\n    session_messages.sender_id,\n    CASE WHEN session_messages.created_at > sessions.ended_at THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS sent_after_session\nFROM\n    session_messages\n    JOIN sessions ON session_messages.session_id = sessions.id\n    JOIN users students ON students.id = sessions.student_id\n    JOIN users volunteers ON volunteers.id = sessions.volunteer_id\nWHERE\n    session_messages.id = :messageId!\n    AND sessions.ended_at IS NOT NULL"};
 
@@ -1399,32 +1031,13 @@ const getMessageInfoByMessageIdIR: any = {"usedParamSet":{"messageId":true},"par
 export const getMessageInfoByMessageId = new PreparedQuery<IGetMessageInfoByMessageIdParams,IGetMessageInfoByMessageIdResult>(getMessageInfoByMessageIdIR);
 
 
-/** 'GetCurrentSessionBySessionId' parameters type */
-export interface IGetCurrentSessionBySessionIdParams {
-  sessionId?: string | null | void;
-}
+/** Query 'GetCurrentSessionBySessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetCurrentSessionBySessionIdResult = never;
 
-/** 'GetCurrentSessionBySessionId' return type */
-export interface IGetCurrentSessionBySessionIdResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  endedBy: string | null;
-  id: string;
-  studentBannedFromLiveMedia: boolean | null;
-  studentId: string;
-  subTopic: string;
-  toolType: string;
-  type: string;
-  volunteerBannedFromLiveMedia: boolean | null;
-  volunteerId: string | null;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetCurrentSessionBySessionId' query type */
-export interface IGetCurrentSessionBySessionIdQuery {
-  params: IGetCurrentSessionBySessionIdParams;
-  result: IGetCurrentSessionBySessionIdResult;
-}
+/** Query 'GetCurrentSessionBySessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetCurrentSessionBySessionIdParams = never;
 
 const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1355,"b":1364}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    tool_types.name AS tool_type,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\nWHERE\n    sessions.id = :sessionId"};
 
@@ -1486,25 +1099,13 @@ const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
 export const getCurrentSessionBySessionId = new PreparedQuery<IGetCurrentSessionBySessionIdParams,IGetCurrentSessionBySessionIdResult>(getCurrentSessionBySessionIdIR);
 
 
-/** 'GetSessionUsers' parameters type */
-export interface IGetSessionUsersParams {
-  sessionId: string;
-}
+/** Query 'GetSessionUsers' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionUsersResult = never;
 
-/** 'GetSessionUsers' return type */
-export interface IGetSessionUsersResult {
-  createdAt: Date;
-  firstname: string;
-  firstName: string;
-  id: string;
-  pastSessions: stringArray | null;
-}
-
-/** 'GetSessionUsers' query type */
-export interface IGetSessionUsersQuery {
-  params: IGetSessionUsersParams;
-  result: IGetSessionUsersResult;
-}
+/** Query 'GetSessionUsers' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionUsersParams = never;
 
 const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":540,"b":550}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id\n            OR volunteer_id = users.id) AS past_sessions ON TRUE\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total"};
 
@@ -1539,25 +1140,13 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
 export const getSessionUsers = new PreparedQuery<IGetSessionUsersParams,IGetSessionUsersResult>(getSessionUsersIR);
 
 
-/** 'GetLatestSessionByStudentId' parameters type */
-export interface IGetLatestSessionByStudentIdParams {
-  studentId: string;
-}
+/** Query 'GetLatestSessionByStudentId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetLatestSessionByStudentIdResult = never;
 
-/** 'GetLatestSessionByStudentId' return type */
-export interface IGetLatestSessionByStudentIdResult {
-  createdAt: Date;
-  endedByUserRole: string;
-  id: string;
-  subject: string;
-  timeTutored: number | null;
-}
-
-/** 'GetLatestSessionByStudentId' query type */
-export interface IGetLatestSessionByStudentIdQuery {
-  params: IGetLatestSessionByStudentIdParams;
-  result: IGetLatestSessionByStudentIdResult;
-}
+/** Query 'GetLatestSessionByStudentId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetLatestSessionByStudentIdParams = never;
 
 const getLatestSessionByStudentIdIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":319,"b":329}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    user_roles.name AS ended_by_user_role\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id\nWHERE\n    sessions.student_id = :studentId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
 
@@ -1584,22 +1173,13 @@ const getLatestSessionByStudentIdIR: any = {"usedParamSet":{"studentId":true},"p
 export const getLatestSessionByStudentId = new PreparedQuery<IGetLatestSessionByStudentIdParams,IGetLatestSessionByStudentIdResult>(getLatestSessionByStudentIdIR);
 
 
-/** 'UpdateSessionVolunteerById' parameters type */
-export interface IUpdateSessionVolunteerByIdParams {
-  sessionId: string;
-  volunteerId: string;
-}
+/** Query 'UpdateSessionVolunteerById' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSessionVolunteerByIdResult = never;
 
-/** 'UpdateSessionVolunteerById' return type */
-export interface IUpdateSessionVolunteerByIdResult {
-  ok: string;
-}
-
-/** 'UpdateSessionVolunteerById' query type */
-export interface IUpdateSessionVolunteerByIdQuery {
-  params: IUpdateSessionVolunteerByIdParams;
-  result: IUpdateSessionVolunteerByIdResult;
-}
+/** Query 'UpdateSessionVolunteerById' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSessionVolunteerByIdParams = never;
 
 const updateSessionVolunteerByIdIR: any = {"usedParamSet":{"volunteerId":true,"sessionId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":55}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139}]}],"statement":"UPDATE\n    sessions\nSET\n    volunteer_id = :volunteerId!,\n    volunteer_joined_at = NOW(),\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\n    AND volunteer_id IS NULL\nRETURNING\n    id AS ok"};
 
@@ -1622,29 +1202,13 @@ const updateSessionVolunteerByIdIR: any = {"usedParamSet":{"volunteerId":true,"s
 export const updateSessionVolunteerById = new PreparedQuery<IUpdateSessionVolunteerByIdParams,IUpdateSessionVolunteerByIdResult>(updateSessionVolunteerByIdIR);
 
 
-/** 'GetSessionForChatbot' parameters type */
-export interface IGetSessionForChatbotParams {
-  sessionId: string;
-}
+/** Query 'GetSessionForChatbot' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionForChatbotResult = never;
 
-/** 'GetSessionForChatbot' return type */
-export interface IGetSessionForChatbotResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  student: string;
-  studentFirstName: string;
-  subject: string;
-  toolType: string;
-  topic: string;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetSessionForChatbot' query type */
-export interface IGetSessionForChatbotQuery {
-  params: IGetSessionForChatbotParams;
-  result: IGetSessionForChatbotResult;
-}
+/** Query 'GetSessionForChatbot' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionForChatbotParams = never;
 
 const getSessionForChatbotIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":541,"b":551}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS subject,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    sessions.student_id AS student,\n    users.first_name AS student_first_name,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
 
@@ -1674,24 +1238,13 @@ const getSessionForChatbotIR: any = {"usedParamSet":{"sessionId":true},"params":
 export const getSessionForChatbot = new PreparedQuery<IGetSessionForChatbotParams,IGetSessionForChatbotResult>(getSessionForChatbotIR);
 
 
-/** 'InsertNewMessage' parameters type */
-export interface IInsertNewMessageParams {
-  contents: string;
-  id: string;
-  senderId: string;
-  sessionId: string;
-}
+/** Query 'InsertNewMessage' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertNewMessageResult = never;
 
-/** 'InsertNewMessage' return type */
-export interface IInsertNewMessageResult {
-  id: string;
-}
-
-/** 'InsertNewMessage' query type */
-export interface IInsertNewMessageQuery {
-  params: IInsertNewMessageParams;
-  result: IInsertNewMessageResult;
-}
+/** Query 'InsertNewMessage' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertNewMessageParams = never;
 
 const insertNewMessageIR: any = {"usedParamSet":{"id":true,"senderId":true,"contents":true,"sessionId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":106}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":118}]},{"name":"contents","required":true,"transform":{"type":"scalar"},"locs":[{"a":121,"b":130}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":143}]}],"statement":"INSERT INTO session_messages (id, sender_id, contents, session_id, created_at, updated_at)\n    VALUES (:id!, :senderId!, :contents!, :sessionId!, NOW(), NOW())\nRETURNING\n    id"};
 
@@ -1707,24 +1260,13 @@ const insertNewMessageIR: any = {"usedParamSet":{"id":true,"senderId":true,"cont
 export const insertNewMessage = new PreparedQuery<IInsertNewMessageParams,IInsertNewMessageResult>(insertNewMessageIR);
 
 
-/** 'InsertNewVoiceMessage' parameters type */
-export interface IInsertNewVoiceMessageParams {
-  id: string;
-  senderId: string;
-  sessionId: string;
-  transcript?: string | null | void;
-}
+/** Query 'InsertNewVoiceMessage' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertNewVoiceMessageResult = never;
 
-/** 'InsertNewVoiceMessage' return type */
-export interface IInsertNewVoiceMessageResult {
-  id: string;
-}
-
-/** 'InsertNewVoiceMessage' query type */
-export interface IInsertNewVoiceMessageQuery {
-  params: IInsertNewVoiceMessageParams;
-  result: IInsertNewVoiceMessageResult;
-}
+/** Query 'InsertNewVoiceMessage' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertNewVoiceMessageParams = never;
 
 const insertNewVoiceMessageIR: any = {"usedParamSet":{"id":true,"sessionId":true,"senderId":true,"transcript":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":114}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":127}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":130,"b":139}]},{"name":"transcript","required":false,"transform":{"type":"scalar"},"locs":[{"a":142,"b":152}]}],"statement":"INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())\nRETURNING\n    id"};
 
@@ -1740,24 +1282,13 @@ const insertNewVoiceMessageIR: any = {"usedParamSet":{"id":true,"sessionId":true
 export const insertNewVoiceMessage = new PreparedQuery<IInsertNewVoiceMessageParams,IInsertNewVoiceMessageResult>(insertNewVoiceMessageIR);
 
 
-/** 'GetSessionsWithAvgWaitTimePerDayAndHour' parameters type */
-export interface IGetSessionsWithAvgWaitTimePerDayAndHourParams {
-  end: DateOrString;
-  start: DateOrString;
-}
+/** Query 'GetSessionsWithAvgWaitTimePerDayAndHour' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionsWithAvgWaitTimePerDayAndHourResult = never;
 
-/** 'GetSessionsWithAvgWaitTimePerDayAndHour' return type */
-export interface IGetSessionsWithAvgWaitTimePerDayAndHourResult {
-  averageWaitTime: number | null;
-  day: number | null;
-  hour: number | null;
-}
-
-/** 'GetSessionsWithAvgWaitTimePerDayAndHour' query type */
-export interface IGetSessionsWithAvgWaitTimePerDayAndHourQuery {
-  params: IGetSessionsWithAvgWaitTimePerDayAndHourParams;
-  result: IGetSessionsWithAvgWaitTimePerDayAndHourResult;
-}
+/** Query 'GetSessionsWithAvgWaitTimePerDayAndHour' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionsWithAvgWaitTimePerDayAndHourParams = never;
 
 const getSessionsWithAvgWaitTimePerDayAndHourIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":511,"b":517}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":549,"b":553}]}],"statement":"SELECT\n    extract(isodow FROM sessions.created_at)::int AS day,\n    extract(hour FROM sessions.created_at)::int AS hour,\n    COALESCE(AVG(\n            CASE WHEN sessions.volunteer_id IS NULL THEN\n                EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at))\n            ELSE\n                EXTRACT('epoch' FROM (sessions.volunteer_joined_at - sessions.created_at))\n            END), 0)::float * 1000 AS average_wait_time -- in milliseconds\nFROM\n    sessions\nWHERE\n    sessions.created_at >= :start!\n    AND sessions.created_at < :end!\n    AND NOT sessions.ended_at IS NULL\n    AND EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) > 60\nGROUP BY\n    day,\n    hour"};
 
@@ -1788,22 +1319,13 @@ const getSessionsWithAvgWaitTimePerDayAndHourIR: any = {"usedParamSet":{"start":
 export const getSessionsWithAvgWaitTimePerDayAndHour = new PreparedQuery<IGetSessionsWithAvgWaitTimePerDayAndHourParams,IGetSessionsWithAvgWaitTimePerDayAndHourResult>(getSessionsWithAvgWaitTimePerDayAndHourIR);
 
 
-/** 'GetSessionsForReferCoworker' parameters type */
-export interface IGetSessionsForReferCoworkerParams {
-  volunteerId: string;
-}
+/** Query 'GetSessionsForReferCoworker' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionsForReferCoworkerResult = never;
 
-/** 'GetSessionsForReferCoworker' return type */
-export interface IGetSessionsForReferCoworkerResult {
-  id: string;
-  volunteerFeedback: Json | null;
-}
-
-/** 'GetSessionsForReferCoworker' query type */
-export interface IGetSessionsForReferCoworkerQuery {
-  params: IGetSessionsForReferCoworkerParams;
-  result: IGetSessionsForReferCoworkerResult;
-}
+/** Query 'GetSessionsForReferCoworker' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionsForReferCoworkerParams = never;
 
 const getSessionsForReferCoworkerIR: any = {"usedParamSet":{"volunteerId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":402,"b":414}]}],"statement":"SELECT\n    sessions.id,\n    feedbacks.volunteer_feedback\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n    LEFT JOIN feedbacks ON feedbacks.session_id = sessions.id\n        AND feedbacks.user_id = sessions.volunteer_id\nWHERE\n    sessions.volunteer_id = :volunteerId!\n    AND sessions.time_tutored >= 15 * 60 * 1000\n    AND (session_flags.name IS NULL\n        OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\"}'))"};
 
@@ -1829,25 +1351,13 @@ const getSessionsForReferCoworkerIR: any = {"usedParamSet":{"volunteerId":true},
 export const getSessionsForReferCoworker = new PreparedQuery<IGetSessionsForReferCoworkerParams,IGetSessionsForReferCoworkerResult>(getSessionsForReferCoworkerIR);
 
 
-/** 'GetVolunteersForGentleWarning' parameters type */
-export interface IGetVolunteersForGentleWarningParams {
-  mongoSessionId?: string | null | void;
-  sessionId?: string | null | void;
-}
+/** Query 'GetVolunteersForGentleWarning' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteersForGentleWarningResult = never;
 
-/** 'GetVolunteersForGentleWarning' return type */
-export interface IGetVolunteersForGentleWarningResult {
-  email: string;
-  firstName: string;
-  id: string;
-  totalNotifications: number | null;
-}
-
-/** 'GetVolunteersForGentleWarning' query type */
-export interface IGetVolunteersForGentleWarningQuery {
-  params: IGetVolunteersForGentleWarningParams;
-  result: IGetVolunteersForGentleWarningResult;
-}
+/** Query 'GetVolunteersForGentleWarning' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteersForGentleWarningParams = never;
 
 const getVolunteersForGentleWarningIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":782,"b":791}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":835,"b":849}]}],"statement":"SELECT\n    users.id,\n    users.email,\n    users.first_name,\n    notification_count.total AS total_notifications\nFROM\n    notifications\n    LEFT JOIN users ON users.id = notifications.user_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id) AS session_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id) AS notification_count ON TRUE\nWHERE\n    users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND session_count.total = 0\n    AND (notifications.session_id::uuid = :sessionId\n        OR notifications.mongo_id::text = :mongoSessionId)\nGROUP BY\n    users.id,\n    notification_count.total"};
 
@@ -1891,24 +1401,13 @@ const getVolunteersForGentleWarningIR: any = {"usedParamSet":{"sessionId":true,"
 export const getVolunteersForGentleWarning = new PreparedQuery<IGetVolunteersForGentleWarningParams,IGetVolunteersForGentleWarningResult>(getVolunteersForGentleWarningIR);
 
 
-/** 'GetStudentForEmailFirstSession' parameters type */
-export interface IGetStudentForEmailFirstSessionParams {
-  mongoSessionId?: string | null | void;
-  sessionId?: string | null | void;
-}
+/** Query 'GetStudentForEmailFirstSession' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetStudentForEmailFirstSessionResult = never;
 
-/** 'GetStudentForEmailFirstSession' return type */
-export interface IGetStudentForEmailFirstSessionResult {
-  email: string;
-  firstName: string;
-  id: string;
-}
-
-/** 'GetStudentForEmailFirstSession' query type */
-export interface IGetStudentForEmailFirstSessionQuery {
-  params: IGetStudentForEmailFirstSessionParams;
-  result: IGetStudentForEmailFirstSessionResult;
-}
+/** Query 'GetStudentForEmailFirstSession' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetStudentForEmailFirstSessionParams = never;
 
 const getStudentForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":335,"b":344}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":379,"b":393}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.email\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id\n    LEFT JOIN users ON users.id = sessions.student_id\nWHERE (sessions.id::uuid = :sessionId\n    OR sessions.mongo_id::text = :mongoSessionId)\nAND (session_flags.name IS NULL\n    OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\", \"Low coach rating from student\", \"Low session rating from student\" }'))\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE"};
 
@@ -1935,24 +1434,13 @@ const getStudentForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,
 export const getStudentForEmailFirstSession = new PreparedQuery<IGetStudentForEmailFirstSessionParams,IGetStudentForEmailFirstSessionResult>(getStudentForEmailFirstSessionIR);
 
 
-/** 'GetVolunteerForEmailFirstSession' parameters type */
-export interface IGetVolunteerForEmailFirstSessionParams {
-  mongoSessionId?: string | null | void;
-  sessionId?: string | null | void;
-}
+/** Query 'GetVolunteerForEmailFirstSession' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetVolunteerForEmailFirstSessionResult = never;
 
-/** 'GetVolunteerForEmailFirstSession' return type */
-export interface IGetVolunteerForEmailFirstSessionResult {
-  email: string;
-  firstName: string;
-  id: string;
-}
-
-/** 'GetVolunteerForEmailFirstSession' query type */
-export interface IGetVolunteerForEmailFirstSessionQuery {
-  params: IGetVolunteerForEmailFirstSessionParams;
-  result: IGetVolunteerForEmailFirstSessionResult;
-}
+/** Query 'GetVolunteerForEmailFirstSession' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetVolunteerForEmailFirstSessionParams = never;
 
 const getVolunteerForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":337,"b":346}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":381,"b":395}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.email\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id\n    LEFT JOIN users ON users.id = sessions.volunteer_id\nWHERE (sessions.id::uuid = :sessionId\n    OR sessions.mongo_id::text = :mongoSessionId)\nAND (session_flags.name IS NULL\n    OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\", \"Low coach rating from student\", \"Low session rating from student\" }'))\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE"};
 
@@ -1979,47 +1467,13 @@ const getVolunteerForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":tru
 export const getVolunteerForEmailFirstSession = new PreparedQuery<IGetVolunteerForEmailFirstSessionParams,IGetVolunteerForEmailFirstSessionResult>(getVolunteerForEmailFirstSessionIR);
 
 
-/** 'GetSessionsForAdminFilter' parameters type */
-export interface IGetSessionsForAdminFilterParams {
-  end: DateOrString;
-  firstTimeStudent?: boolean | null | void;
-  firstTimeVolunteer?: boolean | null | void;
-  limit: number;
-  messageCount?: number | null | void;
-  offset: number;
-  reported?: boolean | null | void;
-  sessionLength?: number | null | void;
-  showBannedUsers?: boolean | null | void;
-  showTestUsers?: boolean | null | void;
-  start: DateOrString;
-}
+/** Query 'GetSessionsForAdminFilter' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionsForAdminFilterResult = never;
 
-/** 'GetSessionsForAdminFilter' return type */
-export interface IGetSessionsForAdminFilterResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  reviewReasons: stringArray | null;
-  studentBanType: ban_types | null;
-  studentEmail: string;
-  studentFirstName: string;
-  studentTestUser: boolean;
-  studentTotalPastSessions: number | null;
-  subTopic: string;
-  totalMessages: number | null;
-  type: string;
-  volunteerBanType: ban_types | null;
-  volunteerEmail: string;
-  volunteerFirstName: string;
-  volunteerTestUser: boolean;
-  volunteerTotalPastSessions: number | null;
-}
-
-/** 'GetSessionsForAdminFilter' query type */
-export interface IGetSessionsForAdminFilterQuery {
-  params: IGetSessionsForAdminFilterParams;
-  result: IGetSessionsForAdminFilterResult;
-}
+/** Query 'GetSessionsForAdminFilter' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionsForAdminFilterParams = never;
 
 const getSessionsForAdminFilterIR: any = {"usedParamSet":{"start":true,"end":true,"messageCount":true,"sessionLength":true,"reported":true,"showBannedUsers":true,"showTestUsers":true,"firstTimeStudent":true,"firstTimeVolunteer":true,"limit":true,"offset":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":2815,"b":2821}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":2854,"b":2858}]},{"name":"messageCount","required":false,"transform":{"type":"scalar"},"locs":[{"a":2870,"b":2882},{"a":2933,"b":2945}]},{"name":"sessionLength","required":false,"transform":{"type":"scalar"},"locs":[{"a":2964,"b":2977},{"a":3078,"b":3091}]},{"name":"reported","required":false,"transform":{"type":"scalar"},"locs":[{"a":3110,"b":3118},{"a":3150,"b":3158}]},{"name":"showBannedUsers","required":false,"transform":{"type":"scalar"},"locs":[{"a":3388,"b":3403}]},{"name":"showTestUsers","required":false,"transform":{"type":"scalar"},"locs":[{"a":3434,"b":3447},{"a":3479,"b":3492}]},{"name":"firstTimeStudent","required":false,"transform":{"type":"scalar"},"locs":[{"a":3562,"b":3578},{"a":3610,"b":3626}]},{"name":"firstTimeVolunteer","required":false,"transform":{"type":"scalar"},"locs":[{"a":3696,"b":3714},{"a":3746,"b":3764}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":3873,"b":3879}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":3895,"b":3902}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    sessions.ended_at,\n    message_count.total AS total_messages,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    students.first_name AS student_first_name,\n    students.email AS student_email,\n    students.ban_type AS student_ban_type,\n    students.test_user AS student_test_user,\n    student_sessions.total AS student_total_past_sessions,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.email AS volunteer_email,\n    volunteers.ban_type AS volunteer_ban_type,\n    volunteers.test_user AS volunteer_test_user,\n    volunteer_sessions.total AS volunteer_total_past_sessions,\n    review_reasons.review_reasons\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_id = sessions.id) AS review_reasons ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            first_name,\n            id,\n            email,\n            ban_type,\n            test_user\n        FROM\n            users\n        WHERE\n            users.id = sessions.student_id) AS students ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            first_name,\n            id,\n            email,\n            ban_type,\n            test_user\n        FROM\n            users\n        WHERE\n            users.id = sessions.volunteer_id) AS volunteers ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS message_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            sessions.id = session_reports.session_id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = students.id) AS student_sessions ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            MAX(created_at) AS last_banned_at\n        FROM\n            user_actions\n        WHERE\n            user_actions.user_id = sessions.student_id\n            AND user_actions.action = 'BANNED') AS student_banned ON TRUE\nWHERE\n    NOT sessions.ended_at IS NULL\n    AND sessions.created_at >= :start!\n    AND sessions.created_at <= :end!\n    AND ((:messageCount)::int IS NULL\n        OR message_count.total >= (:messageCount)::int)\n    AND ((:sessionLength)::int IS NULL\n        OR (EXTRACT('epoch' FROM (sessions.ended_at - sessions.created_at)) / 60) > (:sessionLength)::int)\n    AND ((:reported)::boolean IS NULL\n        OR (:reported)::boolean IS FALSE\n        OR session_reported_count.total > 0)\n    AND (student_banned.last_banned_at IS NULL\n        OR sessions.created_at < student_banned.last_banned_at\n        OR sessions.shadowbanned IS FALSE\n        OR (:showBannedUsers)::boolean IS TRUE)\n    AND ((:showTestUsers)::boolean IS NULL\n        OR (:showTestUsers)::boolean IS TRUE\n        OR students.test_user IS FALSE)\n    AND ((:firstTimeStudent)::boolean IS NULL\n        OR (:firstTimeStudent)::boolean IS FALSE\n        OR student_sessions.total = 1)\n    AND ((:firstTimeVolunteer)::boolean IS NULL\n        OR (:firstTimeVolunteer)::boolean IS FALSE\n        OR volunteer_sessions.total = 1)\nORDER BY\n    (sessions.created_at) DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
@@ -2146,22 +1600,13 @@ const getSessionsForAdminFilterIR: any = {"usedParamSet":{"start":true,"end":tru
 export const getSessionsForAdminFilter = new PreparedQuery<IGetSessionsForAdminFilterParams,IGetSessionsForAdminFilterResult>(getSessionsForAdminFilterIR);
 
 
-/** 'InsertSessionReviewReason' parameters type */
-export interface IInsertSessionReviewReasonParams {
-  flag: string;
-  sessionId: string;
-}
+/** Query 'InsertSessionReviewReason' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertSessionReviewReasonResult = never;
 
-/** 'InsertSessionReviewReason' return type */
-export interface IInsertSessionReviewReasonResult {
-  ok: string | null;
-}
-
-/** 'InsertSessionReviewReason' query type */
-export interface IInsertSessionReviewReasonQuery {
-  params: IInsertSessionReviewReasonParams;
-  result: IInsertSessionReviewReasonResult;
-}
+/** Query 'InsertSessionReviewReason' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertSessionReviewReasonParams = never;
 
 const insertSessionReviewReasonIR: any = {"usedParamSet":{"sessionId":true,"flag":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":132}]},{"name":"flag","required":true,"transform":{"type":"scalar"},"locs":[{"a":260,"b":265},{"a":549,"b":554}]}],"statement":"WITH ins AS (\nINSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)\n    SELECT\n        :sessionId!,\n        session_flags.id,\n        NOW(),\n        NOW()\n    FROM\n        session_flags\n    WHERE\n        session_flags.name = :flag!\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        session_id AS ok\n)\nSELECT\n    *\nFROM\n    ins\nUNION\nSELECT\n    session_id\nFROM\n    session_review_reasons\n    LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\nWHERE\n    session_flags.name = :flag!"};
 
@@ -2201,22 +1646,13 @@ const insertSessionReviewReasonIR: any = {"usedParamSet":{"sessionId":true,"flag
 export const insertSessionReviewReason = new PreparedQuery<IInsertSessionReviewReasonParams,IInsertSessionReviewReasonResult>(insertSessionReviewReasonIR);
 
 
-/** 'InsertSessionFailedJoin' parameters type */
-export interface IInsertSessionFailedJoinParams {
-  sessionId: string;
-  userId: string;
-}
+/** Query 'InsertSessionFailedJoin' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertSessionFailedJoinResult = never;
 
-/** 'InsertSessionFailedJoin' return type */
-export interface IInsertSessionFailedJoinResult {
-  ok: string;
-}
-
-/** 'InsertSessionFailedJoin' query type */
-export interface IInsertSessionFailedJoinQuery {
-  params: IInsertSessionFailedJoinParams;
-  result: IInsertSessionFailedJoinResult;
-}
+/** Query 'InsertSessionFailedJoin' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertSessionFailedJoinParams = never;
 
 const insertSessionFailedJoinIR: any = {"usedParamSet":{"sessionId":true,"userId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":101}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":104,"b":111}]}],"statement":"INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at)\n    VALUES (:sessionId!, :userId!, NOW(), NOW())\nRETURNING\n    session_id AS ok"};
 
@@ -2232,22 +1668,13 @@ const insertSessionFailedJoinIR: any = {"usedParamSet":{"sessionId":true,"userId
 export const insertSessionFailedJoin = new PreparedQuery<IInsertSessionFailedJoinParams,IInsertSessionFailedJoinResult>(insertSessionFailedJoinIR);
 
 
-/** 'InsertSessionPhotoKey' parameters type */
-export interface IInsertSessionPhotoKeyParams {
-  photoKey: string;
-  sessionId: string;
-}
+/** Query 'InsertSessionPhotoKey' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertSessionPhotoKeyResult = never;
 
-/** 'InsertSessionPhotoKey' return type */
-export interface IInsertSessionPhotoKeyResult {
-  ok: string;
-}
-
-/** 'InsertSessionPhotoKey' query type */
-export interface IInsertSessionPhotoKeyQuery {
-  params: IInsertSessionPhotoKeyParams;
-  result: IInsertSessionPhotoKeyResult;
-}
+/** Query 'InsertSessionPhotoKey' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertSessionPhotoKeyParams = never;
 
 const insertSessionPhotoKeyIR: any = {"usedParamSet":{"sessionId":true,"photoKey":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":97}]},{"name":"photoKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":109}]}],"statement":"INSERT INTO session_photos (session_id, photo_key, created_at, updated_at)\n    VALUES (:sessionId!, :photoKey!, NOW(), NOW())\nRETURNING\n    session_id AS ok"};
 
@@ -2263,29 +1690,13 @@ const insertSessionPhotoKeyIR: any = {"usedParamSet":{"sessionId":true,"photoKey
 export const insertSessionPhotoKey = new PreparedQuery<IInsertSessionPhotoKeyParams,IInsertSessionPhotoKeyResult>(insertSessionPhotoKeyIR);
 
 
-/** 'GetSessionsForVolunteerHourSummary' parameters type */
-export interface IGetSessionsForVolunteerHourSummaryParams {
-  end: DateOrString;
-  start: DateOrString;
-  volunteerId: string;
-}
+/** Query 'GetSessionsForVolunteerHourSummary' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionsForVolunteerHourSummaryResult = never;
 
-/** 'GetSessionsForVolunteerHourSummary' return type */
-export interface IGetSessionsForVolunteerHourSummaryResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  sessionId: string;
-  subject: string;
-  timeTutored: number | null;
-  topic: string;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetSessionsForVolunteerHourSummary' query type */
-export interface IGetSessionsForVolunteerHourSummaryQuery {
-  params: IGetSessionsForVolunteerHourSummaryParams;
-  result: IGetSessionsForVolunteerHourSummaryResult;
-}
+/** Query 'GetSessionsForVolunteerHourSummary' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionsForVolunteerHourSummaryParams = never;
 
 const getSessionsForVolunteerHourSummaryIR: any = {"usedParamSet":{"start":true,"end":true,"volunteerId":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":476,"b":482}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":515,"b":519}]},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":591,"b":603}]}],"statement":"SELECT\n    sessions.id AS session_id,\n    sessions.created_at AS created_at,\n    sessions.ended_at AS ended_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.name AS subject,\n    topics.name AS topic,\n    sessions.volunteer_joined_at AS volunteer_joined_at\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    JOIN users ON users.id = sessions.student_id\nWHERE\n    sessions.created_at >= :start!\n    AND sessions.created_at <= :end!\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.volunteer_id = :volunteerId!\n    AND users.test_user = FALSE"};
 
@@ -2316,34 +1727,13 @@ const getSessionsForVolunteerHourSummaryIR: any = {"usedParamSet":{"start":true,
 export const getSessionsForVolunteerHourSummary = new PreparedQuery<IGetSessionsForVolunteerHourSummaryParams,IGetSessionsForVolunteerHourSummaryResult>(getSessionsForVolunteerHourSummaryIR);
 
 
-/** 'GetSessionHistory' parameters type */
-export interface IGetSessionHistoryParams {
-  limit: number;
-  minSessionLength: number;
-  offset: number;
-  userId: string;
-}
+/** Query 'GetSessionHistory' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionHistoryResult = never;
 
-/** 'GetSessionHistory' return type */
-export interface IGetSessionHistoryResult {
-  createdAt: Date;
-  id: string;
-  isFavorited: boolean | null;
-  studentFirstName: string;
-  studentId: string;
-  subject: string;
-  timeTutored: number | null;
-  topic: string;
-  topicIconLink: string | null;
-  volunteerFirstName: string;
-  volunteerId: string;
-}
-
-/** 'GetSessionHistory' query type */
-export interface IGetSessionHistoryQuery {
-  params: IGetSessionHistoryParams;
-  result: IGetSessionHistoryResult;
-}
+/** Query 'GetSessionHistory' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionHistoryParams = never;
 
 const getSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1103,"b":1110},{"a":1139,"b":1146}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1223,"b":1240}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1420,"b":1426}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1442,"b":1449}]}],"statement":"WITH results AS (\n    SELECT DISTINCT ON (sessions.id)\n        sessions.id,\n        sessions.created_at AS created_at,\n        sessions.time_tutored::int AS time_tutored,\n        subjects.display_name AS subject,\n        topics.name AS topic,\n        topics.icon_link AS topic_icon_link,\n        volunteers.first_name AS volunteer_first_name,\n        volunteers.id AS volunteer_id,\n        students.id AS student_id,\n        students.first_name AS student_first_name,\n        (\n            CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n                TRUE\n            ELSE\n                FALSE\n            END) AS is_favorited\n    FROM\n        sessions\n        JOIN subjects ON subjects.id = sessions.subject_id\n        JOIN topics ON topics.id = subjects.topic_id\n        LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n        LEFT JOIN users students ON sessions.student_id = students.id\n        LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id\n    WHERE (students.id = :userId!\n        OR volunteers.id = :userId!)\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\nORDER BY\n    sessions.id\n)\nSELECT\n    *\nFROM\n    results\nORDER BY\n    created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
@@ -2397,22 +1787,13 @@ const getSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLengt
 export const getSessionHistory = new PreparedQuery<IGetSessionHistoryParams,IGetSessionHistoryResult>(getSessionHistoryIR);
 
 
-/** 'IsEligibleForSessionRecap' parameters type */
-export interface IIsEligibleForSessionRecapParams {
-  minSessionLength: number;
-  sessionId: string;
-}
+/** Query 'IsEligibleForSessionRecap' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IIsEligibleForSessionRecapResult = never;
 
-/** 'IsEligibleForSessionRecap' return type */
-export interface IIsEligibleForSessionRecapResult {
-  isEligible: boolean | null;
-}
-
-/** 'IsEligibleForSessionRecap' query type */
-export interface IIsEligibleForSessionRecapQuery {
-  params: IIsEligibleForSessionRecapParams;
-  result: IIsEligibleForSessionRecapResult;
-}
+/** Query 'IsEligibleForSessionRecap' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IIsEligibleForSessionRecapParams = never;
 
 const isEligibleForSessionRecapIR: any = {"usedParamSet":{"sessionId":true,"minSessionLength":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":161}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":237,"b":254}]}],"statement":"SELECT\n    CASE WHEN sessions.id IS NOT NULL THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS is_eligible\nFROM\n    sessions\nWHERE\n    sessions.id = :sessionId!\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL"};
 
@@ -2438,22 +1819,13 @@ const isEligibleForSessionRecapIR: any = {"usedParamSet":{"sessionId":true,"minS
 export const isEligibleForSessionRecap = new PreparedQuery<IIsEligibleForSessionRecapParams,IIsEligibleForSessionRecapResult>(isEligibleForSessionRecapIR);
 
 
-/** 'GetTotalSessionHistory' parameters type */
-export interface IGetTotalSessionHistoryParams {
-  minSessionLength: number;
-  userId: string;
-}
+/** Query 'GetTotalSessionHistory' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTotalSessionHistoryResult = never;
 
-/** 'GetTotalSessionHistory' return type */
-export interface IGetTotalSessionHistoryResult {
-  total: number | null;
-}
-
-/** 'GetTotalSessionHistory' query type */
-export interface IGetTotalSessionHistoryQuery {
-  params: IGetTotalSessionHistoryParams;
-  result: IGetTotalSessionHistoryResult;
-}
+/** Query 'GetTotalSessionHistory' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTotalSessionHistoryParams = never;
 
 const getTotalSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":218},{"a":243,"b":250}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":319,"b":336}]}],"statement":"SELECT\n    count(*)::int AS total\nFROM\n    sessions\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\nWHERE (students.id = :userId!\n    OR volunteers.id = :userId!)\nAND sessions.time_tutored IS NOT NULL\nAND sessions.time_tutored > :minSessionLength!::int\nAND sessions.volunteer_id IS NOT NULL"};
 
@@ -2476,35 +1848,13 @@ const getTotalSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSession
 export const getTotalSessionHistory = new PreparedQuery<IGetTotalSessionHistoryParams,IGetTotalSessionHistoryResult>(getTotalSessionHistoryIR);
 
 
-/** 'GetSessionRecap' parameters type */
-export interface IGetSessionRecapParams {
-  sessionId: string;
-}
+/** Query 'GetSessionRecap' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionRecapResult = never;
 
-/** 'GetSessionRecap' return type */
-export interface IGetSessionRecapResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  hasWhiteboardDoc: boolean;
-  id: string;
-  isFavorited: boolean | null;
-  quillDoc: string | null;
-  studentFirstName: string;
-  studentId: string;
-  subject: string;
-  subjectKey: string;
-  timeTutored: number | null;
-  topic: string;
-  topicIconLink: string | null;
-  volunteerFirstName: string;
-  volunteerId: string;
-}
-
-/** 'GetSessionRecap' query type */
-export interface IGetSessionRecapQuery {
-  params: IGetSessionRecapParams;
-  result: IGetSessionRecapResult;
-}
+/** Query 'GetSessionRecap' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionRecapParams = never;
 
 const getSessionRecapIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1042,"b":1052}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.time_tutored::int,\n    subjects.display_name AS subject,\n    subjects.name AS subject_key,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link,\n    volunteers.first_name AS volunteer_first_name,\n    volunteers.id AS volunteer_id,\n    students.id AS student_id,\n    students.first_name AS student_first_name,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited,\n    sessions.quill_doc,\n    sessions.has_whiteboard_doc\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n        AND volunteers.id = favorited.volunteer_id\nWHERE\n    sessions.id = :sessionId!"};
 
@@ -2547,21 +1897,13 @@ const getSessionRecapIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
 export const getSessionRecap = new PreparedQuery<IGetSessionRecapParams,IGetSessionRecapResult>(getSessionRecapIR);
 
 
-/** 'VolunteerSentMessageAfterSessionEnded' parameters type */
-export interface IVolunteerSentMessageAfterSessionEndedParams {
-  sessionId?: string | null | void;
-}
+/** Query 'VolunteerSentMessageAfterSessionEnded' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IVolunteerSentMessageAfterSessionEndedResult = never;
 
-/** 'VolunteerSentMessageAfterSessionEnded' return type */
-export interface IVolunteerSentMessageAfterSessionEndedResult {
-  id: string;
-}
-
-/** 'VolunteerSentMessageAfterSessionEnded' query type */
-export interface IVolunteerSentMessageAfterSessionEndedQuery {
-  params: IVolunteerSentMessageAfterSessionEndedParams;
-  result: IVolunteerSentMessageAfterSessionEndedResult;
-}
+/** Query 'VolunteerSentMessageAfterSessionEnded' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IVolunteerSentMessageAfterSessionEndedParams = never;
 
 const volunteerSentMessageAfterSessionEndedIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":144,"b":153}]}],"statement":"SELECT\n    session_messages.id\nFROM\n    sessions\n    JOIN session_messages ON sessions.id = session_messages.session_id\nWHERE\n    sessions.id = :sessionId\n    AND session_messages.sender_id = sessions.volunteer_id\n    AND session_messages.created_at > sessions.ended_at\nLIMIT 1"};
 
@@ -2583,21 +1925,13 @@ const volunteerSentMessageAfterSessionEndedIR: any = {"usedParamSet":{"sessionId
 export const volunteerSentMessageAfterSessionEnded = new PreparedQuery<IVolunteerSentMessageAfterSessionEndedParams,IVolunteerSentMessageAfterSessionEndedResult>(volunteerSentMessageAfterSessionEndedIR);
 
 
-/** 'SessionHasBannedParticipant' parameters type */
-export interface ISessionHasBannedParticipantParams {
-  sessionId: string;
-}
+/** Query 'SessionHasBannedParticipant' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISessionHasBannedParticipantResult = never;
 
-/** 'SessionHasBannedParticipant' return type */
-export interface ISessionHasBannedParticipantResult {
-  id: string;
-}
-
-/** 'SessionHasBannedParticipant' query type */
-export interface ISessionHasBannedParticipantQuery {
-  params: ISessionHasBannedParticipantParams;
-  result: ISessionHasBannedParticipantResult;
-}
+/** Query 'SessionHasBannedParticipant' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISessionHasBannedParticipantParams = never;
 
 const sessionHasBannedParticipantIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":366,"b":376}]}],"statement":"SELECT\n    sessions.id\nFROM\n    sessions\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    JOIN users students ON student_profiles.user_id = students.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\n    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id\nWHERE\n    sessions.id = :sessionId!\n    AND (students.ban_type = 'complete'\n        OR volunteers.ban_type = 'complete')\nLIMIT 1"};
 
@@ -2622,32 +1956,13 @@ const sessionHasBannedParticipantIR: any = {"usedParamSet":{"sessionId":true},"p
 export const sessionHasBannedParticipant = new PreparedQuery<ISessionHasBannedParticipantParams,ISessionHasBannedParticipantResult>(sessionHasBannedParticipantIR);
 
 
-/** 'GetUserSessionsByUserId' parameters type */
-export interface IGetUserSessionsByUserIdParams {
-  end?: DateOrString | null | void;
-  sessionId?: string | null | void;
-  start?: DateOrString | null | void;
-  subject: string;
-  topic?: string | null | void;
-  userId: string;
-}
+/** Query 'GetUserSessionsByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetUserSessionsByUserIdResult = never;
 
-/** 'GetUserSessionsByUserId' return type */
-export interface IGetUserSessionsByUserIdResult {
-  createdAt: Date;
-  id: string;
-  quillDoc: string | null;
-  studentId: string;
-  subjectName: string;
-  topicName: string;
-  volunteerId: string | null;
-}
-
-/** 'GetUserSessionsByUserId' query type */
-export interface IGetUserSessionsByUserIdQuery {
-  params: IGetUserSessionsByUserIdParams;
-  result: IGetUserSessionsByUserIdResult;
-}
+/** Query 'GetUserSessionsByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetUserSessionsByUserIdParams = never;
 
 const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"sessionId":true,"topic":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":332,"b":339},{"a":372,"b":379}]},{"name":"start","required":false,"transform":{"type":"scalar"},"locs":[{"a":388,"b":393},{"a":448,"b":453}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":476,"b":479},{"a":534,"b":537}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":560,"b":567},{"a":608,"b":616}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":631,"b":640},{"a":677,"b":686}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":701,"b":706},{"a":745,"b":750}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::timestamptz IS NULL\n    OR sessions.created_at >= (:start)::timestamptz)\nAND ((:end)::timestamptz IS NULL\n    OR sessions.created_at <= (:end)::timestamptz)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject!)::text)\nAND (:sessionId::uuid IS NULL\n    OR sessions.id = :sessionId::uuid)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC"};
 
@@ -2685,25 +2000,13 @@ const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":tr
 export const getUserSessionsByUserId = new PreparedQuery<IGetUserSessionsByUserIdParams,IGetUserSessionsByUserIdResult>(getUserSessionsByUserIdIR);
 
 
-/** 'GetUserSessionStats' parameters type */
-export interface IGetUserSessionStatsParams {
-  minSessionLength: number;
-  userId: string;
-}
+/** Query 'GetUserSessionStats' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetUserSessionStatsResult = never;
 
-/** 'GetUserSessionStats' return type */
-export interface IGetUserSessionStatsResult {
-  subjectName: string;
-  topicName: string;
-  totalHelped: number | null;
-  totalRequested: number | null;
-}
-
-/** 'GetUserSessionStats' query type */
-export interface IGetUserSessionStatsQuery {
-  params: IGetUserSessionStatsParams;
-  result: IGetUserSessionStatsResult;
-}
+/** Query 'GetUserSessionStats' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetUserSessionStatsParams = never;
 
 const getUserSessionStatsIR: any = {"usedParamSet":{"minSessionLength":true,"userId":true},"params":[{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":173,"b":190}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":439,"b":446},{"a":487,"b":494}]}],"statement":"SELECT\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    COUNT(sessions.id)::int AS total_requested,\n    SUM(\n        CASE WHEN sessions.time_tutored >= :minSessionLength!::int THEN\n            1\n        ELSE\n            0\n        END)::int AS total_helped\nFROM\n    subjects\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN sessions ON subjects.id = sessions.subject_id\n        AND (sessions.student_id = :userId!\n            OR sessions.volunteer_id = :userId!)\nWHERE\n    subjects.active IS TRUE\nGROUP BY\n    subjects.name,\n    topics.name"};
 
@@ -2736,27 +2039,13 @@ const getUserSessionStatsIR: any = {"usedParamSet":{"minSessionLength":true,"use
 export const getUserSessionStats = new PreparedQuery<IGetUserSessionStatsParams,IGetUserSessionStatsResult>(getUserSessionStatsIR);
 
 
-/** 'GetStudentSessionDetails' parameters type */
-export interface IGetStudentSessionDetailsParams {
-  studentId: string;
-}
+/** Query 'GetStudentSessionDetails' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetStudentSessionDetailsResult = never;
 
-/** 'GetStudentSessionDetails' return type */
-export interface IGetStudentSessionDetailsResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  firstName: string;
-  id: string;
-  lastName: string;
-  messageCount: string | null;
-  name: string;
-}
-
-/** 'GetStudentSessionDetails' query type */
-export interface IGetStudentSessionDetailsQuery {
-  params: IGetStudentSessionDetailsParams;
-  result: IGetStudentSessionDetailsResult;
-}
+/** Query 'GetStudentSessionDetails' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetStudentSessionDetailsParams = never;
 
 const getStudentSessionDetailsIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":377,"b":387}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    users.last_name,\n    COUNT(session_id) AS message_count\nFROM\n    sessions\n    LEFT JOIN session_messages ON sessions.id = session_id\n    JOIN subjects ON sessions.subject_id = subjects.id\n    JOIN users ON sessions.student_id = users.id\nWHERE\n    student_id = :studentId!\n    AND sessions.ended_at IS NOT NULL\nGROUP BY\n    sessions.id,\n    subjects.name,\n    sessions.ended_at,\n    sessions.created_at,\n    users.first_name,\n    users.last_name"};
 
@@ -2791,25 +2080,13 @@ const getStudentSessionDetailsIR: any = {"usedParamSet":{"studentId":true},"para
 export const getStudentSessionDetails = new PreparedQuery<IGetStudentSessionDetailsParams,IGetStudentSessionDetailsResult>(getStudentSessionDetailsIR);
 
 
-/** 'GetTutorBotSessionMessagesBySessionId' parameters type */
-export interface IGetTutorBotSessionMessagesBySessionIdParams {
-  sessionId: string;
-}
+/** Query 'GetTutorBotSessionMessagesBySessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetTutorBotSessionMessagesBySessionIdResult = never;
 
-/** 'GetTutorBotSessionMessagesBySessionId' return type */
-export interface IGetTutorBotSessionMessagesBySessionIdResult {
-  createdAt: Date;
-  id: string;
-  message: string | null;
-  sessionId: string;
-  tutorBotSessionUserType: tutor_bot_session_user_type;
-}
-
-/** 'GetTutorBotSessionMessagesBySessionId' query type */
-export interface IGetTutorBotSessionMessagesBySessionIdQuery {
-  params: IGetTutorBotSessionMessagesBySessionIdParams;
-  result: IGetTutorBotSessionMessagesBySessionIdResult;
-}
+/** Query 'GetTutorBotSessionMessagesBySessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetTutorBotSessionMessagesBySessionIdParams = never;
 
 const getTutorBotSessionMessagesBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":72,"b":82}]}],"statement":"SELECT\n    *\nFROM\n    tutor_bot_session_messages\nWHERE\n    session_id = :sessionId!\nORDER BY\n    created_at ASC"};
 
@@ -2829,28 +2106,13 @@ const getTutorBotSessionMessagesBySessionIdIR: any = {"usedParamSet":{"sessionId
 export const getTutorBotSessionMessagesBySessionId = new PreparedQuery<IGetTutorBotSessionMessagesBySessionIdParams,IGetTutorBotSessionMessagesBySessionIdResult>(getTutorBotSessionMessagesBySessionIdIR);
 
 
-/** 'InsertTutorBotSessionMessage' parameters type */
-export interface IInsertTutorBotSessionMessageParams {
-  id: string;
-  message: string;
-  sessionId: string;
-  userType: tutor_bot_session_user_type;
-}
+/** Query 'InsertTutorBotSessionMessage' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertTutorBotSessionMessageResult = never;
 
-/** 'InsertTutorBotSessionMessage' return type */
-export interface IInsertTutorBotSessionMessageResult {
-  createdAt: Date;
-  id: string;
-  message: string | null;
-  sessionId: string;
-  tutorBotSessionUserType: tutor_bot_session_user_type;
-}
-
-/** 'InsertTutorBotSessionMessage' query type */
-export interface IInsertTutorBotSessionMessageQuery {
-  params: IInsertTutorBotSessionMessageParams;
-  result: IInsertTutorBotSessionMessageResult;
-}
+/** Query 'InsertTutorBotSessionMessage' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertTutorBotSessionMessageParams = never;
 
 const insertTutorBotSessionMessageIR: any = {"usedParamSet":{"id":true,"sessionId":true,"message":true,"userType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":109}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":122}]},{"name":"message","required":true,"transform":{"type":"scalar"},"locs":[{"a":125,"b":133}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":145}]}],"statement":"INSERT INTO tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type)\n    VALUES (:id!, :sessionId!, :message!, :userType!)\nRETURNING\n    id, session_id, message, tutor_bot_session_user_type, created_at"};
 
@@ -2866,28 +2128,13 @@ const insertTutorBotSessionMessageIR: any = {"usedParamSet":{"id":true,"sessionI
 export const insertTutorBotSessionMessage = new PreparedQuery<IInsertTutorBotSessionMessageParams,IInsertTutorBotSessionMessageResult>(insertTutorBotSessionMessageIR);
 
 
-/** 'GetStudentSessionsForFallIncentive' parameters type */
-export interface IGetStudentSessionsForFallIncentiveParams {
-  end?: DateOrString | null | void;
-  start: DateOrString;
-  studentId: string;
-}
+/** Query 'GetStudentSessionsForFallIncentive' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetStudentSessionsForFallIncentiveResult = never;
 
-/** 'GetStudentSessionsForFallIncentive' return type */
-export interface IGetStudentSessionsForFallIncentiveResult {
-  createdAt: Date;
-  flags: stringArray | null;
-  id: string;
-  reported: boolean | null;
-  timeTutored: number | null;
-  totalMessages: number | null;
-}
-
-/** 'GetStudentSessionsForFallIncentive' query type */
-export interface IGetStudentSessionsForFallIncentiveQuery {
-  params: IGetStudentSessionsForFallIncentiveParams;
-  result: IGetStudentSessionsForFallIncentiveResult;
-}
+/** Query 'GetStudentSessionsForFallIncentive' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetStudentSessionsForFallIncentiveParams = never;
 
 const getStudentSessionsForFallIncentiveIR: any = {"usedParamSet":{"studentId":true,"start":true,"end":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1104,"b":1114}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1185,"b":1191}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":1203,"b":1206},{"a":1265,"b":1268}]}],"statement":"SELECT\n    sessions.id,\n    (time_tutored)::float,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    session_reported_count.total <> 0 AS reported,\n    messages.total AS total_messages,\n    sessions.created_at\nFROM\n    sessions\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.student_id = :studentId!\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.created_at >= :start!\n    AND ((:end)::timestamptz IS NULL\n        OR sessions.created_at <= (:end)::timestamptz)\nORDER BY\n    created_at ASC"};
 

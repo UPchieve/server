@@ -1,31 +1,13 @@
 /** Types generated for queries found in "server/models/Notification/notification.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type DateOrString = Date | string;
+/** Query 'GetNotificationsByVolunteerId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetNotificationsByVolunteerIdResult = never;
 
-/** 'GetNotificationsByVolunteerId' parameters type */
-export interface IGetNotificationsByVolunteerIdParams {
-  userId: string;
-}
-
-/** 'GetNotificationsByVolunteerId' return type */
-export interface IGetNotificationsByVolunteerIdResult {
-  id: string;
-  messageId: string | null;
-  method: string;
-  priorityGroup: string;
-  sentAt: Date | null;
-  sessionId: string | null;
-  type: string;
-  volunteer: string;
-  wasSuccessful: boolean | null;
-}
-
-/** 'GetNotificationsByVolunteerId' query type */
-export interface IGetNotificationsByVolunteerIdQuery {
-  params: IGetNotificationsByVolunteerIdParams;
-  result: IGetNotificationsByVolunteerIdResult;
-}
+/** Query 'GetNotificationsByVolunteerId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetNotificationsByVolunteerIdParams = never;
 
 const getNotificationsByVolunteerIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":631,"b":638}]}],"statement":"SELECT\n    notifications.id,\n    user_id AS volunteer,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS TYPE,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\nWHERE\n    notifications.user_id = :userId!"};
 
@@ -54,30 +36,13 @@ const getNotificationsByVolunteerIdIR: any = {"usedParamSet":{"userId":true},"pa
 export const getNotificationsByVolunteerId = new PreparedQuery<IGetNotificationsByVolunteerIdParams,IGetNotificationsByVolunteerIdResult>(getNotificationsByVolunteerIdIR);
 
 
-/** 'GetSessionNotificationsWithSessionId' parameters type */
-export interface IGetSessionNotificationsWithSessionIdParams {
-  sessionId: string;
-}
+/** Query 'GetSessionNotificationsWithSessionId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetSessionNotificationsWithSessionIdResult = never;
 
-/** 'GetSessionNotificationsWithSessionId' return type */
-export interface IGetSessionNotificationsWithSessionIdResult {
-  firstName: string;
-  id: string;
-  messageId: string | null;
-  method: string;
-  priorityGroup: string;
-  sentAt: Date | null;
-  sessionId: string | null;
-  type: string;
-  volunteerPartnerOrg: string;
-  wasSuccessful: boolean | null;
-}
-
-/** 'GetSessionNotificationsWithSessionId' query type */
-export interface IGetSessionNotificationsWithSessionIdQuery {
-  params: IGetSessionNotificationsWithSessionIdParams;
-  result: IGetSessionNotificationsWithSessionIdResult;
-}
+/** Query 'GetSessionNotificationsWithSessionId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetSessionNotificationsWithSessionIdParams = never;
 
 const getSessionNotificationsWithSessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":956,"b":966}]}],"statement":"SELECT\n    notifications.id,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS TYPE,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    users.first_name AS first_name\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\n    LEFT JOIN users ON notifications.user_id = users.id\n    LEFT JOIN volunteer_profiles ON notifications.user_id = volunteer_profiles.user_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\nWHERE\n    notifications.session_id = :sessionId!\n    AND notification_types.type IS NOT NULL"};
 
@@ -111,24 +76,13 @@ const getSessionNotificationsWithSessionIdIR: any = {"usedParamSet":{"sessionId"
 export const getSessionNotificationsWithSessionId = new PreparedQuery<IGetSessionNotificationsWithSessionIdParams,IGetSessionNotificationsWithSessionIdResult>(getSessionNotificationsWithSessionIdIR);
 
 
-/** 'GetNotificationsForGentleWarning' parameters type */
-export interface IGetNotificationsForGentleWarningParams {
-  sessionId: string;
-}
+/** Query 'GetNotificationsForGentleWarning' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetNotificationsForGentleWarningResult = never;
 
-/** 'GetNotificationsForGentleWarning' return type */
-export interface IGetNotificationsForGentleWarningResult {
-  email: string;
-  firstName: string;
-  id: string;
-  totalNotifications: number | null;
-}
-
-/** 'GetNotificationsForGentleWarning' query type */
-export interface IGetNotificationsForGentleWarningQuery {
-  params: IGetNotificationsForGentleWarningParams;
-  result: IGetNotificationsForGentleWarningResult;
-}
+/** Query 'GetNotificationsForGentleWarning' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetNotificationsForGentleWarningParams = never;
 
 const getNotificationsForGentleWarningIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":530,"b":540}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    users.email AS email,\n    COUNT(*)::int AS total_notifications\nFROM\n    notifications\n    JOIN sessions ON notifications.session_id = sessions.id\n    JOIN users ON notifications.user_id = users.id\n    JOIN (\n        SELECT\n            sessions.volunteer_id\n        FROM\n            sessions\n        GROUP BY\n            volunteer_id\n        HAVING\n            COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id\nWHERE\n    notifications.session_id = :sessionId!\n    AND notifications.user_id != sessions.volunteer_id\nGROUP BY\n    users.id"};
 
@@ -163,23 +117,13 @@ const getNotificationsForGentleWarningIR: any = {"usedParamSet":{"sessionId":tru
 export const getNotificationsForGentleWarning = new PreparedQuery<IGetNotificationsForGentleWarningParams,IGetNotificationsForGentleWarningResult>(getNotificationsForGentleWarningIR);
 
 
-/** 'CreateEmailNotification' parameters type */
-export interface ICreateEmailNotificationParams {
-  emailTemplateId: string;
-  sessionId?: string | null | void;
-  userId: string;
-}
+/** Query 'CreateEmailNotification' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICreateEmailNotificationResult = never;
 
-/** 'CreateEmailNotification' return type */
-export interface ICreateEmailNotificationResult {
-  ok: string;
-}
-
-/** 'CreateEmailNotification' query type */
-export interface ICreateEmailNotificationQuery {
-  params: ICreateEmailNotificationParams;
-  result: ICreateEmailNotificationResult;
-}
+/** Query 'CreateEmailNotification' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICreateEmailNotificationParams = never;
 
 const createEmailNotificationIR: any = {"usedParamSet":{"userId":true,"sessionId":true,"emailTemplateId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":131}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":138,"b":147}]},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":154,"b":170}]}],"statement":"INSERT INTO notifications (id, user_id, session_id, email_template_id, method_id, sent_at)\nSELECT\n    generate_ulid (),\n    :userId!,\n    :sessionId,\n    :emailTemplateId!,\n    (\n        SELECT\n            id\n        FROM\n            notification_methods\n        WHERE\n            method = 'email'), NOW()\nRETURNING\n    id AS ok"};
 
@@ -206,27 +150,13 @@ const createEmailNotificationIR: any = {"usedParamSet":{"userId":true,"sessionId
 export const createEmailNotification = new PreparedQuery<ICreateEmailNotificationParams,ICreateEmailNotificationResult>(createEmailNotificationIR);
 
 
-/** 'GetEmailNotificationsByTemplateId' parameters type */
-export interface IGetEmailNotificationsByTemplateIdParams {
-  emailTemplateId: string;
-  end?: DateOrString | null | void;
-  start?: DateOrString | null | void;
-  userId?: string | null | void;
-}
+/** Query 'GetEmailNotificationsByTemplateId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetEmailNotificationsByTemplateIdResult = never;
 
-/** 'GetEmailNotificationsByTemplateId' return type */
-export interface IGetEmailNotificationsByTemplateIdResult {
-  emailTemplateId: string | null;
-  sentAt: Date | null;
-  sessionId: string | null;
-  userId: string;
-}
-
-/** 'GetEmailNotificationsByTemplateId' query type */
-export interface IGetEmailNotificationsByTemplateIdQuery {
-  params: IGetEmailNotificationsByTemplateIdParams;
-  result: IGetEmailNotificationsByTemplateIdResult;
-}
+/** Query 'GetEmailNotificationsByTemplateId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetEmailNotificationsByTemplateIdParams = never;
 
 const getEmailNotificationsByTemplateIdIR: any = {"usedParamSet":{"emailTemplateId":true,"userId":true,"start":true,"end":true},"params":[{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":253,"b":269}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":280,"b":286},{"a":323,"b":329}]},{"name":"start","required":false,"transform":{"type":"scalar"},"locs":[{"a":348,"b":353},{"a":400,"b":405}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":435,"b":438},{"a":489,"b":492}]}],"statement":"SELECT\n    user_id,\n    session_id,\n    email_template_id,\n    sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notifications.method_id = notification_methods.id\nWHERE\n    notification_methods.method = 'email'\n    AND email_template_id = :emailTemplateId!\n    AND (:userId::uuid IS NULL\n        OR user_id = :userId::uuid)\n    AND ((:start)::timestamptz IS NULL\n        OR sent_at >= (:start)::timestamptz\n        AND ((:end)::timestamptz IS NULL\n            OR sent_at <= (:end)::timestamptz))"};
 

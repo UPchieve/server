@@ -1,21 +1,13 @@
 /** Types generated for queries found in "server/models/Auth/auth.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** 'DeleteAuthSessionsForUser' parameters type */
-export interface IDeleteAuthSessionsForUserParams {
-  userId: string;
-}
+/** Query 'DeleteAuthSessionsForUser' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IDeleteAuthSessionsForUserResult = never;
 
-/** 'DeleteAuthSessionsForUser' return type */
-export interface IDeleteAuthSessionsForUserResult {
-  ok: string;
-}
-
-/** 'DeleteAuthSessionsForUser' query type */
-export interface IDeleteAuthSessionsForUserQuery {
-  params: IDeleteAuthSessionsForUserParams;
-  result: IDeleteAuthSessionsForUserResult;
-}
+/** Query 'DeleteAuthSessionsForUser' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IDeleteAuthSessionsForUserParams = never;
 
 const deleteAuthSessionsForUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":72}]}],"statement":"DELETE FROM auth.session\nWHERE (sess -> 'passport') ->> 'user' = :userId!\nRETURNING\n    sid AS ok"};
 

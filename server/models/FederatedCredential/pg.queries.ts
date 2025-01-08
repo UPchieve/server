@@ -1,24 +1,13 @@
 /** Types generated for queries found in "server/models/FederatedCredential/federated_credential.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** 'GetFederatedCredential' parameters type */
-export interface IGetFederatedCredentialParams {
-  id: string;
-  issuer: string;
-}
+/** Query 'GetFederatedCredential' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetFederatedCredentialResult = never;
 
-/** 'GetFederatedCredential' return type */
-export interface IGetFederatedCredentialResult {
-  id: string;
-  issuer: string;
-  userId: string | null;
-}
-
-/** 'GetFederatedCredential' query type */
-export interface IGetFederatedCredentialQuery {
-  params: IGetFederatedCredentialParams;
-  result: IGetFederatedCredentialResult;
-}
+/** Query 'GetFederatedCredential' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetFederatedCredentialParams = never;
 
 const getFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":59,"b":62}]},{"name":"issuer","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]}],"statement":"SELECT\n    *\nFROM\n    federated_credentials\nWHERE\n    id = :id!\n    AND issuer = :issuer!"};
 
@@ -37,21 +26,13 @@ const getFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true},
 export const getFederatedCredential = new PreparedQuery<IGetFederatedCredentialParams,IGetFederatedCredentialResult>(getFederatedCredentialIR);
 
 
-/** 'InsertFederatedCredential' parameters type */
-export interface IInsertFederatedCredentialParams {
-  id: string;
-  issuer: string;
-  userId: string;
-}
+/** Query 'InsertFederatedCredential' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertFederatedCredentialResult = never;
 
-/** 'InsertFederatedCredential' return type */
-export type IInsertFederatedCredentialResult = void;
-
-/** 'InsertFederatedCredential' query type */
-export interface IInsertFederatedCredentialQuery {
-  params: IInsertFederatedCredentialParams;
-  result: IInsertFederatedCredentialResult;
-}
+/** Query 'InsertFederatedCredential' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertFederatedCredentialParams = never;
 
 const insertFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]},{"name":"issuer","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":81}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]}],"statement":"INSERT INTO federated_credentials (id, issuer, user_id)\n    VALUES (:id!, :issuer!, :userId!)"};
 
@@ -65,19 +46,13 @@ const insertFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":tru
 export const insertFederatedCredential = new PreparedQuery<IInsertFederatedCredentialParams,IInsertFederatedCredentialResult>(insertFederatedCredentialIR);
 
 
-/** 'DeleteFederatedCredentialsForUser' parameters type */
-export interface IDeleteFederatedCredentialsForUserParams {
-  userId: string;
-}
+/** Query 'DeleteFederatedCredentialsForUser' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IDeleteFederatedCredentialsForUserResult = never;
 
-/** 'DeleteFederatedCredentialsForUser' return type */
-export type IDeleteFederatedCredentialsForUserResult = void;
-
-/** 'DeleteFederatedCredentialsForUser' query type */
-export interface IDeleteFederatedCredentialsForUserQuery {
-  params: IDeleteFederatedCredentialsForUserParams;
-  result: IDeleteFederatedCredentialsForUserResult;
-}
+/** Query 'DeleteFederatedCredentialsForUser' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IDeleteFederatedCredentialsForUserParams = never;
 
 const deleteFederatedCredentialsForUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":57}]}],"statement":"DELETE FROM federated_credentials\nWHERE user_id = :userId!"};
 

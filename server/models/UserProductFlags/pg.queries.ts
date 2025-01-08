@@ -1,30 +1,13 @@
 /** Types generated for queries found in "server/models/UserProductFlags/user_product_flags.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** 'CreateUpfByUserId' parameters type */
-export interface ICreateUpfByUserIdParams {
-  userId: string;
-}
+/** Query 'CreateUpfByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ICreateUpfByUserIdResult = never;
 
-/** 'CreateUpfByUserId' return type */
-export interface ICreateUpfByUserIdResult {
-  createdAt: Date;
-  fallIncentiveEnrollmentAt: Date | null;
-  gatesQualified: boolean;
-  sentHourSummaryIntroEmail: boolean;
-  sentInactiveNinetyDayEmail: boolean;
-  sentInactiveSixtyDayEmail: boolean;
-  sentInactiveThirtyDayEmail: boolean;
-  sentReadyToCoachEmail: boolean;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'CreateUpfByUserId' query type */
-export interface ICreateUpfByUserIdQuery {
-  params: ICreateUpfByUserIdParams;
-  result: ICreateUpfByUserIdResult;
-}
+/** Query 'CreateUpfByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ICreateUpfByUserIdParams = never;
 
 const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    created_at,\n    updated_at"};
 
@@ -60,30 +43,13 @@ const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"nam
 export const createUpfByUserId = new PreparedQuery<ICreateUpfByUserIdParams,ICreateUpfByUserIdResult>(createUpfByUserIdIR);
 
 
-/** 'GetUpfByUserId' parameters type */
-export interface IGetUpfByUserIdParams {
-  userId: string;
-}
+/** Query 'GetUpfByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetUpfByUserIdResult = never;
 
-/** 'GetUpfByUserId' return type */
-export interface IGetUpfByUserIdResult {
-  createdAt: Date;
-  fallIncentiveEnrollmentAt: Date | null;
-  gatesQualified: boolean;
-  sentHourSummaryIntroEmail: boolean;
-  sentInactiveNinetyDayEmail: boolean;
-  sentInactiveSixtyDayEmail: boolean;
-  sentInactiveThirtyDayEmail: boolean;
-  sentReadyToCoachEmail: boolean;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetUpfByUserId' query type */
-export interface IGetUpfByUserIdQuery {
-  params: IGetUpfByUserIdParams;
-  result: IGetUpfByUserIdResult;
-}
+/** Query 'GetUpfByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetUpfByUserIdParams = never;
 
 const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":327,"b":334}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
@@ -110,23 +76,13 @@ const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":
 export const getUpfByUserId = new PreparedQuery<IGetUpfByUserIdParams,IGetUpfByUserIdResult>(getUpfByUserIdIR);
 
 
-/** 'GetPublicUpfByUserId' parameters type */
-export interface IGetPublicUpfByUserIdParams {
-  userId: string;
-}
+/** Query 'GetPublicUpfByUserId' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetPublicUpfByUserIdResult = never;
 
-/** 'GetPublicUpfByUserId' return type */
-export interface IGetPublicUpfByUserIdResult {
-  fallIncentiveEnrollmentAt: Date | null;
-  gatesQualified: boolean;
-  userId: string;
-}
-
-/** 'GetPublicUpfByUserId' query type */
-export interface IGetPublicUpfByUserIdQuery {
-  params: IGetPublicUpfByUserIdParams;
-  result: IGetPublicUpfByUserIdResult;
-}
+/** Query 'GetPublicUpfByUserId' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetPublicUpfByUserIdParams = never;
 
 const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":129}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
@@ -146,22 +102,13 @@ const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"
 export const getPublicUpfByUserId = new PreparedQuery<IGetPublicUpfByUserIdParams,IGetPublicUpfByUserIdResult>(getPublicUpfByUserIdIR);
 
 
-/** 'UpdateSentInactiveThirtyDayEmail' parameters type */
-export interface IUpdateSentInactiveThirtyDayEmailParams {
-  sentInactiveThirtyDayEmail: boolean;
-  userId: string;
-}
+/** Query 'UpdateSentInactiveThirtyDayEmail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSentInactiveThirtyDayEmailResult = never;
 
-/** 'UpdateSentInactiveThirtyDayEmail' return type */
-export interface IUpdateSentInactiveThirtyDayEmailResult {
-  ok: string;
-}
-
-/** 'UpdateSentInactiveThirtyDayEmail' query type */
-export interface IUpdateSentInactiveThirtyDayEmailQuery {
-  params: IUpdateSentInactiveThirtyDayEmailParams;
-  result: IUpdateSentInactiveThirtyDayEmailResult;
-}
+/** Query 'UpdateSentInactiveThirtyDayEmail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSentInactiveThirtyDayEmailParams = never;
 
 const updateSentInactiveThirtyDayEmailIR: any = {"usedParamSet":{"sentInactiveThirtyDayEmail":true,"userId":true},"params":[{"name":"sentInactiveThirtyDayEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":98}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":144,"b":151}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_thirty_day_email = :sentInactiveThirtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -182,22 +129,13 @@ const updateSentInactiveThirtyDayEmailIR: any = {"usedParamSet":{"sentInactiveTh
 export const updateSentInactiveThirtyDayEmail = new PreparedQuery<IUpdateSentInactiveThirtyDayEmailParams,IUpdateSentInactiveThirtyDayEmailResult>(updateSentInactiveThirtyDayEmailIR);
 
 
-/** 'UpdateSentInactiveSixtyDayEmail' parameters type */
-export interface IUpdateSentInactiveSixtyDayEmailParams {
-  sentInactiveSixtyDayEmail: boolean;
-  userId: string;
-}
+/** Query 'UpdateSentInactiveSixtyDayEmail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSentInactiveSixtyDayEmailResult = never;
 
-/** 'UpdateSentInactiveSixtyDayEmail' return type */
-export interface IUpdateSentInactiveSixtyDayEmailResult {
-  ok: string;
-}
-
-/** 'UpdateSentInactiveSixtyDayEmail' query type */
-export interface IUpdateSentInactiveSixtyDayEmailQuery {
-  params: IUpdateSentInactiveSixtyDayEmailParams;
-  result: IUpdateSentInactiveSixtyDayEmailResult;
-}
+/** Query 'UpdateSentInactiveSixtyDayEmail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSentInactiveSixtyDayEmailParams = never;
 
 const updateSentInactiveSixtyDayEmailIR: any = {"usedParamSet":{"sentInactiveSixtyDayEmail":true,"userId":true},"params":[{"name":"sentInactiveSixtyDayEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":96}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":149}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_sixty_day_email = :sentInactiveSixtyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -218,22 +156,13 @@ const updateSentInactiveSixtyDayEmailIR: any = {"usedParamSet":{"sentInactiveSix
 export const updateSentInactiveSixtyDayEmail = new PreparedQuery<IUpdateSentInactiveSixtyDayEmailParams,IUpdateSentInactiveSixtyDayEmailResult>(updateSentInactiveSixtyDayEmailIR);
 
 
-/** 'UpdateSentInactiveNinetyDayEmail' parameters type */
-export interface IUpdateSentInactiveNinetyDayEmailParams {
-  sentInactiveNinetyDayEmail: boolean;
-  userId: string;
-}
+/** Query 'UpdateSentInactiveNinetyDayEmail' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IUpdateSentInactiveNinetyDayEmailResult = never;
 
-/** 'UpdateSentInactiveNinetyDayEmail' return type */
-export interface IUpdateSentInactiveNinetyDayEmailResult {
-  ok: string;
-}
-
-/** 'UpdateSentInactiveNinetyDayEmail' query type */
-export interface IUpdateSentInactiveNinetyDayEmailQuery {
-  params: IUpdateSentInactiveNinetyDayEmailParams;
-  result: IUpdateSentInactiveNinetyDayEmailResult;
-}
+/** Query 'UpdateSentInactiveNinetyDayEmail' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IUpdateSentInactiveNinetyDayEmailParams = never;
 
 const updateSentInactiveNinetyDayEmailIR: any = {"usedParamSet":{"sentInactiveNinetyDayEmail":true,"userId":true},"params":[{"name":"sentInactiveNinetyDayEmail","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":98}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":144,"b":151}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    sent_inactive_ninety_day_email = :sentInactiveNinetyDayEmail!,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
@@ -254,21 +183,13 @@ const updateSentInactiveNinetyDayEmailIR: any = {"usedParamSet":{"sentInactiveNi
 export const updateSentInactiveNinetyDayEmail = new PreparedQuery<IUpdateSentInactiveNinetyDayEmailParams,IUpdateSentInactiveNinetyDayEmailResult>(updateSentInactiveNinetyDayEmailIR);
 
 
-/** 'EnrollStudentToFallIncentiveProgram' parameters type */
-export interface IEnrollStudentToFallIncentiveProgramParams {
-  userId: string;
-}
+/** Query 'EnrollStudentToFallIncentiveProgram' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IEnrollStudentToFallIncentiveProgramResult = never;
 
-/** 'EnrollStudentToFallIncentiveProgram' return type */
-export interface IEnrollStudentToFallIncentiveProgramResult {
-  fallIncentiveEnrollmentAt: Date | null;
-}
-
-/** 'EnrollStudentToFallIncentiveProgram' query type */
-export interface IEnrollStudentToFallIncentiveProgramQuery {
-  params: IEnrollStudentToFallIncentiveProgramParams;
-  result: IEnrollStudentToFallIncentiveProgramResult;
-}
+/** Query 'EnrollStudentToFallIncentiveProgram' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IEnrollStudentToFallIncentiveProgramParams = never;
 
 const enrollStudentToFallIncentiveProgramIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    fall_incentive_enrollment_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    fall_incentive_enrollment_at"};
 
