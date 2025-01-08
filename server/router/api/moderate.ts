@@ -55,4 +55,25 @@ export function routeModeration(router: Router): void {
         resError(res, err)
       }
     })
+
+  router.route('/moderate/video-frame').post(async (req, res) => {
+    const frameToModerate = req.body.frameToModerate
+    const sessionId = req.body.sessionId
+
+    try {
+      // todo loop and send each frame to moderation
+      const moderationResult = await ModerationService.moderateVideoFrame(
+        frameToModerate,
+        sessionId
+      )
+      res.status(200).json(moderationResult)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  // router.route('/moderate/image/rekognition').post(async (req, res) => {
+  //   const imageToModerate = req.imageBytes
+  //   const sessionId = req.body.sessionId
+  // })
 }

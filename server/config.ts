@@ -294,6 +294,10 @@ const config: Static<typeof Config> = {
     projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012',
   },
   bannedServiceProviders: bannedServiceProviders,
+  siteEngine: {
+    apiUser: process.env.SITE_ENGINE_API_USER || 'bogus',
+    apiKey: process.env.SITE_ENGINE_API_KEY || 'bogus',
+  },
   awsS3: {
     accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY || 'ACCESSKEY123',
     secretAccessKey:

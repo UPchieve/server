@@ -93,6 +93,10 @@ export const Config = Record({
     }),
   }),
   logLevel: String,
+  siteEngine: Record({
+    apiUser: String,
+    apiKey: String,
+  }),
   mail: Record({
     senders: Record({
       noreply: String,

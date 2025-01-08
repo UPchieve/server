@@ -26,7 +26,17 @@ import config from '../config'
 import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
-
+import {
+  RekognitionClient,
+  DetectModerationLabelsCommand,
+  DetectTextCommand,
+} from '@aws-sdk/client-rekognition'
+import {
+  ComprehendClient,
+  DetectEntitiesCommand,
+} from '@aws-sdk/client-comprehend'
+import axios from 'axios'
+import { createReadStream, createWriteStream, read, unlinkSync } from 'fs'
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -363,6 +373,148 @@ export const moderateTranscript = async ({
 enum AnalyzeImageErrorCodeEnum {
   INVALID_REQUEST_BODY = 'InvalidRequestBody',
 }
+
+const awsRekognitionClient = new RekognitionClient([
+  {
+    region: config.awsS3.region,
+    credentials: {
+      accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY,
+      secretAccessKey: process.env.SUBWAY_SECRET_ACCESS_KEY,
+    },
+  },
+])
+
+const awsComprehendClient = new ComprehendClient([
+  {
+    region: config.awsS3.region,
+    credentials: {
+      accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY,
+      secretAccessKey: process.env.SUBWAY_SECRET_ACCESS_KEY,
+    },
+  },
+])
+async function awsAdapter(
+  frameToModerate: string
+): Promise<{
+  isClean: boolean
+  failureReasons?: ModerationFailureReasons
+}> {
+  const input = {
+    Image: {
+      Bytes: Buffer.from(frameToModerate, 'base64'),
+    },
+  }
+  const textCommand = new DetectTextCommand(input)
+  const command = new DetectModerationLabelsCommand(input)
+  const textResponse = await awsRekognitionClient.send(textCommand)
+  const text = textResponse.TextDetections?.filter(
+    ({ Type }) => Type === 'LINE'
+  )
+    .map(({ DetectedText }) => DetectedText)
+    .join(' ')
+  const comprehendCommand = new DetectEntitiesCommand({
+    Text: text,
+    LanguageCode: 'en',
+  })
+  const analysis = await awsComprehendClient.send(comprehendCommand)
+  const response = await awsRekognitionClient.send(command)
+  const failures = response.ModerationLabels?.filter(
+    ({ TaxonomyLevel }) => TaxonomyLevel === 1
+  )
+
+  return response.ModerationLabels?.length > 0
+    ? {
+        isClean: false,
+        failureReasons: { failures },
+        text: textResponse.TextDetections,
+        analysis,
+      }
+    : {
+        isClean: true,
+        text: textResponse.TextDetections,
+        analysis,
+      }
+}
+
+async function siteEngineAdapter(
+  frameToModerate: string
+): Promise<{
+  isClean: boolean
+  failureReasons?: ModerationFailureReasons
+}> {
+  const data = new FormData()
+  const buffer = Buffer.from(frameToModerate, 'base64')
+  const blob = new Blob([buffer], { type: 'image/png' })
+  data.append('media', blob, `temp${performance.now()}.png`)
+  data.append(
+    'models',
+    'nudity-2.1,weapon,alcohol,recreational_drug,medical,offensive,text-content,face-attributes,gore-2.0,text,qr-content,tobacco,violence,self-harm'
+  )
+  data.append('api_user', config.siteEngine.apiUser)
+  data.append('api_secret', config.siteEngine.apiKey)
+
+  const response = await axios.post(
+    'https://api.sightengine.com/1.0/check.json',
+    data
+  )
+  // on success: handle response
+  console.log(response.data)
+  return response.data
+}
+
+async function azureAdapter(
+  frameToModerate: string
+): Promise<{
+  isClean: boolean
+  failureReasons?: ModerationFailureReasons
+}> {
+  const reqBody = {
+    timeout: 3 * 1000,
+    body: {
+      image: {
+        content: frameToModerate,
+      },
+    },
+  }
+  const result = await azureContentSafetyClient
+    .path('/image:analyze')
+    .post(reqBody)
+  if (result.status !== '200') {
+    const errResponse = result as AnalyzeImageDefaultResponse
+    const logData = {
+      error: errResponse.body.error,
+    }
+    const logMsg = 'Failed to get image analysis from Azure Content Safety'
+    if (
+      errResponse.body.error.code ===
+      AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
+    ) {
+      logger.warn(logData, logMsg)
+      throw new InputError('Image is invalid')
+    }
+    logger.error(logData, logMsg)
+    throw new Error('Could not moderate image')
+  }
+
+  return getImageModerationDecision(result as AnalyzeImage200Response)
+}
+
+export const moderateVideoFrame = async (
+  frameToModerate: string,
+  sessionId: string
+): Promise<{
+  isClean: boolean
+  failureReasons?: ModerationFailureReasons
+}> => {
+  // const results = await azureAdapter(frameToModerate)
+  const results = await awsAdapter(frameToModerate)
+  // const results = await siteEngineAdapter(frameToModerate)
+  if (!results.isClean) {
+    // TODO email natalie, create infraction, etc...
+  }
+  return results
+}
+
 export const moderateImage = async (
   imageFile: Express.Multer.File,
   sessionId: string
