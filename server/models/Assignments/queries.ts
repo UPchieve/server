@@ -211,25 +211,25 @@ export async function getAssignmentsByStudentId(
       ])
     })
 
-    const assignmentsWithSessions = await Promise.all(
-      assignments.map(async assignment => {
-        const assignmentSessions = await getSessionsForStudentAssignment(
-          userId,
-          assignment.id
-        )
-        const filtered = assignmentSessions.filter(session => {
-          if (parseInt(session.timeTutored) === 0) return false
-          const timeTutoredInMins = parseInt(session.timeTutored) / 60000
+    const assignmentsWithSessions = []
+    for (const assignment of assignments) {
+      const assignmentSessions = await getSessionsForStudentAssignment(
+        userId,
+        assignment.id
+      )
 
-          return timeTutoredInMins >= (assignment.minDurationInMinutes ?? 0)
-        })
+      const filtered = assignmentSessions.filter(session => {
+        if (parseInt(session.timeTutored) === 0) return false
+        const timeTutoredInMins = parseInt(session.timeTutored) / 60000
 
-        return {
-          ...assignment,
-          completedSessions: filtered,
-        }
+        return timeTutoredInMins >= (assignment.minDurationInMinutes ?? 0)
       })
-    )
+
+      assignmentsWithSessions.push({
+        ...assignment,
+        completedSessions: filtered,
+      })
+    }
 
     return assignmentsWithSessions
   } catch (err) {
