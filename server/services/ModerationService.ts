@@ -34,6 +34,7 @@ import {
 import {
   ComprehendClient,
   DetectEntitiesCommand,
+  DetectPiiEntitiesCommand,
 } from '@aws-sdk/client-comprehend'
 import axios from 'axios'
 import { createReadStream, createWriteStream, read, unlinkSync } from 'fs'
@@ -407,6 +408,7 @@ async function awsAdapter(
   const textCommand = new DetectTextCommand(input)
   const command = new DetectModerationLabelsCommand(input)
   const textResponse = await awsRekognitionClient.send(textCommand)
+
   const text = textResponse.TextDetections?.filter(
     ({ Type }) => Type === 'LINE'
   )
@@ -416,8 +418,16 @@ async function awsAdapter(
     Text: text,
     LanguageCode: 'en',
   })
+
+  const piiCommand = new DetectPiiEntitiesCommand({
+    Text: text,
+    LanguageCode: 'en',
+  })
+
   const analysis = await awsComprehendClient.send(comprehendCommand)
   const response = await awsRekognitionClient.send(command)
+  const piiResponse = await awsComprehendClient.send(piiCommand)
+
   const failures = response.ModerationLabels?.filter(
     ({ TaxonomyLevel }) => TaxonomyLevel === 1
   )
@@ -428,11 +438,13 @@ async function awsAdapter(
         failureReasons: { failures },
         text: textResponse.TextDetections,
         analysis,
+        piiResponse,
       }
     : {
         isClean: true,
         text: textResponse.TextDetections,
         analysis,
+        piiResponse,
       }
 }
 
