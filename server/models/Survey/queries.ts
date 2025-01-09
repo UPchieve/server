@@ -106,7 +106,12 @@ export async function getSimpleSurveyDefinition(
       getClient()
     )
     const resultArr = result.map(v =>
-      makeSomeOptional(v, ['responseDisplayImage'])
+      makeSomeOptional(v, [
+        'responseId',
+        'responseDisplayImage',
+        'responseDisplayPriority',
+        'responseText',
+      ])
     )
     return formatSurveyDefinition(resultArr)
   } catch (err) {
@@ -148,10 +153,10 @@ export type SurveyDefinitionExceptReplacementColumns = {
   questionId: number
   questionText: string
   questionType: string
-  responseId: number
-  responseText: string
+  responseId?: number
+  responseText?: string
   responseDisplayImage?: string
-  responseDisplayPriority: number
+  responseDisplayPriority?: number
 }
 
 export type SurveyReplacementColumn = {
@@ -178,17 +183,20 @@ export function formatSurveyDefinition(
     }
 
     const sortedRows = rows.sort(
-      (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+      (a, b) =>
+        (a.responseDisplayPriority ?? 0) - (b.responseDisplayPriority ?? 0)
     )
 
     for (const row of sortedRows) {
-      const responseItem: SurveyResponseDefinition = {
-        responseId: row.responseId,
-        responseText: row.responseText,
-        responseDisplayPriority: row.responseDisplayPriority,
-        responseDisplayImage: row.responseDisplayImage,
+      if (row.responseId) {
+        const responseItem: SurveyResponseDefinition = {
+          responseId: row.responseId,
+          responseText: row.responseText,
+          responseDisplayPriority: row.responseDisplayPriority,
+          responseDisplayImage: row.responseDisplayImage,
+        }
+        responses.push(responseItem)
       }
-      responses.push(responseItem)
     }
     survey.push({
       ...questionData,
@@ -198,7 +206,7 @@ export function formatSurveyDefinition(
   return {
     surveyId: resultArr[0].surveyId,
     surveyTypeId: resultArr[0].surveyTypeId,
-    survey,
+    survey: survey.sort((a, b) => a.displayPriority - b.displayPriority),
   }
 }
 export type SimpleSurveyResponse = {
@@ -207,6 +215,7 @@ export type SimpleSurveyResponse = {
   score: number
   displayOrder: number
   displayImage?: string
+  responseId?: number
 }
 
 export async function getPresessionSurveyResponse(
@@ -218,7 +227,9 @@ export async function getPresessionSurveyResponse(
       getClient()
     )
     if (result.length)
-      return result.map(row => makeSomeOptional(row, ['displayImage']))
+      return result.map(row =>
+        makeSomeOptional(row, ['displayImage', 'responseId'])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -317,7 +328,9 @@ export async function getProgressReportSurveyResponse(
       getClient()
     )
     if (result.length)
-      return result.map(row => makeSomeOptional(row, ['displayImage']))
+      return result.map(row =>
+        makeSomeOptional(row, ['displayImage', 'responseId'])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
