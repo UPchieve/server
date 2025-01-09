@@ -129,3 +129,12 @@ RETURNING
     created_at,
     updated_at;
 
+
+/* @name updateTeacherSchool */
+UPDATE
+    teacher_profiles
+SET
+    school_id = :schoolId
+WHERE
+    user_id = :userId!;
+

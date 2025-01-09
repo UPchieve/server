@@ -1,13 +1,18 @@
+import _ from 'lodash'
 import { runInTransaction, TransactionClient } from '../db'
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import * as AssignmentsService from './AssignmentsService'
+import * as StudentService from './StudentService'
 import * as StudentRepo from '../models/Student'
 import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
+import * as UserRepo from '../models/User'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import { Uuid } from 'id128'
+import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
+import { StudentUserProfile } from '../models/Student'
 
 export async function createTeacherClass(
   userId: Ulid,
@@ -30,7 +35,7 @@ export async function createTeacherClass(
   })
 }
 
-export async function getTeacherClasses(userId: Ulid) {
+export async function getTeacherClasses(userId: Ulid, tc?: TransactionClient) {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClasses = await TeacherRepo.getTeacherClassesByUserId(
       userId,
@@ -38,7 +43,7 @@ export async function getTeacherClasses(userId: Ulid) {
     )
     const teacherClassesAndStudents = await Promise.all(
       teacherClasses.map(async teacherClass => {
-        const students = await getStudentsInTeacherClass(teacherClass.id)
+        const students = await getStudentsInTeacherClass(teacherClass.id, tc)
         return {
           ...teacherClass,
           students,
@@ -46,7 +51,7 @@ export async function getTeacherClasses(userId: Ulid) {
       })
     )
     return teacherClassesAndStudents
-  })
+  }, tc)
 }
 
 export async function getTeacherClassByClassCode(code: string) {
@@ -63,14 +68,17 @@ export async function getTeacherClassById(id: Ulid) {
   })
 }
 
-export async function getStudentsInTeacherClass(classId: Ulid) {
+export async function getStudentsInTeacherClass(
+  classId: Ulid,
+  tc?: TransactionClient
+) {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
       classId
     )
     return StudentRepo.getStudentProfilesByUserIds(tc, studentIds)
-  })
+  }, tc)
 }
 
 export async function getTeacherSchoolIdFromClassCode(
@@ -148,4 +156,61 @@ export async function deactivateTeacherClass(id: string) {
 
 export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
   return TeacherClassRepo.removeStudentFromClass(studentId, classId)
+}
+
+export async function adminUpdateTeacher(
+  teacherId: Ulid,
+  updateData: {
+    firstName?: string
+    lastName?: string
+    email: string
+    isDeactivated: boolean
+    isVerified: boolean
+    banType?: USER_BAN_TYPES
+    banReason?: USER_BAN_REASONS
+    schoolId?: string
+  }
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    await UserRepo.adminUpdateUser(teacherId, updateData, tc)
+
+    const teacherBeforeUpdate = await TeacherRepo.getTeacherById(teacherId, tc)
+    if (!teacherBeforeUpdate) {
+      throw new Error('User is not a teacher.')
+    }
+
+    if (!updateData.schoolId) {
+      // No new school to update to - a teacher must have a school.
+      return
+    }
+
+    if (teacherBeforeUpdate.schoolId !== updateData.schoolId) {
+      await TeacherRepo.updateTeacherSchool(teacherId, updateData.schoolId, tc)
+
+      const teacherClasses = await getTeacherClasses(teacherId, tc)
+      const allTeacherStudents = _.uniqBy(
+        teacherClasses
+          .map(teacherClass => {
+            return teacherClass.students
+          })
+          .reduce((a, b) => {
+            return a.concat(b)
+          }, []),
+        'id'
+      )
+
+      await Promise.all(
+        allTeacherStudents.map(async student => {
+          // This check for schoolId is necessary again to prevent ts error.
+          if (!updateData.schoolId) return
+          return StudentService.updateStudentSchool(
+            student.id,
+            updateData.schoolId,
+            student.schoolId,
+            tc
+          )
+        })
+      )
+    }
+  })
 }

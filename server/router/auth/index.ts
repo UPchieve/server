@@ -80,7 +80,7 @@ export function routes(app: Express) {
     }
 
     ;(req.session as SessionWithSsoData).sso = {
-      studentData: !isLogin
+      userData: !isLogin
         ? {
             ...req.query,
             ip: req.ip,
@@ -100,14 +100,14 @@ export function routes(app: Express) {
       provider = req.headers.referer?.includes('clever') ? 'clever' : '',
       isLogin = true,
       redirect = '',
-      studentData = {},
+      userData = {},
     } = (req.session as SessionWithSsoData).sso ?? {}
     if (!provider || !isSupportedSsoProvider(provider)) {
       res.redirect(
         AuthRedirect.failureRedirect(
           isLogin,
           provider,
-          studentData,
+          userData,
           `Unknown provider: ${provider}`
         )
       )
@@ -115,7 +115,7 @@ export function routes(app: Express) {
     }
     const strategy = provider
     passport.authenticate(strategy, async function(_, user, data) {
-      if (data.profileId && data.issuer) {
+      if (data?.profileId && data?.issuer) {
         const validator = getUuid()
         ;(req.session as SessionWithSsoData).sso = {
           fedCredData: {
@@ -123,8 +123,8 @@ export function routes(app: Express) {
             issuer: data.issuer,
             validator,
           },
-          studentData: {
-            ...studentData,
+          userData: {
+            ...userData,
             firstName: data.firstName,
             lastName: data.lastName,
           },
@@ -143,8 +143,8 @@ export function routes(app: Express) {
           AuthRedirect.failureRedirect(
             isLogin,
             provider,
-            studentData,
-            data.errorMessage
+            userData,
+            data?.errorMessage
           )
         )
       }
@@ -184,7 +184,7 @@ export function routes(app: Express) {
       const data = registerStudentValidator({
         ...req.body,
         ...((req.session as SessionWithSsoData).sso?.fedCredData ?? {}),
-        ...((req.session as SessionWithSsoData).sso?.studentData ?? {}),
+        ...((req.session as SessionWithSsoData).sso?.userData ?? {}),
         ip: req.ip,
       })
       const student = await UserCreationService.registerStudent(data)
