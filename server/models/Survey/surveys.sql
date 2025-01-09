@@ -62,6 +62,9 @@ WITH most_recent_survey AS (
     SELECT
         surveys.id,
         surveys_context.subject_id,
+        surveys_context.survey_type_id,
+        subjects.display_name AS subject_display_name,
+        surveys.reward_amount,
         surveys.created_at
     FROM
         surveys
@@ -80,7 +83,7 @@ LIMIT 1
 )
 SELECT
     sq.id::int AS question_id,
-    FORMAT(sq.question_text, subjects.display_name) AS question_text,
+    FORMAT(sq.question_text, most_recent_survey.subject_display_name) AS question_text,
     ssq.display_priority,
     qt.name AS question_type,
     sub.response_id::int,
@@ -88,18 +91,13 @@ SELECT
     sub.response_display_priority,
     sub.response_display_image,
     most_recent_survey.id::int AS survey_id,
-    survey_types.id AS survey_type_id,
-    surveys.reward_amount
+    most_recent_survey.survey_type_id,
+    most_recent_survey.reward_amount
 FROM
     most_recent_survey
-    JOIN surveys_context ON surveys_context.survey_id = most_recent_survey.id
-    JOIN surveys ON most_recent_survey.id = surveys.id
-    JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
-    LEFT JOIN subjects ON surveys_context.subject_id = subjects.id
-    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
+    JOIN surveys_survey_questions ssq ON ssq.survey_id = most_recent_survey.id
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
     JOIN question_types qt ON qt.id = sq.question_type_id
-    JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
     LEFT JOIN LATERAL (
         SELECT
             id AS response_id,
