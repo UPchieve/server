@@ -2398,7 +2398,8 @@ CREATE TABLE upchieve.user_product_flags (
     in_gates_study boolean DEFAULT false NOT NULL,
     fall_incentive_program boolean DEFAULT false NOT NULL,
     paid_tutors_pilot_group public.paid_tutors_pilot_groups,
-    fall_incentive_enrollment_at timestamp with time zone
+    fall_incentive_enrollment_at timestamp with time zone,
+    impact_study_enrollment_at timestamp with time zone
 );
 
 
@@ -6239,4 +6240,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241120182804'),
     ('20241120184235'),
     ('20241120210732'),
-    ('20241216172437');
+    ('20241216172437'),
+    ('20241216172507');
