@@ -30,24 +30,23 @@ WHERE
     assignments.id = :assignmentId!;
 
 
-/* @name createStudentAssignment */
-INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)
-    VALUES (:userId!, :assignmentId!, NOW(), NOW())
-RETURNING
-    user_id, assignment_id, created_at, updated_at;
-
-
 /*
- @name createStudentAssignments
- @param studentAssignments -> ((userId!, assignmentId!)...)
+ @name createStudentsAssignmentsForAll
  */
 INSERT INTO students_assignments (user_id, assignment_id)
-    VALUES
-        :studentAssignments!
-    ON CONFLICT
-        DO NOTHING
-    RETURNING
-        user_id, assignment_id, created_at, updated_at;
+SELECT
+    u.user_id,
+    a.assignment_id
+FROM
+    UNNEST(:userIds!::uuid[]) AS u (user_id)
+    CROSS JOIN UNNEST(:assignmentIds!::uuid[]) AS a (assignment_id)
+ON CONFLICT
+    DO NOTHING
+RETURNING
+    user_id,
+    assignment_id,
+    created_at,
+    updated_at;
 
 
 /* @name updateSubmittedAtOfStudentAssignment */

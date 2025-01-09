@@ -99,7 +99,7 @@ export async function getTeacherSchoolIdFromClassCode(
   }, tc)
 }
 
-export async function addStudentToTeacherClass(
+export async function addStudentToTeacherClassByClassCode(
   userId: Ulid,
   classCode: string,
   tc?: TransactionClient
@@ -111,17 +111,29 @@ export async function addStudentToTeacherClass(
     )
     if (!teacherClass) throw new InputError('Invalid class code.')
 
+    await addStudentsToTeacherClassById([userId], teacherClass.id, tc)
+    return teacherClass
+  }, tc)
+}
+
+export async function addStudentsToTeacherClassById(
+  studentIds: Ulid[],
+  classId: Ulid,
+  tc: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    // We automatically add students to all the class assignments
+    // (i.e. the assignments that are assigned to the entire class) when
+    // they join a class.
     // Order is important here: when assigning a student to all the class
-    // assignments (i.e. the assignments that are assigned to the entire class),
-    // we don't want to include the newly added student in that count.
-    await AssignmentsService.addStudentToClassAssignments(
-      userId,
-      teacherClass.id,
+    // assignments, we don't want to include the newly added students in
+    // that count.
+    await AssignmentsService.addStudentsToClassAssignments(
+      studentIds,
+      classId,
       tc
     )
-    await StudentRepo.addStudentsToTeacherClass([userId], teacherClass.id, tc)
-
-    return teacherClass
+    return StudentRepo.addStudentsToTeacherClass(studentIds, classId, tc)
   }, tc)
 }
 

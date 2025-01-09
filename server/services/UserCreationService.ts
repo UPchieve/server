@@ -209,7 +209,11 @@ export async function registerStudent(data: RegisterStudentPayload) {
     await upsertStudent(studentData, tc)
 
     if (data.classCode) {
-      await TeacherService.addStudentToTeacherClass(user.id, data.classCode, tc)
+      await TeacherService.addStudentToTeacherClassByClassCode(
+        user.id,
+        data.classCode,
+        tc
+      )
     }
 
     if (useParentGuardianEmail(data) && passwordResetToken) {

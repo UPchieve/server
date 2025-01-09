@@ -303,7 +303,7 @@ describe('addStudentToTeacherClass', () => {
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
 
-    const result = await TeacherService.addStudentToTeacherClass(
+    const result = await TeacherService.addStudentToTeacherClassByClassCode(
       teacherClass.userId,
       teacherClass.code
     )
@@ -331,15 +331,15 @@ describe('addStudentToTeacherClass', () => {
 
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
 
-    await TeacherService.addStudentToTeacherClass(
+    await TeacherService.addStudentToTeacherClassByClassCode(
       'studentId',
       teacherClass.code
     )
 
     expect(
-      mockedAssignmentsService.addStudentToClassAssignments
+      mockedAssignmentsService.addStudentsToClassAssignments
     ).toHaveBeenCalledWith(
-      'studentId',
+      ['studentId'],
       teacherClass.id,
       expect.toBeTransactionClient()
     )
@@ -348,7 +348,10 @@ describe('addStudentToTeacherClass', () => {
   test('throws error if no class with the class code', async () => {
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(undefined)
     expect(async () => {
-      await TeacherService.addStudentToTeacherClass('teacher-id', 'class-code')
+      await TeacherService.addStudentToTeacherClassByClassCode(
+        'teacher-id',
+        'class-code'
+      )
     }).rejects.toThrow()
   })
 })

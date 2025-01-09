@@ -150,77 +150,48 @@ const getAssignmentByIdIR: any = {"usedParamSet":{"assignmentId":true},"params":
 export const getAssignmentById = new PreparedQuery<IGetAssignmentByIdParams,IGetAssignmentByIdResult>(getAssignmentByIdIR);
 
 
-/** 'CreateStudentAssignment' parameters type */
-export interface ICreateStudentAssignmentParams {
-  assignmentId: string;
-  userId: string;
+/** 'CreateStudentsAssignmentsForAll' parameters type */
+export interface ICreateStudentsAssignmentsForAllParams {
+  assignmentIds: stringArray;
+  userIds: stringArray;
 }
 
-/** 'CreateStudentAssignment' return type */
-export interface ICreateStudentAssignmentResult {
-  assignmentId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'CreateStudentAssignment' query type */
-export interface ICreateStudentAssignmentQuery {
-  params: ICreateStudentAssignmentParams;
-  result: ICreateStudentAssignmentResult;
-}
-
-const createStudentAssignmentIR: any = {"usedParamSet":{"userId":true,"assignmentId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":101}]},{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":104,"b":117}]}],"statement":"INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)\n    VALUES (:userId!, :assignmentId!, NOW(), NOW())\nRETURNING\n    user_id, assignment_id, created_at, updated_at"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO students_assignments (user_id, assignment_id, created_at, updated_at)
- *     VALUES (:userId!, :assignmentId!, NOW(), NOW())
- * RETURNING
- *     user_id, assignment_id, created_at, updated_at
- * ```
- */
-export const createStudentAssignment = new PreparedQuery<ICreateStudentAssignmentParams,ICreateStudentAssignmentResult>(createStudentAssignmentIR);
-
-
-/** 'CreateStudentAssignments' parameters type */
-export interface ICreateStudentAssignmentsParams {
-  studentAssignments: readonly ({
-    userId: string,
-    assignmentId: string
-  })[];
-}
-
-/** 'CreateStudentAssignments' return type */
-export interface ICreateStudentAssignmentsResult {
+/** 'CreateStudentsAssignmentsForAll' return type */
+export interface ICreateStudentsAssignmentsForAllResult {
   assignmentId: string;
   createdAt: Date;
   updatedAt: Date;
   userId: string;
 }
 
-/** 'CreateStudentAssignments' query type */
-export interface ICreateStudentAssignmentsQuery {
-  params: ICreateStudentAssignmentsParams;
-  result: ICreateStudentAssignmentsResult;
+/** 'CreateStudentsAssignmentsForAll' query type */
+export interface ICreateStudentsAssignmentsForAllQuery {
+  params: ICreateStudentsAssignmentsForAllParams;
+  result: ICreateStudentsAssignmentsForAllResult;
 }
 
-const createStudentAssignmentsIR: any = {"usedParamSet":{"studentAssignments":true},"params":[{"name":"studentAssignments","required":true,"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":true},{"name":"assignmentId","required":true}]},"locs":[{"a":77,"b":96}]}],"statement":"INSERT INTO students_assignments (user_id, assignment_id)\n    VALUES\n        :studentAssignments!\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        user_id, assignment_id, created_at, updated_at"};
+const createStudentsAssignmentsForAllIR: any = {"usedParamSet":{"userIds":true,"assignmentIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":116,"b":124}]},{"name":"assignmentIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":186}]}],"statement":"INSERT INTO students_assignments (user_id, assignment_id)\nSELECT\n    u.user_id,\n    a.assignment_id\nFROM\n    UNNEST(:userIds!::uuid[]) AS u (user_id)\n    CROSS JOIN UNNEST(:assignmentIds!::uuid[]) AS a (assignment_id)\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id,\n    assignment_id,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO students_assignments (user_id, assignment_id)
- *     VALUES
- *         :studentAssignments!
- *     ON CONFLICT
- *         DO NOTHING
- *     RETURNING
- *         user_id, assignment_id, created_at, updated_at
+ * SELECT
+ *     u.user_id,
+ *     a.assignment_id
+ * FROM
+ *     UNNEST(:userIds!::uuid[]) AS u (user_id)
+ *     CROSS JOIN UNNEST(:assignmentIds!::uuid[]) AS a (assignment_id)
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     user_id,
+ *     assignment_id,
+ *     created_at,
+ *     updated_at
  * ```
  */
-export const createStudentAssignments = new PreparedQuery<ICreateStudentAssignmentsParams,ICreateStudentAssignmentsResult>(createStudentAssignmentsIR);
+export const createStudentsAssignmentsForAll = new PreparedQuery<ICreateStudentsAssignmentsForAllParams,ICreateStudentsAssignmentsForAllResult>(createStudentsAssignmentsForAllIR);
 
 
 /** 'UpdateSubmittedAtOfStudentAssignment' parameters type */
