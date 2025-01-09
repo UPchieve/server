@@ -41,7 +41,7 @@ export type SaveUserSurvey = Pick<
 export type UserSurveySubmission = {
   userSurveyId: Ulid
   questionId: number
-  responseChoiceId: number
+  responseChoiceId?: number
   openResponse: string
   createdAt: Date
   updatedAt: Date
@@ -53,10 +53,10 @@ export type SaveUserSurveySubmission = Pick<
 >
 
 export type SurveyResponseDefinition = {
-  responseId: number
-  responseText: string
-  responseDisplayPriority: number
-  responseDisplayImage: string | undefined
+  responseId?: number
+  responseText?: string
+  responseDisplayPriority?: number
+  responseDisplayImage?: string
 }
 
 export type SurveyQuestionDefinition = {

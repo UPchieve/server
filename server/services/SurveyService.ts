@@ -28,7 +28,7 @@ import { emitter } from './EventsService'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
-  responseChoiceId: asNumber,
+  responseChoiceId: asOptional(asNumber),
   openResponse: asString,
 })
 
@@ -176,7 +176,8 @@ export async function getPostsessionSurveyDefinition(
       displayPriority: question.displayPriority,
       questionType: question.questionType,
       responses: (question.responses as SurveyResponseDefinition[]).sort(
-        (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+        (a, b) =>
+          (a.responseDisplayPriority ?? 0) - (b.responseDisplayPriority ?? 0)
       ),
     })
   }

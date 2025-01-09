@@ -31,7 +31,7 @@ INSERT INTO users_surveys_submissions (user_survey_id, survey_question_id, surve
 SELECT
     :userSurveyId!,
     :questionId!,
-    :responseChoiceId!,
+    :responseChoiceId,
     :openResponse,
     NOW(),
     NOW()
@@ -78,7 +78,7 @@ FROM
     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
     JOIN question_types qt ON qt.id = sq.question_type_id
     JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
-    JOIN LATERAL (
+    LEFT JOIN LATERAL (
         SELECT
             id AS response_id,
             choice_text AS response_text,
@@ -149,7 +149,8 @@ SELECT
         END) AS response,
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
-    src.display_image AS display_image
+    src.display_image AS display_image,
+    src.id AS response_id
 FROM
     users_surveys AS us
     JOIN sessions AS s ON s.student_id = us.user_id
@@ -396,7 +397,8 @@ SELECT
         END) AS response,
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
-    src.display_image AS display_image
+    src.display_image AS display_image,
+    src.id AS response_id
 FROM
     upchieve.users_surveys us
     INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id
