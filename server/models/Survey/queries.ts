@@ -103,6 +103,7 @@ export async function getSimpleSurveyDefinition(
         'responseDisplayImage',
         'responseDisplayPriority',
         'responseText',
+        'rewardAmount',
       ])
     )
     return formatSurveyDefinition(resultArr)
