@@ -191,6 +191,8 @@ connect:
   image: postgres
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
 lint:
   stage: test
