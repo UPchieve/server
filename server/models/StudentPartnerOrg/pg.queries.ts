@@ -427,7 +427,7 @@ export interface ICreateStudentPartnerOrgInstanceQuery {
   result: ICreateStudentPartnerOrgInstanceResult;
 }
 
-const createStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":236,"b":245}]}],"statement":"INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.school_id = :schoolId!"};
+const createStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":227,"b":236}]}],"statement":"INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    NOW(),\n    NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.school_id = :schoolId!"};
 
 /**
  * Query generated from SQL:
@@ -436,7 +436,7 @@ const createStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"schoolId":true}
  * SELECT
  *     generate_ulid (),
  *     spo.id,
- *     spo.created_at,
+ *     NOW(),
  *     NOW()
  * FROM
  *     student_partner_orgs spo

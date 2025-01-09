@@ -178,7 +178,7 @@ INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id,
 SELECT
     generate_ulid (),
     spo.id,
-    spo.created_at,
+    NOW(),
     NOW()
 FROM
     student_partner_orgs spo
