@@ -220,12 +220,12 @@ export async function migrateExistingPartnerSchoolRelationships(
 }
 
 export async function createSchoolStudentPartnerOrg(
-  schoolName: string,
+  schoolId: string,
   client?: PoolClient
 ): Promise<void> {
   try {
     await pgQueries.createSchoolStudentPartnerOrg.run(
-      { schoolName },
+      { schoolId },
       client || getClient()
     )
 
@@ -241,18 +241,17 @@ export async function createSchoolStudentPartnerOrg(
 }
 
 export async function deactivateStudentPartnerOrg(
-  spoName: string,
+  schoolId: string,
   client?: PoolClient
 ): Promise<void> {
   try {
     await pgQueries.deactivateStudentPartnerOrg.run(
-      // @TODO This should take a SPO ID instead of a name and deactivate.
-      { spoName },
+      { schoolId },
       client || getClient()
     )
   } catch (err) {
     throw new RepoReadError(
-      `Failed to deactivate student partner org ${spoName}: ${err}`
+      `Failed to deactivate student partner orgs with schoolId ${schoolId}: ${err}`
     )
   }
 }

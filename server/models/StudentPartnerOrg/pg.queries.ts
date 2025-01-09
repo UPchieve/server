@@ -493,7 +493,7 @@ export const createSchoolStudentPartnerOrg = new PreparedQuery<ICreateSchoolStud
 
 /** 'DeactivateStudentPartnerOrg' parameters type */
 export interface IDeactivateStudentPartnerOrgParams {
-  spoName: string;
+  schoolId: string;
 }
 
 /** 'DeactivateStudentPartnerOrg' return type */
@@ -507,11 +507,18 @@ export interface IDeactivateStudentPartnerOrgQuery {
   result: IDeactivateStudentPartnerOrgResult;
 }
 
-const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"spoName":true},"params":[{"name":"spoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":241,"b":249}]}],"statement":"UPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id\n    AND spo.name = :spoName!\nRETURNING\n    student_partner_orgs_upchieve_instances.id AS ok"};
+const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":137}]}],"statement":"WITH school_student_partner_orgs AS (\n    SELECT\n        id\n    FROM\n        student_partner_orgs\n    WHERE\n        school_id = :schoolId!)\nUPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.id IN (\n        SELECT\n            id\n        FROM\n            school_student_partner_orgs)\n    AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id\nRETURNING\n    student_partner_orgs_upchieve_instances.id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH school_student_partner_orgs AS (
+ *     SELECT
+ *         id
+ *     FROM
+ *         student_partner_orgs
+ *     WHERE
+ *         school_id = :schoolId!)
  * UPDATE
  *     student_partner_orgs_upchieve_instances
  * SET
@@ -520,8 +527,12 @@ const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"spoName":true},"par
  * FROM
  *     student_partner_orgs spo
  * WHERE
- *     spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
- *     AND spo.name = :spoName!
+ *     spo.id IN (
+ *         SELECT
+ *             id
+ *         FROM
+ *             school_student_partner_orgs)
+ *     AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
  * RETURNING
  *     student_partner_orgs_upchieve_instances.id AS ok
  * ```
