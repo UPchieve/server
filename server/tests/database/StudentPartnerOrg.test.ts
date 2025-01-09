@@ -147,10 +147,6 @@ test('deactivateUserStudentPartnerOrgInstance adds deactivated_on if exists', as
   expect(afterInstance.deactivated_on).toBeTruthy()
 })
 
-test.todo(
-  'deactivateStudentPartnerOrg deactivates all SPOs with the given school ID'
-)
-
 async function createUser(
   userData: Partial<CreateUserPayload> = {}
 ): Promise<{ id: string }> {

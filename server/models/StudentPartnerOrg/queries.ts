@@ -222,21 +222,26 @@ export async function migrateExistingPartnerSchoolRelationships(
 
 export async function createSchoolStudentPartnerOrg(
   schoolId: string,
+  createNewSpo: boolean,
   client?: PoolClient
 ): Promise<void> {
   try {
-    await pgQueries.createSchoolStudentPartnerOrg.run(
-      { schoolId },
-      client || getClient()
-    )
+    if (createNewSpo) {
+      await pgQueries.createSchoolStudentPartnerOrg.run(
+        { schoolId },
+        client || getClient()
+      )
+    }
 
     await pgQueries.createStudentPartnerOrgInstance.run(
       { schoolId },
       client || getClient()
     )
   } catch (err) {
-    throw new RepoReadError(
-      `Failed to create school partner for schoolId ${schoolId} and partner instance: ${err}`
+    throw new RepoCreateError(
+      `Failed to ${
+        createNewSpo ? 'create' : 'reactivate'
+      } school partner for schoolId ${schoolId} and partner instance: ${err}`
     )
   }
 }

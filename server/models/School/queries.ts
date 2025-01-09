@@ -19,6 +19,7 @@ import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
   deactivateStudentPartnerOrg,
+  StudentPartnerOrg,
 } from '../StudentPartnerOrg'
 import {
   FormattedSchoolNcesMetadataRecord,
@@ -30,12 +31,17 @@ import logger from '../../logger'
 import { AdminUpdate } from '../../services/SchoolService'
 import { isSchoolApproved } from '../../services/EligibilityService'
 import { IGetStudentPartnerOrgForRegistrationByKeyParams } from '../StudentPartnerOrg/pg.queries'
+import { PoolClient } from 'pg'
 
 export async function getSchoolById(
-  schoolId: Ulid
+  schoolId: Ulid,
+  client?: PoolClient
 ): Promise<School | undefined> {
   try {
-    const result = await pgQueries.getSchoolById.run({ schoolId }, getClient())
+    const result = await pgQueries.getSchoolById.run(
+      { schoolId },
+      client ?? getClient()
+    )
 
     if (result.length) {
       return makeSomeRequired(result[0], [
@@ -114,21 +120,30 @@ export async function updateApproval(
 
 export async function updateIsPartner(
   schoolId: Ulid,
-  isPartner: boolean
+  isPartner: boolean,
+  existingStudentPartnerOrgId: string | undefined
 ): Promise<void> {
   const transactionClient = await getClient().connect()
   try {
     await transactionClient.query('BEGIN')
+    // Set schools.partner.
+    // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
     const result = await pgQueries.updateIsPartner.run(
       { schoolId, isPartner },
-      getClient()
+      transactionClient
     )
 
-    const school = await getSchoolById(schoolId)
+    const school = await getSchoolById(schoolId, transactionClient)
     if (school) {
-      if (isPartner)
-        await createSchoolStudentPartnerOrg(school.id, transactionClient)
-      else await deactivateStudentPartnerOrg(school.id, transactionClient)
+      if (isPartner) {
+        await createSchoolStudentPartnerOrg(
+          school.id,
+          !existingStudentPartnerOrgId,
+          transactionClient
+        )
+      } else {
+        await deactivateStudentPartnerOrg(school.id, transactionClient)
+      }
     }
 
     await transactionClient.query('COMMIT') // @TODO switch to runInTransaction style.
