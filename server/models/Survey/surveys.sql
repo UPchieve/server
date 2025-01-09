@@ -109,8 +109,6 @@ FROM
             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
         WHERE
             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
-WHERE (most_recent_survey.subject_id IS NULL
-    OR most_recent_survey.subject_id = surveys_context.subject_id)
 ORDER BY
     ssq.display_priority ASC;
 
