@@ -66,7 +66,7 @@ class ContainerConfigFactory {
   static async getContainerConfig() {
     const isCI = Boolean(process.env.CI)
     const path = isCI ? '/builds/upchieve.subway' : '.'
-    const host = isCI ? 'postgres' : 'localhost'
+    const host = isCI ? 'docker' : 'localhost'
     const port = isCI ? await this.genPort(host) : 5432
 
     return { path, host, port }
