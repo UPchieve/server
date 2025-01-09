@@ -19,14 +19,6 @@ variables:
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
 
-connect:
-  POSTGRES_DB: custom_db
-  POSTGRES_USER: custom_user
-  POSTGRES_HOST_AUTH_METHOD: trust
-  image: postgres
-  script:
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-
 .docker_service:
   services:
     - docker:20.10.6-dind
@@ -190,6 +182,15 @@ test_backend:
       when: never
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+connect:
+  variables:
+    POSTGRES_DB: custom_db
+    POSTGRES_USER: custom_user
+    POSTGRES_HOST_AUTH_METHOD: trust
+  image: postgres
+  script:
+    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
 
 lint:
   stage: test
