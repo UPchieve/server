@@ -401,9 +401,7 @@ const config: Static<typeof Config> = {
 
   tremendousDomain:
     process.env.SUBWAY_TREMENDOUS_DOMAIN || 'testflight.tremendous.com',
-  tremendousApiKey:
-    process.env.SUBWAY_TREMENDOUS_API_KEY ||
-    'bogus',
+  tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
     process.env.SUBWAY_TREMENDOUS_REWARD_DOMAIN ||
     'reward.testflight.tremendous',
