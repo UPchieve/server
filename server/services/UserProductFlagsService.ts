@@ -66,7 +66,9 @@ export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
     throw new Error('Your survey submission was not saved')
 
   const isInImpactStudy = await isUserInImpactStudy(userId)
-  if (!isInImpactStudy) await enrollStudentToImpactStudy(userId)
+  let impactStudyEnrollmentAt
+  if (!isInImpactStudy)
+    impactStudyEnrollmentAt = await enrollStudentToImpactStudy(userId)
 
   if (survey.rewardAmount) {
     const rewards = await getUserRewardBySurveyId(userId, survey.surveyId)
@@ -85,4 +87,6 @@ export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
     }
     await createGiftCardRewardLink(rewardPayload)
   }
+
+  return impactStudyEnrollmentAt
 }
