@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
+-- Dumped by pg_dump version 14.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3022,27 +3022,27 @@ COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updat
 -- Data for Name: surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.surveys (id, name, created_at, updated_at, role_id) FROM stdin;
-1	STEM Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-2	Humanities Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-3	Reading Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-4	College Planning Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-5	College Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-6	College Applications Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-7	SAT Prep Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-8	Student Post-Session Survey	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.141444+00	1
-12	U.S. History Pre-Session Survey	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.141444+00	1
-9	General Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2
-10	SAT Prep Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2
-11	College Counseling Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2
-13	College Prep Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-14	College List Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-15	College Apps Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-16	Application Essays Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-17	Financial Aid Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-18	Essay Planning Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1
-19	Essay Feedback Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1
-20	Progress Report Rating Survey	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	1
+COPY upchieve.surveys (id, name, created_at, updated_at, role_id, reward_amount) FROM stdin;
+1	STEM Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+2	Humanities Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+3	Reading Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+4	College Planning Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+5	College Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+6	College Applications Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+7	SAT Prep Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+8	Student Post-Session Survey	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.141444+00	1	\N
+12	U.S. History Pre-Session Survey	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.141444+00	1	\N
+9	General Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+10	SAT Prep Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+11	College Counseling Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+13	College Prep Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+14	College List Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+15	College Apps Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+16	Application Essays Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+17	Financial Aid Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+18	Essay Planning Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
+19	Essay Feedback Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
+20	Progress Report Rating Survey	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	1	\N
 \.
 
 

@@ -2092,7 +2092,8 @@ CREATE TABLE upchieve.surveys (
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    role_id integer
+    role_id integer,
+    reward_amount integer
 );
 
 
@@ -6237,4 +6238,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241120182555'),
     ('20241120182804'),
     ('20241120184235'),
-    ('20241120210732');
+    ('20241120210732'),
+    ('20241216172437');
