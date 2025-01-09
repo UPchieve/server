@@ -1,4 +1,4 @@
-import { getPartnerSchools, updateIsPartner } from '../../models/School'
+import { getPartnerSchools } from '../../models/School'
 import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'
 import { insertSingleRow } from '../db-utils'
@@ -7,6 +7,7 @@ import {
   buildStudentPartnerOrg,
   buildStudentPartnerOrgUpchieveInstance,
 } from '../mocks/generate'
+import * as SchoolService from '../../services/SchoolService'
 
 const client = getClient()
 
@@ -92,7 +93,6 @@ describe('getPartnerSchools', () => {
     }
 
     test('Deactivating a school partner', async () => {
-      const existingStudentPartnerOrgId = 'some-spo-id'
       const schoolId = await createSchoolForTest(true)
       buildSchool({
         isPartner: true,
@@ -112,7 +112,7 @@ describe('getPartnerSchools', () => {
         }),
         client
       )
-      await updateIsPartner(schoolId, false, existingStudentPartnerOrgId)
+      await SchoolService.updateIsPartner(schoolId, false)
 
       const schoolResult = await client.query(
         'SELECT * FROM schools WHERE id = $1',
@@ -135,7 +135,7 @@ describe('getPartnerSchools', () => {
         isPartner: false,
         id: schoolId,
       })
-      await updateIsPartner(schoolId, true, undefined)
+      await SchoolService.updateIsPartner(schoolId, true)
 
       const schoolResult = await client.query(
         'SELECT * FROM schools WHERE id = $1',
@@ -160,7 +160,6 @@ describe('getPartnerSchools', () => {
 
     test('Reactivating a school partner', async () => {
       // Initial state: The school is a deactivated partner school
-      const existingStudentPartnerOrgId = 'some-spo-id'
       const schoolId = await createSchoolForTest(true)
       buildSchool({
         isPartner: false,
@@ -181,7 +180,7 @@ describe('getPartnerSchools', () => {
         }),
         client
       )
-      await updateIsPartner(schoolId, true, existingStudentPartnerOrgId)
+      await SchoolService.updateIsPartner(schoolId, true)
 
       const schoolResult = await client.query(
         'SELECT * FROM schools WHERE id = $1',

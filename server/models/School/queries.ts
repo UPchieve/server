@@ -18,6 +18,7 @@ import { getClient, TransactionClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
+  createStudentPartnerOrgUpchieveInstance,
   deactivateStudentPartnerOrg,
   StudentPartnerOrg,
 } from '../StudentPartnerOrg'
@@ -123,6 +124,11 @@ export async function updateIsPartner(
   isPartner: boolean,
   existingStudentPartnerOrgId: string | undefined
 ): Promise<void> {
+  if (!existingStudentPartnerOrgId && !isPartner)
+    throw new Error(
+      `Cannot deactivate student partner org for school ${schoolId}: SPO does not exist`
+    )
+
   const transactionClient = await getClient().connect()
   try {
     await transactionClient.query('BEGIN')
@@ -134,19 +140,24 @@ export async function updateIsPartner(
     )
 
     const school = await getSchoolById(schoolId, transactionClient)
-    if (school) {
-      if (isPartner) {
-        await createSchoolStudentPartnerOrg(
-          school.id,
-          !existingStudentPartnerOrgId,
-          transactionClient
-        )
-      } else {
-        await deactivateStudentPartnerOrg(school.id, transactionClient)
+    if (!school)
+      throw new Error(
+        `Cannot update partner status: School with id ${schoolId} does not exist`
+      )
+    if (isPartner) {
+      if (!existingStudentPartnerOrgId) {
+        await createSchoolStudentPartnerOrg(school.id, transactionClient)
       }
+      await createStudentPartnerOrgUpchieveInstance(schoolId, transactionClient)
+    } else {
+      await deactivateStudentPartnerOrg(
+        existingStudentPartnerOrgId!,
+        transactionClient
+      )
     }
 
-    await transactionClient.query('COMMIT') // @TODO switch to runInTransaction style.
+    // @TODO switch to runInTransaction style and move this logic into the service layer.
+    await transactionClient.query('COMMIT')
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     await transactionClient.query('ROLLBACK')

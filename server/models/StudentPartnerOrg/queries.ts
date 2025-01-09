@@ -10,6 +10,7 @@ import {
   StudentPartnerOrgForRegistration,
 } from './types'
 import { School } from '../School'
+import logger from '../../logger'
 
 export async function getStudentPartnerOrgForRegistrationByKey(
   key: string
@@ -60,6 +61,11 @@ export async function getStudentPartnerOrgBySchoolId(
       tc
     )
     if (result.length) {
+      if (result.length > 1)
+        logger.warn(
+          { schoolId },
+          'Found multiple student partner orgs for this school ID. Returning the first match'
+        )
       return makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
     }
   } catch (err) {
@@ -222,42 +228,48 @@ export async function migrateExistingPartnerSchoolRelationships(
 
 export async function createSchoolStudentPartnerOrg(
   schoolId: string,
-  createNewSpo: boolean,
   client?: PoolClient
 ): Promise<void> {
   try {
-    if (createNewSpo) {
-      await pgQueries.createSchoolStudentPartnerOrg.run(
-        { schoolId },
-        client || getClient()
-      )
-    }
-
-    await pgQueries.createStudentPartnerOrgInstance.run(
+    await pgQueries.createSchoolStudentPartnerOrg.run(
       { schoolId },
-      client || getClient()
+      client ?? getClient()
     )
   } catch (err) {
     throw new RepoCreateError(
-      `Failed to ${
-        createNewSpo ? 'create' : 'reactivate'
-      } school partner for schoolId ${schoolId} and partner instance: ${err}`
+      `Failed to create school partner for schoolId ${schoolId} and partner instance: ${err}`
+    )
+  }
+}
+
+export async function createStudentPartnerOrgUpchieveInstance(
+  schoolId: string,
+  client?: PoolClient
+): Promise<void> {
+  try {
+    await pgQueries.createStudentPartnerOrgInstance.run(
+      { schoolId },
+      client ?? getClient()
+    )
+  } catch (err) {
+    throw new RepoCreateError(
+      `Failed to create student partner org upchieve instance for school ${schoolId}`
     )
   }
 }
 
 export async function deactivateStudentPartnerOrg(
-  schoolId: string,
+  spoId: string,
   client?: PoolClient
 ): Promise<void> {
   try {
     await pgQueries.deactivateStudentPartnerOrg.run(
-      { schoolId },
-      client || getClient()
+      { spoId },
+      client ?? getClient()
     )
   } catch (err) {
     throw new RepoReadError(
-      `Failed to deactivate student partner orgs with schoolId ${schoolId}: ${err}`
+      `Failed to deactivate student partner org with ID ${spoId}: ${err}`
     )
   }
 }

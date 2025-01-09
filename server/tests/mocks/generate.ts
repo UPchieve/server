@@ -431,12 +431,12 @@ export function buildStudentPartnerOrg(
 ): Partial<StudentPartnerOrg> & { id: Ulid | string } {
   return {
     id: getDbUlid(),
-    key: faker.string.alpha(),
-    name: faker.string.alpha() + ' School',
+    key: faker.string.uuid(),
+    name: faker.string.uuid(),
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
-    signupCode: faker.string.alpha(),
+    signupCode: faker.string.uuid(),
     ...overrides,
   }
 }

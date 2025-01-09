@@ -204,35 +204,21 @@ FROM
 WHERE
     partner IS TRUE
     AND id = :schoolId!
-ON CONFLICT (name)
+ON CONFLICT (id)
     DO UPDATE SET
         updated_at = NOW();
 
 
 /* @name deactivateStudentPartnerOrg */
-WITH school_student_partner_orgs AS (
-    SELECT
-        id
-    FROM
-        student_partner_orgs
-    WHERE
-        school_id = :schoolId!)
 UPDATE
     student_partner_orgs_upchieve_instances
 SET
     deactivated_on = NOW(),
     updated_at = NOW()
-FROM
-    student_partner_orgs spo
 WHERE
-    spo.id IN (
-        SELECT
-            id
-        FROM
-            school_student_partner_orgs)
-    AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
+    student_partner_org_id = :spoId!
 RETURNING
-    student_partner_orgs_upchieve_instances.id AS ok;
+    id AS ok;
 
 
 /* @name deactivateUserStudentPartnerOrgInstance */
