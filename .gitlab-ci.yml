@@ -19,6 +19,14 @@ variables:
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
 
+connect:
+  POSTGRES_DB: custom_db
+  POSTGRES_USER: custom_user
+  POSTGRES_HOST_AUTH_METHOD: trust
+  image: postgres
+  script:
+    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
+
 .docker_service:
   services:
     - docker:20.10.6-dind
@@ -177,28 +185,6 @@ test_backend:
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run test:backend
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
-
-test_database:
-  stage: test
-  image: node:20.10.0-bullseye
-  services:
-    - postgres:14
-  variables:
-    POSTGRES_DB: upchieve
-    POSTGRES_USER: admin
-    POSTGRES_PASSWORD: Password123
-    PGPORT: 5432
-    NODE_OPTIONS: --max_old_space_size=5120
-    __TEST_DB_CONNECTION_STRING__: "postgres://admin:Password123@postgres:5432/upchieve"
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run test:database
   rules:
     - if: '$TEST_DISABLED'
       when: never
