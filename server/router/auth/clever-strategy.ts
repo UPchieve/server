@@ -1,4 +1,5 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
+import { isEmpty } from 'lodash'
 import passport from 'passport'
 import {
   Strategy as OAuth2Strategy,
@@ -7,41 +8,15 @@ import {
 } from 'passport-oauth2'
 import config from '../../config'
 import logger from '../../logger'
+import { Uuid } from '../../models/pgUtils'
+import { UserRole } from '../../models/User'
+import * as CleverAPIService from '../../services/CleverAPIService'
+import * as SchoolService from '../../services/SchoolService'
 
-interface ICleverMeResponse {
-  type: 'user'
-  data: {
-    id: string
-    district: string
-    type: 'user'
-    authorized_by: 'district'
-  }
-  links: { rel: string; uri: string }[]
-}
-
-interface ICleverUserInfoResponse {
-  data: {
-    created: Date
-    district: string
-    email?: string
-    last_modified: Date
-    name: {
-      first: string
-      last: string
-      middle: string
-    }
-    roles: {
-      // We don't actually have access to the following with Clever SSO Integration -
-      // we would have to pay for their Secure Sync product.
-      student: {
-        grade?: string
-        school: string // Clever ID of the student's primary school.
-        schools: string[] // List of ids of schools this student is associated with.
-      }
-    }
-    id: string
-  }
-  links: { rel: string; uri: string }[]
+export type TCleverPassportProfile = passport.Profile & {
+  issuer: string
+  schoolId?: Uuid
+  userType: UserRole
 }
 
 export default class CleverStrategy extends OAuth2Strategy {
@@ -68,47 +43,60 @@ export default class CleverStrategy extends OAuth2Strategy {
   }
 
   async userProfile(accessToken: string, done: Function) {
-    const apiBaseUrl = 'https://api.clever.com'
-    const options = {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-
     try {
-      const meUrl = `${apiBaseUrl}/v3.0/me`
-      const meResponse = await axios.get<ICleverMeResponse>(meUrl, options)
-
-      const canonicalLink = meResponse.data.links.find(link => {
-        if (link.rel === 'canonical') return true
-      })
-      if (!canonicalLink) {
-        return done(null, false, 'Failed to get user profile.')
-      }
-
-      const userInfoUrl = apiBaseUrl + canonicalLink.uri
-      const userInfoResponse = await axios.get<ICleverUserInfoResponse>(
-        userInfoUrl,
-        options
+      const user = await CleverAPIService.getUserProfile(accessToken)
+      const userType = this.getUserType(user.roles)
+      const cleverSchoolId = user.roles.hasOwnProperty(userType)
+        ? user.roles[userType as keyof typeof user.roles]?.school ?? ''
+        : ''
+      const upchieveSchoolId = await this.getSchoolId(
+        cleverSchoolId,
+        accessToken
       )
-      const userData = userInfoResponse.data.data
 
-      const profile: passport.Profile & { issuer: string } = {
-        id: userData.id,
-        displayName: userData.name.first + ' ' + userData.name.last,
-        emails: [{ value: userData.email ?? '' }],
+      const profile: TCleverPassportProfile = {
+        id: user.id,
+        displayName: user.name.first + ' ' + user.name.last,
+        emails: [{ value: user.email ?? '' }],
         issuer: CleverStrategy.baseUrl,
         name: {
-          familyName: userData.name.last,
-          givenName: userData.name.first,
+          familyName: user.name.last,
+          givenName: user.name.first,
         },
+        schoolId: upchieveSchoolId,
+        userType: this.getUserType(user.roles),
         provider: 'Clever',
       }
 
       return done(null, profile)
     } catch (error) {
-      logger.error(error, 'Error getting Clever user profile.')
-      done(error as Error)
+      logger.error(`Error getting Clever user profile: ${error}`)
+      done(error as Error, false, {
+        errorMessage: 'Failed to get user profile from Clever.',
+      })
     }
+  }
+
+  async getSchoolId(cleverSchoolId: string, accessToken: string) {
+    if (!cleverSchoolId) return
+
+    const cleverSchool = await CleverAPIService.getSchool(
+      cleverSchoolId,
+      accessToken
+    )
+    if (cleverSchool.nces_id) {
+      const upchieveSchool = await SchoolService.getSchoolByNcesId(
+        cleverSchool.nces_id
+      )
+      return upchieveSchool?.id
+    }
+  }
+
+  getUserType(roles: { student?: Object; teacher?: Object }): UserRole {
+    if (!isEmpty(roles.teacher ?? {})) {
+      return 'teacher'
+    }
+
+    return 'student'
   }
 }

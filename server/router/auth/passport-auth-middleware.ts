@@ -2,16 +2,13 @@ import { Request } from 'express'
 import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as GoogleStrategy } from 'passport-google-oidc'
-import CleverStrategy from './clever-strategy'
+import CleverStrategy, { TCleverPassportProfile } from './clever-strategy'
 import {
   getFederatedCredential,
   insertFederatedCredential,
 } from '../../models/FederatedCredential/queries'
 import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
-import {
-  registerStudent,
-  upsertStudent,
-} from '../../services/UserCreationService'
+import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
   SessionWithSsoData,
@@ -71,7 +68,7 @@ async function passportRegisterUser(
       profileId: profile.id,
       ...data,
     }
-    const student = await registerStudent(studentData)
+    const student = await UserCreationService.registerStudent(studentData)
     return done(null, student)
   } catch (err) {
     return done(err)
@@ -137,14 +134,8 @@ export function addPassportAuthMiddleware() {
         if (isLogin) {
           return passportLoginUser(profile.id, issuer, done)
         } else {
-          const { studentData } = (req.session as SessionWithSsoData).sso ?? {}
-          return passportRegisterUser(
-            profile,
-            issuer,
-            'Google',
-            studentData,
-            done
-          )
+          const { userData } = (req.session as SessionWithSsoData).sso ?? {}
+          return passportRegisterUser(profile, issuer, 'Google', userData, done)
         }
       }
     )
@@ -156,24 +147,27 @@ export function addPassportAuthMiddleware() {
       req: Request,
       _accessToken: string,
       _refreshToken: string,
-      profile: passport.Profile & { issuer: string },
+      profile: TCleverPassportProfile,
       done: Function
     ) {
-      const { studentData } = (req.session as SessionWithSsoData).sso ?? {}
+      const { userData } = (req.session as SessionWithSsoData).sso ?? {}
 
+      // Check if the user has already used Clever SSO.
       const existingFedCred = await getFederatedCredential(
         profile.id,
         profile.issuer
       )
       if (existingFedCred) {
-        if (studentData) {
+        if (userData && isStudent(profile)) {
           const data = {
-            schoolId: studentData.schoolId,
-            studentPartnerOrgKey: studentData.studentPartnerOrgKey,
-            studentPartnerOrgSiteName: studentData.studentPartnerOrgSiteName,
+            schoolId: userData.schoolId,
+            studentPartnerOrgKey: (userData as RegisterStudentPayload)
+              .studentPartnerOrgKey,
+            studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
+              .studentPartnerOrgSiteName,
             userId: existingFedCred.userId,
           }
-          await upsertStudent(data)
+          await UserCreationService.upsertStudent(data)
         }
         return done(null, { id: existingFedCred.userId })
       }
@@ -181,13 +175,15 @@ export function addPassportAuthMiddleware() {
       const firstName = profile.name?.givenName
       const lastName = profile.name?.familyName
       if (!firstName || !lastName) {
-        return done(null, false, 'Missing required field in passport.Profile')
+        return done(null, false, {
+          errorMessage: 'Missing required field in passport.Profile',
+        })
       }
 
       const profileEmail = profile.emails?.[0]?.value
-      const email = profileEmail ?? studentData?.email
+      const email = profileEmail ?? userData?.email
       if (!email) {
-        // Redirect to get the email from the student so we can link
+        // Redirect to get the email from the user so we can link
         // their account if an account already exists, or create an
         // account.
         return done(null, false, {
@@ -198,16 +194,20 @@ export function addPassportAuthMiddleware() {
         })
       }
 
+      // Check if the user already exists, but just hadn't used
+      // Clever SSO before.
       const existingUserId = await getUserIdByEmail(email)
       if (existingUserId) {
-        if (studentData) {
+        if (userData && isStudent(profile)) {
           const data = {
-            schoolId: studentData.schoolId,
-            studentPartnerOrgKey: studentData.studentPartnerOrgKey,
-            studentPartnerOrgSiteName: studentData.studentPartnerOrgSiteName,
+            schoolId: userData.schoolId,
+            studentPartnerOrgKey: (userData as RegisterStudentPayload)
+              .studentPartnerOrgKey,
+            studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
+              .studentPartnerOrgSiteName,
             userId: existingUserId,
           }
-          await upsertStudent(data)
+          await UserCreationService.upsertStudent(data)
         }
         await insertFederatedCredential(
           profile.id,
@@ -217,16 +217,32 @@ export function addPassportAuthMiddleware() {
         return done(null, { id: existingUserId })
       }
 
+      // If the user hadn't previously used Clever SSO and didn't
+      // exist, register them.
       const data = {
-        ...studentData,
+        ...userData,
         email,
         firstName,
         issuer: profile.issuer,
         lastName,
         profileId: profile.id,
+        schoolId: profile.schoolId,
       }
-      const student = await registerStudent(data)
-      return done(null, student)
+      if (isStudent(profile)) {
+        const student = await UserCreationService.registerStudent(data)
+        return done(null, student)
+      } else if (isTeacher(profile)) {
+        const teacher = await UserCreationService.registerTeacher(data)
+        return done(null, teacher)
+      }
     })
   )
+
+  function isStudent(profile: TCleverPassportProfile) {
+    return profile.userType === 'student'
+  }
+
+  function isTeacher(profile: TCleverPassportProfile) {
+    return profile.userType === 'teacher'
+  }
 }
