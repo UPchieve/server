@@ -64,6 +64,7 @@ WITH most_recent_survey AS (
         surveys_context.subject_id,
         surveys_context.survey_type_id,
         subjects.display_name AS subject_display_name,
+        surveys.reward_amount,
         surveys.created_at
     FROM
         surveys
@@ -90,7 +91,8 @@ SELECT
     sub.response_display_priority,
     sub.response_display_image,
     most_recent_survey.id::int AS survey_id,
-    most_recent_survey.survey_type_id
+    most_recent_survey.survey_type_id,
+    most_recent_survey.reward_amount
 FROM
     most_recent_survey
     JOIN surveys_survey_questions ssq ON ssq.survey_id = most_recent_survey.id
@@ -164,6 +166,7 @@ SELECT
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
     src.display_image AS display_image,
+    sq.id::int AS question_id,
     src.id AS response_id
 FROM
     users_surveys AS us
@@ -412,6 +415,7 @@ SELECT
     COALESCE(src.score, 0) AS score,
     ssq.display_priority AS display_order,
     src.display_image AS display_image,
+    sq.id::int AS question_id,
     src.id AS response_id
 FROM
     upchieve.users_surveys us

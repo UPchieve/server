@@ -9,6 +9,10 @@ import {
   SurveyQueryResponse,
   SurveyQuestionDefinition,
   SurveyResponseDefinition,
+  getSimpleSurveyDefinition,
+  getLatestUserSubmissionsForSurveyBySurveyType,
+  getLatestUserSubmissionsForSurveyBySurveyId,
+  SurveryUserResponseDefinition,
 } from '../models/Survey'
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
@@ -212,5 +216,41 @@ export async function getPostsessionSurveyDefinition(
       default:
         return ''
     }
+  }
+}
+
+export async function getImpactSurveyDefinition() {
+  return getSimpleSurveyDefinition('impact-study')
+}
+
+export async function getImpactStudySurveyResponses(
+  userId: Ulid
+): Promise<SurveyQueryResponse> {
+  const [submissions, survey] = await Promise.all([
+    getLatestUserSubmissionsForSurveyBySurveyType(userId, 'impact-study'),
+    getSimpleSurveyDefinition('impact-study'),
+  ])
+
+  const surveyWithSubmissions = survey.survey.map(question => {
+    const matchingSubmission = submissions.find(
+      submission => submission.questionId === question.questionId
+    )
+
+    const userResponse = matchingSubmission
+      ? ({
+          responseId: matchingSubmission.responseId,
+          response: matchingSubmission.response,
+        } as SurveryUserResponseDefinition)
+      : undefined
+
+    return {
+      ...question,
+      userResponse,
+    }
+  })
+
+  return {
+    ...survey,
+    survey: surveyWithSubmissions,
   }
 }
