@@ -36,15 +36,14 @@ WHERE
 
 INSERT INTO upchieve.survey_questions (question_type_id, question_text, created_at, updated_at)
 SELECT
-    upchieve.question_types.id,
-    sub.text,
+    id,
+    'How confident are you about getting in?',
     NOW(),
     NOW()
 FROM
     upchieve.question_types
-    JOIN UNNEST(ARRAY['How confident are you about getting in?']) AS sub ON TRUE
 WHERE
-    upchieve.question_types.name = 'multiple choice';
+    name = 'multiple choice';
 
 INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, display_priority, created_at, updated_at)
 SELECT
@@ -56,7 +55,7 @@ SELECT
 FROM
     upchieve.surveys
     JOIN upchieve.survey_questions ON TRUE
-    JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
+    JOIN UNNEST(ARRAY[10, 20, 30, 40]) AS sub ON TRUE
 WHERE (upchieve.surveys.name = 'Impact Study Survey 1.0'
     AND upchieve.survey_questions.question_text = 'What''s your GPA right now?'
     AND sub.text::int = 10)
@@ -82,7 +81,7 @@ FROM
     JOIN upchieve.survey_response_choices rc ON TRUE
     JOIN upchieve.surveys ON upchieve.surveys.id = ssq.survey_id
     JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
-    JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) AS sub ON TRUE
+    JOIN UNNEST(ARRAY[10, 20, 30, 40, 50]) AS sub ON TRUE
 WHERE (upchieve.surveys.name = 'Impact Study Survey 1.0'
     AND sq.question_text = 'How confident are you about getting in?'
     AND rc.choice_text = 'Stressed'

@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type DateOrString = Date | string;
 
+export type stringArray = (string)[];
+
 /** 'CreateAssignment' parameters type */
 export interface ICreateAssignmentParams {
   classId: string;
@@ -69,6 +71,7 @@ export interface IGetAssignmentsByClassIdResult {
   minDurationInMinutes: number | null;
   numberOfSessions: number | null;
   startDate: Date | null;
+  studentIds: stringArray | null;
   subjectId: number | null;
   title: string | null;
   updatedAt: Date;
@@ -80,17 +83,22 @@ export interface IGetAssignmentsByClassIdQuery {
   result: IGetAssignmentsByClassIdResult;
 }
 
-const getAssignmentsByClassIdIR: any = {"usedParamSet":{"classId":true},"params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":55,"b":63}]}],"statement":"SELECT\n    *\nFROM\n    assignments\nWHERE\n    class_id = :classId!"};
+const getAssignmentsByClassIdIR: any = {"usedParamSet":{"classId":true},"params":[{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":204}]}],"statement":"SELECT\n    assignments.*,\n    ARRAY_AGG(sa.user_id) AS student_ids\nFROM\n    assignments\n    LEFT JOIN students_assignments sa ON assignments.id = sa.assignment_id\nWHERE\n    assignments.class_id = :classId!\nGROUP BY\n    assignments.id,\n    assignments.class_id"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     *
+ *     assignments.*,
+ *     ARRAY_AGG(sa.user_id) AS student_ids
  * FROM
  *     assignments
+ *     LEFT JOIN students_assignments sa ON assignments.id = sa.assignment_id
  * WHERE
- *     class_id = :classId!
+ *     assignments.class_id = :classId!
+ * GROUP BY
+ *     assignments.id,
+ *     assignments.class_id
  * ```
  */
 export const getAssignmentsByClassId = new PreparedQuery<IGetAssignmentsByClassIdParams,IGetAssignmentsByClassIdResult>(getAssignmentsByClassIdIR);
@@ -591,5 +599,133 @@ const deleteSessionForStudentAssignmentIR: any = {"usedParamSet":{"assignmentId"
  * ```
  */
 export const deleteSessionForStudentAssignment = new PreparedQuery<IDeleteSessionForStudentAssignmentParams,IDeleteSessionForStudentAssignmentResult>(deleteSessionForStudentAssignmentIR);
+
+
+/** 'EditAssignmentById' parameters type */
+export interface IEditAssignmentByIdParams {
+  description?: string | null | void;
+  dueDate?: DateOrString | null | void;
+  id: string;
+  isRequired?: boolean | null | void;
+  minDurationInMinutes?: number | null | void;
+  numberOfSessions?: number | null | void;
+  startDate?: DateOrString | null | void;
+  subjectId?: number | null | void;
+  title?: string | null | void;
+}
+
+/** 'EditAssignmentById' return type */
+export interface IEditAssignmentByIdResult {
+  classId: string;
+  createdAt: Date;
+  description: string | null;
+  dueDate: Date | null;
+  id: string;
+  isRequired: boolean;
+  minDurationInMinutes: number | null;
+  numberOfSessions: number | null;
+  startDate: Date | null;
+  subjectId: number | null;
+  title: string | null;
+  updatedAt: Date;
+}
+
+/** 'EditAssignmentById' query type */
+export interface IEditAssignmentByIdQuery {
+  params: IEditAssignmentByIdParams;
+  result: IEditAssignmentByIdResult;
+}
+
+const editAssignmentByIdIR: any = {"usedParamSet":{"description":true,"title":true,"numberOfSessions":true,"minDurationInMinutes":true,"isRequired":true,"dueDate":true,"startDate":true,"subjectId":true,"id":true},"params":[{"name":"description","required":false,"transform":{"type":"scalar"},"locs":[{"a":54,"b":65}]},{"name":"title","required":false,"transform":{"type":"scalar"},"locs":[{"a":103,"b":108}]},{"name":"numberOfSessions","required":false,"transform":{"type":"scalar"},"locs":[{"a":153,"b":169}]},{"name":"minDurationInMinutes","required":false,"transform":{"type":"scalar"},"locs":[{"a":232,"b":252}]},{"name":"isRequired","required":false,"transform":{"type":"scalar"},"locs":[{"a":308,"b":318}]},{"name":"dueDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":359,"b":366}]},{"name":"startDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":406,"b":415}]},{"name":"subjectId","required":false,"transform":{"type":"scalar"},"locs":[{"a":457,"b":466}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":520,"b":523}]}],"statement":"UPDATE\n    assignments\nSET\n    description = COALESCE(:description, description),\n    title = COALESCE(:title, title),\n    number_of_sessions = COALESCE(:numberOfSessions, number_of_sessions),\n    min_duration_in_minutes = COALESCE(:minDurationInMinutes, min_duration_in_minutes),\n    is_required = COALESCE(:isRequired, is_required),\n    due_date = COALESCE(:dueDate, due_date),\n    start_date = COALESCE(:startDate, start_date),\n    subject_id = COALESCE(:subjectId, subject_id),\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    class_id,\n    description,\n    title,\n    number_of_sessions,\n    min_duration_in_minutes,\n    is_required,\n    due_date,\n    start_date,\n    subject_id,\n    created_at,\n    updated_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     assignments
+ * SET
+ *     description = COALESCE(:description, description),
+ *     title = COALESCE(:title, title),
+ *     number_of_sessions = COALESCE(:numberOfSessions, number_of_sessions),
+ *     min_duration_in_minutes = COALESCE(:minDurationInMinutes, min_duration_in_minutes),
+ *     is_required = COALESCE(:isRequired, is_required),
+ *     due_date = COALESCE(:dueDate, due_date),
+ *     start_date = COALESCE(:startDate, start_date),
+ *     subject_id = COALESCE(:subjectId, subject_id),
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :id!
+ * RETURNING
+ *     id,
+ *     class_id,
+ *     description,
+ *     title,
+ *     number_of_sessions,
+ *     min_duration_in_minutes,
+ *     is_required,
+ *     due_date,
+ *     start_date,
+ *     subject_id,
+ *     created_at,
+ *     updated_at
+ * ```
+ */
+export const editAssignmentById = new PreparedQuery<IEditAssignmentByIdParams,IEditAssignmentByIdResult>(editAssignmentByIdIR);
+
+
+/** 'DeleteSessionForStudentAssignmentByStudentId' parameters type */
+export interface IDeleteSessionForStudentAssignmentByStudentIdParams {
+  assignmentId: string;
+  studentId: string;
+}
+
+/** 'DeleteSessionForStudentAssignmentByStudentId' return type */
+export type IDeleteSessionForStudentAssignmentByStudentIdResult = void;
+
+/** 'DeleteSessionForStudentAssignmentByStudentId' query type */
+export interface IDeleteSessionForStudentAssignmentByStudentIdQuery {
+  params: IDeleteSessionForStudentAssignmentByStudentIdParams;
+  result: IDeleteSessionForStudentAssignmentByStudentIdResult;
+}
+
+const deleteSessionForStudentAssignmentByStudentIdIR: any = {"usedParamSet":{"assignmentId":true,"studentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":77}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":107}]}],"statement":"DELETE FROM sessions_students_assignments\nWHERE assignment_id = :assignmentId!\n    AND user_id = :studentId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM sessions_students_assignments
+ * WHERE assignment_id = :assignmentId!
+ *     AND user_id = :studentId!
+ * ```
+ */
+export const deleteSessionForStudentAssignmentByStudentId = new PreparedQuery<IDeleteSessionForStudentAssignmentByStudentIdParams,IDeleteSessionForStudentAssignmentByStudentIdResult>(deleteSessionForStudentAssignmentByStudentIdIR);
+
+
+/** 'DeleteStudentAssignmentByStudentId' parameters type */
+export interface IDeleteStudentAssignmentByStudentIdParams {
+  assignmentId: string;
+  studentId: string;
+}
+
+/** 'DeleteStudentAssignmentByStudentId' return type */
+export type IDeleteStudentAssignmentByStudentIdResult = void;
+
+/** 'DeleteStudentAssignmentByStudentId' query type */
+export interface IDeleteStudentAssignmentByStudentIdQuery {
+  params: IDeleteStudentAssignmentByStudentIdParams;
+  result: IDeleteStudentAssignmentByStudentIdResult;
+}
+
+const deleteStudentAssignmentByStudentIdIR: any = {"usedParamSet":{"assignmentId":true,"studentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":55,"b":68}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":98}]}],"statement":"DELETE FROM students_assignments\nWHERE assignment_id = :assignmentId!\n    AND user_id = :studentId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM students_assignments
+ * WHERE assignment_id = :assignmentId!
+ *     AND user_id = :studentId!
+ * ```
+ */
+export const deleteStudentAssignmentByStudentId = new PreparedQuery<IDeleteStudentAssignmentByStudentIdParams,IDeleteStudentAssignmentByStudentIdResult>(deleteStudentAssignmentByStudentIdIR);
 
 
