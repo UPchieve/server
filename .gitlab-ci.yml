@@ -18,6 +18,9 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
+  POSTGRES_DB: upchieve_test_ci_db
+  POSTGRES_USER: test_user
+  POSTGRES_PASSWORD: test_password
 
 .docker_service:
   services:
@@ -183,16 +186,20 @@ test_backend:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-connect:
-  variables:
-    POSTGRES_DB: custom_db
-    POSTGRES_USER: custom_user
-    POSTGRES_HOST_AUTH_METHOD: trust
-  image: postgres
+test_postgresql:
+  stage: test
+  image: postgres:14
+  services:
+    - postgres:14
   script:
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
+    - echo "Waiting for PostgreSQL to be ready..."
+    - until pg_isready -h $CI_SERVICE_HOST -p $CI_SERVICE_PORT; do sleep 1; done
+    - echo "PostgreSQL is ready."
+    - psql -h $CI_SERVICE_HOST -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 'Database connection successful!'"
+  variables:
+    POSTGRES_HOST_AUTH_METHOD: trust
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
 lint:
   stage: test
