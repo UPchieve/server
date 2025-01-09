@@ -16,6 +16,7 @@ import {
   makeSomeRequired,
   makeSomeOptional,
   Ulid,
+  Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
@@ -461,7 +462,7 @@ async function adminUpdateStudentPartnerOrgInstance(
         )
 
       if (newSchoolOrg.schoolId) {
-        const updateSchoolResult = await pgQueries.adminUpdateStudentSchool.run(
+        const updateSchoolResult = await pgQueries.updateStudentSchool.run(
           { userId: studentId, schoolId: newSchoolOrg.schoolId },
           client
         )
@@ -972,7 +973,7 @@ export async function getStudentProfilesByUserIds(
       tc
     )
     if (result.length) {
-      return result.map(r => makeSomeOptional(r, ['gradeLevel']))
+      return result.map(r => makeSomeOptional(r, ['gradeLevel', 'schoolId']))
     }
 
     return []
@@ -990,5 +991,23 @@ export async function addStudentToTeacherClass(
     await pgQueries.addStudentToTeacherClass.run({ userId, classId }, tc)
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function updateStudentSchool(
+  studentId: Ulid,
+  schoolId: Uuid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.updateStudentSchool.run(
+      {
+        userId: studentId,
+        schoolId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
