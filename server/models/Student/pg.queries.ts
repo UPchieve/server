@@ -1438,24 +1438,24 @@ const deleteSelfFavoritedVolunteersIR: any = {"usedParamSet":{},"params":[],"sta
 export const deleteSelfFavoritedVolunteers = new PreparedQuery<IDeleteSelfFavoritedVolunteersParams,IDeleteSelfFavoritedVolunteersResult>(deleteSelfFavoritedVolunteersIR);
 
 
-/** 'AdminUpdateStudentSchool' parameters type */
-export interface IAdminUpdateStudentSchoolParams {
+/** 'UpdateStudentSchool' parameters type */
+export interface IUpdateStudentSchoolParams {
   schoolId: string;
   userId: string;
 }
 
-/** 'AdminUpdateStudentSchool' return type */
-export interface IAdminUpdateStudentSchoolResult {
+/** 'UpdateStudentSchool' return type */
+export interface IUpdateStudentSchoolResult {
   ok: string;
 }
 
-/** 'AdminUpdateStudentSchool' query type */
-export interface IAdminUpdateStudentSchoolQuery {
-  params: IAdminUpdateStudentSchoolParams;
-  result: IAdminUpdateStudentSchoolResult;
+/** 'UpdateStudentSchool' query type */
+export interface IUpdateStudentSchoolQuery {
+  params: IUpdateStudentSchoolParams;
+  result: IUpdateStudentSchoolResult;
 }
 
-const adminUpdateStudentSchoolIR: any = {"usedParamSet":{"schoolId":true,"userId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":48,"b":57}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":79,"b":86}]}],"statement":"UPDATE\n    student_profiles\nSET\n    school_id = :schoolId!\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+const updateStudentSchoolIR: any = {"usedParamSet":{"schoolId":true,"userId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":48,"b":57}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":79,"b":86}]}],"statement":"UPDATE\n    student_profiles\nSET\n    school_id = :schoolId!\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -1470,7 +1470,7 @@ const adminUpdateStudentSchoolIR: any = {"usedParamSet":{"schoolId":true,"userId
  *     user_id AS ok
  * ```
  */
-export const adminUpdateStudentSchool = new PreparedQuery<IAdminUpdateStudentSchoolParams,IAdminUpdateStudentSchoolResult>(adminUpdateStudentSchoolIR);
+export const updateStudentSchool = new PreparedQuery<IUpdateStudentSchoolParams,IUpdateStudentSchoolResult>(updateStudentSchoolIR);
 
 
 /** 'GetActivePartnersForStudent' parameters type */
@@ -1659,6 +1659,7 @@ export interface IGetStudentProfilesByUserIdsResult {
   gradeLevel: string | null;
   id: string;
   lastName: string;
+  schoolId: string | null;
   updatedAt: Date;
   userId: string;
 }
@@ -1669,7 +1670,7 @@ export interface IGetStudentProfilesByUserIdsQuery {
   result: IGetStudentProfilesByUserIdsResult;
 }
 
-const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":493,"b":501}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,\n    users.created_at,\n    users.updated_at\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
+const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":508,"b":516}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
 
 /**
  * Query generated from SQL:
@@ -1682,7 +1683,8 @@ const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"par
  *     email,
  *     COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
  *     users.created_at,
- *     users.updated_at
+ *     users.updated_at,
+ *     school_id
  * FROM
  *     student_profiles
  *     JOIN users ON student_profiles.user_id = users.id

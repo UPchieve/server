@@ -394,3 +394,34 @@ const deactivateTeacherClassIR: any = {"usedParamSet":{"id":true},"params":[{"na
 export const deactivateTeacherClass = new PreparedQuery<IDeactivateTeacherClassParams,IDeactivateTeacherClassResult>(deactivateTeacherClassIR);
 
 
+/** 'UpdateTeacherSchool' parameters type */
+export interface IUpdateTeacherSchoolParams {
+  schoolId?: string | null | void;
+  userId: string;
+}
+
+/** 'UpdateTeacherSchool' return type */
+export type IUpdateTeacherSchoolResult = void;
+
+/** 'UpdateTeacherSchool' query type */
+export interface IUpdateTeacherSchoolQuery {
+  params: IUpdateTeacherSchoolParams;
+  result: IUpdateTeacherSchoolResult;
+}
+
+const updateTeacherSchoolIR: any = {"usedParamSet":{"schoolId":true,"userId":true},"params":[{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":48,"b":56}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":78,"b":85}]}],"statement":"UPDATE\n    teacher_profiles\nSET\n    school_id = :schoolId\nWHERE\n    user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     teacher_profiles
+ * SET
+ *     school_id = :schoolId
+ * WHERE
+ *     user_id = :userId!
+ * ```
+ */
+export const updateTeacherSchool = new PreparedQuery<IUpdateTeacherSchoolParams,IUpdateTeacherSchoolResult>(updateTeacherSchoolIR);
+
+

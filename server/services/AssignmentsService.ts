@@ -32,6 +32,19 @@ export type CreateAssignmentPayload = {
   title?: string
   studentIds: Array<string>
 }
+export type EditAssignmentPayload = {
+  id: string
+  description?: string
+  dueDate?: Date
+  isRequired?: boolean
+  minDurationInMinutes?: number
+  numberOfSessions?: number
+  startDate?: Date
+  subjectId?: number
+  title?: string
+  studentsToRemove?: Array<string>
+  studentsToAdd?: Array<string>
+}
 export const asAssignment = asFactory<CreateAssignmentPayload>({
   classId: asString,
   description: asOptional(asString),
@@ -44,21 +57,23 @@ export const asAssignment = asFactory<CreateAssignmentPayload>({
   title: asOptional(asString),
   studentIds: asArray(asString),
 })
+export const asEditedAssignment = asFactory<EditAssignmentPayload>({
+  id: asString,
+  description: asOptional(asString),
+  dueDate: asOptional(asDate),
+  isRequired: asOptional(asBoolean),
+  minDurationInMinutes: asOptional(asNumber),
+  numberOfSessions: asOptional(asNumber),
+  startDate: asOptional(asDate),
+  subjectId: asOptional(asNumber),
+  title: asOptional(asString),
+  studentsToRemove: asOptional(asArray(asString)),
+  studentsToAdd: asOptional(asArray(asString)),
+})
 
 export async function createAssignment(data: CreateAssignmentPayload) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const numSessions = data.numberOfSessions
-    if (numSessions && numSessions <= 0)
-      throw new InputError('Number of sessions must be greater than 0.')
-
-    const startDate = data.startDate
-    const dueDate = data.dueDate
-    if (
-      startDate &&
-      dueDate &&
-      moment(startDate).isSameOrAfter(moment(dueDate))
-    )
-      throw new InputError('Start date cannot be after the due date.')
+    validateAssignmentData(data)
 
     const assignment = await AssignmentsRepo.createAssignment(
       {
@@ -79,6 +94,37 @@ export async function createAssignment(data: CreateAssignmentPayload) {
       await addAssignmentForStudents(data.studentIds, assignment.id, tc)
     } else {
       await addAssignmentForClass(data.classId, assignment.id, tc)
+    }
+
+    return assignment
+  })
+}
+
+export async function editAssignment(data: EditAssignmentPayload) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    validateAssignmentData(data)
+
+    const assignment = await AssignmentsRepo.editAssignment(
+      {
+        id: data.id,
+        description: data.description,
+        dueDate: data.dueDate,
+        isRequired: data.isRequired ?? false,
+        minDurationInMinutes: data.minDurationInMinutes,
+        numberOfSessions: data.numberOfSessions,
+        startDate: data.startDate,
+        subjectId: data.subjectId,
+        title: data.title,
+      },
+      tc
+    )
+
+    if (data.studentsToRemove && data.studentsToRemove.length) {
+      await deleteStudentAssignmentsForStudents(data.studentsToRemove, data.id)
+    }
+
+    if (data.studentsToAdd && data.studentsToAdd.length) {
+      await addAssignmentForStudents(data.studentsToAdd, data.id, tc)
     }
 
     return assignment
@@ -241,6 +287,43 @@ export async function deleteAssignment(assignmentId: Uuid) {
     await AssignmentsRepo.deleteStudentAssignment(assignmentId, tc)
     await AssignmentsRepo.deleteAssignment(assignmentId, tc)
   })
+}
+
+async function deleteStudentAssignmentsForStudents(
+  studentsToRemove: Uuid[],
+  assignmentId: Uuid
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    studentsToRemove.forEach(async studentId => {
+      await AssignmentsRepo.deleteSessionStudentAssignmentByStudentId(
+        studentId,
+        assignmentId,
+        tc
+      )
+
+      await AssignmentsRepo.deleteStudentAssignmentByStudentId(
+        studentId,
+        assignmentId,
+        tc
+      )
+    })
+  })
+}
+
+function validateAssignmentData(
+  data: Pick<
+    CreateAssignmentPayload,
+    'numberOfSessions' | 'startDate' | 'dueDate'
+  >
+) {
+  const numSessions = data.numberOfSessions
+  if (numSessions && numSessions <= 0)
+    throw new InputError('Number of sessions must be greater than 0.')
+
+  const startDate = data.startDate
+  const dueDate = data.dueDate
+  if (startDate && dueDate && moment(startDate).isSameOrAfter(moment(dueDate)))
+    throw new InputError('Start date cannot be after the due date.')
 }
 
 // Exported for testing.
