@@ -139,3 +139,12 @@ SET
 WHERE
     user_id = :userId!;
 
+
+/* @name updateLastSuccessfulCleverSync */
+UPDATE
+    teacher_profiles
+SET
+    last_successful_clever_sync = NOW()
+WHERE
+    user_id = :teacherId!;
+

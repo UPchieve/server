@@ -217,3 +217,10 @@ export async function adminUpdateTeacher(
     }
   })
 }
+
+export async function updateLastSuccessfulCleverSync(
+  teacherId: Ulid,
+  tc: TransactionClient
+) {
+  return TeacherRepo.updateLastSuccessfulCleverSync(teacherId, tc)
+}
