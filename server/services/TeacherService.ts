@@ -12,6 +12,7 @@ import * as UserRepo from '../models/User'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { StudentUserProfile } from '../models/Student'
+import { TeacherClassWithStudents } from '../models/Teacher'
 
 export async function getTeacherById(userId: Ulid, tc?: TransactionClient) {
   return runInTransaction(async (tc: TransactionClient) => {
@@ -40,10 +41,13 @@ export async function createTeacherClass(
     )
     const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : []
     return { ...newClass, topic: topic[0] }
-  })
+  }, tc)
 }
 
-export async function getTeacherClasses(userId: Ulid, tc?: TransactionClient) {
+export async function getTeacherClasses(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<TeacherClassWithStudents[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClasses = await TeacherRepo.getTeacherClassesByUserId(
       userId,
@@ -79,7 +83,7 @@ export async function getTeacherClassById(id: Ulid) {
 export async function getStudentsInTeacherClass(
   classId: Ulid,
   tc?: TransactionClient
-) {
+): Promise<StudentUserProfile[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
       tc,
