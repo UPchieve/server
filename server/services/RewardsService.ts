@@ -1,4 +1,4 @@
-import axios from 'axios'
+import { AxiosError } from 'axios'
 import { Configuration, Environments, ListRewards200Response } from 'tremendous'
 import {
   OrdersApi,
@@ -274,16 +274,10 @@ export async function getUserRewards(
     }
 
     return { rewards: userRewards, total: userRewardResponse.total_count ?? 0 }
-    // TODO: handle error
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error(
-        'Axios error while fetching rewards:',
-        error.response?.data || error.message
-      )
-    } else {
-      console.error('Unexpected error while fetching rewards:', error)
-    }
+    logError(
+      ((error as AxiosError).response?.data as Error) || (error as Error)
+    )
   }
 }
 
