@@ -425,4 +425,414 @@ describe('ModerationService', () => {
       }
     )
   })
+
+  const piiEntities = {
+    $metadata: {
+      httpStatusCode: 200,
+      requestId: '4ee63e38-ced3-4f87-86b8-1fddf51e73f5',
+      attempts: 1,
+      totalRetryDelay: 0,
+    },
+    Entities: [
+      {
+        BeginOffset: 21,
+        EndOffset: 36,
+        Score: 0.9999995827674866,
+        Type: 'URL',
+      },
+      {
+        BeginOffset: 37,
+        EndOffset: 60,
+        Score: 0.9998327493667603,
+        Type: 'EMAIL',
+      },
+      {
+        BeginOffset: 82,
+        EndOffset: 97,
+        Score: 0.9999995827674866,
+        Type: 'URL',
+      },
+      {
+        BeginOffset: 98,
+        EndOffset: 121,
+        Score: 0.9998478889465332,
+        Type: 'EMAIL',
+      },
+    ],
+  }
+  // derived from piiEntities
+  const links = ['http://butt.com']
+
+  const labels = {
+    $metadata: {
+      httpStatusCode: 200,
+      requestId: '10f0b9e1-2852-4e3d-9d46-323c50ff8a53',
+      attempts: 1,
+      totalRetryDelay: 0,
+    },
+    LabelModelVersion: '3.0',
+    Labels: [
+      {
+        Aliases: [],
+        Categories: [
+          {
+            Name: 'Person Description',
+          },
+        ],
+        Confidence: 98.9871597290039,
+        Instances: [
+          {
+            BoundingBox: {
+              Height: 0.20247642695903778,
+              Left: 0.03137316554784775,
+              Top: 0.07425962388515472,
+              Width: 0.21131867170333862,
+            },
+            Confidence: 98.9871597290039,
+          },
+        ],
+        Name: 'Boy',
+        Parents: [
+          {
+            Name: 'Male',
+          },
+          {
+            Name: 'Person',
+          },
+        ],
+      },
+      {
+        Aliases: [
+          {
+            Name: 'Kid',
+          },
+        ],
+        Categories: [
+          {
+            Name: 'Person Description',
+          },
+        ],
+        Confidence: 98.9871597290039,
+        Instances: [
+          {
+            BoundingBox: {
+              Height: 0.20247642695903778,
+              Left: 0.03137316554784775,
+              Top: 0.07425962388515472,
+              Width: 0.21131867170333862,
+            },
+            Confidence: 98.9871597290039,
+          },
+        ],
+        Name: 'Child',
+        Parents: [
+          {
+            Name: 'Person',
+          },
+        ],
+      },
+    ],
+  }
+
+  const extractedText = {
+    $metadata: {
+      httpStatusCode: 200,
+      requestId: '585e7786-b6e1-4de0-ab87-a80638481539',
+      attempts: 1,
+      totalRetryDelay: 0,
+    },
+    TextDetections: [
+      {
+        Confidence: 92.53329467773438,
+        DetectedText: 'End Session',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.006504821591079235,
+            Left: 0.3037109375,
+            Top: 0.0027877807151526213,
+            Width: 0.021484375,
+          },
+          Polygon: [
+            {
+              X: 0.3037109375,
+              Y: 0.0027877807151526213,
+            },
+            {
+              X: 0.3251953125,
+              Y: 0.0027877807151526213,
+            },
+            {
+              X: 0.3251953125,
+              Y: 0.0092926025390625,
+            },
+            {
+              X: 0.3037109375,
+              Y: 0.0092926025390625,
+            },
+          ],
+        },
+        Id: 0,
+        Type: 'LINE',
+      },
+      {
+        Confidence: 57.26637268066406,
+        DetectedText: 'butt.com',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.02837136946618557,
+            Left: 0.05115199089050293,
+            Top: 0.06123078987002373,
+            Width: 0.06811285763978958,
+          },
+          Polygon: [
+            {
+              X: 0.05115199089050293,
+              Y: 0.06781183183193207,
+            },
+            {
+              X: 0.11685438454151154,
+              Y: 0.06123078987002373,
+            },
+            {
+              X: 0.11926484853029251,
+              Y: 0.0830211192369461,
+            },
+            {
+              X: 0.0535624660551548,
+              Y: 0.08960215747356415,
+            },
+          ],
+        },
+        Id: 1,
+        Type: 'LINE',
+      },
+      {
+        Confidence: 97.49494171142578,
+        DetectedText: 'http://butt.com',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.00836334191262722,
+            Left: 0.0927734375,
+            Top: 0.09106750786304474,
+            Width: 0.048828125,
+          },
+          Polygon: [
+            {
+              X: 0.0927734375,
+              Y: 0.09106750786304474,
+            },
+            {
+              X: 0.1416015625,
+              Y: 0.09106750786304474,
+            },
+            {
+              X: 0.1416015625,
+              Y: 0.09943084418773651,
+            },
+            {
+              X: 0.0927734375,
+              Y: 0.09943084418773651,
+            },
+          ],
+        },
+        Id: 2,
+        Type: 'LINE',
+      },
+      {
+        Confidence: 74.76219177246094,
+        DetectedText: 'sammy.nave@upchieve.org',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.01022186316549778,
+            Left: 0.1337890625,
+            Top: 0.12452087551355362,
+            Width: 0.095703125,
+          },
+          Polygon: [
+            {
+              X: 0.1337890625,
+              Y: 0.12452087551355362,
+            },
+            {
+              X: 0.2294921875,
+              Y: 0.12452087551355362,
+            },
+            {
+              X: 0.2294921875,
+              Y: 0.13474273681640625,
+            },
+            {
+              X: 0.1337890625,
+              Y: 0.13474273681640625,
+            },
+          ],
+        },
+        Id: 3,
+        Type: 'LINE',
+      },
+      {
+        Confidence: 92.53329467773438,
+        DetectedText: 'End Session',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.006504821591079235,
+            Left: 0.3037109375,
+            Top: 0.0027877807151526213,
+            Width: 0.021484375,
+          },
+          Polygon: [
+            {
+              X: 0.3037109375,
+              Y: 0.0027877807151526213,
+            },
+            {
+              X: 0.3251953125,
+              Y: 0.0027877807151526213,
+            },
+            {
+              X: 0.3251953125,
+              Y: 0.0092926025390625,
+            },
+            {
+              X: 0.3037109375,
+              Y: 0.0092926025390625,
+            },
+          ],
+        },
+        Id: 4,
+        ParentId: 0,
+        Type: 'WORD',
+      },
+      {
+        Confidence: 57.26637268066406,
+        DetectedText: 'butt.com',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.02837136946618557,
+            Left: 0.05115199089050293,
+            Top: 0.06123078987002373,
+            Width: 0.06811285763978958,
+          },
+          Polygon: [
+            {
+              X: 0.05115199089050293,
+              Y: 0.06781183183193207,
+            },
+            {
+              X: 0.11685438454151154,
+              Y: 0.06123078987002373,
+            },
+            {
+              X: 0.11926484853029251,
+              Y: 0.0830211192369461,
+            },
+            {
+              X: 0.0535624660551548,
+              Y: 0.08960215747356415,
+            },
+          ],
+        },
+        Id: 5,
+        ParentId: 1,
+        Type: 'WORD',
+      },
+      {
+        Confidence: 97.49494171142578,
+        DetectedText: 'http://butt.com',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.00836334191262722,
+            Left: 0.0927734375,
+            Top: 0.09106750786304474,
+            Width: 0.048828125,
+          },
+          Polygon: [
+            {
+              X: 0.0927734375,
+              Y: 0.09106750786304474,
+            },
+            {
+              X: 0.1416015625,
+              Y: 0.09106750786304474,
+            },
+            {
+              X: 0.1416015625,
+              Y: 0.09943084418773651,
+            },
+            {
+              X: 0.0927734375,
+              Y: 0.09943084418773651,
+            },
+          ],
+        },
+        Id: 6,
+        ParentId: 2,
+        Type: 'WORD',
+      },
+      {
+        Confidence: 74.76219177246094,
+        DetectedText: 'sammy.nave@upchieve.org',
+        Geometry: {
+          BoundingBox: {
+            Height: 0.01022186316549778,
+            Left: 0.1337890625,
+            Top: 0.12452087551355362,
+            Width: 0.095703125,
+          },
+          Polygon: [
+            {
+              X: 0.1337890625,
+              Y: 0.12452087551355362,
+            },
+            {
+              X: 0.2294921875,
+              Y: 0.12452087551355362,
+            },
+            {
+              X: 0.2294921875,
+              Y: 0.13474273681640625,
+            },
+            {
+              X: 0.1337890625,
+              Y: 0.13474273681640625,
+            },
+          ],
+        },
+        Id: 7,
+        ParentId: 3,
+        Type: 'WORD',
+      },
+    ],
+    TextModelVersion: '3.0',
+  }
+  // derived from extractedText
+  const concatenatedText =
+    'End Session butt.com http://butt.com sammy.nave@upchieve.org End Session butt.com http://butt.com sammy.nave@upchieve.org'
+
+  const moderationLabels = {
+    $metadata: {
+      httpStatusCode: 200,
+      requestId: 'a680b1ed-7f4b-4353-be80-6e3427430bd0',
+      attempts: 1,
+      totalRetryDelay: 0,
+    },
+    ContentTypes: [],
+    ModerationLabels: [
+      {
+        Confidence: 99.86129760742188,
+        Name: 'Weapons',
+        ParentName: 'Violence',
+        TaxonomyLevel: 2,
+      },
+      {
+        Confidence: 99.86129760742188,
+        Name: 'Violence',
+        ParentName: '',
+        TaxonomyLevel: 1,
+      },
+    ],
+    ModerationModelVersion: '7.0',
+  }
+
+  describe('moderateVideoFrame', () => {})
 })

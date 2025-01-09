@@ -26,6 +26,18 @@ import config from '../config'
 import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
+import {
+  RekognitionClient,
+  DetectModerationLabelsCommand,
+  DetectTextCommand,
+  DetectLabelsCommand,
+  DetectLabelsSettings,
+} from '@aws-sdk/client-rekognition'
+import {
+  ComprehendClient,
+  DetectPiiEntitiesCommand,
+  DetectToxicContentCommand,
+} from '@aws-sdk/client-comprehend'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -427,6 +439,177 @@ const getImageModerationDecision = (
     ...(isClean ? {} : failureCategories),
   }
 }
+
+const awsRekognitionClient = new RekognitionClient([
+  {
+    region: config.awsS3.region,
+    credentials: {
+      accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY,
+      secretAccessKey: process.env.SUBWAY_SECRET_ACCESS_KEY,
+    },
+  },
+])
+
+const awsComprehendClient = new ComprehendClient([
+  {
+    region: config.awsS3.region,
+    credentials: {
+      accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY,
+      secretAccessKey: process.env.SUBWAY_SECRET_ACCESS_KEY,
+    },
+  },
+])
+
+type VideoFrameModerationFailureReason = {
+  reason:
+    | 'URL'
+    | 'EMAIL'
+    | 'PHONE'
+    | 'ADDRESS'
+    | 'HARMFUL_CONTENT'
+    | 'DEPICTION_OF_MINOR'
+  /*
+    Moderation labels from AWS Rekognition,
+      - Weapons, Nudity, Violence, Drug use, etc...
+    PII entities from AWS Comprehend,
+      - URL, EMAIL, PHONE, ADDRESS
+    Text from AWS Rekognition - DetectToxicContent
+      - Text that was extracted from the image
+  */
+  details?: string
+}
+
+type VideoFrameModerationFailureReasons = {
+  failureReasons: VideoFrameModerationFailureReason[]
+}
+export const moderateVideoFrame = async (
+  frame: string,
+  sessionId: string
+): Promise<{
+  isClean: boolean
+  failureReasons?: VideoFrameModerationFailureReasons
+}> => {
+  const commandInput = {
+    Image: {
+      Bytes: Buffer.from(frame, 'base64'),
+    },
+  }
+
+  /*
+    detect harmful content in the image; nudity, violence, drug use, etc...
+  */
+  const moderationLabels = await awsRekognitionClient.send(
+    new DetectModerationLabelsCommand(commandInput)
+  )
+
+  /*
+    determine if image depicts a minor
+  */
+  const labels = await awsRekognitionClient.send(
+    new DetectLabelsCommand({
+      ...commandInput,
+      Settings: {
+        GeneralLabels: {
+          LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
+        },
+      },
+    })
+  )
+
+  /*
+    extract text from an image so that we can detect PII, links,
+    and in the future, run sentiment analysis
+   */
+  const extractedText = await awsRekognitionClient.send(
+    new DetectTextCommand(commandInput)
+  )
+  const textSegments =
+    extractedText.TextDetections?.filter(({ Type }) => Type === 'LINE').map(
+      detection => detection.DetectedText
+    ) ?? []
+
+  const concatenatedText = textSegments?.join(' ') ?? ''
+
+  /* example PII entity types: 'ADDRESS', 'EMAIL', 'PHONE', 'URL' */
+  let piiEntities = {}
+  let toxicContent = []
+  let highToxicity = []
+  const links = new Set<string>()
+  // TODO: we could store this in redis and only make these calls if it has changed
+  if (textSegments?.length > 0) {
+    const chunk = (arr, size) =>
+      Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+        arr.slice(i * size, i * size + size)
+      )
+
+    // TODO there's a limit of 1kb (~512 characters) per text segment.
+    // we should test and handle that here
+    // TODO there's a limit of 10 text segments per request.
+    const textChunks = chunk(textSegments, 10)
+    const toxicResults = []
+    for (const textChunk of textChunks) {
+      const result = await awsComprehendClient.send(
+        new DetectToxicContentCommand({
+          TextSegments: textChunk?.map(text => ({ Text: text })),
+          LanguageCode: 'en',
+        })
+      )
+      if (result.ResultList) {
+        toxicResults.push(
+          result.ResultList.map((r, i) => ({
+            text: textChunk[i],
+            result: r,
+          }))
+        )
+      }
+    }
+
+    toxicContent = toxicResults.flat()
+    highToxicity = toxicContent.filter(({ result }) => result.Toxicity > 0.5)
+
+    piiEntities = await awsComprehendClient.send(
+      new DetectPiiEntitiesCommand({
+        Text: concatenatedText,
+        LanguageCode: 'en',
+      })
+    )
+    const linkLocations = piiEntities.Entities.filter(
+      ({ Type }) => Type === 'URL'
+    )
+
+    for (const linkLocation of linkLocations) {
+      const linkStart = linkLocation.BeginOffset
+      const linkEnd = linkLocation.EndOffset
+
+      links.add(concatenatedText.slice(linkStart, linkEnd))
+    }
+
+    // TODO use siteengine to moderate shared links
+  }
+
+  // TODO determine heursitic for what is clean
+  const isClean =
+    piiEntities.Entities?.length === 0 &&
+    labels.Labels?.length === 0 &&
+    moderationLabels.ModerationLabels?.length === 0
+
+  // TODO if not clean, email nataly for review
+  // include offending frame
+  // include why it was flagged
+
+  return {
+    isClean: true,
+    toxicContent,
+    highToxicity,
+    piiEntities,
+    links: [...links],
+    labels,
+    concatenatedText,
+    extractedText,
+    moderationLabels,
+  }
+}
+
 /**
  * Enclose the given message in <student></student> or <tutor></tutor> tags.
  */

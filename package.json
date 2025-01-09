@@ -63,6 +63,8 @@
     "lint:sql:check"
   ],
   "dependencies": {
+    "@aws-sdk/client-comprehend": "^3.723.0",
+    "@aws-sdk/client-rekognition": "^3.723.0",
     "@aws-sdk/client-s3": "^3.588.0",
     "@aws-sdk/s3-request-presigner": "^3.588.0",
     "@azure-rest/ai-content-safety": "^1.0.0",
