@@ -127,12 +127,11 @@ export async function updateIsPartner(
     const school = await getSchoolById(schoolId)
     if (school) {
       if (isPartner)
-        await createSchoolStudentPartnerOrg(school.name, transactionClient)
-      // @TODO Update to create by school ID instead.
+        await createSchoolStudentPartnerOrg(school.id, transactionClient)
       else await deactivateStudentPartnerOrg(school.id, transactionClient)
     }
 
-    await transactionClient.query('COMMIT')
+    await transactionClient.query('COMMIT') // @TODO switch to runInTransaction style.
     if (result.length) return makeRequired(result[0])
   } catch (err) {
     await transactionClient.query('ROLLBACK')

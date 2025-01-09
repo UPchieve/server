@@ -9,6 +9,7 @@ import {
   StudentPartnerOrg,
   StudentPartnerOrgForRegistration,
 } from './types'
+import { School } from '../School'
 
 export async function getStudentPartnerOrgForRegistrationByKey(
   key: string
@@ -230,12 +231,12 @@ export async function createSchoolStudentPartnerOrg(
     )
 
     await pgQueries.createStudentPartnerOrgInstance.run(
-      { spoName: schoolName },
+      { schoolId },
       client || getClient()
     )
   } catch (err) {
     throw new RepoReadError(
-      `Failed to create school partner ${schoolName} and partner instance: ${err}`
+      `Failed to create school partner for schoolId ${schoolId} and partner instance: ${err}`
     )
   }
 }

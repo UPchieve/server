@@ -183,7 +183,7 @@ SELECT
 FROM
     student_partner_orgs spo
 WHERE
-    spo.name = :spoName!;
+    spo.school_id = :schoolId!;
 
 
 /* @name createSchoolStudentPartnerOrg */
@@ -203,7 +203,7 @@ FROM
     schools
 WHERE
     partner IS TRUE
-    AND name = :schoolName!
+    AND id = :schoolId!
 ON CONFLICT (name)
     DO UPDATE SET
         updated_at = NOW();
