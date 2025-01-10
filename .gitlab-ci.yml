@@ -187,22 +187,37 @@ variables:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 test_postgresql:
-  stage: test
-  image: postgres
+  stage: setup
+  image: node:18 # Or a Node.js image that suits your project
   services:
-    - postgres:14
-  # before_script:
-  #   - npm ci --cache .npm --prefer-offline
+    - name: postgres:14
+      alias: postgres
   script:
-    # - npm run test:database_ci
     - echo "Waiting for PostgreSQL to be ready..."
     - until pg_isready -h postgres -p 5432; do sleep 1; done
     - echo "PostgreSQL is ready."
-    - psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 'Database connection successful!'"
+    - npm ci --cache .npm --prefer-offline
+    - node jest.setup.js # Run the setup script to create the database
   variables:
     POSTGRES_HOST_AUTH_METHOD: trust
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  # stage: test
+  # image: postgres
+  # services:
+  #   - postgres:14
+  # # before_script:
+  # #   - npm ci --cache .npm --prefer-offline
+  # script:
+  #   # - npm run test:database_ci
+  #   - echo "Waiting for PostgreSQL to be ready..."
+  #   - until pg_isready -h postgres -p 5432; do sleep 1; done
+  #   - echo "PostgreSQL is ready."
+  #   - psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 'Database connection successful!'"
+  # variables:
+  #   POSTGRES_HOST_AUTH_METHOD: trust
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
 # lint:
 #   stage: test
