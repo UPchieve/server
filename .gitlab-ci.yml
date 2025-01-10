@@ -1,5 +1,6 @@
 stages:
   - build
+  - setup
   - test
   - deploy
 
@@ -187,7 +188,7 @@ variables:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 test_postgresql:
-  stage: test
+  stage: setup
   image: node:20.10.0-bullseye
   services:
     - name: postgres:14
