@@ -57,15 +57,18 @@ const createAzureContentSafetyClient = () => {
 
 const azureContentSafetyClient = createAzureContentSafetyClient()
 
-const awsRekognitionClient = new RekognitionClient([
-  {
-    region: config.awsS3.region,
-    credentials: {
-      accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY,
-      secretAccessKey: process.env.SUBWAY_SECRET_ACCESS_KEY,
-    },
+// Some documentation says to pass an array of configs,
+// others say to pass a single config object.
+// locally, passing an array works but an object doesn't
+// in staging, nothign seems to work. i either get a
+// Region missing error (with array) or access denied (with object)
+const awsRekognitionClient = new RekognitionClient({
+  region: config.awsS3.region,
+  credentials: {
+    accessKeyId: config.awsS3.accessKeyId,
+    secretAccessKey: config.awsS3.secretAccessKey,
   },
-])
+})
 
 type VideoFrameModerationFailureReason = {
   reason: string
@@ -89,14 +92,14 @@ const moderationLabelToFailureReason = (
 }
 
 export const moderateVideoFrame = async (
-  frame: string,
+  frame: Buffer,
   sessionId: string
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
   const imageCommandInput = {
     Image: {
-      Bytes: Buffer.from(frame, 'base64'),
+      Bytes: frame,
     },
     MinConfidence: 50,
   }
