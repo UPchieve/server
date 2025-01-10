@@ -1,3 +1,4 @@
+
 const { Pool } = require('pg')
 
 const POSTGRES_USER = 'test_user'
@@ -20,7 +21,6 @@ beforeAll(async () => {
     port: POSTGRES_PORT,
   })
 
-  // Create the test database if it doesn't already exist
   try {
     await adminPool.query(`CREATE DATABASE ${TEST_DB};`)
     console.log(`Database ${TEST_DB} created.`)
@@ -33,15 +33,14 @@ beforeAll(async () => {
     }
   }
 
-  // Connect to the test database for your tests
-  testPool = new Pool({
-    user: POSTGRES_USER,
-    host: POSTGRES_HOST,
-    database: TEST_DB,
-    password: POSTGRES_PASSWORD,
-    port: POSTGRES_PORT,
-  })
-  console.log(`Connected to test database: ${TEST_DB}`)
+  // testPool = new Pool({
+  //   user: POSTGRES_USER,
+  //   host: POSTGRES_HOST,
+  //   database: TEST_DB,
+  //   password: POSTGRES_PASSWORD,
+  //   port: POSTGRES_PORT,
+  // })
+  // console.log(`Connected to test database: ${TEST_DB}`)
 })
 
 afterAll(async () => {
