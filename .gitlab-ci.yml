@@ -188,7 +188,7 @@ variables:
 
 test_postgresql:
   stage: test
-  image: postgres:14
+  image: node:20.10.0-bullseye
   services:
     - postgres:14
   before_script:
