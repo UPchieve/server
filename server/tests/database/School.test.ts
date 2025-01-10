@@ -1,6 +1,12 @@
 import { getPartnerSchools } from '../../models/School'
 import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'
+import { insertSingleRow } from '../db-utils'
+import {
+  buildStudentPartnerOrg,
+  buildStudentPartnerOrgUpchieveInstance,
+} from '../mocks/generate'
+import * as SchoolService from '../../services/SchoolService'
 
 const client = getClient()
 
@@ -66,5 +72,176 @@ describe('getPartnerSchools', () => {
     const sites = new Set(schoolWithSites!.partnerSites)
     expect(sites.has('Phoenix')).toBe(true)
     expect(sites.has('Tuscon')).toBe(true)
+  })
+
+  describe('updateIsPartner', () => {
+    const createSchoolForTest = async (
+      isPartnerSchool: boolean
+    ): Promise<string> => {
+      const cityId = 1
+      const result = await client.query(
+        'INSERT INTO schools (id, name, partner, approved, city_id) VALUES ($1, $2, $3, true, $4) RETURNING id',
+        [
+          getDbUlid(),
+          `TEST ${isPartnerSchool ? 'PARTNER' : ''} SCHOOL`,
+          isPartnerSchool,
+          cityId,
+        ]
+      )
+      return result.rows[0].id
+    }
+
+    test('Deactivating a school partner', async () => {
+      const schoolId = await createSchoolForTest(true)
+      const spo = await insertSingleRow(
+        'student_partner_orgs',
+        buildStudentPartnerOrg({
+          schoolId,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'student_partner_orgs_upchieve_instances',
+        buildStudentPartnerOrgUpchieveInstance({
+          studentPartnerOrgId: spo.id,
+        }),
+        client
+      )
+      await SchoolService.updateIsPartner(schoolId, false)
+
+      const schoolResult = await client.query(
+        'SELECT * FROM schools WHERE id = $1',
+        [schoolId]
+      )
+      expect(schoolResult.rows.length).toEqual(1)
+      expect(schoolResult.rows[0].partner).toBe(false)
+      const spoInstances = (
+        await client.query(
+          'SELECT * FROM student_partner_orgs_upchieve_instances'
+        )
+      ).rows.filter(row => row.student_partner_org_id === spo.id)
+      expect(spoInstances.length).toEqual(1)
+      expect(spoInstances[0].deactivated_on).not.toBeNull()
+    })
+
+    test('Deactivates all SPOs if the school has multiple', async () => {
+      const schoolId = await createSchoolForTest(true)
+      const spo1 = await insertSingleRow(
+        'student_partner_orgs',
+        buildStudentPartnerOrg({
+          schoolId,
+        }),
+        client
+      )
+      const spo2 = await insertSingleRow(
+        'student_partner_orgs',
+        buildStudentPartnerOrg({
+          schoolId,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'student_partner_orgs_upchieve_instances',
+        buildStudentPartnerOrgUpchieveInstance({
+          studentPartnerOrgId: spo1.id,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'student_partner_orgs_upchieve_instances',
+        buildStudentPartnerOrgUpchieveInstance({
+          studentPartnerOrgId: spo2.id,
+        }),
+        client
+      )
+      // Precondition: Both SPOs have active instances
+      const spoInstancesBefore = await client.query(
+        `SELECT * FROM student_partner_orgs_upchieve_instances WHERE student_partner_org_id IN ($1, $2)`,
+        [spo1.id, spo2.id]
+      )
+      expect(spoInstancesBefore.rows.length).toEqual(2)
+      spoInstancesBefore.rows.forEach(instance => {
+        expect(instance.deactivated_on).toBeNull()
+      })
+
+      await SchoolService.updateIsPartner(schoolId, false)
+
+      // Postcondition: Both SPOs are now deactivated
+      const spoInstancesAfter = await client.query(
+        `SELECT * FROM student_partner_orgs_upchieve_instances WHERE student_partner_org_id IN ($1, $2)`,
+        [spo1.id, spo2.id]
+      )
+      expect(spoInstancesAfter.rows.length).toEqual(2)
+      spoInstancesAfter.rows.forEach(instance => {
+        const deactivatedDate = new Date(instance.deactivated_on)
+        expect(deactivatedDate.getDate()).toEqual(new Date().getDate())
+      })
+    })
+
+    test('Activating a school partner', async () => {
+      const schoolId = await createSchoolForTest(false)
+      await SchoolService.updateIsPartner(schoolId, true)
+
+      const schoolResult = await client.query(
+        'SELECT * FROM schools WHERE id = $1',
+        [schoolId]
+      )
+      expect(schoolResult.rows.length).toEqual(1)
+      expect(schoolResult.rows[0].partner).toBe(true)
+      const spoResults = await client.query(
+        'SELECT * FROM student_partner_orgs WHERE school_id = $1',
+        [schoolId]
+      )
+      expect(spoResults.rows.length).toEqual(1)
+      const spo = spoResults.rows[0]
+      const spoInstances = (
+        await client.query(
+          'SELECT * FROM student_partner_orgs_upchieve_instances'
+        )
+      ).rows.filter(row => row.student_partner_org_id === spo.id)
+      expect(spoInstances.length).toEqual(1)
+      expect(spoInstances[0].deactivated_on).toBeNull()
+    })
+
+    test('Reactivating a school partner', async () => {
+      // Initial state: The school is a deactivated partner school
+      const schoolId = await createSchoolForTest(true)
+      const spo = await insertSingleRow(
+        'student_partner_orgs',
+        buildStudentPartnerOrg({
+          schoolId,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'student_partner_orgs_upchieve_instances',
+        buildStudentPartnerOrgUpchieveInstance({
+          studentPartnerOrgId: spo.id,
+          deactivatedOn: new Date(),
+        }),
+        client
+      )
+      await SchoolService.updateIsPartner(schoolId, true)
+
+      const schoolResult = await client.query(
+        'SELECT * FROM schools WHERE id = $1',
+        [schoolId]
+      )
+      expect(schoolResult.rows.length).toEqual(1)
+      expect(schoolResult.rows[0].partner).toBe(true)
+      const spoResults = await client.query(
+        'SELECT * FROM student_partner_orgs WHERE school_id = $1',
+        [schoolId]
+      )
+      expect(spoResults.rows.length).toEqual(1)
+      const spoInstances = (
+        await client.query(
+          'SELECT * FROM student_partner_orgs_upchieve_instances'
+        )
+      ).rows.filter(row => row.student_partner_org_id === spoResults.rows[0].id)
+      expect(
+        spoInstances.filter(instance => instance.deactivated_on === null).length
+      ).toEqual(1)
+    })
   })
 })

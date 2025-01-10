@@ -431,12 +431,12 @@ export function buildStudentPartnerOrg(
 ): Partial<StudentPartnerOrg> & { id: Ulid | string } {
   return {
     id: getDbUlid(),
-    key: 'school-helpers',
-    name: 'School Helpers',
+    key: faker.string.uuid(),
+    name: faker.string.uuid(),
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
-    signupCode: 'SCHOOLHELPERS',
+    signupCode: faker.string.uuid(),
     ...overrides,
   }
 }
@@ -453,12 +453,12 @@ export function buildStudentPartnerOrgUpchieveInstance(
   } as StudentPartnerOrgUpchieveInstance
 }
 
-export function buildSchool(overrides: Partial<School> = {}): School {
+export function buildSchool(
+  overrides: Partial<School> = {}
+): Omit<School, 'state' | 'isAdminApproved'> {
   return {
     id: getDbUlid(),
     name: 'Approved School',
-    state: 'NY',
-    isAdminApproved: true,
     isPartner: false,
     city: 'Brooklyn',
     ...overrides,
