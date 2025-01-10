@@ -209,6 +209,7 @@ SELECT
     sessions.ended_at,
     sessions.created_at,
     sessions.volunteer_id AS volunteer,
+    volunteers.first_name AS volunteer_first_name,
     topics.name AS TYPE,
     subjects.name AS sub_topic,
     students.first_name AS student_first_name,
@@ -223,6 +224,7 @@ FROM
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
     LEFT JOIN topics ON topics.id = subjects.topic_id
     LEFT JOIN users students ON students.id = sessions.student_id
+    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
     LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
             AND student_feedback.user_id = sessions.student_id)
     LEFT JOIN LATERAL (
