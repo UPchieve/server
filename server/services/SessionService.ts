@@ -19,13 +19,13 @@ import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
 import { DAYS } from '../constants'
 import { LookupError, NotAllowedError } from '../models/Errors'
-import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   Session,
+  SessionsToReview,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -85,7 +85,10 @@ export async function reviewSession(data: unknown) {
 export async function sessionsToReview(
   data: unknown,
   filterBy: { studentFirstName?: string }
-) {
+): Promise<{
+  sessions: SessionsToReview[]
+  isLastPage: boolean
+}> {
   const page = asString(data)
   const pageNum = parseInt(page) || 1
   const PER_PAGE = 15

@@ -252,6 +252,7 @@ export type SessionsToReview = {
   createdAt: Date
   endedAt: Date
   volunteer?: Ulid
+  volunteerFirstName?: string
   totalMessages: number
   type: string
   subTopic: string
@@ -279,6 +280,7 @@ export async function getSessionsToReview(
       result.map(async v => {
         const temp = makeSomeOptional(v, [
           'volunteer',
+          'volunteerFirstName',
           'reviewReasons',
           'studentCounselingFeedback',
         ])
