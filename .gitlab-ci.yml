@@ -199,8 +199,8 @@ test_postgresql:
     # - until pg_isready -h postgres -p 5432; do sleep 1; done
     # - echo "PostgreSQL is ready."
     # - psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 'Database connection successful!'"
-  variables:
-    POSTGRES_HOST_AUTH_METHOD: trust
+  # variables:
+  #   POSTGRES_HOST_AUTH_METHOD: trust
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
