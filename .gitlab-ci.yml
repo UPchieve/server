@@ -187,8 +187,8 @@ variables:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 test_postgresql:
-  stage: setup
-  image: node:18 # Or a Node.js image that suits your project
+  stage: test
+  image: node:20.10.0-bullseye
   services:
     - name: postgres:14
       alias: postgres
