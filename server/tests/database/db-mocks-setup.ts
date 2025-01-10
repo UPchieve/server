@@ -5,6 +5,8 @@ jest.unmock('pg')
 jest.mock('../../db')
 const mockedClient = mocked(PgClient)
 // @ts-ignore
-mockedClient.getClient.mockReturnValue(global.__TEST_DB_CLIENT__)
+const testDbClient = global.__TEST_DB_CLIENT__
+mockedClient.getClient.mockReturnValue(testDbClient)
+console.log('******test db client', testDbClient)
 // @ts-ignore
 mockedClient.getRoClient.mockReturnValue(global.__TEST_DB_CLIENT__)
