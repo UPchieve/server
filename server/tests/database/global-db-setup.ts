@@ -3,6 +3,9 @@ import { PostgreSqlContainer, Wait } from 'testcontainers'
 
 export default async function setup() {
   const { path, host, port } = await ContainerConfigFactory.getContainerConfig()
+  console.log('***path', path)
+  console.log('***host', host)
+  console.log('***port', port)
   const container = await createTestDbContainer(path, host, port).start()
 
   process.env.__TEST_DB_CONNECTION_STRING__ = container.getConnectionUri()

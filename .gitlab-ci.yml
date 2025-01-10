@@ -22,169 +22,169 @@ variables:
   POSTGRES_USER: test_user
   POSTGRES_PASSWORD: test_password
 
-.docker_service:
-  services:
-    - docker:20.10.6-dind
-  variables:
-    DOCKER_TLS_CERTDIR: ""
+# .docker_service:
+#   services:
+#     - docker:20.10.6-dind
+#   variables:
+#     DOCKER_TLS_CERTDIR: ""
 
-.build_docker:
-  extends: .docker_service
-  stage: build
-  image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
-  cache: []
-  id_tokens:
-    GITLAB_OIDC_TOKEN:
-      aud: api://AzureADTokenExchange
-  variables:
-    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-    AZURE_TENANT_ID: $AZURE_TENANT_ID
-  environment:
-    action: prepare
-  allow_failure: false
-  before_script:
-    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
-    - az acr login --name $AZURE_CONTAINER_REGISTRY
-  script:
-    - echo $IMAGE_TAG
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+# .build_docker:
+#   extends: .docker_service
+#   stage: build
+#   image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
+#   cache: []
+#   id_tokens:
+#     GITLAB_OIDC_TOKEN:
+#       aud: api://AzureADTokenExchange
+#   variables:
+#     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+#     AZURE_TENANT_ID: $AZURE_TENANT_ID
+#   environment:
+#     action: prepare
+#   allow_failure: false
+#   before_script:
+#     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+#     - az acr login --name $AZURE_CONTAINER_REGISTRY
+#   script:
+#     - echo $IMAGE_TAG
+#     - docker build -t $IMAGE_TAG .
+#     - docker push $IMAGE_TAG
 
-build_ci:
-  extends: .docker_service
-  stage: build
-  image: docker:20.10.6
-  cache: []
-  script:
-    - docker build .
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+# build_ci:
+#   extends: .docker_service
+#   stage: build
+#   image: docker:20.10.6
+#   cache: []
+#   script:
+#     - docker build .
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
-build_staging:
-  extends: .build_docker
-  environment:
-    name: staging
-  variables:
-    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_STAGING
-    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_STAGING
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
-
-# TODO: Uncomment once production environment is set up.
-# build_production:
+# build_staging:
 #   extends: .build_docker
 #   environment:
-#     name: production
-#   allow_failure: false
+#     name: staging
 #   variables:
-#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
-#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_STAGING
+#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_STAGING
 #   rules:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-.deploy:
-  stage: deploy
-  image: mcr.microsoft.com/azure-cli:latest
-  id_tokens:
-    GITLAB_OIDC_TOKEN:
-      aud: api://AzureADTokenExchange
-  variables:
-    IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
-  before_script:
-    - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
-    - az extension add --name containerapp --upgrade
-  script:
-    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
-    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+# # TODO: Uncomment once production environment is set up.
+# # build_production:
+# #   extends: .build_docker
+# #   environment:
+# #     name: production
+# #   allow_failure: false
+# #   variables:
+# #     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
+# #     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+# #   rules:
+# #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-deploy_staging:
-  extends: .deploy
-  environment:
-    name: staging
-  resource_group: staging
-  variables:
-    CONTAINER_APP: staging-container-app-subway
-    CONTAINER_APP_WORKER: staging-container-app-worker
-    RESOURCE_GROUP: staging-resource-group
-    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_STAGING
-    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_STAGING
-  needs:
-    - job: build_staging
-      artifacts: true
-    - job: test_backend
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+# .deploy:
+#   stage: deploy
+#   image: mcr.microsoft.com/azure-cli:latest
+#   id_tokens:
+#     GITLAB_OIDC_TOKEN:
+#       aud: api://AzureADTokenExchange
+#   variables:
+#     IMAGE_TAG: $AZURE_CONTAINER_REGISTRY/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+#   before_script:
+#     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
+#     - az extension add --name containerapp --upgrade
+#   script:
+#     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+#     - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
 
-# TODO: Uncomment once production environment is set up.
-# deploy_production:
+# deploy_staging:
 #   extends: .deploy
 #   environment:
-#     name: production
-#   resource_group: production
+#     name: staging
+#   resource_group: staging
 #   variables:
-#     CONTAINER_APP: production-container-app-subway
-#     CONTAINER_APP_WORKER: production-container-app-worker
-#     RESOURCE_GROUP: production-resource-group
-#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
-#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+#     CONTAINER_APP: staging-container-app-subway
+#     CONTAINER_APP_WORKER: staging-container-app-worker
+#     RESOURCE_GROUP: staging-resource-group
+#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_STAGING
+#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_STAGING
 #   needs:
-#     - job: build_production
+#     - job: build_staging
 #       artifacts: true
 #     - job: test_backend
-#   when: manual
 #   rules:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-build:
-  stage: build
-  image: "docker:20.10.6"
-  cache: {}
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  services:
-    - docker:20.10.6-dind
-  script:
-    - |
-      if [[ -z "$CI_COMMIT_TAG" ]]; then
-        export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG}
-        export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_SHA}
-      else
-        export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE}
-        export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_TAG}
-      fi
-    - export image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-    - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
-    - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - apk add --update curl tar
-    - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
-    - |
-      pack build "$image_tagged" \
-        --creation-time now \
-        --builder heroku/buildpacks:20 \
-        --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
-        --buildpack heroku/nodejs@2.6.2 \
-        --buildpack heroku/procfile@0.6.2 \
-        --publish
-  rules:
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+# # TODO: Uncomment once production environment is set up.
+# # deploy_production:
+# #   extends: .deploy
+# #   environment:
+# #     name: production
+# #   resource_group: production
+# #   variables:
+# #     CONTAINER_APP: production-container-app-subway
+# #     CONTAINER_APP_WORKER: production-container-app-worker
+# #     RESOURCE_GROUP: production-resource-group
+# #     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
+# #     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+# #   needs:
+# #     - job: build_production
+# #       artifacts: true
+# #     - job: test_backend
+# #   when: manual
+# #   rules:
+# #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-test_backend:
-  stage: test
-  image: node:20.10.0-bullseye
-  variables:
-    NODE_OPTIONS: --max_old_space_size=5120
-  services:
-    - redis:latest
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run test:backend
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+# build:
+#   stage: build
+#   image: "docker:20.10.6"
+#   cache: {}
+#   variables:
+#     DOCKER_TLS_CERTDIR: ""
+#   services:
+#     - docker:20.10.6-dind
+#   script:
+#     - |
+#       if [[ -z "$CI_COMMIT_TAG" ]]; then
+#         export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG}
+#         export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_SHA}
+#       else
+#         export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE}
+#         export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_TAG}
+#       fi
+#     - export image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+#     - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
+#     - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
+#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#     - apk add --update curl tar
+#     - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+#     - |
+#       pack build "$image_tagged" \
+#         --creation-time now \
+#         --builder heroku/buildpacks:20 \
+#         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
+#         --buildpack heroku/nodejs@2.6.2 \
+#         --buildpack heroku/procfile@0.6.2 \
+#         --publish
+#   rules:
+#     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
+
+# test_backend:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   variables:
+#     NODE_OPTIONS: --max_old_space_size=5120
+#   services:
+#     - redis:latest
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - npm run test:backend
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 test_postgresql:
   stage: test
@@ -201,42 +201,42 @@ test_postgresql:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
-lint:
-  stage: test
-  image: node:20.10.0-bullseye
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - docker info # Verify Docker daemon connectivity
-    - npm run lint
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+# lint:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - docker info # Verify Docker daemon connectivity
+#     - npm run lint
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-lint_sql:
-  stage: test
-  image: node:20.10.0-bullseye
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run lint:sql:check
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+# lint_sql:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - npm run lint:sql:check
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-lint_database:
-  stage: test
-  image: node:20.10.0-bullseye
-  before_script:
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm run lint:database:dry
-  rules:
-    - if: '$TEST_DISABLED'
-      when: never
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+# lint_database:
+#   stage: test
+#   image: node:20.10.0-bullseye
+#   before_script:
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - npm run lint:database:dry
+#   rules:
+#     - if: '$TEST_DISABLED'
+#       when: never
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
