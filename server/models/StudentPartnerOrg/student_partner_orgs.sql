@@ -210,15 +210,29 @@ ON CONFLICT (id)
 
 
 /* @name deactivateStudentPartnerOrg */
+WITH school_student_partner_orgs AS (
+    SELECT
+        id
+    FROM
+        student_partner_orgs
+    WHERE
+        school_id = :schoolId!)
 UPDATE
     student_partner_orgs_upchieve_instances
 SET
     deactivated_on = NOW(),
     updated_at = NOW()
+FROM
+    student_partner_orgs spo
 WHERE
-    student_partner_org_id = :spoId!
+    spo.id IN (
+        SELECT
+            id
+        FROM
+            school_student_partner_orgs)
+    AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
 RETURNING
-    id AS ok;
+    student_partner_orgs_upchieve_instances.id AS ok;
 
 
 /* @name deactivateUserStudentPartnerOrgInstance */

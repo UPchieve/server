@@ -258,18 +258,18 @@ export async function createStudentPartnerOrgUpchieveInstance(
   }
 }
 
-export async function deactivateStudentPartnerOrg(
-  spoId: string,
+export async function deactivateSchoolStudentPartnerOrgs(
+  schoolId: string,
   client?: PoolClient
 ): Promise<void> {
   try {
     await pgQueries.deactivateStudentPartnerOrg.run(
-      { spoId },
+      { schoolId },
       client ?? getClient()
     )
   } catch (err) {
     throw new RepoReadError(
-      `Failed to deactivate student partner org with ID ${spoId}: ${err}`
+      `Failed to deactivate student partner org(s) for school ${schoolId}: ${err}`
     )
   }
 }

@@ -493,7 +493,7 @@ export const createSchoolStudentPartnerOrg = new PreparedQuery<ICreateSchoolStud
 
 /** 'DeactivateStudentPartnerOrg' parameters type */
 export interface IDeactivateStudentPartnerOrgParams {
-  spoId: string;
+  schoolId: string;
 }
 
 /** 'DeactivateStudentPartnerOrg' return type */
@@ -507,20 +507,34 @@ export interface IDeactivateStudentPartnerOrgQuery {
   result: IDeactivateStudentPartnerOrgResult;
 }
 
-const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"spoId":true},"params":[{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":141,"b":147}]}],"statement":"UPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nWHERE\n    student_partner_org_id = :spoId!\nRETURNING\n    id AS ok"};
+const deactivateStudentPartnerOrgIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":137}]}],"statement":"WITH school_student_partner_orgs AS (\n    SELECT\n        id\n    FROM\n        student_partner_orgs\n    WHERE\n        school_id = :schoolId!)\nUPDATE\n    student_partner_orgs_upchieve_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.id IN (\n        SELECT\n            id\n        FROM\n            school_student_partner_orgs)\n    AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id\nRETURNING\n    student_partner_orgs_upchieve_instances.id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH school_student_partner_orgs AS (
+ *     SELECT
+ *         id
+ *     FROM
+ *         student_partner_orgs
+ *     WHERE
+ *         school_id = :schoolId!)
  * UPDATE
  *     student_partner_orgs_upchieve_instances
  * SET
  *     deactivated_on = NOW(),
  *     updated_at = NOW()
+ * FROM
+ *     student_partner_orgs spo
  * WHERE
- *     student_partner_org_id = :spoId!
+ *     spo.id IN (
+ *         SELECT
+ *             id
+ *         FROM
+ *             school_student_partner_orgs)
+ *     AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
  * RETURNING
- *     id AS ok
+ *     student_partner_orgs_upchieve_instances.id AS ok
  * ```
  */
 export const deactivateStudentPartnerOrg = new PreparedQuery<IDeactivateStudentPartnerOrgParams,IDeactivateStudentPartnerOrgResult>(deactivateStudentPartnerOrgIR);

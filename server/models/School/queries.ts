@@ -19,7 +19,7 @@ import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
   createStudentPartnerOrgUpchieveInstance,
-  deactivateStudentPartnerOrg,
+  deactivateSchoolStudentPartnerOrgs,
   StudentPartnerOrg,
 } from '../StudentPartnerOrg'
 import {
@@ -150,10 +150,7 @@ export async function updateIsPartner(
       }
       await createStudentPartnerOrgUpchieveInstance(schoolId, transactionClient)
     } else {
-      await deactivateStudentPartnerOrg(
-        existingStudentPartnerOrgId!,
-        transactionClient
-      )
+      await deactivateSchoolStudentPartnerOrgs(schoolId, transactionClient)
     }
 
     // @TODO switch to runInTransaction style and move this logic into the service layer.

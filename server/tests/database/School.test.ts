@@ -3,7 +3,6 @@ import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'
 import { insertSingleRow } from '../db-utils'
 import {
-  buildSchool,
   buildStudentPartnerOrg,
   buildStudentPartnerOrgUpchieveInstance,
 } from '../mocks/generate'
@@ -94,10 +93,6 @@ describe('getPartnerSchools', () => {
 
     test('Deactivating a school partner', async () => {
       const schoolId = await createSchoolForTest(true)
-      buildSchool({
-        isPartner: true,
-        id: schoolId,
-      })
       const spo = await insertSingleRow(
         'student_partner_orgs',
         buildStudentPartnerOrg({
@@ -129,12 +124,62 @@ describe('getPartnerSchools', () => {
       expect(spoInstances[0].deactivated_on).not.toBeNull()
     })
 
+    test('Deactivates all SPOs if the school has multiple', async () => {
+      const schoolId = await createSchoolForTest(true)
+      const spo1 = await insertSingleRow(
+        'student_partner_orgs',
+        buildStudentPartnerOrg({
+          schoolId,
+        }),
+        client
+      )
+      const spo2 = await insertSingleRow(
+        'student_partner_orgs',
+        buildStudentPartnerOrg({
+          schoolId,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'student_partner_orgs_upchieve_instances',
+        buildStudentPartnerOrgUpchieveInstance({
+          studentPartnerOrgId: spo1.id,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'student_partner_orgs_upchieve_instances',
+        buildStudentPartnerOrgUpchieveInstance({
+          studentPartnerOrgId: spo2.id,
+        }),
+        client
+      )
+      // Precondition: Both SPOs have active instances
+      const spoInstancesBefore = await client.query(
+        `SELECT * FROM student_partner_orgs_upchieve_instances WHERE student_partner_org_id IN ($1, $2)`,
+        [spo1.id, spo2.id]
+      )
+      expect(spoInstancesBefore.rows.length).toEqual(2)
+      spoInstancesBefore.rows.forEach(instance => {
+        expect(instance.deactivated_on).toBeNull()
+      })
+
+      await SchoolService.updateIsPartner(schoolId, false)
+
+      // Postcondition: Both SPOs are now deactivated
+      const spoInstancesAfter = await client.query(
+        `SELECT * FROM student_partner_orgs_upchieve_instances WHERE student_partner_org_id IN ($1, $2)`,
+        [spo1.id, spo2.id]
+      )
+      expect(spoInstancesAfter.rows.length).toEqual(2)
+      spoInstancesAfter.rows.forEach(instance => {
+        const deactivatedDate = new Date(instance.deactivated_on)
+        expect(deactivatedDate.getDate()).toEqual(new Date().getDate())
+      })
+    })
+
     test('Activating a school partner', async () => {
       const schoolId = await createSchoolForTest(false)
-      buildSchool({
-        isPartner: false,
-        id: schoolId,
-      })
       await SchoolService.updateIsPartner(schoolId, true)
 
       const schoolResult = await client.query(
@@ -161,10 +206,6 @@ describe('getPartnerSchools', () => {
     test('Reactivating a school partner', async () => {
       // Initial state: The school is a deactivated partner school
       const schoolId = await createSchoolForTest(true)
-      buildSchool({
-        isPartner: false,
-        id: schoolId,
-      })
       const spo = await insertSingleRow(
         'student_partner_orgs',
         buildStudentPartnerOrg({
