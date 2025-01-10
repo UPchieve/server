@@ -1,11 +1,11 @@
 const { Pool } = require('pg')
 
-const POSTGRES_USER = process.env.POSTGRES_USER || 'test_user'
-const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'test_password'
-const POSTGRES_HOST = process.env.POSTGRES_HOST || 'postgres'
-const POSTGRES_PORT = process.env.POSTGRES_PORT || 5432
+const POSTGRES_USER = 'test_user'
+const POSTGRES_PASSWORD = 'test_password'
+const POSTGRES_HOST = 'postgres'
+const POSTGRES_PORT = 5432
 const DEFAULT_DB = 'postgres' // Default database to connect to for admin operations
-const TEST_DB = process.env.POSTGRES_DB || 'upchieve_test_ci_db'
+const TEST_DB = 'upchieve_test_ci_db'
 
 let adminPool
 let testPool
