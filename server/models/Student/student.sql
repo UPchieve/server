@@ -640,7 +640,7 @@ DELETE FROM student_favorite_volunteers
 WHERE student_id = volunteer_id;
 
 
-/* @name adminUpdateStudentSchool */
+/* @name updateStudentSchool */
 UPDATE
     student_profiles
 SET
@@ -747,7 +747,8 @@ SELECT
     email,
     COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
     users.created_at,
-    users.updated_at
+    users.updated_at,
+    school_id
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id

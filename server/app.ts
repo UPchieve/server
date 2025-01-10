@@ -1,6 +1,5 @@
 import * as http from 'http'
 import { Socket } from 'net'
-import * as Sentry from '@sentry/node'
 import bodyParser from 'body-parser'
 import timeout from 'connect-timeout'
 import cookieParser from 'cookie-parser'
@@ -38,13 +37,6 @@ function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-// Set up Sentry error tracking
-Sentry.init({
-  dsn: config.sentryDsn,
-  environment: config.NODE_ENV,
-  release: `uc-server@${config.version}`,
-})
-
 // Express App
 const app = express()
 
@@ -54,11 +46,12 @@ const app = express()
  * see https://github.com/expressjs/express/issues/4618
  */
 
-app.use(
-  pinoHttp({
-    logger,
-  }) as express.RequestHandler
-)
+// TODO: Uncomment once we can use newrelic again.
+// app.use(
+//   pinoHttp({
+//     logger,
+//   }) as express.RequestHandler
+// )
 
 app.use(timeout('300000'))
 
@@ -69,7 +62,6 @@ app.use(timeout('300000'))
 app.set('trust proxy', true)
 
 // Setup middleware
-app.use(Sentry.Handlers.requestHandler() as express.RequestHandler) // The Sentry request handler must be the first middleware on the app
 app.use(bodyParser.json() as express.RequestHandler)
 app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
 app.use(cookieParser(config.sessionSecret))
@@ -111,9 +103,6 @@ app.use((req, res, next): void => {
     promisify(req.login.bind(req))(arg1)
   next()
 })
-
-// The error handler must be before any other error middleware and after all controllers
-app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
 
 // Swagger docs
 if (isDevEnvironment()) {

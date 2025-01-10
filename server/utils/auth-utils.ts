@@ -51,7 +51,7 @@ export interface SessionWithSsoData extends session.Session {
     isLogin?: boolean
     provider?: string
     redirect?: string
-    studentData?: Partial<RegisterStudentPayload>
+    userData?: Partial<RegisterStudentPayload | RegisterTeacherPayload>
     fedCredData?: {
       profileId: string
       issuer: string
@@ -197,9 +197,11 @@ export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
 export interface RegisterTeacherPayload {
   email: string
   firstName: string
-  ip: string
+  ip?: string
+  issuer?: string
   lastName: string
-  password: string
+  password?: string
+  profileId?: string
   schoolId?: string
   signupSource?: string
 }
@@ -207,8 +209,10 @@ export const registerTeacherValidator = asFactory<RegisterTeacherPayload>({
   email: asString,
   firstName: asString,
   ip: asString,
+  issuer: asOptional(asString),
   lastName: asString,
   password: asString,
+  profileId: asOptional(asString),
   schoolId: asOptional(asString),
   signupSource: asOptional(asString),
 })

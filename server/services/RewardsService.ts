@@ -1,4 +1,4 @@
-import axios from 'axios'
+import { AxiosError } from 'axios'
 import { Configuration, Environments, ListRewards200Response } from 'tremendous'
 import {
   OrdersApi,
@@ -198,6 +198,15 @@ export async function getCampaigns(): Promise<RewardCampaigns> {
   return campaignData
 }
 
+/**
+ *
+ * Due to Tremendous API limitations, when filtering by a custom field (e.g., user_id),
+ * the API response only includes that field among custom_fields. Therefore, we must
+ * retrieve each reward individually to obtain all associated custom fields.
+ *
+ * Additionally, we use caching to minimize API calls for subsequent page requests.
+ *
+ */
 export async function getUserRewards(
   userId: Ulid,
   offset: number
@@ -244,6 +253,12 @@ export async function getUserRewards(
       )
     )
 
+    /**
+     *
+     * Tremendous returns rewards filtered by a custom_field with only that field populated.
+     * To retrieve all custom fields for each reward, we fetch the full reward data individually
+     *
+     */
     const rewardsData = await Promise.all(
       rewardIds.map(id => getUserRewardByRewardId(id))
     )
@@ -274,16 +289,10 @@ export async function getUserRewards(
     }
 
     return { rewards: userRewards, total: userRewardResponse.total_count ?? 0 }
-    // TODO: handle error
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error(
-        'Axios error while fetching rewards:',
-        error.response?.data || error.message
-      )
-    } else {
-      console.error('Unexpected error while fetching rewards:', error)
-    }
+    logError(
+      ((error as AxiosError).response?.data as Error) || (error as Error)
+    )
   }
 }
 
@@ -324,11 +333,11 @@ export async function getRewardLink(rewardId: string) {
 }
 
 /**
- * Fetches rewards by a combination of user ID and survey ID.
- * Due to Tremendous' API limitations on filtering by multiple custom fields,
- * we use a compound field in order to retrieve specific rewards.
  *
- * For example, we're unable to supply both separately user ID and survey ID as params
+ * Due to Tremendous API limitations on filtering by multiple custom fields,
+ * we use a compound custom field (user_id_survey_id) to fetch rewards tied to both a user and a survey.
+ * This allows us to determine if a user has already received a reward for a given survey.
+ *
  */
 export async function getUserRewardBySurveyId(userId: Ulid, surveyId: number) {
   try {
