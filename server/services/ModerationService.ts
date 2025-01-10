@@ -194,7 +194,7 @@ export const moderateVideoFrame = async (
   }
 
   return {
-    failureReasons: failureReasons,
+    failureReasons,
   }
 }
 
