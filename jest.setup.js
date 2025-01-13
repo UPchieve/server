@@ -11,7 +11,7 @@ const TEST_DB = 'upchieve_test_ci_db'
 let adminPool
 let testPool
 
-beforeAll(async () => {
+// beforeAll(async () => {
   // Connect to the default 'postgres' database to create the test database
   adminPool = new Pool({
     user: POSTGRES_USER,
@@ -41,13 +41,13 @@ beforeAll(async () => {
   //   port: POSTGRES_PORT,
   // })
   // console.log(`Connected to test database: ${TEST_DB}`)
-})
+// })
 
-afterAll(async () => {
-  // Close all connections
-  await testPool.end()
-  await adminPool.end()
-  console.log('Database connections closed.')
-})
+// afterAll(async () => {
+//   // Close all connections
+//   await testPool.end()
+//   await adminPool.end()
+//   console.log('Database connections closed.')
+// })
 
 module.exports = { adminPool, testPool }
