@@ -340,7 +340,10 @@ export async function getIndividualSessionMessageModerationResponse({
   isVolunteer: boolean
 }) {
   const model = 'gpt-4o'
-  const promptData = await getPromptData()
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION,
+    FALLBACK_MODERATION_PROMPT
+  )
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     sessionId: censoredSessionMessage.sessionId,
@@ -397,21 +400,22 @@ export async function getIndividualSessionMessageModerationResponse({
   }
 }
 
-const getPromptData = async (): Promise<{
+const getPromptData = async (
+  promptName: LangfusePromptNameEnum,
+  fallbackPrompt: string
+): Promise<{
   isFallback: boolean
   prompt: string
   version: string
   promptObject?: TextPromptClient
 }> => {
-  const promptName =
-    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
   const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
   const isFallback = promptFromLangfuse === undefined
 
   return {
     isFallback,
     prompt: isFallback
-      ? FALLBACK_MODERATION_PROMPT
+      ? fallbackPrompt
       : (promptFromLangfuse! as TextPromptClient).prompt,
     version: isFallback
       ? 'FALLBACK'
@@ -720,6 +724,7 @@ export const wrapMessageInXmlTags = (
 }
 
 const getSessionTranscriptModerationResult = async (
+  prompt: string,
   chunkAsString: string
 ): Promise<TranscriptChunkModerationResult> => {
   const result = await openai.chat.completions.create({
@@ -727,7 +732,7 @@ const getSessionTranscriptModerationResult = async (
     messages: [
       {
         role: 'system',
-        content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
+        content: prompt,
       },
       {
         role: 'user',
@@ -754,10 +759,16 @@ export const moderateTranscript = async (
     }, '')
   }
 
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.SESSION_TRANSCRIPT_MODERATION,
+    FALLBACK_TRANSCRIPT_MODERATION_PROMPT
+  )
+
   const results: TranscriptChunkModerationResult[] = []
   const chunks: SessionTranscriptItem[][] = chunk(transcript.messages, 5)
   for (const chunk of chunks) {
     const result = await getSessionTranscriptModerationResult(
+      promptData.prompt,
       getChunkAsString(chunk)
     )
     results.push(result)
