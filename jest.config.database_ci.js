@@ -1,23 +1,18 @@
-const { defaults: tsjPreset } = require('ts-jest/presets')
-
-const FIVE_MINUTES_IN_MS = 5 * 60 * 1000
-
 module.exports = {
-  testEnvironment: 'node',
-  setupFilesAfterEvn: [
-    '<rootDir>/server/tests/new_db/setup.js'
-  ]
-  // setupFiles: ['<rootDir>/server/tests/setup.ts'],
-  // setupFilesAfterEnv: [
-  //   '<rootDir>/server/tests/force-gc.ts',
-  //   '<rootDir>/server/tests/database/db-mocks-setup.ts',
-  // ],
-  // watchPathIgnorePatterns: ['globalConfig'],
-  // roots: ['<rootDir>/server/tests/database'],
-  // transform: tsjPreset.transform,
-  // runner: 'groups',
-  // globalSetup: '<rootDir>/server/tests/database/global-db-setup.ts',
-  // globalTeardown: '<rootDir>/server/tests/database/global-db-teardown.ts',
-  // testEnvironment: '<rootDir>/server/tests/database/db-test-environment.js',
-  // testTimeout: FIVE_MINUTES_IN_MS,
+  // globalSetup: '<rootDir>/jest.global-setup.ts',
+  // globalTeardown: '<rootDir>/jest.global-teardown.ts',
+  testEnvironment: 
+    "<rootDir>/server/tests/new_db/db-test-environment.js",
+  //setupFilesAfterEnv: ['<rootDir>/jest.setup.js'], // Optional: For additional per-test setup
+
+  // Only run tests in the 'new_db' folder
+  testMatch: ['<rootDir>/server/tests/new_db/*.test.(js|ts)'],
+
+  // Alternatively, use testRegex if you prefer regex patterns
+  // testRegex: '/new_db/.*\\.test\\.(js|ts)$',
+
+  // Optional: Ignore other folders if needed
+  testPathIgnorePatterns: ['/node_modules/'],
+
+  // Add any other Jest configurations as needed
 }

@@ -199,7 +199,7 @@ test_postgresql:
     - echo "Waiting for PostgreSQL to be ready..."
     # - node server/tests/new_db/wait-for-postgres.js
     # - echo "PostgreSQL is ready."
-    - node jest.setup.js
+    - npm run test:database_ci
     - echo "PostgreSQL is ready."
   variables:
     POSTGRES_HOST_AUTH_METHOD: trust
