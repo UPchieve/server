@@ -28,7 +28,11 @@ import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
-import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
+import {
+  getSocketIdsFromRoom,
+  remoteJoinRoom,
+  emitSessionPresence,
+} from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
@@ -181,7 +185,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     }
 
-    if (socket.recovered) logSocketEvent('recovered', socket)
+    if (socket.recovered) {
+      logSocketEvent('recovered', socket)
+      if (user && socket.data.sessionId) {
+        const sessionRoom = getSessionRoom(socket.data.sessionId)
+        await emitSessionPresence(io, socket.id, user.id, sessionRoom)
+      }
+    }
 
     // Tutor session management
     socket.on('join', async function(data) {
@@ -252,27 +262,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               // Attach the sessionId to the socket for analytics and debugging purposes
               // Currently only one sessionId is attached to a socket at a time
               socket.data.sessionId = data.sessionId
-              /**
-               *
-               * Emit to all other sockets that are not the users and are connected
-               * to the session room that we're now online.
-               *
-               * This handles cases where a user has
-               * multiple tabs of the session view open
-               *
-               */
-              io.to(sessionRoom)
-                .except(user.id)
-                .emit('sessions/partner:in-session', true)
-              const sessionSocketIds = await getSocketIdsFromRoom(
-                io,
-                sessionRoom
-              )
-              const partnerSocketIds = sessionSocketIds.filter(
-                id => !userSocketIds.includes(id)
-              )
-              // Emit to self if session partner is in session or not
-              io.emit('sessions/partner:in-session', !!partnerSocketIds.length)
+              await emitSessionPresence(io, socket.id, user.id, sessionRoom)
               resolve()
             } catch (error) {
               logger.error(
