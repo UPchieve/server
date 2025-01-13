@@ -23,21 +23,21 @@ export default async function(job: Job<ModerateSessionTranscriptJobData>) {
   console.log('Transcript moderation result', JSON.stringify(result, null, 2))
   const confidenceThreshold = config.contextualModerationConfidenceThreshold
   if (result.confidence >= confidenceThreshold) {
-    console.log('Flagging session for review')
-    await runInTransaction(async (tc: TransactionClient) => {
-      await updateSessionFlagsById(job.data.sessionId, [
-        USER_SESSION_METRICS.flaggedByModerationJob,
-      ])
-      // @TODO Can get more specific reasons from the model if we want.
-      await updateSessionReviewReasonsById(
-        job.data.sessionId,
-        [USER_SESSION_METRICS.flaggedByModerationJob],
-        false
-      ) // this also sets sessions.to_review = true
-    })
     logger.info(
       { sessionId: job.data.sessionId },
       'Contextual moderation job flagged session for review'
     )
+
+    // @TODO - Uncomment when we're ready to dump these sessions in the review queue
+    // await runInTransaction(async (tc: TransactionClient) => {
+    //   await updateSessionFlagsById(job.data.sessionId, [
+    //     USER_SESSION_METRICS.flaggedByModerationJob,
+    //   ])
+    //   await updateSessionReviewReasonsById(
+    //     job.data.sessionId,
+    //     [USER_SESSION_METRICS.flaggedByModerationJob],
+    //     false
+    //   ) // this also sets sessions.to_review = true
+    // })
   }
 }
