@@ -189,7 +189,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       logSocketEvent('recovered', socket)
       if (user && socket.data.sessionId) {
         const sessionRoom = getSessionRoom(socket.data.sessionId)
-        await emitSessionPresence(io, user.id, sessionRoom)
+        await emitSessionPresence(io, socket.id, user.id, sessionRoom)
       }
     }
 
@@ -262,7 +262,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               // Attach the sessionId to the socket for analytics and debugging purposes
               // Currently only one sessionId is attached to a socket at a time
               socket.data.sessionId = data.sessionId
-              await emitSessionPresence(io, user.id, sessionRoom)
+              await emitSessionPresence(io, socket.id, user.id, sessionRoom)
               resolve()
             } catch (error) {
               logger.error(

@@ -28,6 +28,7 @@ export function remoteJoinRoom(io: Server, socketId: string, room: string) {
  */
 export async function emitSessionPresence(
   io: Server,
+  socketId: string,
   userId: string,
   room: string
 ) {
@@ -40,5 +41,5 @@ export async function emitSessionPresence(
     id => !userSocketIds.includes(id)
   )
   // Emit to self if session partner is in session or not
-  io.emit('sessions/partner:in-session', !!partnerSocketIds.length)
+  io.to(socketId).emit('sessions/partner:in-session', !!partnerSocketIds.length)
 }
