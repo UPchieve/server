@@ -17,7 +17,6 @@ export enum USER_SESSION_METRICS {
   studentCrisis = 'Student in distress',
   coachReportedStudentDm = 'Coach reported student DM',
   studentReportedCoachDm = 'Student reported coach DM',
-  flaggedByModerationJob = 'Flagged by automatic moderation', // @TODO I think I have to add this to db. (I don't like that BTW)
 }
 
 // amount of volunteers to text notifications to per session

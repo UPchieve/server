@@ -201,6 +201,7 @@ export const moderateVideoFrame = async (
 }
 
 export async function createChatCompletion({
+export async function getIndividualSessionMessageModerationResponse({
   censoredSessionMessage,
   isVolunteer,
 }: {
@@ -253,8 +254,6 @@ export async function createChatCompletion({
         promptUsed: promptData.version,
       },
     }
-    // @TODO: Eventually remove me from NR
-    logger.info(logData, 'AI moderation result')
     return decision
   } catch (err) {
     logger.error(
@@ -308,7 +307,7 @@ const getPromptData = async (): Promise<{
   }
 }
 
-async function createChatCompletionJob({
+async function createIndividualSessionMessageModerationJob({
   censoredSessionMessage,
   isVolunteer,
 }: {
@@ -390,7 +389,7 @@ const getAiModerationResult = async (
   isVolunteer: boolean
 ) => {
   return await timeLimit({
-    promise: createChatCompletion({
+    promise: getIndividualSessionMessageModerationResponse({
       censoredSessionMessage,
       isVolunteer,
     }),
@@ -446,7 +445,10 @@ export async function moderateMessage({
       result.failures =
         response === null ? result.failures : formatAiResponse(response)
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
-      await createChatCompletionJob({ censoredSessionMessage, isVolunteer })
+      await createIndividualSessionMessageModerationJob({
+        censoredSessionMessage,
+        isVolunteer,
+      })
     }
 
     logger.info(
@@ -602,6 +604,26 @@ export const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
+const getSessionTranscriptModerationResult = async (
+  chunkAsString: string
+): Promise<TranscriptChunkModerationResult> => {
+  const result = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      {
+        role: 'system',
+        content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
+      },
+      {
+        role: 'user',
+        content: chunkAsString,
+      },
+    ],
+    response_format: { type: 'json_object' },
+  })
+  return JSON.parse(result.choices[0].message.content || '')
+}
+
 export type TranscriptChunkModerationResult = {
   confidence: number // higher = more likely to be inappropriate
   explanation: string
@@ -609,27 +631,6 @@ export type TranscriptChunkModerationResult = {
 export const moderateTranscript = async (
   transcript: SessionTranscript
 ): Promise<TranscriptChunkModerationResult[]> => {
-  const createChatCompletion = async (
-    chunkAsString: string
-  ): Promise<TranscriptChunkModerationResult> => {
-    // @TODO wrap in try-catch
-    const result = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
-        },
-        {
-          role: 'user',
-          content: chunkAsString,
-        },
-      ],
-      response_format: { type: 'json_object' },
-    })
-    return JSON.parse(result.choices[0].message.content || '')
-  }
-
   const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
     return chunk.reduce((acc: string, item) => {
       return (
@@ -645,7 +646,9 @@ export const moderateTranscript = async (
     const nextChunk = getNextChunk(transcript, cursor)
     chunk = nextChunk.chunk
     cursor = nextChunk.cursor
-    const result = await createChatCompletion(getChunkAsString(chunk))
+    const result = await getSessionTranscriptModerationResult(
+      getChunkAsString(chunk)
+    )
     results.push(result)
   } while (cursor !== null)
 

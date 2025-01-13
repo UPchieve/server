@@ -278,15 +278,10 @@ export async function processSessionReported(sessionId: Ulid) {
 }
 
 export async function processSessionTranscript(sessionId: Ulid) {
-  try {
-    await QueueService.add(
-      Jobs.ModerateSessionTranscript,
-      sessionId,
-      { removeOnComplete: true, removeOnFail: false } // @TODO this is the first !removeOnFail, where does this get used?
-    )
-  } catch (err) {
-    // @TODO
-  }
+  await QueueService.add(Jobs.ModerateSessionTranscript, sessionId, {
+    removeOnComplete: true,
+    removeOnFail: false,
+  })
 }
 
 export async function processCalculateMetrics(sessionId: Ulid) {
