@@ -52,6 +52,4 @@ async function connectToDefault () {
 //   console.log('Database connections closed.')
 // })
 
-await connectToDefault();
-
-module.exports = { adminPool }
+module.exports = { connectToDefault }
