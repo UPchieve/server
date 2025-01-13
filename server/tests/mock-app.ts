@@ -13,7 +13,7 @@ export function defaultErrorHandler(
 
 export function mockApp(): express.Express {
   const app = express()
-  app.use(json({ limit: '5mb' }) as express.RequestHandler)
+  app.use(json() as express.RequestHandler)
   app.use(urlencoded({ extended: true }) as express.RequestHandler)
   app.use(defaultErrorHandler)
 

@@ -67,7 +67,7 @@ app.use(timeout('300000'))
 app.set('trust proxy', true)
 
 // Setup middleware
-app.use(json({ limit: '5mb' }) as express.RequestHandler)
+app.use(json() as express.RequestHandler)
 app.use(urlencoded({ extended: true }) as express.RequestHandler)
 
 app.use(cookieParser(config.sessionSecret))

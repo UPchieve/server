@@ -57,11 +57,6 @@ const createAzureContentSafetyClient = () => {
 
 const azureContentSafetyClient = createAzureContentSafetyClient()
 
-// Some documentation says to pass an array of configs,
-// others say to pass a single config object.
-// locally, passing an array works but an object doesn't
-// in staging, nothign seems to work. i either get a
-// Region missing error (with array) or access denied (with object)
 const awsRekognitionClient = new RekognitionClient({
   region: config.awsS3.region,
   credentials: {
