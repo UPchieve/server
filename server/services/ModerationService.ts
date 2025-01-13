@@ -26,6 +26,7 @@ import config from '../config'
 import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
+import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
 import {
   RekognitionClient,
   DetectModerationLabelsCommand,
@@ -263,6 +264,22 @@ export async function createChatCompletion({
       },
       `Error while moderating session message`
     )
+  }
+}
+
+const getNextChunk = (
+  transcript: SessionTranscript,
+  startingIndex: number = 0
+): { chunk: SessionTranscriptItem[]; cursor: number | null } => {
+  const messagesPerChunk = 50
+  const chunk = transcript.messages.slice(
+    startingIndex,
+    startingIndex + messagesPerChunk
+  )
+  const cursor = startingIndex + messagesPerChunk
+  return {
+    chunk,
+    cursor: cursor > transcript.messages.length + 1 ? null : cursor,
   }
 }
 
@@ -585,35 +602,54 @@ export const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
-export type TranscriptModerationResult = {
+export type TranscriptChunkModerationResult = {
   confidence: number // higher = more likely to be inappropriate
   explanation: string
 }
 export const moderateTranscript = async (
   transcript: SessionTranscript
-): Promise<TranscriptModerationResult> => {
-  let transcriptAsString = ''
-  transcript.messages.forEach(message => {
-    transcriptAsString += `${message.role}: ${message.message}\n`
-  })
-  // @TODO Langfuse trace and generation + pull the prompt from there.
-  // @TODO Use GPT assistant API instead maybe?
-  // @TODO batch transcript into chunks
-  const result = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
-      },
-      {
-        role: 'user',
-        content: transcriptAsString,
-      },
-    ],
-    response_format: { type: 'json_object' },
-  })
-  return JSON.parse(result.choices[0].message.content || '')
+): Promise<TranscriptChunkModerationResult[]> => {
+  const createChatCompletion = async (
+    chunkAsString: string
+  ): Promise<TranscriptChunkModerationResult> => {
+    // @TODO wrap in try-catch
+    const result = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
+        },
+        {
+          role: 'user',
+          content: chunkAsString,
+        },
+      ],
+      response_format: { type: 'json_object' },
+    })
+    return JSON.parse(result.choices[0].message.content || '')
+  }
+
+  const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
+    return chunk.reduce((acc: string, item) => {
+      return (
+        acc + `<role>${item.role}</role><message>${item.message}</message>\n`
+      )
+    }, '')
+  }
+
+  let chunk: SessionTranscriptItem[]
+  let cursor: number | null = 0
+  const results: TranscriptChunkModerationResult[] = []
+  do {
+    const nextChunk = getNextChunk(transcript, cursor)
+    chunk = nextChunk.chunk
+    cursor = nextChunk.cursor
+    const result = await createChatCompletion(getChunkAsString(chunk))
+    results.push(result)
+  } while (cursor !== null)
+
+  return results
 }
 
 export const FALLBACK_MODERATION_PROMPT = `

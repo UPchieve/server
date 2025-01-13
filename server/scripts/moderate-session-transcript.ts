@@ -19,12 +19,18 @@ export default async function(job: Job<ModerateSessionTranscriptJobData>) {
   const transcript = await SessionService.getSessionTranscript(
     job.data.sessionId
   )
-  const result = await ModerationService.moderateTranscript(transcript)
-  console.log('Transcript moderation result', JSON.stringify(result, null, 2))
+  const moderationResults = await ModerationService.moderateTranscript(
+    transcript
+  )
   const confidenceThreshold = config.contextualModerationConfidenceThreshold
-  if (result.confidence >= confidenceThreshold) {
+  const flaggedChunks = moderationResults.filter(
+    chunk => chunk.confidence >= confidenceThreshold
+  )
+  if (flaggedChunks.length) {
     logger.info(
-      { sessionId: job.data.sessionId },
+      {
+        sessionId: job.data.sessionId,
+      },
       'Contextual moderation job flagged session for review'
     )
 
