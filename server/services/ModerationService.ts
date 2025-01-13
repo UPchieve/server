@@ -44,6 +44,7 @@ import {
 } from '@aws-sdk/client-comprehend'
 
 const MINOR_AGE_THRESHOLD = 18
+import { LangfuseTraceClient } from 'langfuse-node'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -58,8 +59,14 @@ const PROFANITY_REGEX = /\b(4r5e|5h1t|5hit|a55s|ass-fucker|assfucker|assfukka|a_
 // Restrict access to have sessions on third party platforms
 const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 
-const LF_TRACE_NAME = 'moderateSessionMessage'
-const LF_GENERATION_NAME = 'getModerationDecision'
+enum LangfuseTraceName {
+  MODERATE_SESSION_MESSAGE = 'moderateSessionMessage',
+  MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
+}
+enum LangfuseGenerationName {
+  SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
+  SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
+}
 
 // Image moderation
 const AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD = 2
@@ -345,12 +352,12 @@ export async function getIndividualSessionMessageModerationResponse({
     FALLBACK_MODERATION_PROMPT
   )
   const t = LangfuseService.getClient().trace({
-    name: LF_TRACE_NAME,
+    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
     sessionId: censoredSessionMessage.sessionId,
   })
 
   const gen = t.generation({
-    name: LF_GENERATION_NAME,
+    name: LangfuseGenerationName.SESSION_MESSAGE_MODERATION_DECISION,
     model,
     input: { censoredSessionMessage, isVolunteer },
     // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
@@ -379,16 +386,7 @@ export async function getIndividualSessionMessageModerationResponse({
       output: chatCompletion,
     })
 
-    const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
-    const logData = {
-      censoredSessionMessage,
-      decision: {
-        isClean: decision.appropriate,
-        reasons: decision.reasons,
-        promptUsed: promptData.version,
-      },
-    }
-    return decision
+    return JSON.parse(chatCompletion.choices[0].message.content || '')
   } catch (err) {
     logger.error(
       {
@@ -725,10 +723,19 @@ export const wrapMessageInXmlTags = (
 
 const getSessionTranscriptModerationResult = async (
   prompt: string,
-  chunkAsString: string
+  chunkAsString: string,
+  model: string,
+  trace: LangfuseTraceClient,
+  promptObject?: TextPromptClient
 ): Promise<TranscriptChunkModerationResult> => {
+  const gen = trace.generation({
+    name: LangfuseGenerationName.SESSION_TRANSCRIPT_MODERATION_DECISION,
+    model,
+    input: chunkAsString,
+    ...(promptObject && { prompt: promptObject }),
+  })
   const result = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model,
     messages: [
       {
         role: 'system',
@@ -740,6 +747,9 @@ const getSessionTranscriptModerationResult = async (
       },
     ],
     response_format: { type: 'json_object' },
+  })
+  gen.end({
+    output: result,
   })
   return JSON.parse(result.choices[0].message.content || '')
 }
@@ -754,7 +764,7 @@ export const moderateTranscript = async (
   const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
     return chunk.reduce((acc: string, item) => {
       return (
-        acc + `<role>${item.role}</role><message>${item.message}</message>\n`
+        acc + `<message><role>${item.role}</role>${item.message}</message>\n`
       )
     }, '')
   }
@@ -764,12 +774,24 @@ export const moderateTranscript = async (
     FALLBACK_TRANSCRIPT_MODERATION_PROMPT
   )
 
+  const t = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_TRANSCRIPT,
+    sessionId: transcript.sessionId,
+    metadata: {
+      sessionId: transcript.sessionId,
+    },
+  })
+
+  const model = 'gpt-4o'
   const results: TranscriptChunkModerationResult[] = []
   const chunks: SessionTranscriptItem[][] = chunk(transcript.messages, 5)
   for (const chunk of chunks) {
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
-      getChunkAsString(chunk)
+      getChunkAsString(chunk),
+      model,
+      t,
+      promptData?.promptObject
     )
     results.push(result)
   }
