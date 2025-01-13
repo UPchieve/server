@@ -13,6 +13,7 @@ let testPool
 
 // beforeAll(async () => {
   // Connect to the default 'postgres' database to create the test database
+async function connectToDefault () { 
   adminPool = new Pool({
     user: POSTGRES_USER,
     host: POSTGRES_HOST,
@@ -32,6 +33,7 @@ let testPool
       throw err
     }
   }
+}
 
   // testPool = new Pool({
   //   user: POSTGRES_USER,
@@ -50,4 +52,6 @@ let testPool
 //   console.log('Database connections closed.')
 // })
 
-module.exports = { adminPool, testPool }
+await connectToDefault();
+
+module.exports = { adminPool }
