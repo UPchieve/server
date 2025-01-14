@@ -34,6 +34,8 @@ import {
   DetectFacesCommand,
 } from '@aws-sdk/client-rekognition'
 
+const MINOR_AGE_THRESHOLD = 18
+
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/gi
@@ -132,7 +134,9 @@ async function detectMinorFailures(frame: Buffer) {
   )
   const faces = facesResponse.FaceDetails ?? []
   const faceFailures = faces
-    .filter(face => face.AgeRange?.Low && face.AgeRange?.Low < 18)
+    .filter(
+      face => face.AgeRange?.Low && face.AgeRange?.Low < MINOR_AGE_THRESHOLD
+    )
     .map(face => ({
       reason: `Minor detected in image`,
       details: {
