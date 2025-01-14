@@ -46,3 +46,4 @@ const createCensoredMessageIR: any = {"usedParamSet":{"id":true,"senderId":true,
  */
 export const createCensoredMessage = new PreparedQuery<ICreateCensoredMessageParams,ICreateCensoredMessageResult>(createCensoredMessageIR);
 
+

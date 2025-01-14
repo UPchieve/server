@@ -35,7 +35,6 @@ import {
   DetectLabelsCommand,
   DetectFacesCommand,
 } from '@aws-sdk/client-rekognition'
-import { SessionTranscript } from '../models/Session'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -201,7 +200,6 @@ export const moderateVideoFrame = async (
   }
 }
 
-export async function createChatCompletion({
 export async function getIndividualSessionMessageModerationResponse({
   censoredSessionMessage,
   isVolunteer,
