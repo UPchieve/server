@@ -1,12 +1,17 @@
 import * as Repo from '../models/FederatedCredential'
 import { Ulid } from '../models/pgUtils'
+import { runInTransaction, TransactionClient } from '../db'
+import { insertFederatedCredential } from '../models/FederatedCredential'
 
 export async function linkAccount(
   profileId: string,
   issuer: string,
-  userId: string
+  userId: string,
+  tc?: TransactionClient
 ) {
-  await Repo.insertFederatedCredential(profileId, issuer, userId)
+  return runInTransaction(async (tc: TransactionClient) => {
+    await Repo.insertFederatedCredential(profileId, issuer, userId, tc)
+  }, tc)
 }
 
 export async function getFederatedCredentialByUserId(userId: Ulid) {

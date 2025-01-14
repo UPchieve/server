@@ -36,7 +36,7 @@ export async function insertFederatedCredential(
   id: string,
   issuer: string,
   userId: Ulid,
-  tc?: TransactionClient
+  tc: TransactionClient
 ) {
   try {
     await pgQueries.insertFederatedCredential.run(

@@ -133,12 +133,17 @@ export async function adminGetActivePartnersForStudent(
 }
 
 export async function doesStudentWithEmailExist(email: string) {
-  return !!(await StudentRepo.getStudentByEmail(email))
+  return !!(await getStudentByEmail(email))
 }
 
-export async function getStudentByEmail(email?: string) {
-  if (!email) return
-  return StudentRepo.getStudentByEmail(email)
+export async function getStudentByEmail(
+  email?: string,
+  tc?: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    if (!email) return
+    return StudentRepo.getStudentByEmail(email, tc)
+  }, tc)
 }
 
 export async function getActiveClassesForStudent(

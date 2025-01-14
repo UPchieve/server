@@ -78,13 +78,16 @@ export async function getStudentContactInfoById(
   }
 }
 
-export async function getStudentByEmail(email: string) {
+export async function getStudentByEmail(
+  email: string,
+  tc: TransactionClient
+): Promise<{ id: Ulid } | undefined> {
   try {
     const result = await pgQueries.getStudentByEmail.run(
       {
         email,
       },
-      getClient()
+      tc
     )
     if (result.length) {
       return makeRequired(result[0])

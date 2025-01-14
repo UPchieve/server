@@ -164,9 +164,13 @@ export async function updateTeacherClass(
   return updatedClass
 }
 
-export async function deactivateTeacherClass(id: string) {
-  const updatedClass = await TeacherRepo.deactivateTeacherClass(id)
-  return updatedClass
+export async function deactivateTeacherClass(
+  id: string,
+  tc?: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    return TeacherRepo.deactivateTeacherClass(id, tc)
+  }, tc)
 }
 
 export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
