@@ -30,7 +30,11 @@ import {
   RekognitionClient,
   DetectModerationLabelsCommand,
   ModerationLabel,
+  DetectLabelsCommand,
+  DetectFacesCommand,
 } from '@aws-sdk/client-rekognition'
+
+const MINOR_AGE_THRESHOLD = 18
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -86,51 +90,111 @@ const moderationLabelToFailureReason = (
   }
 }
 
+/*
+  detect harmful content in the image
+  we are only looking at the top level categories for now:
+    - Explicit
+    - Non-Explicit Nudity of Intimate parts and Kissing
+    - Swimwear or Underwear
+    - Violence
+    - Visually Disturbing
+    - Drugs & Tobacco
+    - Alcohol
+    - Rude Gestures
+    - Gambling
+    - Hate Symbols
+  full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
+*/
+async function getModerationLabels(frame: Buffer) {
+  const moderationLabelsResponse = await awsRekognitionClient.send(
+    new DetectModerationLabelsCommand({
+      Image: {
+        Bytes: frame,
+      },
+      MinConfidence: config.imageModerationMinConfidence,
+    })
+  )
+  const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
+  return moderationLabels
+    .filter(topLevelCategoryFilter)
+    .map(moderationLabelToFailureReason)
+}
+
+/*
+  determine if image depicts a minor
+*/
+async function detectMinorFailures(frame: Buffer) {
+  const facesResponse = await awsRekognitionClient.send(
+    new DetectFacesCommand({
+      Image: {
+        Bytes: frame,
+      },
+      Attributes: ['AGE_RANGE'],
+    })
+  )
+  const faces = facesResponse.FaceDetails ?? []
+  const faceFailures = faces
+    .filter(
+      face => face.AgeRange?.Low && face.AgeRange?.Low < MINOR_AGE_THRESHOLD
+    )
+    .map(face => ({
+      reason: `Minor detected in image`,
+      details: {
+        ageRange: face.AgeRange,
+        confidence: face.Confidence,
+      },
+    }))
+
+  if (faceFailures.length > 0) {
+    return faceFailures
+  }
+
+  // DetectFaces seems to be more accurate when it comes to detecting minors
+  // but we want to handle the case where faces are not in the image
+  const labelResponse = await awsRekognitionClient.send(
+    new DetectLabelsCommand({
+      Image: {
+        Bytes: frame,
+      },
+      Settings: {
+        GeneralLabels: {
+          LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
+        },
+      },
+    })
+  )
+  const labels = labelResponse.Labels ?? []
+  const labelFailures = labels.map(label => ({
+    reason: `Minor detected in image`,
+    details: {
+      label: label.Name,
+      confidence: label.Confidence,
+    },
+  }))
+
+  return labelFailures
+}
+
 export const moderateVideoFrame = async (
   frame: Buffer,
   sessionId: string
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
-  const imageCommandInput = {
-    Image: {
-      Bytes: frame,
-    },
-    MinConfidence: config.imageModerationMinConfidence,
-  }
+  const moderationFailureReasons = await getModerationLabels(frame)
+  const minorFailures = await detectMinorFailures(frame)
 
-  /*
-    detect harmful content in the image
-    we are only looking at the top level categories for now:
-      - Explicit
-      - Non-Explicit Nudity of Intimate parts and Kissing
-      - Swimwear or Underwear
-      - Violence
-      - Visually Disturbing
-      - Drugs & Tobacco
-      - Alcohol
-      - Rude Gestures
-      - Gambling
-      - Hate Symbols
-    full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
-  */
-  const moderationLabelsResponse = await awsRekognitionClient.send(
-    new DetectModerationLabelsCommand(imageCommandInput)
-  )
-  const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
-  const moderationFailureReasons = moderationLabels
-    .filter(topLevelCategoryFilter)
-    .map(moderationLabelToFailureReason)
+  const failureReasons = [...moderationFailureReasons, ...minorFailures]
 
-  if (moderationFailureReasons?.length > 0) {
+  if (failureReasons.length > 0) {
     logger.warn(
-      { sessionId, reasons: moderationFailureReasons },
+      { sessionId, reasons: failureReasons },
       'Screenshare triggered moderation'
     )
   }
 
   return {
-    failureReasons: moderationFailureReasons,
+    failureReasons: failureReasons,
   }
 }
 
