@@ -1,5 +1,4 @@
-import bodyParser from 'body-parser'
-import express from 'express'
+import express, { json, urlencoded } from 'express'
 import { UserContactInfo } from '../models/User'
 
 export function defaultErrorHandler(
@@ -14,8 +13,8 @@ export function defaultErrorHandler(
 
 export function mockApp(): express.Express {
   const app = express()
-  app.use(bodyParser.json() as express.RequestHandler)
-  app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
+  app.use(json() as express.RequestHandler)
+  app.use(urlencoded({ extended: true }) as express.RequestHandler)
   app.use(defaultErrorHandler)
 
   return app

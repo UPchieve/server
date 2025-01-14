@@ -265,4 +265,5 @@ export const Config = Record({
 
   // Live media moderation
   maxModerationInfractionsPerSession: Number,
+  imageModerationMinConfidence: Number,
 })
