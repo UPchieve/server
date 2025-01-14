@@ -401,7 +401,8 @@ const config: Static<typeof Config> = {
 
   // Live media moderation
   maxModerationInfractionsPerSession: 6,
-  imageModerationMinConfidence: 50,
+  imageModerationMinConfidence:
+    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
 }
 
 module.exports = config
