@@ -26,6 +26,7 @@ import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessage
 import {
   Session,
   SessionsToReview,
+  SessionTranscript,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -274,6 +275,13 @@ export async function processSessionReported(sessionId: Ulid) {
     // we don't care if the key is not found
     if (!(err instanceof cache.KeyNotFoundError)) throw err
   }
+}
+
+export async function processSessionTranscript(sessionId: Ulid) {
+  await QueueService.add(Jobs.ModerateSessionTranscript, sessionId, {
+    removeOnComplete: true,
+    removeOnFail: false,
+  })
 }
 
 export async function processCalculateMetrics(sessionId: Ulid) {
@@ -1135,4 +1143,14 @@ export async function updateSessionAudio(
   if (!updated)
     throw new LookupError('Audio does not exist for the given session')
   return updated
+}
+
+export async function getSessionTranscript(
+  sessionId: string
+): Promise<SessionTranscript> {
+  const messages = await SessionRepo.getSessionTranscriptItems(sessionId)
+  return {
+    sessionId,
+    messages,
+  }
 }

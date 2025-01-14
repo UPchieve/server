@@ -2942,3 +2942,92 @@ const getStudentSessionsForFallIncentiveIR: any = {"usedParamSet":{"studentId":t
 export const getStudentSessionsForFallIncentive = new PreparedQuery<IGetStudentSessionsForFallIncentiveParams,IGetStudentSessionsForFallIncentiveResult>(getStudentSessionsForFallIncentiveIR);
 
 
+/** 'GetSessionTranscript' parameters type */
+export interface IGetSessionTranscriptParams {
+  sessionId: string;
+}
+
+/** 'GetSessionTranscript' return type */
+export interface IGetSessionTranscriptResult {
+  createdAt: Date | null;
+  message: string | null;
+  messageId: string | null;
+  messageType: string | null;
+  role: string | null;
+  userId: string | null;
+}
+
+/** 'GetSessionTranscript' query type */
+export interface IGetSessionTranscriptQuery {
+  params: IGetSessionTranscriptParams;
+  result: IGetSessionTranscriptResult;
+}
+
+const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":377,"b":387},{"a":804,"b":814},{"a":1230,"b":1240}]}],"statement":"SELECT\n    sm.id AS message_id,\n    sender_id AS user_id,\n    contents AS message,\n    sm.created_at,\n    CASE WHEN TRUE THEN\n        'chat'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = sm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_messages sm\n    JOIN sessions s ON sm.session_id = s.id\nWHERE\n    sm.session_id = :sessionId!\nUNION\nSELECT\n    satm.id AS message_id,\n    satm.user_id,\n    satm.message,\n    satm.said_at AS created_at,\n    CASE WHEN TRUE THEN\n        'transcription'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = satm.user_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_audio_transcript_messages satm\n    JOIN sessions s ON satm.session_id = s.id\nWHERE\n    satm.session_id = :sessionId!\nUNION\nSELECT\n    svm.id AS message_id,\n    svm.sender_id AS user_id,\n    svm.transcript AS message,\n    svm.created_at,\n    CASE WHEN TRUE THEN\n        'voice_message'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = svm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_voice_messages svm\n    JOIN sessions s ON svm.session_id = s.id\nWHERE\n    svm.session_id = :sessionId!\nORDER BY\n    created_at ASC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sm.id AS message_id,
+ *     sender_id AS user_id,
+ *     contents AS message,
+ *     sm.created_at,
+ *     CASE WHEN TRUE THEN
+ *         'chat'
+ *     END AS message_type,
+ *     CASE WHEN s.volunteer_id = sm.sender_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_messages sm
+ *     JOIN sessions s ON sm.session_id = s.id
+ * WHERE
+ *     sm.session_id = :sessionId!
+ * UNION
+ * SELECT
+ *     satm.id AS message_id,
+ *     satm.user_id,
+ *     satm.message,
+ *     satm.said_at AS created_at,
+ *     CASE WHEN TRUE THEN
+ *         'transcription'
+ *     END AS message_type,
+ *     CASE WHEN s.volunteer_id = satm.user_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_audio_transcript_messages satm
+ *     JOIN sessions s ON satm.session_id = s.id
+ * WHERE
+ *     satm.session_id = :sessionId!
+ * UNION
+ * SELECT
+ *     svm.id AS message_id,
+ *     svm.sender_id AS user_id,
+ *     svm.transcript AS message,
+ *     svm.created_at,
+ *     CASE WHEN TRUE THEN
+ *         'voice_message'
+ *     END AS message_type,
+ *     CASE WHEN s.volunteer_id = svm.sender_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_voice_messages svm
+ *     JOIN sessions s ON svm.session_id = s.id
+ * WHERE
+ *     svm.session_id = :sessionId!
+ * ORDER BY
+ *     created_at ASC
+ * ```
+ */
+export const getSessionTranscript = new PreparedQuery<IGetSessionTranscriptParams,IGetSessionTranscriptResult>(getSessionTranscriptIR);
+
+

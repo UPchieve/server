@@ -1,4 +1,5 @@
 import logger from '../logger'
+import { chunk } from 'lodash'
 import {
   CensoredSessionMessage,
   CENSORED_BY,
@@ -26,6 +27,7 @@ import config from '../config'
 import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
+import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
 import {
   RekognitionClient,
   DetectModerationLabelsCommand,
@@ -332,7 +334,7 @@ export const moderateVideoFrame = async (
   }
 }
 
-export async function createChatCompletion({
+export async function getIndividualSessionMessageModerationResponse({
   censoredSessionMessage,
   isVolunteer,
 }: {
@@ -385,8 +387,6 @@ export async function createChatCompletion({
         promptUsed: promptData.version,
       },
     }
-    // @TODO: Eventually remove me from NR
-    logger.info(logData, 'AI moderation result')
     return decision
   } catch (err) {
     logger.error(
@@ -424,7 +424,7 @@ const getPromptData = async (): Promise<{
   }
 }
 
-async function createChatCompletionJob({
+async function createIndividualSessionMessageModerationJob({
   censoredSessionMessage,
   isVolunteer,
 }: {
@@ -506,7 +506,7 @@ const getAiModerationResult = async (
   isVolunteer: boolean
 ) => {
   return await timeLimit({
-    promise: createChatCompletion({
+    promise: getIndividualSessionMessageModerationResponse({
       censoredSessionMessage,
       isVolunteer,
     }),
@@ -562,7 +562,10 @@ export async function moderateMessage({
       result.failures =
         response === null ? result.failures : formatAiResponse(response)
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
-      await createChatCompletionJob({ censoredSessionMessage, isVolunteer })
+      await createIndividualSessionMessageModerationJob({
+        censoredSessionMessage,
+        isVolunteer,
+      })
     }
 
     logger.info(
@@ -605,7 +608,7 @@ export type SanitizedTranscriptModerationResult = {
   failures: { [key: string]: string[] }
   sanitizedTranscript: string
 }
-export const moderateTranscript = async ({
+export const moderateIndividualTranscription = async ({
   transcript,
   sessionId,
   userId,
@@ -718,6 +721,53 @@ export const wrapMessageInXmlTags = (
   return `<${xmlTag}>${message}</${xmlTag}>`
 }
 
+const getSessionTranscriptModerationResult = async (
+  chunkAsString: string
+): Promise<TranscriptChunkModerationResult> => {
+  const result = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      {
+        role: 'system',
+        content: FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
+      },
+      {
+        role: 'user',
+        content: chunkAsString,
+      },
+    ],
+    response_format: { type: 'json_object' },
+  })
+  return JSON.parse(result.choices[0].message.content || '')
+}
+
+export type TranscriptChunkModerationResult = {
+  confidence: number // higher = more likely to be inappropriate
+  explanation: string
+}
+export const moderateTranscript = async (
+  transcript: SessionTranscript
+): Promise<TranscriptChunkModerationResult[]> => {
+  const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
+    return chunk.reduce((acc: string, item) => {
+      return (
+        acc + `<role>${item.role}</role><message>${item.message}</message>\n`
+      )
+    }, '')
+  }
+
+  const results: TranscriptChunkModerationResult[] = []
+  const chunks: SessionTranscriptItem[][] = chunk(transcript.messages, 5)
+  for (const chunk of chunks) {
+    const result = await getSessionTranscriptModerationResult(
+      getChunkAsString(chunk)
+    )
+    results.push(result)
+  }
+
+  return results
+}
+
 export const FALLBACK_MODERATION_PROMPT = `
 You are moderating a chat room conversation between a student and an adult tutor. You are responsible for flagging inappropriate messages. Messages are delimited by XML tags, either <student> for messages sent by the the student or <tutor> for messages sent by the adult tutor.
 
@@ -756,3 +806,15 @@ Acceptable values for the elements of the 'reasons' array are:
 - Direct quotes from literature
 - Profanity that is likely just a typo. In this event, prefer flagging the message as appropriate instead of inappropriate if and only if the context of the message indicates it was likely a mistake.
 </exceptions>`
+
+const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
+You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor and decide if it violates any policies.
+You will find the chat message in <message> tags and the role of the user who sent the message in the <role> tags. Policies are described in the <policy> tags.
+Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
+<policy>No hate speech</policy>
+<policy>No sexual or flirtatious content</policy>
+<policy>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.</policy>
+<policy>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.</policy>
+<policy>The nature of the conversation must be appropriate in a tutoring context</policy>
+Provide your response in this JSON format: "{ confidence: number, explanation: string }"
+`
