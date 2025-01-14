@@ -3,13 +3,7 @@ import { Job } from 'bull'
 import * as SessionService from '../services/SessionService'
 import * as ModerationService from '../services/ModerationService'
 import config from '../config'
-import { runInTransaction, TransactionClient } from '../db'
 import logger from '../logger'
-import {
-  updateSessionFlagsById,
-  updateSessionReviewReasonsById,
-} from '../models/Session'
-import { USER_SESSION_METRICS } from '../constants'
 
 export interface ModerateSessionTranscriptJobData {
   sessionId: Ulid

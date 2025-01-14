@@ -1,4 +1,5 @@
 import logger from '../logger'
+import { chunk } from 'lodash'
 import {
   CensoredSessionMessage,
   CENSORED_BY,
@@ -263,22 +264,6 @@ export async function getIndividualSessionMessageModerationResponse({
       },
       `Error while moderating session message`
     )
-  }
-}
-
-const getNextChunk = (
-  transcript: SessionTranscript,
-  startingIndex: number = 0
-): { chunk: SessionTranscriptItem[]; cursor: number | null } => {
-  const messagesPerChunk = 50
-  const chunk = transcript.messages.slice(
-    startingIndex,
-    startingIndex + messagesPerChunk
-  )
-  const cursor = startingIndex + messagesPerChunk
-  return {
-    chunk,
-    cursor: cursor > transcript.messages.length + 1 ? null : cursor,
   }
 }
 
@@ -639,18 +624,14 @@ export const moderateTranscript = async (
     }, '')
   }
 
-  let chunk: SessionTranscriptItem[]
-  let cursor: number | null = 0
   const results: TranscriptChunkModerationResult[] = []
-  do {
-    const nextChunk = getNextChunk(transcript, cursor)
-    chunk = nextChunk.chunk
-    cursor = nextChunk.cursor
+  const chunks: SessionTranscriptItem[][] = chunk(transcript.messages, 5)
+  for (const chunk of chunks) {
     const result = await getSessionTranscriptModerationResult(
       getChunkAsString(chunk)
     )
     results.push(result)
-  } while (cursor !== null)
+  }
 
   return results
 }
