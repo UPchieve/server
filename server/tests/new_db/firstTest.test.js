@@ -1,23 +1,38 @@
-// const { getTestPool } = require('../../../jest.setup')
+// // 
+// const { Pool } = require('pg');
+
+// describe('Database Tests', () => {
+//   let client;
+
+//   beforeAll(() => {
+//     client = global.__TEST_DB_CLIENT__;
+//   });
+
+//   afterAll(async () => {
+//     await client.end();
+//   });
+
+//   test('Example query', async () => {
+//     const result = await client.query('SELECT 1 AS value;');
+//     expect(result.rows[0].value).toBe(1);
+//   });
+// });
+const { Pool } = require('pg')
 
 describe('Database Tests', () => {
-  let pool
+  let client
 
-
-  test('Example test', async () => {
-    console.log('****example')
+  beforeAll(() => {
+    client = global.__TEST_DB_CLIENT__
   })
 
-  // beforeAll(() => {
-  //   pool = getTestPool()
-  // })
+  afterAll(async () => {
+    await client.end()
+  })
 
-  // afterAll(async () => {
-  //   await pool.end()
-  // })
-
-  // test('Example query', async () => {
-  //   const result = await pool.query('SELECT 1 AS value;')
-  //   expect(result.rows[0].value).toBe(1)
-  // })
+  test('Example query', async () => {
+    console.log('****client', client)
+    const result = await client.query('SELECT 1 AS value;')
+    expect(result.rows[0].value).toBe(1)
+  })
 })
