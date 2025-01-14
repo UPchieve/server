@@ -36,7 +36,6 @@ import {
   DetectFacesCommand,
   DetectTextCommand,
 } from '@aws-sdk/client-rekognition'
-import { chunk } from 'lodash'
 import {
   ComprehendClient,
   DetectPiiEntitiesCommand,
