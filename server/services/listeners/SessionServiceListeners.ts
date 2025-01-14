@@ -14,6 +14,11 @@ export function listeners() {
     'processSessionEditors'
   )
   register(
+    SESSION_EVENTS.SESSION_ENDED,
+    SessionService.processSessionTranscript,
+    'processSessionTranscript'
+  )
+  register(
     SESSION_EVENTS.SESSION_FLAGS_SET,
     SessionService.processCalculateMetrics,
     'processCalculateMetrics'

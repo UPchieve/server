@@ -1361,3 +1361,64 @@ WHERE
 ORDER BY
     created_at ASC;
 
+
+/* @name getSessionTranscript */
+SELECT
+    sm.id AS message_id,
+    sender_id AS user_id,
+    contents AS message,
+    sm.created_at,
+    CASE WHEN TRUE THEN
+        'chat'
+    END AS message_type,
+    CASE WHEN s.volunteer_id = sm.sender_id THEN
+        'volunteer'
+    ELSE
+        'student'
+    END AS ROLE
+FROM
+    session_messages sm
+    JOIN sessions s ON sm.session_id = s.id
+WHERE
+    sm.session_id = :sessionId!
+UNION
+SELECT
+    satm.id AS message_id,
+    satm.user_id,
+    satm.message,
+    satm.said_at AS created_at,
+    CASE WHEN TRUE THEN
+        'transcription'
+    END AS message_type,
+    CASE WHEN s.volunteer_id = satm.user_id THEN
+        'volunteer'
+    ELSE
+        'student'
+    END AS ROLE
+FROM
+    session_audio_transcript_messages satm
+    JOIN sessions s ON satm.session_id = s.id
+WHERE
+    satm.session_id = :sessionId!
+UNION
+SELECT
+    svm.id AS message_id,
+    svm.sender_id AS user_id,
+    svm.transcript AS message,
+    svm.created_at,
+    CASE WHEN TRUE THEN
+        'voice_message'
+    END AS message_type,
+    CASE WHEN s.volunteer_id = svm.sender_id THEN
+        'volunteer'
+    ELSE
+        'student'
+    END AS ROLE
+FROM
+    session_voice_messages svm
+    JOIN sessions s ON svm.session_id = s.id
+WHERE
+    svm.session_id = :sessionId!
+ORDER BY
+    created_at ASC;
+

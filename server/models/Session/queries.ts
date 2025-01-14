@@ -14,11 +14,13 @@ import {
   Session,
   UserSessionStats,
   UserSessionsFilter,
+  MessageType,
 } from './types'
 import 'moment-timezone'
 import {
   USER_BAN_TYPES,
   USER_ROLES,
+  USER_ROLES_TYPE,
   USER_SESSION_METRICS,
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -1522,6 +1524,27 @@ export async function getStudentSessionsForFallIncentive(
       getClient()
     )
     return result.map(row => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSessionTranscriptItems(sessionId: Ulid) {
+  try {
+    const result = await pgQueries.getSessionTranscript.run(
+      {
+        sessionId,
+      },
+      getClient()
+    )
+    return result.map(row => {
+      const camelCased = makeRequired(row)
+      return {
+        ...camelCased,
+        messageType: camelCased.messageType as MessageType,
+        role: camelCased.role as USER_ROLES_TYPE,
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -263,7 +263,8 @@ export const Config = Record({
   zoomVideoSdkKey: String,
   zoomVideoSdkSecret: String,
 
-  // Live media moderation
+  // Moderation
   maxModerationInfractionsPerSession: Number,
   imageModerationMinConfidence: Number,
+  contextualModerationConfidenceThreshold: Number,
 })
