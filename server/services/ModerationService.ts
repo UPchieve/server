@@ -71,14 +71,14 @@ const createAzureContentSafetyClient = () => {
 const azureContentSafetyClient = createAzureContentSafetyClient()
 
 const AWS_CONFIG = {
-  region: config.awsS3.region,
+  region: config.awsModerationToolsRegion,
   credentials: {
     accessKeyId: config.awsS3.accessKeyId,
     secretAccessKey: config.awsS3.secretAccessKey,
   },
 }
 const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
-const awsComprehendClient = new ComprehendClient([AWS_CONFIG])
+const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
 type VideoFrameModerationFailureReason = {
   reason: string
@@ -203,23 +203,21 @@ async function extractTextFromImage(image: Buffer) {
 }
 
 const detectToxicContent = async (textSegments: string[]) => {
-  const textChunks = chunk(textSegments, 10)
   const toxicContent = []
-  for (const textChunk of textChunks) {
-    const result = await awsComprehendClient.send(
-      new DetectToxicContentCommand({
-        TextSegments: textChunk?.map(text => ({ Text: text })),
-        LanguageCode: 'en',
-      })
+  const concatenatedText = textSegments.join(' ')
+  const result = await awsComprehendClient.send(
+    new DetectToxicContentCommand({
+      TextSegments: [{ Text: concatenatedText }],
+      LanguageCode: 'en',
+    })
+  )
+  if (result.ResultList) {
+    toxicContent.push(
+      ...result.ResultList.map(r => ({
+        text: concatenatedText,
+        result: r,
+      }))
     )
-    if (result.ResultList) {
-      toxicContent.push(
-        ...result.ResultList.map((r, i) => ({
-          text: textChunk[i],
-          result: r,
-        }))
-      )
-    }
   }
 
   const highToxicity = toxicContent
