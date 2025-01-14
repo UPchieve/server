@@ -26,6 +26,11 @@ import config from '../config'
 import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
+import {
+  RekognitionClient,
+  DetectModerationLabelsCommand,
+  ModerationLabel,
+} from '@aws-sdk/client-rekognition'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -51,6 +56,83 @@ const createAzureContentSafetyClient = () => {
 }
 
 const azureContentSafetyClient = createAzureContentSafetyClient()
+
+const awsRekognitionClient = new RekognitionClient({
+  region: config.awsS3.region,
+  credentials: {
+    accessKeyId: config.awsS3.accessKeyId,
+    secretAccessKey: config.awsS3.secretAccessKey,
+  },
+})
+
+type VideoFrameModerationFailureReason = {
+  reason: string
+  /*
+    Moderation labels from AWS Rekognition,
+      - Weapons, Nudity, Violence, Drug use, etc...
+  */
+  details?: any
+}
+
+const topLevelCategoryFilter = (label: ModerationLabel) =>
+  label.TaxonomyLevel === 1
+
+const moderationLabelToFailureReason = (
+  label: ModerationLabel
+): VideoFrameModerationFailureReason => {
+  return {
+    reason: label.Name ?? 'Unknown - no label name from AWS',
+    details: { confidence: label.Confidence },
+  }
+}
+
+export const moderateVideoFrame = async (
+  frame: Buffer,
+  sessionId: string
+): Promise<{
+  failureReasons: VideoFrameModerationFailureReason[]
+}> => {
+  const imageCommandInput = {
+    Image: {
+      Bytes: frame,
+    },
+    MinConfidence: config.imageModerationMinConfidence,
+  }
+
+  /*
+    detect harmful content in the image
+    we are only looking at the top level categories for now:
+      - Explicit
+      - Non-Explicit Nudity of Intimate parts and Kissing
+      - Swimwear or Underwear
+      - Violence
+      - Visually Disturbing
+      - Drugs & Tobacco
+      - Alcohol
+      - Rude Gestures
+      - Gambling
+      - Hate Symbols
+    full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
+  */
+  const moderationLabelsResponse = await awsRekognitionClient.send(
+    new DetectModerationLabelsCommand(imageCommandInput)
+  )
+  const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
+  const moderationFailureReasons = moderationLabels
+    .filter(topLevelCategoryFilter)
+    .map(moderationLabelToFailureReason)
+
+  if (moderationFailureReasons?.length > 0) {
+    logger.warn(
+      { sessionId, reasons: moderationFailureReasons },
+      'Screenshare triggered moderation'
+    )
+  }
+
+  return {
+    failureReasons: moderationFailureReasons,
+  }
+}
 
 export async function createChatCompletion({
   censoredSessionMessage,
