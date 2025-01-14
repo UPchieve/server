@@ -96,7 +96,7 @@ export const moderateVideoFrame = async (
     Image: {
       Bytes: frame,
     },
-    MinConfidence: 50,
+    MinConfidence: config.imageModerationMinConfidence,
   }
 
   /*
