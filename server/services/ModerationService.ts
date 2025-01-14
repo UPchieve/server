@@ -32,7 +32,14 @@ import {
   ModerationLabel,
   DetectLabelsCommand,
   DetectFacesCommand,
+  DetectTextCommand,
 } from '@aws-sdk/client-rekognition'
+import { chunk } from 'lodash'
+import {
+  ComprehendClient,
+  DetectPiiEntitiesCommand,
+  DetectToxicContentCommand,
+} from '@aws-sdk/client-comprehend'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -61,13 +68,15 @@ const createAzureContentSafetyClient = () => {
 
 const azureContentSafetyClient = createAzureContentSafetyClient()
 
-const awsRekognitionClient = new RekognitionClient({
+const AWS_CONFIG = {
   region: config.awsS3.region,
   credentials: {
     accessKeyId: config.awsS3.accessKeyId,
     secretAccessKey: config.awsS3.secretAccessKey,
   },
-})
+}
+const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
+const awsComprehendClient = new ComprehendClient([AWS_CONFIG])
 
 type VideoFrameModerationFailureReason = {
   reason: string
@@ -105,11 +114,11 @@ const moderationLabelToFailureReason = (
     - Hate Symbols
   full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
 */
-async function getModerationLabels(frame: Buffer) {
+async function detectImageModerationFailures(image: Buffer) {
   const moderationLabelsResponse = await awsRekognitionClient.send(
     new DetectModerationLabelsCommand({
       Image: {
-        Bytes: frame,
+        Bytes: image,
       },
       MinConfidence: config.imageModerationMinConfidence,
     })
@@ -123,11 +132,11 @@ async function getModerationLabels(frame: Buffer) {
 /*
   determine if image depicts a minor
 */
-async function detectMinorFailures(frame: Buffer) {
+async function detectMinorFailures(image: Buffer) {
   const facesResponse = await awsRekognitionClient.send(
     new DetectFacesCommand({
       Image: {
-        Bytes: frame,
+        Bytes: image,
       },
       Attributes: ['AGE_RANGE'],
     })
@@ -154,7 +163,7 @@ async function detectMinorFailures(frame: Buffer) {
   const labelResponse = await awsRekognitionClient.send(
     new DetectLabelsCommand({
       Image: {
-        Bytes: frame,
+        Bytes: image,
       },
       Settings: {
         GeneralLabels: {
@@ -175,16 +184,141 @@ async function detectMinorFailures(frame: Buffer) {
   return labelFailures
 }
 
+async function extractTextFromImage(image: Buffer) {
+  const extractedText = await awsRekognitionClient.send(
+    new DetectTextCommand({
+      Image: {
+        Bytes: image,
+      },
+    })
+  )
+  const detections = extractedText.TextDetections ?? []
+  const textSegments = detections
+    .filter(({ Type }) => Type === 'LINE')
+    .map(detection => detection.DetectedText ?? '')
+
+  return textSegments
+}
+
+const detectToxicContent = async (textSegments: string[]) => {
+  const textChunks = chunk(textSegments, 10)
+  const toxicContent = []
+  for (const textChunk of textChunks) {
+    const result = await awsComprehendClient.send(
+      new DetectToxicContentCommand({
+        TextSegments: textChunk?.map(text => ({ Text: text })),
+        LanguageCode: 'en',
+      })
+    )
+    if (result.ResultList) {
+      toxicContent.push(
+        ...result.ResultList.map((r, i) => ({
+          text: textChunk[i],
+          result: r,
+        }))
+      )
+    }
+  }
+
+  const highToxicity = toxicContent
+    .filter(({ result }) => result.Toxicity && result.Toxicity > 0.5)
+    .map(({ result, text }) => ({
+      reason: 'High Toxicity',
+      details: {
+        toxicity: result.Toxicity,
+        text,
+        labels: result.Labels,
+      },
+    }))
+
+  return highToxicity
+}
+
+async function detectPii(text: string) {
+  const piiEntities = await awsComprehendClient.send(
+    new DetectPiiEntitiesCommand({
+      Text: text,
+      LanguageCode: 'en',
+    })
+  )
+  const entities = piiEntities.Entities ?? []
+
+  const links = new Set<string>()
+  const emails = new Set<string>()
+  const phones = new Set<string>()
+  const addresses = new Set<string>()
+  for (const entity of entities) {
+    const entityStart = entity.BeginOffset
+    const entityEnd = entity.EndOffset
+
+    if (entity.Type === 'URL') {
+      links.add(text.slice(entityStart, entityEnd))
+    } else if (entity.Type === 'EMAIL') {
+      emails.add(text.slice(entityStart, entityEnd))
+    } else if (entity.Type === 'PHONE') {
+      phones.add(text.slice(entityStart, entityEnd))
+    } else if (entity.Type === 'ADDRESS') {
+      addresses.add(text.slice(entityStart, entityEnd))
+    }
+  }
+  const pii = [
+    ...Array.from(links).map(link => ({
+      reason: 'Link',
+      details: { link },
+    })),
+    ...Array.from(emails).map(email => ({
+      reason: 'Email',
+      details: { email },
+    })),
+    ...Array.from(phones).map(phone => ({
+      reason: 'Phone',
+      details: { phone },
+    })),
+    ...Array.from(addresses).map(address => ({
+      reason: 'Address',
+      details: { address },
+    })),
+  ]
+
+  return pii
+}
+
+async function detectTextModerationFailures(image: Buffer) {
+  const textSegments = await extractTextFromImage(image)
+
+  if (textSegments.length === 0) {
+    return []
+  }
+
+  const [toxicity, pii] = await Promise.all([
+    detectToxicContent(textSegments),
+    detectPii(textSegments.join(' ')),
+  ])
+
+  return [...toxicity, ...pii]
+}
+
 export const moderateVideoFrame = async (
   frame: Buffer,
   sessionId: string
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
-  const moderationFailureReasons = await getModerationLabels(frame)
-  const minorFailures = await detectMinorFailures(frame)
+  const [
+    moderationFailureReasons,
+    minorFailures,
+    textModerationFailureReasons,
+  ] = await Promise.all([
+    detectImageModerationFailures(frame),
+    detectMinorFailures(frame),
+    detectTextModerationFailures(frame),
+  ])
 
-  const failureReasons = [...moderationFailureReasons, ...minorFailures]
+  const failureReasons = [
+    ...moderationFailureReasons,
+    ...minorFailures,
+    ...textModerationFailureReasons,
+  ]
 
   if (failureReasons.length > 0) {
     logger.warn(
@@ -194,7 +328,7 @@ export const moderateVideoFrame = async (
   }
 
   return {
-    failureReasons: failureReasons,
+    failureReasons,
   }
 }
 
