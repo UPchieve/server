@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import config from '../config'
-import { ISOString } from '../constants'
+import { ISOString, SUBJECT_TYPES } from '../constants'
 
 const OAUTH_BASE_URI = 'https://clever.com/oauth/tokens'
 const API_BASE_URI = 'https://api.clever.com/v3.0'
@@ -303,6 +303,28 @@ export function parseCleverGrade(grade?: string): number | undefined {
   if (!grade) return
   if (!isNaN(parseInt(grade))) {
     return parseInt(grade)
+  }
+}
+
+export function getTopicFromCleverSubject(cleverSubject: string) {
+  switch (cleverSubject) {
+    case 'english/language arts':
+      return SUBJECT_TYPES.READING_WRITING
+    case 'math':
+      return SUBJECT_TYPES.MATH
+    case 'science':
+    case 'technology and engineering':
+      return SUBJECT_TYPES.SCIENCE
+    case 'social studies':
+      return SUBJECT_TYPES.SOCIAL_STUDIES
+    case 'language':
+    case 'homeroom/advisory':
+    case 'interventions/online learning':
+    case 'PE and health':
+    case 'arts and music':
+    case 'other':
+    default:
+      return
   }
 }
 
