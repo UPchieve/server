@@ -69,14 +69,14 @@ const createAzureContentSafetyClient = () => {
 const azureContentSafetyClient = createAzureContentSafetyClient()
 
 const AWS_CONFIG = {
-  region: config.awsS3.region,
+  region: config.awsModerationToolsRegion,
   credentials: {
     accessKeyId: config.awsS3.accessKeyId,
     secretAccessKey: config.awsS3.secretAccessKey,
   },
 }
 const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
-const awsComprehendClient = new ComprehendClient([AWS_CONFIG])
+const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
 type VideoFrameModerationFailureReason = {
   reason: string

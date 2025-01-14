@@ -199,6 +199,7 @@ export const Config = Record({
     photoIdBucket: String,
     sessionPhotoBucket: String,
   }),
+  awsModerationToolsRegion: String,
   posthogToken: String,
   posthogPersonalApiToken: String,
   posthogFeatureFlagApiToken: String,
