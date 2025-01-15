@@ -4,7 +4,7 @@ import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as UserProductFlagsService from '../../services/UserProductFlagsService'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
-import { asOptional, asString } from '../../utils/type-utils'
+import { asNumber, asOptional, asString } from '../../utils/type-utils'
 
 export interface TwilioError extends Error {
   message: string
@@ -50,4 +50,15 @@ export function routeProductFlags(router: Router) {
         resError(res, err)
       }
     })
+
+  router.route('/product-flags/impact-study').post(async function(req, res) {
+    const user = extractUser(req)
+    const surveyId = asNumber(req.body.surveyId)
+    try {
+      await UserProductFlagsService.impactStudyEnrollment(user.id, surveyId)
+      res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
