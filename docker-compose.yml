@@ -88,3 +88,10 @@ services:
       ports:
         - "5501:6379"
       image: redis:6.2.1
+    database-ci:
+      profiles: ["test"]
+      container_name: database-ci
+      hostname: postgres
+      ports:
+        - "550:5432"
+        - image: postgres:14
