@@ -9,7 +9,9 @@ export interface ModerateSessionTranscriptJobData {
   sessionId: Ulid
 }
 
-export default async function(job: Job<ModerateSessionTranscriptJobData>) {
+export default async function moderateSessionTranscript(
+  job: Job<ModerateSessionTranscriptJobData>
+) {
   logger.info(
     `ModerateSessionTranscript job running for session ${job.data.sessionId}`
   ) // @TODO delete after testing
