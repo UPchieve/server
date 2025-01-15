@@ -254,3 +254,10 @@ export async function getImpactStudySurveyResponses(
     survey: surveyWithSubmissions,
   }
 }
+
+export async function getLatestUserSubmissionsForSurveyId(
+  userId: Ulid,
+  surveyId: number
+) {
+  return getLatestUserSubmissionsForSurveyBySurveyId(userId, surveyId)
+}

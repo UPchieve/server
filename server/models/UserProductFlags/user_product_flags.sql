@@ -21,6 +21,7 @@ RETURNING
     sent_inactive_ninety_day_email,
     gates_qualified,
     fall_incentive_enrollment_at,
+    impact_study_enrollment_at,
     created_at,
     updated_at;
 
@@ -35,6 +36,7 @@ SELECT
     sent_inactive_ninety_day_email,
     gates_qualified,
     fall_incentive_enrollment_at,
+    impact_study_enrollment_at,
     created_at,
     updated_at
 FROM
@@ -47,7 +49,8 @@ WHERE
 SELECT
     user_id,
     gates_qualified,
-    fall_incentive_enrollment_at
+    fall_incentive_enrollment_at,
+    impact_study_enrollment_at
 FROM
     user_product_flags
 WHERE
@@ -100,4 +103,16 @@ WHERE
     user_id = :userId!
 RETURNING
     fall_incentive_enrollment_at;
+
+
+/* @name enrollStudentToImpactStudy */
+UPDATE
+    user_product_flags
+SET
+    impact_study_enrollment_at = NOW(),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    impact_study_enrollment_at;
 
