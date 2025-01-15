@@ -209,7 +209,7 @@ test_postgresql:
     # - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U admin -d upchieve -f ./database/db_init/test_seeds.sql
     # - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U admin -d upchieve -f ./database/db_init/seed_migrations.sql
   script:
-    - npm run test:database-ci
+    - npm run test:database_ci
   rules:
     - if: '$TEST_DISABLED'
       when: never
