@@ -12,23 +12,13 @@ export interface ModerateSessionTranscriptJobData {
 export default async function moderateSessionTranscript(
   job: Job<ModerateSessionTranscriptJobData>
 ) {
-  logger.info(
-    `ModerateSessionTranscript job running for session ${job.data.sessionId}`
-  ) // @TODO delete after testing
-  const transcript = await SessionService.getSessionTranscript(
-    job.data.sessionId
-  )
-  logger.info(
-    `ModerateSessionTranscript received transcript of length ${transcript.messages.length}`
-  ) // @TODO delete after testing
   try {
+    const transcript = await SessionService.getSessionTranscript(
+      job.data.sessionId
+    )
     const moderationResults = await ModerationService.moderateTranscript(
       transcript
     )
-    logger.info(
-      'ModerateSessionTranscript: Moderation results',
-      moderationResults
-    ) // @TODO delete after testing
     const confidenceThreshold = config.contextualModerationConfidenceThreshold
     const flaggedChunks = moderationResults.filter(
       chunk => chunk.confidence >= confidenceThreshold

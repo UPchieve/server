@@ -427,6 +427,10 @@ const jobProcessors: JobProcessor[] = [
     processor: moderateSessionMessage,
   },
   {
+    name: Jobs.ModerateSessionTranscript,
+    processor: moderateSessionTranscript,
+  },
+  {
     name: Jobs.MigrateBannedAndTestUsersToBanType,
     processor: migrateBannedAndTestUsersToBanType,
   },
@@ -437,10 +441,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.TurnOnStandaloneAiTutor,
     processor: turnOnStandaloneAiTutor,
-  },
-  {
-    name: Jobs.ModerateSessionTranscript,
-    processor: moderateSessionTranscript,
   },
 ]
 
