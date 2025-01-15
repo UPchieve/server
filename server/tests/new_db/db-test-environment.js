@@ -69,13 +69,19 @@ const Pool = require('pg').Pool
 const fs = require('fs')
 const path = require('path')
 
-const POSTGRES_USER = 'admin'
-const POSTGRES_PASSWORD = 'Password123'
-const POSTGRES_HOST = 'localhost'
-const POSTGRES_PORT = 5432
-const DEFAULT_DB = 'postgres' // Default database to connect to for admin operations
-const TEST_DB = 'upchieve_testdb_123'
+// const POSTGRES_USER = 'admin'
+// const POSTGRES_PASSWORD = 'Password123'
+// const POSTGRES_HOST = 'localhost'
+// const POSTGRES_PORT = 5432
+// const DEFAULT_DB = 'postgres' // Default database to connect to for admin operations
+// const TEST_DB = 'upchieve_testdb_123'
 
+const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
+const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
+const POSTGRES_HOST = process.env.CI ? 'postgres' : '127.0.0.1'
+const POSTGRES_PORT = parseInt(process.env.DB_PORT || '5500')
+const DEFAULT_DB = 'postgres'
+const TEST_DB = 'upchieve_testdb_123'
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
@@ -98,11 +104,11 @@ class DbTestEnvironment extends NodeEnvironment {
     // })
 
     this.adminPool = new Pool({
-      database: 'upchieve',
-      user: 'admin',
-      password: 'Password123',
-      port: 5500,
-      host: 'localhost',
+      database: DEFAULT_DB,
+      user: POSTGRES_USER,
+      password: POSTGRES_PASSWORD,
+      port: POSTGRES_PORT,
+      host: POSTGRES_HOST,
     })
 
     console.log('****1.5')
