@@ -1420,10 +1420,12 @@ export interface IGetPastSessionsForAdminDetailResult {
   endedAt: Date | null;
   id: string;
   student: string;
+  studentFirstName: string;
   subTopic: string;
   totalMessages: number | null;
   type: string;
   volunteer: string | null;
+  volunteerFirstName: string;
   volunteerJoinedAt: Date | null;
 }
 
@@ -1433,7 +1435,7 @@ export interface IGetPastSessionsForAdminDetailQuery {
   result: IGetPastSessionsForAdminDetailResult;
 }
 
-const getPastSessionsForAdminDetailIR: any = {"usedParamSet":{"userId":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":630,"b":637},{"a":668,"b":675}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":722,"b":728}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":744,"b":751}]}],"statement":"SELECT\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    sessions.id,\n    messages.total AS total_messages,\n    sessions.volunteer_id AS volunteer,\n    sessions.student_id AS student,\n    sessions.volunteer_joined_at,\n    sessions.created_at,\n    sessions.ended_at\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_id = sessions.id) AS messages ON TRUE\nWHERE\n    sessions.volunteer_id = :userId!\n    OR sessions.student_id = :userId!\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getPastSessionsForAdminDetailIR: any = {"usedParamSet":{"userId":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":866,"b":873},{"a":904,"b":911}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":958,"b":964}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":980,"b":987}]}],"statement":"SELECT\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    sessions.id,\n    messages.total AS total_messages,\n    sessions.volunteer_id AS volunteer,\n    volunteers.first_name AS volunteer_first_name,\n    sessions.student_id AS student,\n    students.first_name AS student_first_name,\n    sessions.volunteer_joined_at,\n    sessions.created_at,\n    sessions.ended_at\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_id = sessions.id) AS messages ON TRUE\n    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id\n    LEFT JOIN users students ON students.id = sessions.student_id\nWHERE\n    sessions.volunteer_id = :userId!\n    OR sessions.student_id = :userId!\nORDER BY\n    sessions.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
@@ -1444,7 +1446,9 @@ const getPastSessionsForAdminDetailIR: any = {"usedParamSet":{"userId":true,"lim
  *     sessions.id,
  *     messages.total AS total_messages,
  *     sessions.volunteer_id AS volunteer,
+ *     volunteers.first_name AS volunteer_first_name,
  *     sessions.student_id AS student,
+ *     students.first_name AS student_first_name,
  *     sessions.volunteer_joined_at,
  *     sessions.created_at,
  *     sessions.ended_at
@@ -1459,6 +1463,8 @@ const getPastSessionsForAdminDetailIR: any = {"usedParamSet":{"userId":true,"lim
  *             session_messages
  *         WHERE
  *             session_id = sessions.id) AS messages ON TRUE
+ *     LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
+ *     LEFT JOIN users students ON students.id = sessions.student_id
  * WHERE
  *     sessions.volunteer_id = :userId!
  *     OR sessions.student_id = :userId!

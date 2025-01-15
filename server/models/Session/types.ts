@@ -1,4 +1,5 @@
 import { Ulid } from '../pgUtils'
+import { USER_ROLES_TYPE } from '../../constants'
 
 export type Session = {
   id: Ulid
@@ -68,4 +69,19 @@ export type VoiceMessage = {
   createdAt: Date
   updatedAt: Date
   transcript: string
+}
+
+export type MessageType = 'chat' | 'voice_message' | 'transcription'
+export type SessionTranscriptItem = {
+  messageId: string
+  userId: string
+  createdAt: Date
+  message: string
+  messageType: MessageType
+  role: USER_ROLES_TYPE
+}
+
+export type SessionTranscript = {
+  sessionId: string
+  messages: SessionTranscriptItem[]
 }

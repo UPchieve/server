@@ -55,4 +55,25 @@ export function routeModeration(router: Router): void {
         resError(res, err)
       }
     })
+
+  router
+    .route('/moderate/video-frame')
+    .post(upload.single('frame'), async (req, res) => {
+      const frameToModerate = req.file
+      const sessionId = req.body.sessionId
+
+      if (!frameToModerate) {
+        return res.status(400).json({ err: 'No file was attached' })
+      }
+
+      try {
+        const moderationResult = await ModerationService.moderateVideoFrame(
+          frameToModerate.buffer,
+          sessionId
+        )
+        res.status(200).json(moderationResult)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }
