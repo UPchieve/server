@@ -19,9 +19,9 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
-  POSTGRES_DB: upchieve_test_ci_db
-  POSTGRES_USER: test_user
-  POSTGRES_PASSWORD: test_password
+  # POSTGRES_DB: upchieve_test_ci_db
+  # POSTGRES_USER: test_user
+  # POSTGRES_PASSWORD: test_password
 
 .docker_service:
   services:
@@ -51,15 +51,15 @@ variables:
     - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
 
-# build_ci:
-#   extends: .docker_service
-#   stage: build
-#   image: docker:20.10.6
-#   cache: []
-#   script:
-#     - docker build .
-#   rules:
-#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+build_ci:
+  extends: .docker_service
+  stage: build
+  image: docker:20.10.6
+  cache: []
+  script:
+    - docker build .
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
 # build_staging:
 #   extends: .build_docker
@@ -187,48 +187,25 @@ variables:
 #     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-test_database:
-  stage: test
+
+test_postgresql:
+  stage: setup
   image: node:20.10.0-bullseye
   services:
-    - name: docker:20.10.6-dind
-      alias: docker
-  variables:
-    DOCKER_HOST: "tcp://docker:2375"
-    DOCKER_TLS_CERTDIR: ""
-    CI: "true"
-    NODE_OPTIONS: --max_old_space_size=5120
-    DEBIAN_FRONTEND: noninteractive
+    - name: postgres:14
+      alias: postgres
   before_script:
-    - apt-get update -y
-    - apt-get install -y --no-install-recommends docker.io apt-utils
     - npm ci --cache .npm --prefer-offline
   script:
-    - npm run test:database
+    - echo "Waiting for PostgreSQL to be ready..."
+    # - node server/tests/new_db/wait-for-postgres.js
+    # - echo "PostgreSQL is ready."
+    - npm run test:database_ci
+    - echo "PostgreSQL is ready."
+  variables:
+    POSTGRES_HOST_AUTH_METHOD: trust
   rules:
-    - if: '$TEST_DISABLED'
-      when: never
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# test_postgresql:
-#   stage: setup
-#   image: node:20.10.0-bullseye
-#   services:
-#     - name: postgres:14
-#       alias: postgres
-#   before_script:
-#     - npm ci --cache .npm --prefer-offline
-#   script:
-#     - echo "Waiting for PostgreSQL to be ready..."
-#     # - node server/tests/new_db/wait-for-postgres.js
-#     # - echo "PostgreSQL is ready."
-#     - npm run test:database_ci
-#     - echo "PostgreSQL is ready."
-#   variables:
-#     POSTGRES_HOST_AUTH_METHOD: trust
-#   rules:
-#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   # stage: test
   # image: postgres
   # services:
