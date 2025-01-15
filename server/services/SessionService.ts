@@ -284,7 +284,7 @@ export async function processSessionTranscript(sessionId: Ulid) {
       { sessionId },
       {
         removeOnComplete: true,
-        removeOnFail: false,
+        removeOnFail: true,
       }
     )
   } catch (err) {
