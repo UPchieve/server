@@ -198,9 +198,10 @@ test_database:
     DOCKER_TLS_CERTDIR: ""
     CI: "true"
     NODE_OPTIONS: --max_old_space_size=5120
+    DEBIAN_FRONTEND: noninteractive
   before_script:
-    - apt-get update
-    - apt-get install -y docker.io
+    - apt-get update -y
+    - apt-get install -y --no-install-recommends docker.io apt-utils
     - npm ci --cache .npm --prefer-offline
   script:
     - npm run test:database
