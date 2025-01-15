@@ -278,10 +278,20 @@ export async function processSessionReported(sessionId: Ulid) {
 }
 
 export async function processSessionTranscript(sessionId: Ulid) {
-  await QueueService.add(Jobs.ModerateSessionTranscript, sessionId, {
-    removeOnComplete: true,
-    removeOnFail: false,
-  })
+  try {
+    await QueueService.add(
+      Jobs.ModerateSessionTranscript,
+      { sessionId },
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    )
+  } catch (err) {
+    throw new Error(
+      `Failed to enqueue ModerateSessionTranscript job for session ${sessionId}, err=${err}`
+    )
+  }
 }
 
 export async function processCalculateMetrics(sessionId: Ulid) {
