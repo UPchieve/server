@@ -303,6 +303,8 @@ const config: Static<typeof Config> = {
     sessionPhotoBucket:
       process.env.SUBWAY_SESSION_PHOTO_BUCKET || 'session-photo-bucket',
   },
+  awsModerationToolsRegion:
+    process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogFeatureFlagApiToken:
     process.env.SUBWAY_POSTHOG_FEATURE_FLAG_API_TOKEN || 'bogus',
@@ -399,12 +401,17 @@ const config: Static<typeof Config> = {
   zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 
-  tremendousDomain:
-    process.env.SUBWAY_TREMENDOUS_DOMAIN || 'testflight.tremendous.com',
+  // Moderation
+  maxModerationInfractionsPerSession: 6,
+  imageModerationMinConfidence:
+    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  contextualModerationConfidenceThreshold:
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
     process.env.SUBWAY_TREMENDOUS_REWARD_DOMAIN ||
-    'reward.testflight.tremendous',
+    'reward.testflight.tremendous.com',
   tremendousImpactStudyCampaign:
     process.env.SUBWAY_TREMENDOUS_IMPACT_STUDY_CAMPAIGN || 'bogus',
   tremendousCustomFieldsCacheExpirationSeconds:
@@ -414,9 +421,6 @@ const config: Static<typeof Config> = {
   tremendousCampaignCacheExpirationSeconds:
     Number(process.env.SUBWAY_TREMENDOUS_CAMPAIGNS_CACHE_EXPIRATION_SECONDS) ||
     86400,
-
-  // Live media moderation
-  maxModerationInfractionsPerSession: 6,
 }
 
 module.exports = config

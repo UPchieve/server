@@ -199,6 +199,7 @@ export const Config = Record({
     photoIdBucket: String,
     sessionPhotoBucket: String,
   }),
+  awsModerationToolsRegion: String,
   posthogToken: String,
   posthogPersonalApiToken: String,
   posthogFeatureFlagApiToken: String,
@@ -263,10 +264,11 @@ export const Config = Record({
   zoomVideoSdkKey: String,
   zoomVideoSdkSecret: String,
 
-  // Live media moderation
+  // Moderation
   maxModerationInfractionsPerSession: Number,
+  imageModerationMinConfidence: Number,
+  contextualModerationConfidenceThreshold: Number,
 
-  tremendousDomain: String,
   tremendousApiKey: String,
   tremendousRewardDomain: String,
   tremendousImpactStudyCampaign: String,

@@ -452,6 +452,7 @@ export async function getPastSessionsForAdminDetail(
     return result.map(v => {
       const temp = makeSomeOptional(v, [
         'volunteer',
+        'volunteerFirstName',
         'volunteerJoinedAt',
         'endedAt',
       ])

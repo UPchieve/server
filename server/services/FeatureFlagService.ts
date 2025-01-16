@@ -63,10 +63,6 @@ export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }
 
-export async function getMutedSubjectAlertsFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.MUTED_SUBJECT_ALERTS, userId)
-}
-
 export async function getUsingOurPlatformFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
@@ -165,4 +161,8 @@ export async function getTutorBotSubjectModelsPayload(
     userId
   )
   return subjectModels?.[subjectName] ?? TUTOR_BOT_MODELS.CHAT_GPT_4O
+}
+
+export async function isTremendousEmbdedRewardsEnabled(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
 }

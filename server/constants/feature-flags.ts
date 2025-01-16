@@ -1,7 +1,6 @@
 export enum FEATURE_FLAGS {
   CHATBOT = 'chatbot',
   STANDARDIZED_CERTS = 'standardized-certs',
-  MUTED_SUBJECT_ALERTS = 'muted-subject-alerts',
   USING_OUR_PLATFORM = 'using-our-platform',
   SESSION_RECAP_DMS = 'session-recap-dms',
   WEEKLY_SUMMARY_ALL_HOURS = 'weekly-summary-all-hours',
@@ -13,4 +12,5 @@ export enum FEATURE_FLAGS {
   COLLEGE_LIST_WORKSHEET = 'college-list-worksheet',
   FALL_INCENTIVE_PROGRAM = 'fall-incentive-program',
   AI_TUTOR_BOT_SUBJECT_MODELS = 'ai-tutor-bot-subject-models',
+  TREMENDOUS_EMBDED_REWARDS = 'tremendous-embeded-rewards',
 }

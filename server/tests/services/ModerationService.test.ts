@@ -1,5 +1,5 @@
 import {
-  createChatCompletion,
+  getIndividualSessionMessageModerationResponse,
   FALLBACK_MODERATION_PROMPT,
   moderateMessage,
 } from '../../services/ModerationService'
@@ -8,7 +8,6 @@ import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
-import logger from '../../logger'
 import { timeLimit } from '../../utils/time-limit'
 
 jest.mock('../../utils/time-limit')
@@ -265,7 +264,7 @@ describe('ModerationService', () => {
           name: 'moderation-prompt',
           version: 1,
         } as any)
-        await createChatCompletion({
+        await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
         })
@@ -281,14 +280,6 @@ describe('ModerationService', () => {
         )
         expect(LangfuseService.getPrompt).toHaveBeenCalled()
         expect(LangfuseService.getClient).toHaveBeenCalled()
-        expect(logger.info).toHaveBeenCalledWith(
-          expect.objectContaining({
-            decision: expect.objectContaining({
-              promptUsed: 'moderation-prompt-1',
-            }),
-          }),
-          'AI moderation result'
-        )
       })
 
       test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
@@ -297,7 +288,10 @@ describe('ModerationService', () => {
         )
         mockLangfuseService.getPrompt.mockResolvedValue(undefined)
 
-        await createChatCompletion({ censoredSessionMessage, isVolunteer })
+        await getIndividualSessionMessageModerationResponse({
+          censoredSessionMessage,
+          isVolunteer,
+        })
         expect(openai.chat.completions.create).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: expect.arrayContaining([
@@ -310,14 +304,6 @@ describe('ModerationService', () => {
         )
         expect(LangfuseService.getPrompt).toHaveBeenCalled()
         expect(LangfuseService.getClient).toHaveBeenCalled()
-        expect(logger.info).toHaveBeenCalledWith(
-          expect.objectContaining({
-            decision: expect.objectContaining({
-              promptUsed: 'FALLBACK',
-            }),
-          }),
-          'AI moderation result'
-        )
       })
 
       it('Associates the Langfuse prompt with the generation', async () => {
@@ -334,7 +320,7 @@ describe('ModerationService', () => {
         mockLangfuseService.getPrompt.mockResolvedValue(
           langfusePromptObject as any
         )
-        await createChatCompletion({
+        await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
         })
@@ -354,7 +340,7 @@ describe('ModerationService', () => {
           FeatureFlagsService.AI_MODERATION_STATE.targeted
         )
         mockLangfuseService.getPrompt.mockResolvedValue(undefined)
-        await createChatCompletion({
+        await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
         })

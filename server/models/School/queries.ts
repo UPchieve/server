@@ -18,7 +18,9 @@ import { getClient, TransactionClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
-  deactivateStudentPartnerOrg,
+  createStudentPartnerOrgUpchieveInstance,
+  deactivateSchoolStudentPartnerOrgs,
+  StudentPartnerOrg,
 } from '../StudentPartnerOrg'
 import {
   FormattedSchoolNcesMetadataRecord,
@@ -30,12 +32,17 @@ import logger from '../../logger'
 import { AdminUpdate } from '../../services/SchoolService'
 import { isSchoolApproved } from '../../services/EligibilityService'
 import { IGetStudentPartnerOrgForRegistrationByKeyParams } from '../StudentPartnerOrg/pg.queries'
+import { PoolClient } from 'pg'
 
 export async function getSchoolById(
-  schoolId: Ulid
+  schoolId: Ulid,
+  client?: PoolClient
 ): Promise<School | undefined> {
   try {
-    const result = await pgQueries.getSchoolById.run({ schoolId }, getClient())
+    const result = await pgQueries.getSchoolById.run(
+      { schoolId },
+      client ?? getClient()
+    )
 
     if (result.length) {
       return makeSomeRequired(result[0], [
@@ -114,23 +121,39 @@ export async function updateApproval(
 
 export async function updateIsPartner(
   schoolId: Ulid,
-  isPartner: boolean
+  isPartner: boolean,
+  existingStudentPartnerOrgId: string | undefined
 ): Promise<void> {
+  if (!existingStudentPartnerOrgId && !isPartner)
+    throw new Error(
+      `Cannot deactivate student partner org for school ${schoolId}: SPO does not exist`
+    )
+
   const transactionClient = await getClient().connect()
   try {
     await transactionClient.query('BEGIN')
+    // Set schools.partner.
+    // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
     const result = await pgQueries.updateIsPartner.run(
       { schoolId, isPartner },
-      getClient()
+      transactionClient
     )
 
-    const school = await getSchoolById(schoolId)
-    if (school) {
-      if (isPartner)
-        await createSchoolStudentPartnerOrg(school.name, transactionClient)
-      else await deactivateStudentPartnerOrg(school.name, transactionClient)
+    const school = await getSchoolById(schoolId, transactionClient)
+    if (!school)
+      throw new Error(
+        `Cannot update partner status: School with id ${schoolId} does not exist`
+      )
+    if (isPartner) {
+      if (!existingStudentPartnerOrgId) {
+        await createSchoolStudentPartnerOrg(school.id, transactionClient)
+      }
+      await createStudentPartnerOrgUpchieveInstance(schoolId, transactionClient)
+    } else {
+      await deactivateSchoolStudentPartnerOrgs(schoolId, transactionClient)
     }
 
+    // @TODO switch to runInTransaction style and move this logic into the service layer.
     await transactionClient.query('COMMIT')
     if (result.length) return makeRequired(result[0])
   } catch (err) {

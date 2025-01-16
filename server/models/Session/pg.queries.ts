@@ -452,6 +452,7 @@ export interface IGetSessionsToReviewResult {
   totalMessages: number | null;
   type: string;
   volunteer: string | null;
+  volunteerFirstName: string;
 }
 
 /** 'GetSessionsToReview' query type */
@@ -460,7 +461,7 @@ export interface IGetSessionsToReviewQuery {
   result: IGetSessionsToReviewResult;
 }
 
-const getSessionsToReviewIR: any = {"usedParamSet":{"withStudentFirstName":true,"limit":true,"offset":true},"params":[{"name":"withStudentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":2036,"b":2056}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":2133,"b":2139}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":2155,"b":2162}]}],"statement":"SELECT\n    sessions.id,\n    sessions.ended_at,\n    sessions.created_at,\n    sessions.volunteer_id AS volunteer,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    students.first_name AS student_first_name,\n    session_reported_count.total <> 0 AS is_reported,\n    flags.flags,\n    messages.total AS total_messages,\n    session_review_reason.review_reasons,\n    sessions.to_review,\n    student_feedback.student_counseling_feedback\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users students ON students.id = sessions.student_id\n    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id\n            AND student_feedback.user_id = sessions.student_id)\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS flags\n        FROM\n            sessions_session_flags\n            JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            session_id = sessions.id\n        GROUP BY\n            session_id) AS flags ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_review_reasons.session_id = sessions.id) AS session_review_reason ON TRUE\nWHERE\n    sessions.to_review IS TRUE\n    AND sessions.reviewed IS FALSE\n    AND LOWER(students.first_name) = LOWER(COALESCE(NULLIF (:withStudentFirstName, ''), students.first_name))\nORDER BY\n    (sessions.created_at) DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getSessionsToReviewIR: any = {"usedParamSet":{"withStudentFirstName":true,"limit":true,"offset":true},"params":[{"name":"withStudentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":2159,"b":2179}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":2256,"b":2262}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":2278,"b":2285}]}],"statement":"SELECT\n    sessions.id,\n    sessions.ended_at,\n    sessions.created_at,\n    sessions.volunteer_id AS volunteer,\n    volunteers.first_name AS volunteer_first_name,\n    topics.name AS TYPE,\n    subjects.name AS sub_topic,\n    students.first_name AS student_first_name,\n    session_reported_count.total <> 0 AS is_reported,\n    flags.flags,\n    messages.total AS total_messages,\n    session_review_reason.review_reasons,\n    sessions.to_review,\n    student_feedback.student_counseling_feedback\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users students ON students.id = sessions.student_id\n    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id\n    LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id\n            AND student_feedback.user_id = sessions.student_id)\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS flags\n        FROM\n            sessions_session_flags\n            JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            session_id = sessions.id\n        GROUP BY\n            session_id) AS flags ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_messages\n        WHERE\n            session_messages.session_id = sessions.id) AS messages ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_review_reasons.session_id = sessions.id) AS session_review_reason ON TRUE\nWHERE\n    sessions.to_review IS TRUE\n    AND sessions.reviewed IS FALSE\n    AND LOWER(students.first_name) = LOWER(COALESCE(NULLIF (:withStudentFirstName, ''), students.first_name))\nORDER BY\n    (sessions.created_at) DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
@@ -470,6 +471,7 @@ const getSessionsToReviewIR: any = {"usedParamSet":{"withStudentFirstName":true,
  *     sessions.ended_at,
  *     sessions.created_at,
  *     sessions.volunteer_id AS volunteer,
+ *     volunteers.first_name AS volunteer_first_name,
  *     topics.name AS TYPE,
  *     subjects.name AS sub_topic,
  *     students.first_name AS student_first_name,
@@ -484,6 +486,7 @@ const getSessionsToReviewIR: any = {"usedParamSet":{"withStudentFirstName":true,
  *     LEFT JOIN subjects ON subjects.id = sessions.subject_id
  *     LEFT JOIN topics ON topics.id = subjects.topic_id
  *     LEFT JOIN users students ON students.id = sessions.student_id
+ *     LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
  *     LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
  *             AND student_feedback.user_id = sessions.student_id)
  *     LEFT JOIN LATERAL (
@@ -2937,5 +2940,94 @@ const getStudentSessionsForFallIncentiveIR: any = {"usedParamSet":{"studentId":t
  * ```
  */
 export const getStudentSessionsForFallIncentive = new PreparedQuery<IGetStudentSessionsForFallIncentiveParams,IGetStudentSessionsForFallIncentiveResult>(getStudentSessionsForFallIncentiveIR);
+
+
+/** 'GetSessionTranscript' parameters type */
+export interface IGetSessionTranscriptParams {
+  sessionId: string;
+}
+
+/** 'GetSessionTranscript' return type */
+export interface IGetSessionTranscriptResult {
+  createdAt: Date | null;
+  message: string | null;
+  messageId: string | null;
+  messageType: string | null;
+  role: string | null;
+  userId: string | null;
+}
+
+/** 'GetSessionTranscript' query type */
+export interface IGetSessionTranscriptQuery {
+  params: IGetSessionTranscriptParams;
+  result: IGetSessionTranscriptResult;
+}
+
+const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":377,"b":387},{"a":804,"b":814},{"a":1230,"b":1240}]}],"statement":"SELECT\n    sm.id AS message_id,\n    sender_id AS user_id,\n    contents AS message,\n    sm.created_at,\n    CASE WHEN TRUE THEN\n        'chat'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = sm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_messages sm\n    JOIN sessions s ON sm.session_id = s.id\nWHERE\n    sm.session_id = :sessionId!\nUNION\nSELECT\n    satm.id AS message_id,\n    satm.user_id,\n    satm.message,\n    satm.said_at AS created_at,\n    CASE WHEN TRUE THEN\n        'transcription'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = satm.user_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_audio_transcript_messages satm\n    JOIN sessions s ON satm.session_id = s.id\nWHERE\n    satm.session_id = :sessionId!\nUNION\nSELECT\n    svm.id AS message_id,\n    svm.sender_id AS user_id,\n    svm.transcript AS message,\n    svm.created_at,\n    CASE WHEN TRUE THEN\n        'voice_message'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = svm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_voice_messages svm\n    JOIN sessions s ON svm.session_id = s.id\nWHERE\n    svm.session_id = :sessionId!\nORDER BY\n    created_at ASC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sm.id AS message_id,
+ *     sender_id AS user_id,
+ *     contents AS message,
+ *     sm.created_at,
+ *     CASE WHEN TRUE THEN
+ *         'chat'
+ *     END AS message_type,
+ *     CASE WHEN s.volunteer_id = sm.sender_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_messages sm
+ *     JOIN sessions s ON sm.session_id = s.id
+ * WHERE
+ *     sm.session_id = :sessionId!
+ * UNION
+ * SELECT
+ *     satm.id AS message_id,
+ *     satm.user_id,
+ *     satm.message,
+ *     satm.said_at AS created_at,
+ *     CASE WHEN TRUE THEN
+ *         'transcription'
+ *     END AS message_type,
+ *     CASE WHEN s.volunteer_id = satm.user_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_audio_transcript_messages satm
+ *     JOIN sessions s ON satm.session_id = s.id
+ * WHERE
+ *     satm.session_id = :sessionId!
+ * UNION
+ * SELECT
+ *     svm.id AS message_id,
+ *     svm.sender_id AS user_id,
+ *     svm.transcript AS message,
+ *     svm.created_at,
+ *     CASE WHEN TRUE THEN
+ *         'voice_message'
+ *     END AS message_type,
+ *     CASE WHEN s.volunteer_id = svm.sender_id THEN
+ *         'volunteer'
+ *     ELSE
+ *         'student'
+ *     END AS ROLE
+ * FROM
+ *     session_voice_messages svm
+ *     JOIN sessions s ON svm.session_id = s.id
+ * WHERE
+ *     svm.session_id = :sessionId!
+ * ORDER BY
+ *     created_at ASC
+ * ```
+ */
+export const getSessionTranscript = new PreparedQuery<IGetSessionTranscriptParams,IGetSessionTranscriptResult>(getSessionTranscriptIR);
 
 
