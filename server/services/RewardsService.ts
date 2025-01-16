@@ -1,17 +1,20 @@
 import { AxiosError } from 'axios'
-import { Configuration, Environments, ListRewards200Response } from 'tremendous'
 import {
-  OrdersApi,
-  CreateOrderRequest,
-  FieldsApi,
-  RewardsApi,
   CampaignsApi,
+  Configuration,
+  CreateOrderRequest,
+  Environments,
+  FieldsApi,
+  ListRewards200Response,
+  OrdersApi,
+  RewardsApi,
 } from 'tremendous'
 import config from '../config'
 import * as cache from '../cache'
 import { logError } from '../logger'
 import { Ulid } from '../models/pgUtils'
 import { isProductionEnvironment } from '../utils/environments'
+import { isTremendousEmbdedRewardsEnabled } from './FeatureFlagService'
 
 const configuration = new Configuration({
   basePath: isProductionEnvironment()
@@ -210,9 +213,13 @@ export async function getCampaigns(): Promise<RewardCampaigns> {
 export async function getUserRewards(
   userId: Ulid,
   offset: number
-): Promise<{ rewards: UserReward[]; total: number } | undefined> {
+): Promise<{ rewards: UserReward[]; total: number }> {
   try {
     const cacheKey = `user-rewards-${userId}`
+    const userRewards: { rewards: UserReward[]; total: number } = {
+      rewards: [],
+      total: 0,
+    }
     let userRewardResponse: ListRewards200Response | undefined
 
     // Attempt to retrieve cached rewards if this is not the first page.
@@ -225,11 +232,11 @@ export async function getUserRewards(
       }
     }
 
-    if (!userRewardResponse) {
+    if (!userRewardResponse || !userRewardResponse.rewards) {
       const { data } = await rewards.listRewards(undefined, {
-        params: { [CustomFieldLabels.USER_ID]: userId },
+        params: { [CustomFieldLabels.USER_ID]: userId, limit: 100 },
       })
-      if (!data.rewards) return
+      if (!data.rewards) return userRewards
 
       try {
         await cache.saveWithExpiration(cacheKey, JSON.stringify(data))
@@ -239,19 +246,15 @@ export async function getUserRewards(
 
       userRewardResponse = data
     }
-    if (!userRewardResponse.rewards) return
 
     const REWARD_LIMIT_PER_PAGE = 4
-    const paginatedRewards = userRewardResponse.rewards.slice(
+    const paginatedRewards = userRewardResponse.rewards!.slice(
       offset,
       offset + REWARD_LIMIT_PER_PAGE
     )
-
-    const rewardIds = Array.from(
-      new Set(
-        paginatedRewards.filter(reward => !!reward.id).map(reward => reward.id!)
-      )
-    )
+    const rewardIds = paginatedRewards
+      .filter((reward): reward is { id: string } => !!reward.id)
+      .map(reward => reward.id)
 
     /**
      *
@@ -264,7 +267,6 @@ export async function getUserRewards(
     )
 
     const allCampaigns = await getCampaigns()
-    const userRewards = []
 
     for (const reward of rewardsData) {
       if (!reward?.id || reward.delivery?.method !== 'LINK') continue
@@ -276,9 +278,10 @@ export async function getUserRewards(
           ? allCampaigns[campaignId]
           : { name: 'No Campaign' }
 
-      const rewardLink = await getRewardLink(reward.id)
-
-      userRewards.push({
+      const rewardLink = (await isTremendousEmbdedRewardsEnabled(userId))
+        ? await getRewardEmbedLink(reward.id)
+        : await getRewardLink(reward.id)
+      userRewards.rewards.push({
         id: reward.id,
         amount: reward.value?.denomination ?? 0,
         campaignId,
@@ -287,12 +290,13 @@ export async function getUserRewards(
         rewardLink,
       })
     }
-
-    return { rewards: userRewards, total: userRewardResponse.total_count ?? 0 }
+    userRewards.total = userRewardResponse.total_count ?? 0
+    return userRewards
   } catch (error) {
     logError(
       ((error as AxiosError).response?.data as Error) || (error as Error)
     )
+    throw error
   }
 }
 
@@ -308,7 +312,7 @@ function getTremendousEmbedLink(rewardToken: string) {
   }.com/embed/?id=${encodeURIComponent(rewardToken)}&embed=true`
 }
 
-export async function getRewardLink(rewardId: string) {
+export async function getRewardEmbedLink(rewardId: string) {
   const cacheKey = `reward-embed-token-${rewardId}`
 
   let rewardToken: string | undefined
@@ -330,6 +334,11 @@ export async function getRewardLink(rewardId: string) {
     // Ignore cache-related errors
   }
   return getTremendousEmbedLink(rewardToken)
+}
+
+export async function getRewardLink(rewardId: string) {
+  const { data } = await rewards.generateRewardLink(rewardId)
+  return data.reward.link ?? ''
 }
 
 /**
