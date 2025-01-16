@@ -41,6 +41,9 @@ import {
   DetectPiiEntitiesCommand,
   DetectToxicContentCommand,
 } from '@aws-sdk/client-comprehend'
+import crypto from 'crypto'
+import { ObjectCannedACL, PutObjectCommand, S3 } from '@aws-sdk/client-s3'
+import { putObject } from './AwsService'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -233,7 +236,62 @@ const detectToxicContent = async (textSegments: string[]) => {
   return highToxicity
 }
 
-async function detectPii(text: string) {
+async function isLikelyToBeAPhoneNumber({
+  entityConfidence,
+  entityText,
+  sessionId,
+  isVolunteer,
+}: {
+  entityConfidence: number
+  entityText: string
+  sessionId: string
+  isVolunteer: boolean
+}) {
+  // Since many users will be sharing numbers that look like phone numbers,
+  // we want to moderate them in similar way we moderate phone numbers in messages.
+  // PII is very permisive with what's a phone number, so let's run it throough our regex
+  // and then through the false positive fallback
+  const isMaybePhone = entityConfidence > 0.9 && PHONE_REGEX.test(entityText)
+
+  if (!isMaybePhone) {
+    return false
+  }
+
+  const aiModerationResult = await getAiModerationResult(
+    {
+      message: entityText,
+      sessionId,
+    },
+    isVolunteer
+  )
+
+  return aiModerationResult?.isPhoneNumber ?? true
+}
+
+function isLikelyToBeAnAdderess({
+  entityConfidence,
+  entityText,
+}: {
+  entityConfidence: number
+  entityText: string
+}) {
+  // The PII api flags any part of an address as an ADDRESS.
+  // That means things like "Virginia" are flagged as an address.
+  // This attempts to filter out these false positives by checking if the text contains a space
+  // since actual addresses contain spaces
+  // and that the confidence is high
+  return entityConfidence > 0.9 && /\s/g.test(entityText)
+}
+
+function existsInArray(array: any[], item: any) {
+  return array.some(i => i === item)
+}
+
+async function detectPii(
+  text: string,
+  sessionId: string,
+  isVolunteer: boolean
+) {
   const piiEntities = await awsComprehendClient.send(
     new DetectPiiEntitiesCommand({
       Text: text,
@@ -242,47 +300,84 @@ async function detectPii(text: string) {
   )
   const entities = piiEntities.Entities ?? []
 
-  const links = new Set<string>()
-  const emails = new Set<string>()
-  const phones = new Set<string>()
-  const addresses = new Set<string>()
+  const links: {
+    reason: 'Link'
+    details: { text: string; confidence: number }
+  }[] = []
+  const emails: {
+    reason: 'Email'
+    details: { text: string; confidence: number }
+  }[] = []
+  const phones: {
+    reason: 'Phone'
+    details: { text: string; confidence: number }
+  }[] = []
+  const addresses: {
+    reason: 'Address'
+    details: { text: string; confidence: number }
+  }[] = []
   for (const entity of entities) {
     const entityStart = entity.BeginOffset
     const entityEnd = entity.EndOffset
+    const entityText = text.slice(entityStart, entityEnd)
+    const entityConfidence = Number(entity.Score)
 
-    if (entity.Type === 'URL') {
-      links.add(text.slice(entityStart, entityEnd))
-    } else if (entity.Type === 'EMAIL') {
-      emails.add(text.slice(entityStart, entityEnd))
-    } else if (entity.Type === 'PHONE') {
-      phones.add(text.slice(entityStart, entityEnd))
-    } else if (entity.Type === 'ADDRESS') {
-      addresses.add(text.slice(entityStart, entityEnd))
+    if (entity.Type === 'URL' && !existsInArray(links, entityText)) {
+      links.push({
+        reason: 'Link',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    } else if (entity.Type === 'EMAIL' && !existsInArray(emails, entityText)) {
+      emails.push({
+        reason: 'Email',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    } else if (
+      entity.Type === 'PHONE' &&
+      (await isLikelyToBeAPhoneNumber({
+        entityConfidence,
+        entityText,
+        sessionId,
+        isVolunteer,
+      })) &&
+      !existsInArray(phones, entityText)
+    ) {
+      phones.push({
+        reason: 'Phone',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    } else if (
+      entity.Type === 'ADDRESS' &&
+      isLikelyToBeAnAdderess({ entityConfidence, entityText }) &&
+      !existsInArray(addresses, entityText)
+    ) {
+      addresses.push({
+        reason: 'Address',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
     }
   }
-  const pii = [
-    ...Array.from(links).map(link => ({
-      reason: 'Link',
-      details: { link },
-    })),
-    ...Array.from(emails).map(email => ({
-      reason: 'Email',
-      details: { email },
-    })),
-    ...Array.from(phones).map(phone => ({
-      reason: 'Phone',
-      details: { phone },
-    })),
-    ...Array.from(addresses).map(address => ({
-      reason: 'Address',
-      details: { address },
-    })),
-  ]
 
-  return pii
+  return [...links, ...emails, ...phones, ...addresses]
 }
 
-async function detectTextModerationFailures(image: Buffer) {
+async function detectTextModerationFailures(
+  image: Buffer,
+  sessionId: string,
+  isVolunteer: boolean
+) {
   const textSegments = await extractTextFromImage(image)
 
   if (textSegments.length === 0) {
@@ -291,15 +386,55 @@ async function detectTextModerationFailures(image: Buffer) {
 
   const [toxicity, pii] = await Promise.all([
     detectToxicContent(textSegments),
-    detectPii(textSegments.join(' ')),
+    detectPii(textSegments.join(' '), sessionId, isVolunteer),
   ])
 
   return [...toxicity, ...pii]
 }
 
+async function handleVideoFrameModerationFailure({
+  userId,
+  sessionId,
+  failureReasons,
+  image,
+}: {
+  userId: string
+  sessionId: string
+  failureReasons: VideoFrameModerationFailureReason[]
+  image: Buffer
+}) {
+  const moderatedScreenshareS3Key = `${sessionId}-${crypto
+    .randomBytes(8)
+    .toString('hex')}`
+  const bucketName = config.awsS3.moderatedScreenshareBucket
+
+  const { location } = await putObject(
+    bucketName,
+    moderatedScreenshareS3Key,
+    image
+  )
+
+  logger.warn(
+    { sessionId, reasons: failureReasons, imageUrl: location },
+    'Screenshare triggered moderation'
+  )
+
+  await handleModerationInfraction(userId, sessionId, {
+    failures: failureReasons.reduce((acc, reason) => {
+      acc[reason.reason] = {
+        ...reason.details,
+        imageUrl: location,
+      }
+      return acc
+    }, {} as Record<VideoFrameModerationFailureReason['reason'], VideoFrameModerationFailureReason['details']>),
+  })
+}
+
 export const moderateVideoFrame = async (
   frame: Buffer,
-  sessionId: string
+  sessionId: string,
+  userId: string,
+  isVolunteer: boolean
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
@@ -310,7 +445,7 @@ export const moderateVideoFrame = async (
   ] = await Promise.all([
     detectImageModerationFailures(frame),
     detectMinorFailures(frame),
-    detectTextModerationFailures(frame),
+    detectTextModerationFailures(frame, sessionId, isVolunteer),
   ])
 
   const failureReasons = [
@@ -320,10 +455,12 @@ export const moderateVideoFrame = async (
   ]
 
   if (failureReasons.length > 0) {
-    logger.warn(
-      { sessionId, reasons: failureReasons },
-      'Screenshare triggered moderation'
-    )
+    await handleVideoFrameModerationFailure({
+      userId,
+      sessionId,
+      failureReasons,
+      image: frame,
+    })
   }
 
   return {
@@ -335,7 +472,10 @@ export async function getIndividualSessionMessageModerationResponse({
   censoredSessionMessage,
   isVolunteer,
 }: {
-  censoredSessionMessage: CensoredSessionMessage
+  censoredSessionMessage: Pick<
+    CensoredSessionMessage,
+    'sessionId' | 'message'
+  > & { id?: string }
   isVolunteer: boolean
 }) {
   const model = 'gpt-4o'
@@ -389,7 +529,9 @@ export async function getIndividualSessionMessageModerationResponse({
     logger.error(
       {
         error: err,
-        censoredSessionMessageId: censoredSessionMessage.id,
+        censoredSessionMessageId:
+          censoredSessionMessage?.id ??
+          'No ID: Text was likely extracted from an image',
       },
       `Error while moderating session message`
     )
@@ -499,7 +641,7 @@ const regexModerate = (message: string): RegexModerationResult => {
 }
 
 const getAiModerationResult = async (
-  censoredSessionMessage: CensoredSessionMessage,
+  censoredSessionMessage: Pick<CensoredSessionMessage, 'sessionId' | 'message'>,
   isVolunteer: boolean
 ) => {
   return await timeLimit({
@@ -577,7 +719,12 @@ export async function moderateMessage({
 const handleModerationInfraction = async (
   userId: string,
   sessionId: string,
-  reasons: ModerationFailureReasons
+  reasons:
+    | ModerationFailureReasons
+    | Record<
+        VideoFrameModerationFailureReason['reason'],
+        VideoFrameModerationFailureReason['details']
+      >
 ) => {
   const strikesForUserInSession = await ModerationInfractionsRepo.insertModerationInfraction(
     {
