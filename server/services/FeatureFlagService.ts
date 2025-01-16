@@ -162,3 +162,7 @@ export async function getTutorBotSubjectModelsPayload(
   )
   return subjectModels?.[subjectName] ?? TUTOR_BOT_MODELS.CHAT_GPT_4O
 }
+
+export async function isTremendousEmbdedRewardsEnabled(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
+}
