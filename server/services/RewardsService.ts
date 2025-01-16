@@ -74,6 +74,7 @@ function isCustomFieldLabel(label: string): label is keyof CUSTOM_FIELDS_IDS {
 export async function getCustomFieldsIds(): Promise<
   CUSTOM_FIELDS_IDS | undefined
 > {
+  // TODO: Make a utility method for the pattern of retrieving from cache/fetching/storing into cache
   const cacheKey = 'tremendous-custom-fields'
   try {
     const cacheFields = await cache.get(cacheKey)
@@ -168,6 +169,7 @@ export async function createGiftCardRewardLink(data: CreateGiftCardReward) {
 }
 
 export async function getCampaigns(): Promise<RewardCampaigns> {
+  // TODO: Make a utility method for the pattern of retrieving from cache/fetching/storing into cache
   const cacheKey = 'tremendous-campaigns'
   try {
     const cachedCampaigns = await cache.get(cacheKey)
@@ -214,6 +216,7 @@ export async function getUserRewards(
   userId: Ulid,
   offset: number
 ): Promise<{ rewards: UserReward[]; total: number }> {
+  // TODO: Make a utility method for the pattern of retrieving from cache/fetching/storing into cache
   try {
     const cacheKey = `user-rewards-${userId}`
     const userRewards: { rewards: UserReward[]; total: number } = {
@@ -313,6 +316,7 @@ function getTremendousEmbedLink(rewardToken: string) {
 }
 
 export async function getRewardEmbedLink(rewardId: string) {
+  // TODO: Make a utility method for the pattern of retrieving from cache/fetching/storing into cache
   const cacheKey = `reward-embed-token-${rewardId}`
 
   let rewardToken: string | undefined
