@@ -408,12 +408,10 @@ const config: Static<typeof Config> = {
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
 
-  tremendousDomain:
-    process.env.SUBWAY_TREMENDOUS_DOMAIN || 'testflight.tremendous.com',
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
     process.env.SUBWAY_TREMENDOUS_REWARD_DOMAIN ||
-    'reward.testflight.tremendous',
+    'reward.testflight.tremendous.com',
   tremendousImpactStudyCampaign:
     process.env.SUBWAY_TREMENDOUS_IMPACT_STUDY_CAMPAIGN || 'bogus',
   tremendousCustomFieldsCacheExpirationSeconds:

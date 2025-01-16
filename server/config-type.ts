@@ -269,7 +269,6 @@ export const Config = Record({
   imageModerationMinConfidence: Number,
   contextualModerationConfidenceThreshold: Number,
 
-  tremendousDomain: String,
   tremendousApiKey: String,
   tremendousRewardDomain: String,
   tremendousImpactStudyCampaign: String,
