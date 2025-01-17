@@ -10,15 +10,15 @@ export function routeAwsChime(router: Router): void {
       const user = extractUser(req)
       const chime = new AWS.ChimeSDKMeetings({ region: 'us-east-1' })
 
-      // @TODO move to server layer, etc
       const createMeetingResponse = await chime
         .createMeeting({
-          ClientRequestToken: uuidv4(),
-          MediaRegion: 'us-east-1', // this is ideallyg the region closest to the user creating the meeting
+          ClientRequestToken: uuidv4(), // I'm confused. Should this come from the client?
+          MediaRegion: 'us-east-1', // this is ideally the region closest to the user creating the meeting
           ExternalMeetingId: 'meeting-1',
         })
         .promise()
 
+      // Join Attendee to Meeting
       const createAttendeeResponse = await chime
         .createAttendee({
           MeetingId: createMeetingResponse.Meeting?.MeetingId,
@@ -38,6 +38,9 @@ export function routeAwsChime(router: Router): void {
         )
       )
 
+      // Now securely transfer the meetingResponse and attendeeResponse objects to your client application.
+      // These objects contain all the information needed for a client application using the
+      // Amazon Chime SDK for JavaScript to join the meeting.
       return res
         .json({
           meeting: createMeetingResponse,
@@ -63,6 +66,26 @@ export function routeAwsChime(router: Router): void {
 
       console.debug('Deleted meeting', response)
       return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.put('/chime/meeting/:meetingId', async (req, res) => {
+    try {
+      const userId = extractUser(req).id
+      const meetingId = req.params.meetingId
+      console.debug(`Adding user ${userId} to meeting ${meetingId}`)
+      const chime = new AWS.ChimeSDKMeetings({ region: 'us-east-1' })
+
+      const response = await chime
+        .createAttendee({
+          MeetingId: meetingId,
+          ExternalUserId: userId,
+        })
+        .promise()
+      console.debug('Join user to meeting response', response)
+      return res.json({ attendee: response })
     } catch (err) {
       resError(res, err)
     }
