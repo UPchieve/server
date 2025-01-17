@@ -31,6 +31,7 @@ import { routeVoiceMessages } from './voice-messages'
 import { routeTutorBot } from './tutor-bot'
 import { routeAssignments } from './assignments'
 import { routeZoom } from './zoom'
+import { routeAwsChime } from './aws-chime'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -58,6 +59,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeTutorBot(router)
   routeAssignments(router)
   routeZoom(router)
+  routeAwsChime(router)
 
   router.post('/send-referral-email', async function(req, res) {
     try {

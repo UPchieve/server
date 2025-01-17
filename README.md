@@ -227,3 +227,9 @@ You can run the worker queue locally as well as enqueue specific jobs:
 ## Socket IO Admin UI
 
 You can visualize the state of the application's sockets using the [Socket IO Admin UI](https://socket.io/docs/v4/admin-ui/). In non-development environments, you will need to authenticate to view the UI. See 1Pass for login instructions.
+
+## AWS and Chime
+
+To develop locally with AWS services like Chime, you have a few options for authentication, but it is recommended that you authenticate through AWS IAM Identity Center:
+- Follow instructions [here](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/getting-your-credentials.html).
+- **Do not commit** the `config` and `credentials` files!
