@@ -234,7 +234,7 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 -- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last_successful_clever_sync) FROM stdin;
 \.
 
 

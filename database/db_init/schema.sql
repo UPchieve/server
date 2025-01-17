@@ -2178,7 +2178,8 @@ CREATE TABLE upchieve.teacher_profiles (
     user_id uuid NOT NULL,
     school_id uuid,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    last_successful_clever_sync timestamp with time zone
 );
 
 
@@ -6243,4 +6244,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241120210732'),
     ('20241216172437'),
     ('20241216172507'),
-    ('20241216193347');
+    ('20241216193347'),
+    ('20241217040206');
