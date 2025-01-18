@@ -5,6 +5,52 @@ import { v4 as uuidv4 } from 'uuid'
 import { resError } from '../res-error'
 
 export function routeAwsChime(router: Router): void {
+  router.get('/chime/meeting/:meetingId', async (req, res) => {
+    try {
+      const userId = extractUser(req).id
+      const chime = new AWS.ChimeSDKMeetings({ region: 'us-east-1' })
+      const getMeetingResponse = await chime
+        .getMeeting({
+          MeetingId: req.params.meetingId,
+        })
+        .promise()
+
+      const attendeesListResponse = await chime
+        .listAttendees({
+          MeetingId: req.params.meetingId,
+        })
+        .promise()
+
+      const createAttendee = async () => {
+        const r = await chime
+          .createAttendee({
+            MeetingId: req.params.meetingId,
+            ExternalUserId: userId,
+          })
+          .promise()
+        return r.Attendee
+      }
+
+      const thisUser = (attendeesListResponse.Attendees ?? []).filter(
+        a => a.ExternalUserId === userId
+      )
+      let attendee = thisUser.length ? thisUser[0] : await createAttendee()
+      if (!attendee)
+        throw new Error(
+          `Failed to create attendee for user ${userId} and meeting ${req.params.meetingId}`
+        )
+
+      return res
+        .json({
+          meeting: getMeetingResponse.Meeting,
+          attendee: attendee,
+        })
+        .status(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
   router.post('/chime/meeting', async (req, res) => {
     try {
       const user = extractUser(req)
@@ -14,7 +60,7 @@ export function routeAwsChime(router: Router): void {
         .createMeeting({
           ClientRequestToken: uuidv4(), // I'm confused. Should this come from the client?
           MediaRegion: 'us-east-1', // this is ideally the region closest to the user creating the meeting
-          ExternalMeetingId: 'meeting-1',
+          ExternalMeetingId: 'meeting-1', // @TODO session id
         })
         .promise()
 
@@ -25,6 +71,8 @@ export function routeAwsChime(router: Router): void {
           ExternalUserId: user.id,
         })
         .promise()
+
+      // chime.startMeetingTranscription()
 
       console.debug(
         'Created meeting and attendee',
@@ -84,8 +132,14 @@ export function routeAwsChime(router: Router): void {
           ExternalUserId: userId,
         })
         .promise()
+
+      const meetingResponse = await chime
+        .getMeeting({
+          MeetingId: req.params.meetingId,
+        })
+        .promise()
       console.debug('Join user to meeting response', response)
-      return res.json({ attendee: response })
+      return res.json({ attendee: response, meeting: meetingResponse })
     } catch (err) {
       resError(res, err)
     }
