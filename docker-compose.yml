@@ -106,11 +106,11 @@ services:
       #   - POSTGRES_PASSWORD=assword123
       #   - POSTGRES_DB=upchieve
       # command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
-      # volumes:
-      #   # SQL files mounted to entrypoint folder are run in alphabetical order
-      #   - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
-      #   - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
-      #   - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
-      #   - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
-      #   - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
-      #   - ./database/db_init/refresh_materialized_views.sql:/docker-entrypoint-initdb.d/f.sql
+      volumes:
+        # SQL files mounted to entrypoint folder are run in alphabetical order
+        - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+        - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
+        - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
+        - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+        - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+        - ./database/db_init/refresh_materialized_views.sql:/docker-entrypoint-initdb.d/f.sql
