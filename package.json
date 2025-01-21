@@ -31,7 +31,7 @@
     "test:backend:full": "jest -c jest.config.server.js --detectOpenHandles --silent",
     "test:backend:watch": "jest -c jest.config.server.js --watch --runInBand --detectOpenHandles --group=-email --group=-database",
     "test:database": "npm run database_ci:create && jest -c jest.config.database_ci.js --max_old_space_size=1536 --maxWorkers=3",
-    "database_ci:create": "docker-compose --profile db-test up -d",
+    "database_ci:create": "docker compose --profile db-test up -d",
     "test:database_ci": "jest -c jest.config.database_ci.js --max_old_space_size=1536 --maxWorkers=3",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
