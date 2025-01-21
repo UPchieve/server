@@ -194,14 +194,37 @@ test_postgresql:
   services:
     - name: postgres:14
       alias: postgres
+      command: [ "postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "pg_stat_statements.track=all" ]
+      # Mirror your docker-compose volumes setup
+      volumes:
+        - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+        - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
+        - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
+        - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+        - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+        - ./database/db_init/refresh_materialized_views.sql:/docker-entrypoint-initdb.d/f.sql
   variables:
     POSTGRES_USER: admin
     POSTGRES_PASSWORD: Password123
     POSTGRES_DB: upchieve
     DB_HOST: postgres
     DB_PORT: 5432
+    CI: "true"
   before_script:
     - npm ci --cache .npm --prefer-offline
+    # Wait for postgres to be ready
+    - |
+      timeout=30
+      until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c '\q' 2>/dev/null; do
+        >&2 echo "Postgres is unavailable - sleeping"
+        timeout=$((timeout-1))
+        if [ $timeout -eq 0 ]; then
+          >&2 echo "Timeout waiting for Postgres"
+          exit 1
+        fi
+        sleep 1
+      done
+    - echo "Postgres is up"
   script:
     - npm run test:database_ci
   rules:
