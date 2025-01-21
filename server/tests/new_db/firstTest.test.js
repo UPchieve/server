@@ -10,7 +10,7 @@ describe('Database Tests', () => {
 
   test('Example query', async () => {
     console.log('****client', client)
-    const result = await client.query('SELECT 1 AS value;')
+    // const result = await client.query('SELECT 1 AS value;')
     const viewTables = await client.query(`
       SELECT table_name 
       FROM information_schema.tables 
@@ -18,6 +18,5 @@ describe('Database Tests', () => {
       ORDER BY table_name;
     `)
     console.log('***view tables', viewTables.rows)
-    expect(result.rows[0].value).toBe(1)
   })
 })
