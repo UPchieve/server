@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 14.15 (Ubuntu 14.15-0ubuntu0.22.04.1)
+-- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2732,6 +2732,14 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
 17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
 18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+\.
+
+
+--
+-- Data for Name: session_meetings; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_meetings (id, external_id, provider, session_id, created_at, updated_at) FROM stdin;
 \.
 
 
