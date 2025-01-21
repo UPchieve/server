@@ -2092,7 +2092,8 @@ CREATE TABLE upchieve.surveys (
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    role_id integer
+    role_id integer,
+    reward_amount integer
 );
 
 
@@ -2164,7 +2165,8 @@ CREATE TABLE upchieve.teacher_classes (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     topic_id integer,
-    deactivated_on timestamp with time zone
+    deactivated_on timestamp with time zone,
+    clever_id text
 );
 
 
@@ -2176,7 +2178,8 @@ CREATE TABLE upchieve.teacher_profiles (
     user_id uuid NOT NULL,
     school_id uuid,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    last_successful_clever_sync timestamp with time zone
 );
 
 
@@ -2397,7 +2400,8 @@ CREATE TABLE upchieve.user_product_flags (
     in_gates_study boolean DEFAULT false NOT NULL,
     fall_incentive_program boolean DEFAULT false NOT NULL,
     paid_tutors_pilot_group public.paid_tutors_pilot_groups,
-    fall_incentive_enrollment_at timestamp with time zone
+    fall_incentive_enrollment_at timestamp with time zone,
+    impact_study_enrollment_at timestamp with time zone
 );
 
 
@@ -6237,4 +6241,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241120182555'),
     ('20241120182804'),
     ('20241120184235'),
-    ('20241120210732');
+    ('20241120210732'),
+    ('20241216172437'),
+    ('20241216172507'),
+    ('20241216193347'),
+    ('20241217040206');

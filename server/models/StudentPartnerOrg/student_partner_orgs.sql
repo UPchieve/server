@@ -178,12 +178,12 @@ INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id,
 SELECT
     generate_ulid (),
     spo.id,
-    spo.created_at,
+    NOW(),
     NOW()
 FROM
     student_partner_orgs spo
 WHERE
-    spo.name = :spoName!;
+    spo.school_id = :schoolId!;
 
 
 /* @name createSchoolStudentPartnerOrg */
@@ -203,13 +203,20 @@ FROM
     schools
 WHERE
     partner IS TRUE
-    AND name = :schoolName!
-ON CONFLICT (name)
+    AND id = :schoolId!
+ON CONFLICT (id)
     DO UPDATE SET
         updated_at = NOW();
 
 
 /* @name deactivateStudentPartnerOrg */
+WITH school_student_partner_orgs AS (
+    SELECT
+        id
+    FROM
+        student_partner_orgs
+    WHERE
+        school_id = :schoolId!)
 UPDATE
     student_partner_orgs_upchieve_instances
 SET
@@ -218,8 +225,12 @@ SET
 FROM
     student_partner_orgs spo
 WHERE
-    spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
-    AND spo.name = :spoName!
+    spo.id IN (
+        SELECT
+            id
+        FROM
+            school_student_partner_orgs)
+    AND spo.id = student_partner_orgs_upchieve_instances.student_partner_org_id
 RETURNING
     student_partner_orgs_upchieve_instances.id AS ok;
 

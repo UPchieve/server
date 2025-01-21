@@ -1,10 +1,15 @@
 import * as http from 'http'
 import { Socket } from 'net'
-import bodyParser from 'body-parser'
 import timeout from 'connect-timeout'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { NextFunction, Request, Response } from 'express'
+import express, {
+  json,
+  NextFunction,
+  Request,
+  Response,
+  urlencoded,
+} from 'express'
 import cacheControl from 'express-cache-controller'
 import expressWs from 'express-ws'
 import fs from 'fs'
@@ -62,8 +67,9 @@ app.use(timeout('300000'))
 app.set('trust proxy', true)
 
 // Setup middleware
-app.use(bodyParser.json() as express.RequestHandler)
-app.use(bodyParser.urlencoded({ extended: true }) as express.RequestHandler)
+app.use(json() as express.RequestHandler)
+app.use(urlencoded({ extended: true }) as express.RequestHandler)
+
 app.use(cookieParser(config.sessionSecret))
 
 let originRegex

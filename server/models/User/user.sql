@@ -675,7 +675,9 @@ SELECT
     sessions.id,
     messages.total AS total_messages,
     sessions.volunteer_id AS volunteer,
+    volunteers.first_name AS volunteer_first_name,
     sessions.student_id AS student,
+    students.first_name AS student_first_name,
     sessions.volunteer_joined_at,
     sessions.created_at,
     sessions.ended_at
@@ -690,6 +692,8 @@ FROM
             session_messages
         WHERE
             session_id = sessions.id) AS messages ON TRUE
+    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
+    LEFT JOIN users students ON students.id = sessions.student_id
 WHERE
     sessions.volunteer_id = :userId!
     OR sessions.student_id = :userId!

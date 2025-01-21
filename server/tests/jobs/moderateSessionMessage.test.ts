@@ -3,7 +3,6 @@ import moderateSessionMessage, {
   ModerationSessionMessageJobData,
 } from '../../scripts/moderate-session-message'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
-import logger from '../../logger'
 import { Job } from 'bull'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { openai } from '../../services/BotsService'
@@ -60,22 +59,5 @@ describe('Moderate session message', () => {
     })
     await moderateSessionMessage(jobData)
     expect(openai.chat.completions.create).toHaveBeenCalled()
-    expect(logger.info).toHaveBeenCalledWith(
-      {
-        censoredSessionMessage: {
-          sessionId: jobData.data.censoredSessionMessage.sessionId,
-          senderId: jobData.data.censoredSessionMessage.senderId,
-          id: jobData.data.censoredSessionMessage.id,
-          sentAt: jobData.data.censoredSessionMessage.sentAt,
-          message: jobData.data.censoredSessionMessage.message,
-        },
-        decision: {
-          isClean: true,
-          reasons: [],
-          promptUsed: 'FALLBACK',
-        },
-      },
-      'AI moderation result'
-    )
   })
 })

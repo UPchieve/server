@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import { CensoredSessionMessage } from '../models/CensoredSessionMessage'
-import { createChatCompletion } from '../services/ModerationService'
+import { getIndividualSessionMessageModerationResponse } from '../services/ModerationService'
 
 export interface ModerationSessionMessageJobData {
   censoredSessionMessage: CensoredSessionMessage
@@ -15,7 +15,7 @@ export interface ModerationSessionMessageJobData {
 export default async function moderateSessionMessage(
   job: Job<ModerationSessionMessageJobData>
 ) {
-  await createChatCompletion({
+  await getIndividualSessionMessageModerationResponse({
     censoredSessionMessage: job.data.censoredSessionMessage,
     isVolunteer: job.data.isVolunteer,
   })

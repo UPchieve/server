@@ -23,7 +23,6 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getMutedSubjectAlertsFlag } from './FeatureFlagService'
 import { getClient, TransactionClient } from '../db'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
@@ -422,18 +421,13 @@ export async function notifyVolunteer(
   for (const priorityFilter of volunteerPriority) {
     volunteer = await priorityFilter.query()
     if (volunteer) {
-      const mutedSubjectAlertsFlag = await getMutedSubjectAlertsFlag(
-        volunteer.id
+      const volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
+        volunteer.id,
+        session.subject
       )
-      if (mutedSubjectAlertsFlag) {
-        const volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
-          volunteer.id,
-          session.subject
-        )
-        if (volunteerMutedSubject) {
-          volunteer = undefined
-          continue
-        }
+      if (volunteerMutedSubject) {
+        volunteer = undefined
+        continue
       }
       priorityGroup = priorityFilter.groupName
       break

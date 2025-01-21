@@ -71,7 +71,7 @@ export const saveUserSurvey = new PreparedQuery<ISaveUserSurveyParams,ISaveUserS
 export interface ISaveUserSurveySubmissionsParams {
   openResponse?: string | null | void;
   questionId: number;
-  responseChoiceId: number;
+  responseChoiceId?: number | null | void;
   userSurveyId: string;
 }
 
@@ -86,7 +86,7 @@ export interface ISaveUserSurveySubmissionsQuery {
   result: ISaveUserSurveySubmissionsResult;
 }
 
-const saveUserSurveySubmissionsIR: any = {"usedParamSet":{"userSurveyId":true,"questionId":true,"responseChoiceId":true,"openResponse":true},"params":[{"name":"userSurveyId","required":true,"transform":{"type":"scalar"},"locs":[{"a":152,"b":165}]},{"name":"questionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":183}]},{"name":"responseChoiceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":190,"b":207}]},{"name":"openResponse","required":false,"transform":{"type":"scalar"},"locs":[{"a":214,"b":226}]}],"statement":"INSERT INTO users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at)\nSELECT\n    :userSurveyId!,\n    :questionId!,\n    :responseChoiceId!,\n    :openResponse,\n    NOW(),\n    NOW()\nRETURNING\n    user_survey_id AS ok"};
+const saveUserSurveySubmissionsIR: any = {"usedParamSet":{"userSurveyId":true,"questionId":true,"responseChoiceId":true,"openResponse":true},"params":[{"name":"userSurveyId","required":true,"transform":{"type":"scalar"},"locs":[{"a":152,"b":165}]},{"name":"questionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":183}]},{"name":"responseChoiceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":190,"b":206}]},{"name":"openResponse","required":false,"transform":{"type":"scalar"},"locs":[{"a":213,"b":225}]}],"statement":"INSERT INTO users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at)\nSELECT\n    :userSurveyId!,\n    :questionId!,\n    :responseChoiceId,\n    :openResponse,\n    NOW(),\n    NOW()\nRETURNING\n    user_survey_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -95,7 +95,7 @@ const saveUserSurveySubmissionsIR: any = {"usedParamSet":{"userSurveyId":true,"q
  * SELECT
  *     :userSurveyId!,
  *     :questionId!,
- *     :responseChoiceId!,
+ *     :responseChoiceId,
  *     :openResponse,
  *     NOW(),
  *     NOW()
@@ -150,7 +150,8 @@ export const getStudentsPresessionGoal = new PreparedQuery<IGetStudentsPresessio
 /** 'GetSimpleSurveyDefinition' parameters type */
 export interface IGetSimpleSurveyDefinitionParams {
   subjectName?: string | null | void;
-  surveyType: string;
+  surveyId?: number | null | void;
+  surveyType?: string | null | void;
 }
 
 /** 'GetSimpleSurveyDefinition' return type */
@@ -163,6 +164,7 @@ export interface IGetSimpleSurveyDefinitionResult {
   responseDisplayPriority: number;
   responseId: number;
   responseText: string;
+  rewardAmount: number | null;
   surveyId: number;
   surveyTypeId: number;
 }
@@ -173,32 +175,52 @@ export interface IGetSimpleSurveyDefinitionQuery {
   result: IGetSimpleSurveyDefinitionResult;
 }
 
-const getSimpleSurveyDefinitionIR: any = {"usedParamSet":{"surveyType":true,"subjectName":true},"params":[{"name":"surveyType","required":true,"transform":{"type":"scalar"},"locs":[{"a":1258,"b":1269}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1281,"b":1292},{"a":1321,"b":1332}]}],"statement":"SELECT\n    sq.id AS question_id,\n    FORMAT(sq.question_text, subjects.display_name) AS question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id,\n    sub.response_text,\n    sub.response_display_priority,\n    sub.response_display_image,\n    surveys.id AS survey_id,\n    survey_types.id AS survey_type_id\nFROM\n    surveys_context\n    JOIN surveys ON survey_id = surveys.id\n    JOIN survey_types ON surveys_context.survey_type_id = survey_types.id\n    LEFT JOIN subjects ON subject_id = subjects.id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id\n    JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority,\n            display_image AS response_display_image\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE\nWHERE\n    st.name = :surveyType!\n    AND ((:subjectName)::text IS NULL\n        OR (:subjectName)::text = subjects.name)\nORDER BY\n    ssq.display_priority ASC"};
+const getSimpleSurveyDefinitionIR: any = {"usedParamSet":{"surveyId":true,"surveyType":true,"subjectName":true},"params":[{"name":"surveyId","required":false,"transform":{"type":"scalar"},"locs":[{"a":505,"b":513},{"a":552,"b":560}]},{"name":"surveyType","required":false,"transform":{"type":"scalar"},"locs":[{"a":577,"b":587},{"a":634,"b":644}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":662,"b":673},{"a":716,"b":727}]}],"statement":"WITH most_recent_survey AS (\n    SELECT\n        surveys.id,\n        surveys_context.subject_id,\n        surveys_context.survey_type_id,\n        subjects.display_name AS subject_display_name,\n        surveys.reward_amount,\n        surveys.created_at\n    FROM\n        surveys\n        JOIN surveys_context ON surveys.id = surveys_context.survey_id\n        JOIN survey_types ON surveys_context.survey_type_id = survey_types.id\n        LEFT JOIN subjects ON surveys_context.subject_id = subjects.id\n    WHERE (:surveyId::int IS NULL\n        OR surveys.id = :surveyId::int)\n    AND (:surveyType::text IS NULL\n        OR survey_types.name = :surveyType::text)\n    AND (:subjectName::text IS NULL\n        OR subjects.name = :subjectName::text)\nORDER BY\n    surveys.created_at DESC\nLIMIT 1\n)\nSELECT\n    sq.id::int AS question_id,\n    FORMAT(sq.question_text, most_recent_survey.subject_display_name) AS question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sub.response_id::int,\n    sub.response_text,\n    sub.response_display_priority,\n    sub.response_display_image,\n    most_recent_survey.id::int AS survey_id,\n    most_recent_survey.survey_type_id,\n    most_recent_survey.reward_amount\nFROM\n    most_recent_survey\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = most_recent_survey.id\n    JOIN survey_questions sq ON ssq.survey_question_id = sq.id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    LEFT JOIN LATERAL (\n        SELECT\n            id AS response_id,\n            choice_text AS response_text,\n            display_priority AS response_display_priority,\n            display_image AS response_display_image\n        FROM\n            survey_questions_response_choices sqrc\n            JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n        WHERE\n            sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE\nORDER BY\n    ssq.display_priority ASC"};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH most_recent_survey AS (
+ *     SELECT
+ *         surveys.id,
+ *         surveys_context.subject_id,
+ *         surveys_context.survey_type_id,
+ *         subjects.display_name AS subject_display_name,
+ *         surveys.reward_amount,
+ *         surveys.created_at
+ *     FROM
+ *         surveys
+ *         JOIN surveys_context ON surveys.id = surveys_context.survey_id
+ *         JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
+ *         LEFT JOIN subjects ON surveys_context.subject_id = subjects.id
+ *     WHERE (:surveyId::int IS NULL
+ *         OR surveys.id = :surveyId::int)
+ *     AND (:surveyType::text IS NULL
+ *         OR survey_types.name = :surveyType::text)
+ *     AND (:subjectName::text IS NULL
+ *         OR subjects.name = :subjectName::text)
+ * ORDER BY
+ *     surveys.created_at DESC
+ * LIMIT 1
+ * )
  * SELECT
- *     sq.id AS question_id,
- *     FORMAT(sq.question_text, subjects.display_name) AS question_text,
+ *     sq.id::int AS question_id,
+ *     FORMAT(sq.question_text, most_recent_survey.subject_display_name) AS question_text,
  *     ssq.display_priority,
  *     qt.name AS question_type,
- *     sub.response_id,
+ *     sub.response_id::int,
  *     sub.response_text,
  *     sub.response_display_priority,
  *     sub.response_display_image,
- *     surveys.id AS survey_id,
- *     survey_types.id AS survey_type_id
+ *     most_recent_survey.id::int AS survey_id,
+ *     most_recent_survey.survey_type_id,
+ *     most_recent_survey.reward_amount
  * FROM
- *     surveys_context
- *     JOIN surveys ON survey_id = surveys.id
- *     JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
- *     LEFT JOIN subjects ON subject_id = subjects.id
- *     JOIN surveys_survey_questions ssq ON ssq.survey_id = surveys.id
+ *     most_recent_survey
+ *     JOIN surveys_survey_questions ssq ON ssq.survey_id = most_recent_survey.id
  *     JOIN survey_questions sq ON ssq.survey_question_id = sq.id
  *     JOIN question_types qt ON qt.id = sq.question_type_id
- *     JOIN upchieve.survey_types st ON st.id = surveys_context.survey_type_id
- *     JOIN LATERAL (
+ *     LEFT JOIN LATERAL (
  *         SELECT
  *             id AS response_id,
  *             choice_text AS response_text,
@@ -209,10 +231,6 @@ const getSimpleSurveyDefinitionIR: any = {"usedParamSet":{"surveyType":true,"sub
  *             JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
  *         WHERE
  *             sqrc.surveys_survey_question_id = ssq.id) sub ON TRUE
- * WHERE
- *     st.name = :surveyType!
- *     AND ((:subjectName)::text IS NULL
- *         OR (:subjectName)::text = subjects.name)
  * ORDER BY
  *     ssq.display_priority ASC
  * ```
@@ -301,7 +319,9 @@ export interface IGetPresessionSurveyResponseResult {
   displayImage: string | null;
   displayLabel: string | null;
   displayOrder: number;
+  questionId: number;
   response: string | null;
+  responseId: number;
   score: number | null;
 }
 
@@ -311,7 +331,7 @@ export interface IGetPresessionSurveyResponseQuery {
   result: IGetPresessionSurveyResponseResult;
 }
 
-const getPresessionSurveyResponseIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1068,"b":1078},{"a":1095,"b":1105}]}],"statement":"SELECT\n    FORMAT(sq.response_display_text, subjects.display_name) AS display_label,\n    (\n        CASE WHEN src.choice_text = 'Other'\n            AND uss.open_response IS NULL THEN\n            'Other - ask them what their goal is!'\n        WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    users_surveys AS us\n    JOIN sessions AS s ON s.student_id = us.user_id\n    JOIN subjects ON s.subject_id = subjects.id\n    JOIN survey_types AS st ON us.survey_type_id = st.id\n    JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'presession'\nORDER BY\n    ssq.display_priority ASC"};
+const getPresessionSurveyResponseIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1126,"b":1136},{"a":1153,"b":1163}]}],"statement":"SELECT\n    FORMAT(sq.response_display_text, subjects.display_name) AS display_label,\n    (\n        CASE WHEN src.choice_text = 'Other'\n            AND uss.open_response IS NULL THEN\n            'Other - ask them what their goal is!'\n        WHEN src.choice_text = 'Other' THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image,\n    sq.id::int AS question_id,\n    src.id AS response_id\nFROM\n    users_surveys AS us\n    JOIN sessions AS s ON s.student_id = us.user_id\n    JOIN subjects ON s.subject_id = subjects.id\n    JOIN survey_types AS st ON us.survey_type_id = st.id\n    JOIN users_surveys_submissions AS uss ON us.id = uss.user_survey_id\n    LEFT JOIN survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    JOIN survey_questions AS sq ON uss.survey_question_id = sq.id\n    LEFT JOIN surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\nWHERE\n    us.session_id = :sessionId!\n    AND s.id = :sessionId!\n    AND st.name = 'presession'\nORDER BY\n    ssq.display_priority ASC"};
 
 /**
  * Query generated from SQL:
@@ -329,7 +349,9 @@ const getPresessionSurveyResponseIR: any = {"usedParamSet":{"sessionId":true},"p
  *         END) AS response,
  *     COALESCE(src.score, 0) AS score,
  *     ssq.display_priority AS display_order,
- *     src.display_image AS display_image
+ *     src.display_image AS display_image,
+ *     sq.id::int AS question_id,
+ *     src.id AS response_id
  * FROM
  *     users_surveys AS us
  *     JOIN sessions AS s ON s.student_id = us.user_id
@@ -685,7 +707,9 @@ export interface IGetProgressReportSurveyResponseResult {
   displayImage: string | null;
   displayLabel: string | null;
   displayOrder: number;
+  questionId: number;
   response: string | null;
+  responseId: number;
   score: number | null;
   userSurveyId: string;
 }
@@ -696,7 +720,7 @@ export interface IGetProgressReportSurveyResponseQuery {
   result: IGetProgressReportSurveyResponseResult;
 }
 
-const getProgressReportSurveyResponseIR: any = {"usedParamSet":{"progressReportId":true,"userId":true},"params":[{"name":"progressReportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":226,"b":243}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1501,"b":1508}]}],"statement":"WITH latest_users_surveys AS (\n    SELECT\n        us.user_id,\n        us.progress_report_id,\n        MAX(us.created_at) AS latest_created_at\n    FROM\n        upchieve.users_surveys us\n    WHERE\n        us.progress_report_id = :progressReportId!\n    GROUP BY\n        us.user_id,\n        us.progress_report_id\n)\nSELECT\n    us.id AS user_survey_id,\n    FORMAT(sq.question_text) AS display_label,\n    (\n        CASE WHEN (src.choice_text = 'Other'\n            AND qt.name = 'free response') THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image\nFROM\n    upchieve.users_surveys us\n    INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id\n        AND us.progress_report_id = lus.progress_report_id\n        AND us.created_at = lus.latest_created_at\n    JOIN upchieve.survey_types st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.question_types qt ON qt.id = sq.question_type_id\nWHERE\n    st.name = 'progress-report'\n    AND us.user_id = :userId!\nORDER BY\n    ssq.display_priority ASC"};
+const getProgressReportSurveyResponseIR: any = {"usedParamSet":{"progressReportId":true,"userId":true},"params":[{"name":"progressReportId","required":true,"transform":{"type":"scalar"},"locs":[{"a":226,"b":243}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1559,"b":1566}]}],"statement":"WITH latest_users_surveys AS (\n    SELECT\n        us.user_id,\n        us.progress_report_id,\n        MAX(us.created_at) AS latest_created_at\n    FROM\n        upchieve.users_surveys us\n    WHERE\n        us.progress_report_id = :progressReportId!\n    GROUP BY\n        us.user_id,\n        us.progress_report_id\n)\nSELECT\n    us.id AS user_survey_id,\n    FORMAT(sq.question_text) AS display_label,\n    (\n        CASE WHEN (src.choice_text = 'Other'\n            AND qt.name = 'free response') THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    src.display_image AS display_image,\n    sq.id::int AS question_id,\n    src.id AS response_id\nFROM\n    upchieve.users_surveys us\n    INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id\n        AND us.progress_report_id = lus.progress_report_id\n        AND us.created_at = lus.latest_created_at\n    JOIN upchieve.survey_types st ON us.survey_type_id = st.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    LEFT JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    LEFT JOIN upchieve.surveys_survey_questions ssq ON us.survey_id = ssq.survey_id\n        AND uss.survey_question_id = ssq.survey_question_id\n    LEFT JOIN upchieve.question_types qt ON qt.id = sq.question_type_id\nWHERE\n    st.name = 'progress-report'\n    AND us.user_id = :userId!\nORDER BY\n    ssq.display_priority ASC"};
 
 /**
  * Query generated from SQL:
@@ -726,7 +750,9 @@ const getProgressReportSurveyResponseIR: any = {"usedParamSet":{"progressReportI
  *         END) AS response,
  *     COALESCE(src.score, 0) AS score,
  *     ssq.display_priority AS display_order,
- *     src.display_image AS display_image
+ *     src.display_image AS display_image,
+ *     sq.id::int AS question_id,
+ *     src.id AS response_id
  * FROM
  *     upchieve.users_surveys us
  *     INNER JOIN latest_users_surveys lus ON us.user_id = lus.user_id
@@ -845,5 +871,78 @@ const getVolunteerPostsessionSurveyGoalQuestionRatingsIR: any = {"usedParamSet":
  * ```
  */
 export const getVolunteerPostsessionSurveyGoalQuestionRatings = new PreparedQuery<IGetVolunteerPostsessionSurveyGoalQuestionRatingsParams,IGetVolunteerPostsessionSurveyGoalQuestionRatingsResult>(getVolunteerPostsessionSurveyGoalQuestionRatingsIR);
+
+
+/** 'GetLatestUserSubmissionsForSurvey' parameters type */
+export interface IGetLatestUserSubmissionsForSurveyParams {
+  surveyId?: number | null | void;
+  surveyType?: string | null | void;
+  userId: string;
+}
+
+/** 'GetLatestUserSubmissionsForSurvey' return type */
+export interface IGetLatestUserSubmissionsForSurveyResult {
+  displayLabel: string;
+  displayOrder: number;
+  questionId: number;
+  response: string | null;
+  responseId: number;
+  score: number | null;
+}
+
+/** 'GetLatestUserSubmissionsForSurvey' query type */
+export interface IGetLatestUserSubmissionsForSurveyQuery {
+  params: IGetLatestUserSubmissionsForSurveyParams;
+  result: IGetLatestUserSubmissionsForSurveyResult;
+}
+
+const getLatestUserSubmissionsForSurveyIR: any = {"usedParamSet":{"userId":true,"surveyId":true,"surveyType":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":292,"b":299}]},{"name":"surveyId","required":false,"transform":{"type":"scalar"},"locs":[{"a":320,"b":328},{"a":384,"b":392}]},{"name":"surveyType","required":false,"transform":{"type":"scalar"},"locs":[{"a":413,"b":423},{"a":474,"b":484}]}],"statement":"WITH most_recent_survey_submission AS (\n    SELECT\n        users_surveys.id,\n        users_surveys.survey_id,\n        users_surveys.created_at\n    FROM\n        users_surveys\n        JOIN survey_types ON users_surveys.survey_type_id = survey_types.id\n    WHERE\n        users_surveys.user_id = :userId!::uuid\n        AND (:surveyId::int IS NULL\n            OR users_surveys.survey_id = :surveyId::int)\n        AND (:surveyType::text IS NULL\n            OR survey_types.name = :surveyType::text)\n    ORDER BY\n        users_surveys.created_at DESC\n    LIMIT 1\n)\nSELECT\n    sq.question_text AS display_label,\n    (\n        CASE WHEN src.choice_text = 'Other'\n            OR uss.open_response IS NOT NULL THEN\n            uss.open_response\n        ELSE\n            src.choice_text\n        END) AS response,\n    COALESCE(src.score, 0) AS score,\n    ssq.display_priority AS display_order,\n    sq.id::int AS question_id,\n    src.id::int AS response_id\nFROM\n    most_recent_survey_submission mrss\n    JOIN users_surveys_submissions uss ON mrss.id = uss.user_survey_id\n    JOIN survey_questions sq ON uss.survey_question_id = sq.id\n    LEFT JOIN surveys_survey_questions ssq ON uss.survey_question_id = ssq.survey_question_id\n        AND mrss.survey_id = ssq.survey_id\n    LEFT JOIN survey_response_choices src ON uss.survey_response_choice_id = src.id\nORDER BY\n    ssq.display_priority ASC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH most_recent_survey_submission AS (
+ *     SELECT
+ *         users_surveys.id,
+ *         users_surveys.survey_id,
+ *         users_surveys.created_at
+ *     FROM
+ *         users_surveys
+ *         JOIN survey_types ON users_surveys.survey_type_id = survey_types.id
+ *     WHERE
+ *         users_surveys.user_id = :userId!::uuid
+ *         AND (:surveyId::int IS NULL
+ *             OR users_surveys.survey_id = :surveyId::int)
+ *         AND (:surveyType::text IS NULL
+ *             OR survey_types.name = :surveyType::text)
+ *     ORDER BY
+ *         users_surveys.created_at DESC
+ *     LIMIT 1
+ * )
+ * SELECT
+ *     sq.question_text AS display_label,
+ *     (
+ *         CASE WHEN src.choice_text = 'Other'
+ *             OR uss.open_response IS NOT NULL THEN
+ *             uss.open_response
+ *         ELSE
+ *             src.choice_text
+ *         END) AS response,
+ *     COALESCE(src.score, 0) AS score,
+ *     ssq.display_priority AS display_order,
+ *     sq.id::int AS question_id,
+ *     src.id::int AS response_id
+ * FROM
+ *     most_recent_survey_submission mrss
+ *     JOIN users_surveys_submissions uss ON mrss.id = uss.user_survey_id
+ *     JOIN survey_questions sq ON uss.survey_question_id = sq.id
+ *     LEFT JOIN surveys_survey_questions ssq ON uss.survey_question_id = ssq.survey_question_id
+ *         AND mrss.survey_id = ssq.survey_id
+ *     LEFT JOIN survey_response_choices src ON uss.survey_response_choice_id = src.id
+ * ORDER BY
+ *     ssq.display_priority ASC
+ * ```
+ */
+export const getLatestUserSubmissionsForSurvey = new PreparedQuery<IGetLatestUserSubmissionsForSurveyParams,IGetLatestUserSubmissionsForSurveyResult>(getLatestUserSubmissionsForSurveyIR);
 
 

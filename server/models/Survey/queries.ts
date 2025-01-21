@@ -1,15 +1,8 @@
 import { getClient, getRoClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
-import {
-  getDbUlid,
-  makeRequired,
-  makeSomeRequired,
-  makeSomeOptional,
-  Ulid,
-} from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
-  LegacySurvey,
   SaveUserSurveySubmission,
   SaveUserSurvey,
   SurveyQueryResponse,
@@ -18,9 +11,8 @@ import {
   SurveyType,
   PostsessionSurveyGoalResponse,
 } from './types'
-import { fixNumberInt } from '../../utils/fix-number-int'
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
-import _, { result } from 'lodash'
+import _ from 'lodash'
 import { asNumber } from '../../utils/type-utils'
 
 export async function saveUserSurveyAndSubmissions(
@@ -106,7 +98,36 @@ export async function getSimpleSurveyDefinition(
       getClient()
     )
     const resultArr = result.map(v =>
-      makeSomeOptional(v, ['responseDisplayImage'])
+      makeSomeOptional(v, [
+        'responseId',
+        'responseDisplayImage',
+        'responseDisplayPriority',
+        'responseText',
+        'rewardAmount',
+      ])
+    )
+    return formatSurveyDefinition(resultArr)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSimpleSurveyDefinitionBySurveyId(
+  surveyId: number
+): Promise<SurveyQueryResponse> {
+  try {
+    const result = await pgQueries.getSimpleSurveyDefinition.run(
+      { surveyId },
+      getClient()
+    )
+    const resultArr = result.map(v =>
+      makeSomeOptional(v, [
+        'responseId',
+        'responseDisplayImage',
+        'responseDisplayPriority',
+        'responseText',
+        'rewardAmount',
+      ])
     )
     return formatSurveyDefinition(resultArr)
   } catch (err) {
@@ -148,10 +169,11 @@ export type SurveyDefinitionExceptReplacementColumns = {
   questionId: number
   questionText: string
   questionType: string
-  responseId: number
-  responseText: string
+  responseId?: number
+  responseText?: string
   responseDisplayImage?: string
-  responseDisplayPriority: number
+  responseDisplayPriority?: number
+  rewardAmount?: number
 }
 
 export type SurveyReplacementColumn = {
@@ -178,17 +200,20 @@ export function formatSurveyDefinition(
     }
 
     const sortedRows = rows.sort(
-      (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+      (a, b) =>
+        (a.responseDisplayPriority ?? 0) - (b.responseDisplayPriority ?? 0)
     )
 
     for (const row of sortedRows) {
-      const responseItem: SurveyResponseDefinition = {
-        responseId: row.responseId,
-        responseText: row.responseText,
-        responseDisplayPriority: row.responseDisplayPriority,
-        responseDisplayImage: row.responseDisplayImage,
+      if (row.responseId) {
+        const responseItem: SurveyResponseDefinition = {
+          responseId: row.responseId,
+          responseText: row.responseText,
+          responseDisplayPriority: row.responseDisplayPriority,
+          responseDisplayImage: row.responseDisplayImage,
+        }
+        responses.push(responseItem)
       }
-      responses.push(responseItem)
     }
     survey.push({
       ...questionData,
@@ -198,7 +223,8 @@ export function formatSurveyDefinition(
   return {
     surveyId: resultArr[0].surveyId,
     surveyTypeId: resultArr[0].surveyTypeId,
-    survey,
+    survey: survey.sort((a, b) => a.displayPriority - b.displayPriority),
+    rewardAmount: resultArr[0].rewardAmount,
   }
 }
 export type SimpleSurveyResponse = {
@@ -206,7 +232,9 @@ export type SimpleSurveyResponse = {
   response: string
   score: number
   displayOrder: number
+  questionId: number
   displayImage?: string
+  responseId?: number
 }
 
 export async function getPresessionSurveyResponse(
@@ -218,7 +246,9 @@ export async function getPresessionSurveyResponse(
       getClient()
     )
     if (result.length)
-      return result.map(row => makeSomeOptional(row, ['displayImage']))
+      return result.map(row =>
+        makeSomeOptional(row, ['displayImage', 'responseId'])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -317,7 +347,9 @@ export async function getProgressReportSurveyResponse(
       getClient()
     )
     if (result.length)
-      return result.map(row => makeSomeOptional(row, ['displayImage']))
+      return result.map(row =>
+        makeSomeOptional(row, ['displayImage', 'responseId'])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -351,6 +383,40 @@ export const getVolunteerPostsessionSurveyGoalQuestionRatings = async (
       getRoClient()
     )
     return ratings.map(r => makeRequired(r)) ?? []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestUserSubmissionsForSurveyBySurveyType(
+  userId: Ulid,
+  surveyType: SurveyType
+): Promise<SimpleSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getLatestUserSubmissionsForSurvey.run(
+      { userId, surveyType },
+      getClient()
+    )
+    if (result.length)
+      return result.map(row => makeSomeOptional(row, ['responseId']))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestUserSubmissionsForSurveyBySurveyId(
+  userId: Ulid,
+  surveyId: number
+): Promise<SimpleSurveyResponse[]> {
+  try {
+    const result = await pgQueries.getLatestUserSubmissionsForSurvey.run(
+      { userId, surveyId },
+      getClient()
+    )
+    if (result.length)
+      return result.map(row => makeSomeOptional(row, ['responseId']))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }

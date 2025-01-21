@@ -9,6 +9,10 @@ import {
   SurveyQueryResponse,
   SurveyQuestionDefinition,
   SurveyResponseDefinition,
+  getSimpleSurveyDefinition,
+  getLatestUserSubmissionsForSurveyBySurveyType,
+  getLatestUserSubmissionsForSurveyBySurveyId,
+  SurveryUserResponseDefinition,
 } from '../models/Survey'
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
@@ -28,7 +32,7 @@ import { emitter } from './EventsService'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
-  responseChoiceId: asNumber,
+  responseChoiceId: asOptional(asNumber),
   openResponse: asString,
 })
 
@@ -176,7 +180,8 @@ export async function getPostsessionSurveyDefinition(
       displayPriority: question.displayPriority,
       questionType: question.questionType,
       responses: (question.responses as SurveyResponseDefinition[]).sort(
-        (a, b) => a.responseDisplayPriority - b.responseDisplayPriority
+        (a, b) =>
+          (a.responseDisplayPriority ?? 0) - (b.responseDisplayPriority ?? 0)
       ),
     })
   }
@@ -212,4 +217,47 @@ export async function getPostsessionSurveyDefinition(
         return ''
     }
   }
+}
+
+export async function getImpactSurveyDefinition() {
+  return getSimpleSurveyDefinition('impact-study')
+}
+
+export async function getImpactStudySurveyResponses(
+  userId: Ulid
+): Promise<SurveyQueryResponse> {
+  const [submissions, survey] = await Promise.all([
+    getLatestUserSubmissionsForSurveyBySurveyType(userId, 'impact-study'),
+    getSimpleSurveyDefinition('impact-study'),
+  ])
+
+  const surveyWithSubmissions = survey.survey.map(question => {
+    const matchingSubmission = submissions.find(
+      submission => submission.questionId === question.questionId
+    )
+
+    const userResponse = matchingSubmission
+      ? ({
+          responseId: matchingSubmission.responseId,
+          response: matchingSubmission.response,
+        } as SurveryUserResponseDefinition)
+      : undefined
+
+    return {
+      ...question,
+      userResponse,
+    }
+  })
+
+  return {
+    ...survey,
+    survey: surveyWithSubmissions,
+  }
+}
+
+export async function getLatestUserSubmissionsForSurveyId(
+  userId: Ulid,
+  surveyId: number
+) {
+  return getLatestUserSubmissionsForSurveyBySurveyId(userId, surveyId)
 }

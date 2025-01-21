@@ -7,8 +7,10 @@ import {
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
+  getImpactStudySurveyResponses,
   parseUserRole,
   saveUserSurvey,
+  getImpactSurveyDefinition,
 } from '../../services/SurveyService'
 import * as SurveyService from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
@@ -128,4 +130,23 @@ export function routeSurvey(router: expressWs.Router): void {
       }
     }
   )
+
+  router.get('/survey/impact-study', async (req, res) => {
+    try {
+      const survey = await getImpactSurveyDefinition()
+      return res.json(survey)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/survey/impact-study/responses', async (req, res) => {
+    try {
+      const user = extractUser(req)
+      const survey = await getImpactStudySurveyResponses(user.id)
+      return res.json(survey)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

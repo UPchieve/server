@@ -25,7 +25,6 @@ const buildStudentAndSessionForMutedSubjects = async () => {
 
   mockedStudentRepo.getStudentContactInfoById.mockResolvedValue(student)
   mockedSessionRepo.getActiveSessionsWithVolunteers.mockResolvedValueOnce([])
-  mockedFeatureFlagService.getMutedSubjectAlertsFlag.mockResolvedValueOnce(true)
   mockedVolunteerRepo.getVolunteersNotifiedBySessionId.mockResolvedValueOnce([])
   return session
 }

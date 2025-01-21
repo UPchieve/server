@@ -302,7 +302,12 @@ const config: Static<typeof Config> = {
     photoIdBucket: process.env.SUBWAY_PHOTO_ID_BUCKET || 'photo-id-bucket',
     sessionPhotoBucket:
       process.env.SUBWAY_SESSION_PHOTO_BUCKET || 'session-photo-bucket',
+    moderatedScreenshareBucket:
+      process.env.SUBWAY_MODERATED_SCREENSHARE_BUCKET ||
+      'moderated-screenshare-bucket',
   },
+  awsModerationToolsRegion:
+    process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
   posthogFeatureFlagApiToken:
     process.env.SUBWAY_POSTHOG_FEATURE_FLAG_API_TOKEN || 'bogus',
@@ -399,8 +404,12 @@ const config: Static<typeof Config> = {
   zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 
-  // Live media moderation
+  // Moderation
   maxModerationInfractionsPerSession: 6,
+  imageModerationMinConfidence:
+    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  contextualModerationConfidenceThreshold:
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
 }
 
 module.exports = config
