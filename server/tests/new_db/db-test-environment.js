@@ -21,30 +21,6 @@ class DbTestEnvironment extends NodeEnvironment {
     await super.setup()
 
     try {
-      // this.adminPool = new Pool({
-      //   database: DEFAULT_DB,
-      //   user: POSTGRES_USER,
-      //   password: POSTGRES_PASSWORD,
-      //   port: POSTGRES_PORT,
-      //   host: POSTGRES_HOST,
-      // })
-
-      // await this.adminPool.query(
-      //   `
-      //   SELECT pg_terminate_backend(pid)
-      //   FROM pg_stat_activity 
-      //   WHERE datname = $1
-      // `,
-      //   [TEST_DB]
-      // )
-
-      // this.adminPool.on('connect', async client => {
-      //   await client.query('SET search_path TO upchieve;')
-      // })
-
-      // await this.adminPool.query(`DROP DATABASE IF EXISTS ${TEST_DB}`)
-      // await this.adminPool.query(`CREATE DATABASE ${TEST_DB}`)
-      // await this.adminPool.end()
 
             this.testPool = new Pool({
               database: DEFAULT_DB,
