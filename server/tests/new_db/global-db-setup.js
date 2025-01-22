@@ -5,6 +5,12 @@ const path = require('path')
 const ROOT_DIR = path.resolve(__dirname, '../../../')
 const DB_INIT_DIR = path.join(ROOT_DIR, 'database/db_init')
 
+
+const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
+const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
+const POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
+const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
+
 module.exports = async () => {
   if (process.env.CI) {
     try {
