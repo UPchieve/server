@@ -19,61 +19,61 @@ class DbTestEnvironment extends NodeEnvironment {
     await super.setup()
 
     try {
-          this.testPool = new Pool({
-            database: DEFAULT_DB,
-            user: POSTGRES_USER,
-            password: POSTGRES_PASSWORD,
-            port: POSTGRES_PORT,
-            host: POSTGRES_HOST,
-          })
+      this.testPool = new Pool({
+        database: DEFAULT_DB,
+        user: POSTGRES_USER,
+        password: POSTGRES_PASSWORD,
+        port: POSTGRES_PORT,
+        host: POSTGRES_HOST,
+      })
 
-          if (process.env.CI && !isInitialized) {
-            await this.initializeCIDatabase()
-            isInitialized = true
-          }
+      if (process.env.CI) {
+        if (!isInitialized) {
+          await this.initializeDatabase(this.testPool)
+          isInitialized = true
+        }
+      }
 
-          this.testPool.on('connect', async client => {
-            await client.query('SET search_path TO upchieve;')
-          })
-          this.global.__TEST_DB_CLIENT__ = this.testPool
-          this.global.__TEST_DB_NAME__ = this.testDbName
-        } catch (error) {
+      this.testPool.on('connect', async client => {
+        await client.query('SET search_path TO upchieve;')
+      })
+      this.global.__TEST_DB_CLIENT__ = this.testPool
+      this.global.__TEST_DB_NAME__ = this.testDbName
+    } catch (error) {
       console.error('Error setting up test database:', error)
       throw error
     }
   }
 
-  async initializeCIDatabase() {
+  async initializeDatabase(pool) {
     let timeout = 30
     while (timeout > 0) {
       try {
-        await this.testPool.query('SELECT 1')
-        console.log('PostgreSQL is ready')
+        await pool.query('SELECT 1')
         break
       } catch (error) {
-        console.log('Postgres is unavailable')
         timeout--
-        if (timeout === 0) {
-          throw new Error('Timeout waiting for Postgres')
-        }
+        if (timeout === 0) throw new Error('Timeout waiting for Postgres')
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
 
-    const sqlFiles = [
-      'schema',
-      'auth',
-      'local_auth',
-      'test_seeds',
-      'seed_migrations',
-      'refresh_materialized_views',
-    ]
-
-    const client = await this.testPool.connect()
+    const client = await pool.connect()
     try {
+      await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE')
+      await client.query('DROP SCHEMA IF EXISTS auth CASCADE')
+
+      const sqlFiles = [
+        'schema',
+        'auth',
+        'local_auth',
+        'test_seeds',
+        'seed_migrations',
+        'refresh_materialized_views',
+      ]
+
       for (const file of sqlFiles) {
-        const filePath = `database/db_init/${file}.sql`
-        console.log(`Executing db file ${filePath}`)
+        const filePath = path.join('database', 'db_init', `${file}.sql`)
         const sqlContent = await fs.readFile(filePath, 'utf-8')
         await client.query(sqlContent)
       }
