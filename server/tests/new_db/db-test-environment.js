@@ -21,8 +21,6 @@ class DbTestEnvironment extends NodeEnvironment {
   async setup() {
     await super.setup()
 
-    console.log('***root dir', ROOT_DIR)
-
     if (process.env.CI) {
       try {
         execSync('apt-get update && apt-get install -y postgresql-client', {
@@ -109,14 +107,14 @@ class DbTestEnvironment extends NodeEnvironment {
   async teardown() {
     try {
       if (this.testPool) {
-        // if (process.env.CI) {
-        //   const client = await this.testPool.connect()
-        //   try {
-        //     await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
-        //   } finally {
-        //     client.release()
-        //   }
-        // }
+        if (process.env.CI) {
+          const client = await this.testPool.connect()
+          try {
+            await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
+          } finally {
+            client.release()
+          }
+        }
         await this.testPool.end()
       }
     } catch (error) {
