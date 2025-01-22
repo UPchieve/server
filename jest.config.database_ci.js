@@ -11,4 +11,5 @@ module.exports = {
   ],
   transform: tsjPreset.transform,
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  maxWorkers: 3,
 }

@@ -1,9 +1,7 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment
-const { Pool } = require('pg')
-const { exec } = require('child_process')
-const { promisify } = require('util')
-const execAsync = promisify(exec)
-const fs = require('fs').promises
+const Pool = require('pg').Pool
+const { execSync } = require('child_process')
+const fs = require('fs')
 const path = require('path')
 
 const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
@@ -12,62 +10,78 @@ const POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
 const POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
 const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 
-const ROOT_DIR = path.resolve(__dirname, '../../../')
+const ROOT_DIR = path.resolve(__dirname, '../../../') 
 const DB_INIT_DIR = path.join(ROOT_DIR, 'database/db_init')
-
-const pools = new Set()
-
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
-    this.testPool = null
+    this.testPool
   }
 
   async setup() {
     await super.setup()
 
+    console.log('***root dir', ROOT_DIR)
+
     if (process.env.CI) {
       try {
-        await execAsync(
-          'apt-get update && apt-get install -y postgresql-client'
-        )
+        execSync('apt-get update && apt-get install -y postgresql-client', {
+          stdio: 'inherit',
+        })
 
-        let timeout = 30
-        while (timeout > 0) {
+        const timeout = 30 // seconds
+        let attempts = 0
+        const waitForPostgres = async () => {
           try {
-            await execAsync(
-              `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -c '\\q'`
+            execSync(
+              `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -c '\\q'`,
+              { stdio: 'ignore' }
             )
-            break
           } catch (error) {
-            timeout--
-            if (timeout === 0) throw new Error('Timeout waiting for Postgres')
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            console.log(
-              `Postgres is unavailable - retrying (${timeout} attempts left)`
-            )
+            if (attempts < timeout) {
+              attempts++
+              console.log(
+                `Postgres is unavailable - retrying (${attempts}/${timeout})`
+              )
+              setTimeout(waitForPostgres, 1000) // Wait 1 second before retrying
+            } else {
+              console.error('Timeout waiting for Postgres')
+              throw error
+            }
           }
         }
 
-        const sqlFiles = [
-          'schema.sql',
-          'auth.sql',
-          'local_auth.sql',
-          'test_seeds.sql',
-          'seed_migrations.sql',
-          'refresh_materialized_views.sql',
-        ]
+        await waitForPostgres()
 
-        for (const file of sqlFiles) {
-          const filePath = path.join(DB_INIT_DIR, file)
-          await fs.access(filePath)
-          console.log(`Executing ${filePath}...`)
-          await execAsync(
-            `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -f ${filePath}`
-          )
-        }
+       const sqlFiles = [
+         'schema.sql',
+         'auth.sql',
+         'local_auth.sql',
+         'test_seeds.sql',
+         'seed_migrations.sql',
+         'refresh_materialized_views.sql',
+       ]
+
+       try {
+         for (const file of sqlFiles) {
+           const filePath = path.join(DB_INIT_DIR, file)
+           if (fs.existsSync(filePath)) {
+             console.log(`Executing ${filePath}...`)
+             execSync(
+               `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -f ${filePath}`,
+               { stdio: 'inherit' }
+             )
+           } else {
+             console.warn(`SQL file not found: ${filePath}`)
+           }
+         }
+       } catch (error) {
+         console.error('Error executing SQL scripts:', error)
+         throw error
+       }
+
       } catch (error) {
-        console.error('Setup error:', error)
+        console.error('Error installing PostgreSQL client:', error)
         throw error
       }
     }
@@ -80,7 +94,6 @@ class DbTestEnvironment extends NodeEnvironment {
         port: POSTGRES_PORT,
         host: POSTGRES_HOST,
       })
-      pools.add(this.testPool)
 
       this.testPool.on('connect', async client => {
         await client.query('SET search_path TO upchieve;')
@@ -96,7 +109,6 @@ class DbTestEnvironment extends NodeEnvironment {
   async teardown() {
     try {
       if (this.testPool) {
-        pools.delete(this.testPool)
         if (process.env.CI) {
           const client = await this.testPool.connect()
           try {
@@ -110,16 +122,6 @@ class DbTestEnvironment extends NodeEnvironment {
     } catch (error) {
       console.error('Error tearing down test database:', error)
     }
-
-    for (const pool of pools) {
-      try {
-        await pool.end()
-      } catch (error) {
-        console.error('Error cleaning up pool:', error)
-      }
-    }
-    pools.clear()
-
     await super.teardown()
   }
 }
