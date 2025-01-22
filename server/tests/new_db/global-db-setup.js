@@ -2,6 +2,9 @@ const { execSync } = require('child_process')
 const fs = require('fs')
 const path = require('path')
 
+const ROOT_DIR = path.resolve(__dirname, '../../../')
+const DB_INIT_DIR = path.join(ROOT_DIR, 'database/db_init')
+
 module.exports = async () => {
   if (process.env.CI) {
     try {
