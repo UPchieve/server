@@ -1,5 +1,8 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment
 const Pool = require('pg').Pool
+const { execSync } = require('child_process')
+const fs = require('fs')
+const path = require('path')
 
 const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
@@ -14,6 +17,68 @@ class DbTestEnvironment extends NodeEnvironment {
 
   async setup() {
     await super.setup()
+
+    if (process.env.CI) {
+      try {
+        execSync('apt-get update && apt-get install -y postgresql-client', {
+          stdio: 'inherit',
+        })
+      } catch (error) {
+        console.error('Error installing PostgreSQL client:', error)
+        throw error
+      }
+    }
+
+    const timeout = 30 // seconds
+    let attempts = 0
+    const waitForPostgres = async () => {
+      try {
+        execSync(
+          `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -c '\\q'`,
+          { stdio: 'ignore' }
+        )
+      } catch (error) {
+        if (attempts < timeout) {
+          attempts++
+          console.log(
+            `Postgres is unavailable - retrying (${attempts}/${timeout})`
+          )
+          setTimeout(waitForPostgres, 1000) // Wait 1 second before retrying
+        } else {
+          console.error('Timeout waiting for Postgres')
+          throw error
+        }
+      }
+    }
+
+    await waitForPostgres()
+
+    const sqlFiles = [
+      'schema.sql',
+      'auth.sql',
+      'local_auth.sql',
+      'test_seeds.sql',
+      'seed_migrations.sql',
+      'refresh_materialized_views.sql',
+    ]
+
+    try {
+      for (const file of sqlFiles) {
+        const filePath = path.join(__dirname, 'database', 'db_init', file)
+        if (fs.existsSync(filePath)) {
+          console.log(`Executing ${filePath}...`)
+          execSync(
+            `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -f ${filePath}`,
+            { stdio: 'inherit' }
+          )
+        } else {
+          console.warn(`SQL file not found: ${filePath}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error executing SQL scripts:', error)
+      throw error
+    }
 
     try {
       this.testPool = new Pool({
@@ -38,6 +103,14 @@ class DbTestEnvironment extends NodeEnvironment {
   async teardown() {
     try {
       if (this.testPool) {
+        if (process.env.CI) {
+          const client = await this.testPool.connect()
+          try {
+            await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
+          } finally {
+            client.release()
+          }
+        }
         await this.testPool.end()
       }
     } catch (error) {
