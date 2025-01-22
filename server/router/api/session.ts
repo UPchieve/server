@@ -463,7 +463,7 @@ export function routeSession(router: Router) {
   router.put('/sessions/:sessionId/meeting', async function(req, res) {
     try {
       const sessionId = req.params.sessionId
-      await SessionMeetingService.endSessionMeeting(sessionId)
+      await SessionMeetingService.endMeeting(sessionId)
       return res.sendStatus(204)
     } catch (err) {
       resError(res, err)

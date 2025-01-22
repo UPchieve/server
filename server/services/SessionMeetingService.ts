@@ -141,6 +141,7 @@ async function getOrCreateAttendee({
     CreateAttendeeCommandOutput
   >(
     new CreateAttendeeCommand({
+      MeetingId: meetingId,
       ExternalUserId: userId,
     })
   )
@@ -195,7 +196,7 @@ async function createMeetingWithAttendee({
   }
 }
 
-export async function endSessionMeeting(sessionId: string) {
+export async function endMeeting(sessionId: string) {
   const existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
     sessionId
   )
