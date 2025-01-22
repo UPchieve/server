@@ -7,6 +7,8 @@ const POSTGRES_PASSWORD = 'Password123'
 const POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
 const POSTGRES_PORT = process.env.CI ? 5432 : 5500
 const DEFAULT_DB = 'upchieve'
+
+let isInitialized = false
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
@@ -25,8 +27,9 @@ class DbTestEnvironment extends NodeEnvironment {
             host: POSTGRES_HOST,
           })
 
-          if (process.env.CI) {
-            await this.initializeCIDatabase()
+          if (process.env.CI && !isInitialized) {
+            await this.initializeCiDatabase()
+            isInitialized = true
           }
 
           this.testPool.on('connect', async client => {
@@ -82,13 +85,19 @@ class DbTestEnvironment extends NodeEnvironment {
   async teardown() {
     try {
       if (this.testPool) {
+        if (process.env.CI) {
+          const client = await this.testPool.connect()
+          try {
+            await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
+          } finally {
+            client.release()
+          }
+        }
         await this.testPool.end()
       }
-
     } catch (error) {
       console.error('Error tearing down test database:', error)
     }
-
     await super.teardown()
   }
 }
