@@ -39,41 +39,6 @@ class DbTestEnvironment extends NodeEnvironment {
           console.error('Error setting up test database:', error)
           throw error
         }
-
-    if (process.env.CI) {
-      try {
-
-        const sqlFiles = [
-          'schema.sql',
-          'auth.sql',
-          'local_auth.sql',
-          'test_seeds.sql',
-          'seed_migrations.sql',
-          'refresh_materialized_views.sql',
-        ]
-
-        try {
-          for (const file of sqlFiles) {
-            const filePath = path.join(DB_INIT_DIR, file)
-            if (fs.existsSync(filePath)) {
-              console.log(`Executing ${filePath}...`)
-              execSync(
-                `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -f ${filePath}`,
-                { stdio: 'inherit' }
-              )
-            } else {
-              console.warn(`SQL file not found: ${filePath}`)
-            }
-          }
-        } catch (error) {
-          console.error('Error executing SQL scripts:', error)
-          throw error
-        }
-      } catch (error) {
-        console.error('Error installing PostgreSQL client:', error)
-        throw error
-      }
-    }
   }
 
   async teardown() {
