@@ -7,7 +7,6 @@ module.exports = {
   runner: 'groups',
   testPathIgnorePatterns: ['/node_modules/'],
   setupFilesAfterEnv: [
-    // '<rootDir>/server/tests/force-gc.ts',
     '<rootDir>/server/tests/database/db-mocks-setup.ts',
   ],
   transform: tsjPreset.transform,
