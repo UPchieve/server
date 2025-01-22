@@ -1,6 +1,7 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment
 const Pool = require('pg').Pool
 const fs = require('fs').promises
+const path = require('path')
 
 const POSTGRES_USER = 'admin'
 const POSTGRES_PASSWORD = 'Password123'
