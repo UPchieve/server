@@ -21,8 +21,6 @@ class DbTestEnvironment extends NodeEnvironment {
   async setup() {
     await super.setup()
 
-    console.log('***root dir', ROOT_DIR)
-
     if (process.env.CI) {
       try {
         execSync('apt-get update && apt-get install -y postgresql-client', {
