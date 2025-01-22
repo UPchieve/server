@@ -84,8 +84,7 @@ async function createAttendee(
   )
   if (!created.Attendee)
     throw new Error(
-      { sessionId, userId, meetingId },
-      'Failed to create attendee for meeting'
+      `Failed to create attendee for user ${userId} for meeting ${meetingId} of session ${sessionId}`
     )
   return created.Attendee
 }
@@ -108,8 +107,7 @@ async function getMeeting({
   )
   if (!meeting.Meeting)
     throw new Error(
-      { meetingId, sessionId },
-      `Failed to fetch meeting with given ID for session`
+      `Failed to fetch meeting ${meetingId} of session ${sessionId}`
     )
   return meeting.Meeting
 }
@@ -147,12 +145,7 @@ async function getOrCreateAttendee({
   )
   if (!createdAttendee.Attendee)
     throw new Error(
-      {
-        sessionId,
-        userId,
-        meetingId,
-      },
-      `Failed to create new attendee`
+      `Failed to create new attendee for user ${userId} for meeting ${meetingId} of session ${sessionId}`
     )
   return createdAttendee.Attendee
 }
@@ -187,8 +180,7 @@ async function createMeetingWithAttendee({
   )
   if (!created.Meeting || !created.Attendees?.length)
     throw new Error(
-      { sessionId, userId },
-      'Failed to create meeting and attendees'
+      `Failed to create meeting for session ${sessionId} and attendee for user ${userId}`
     )
   return {
     meeting: created.Meeting,
