@@ -1116,6 +1116,10 @@ WITH results AS (
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
     AND sessions.ended_at IS NOT NULL
+    AND (:studentId::uuid IS NULL
+        OR sessions.student_id = :studentId::uuid)
+    AND (:volunteerId::uuid IS NULL
+        OR sessions.volunteer_id = :volunteerId::uuid)
 ORDER BY
     sessions.id
 )
@@ -1378,4 +1382,15 @@ WHERE
     svm.session_id = :sessionId!
 ORDER BY
     created_at ASC;
+
+
+/* @name getPreviousSessionCountForPair */
+SELECT
+    COUNT(*)::int AS total
+FROM
+    sessions
+WHERE
+    student_id = :studentId!
+    AND volunteer_id = :volunteerId!
+    AND ended_at IS NOT NULL;
 

@@ -327,13 +327,21 @@ export function routeSession(router: Router) {
   router.get('/sessions/history', async function(req, res) {
     try {
       const user = extractUser(req)
+      const filter =
+        req.query.studentId && req.query.volunteerId
+          ? {
+              studentId: asUlid(req.query.studentId),
+              volunteerId: asUlid(req.query.volunteerId),
+            }
+          : {}
       const {
         pastSessions,
         page,
         isLastPage,
       } = await SessionService.getSessionHistory(
         user.id,
-        asString(req.query.page)
+        asString(req.query.page),
+        filter
       )
 
       res.json({ page, isLastPage, pastSessions })
@@ -345,6 +353,14 @@ export function routeSession(router: Router) {
   router.get('/sessions/history/total', async function(req, res) {
     try {
       const user = extractUser(req)
+      if (req.query.studentId && req.query.volunteerId) {
+        const total = await SessionService.getPreviousSessionCountForPair(
+          asUlid(req.query.studentId),
+          asUlid(req.query.volunteerId)
+        )
+        return res.json({ total })
+      }
+
       const total = await SessionService.getTotalSessionHistory(user.id)
 
       res.json({ total })
