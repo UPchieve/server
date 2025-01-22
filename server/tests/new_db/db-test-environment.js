@@ -11,7 +11,7 @@ const POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
 const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 
 const ROOT_DIR = path.resolve(__dirname, '../../../') 
-const DB_INIT_DIR = path.join(ROOT_DIR, 'server/database/db_init')
+const DB_INIT_DIR = path.join(ROOT_DIR, 'database/db_init')
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
