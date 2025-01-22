@@ -1,7 +1,6 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment
 const Pool = require('pg').Pool
-const fs = require('fs').promises
-const path = require('path')
+const { initializeDatabase } = require('./initialize-database')
 
 const POSTGRES_USER = 'admin'
 const POSTGRES_PASSWORD = 'Password123'
@@ -19,6 +18,10 @@ class DbTestEnvironment extends NodeEnvironment {
     await super.setup()
 
     try {
+
+      if (process.env.CI) {
+        await this.initializeDatabase()
+      }
           this.testPool = new Pool({
             database: DEFAULT_DB,
             user: POSTGRES_USER,
