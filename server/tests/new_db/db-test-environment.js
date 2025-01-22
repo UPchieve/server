@@ -44,7 +44,7 @@ class DbTestEnvironment extends NodeEnvironment {
   }
 
   async initializeDatabase() {
-    if (isInitialized) return
+    if (process.env.CI && isInitialized) return
 
     const pool = new Pool({
       database: POSTGRES_DB,
@@ -65,17 +65,16 @@ class DbTestEnvironment extends NodeEnvironment {
       ]) {
         const filePath = path.join('database', 'db_init', `${file}.sql`)
         console.log(`Reading ${filePath}...`)
-        const sqlContent = await fs.readFile(filePath, 'utf-8')
+        let sqlContent = await fs.readFile(filePath, 'utf-8')
 
         console.log(`Executing ${filePath}...`)
-        const statements = sqlContent
-          .replace(/\r\n/g, '\n')
-          .split(';')
-          .map(s => s.trim())
-          .filter(s => s.length > 0)
-
-        for (const statement of statements) {
-          await pool.query(statement)
+        await pool.query('START TRANSACTION;')
+        try {
+          await pool.query(sqlContent)
+          await pool.query('COMMIT;')
+        } catch (error) {
+          await pool.query('ROLLBACK;')
+          throw error
         }
       }
       isInitialized = true
@@ -86,6 +85,7 @@ class DbTestEnvironment extends NodeEnvironment {
       await pool.end()
     }
   }
+
   async teardown() {
     try {
       if (this.testPool) {
