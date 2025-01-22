@@ -1,15 +1,11 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment
 const Pool = require('pg').Pool
-const fs = require('fs').promises
-const path = require('path')
 
 const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
 const POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
 const POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
-const POSTGRES_DB = process.env.POSTGRES_DB || 'upchieve'
-
-let isInitialized = false
+const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
@@ -18,10 +14,6 @@ class DbTestEnvironment extends NodeEnvironment {
 
   async setup() {
     await super.setup()
-
-    if (process.env.CI && !isInitialized) {
-      await this.initializeDatabase()
-    }
 
     try {
       this.testPool = new Pool({
@@ -43,60 +35,9 @@ class DbTestEnvironment extends NodeEnvironment {
     }
   }
 
-  async initializeDatabase() {
-    if (process.env.CI && isInitialized) return
-
-    const pool = new Pool({
-      database: POSTGRES_DB,
-      user: POSTGRES_USER,
-      password: POSTGRES_PASSWORD,
-      port: POSTGRES_PORT,
-      host: POSTGRES_HOST,
-    })
-
-    try {
-      for (const file of [
-        'schema',
-        'auth',
-        'local_auth',
-        'test_seeds',
-        'seed_migrations',
-        'refresh_materialized_views',
-      ]) {
-        const filePath = path.join('database', 'db_init', `${file}.sql`)
-        console.log(`Reading ${filePath}...`)
-        let sqlContent = await fs.readFile(filePath, 'utf-8')
-
-        console.log(`Executing ${filePath}...`)
-        await pool.query('START TRANSACTION;')
-        try {
-          await pool.query(sqlContent)
-          await pool.query('COMMIT;')
-        } catch (error) {
-          await pool.query('ROLLBACK;')
-          throw error
-        }
-      }
-      isInitialized = true
-    } catch (error) {
-      console.error('Error initializing database:', error)
-      throw error
-    } finally {
-      await pool.end()
-    }
-  }
-
   async teardown() {
     try {
       if (this.testPool) {
-        if (process.env.CI) {
-          const client = await this.testPool.connect()
-          try {
-            await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
-          } finally {
-            client.release()
-          }
-        }
         await this.testPool.end()
       }
     } catch (error) {
