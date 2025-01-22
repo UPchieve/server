@@ -10,6 +10,7 @@ const POSTGRES_PORT = process.env.CI ? 5432 : 5500
 const DEFAULT_DB = 'upchieve'
 
 let isInitialized = false
+let initializationPromise = null
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
@@ -28,11 +29,15 @@ class DbTestEnvironment extends NodeEnvironment {
         host: POSTGRES_HOST,
       })
 
-      if (process.env.CI) {
-        if (!isInitialized) {
-          await this.initializeDatabase(this.testPool)
-          isInitialized = true
+      if (process.env.CI && !isInitialized) {
+        if (!initializationPromise) {
+          initializationPromise = this.initializeDatabase(this.testPool).then(
+            () => {
+              isInitialized = true
+            }
+          )
         }
+        await initializationPromise
       }
 
       this.testPool.on('connect', async client => {
@@ -47,37 +52,30 @@ class DbTestEnvironment extends NodeEnvironment {
   }
 
   async initializeDatabase(pool) {
-    let timeout = 30
-    while (timeout > 0) {
-      try {
-        await pool.query('SELECT 1')
-        break
-      } catch (error) {
-        timeout--
-        if (timeout === 0) throw new Error('Timeout waiting for Postgres')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
-
     const client = await pool.connect()
     try {
-      await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE')
-      await client.query('DROP SCHEMA IF EXISTS auth CASCADE')
+      const dropSchemas = ['upchieve', 'auth', 'basic_access', 'public']
 
-      const sqlFiles = [
+      for (const schema of dropSchemas) {
+        await client.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE;`)
+      }
+
+      for (const file of [
         'schema',
         'auth',
         'local_auth',
         'test_seeds',
         'seed_migrations',
         'refresh_materialized_views',
-      ]
-
-      for (const file of sqlFiles) {
+      ]) {
         const filePath = path.join('database', 'db_init', `${file}.sql`)
+        console.log(`Executing ${filePath}...`)
         const sqlContent = await fs.readFile(filePath, 'utf-8')
         await client.query(sqlContent)
       }
+    } catch (error) {
+      console.error('Error initializing database:', error)
+      throw error
     } finally {
       client.release()
     }
