@@ -88,7 +88,8 @@ export default async (
     emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
     start: fallIncentiveEnrollmentAt.toDate(),
   })
-  const FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT = 10
+  const FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT =
+    incentivePayload.maxQualifiedSessionsPerUser ?? 10
 
   // Check if the student has reached the limit for the amount of money they can earn
   if (
@@ -138,10 +139,11 @@ export default async (
       log(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
-      // Phase the user out of the program if we just sent their 10th qualified for gift card notification
+      // Phase the user out of the program if we just sent their final qualified for gift card notification
       if (
         !hasReceivedCompletedChallengeEmail &&
-        totalQualifiedForGiftCardsSent === 9
+        totalQualifiedForGiftCardsSent ===
+          FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT - 1
       )
         await processCompletedFallIncentiveChallenge(
           userId,

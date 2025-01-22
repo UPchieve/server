@@ -61,6 +61,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 1,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -97,6 +98,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 1,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -147,6 +149,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 3,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -183,6 +186,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 2,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -248,6 +252,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 2,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -309,6 +314,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 1,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -351,6 +357,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 1,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -398,6 +405,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 1,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
@@ -441,6 +449,7 @@ describe('emailFallIncentiveSessionQualification', () => {
         incentivePayload: {
           incentiveStartDate: new Date(),
           maxQualifiedSessionsPerWeek: 1,
+          maxQualifiedSessionsPerUser: 10,
         },
       }
     )
