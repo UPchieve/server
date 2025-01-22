@@ -4,7 +4,6 @@ import * as TeacherService from '../../services/TeacherService'
 import * as StudentRepo from '../../models/Student'
 import * as SubjectsRepo from '../../models/Subjects'
 import * as TeacherRepo from '../../models/Teacher'
-import { TeacherClass } from '../../models/TeacherClass'
 
 jest.mock('../../models/Student')
 jest.mock('../../models/Subjects')
@@ -309,10 +308,10 @@ describe('addStudentToTeacherClass', () => {
       teacherClass.code
     )
 
-    expect(mockedStudentRepo.addStudentToTeacherClass).toHaveBeenCalledWith(
-      expect.toBeTransactionClient(),
-      teacherClass.userId,
-      teacherClass.id
+    expect(mockedStudentRepo.addStudentsToTeacherClass).toHaveBeenCalledWith(
+      [teacherClass.userId],
+      teacherClass.id,
+      expect.toBeTransactionClient()
     )
     expect(result).toBe(teacherClass)
   })

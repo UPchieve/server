@@ -119,7 +119,7 @@ export async function addStudentToTeacherClass(
       teacherClass.id,
       tc
     )
-    await StudentRepo.addStudentToTeacherClass(tc, userId, teacherClass.id)
+    await StudentRepo.addStudentsToTeacherClass([userId], teacherClass.id, tc)
 
     return teacherClass
   }, tc)
