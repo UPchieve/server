@@ -20,7 +20,7 @@ class DbTestEnvironment extends NodeEnvironment {
     try {
 
       if (process.env.CI) {
-        await this.initializeDatabase()
+        await initializeDatabase()
       }
           this.testPool = new Pool({
             database: DEFAULT_DB,
