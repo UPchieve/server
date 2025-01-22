@@ -25,9 +25,9 @@ class DbTestEnvironment extends NodeEnvironment {
             host: POSTGRES_HOST,
           })
 
-          // if (process.env.CI) {
-          //   await this.initializeCIDatabase()
-          // }
+          if (process.env.CI) {
+            await this.initializeCIDatabase()
+          }
 
           this.testPool.on('connect', async client => {
             await client.query('SET search_path TO upchieve;')
