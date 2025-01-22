@@ -109,14 +109,14 @@ class DbTestEnvironment extends NodeEnvironment {
   async teardown() {
     try {
       if (this.testPool) {
-        if (process.env.CI) {
-          const client = await this.testPool.connect()
-          try {
-            await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
-          } finally {
-            client.release()
-          }
-        }
+        // if (process.env.CI) {
+        //   const client = await this.testPool.connect()
+        //   try {
+        //     await client.query('DROP SCHEMA IF EXISTS upchieve CASCADE;')
+        //   } finally {
+        //     client.release()
+        //   }
+        // }
         await this.testPool.end()
       }
     } catch (error) {
