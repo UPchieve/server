@@ -159,7 +159,7 @@ export default async (
           firstName
         )
         await createEmailNotification({
-          userId: userId,
+          userId,
           sessionId,
           emailTemplateId:
             config.sendgrid.stillTimeForQualifyingSessionTemplate,
