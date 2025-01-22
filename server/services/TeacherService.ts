@@ -17,7 +17,9 @@ import { StudentUserProfile } from '../models/Student'
 export async function createTeacherClass(
   userId: Ulid,
   className: string,
-  topicId?: number
+  topicId?: number,
+  cleverId?: string,
+  tc?: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
     const code = await generateUniqueClassCode(tc)
@@ -27,6 +29,7 @@ export async function createTeacherClass(
         name: className,
         code,
         topicId,
+        cleverId,
       },
       tc
     )

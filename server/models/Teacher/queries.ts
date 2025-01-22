@@ -48,13 +48,14 @@ export async function createTeacherClass(
         name: data.name,
         code: data.code,
         topicId: data.topicId,
+        cleverId: data.cleverId,
       },
       tc
     )
     if (!teacherClass.length) {
       throw new RepoCreateError('Unable to create teacher class.')
     }
-    return makeSomeOptional(teacherClass[0], ['topicId'])
+    return makeSomeOptional(teacherClass[0], ['topicId', 'cleverId'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -85,7 +86,9 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeSomeOptional(c, ['topicId', 'deactivatedOn']))
+    return classes.map(c =>
+      makeSomeOptional(c, ['topicId', 'deactivatedOn', 'cleverId'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
