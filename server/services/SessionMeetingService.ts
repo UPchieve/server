@@ -21,7 +21,8 @@ import {
   Meeting,
 } from '@aws-sdk/client-chime-sdk-meetings'
 import { getClient, runInTransaction, TransactionClient } from '../db'
-import { LookupError } from '../models/Errors'
+import { LookupError, RepoCreateError } from '../models/Errors'
+import logger from '../logger'
 export async function getOrCreateSessionMeeting(
   sessionId: string,
   userId: string,
@@ -34,22 +35,47 @@ export async function getOrCreateSessionMeeting(
     // Get existing meeting if it exists
     let meeting: Meeting
     let attendee: Attendee
-    const existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
+    let existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
       sessionId,
       tc
     )
-    // If no existing meeting, create a new one and a new attendee, and return these.
+
     if (!existingMeeting) {
       const created = await createMeetingWithAttendee({ sessionId, userId })
       meeting = created.meeting
       attendee = created.attendee
-      await SessionMeetingsRepo.insertSessionMeeting(
-        sessionId,
-        meeting.MeetingId!,
-        'chime',
-        tc
-      )
-    } else {
+
+      try {
+        await SessionMeetingsRepo.insertSessionMeeting(
+          sessionId,
+          meeting.MeetingId!,
+          'chime',
+          tc
+        )
+      } catch (err) {
+        if (err instanceof RepoCreateError) {
+          logger.warn(
+            `Failed to create session_meeting for session ${sessionId}. Now attempting to fetch it`
+          )
+          // Sometimes the student and volunteer enter a race condition both trying to
+          // create the meeting at the same time. If this happens, fetch the meeting again
+          await deleteChimeMeeting(created.meeting.MeetingId!)
+          const mtg = await SessionMeetingsRepo.getSessionMeetingBySessionId(
+            sessionId,
+            tc
+          )
+          if (!mtg)
+            throw new Error(
+              `Failed to create or fetch session_meeting for session ${sessionId}`
+            )
+          existingMeeting = mtg
+        } else {
+          throw err
+        }
+      }
+    }
+
+    if (existingMeeting) {
       // If there is an existing meeting, check if it includes userId in the attendees.
       // If not, create one, and return these.
       meeting = await getMeeting({
@@ -66,29 +92,6 @@ export async function getOrCreateSessionMeeting(
     return { meeting, attendee }
   }, transactionClient ?? getClient())
 }
-
-async function createAttendee(
-  userId: string,
-  sessionId: string,
-  meetingId: string
-): Promise<Attendee> {
-  const client = AwsChimeService.getClient()
-  const created = await client.send<
-    CreateAttendeeCommandInput,
-    CreateAttendeeCommandOutput
-  >(
-    new CreateAttendeeCommand({
-      ExternalUserId: userId,
-      MeetingId: meetingId,
-    })
-  )
-  if (!created.Attendee)
-    throw new Error(
-      `Failed to create attendee for user ${userId} for meeting ${meetingId} of session ${sessionId}`
-    )
-  return created.Attendee
-}
-
 async function getMeeting({
   meetingId,
   sessionId,
@@ -197,10 +200,14 @@ export async function endMeeting(sessionId: string) {
       `Cannot end session meeting: No meeting exists for session ${sessionId}`
     )
 
+  await deleteChimeMeeting(existingMeeting.externalId)
+}
+
+async function deleteChimeMeeting(meetingId: string) {
   const client = AwsChimeService.getClient()
   await client.send<DeleteMeetingCommandInput, DeleteMeetingCommandOutput>(
     new DeleteMeetingCommand({
-      MeetingId: existingMeeting.externalId,
+      MeetingId: meetingId,
     })
   )
 }
