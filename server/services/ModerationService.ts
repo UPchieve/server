@@ -16,7 +16,7 @@ import {
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
-import { LangfusePromptNameEnum } from './LangfuseService'
+import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
 import ContentSafetyClient, {
   AnalyzeImage200Response,
@@ -941,7 +941,13 @@ export const moderateTranscript = async (
     )
     results.push(result)
   }
-
+  if (
+    results.some(
+      r => r.confidence >= config.contextualModerationConfidenceThreshold
+    )
+  ) {
+    t.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+  }
   return results
 }
 

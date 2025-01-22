@@ -27,6 +27,10 @@ export enum LangfusePromptNameEnum {
   SESSION_TRANSCRIPT_MODERATION = 'session-transcript-moderation',
 }
 
+export enum LangfuseTraceTagEnum {
+  FLAGGED_BY_MODERATION = 'flagged-by-moderation',
+}
+
 export async function getPrompt(
   promptName: string,
   cacheTtlSeconds = 120
