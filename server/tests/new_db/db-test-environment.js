@@ -28,7 +28,7 @@ class DbTestEnvironment extends NodeEnvironment {
           })
 
           if (process.env.CI && !isInitialized) {
-            await this.initializeCiDatabase()
+            await this.initializeCIDatabase()
             isInitialized = true
           }
 
