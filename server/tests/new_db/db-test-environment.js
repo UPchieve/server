@@ -21,35 +21,27 @@ class DbTestEnvironment extends NodeEnvironment {
   async setup() {
     await super.setup()
 
-    if (process.env.CI) {
-      try {
-        execSync('apt-get update && apt-get install -y postgresql-client', {
-          stdio: 'inherit',
-        })
+        try {
+          this.testPool = new Pool({
+            database: DEFAULT_DB,
+            user: POSTGRES_USER,
+            password: POSTGRES_PASSWORD,
+            port: POSTGRES_PORT,
+            host: POSTGRES_HOST,
+          })
 
-        const timeout = 30 // seconds
-        let attempts = 0
-        const waitForPostgres = async () => {
-          try {
-            execSync(
-              `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -c '\\q'`,
-              { stdio: 'ignore' }
-            )
-          } catch (error) {
-            if (attempts < timeout) {
-              attempts++
-              console.log(
-                `Postgres is unavailable - retrying (${attempts}/${timeout})`
-              )
-              setTimeout(waitForPostgres, 1000) // Wait 1 second before retrying
-            } else {
-              console.error('Timeout waiting for Postgres')
-              throw error
-            }
-          }
+          this.testPool.on('connect', async client => {
+            await client.query('SET search_path TO upchieve;')
+          })
+          this.global.__TEST_DB_CLIENT__ = this.testPool
+          this.global.__TEST_DB_NAME__ = this.testDbName
+        } catch (error) {
+          console.error('Error setting up test database:', error)
+          throw error
         }
 
-        await waitForPostgres()
+    if (process.env.CI) {
+      try {
 
         const sqlFiles = [
           'schema.sql',
@@ -81,25 +73,6 @@ class DbTestEnvironment extends NodeEnvironment {
         console.error('Error installing PostgreSQL client:', error)
         throw error
       }
-    }
-
-    try {
-      this.testPool = new Pool({
-        database: DEFAULT_DB,
-        user: POSTGRES_USER,
-        password: POSTGRES_PASSWORD,
-        port: POSTGRES_PORT,
-        host: POSTGRES_HOST,
-      })
-
-      this.testPool.on('connect', async client => {
-        await client.query('SET search_path TO upchieve;')
-      })
-      this.global.__TEST_DB_CLIENT__ = this.testPool
-      this.global.__TEST_DB_NAME__ = this.testDbName
-    } catch (error) {
-      console.error('Error setting up test database:', error)
-      throw error
     }
   }
 
