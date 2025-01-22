@@ -1,6 +1,6 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment
 const Pool = require('pg').Pool
-const { initializeDatabase } = require('./initialize-database')
+const fs = require('fs').promises
 
 const POSTGRES_USER = 'admin'
 const POSTGRES_PASSWORD = 'Password123'
@@ -10,7 +10,6 @@ const DEFAULT_DB = 'upchieve'
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config)
-    this.adminPool
     this.testPool
   }
 
@@ -18,10 +17,6 @@ class DbTestEnvironment extends NodeEnvironment {
     await super.setup()
 
     try {
-
-      if (process.env.CI) {
-        await initializeDatabase()
-      }
           this.testPool = new Pool({
             database: DEFAULT_DB,
             user: POSTGRES_USER,
@@ -29,6 +24,10 @@ class DbTestEnvironment extends NodeEnvironment {
             port: POSTGRES_PORT,
             host: POSTGRES_HOST,
           })
+
+          if (process.env.CI) {
+            await this.initializeCIDatabase()
+          }
 
           this.testPool.on('connect', async client => {
             await client.query('SET search_path TO upchieve;')
@@ -38,6 +37,45 @@ class DbTestEnvironment extends NodeEnvironment {
         } catch (error) {
       console.error('Error setting up test database:', error)
       throw error
+    }
+  }
+
+  async initializeCIDatabase() {
+    let timeout = 30
+    while (timeout > 0) {
+      try {
+        await this.testPool.query('SELECT 1')
+        console.log('PostgreSQL is ready')
+        break
+      } catch (error) {
+        console.log('Postgres is unavailable')
+        timeout--
+        if (timeout === 0) {
+          throw new Error('Timeout waiting for Postgres')
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+
+    const sqlFiles = [
+      'schema',
+      'auth',
+      'local_auth',
+      'test_seeds',
+      'seed_migrations',
+      'refresh_materialized_views',
+    ]
+
+    const client = await this.testPool.connect()
+    try {
+      for (const file of sqlFiles) {
+        const filePath = `database/db_init/${file}.sql`
+        console.log(`Executing db file ${filePath}`)
+        const sqlContent = await fs.readFile(filePath, 'utf-8')
+        await client.query(sqlContent)
+      }
+    } finally {
+      client.release()
     }
   }
 
