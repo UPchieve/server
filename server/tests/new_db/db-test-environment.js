@@ -54,11 +54,11 @@ class DbTestEnvironment extends NodeEnvironment {
   async initializeDatabase(pool) {
     const client = await pool.connect()
     try {
-      const dropSchemas = ['upchieve', 'auth', 'basic_access', 'public']
+      // const dropSchemas = ['upchieve', 'auth', 'basic_access', 'public']
 
-      for (const schema of dropSchemas) {
-        await client.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE;`)
-      }
+      // for (const schema of dropSchemas) {
+      //   await client.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE;`)
+      // }
 
       for (const file of [
         'schema',
