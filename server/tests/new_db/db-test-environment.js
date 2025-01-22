@@ -10,7 +10,7 @@ const POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
 const POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
 const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 
-const ROOT_DIR = path.resolve(__dirname, '../../../') 
+const ROOT_DIR = path.resolve(__dirname, '../../../')
 const DB_INIT_DIR = path.join(ROOT_DIR, 'database/db_init')
 class DbTestEnvironment extends NodeEnvironment {
   constructor(config) {
@@ -53,33 +53,32 @@ class DbTestEnvironment extends NodeEnvironment {
 
         await waitForPostgres()
 
-       const sqlFiles = [
-         'schema.sql',
-         'auth.sql',
-         'local_auth.sql',
-         'test_seeds.sql',
-         'seed_migrations.sql',
-         'refresh_materialized_views.sql',
-       ]
+        const sqlFiles = [
+          'schema.sql',
+          'auth.sql',
+          'local_auth.sql',
+          'test_seeds.sql',
+          'seed_migrations.sql',
+          'refresh_materialized_views.sql',
+        ]
 
-       try {
-         for (const file of sqlFiles) {
-           const filePath = path.join(DB_INIT_DIR, file)
-           if (fs.existsSync(filePath)) {
-             console.log(`Executing ${filePath}...`)
-             execSync(
-               `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -f ${filePath}`,
-               { stdio: 'inherit' }
-             )
-           } else {
-             console.warn(`SQL file not found: ${filePath}`)
-           }
-         }
-       } catch (error) {
-         console.error('Error executing SQL scripts:', error)
-         throw error
-       }
-
+        try {
+          for (const file of sqlFiles) {
+            const filePath = path.join(DB_INIT_DIR, file)
+            if (fs.existsSync(filePath)) {
+              console.log(`Executing ${filePath}...`)
+              execSync(
+                `PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${DEFAULT_DB} -f ${filePath}`,
+                { stdio: 'inherit' }
+              )
+            } else {
+              console.warn(`SQL file not found: ${filePath}`)
+            }
+          }
+        } catch (error) {
+          console.error('Error executing SQL scripts:', error)
+          throw error
+        }
       } catch (error) {
         console.error('Error installing PostgreSQL client:', error)
         throw error
