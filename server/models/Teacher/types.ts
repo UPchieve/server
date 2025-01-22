@@ -11,10 +11,10 @@ export type CreateTeacherPayload = Pick<TeacherProfile, 'userId' | 'schoolId'>
 
 export type TeacherClass = {
   id: Ulid
+  cleverId?: string
   userId: Ulid
   name: string
   code: string
-  active: boolean
   total_students?: Number
   topicId?: number
   createdAt: Date
@@ -23,5 +23,5 @@ export type TeacherClass = {
 
 export type CreateTeacherClassPayload = Pick<
   TeacherClass,
-  'userId' | 'name' | 'code' | 'topicId'
+  'userId' | 'name' | 'code' | 'topicId' | 'cleverId'
 >
