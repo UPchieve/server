@@ -3,7 +3,7 @@ import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
 import { Jobs } from '..'
-import { getFallIncentiveSessionOverview } from '../../../services/SessionService'
+import { isSessionQualifiedForFallIncentive } from '../../../services/SessionService'
 import config from '../../../config'
 import {
   hasUserBeenSentEmail,
@@ -18,6 +18,7 @@ import { EVENTS } from '../../../constants'
 
 export interface EmailFallIncentiveSessionQualificationJobData {
   userId: Ulid
+  sessionId: Ulid
 }
 
 async function processCompletedFallIncentiveChallenge(
@@ -56,6 +57,7 @@ export default async (
   job: Job<EmailFallIncentiveSessionQualificationJobData>
 ): Promise<void> => {
   const userId = asString(job.data.userId)
+  const sessionId = asString(job.data.sessionId)
   const data = await getUserFallIncentiveData(userId, true)
   if (!data) return
 
@@ -78,7 +80,7 @@ export default async (
     fallIncentiveEnrollmentAt
   )
 
-  let totalQualifiedForGiftCardsSent = await getTotalEmailsSentToUser({
+  const totalQualifiedForGiftCardsSent = await getTotalEmailsSentToUser({
     userId,
     emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     start: fallIncentiveEnrollmentAt.toDate(),
@@ -88,7 +90,8 @@ export default async (
     emailTemplateId: config.sendgrid.fallIncentiveCompletedChallengeTemplate,
     start: fallIncentiveEnrollmentAt.toDate(),
   })
-  const FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT = 10
+  const FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT =
+    incentivePayload.maxQualifiedSessionsPerUser ?? 10
 
   // Check if the student has reached the limit for the amount of money they can earn
   if (
@@ -111,8 +114,9 @@ export default async (
   })
 
   if (
+    incentivePayload.maxQualifiedSessionsPerWeek &&
     totalQualifiedEmailsSentThisWeek >=
-    incentivePayload.maxQualifiedSessionsPerWeek
+      incentivePayload.maxQualifiedSessionsPerWeek
   ) {
     log(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the weekly limit of qualified emails (${incentivePayload.maxQualifiedSessionsPerWeek})`
@@ -120,35 +124,30 @@ export default async (
     return
   }
 
-  const sessionOverview = await getFallIncentiveSessionOverview(
-    userId,
-    startOfWeek.toDate()
-  )
+  const isSessionQualified = await isSessionQualifiedForFallIncentive(sessionId)
   try {
-    const userEmail = proxyEmail ?? email
-    if (sessionOverview.qualifiedSessions.length >= 1) {
-      const qualifiedSessionId =
-        sessionOverview.qualifiedSessions[totalQualifiedEmailsSentThisWeek]
+    if (isSessionQualified) {
       await MailService.sendQualifiedForGiftCardEmail(userEmail, firstName)
       await createEmailNotification({
         userId,
-        sessionId: qualifiedSessionId,
+        sessionId,
         emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
       })
       log(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
-      // Phase the user out of the program if we just sent their 10th qualified for gift card notification
+      // Phase the user out of the program if we just sent their final qualified for gift card notification
       if (
         !hasReceivedCompletedChallengeEmail &&
-        totalQualifiedForGiftCardsSent === 9
+        totalQualifiedForGiftCardsSent ===
+          FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT - 1
       )
         await processCompletedFallIncentiveChallenge(
           userId,
           userEmail,
           firstName
         )
-    } else if (sessionOverview.unqualifiedSessions.length >= 1) {
+    } else {
       const unqualifiedEmailSent = await hasUserBeenSentEmail({
         userId,
         emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
@@ -161,7 +160,7 @@ export default async (
         )
         await createEmailNotification({
           userId,
-          sessionId: sessionOverview.unqualifiedSessions[0],
+          sessionId,
           emailTemplateId:
             config.sendgrid.stillTimeForQualifyingSessionTemplate,
         })
