@@ -1,6 +1,5 @@
 stages:
   - build
-  - setup
   - test
   - deploy
 
@@ -19,9 +18,6 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
   NEW_RELIC_ENABLED: "false"
   NEW_RELIC_NO_CONFIG_FILE: "true"
-  # POSTGRES_DB: upchieve_test_ci_db
-  # POSTGRES_USER: test_user
-  # POSTGRES_PASSWORD: test_password
 
 .docker_service:
   services:
