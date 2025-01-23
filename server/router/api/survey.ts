@@ -7,7 +7,7 @@ import {
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
-  getImpactStudySurveyResponses,
+  getLatestImpactStudySurveyResponses,
   parseUserRole,
   saveUserSurvey,
   getImpactSurveyDefinition,
@@ -143,7 +143,7 @@ export function routeSurvey(router: expressWs.Router): void {
   router.get('/survey/impact-study/responses', async (req, res) => {
     try {
       const user = extractUser(req)
-      const survey = await getImpactStudySurveyResponses(user.id)
+      const survey = await getLatestImpactStudySurveyResponses(user.id)
       return res.json(survey)
     } catch (err) {
       resError(res, err)
