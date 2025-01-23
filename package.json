@@ -174,7 +174,7 @@
     "pino-pretty": "^10.3.1",
     "pre-commit": "^1.2.2",
     "prettier": "1.19.1",
-    "supertest": "^7.0.0",
+    "supertest": "^4.0.2",
     "tcp-port-used": "^1.0.2",
     "testcontainers": "^9.12.0",
     "ts-jest": "^29.1.1",
