@@ -117,7 +117,7 @@ export interface IGetStudentPartnerOrgBySchoolIdQuery {
   result: IGetStudentPartnerOrgBySchoolIdResult;
 }
 
-const getStudentPartnerOrgBySchoolIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":373,"b":382}]}],"statement":"SELECT\n    spo.id AS partner_id,\n    spo.key AS partner_key,\n    spo.name AS partner_name,\n    spos.id AS site_id,\n    spos.name AS site_name,\n    spo.school_id AS school_id\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\n    LEFT JOIN schools school ON spo.school_id = school.id\nWHERE\n    school.id = :schoolId!\n    AND school.partner = TRUE"};
+const getStudentPartnerOrgBySchoolIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":373,"b":382}]}],"statement":"SELECT\n    spo.id AS partner_id,\n    spo.key AS partner_key,\n    spo.name AS partner_name,\n    spos.id AS site_id,\n    spos.name AS site_name,\n    spo.school_id AS school_id\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\n    LEFT JOIN schools school ON spo.school_id = school.id\nWHERE\n    school.id = :schoolId!"};
 
 /**
  * Query generated from SQL:
@@ -135,7 +135,6 @@ const getStudentPartnerOrgBySchoolIdIR: any = {"usedParamSet":{"schoolId":true},
  *     LEFT JOIN schools school ON spo.school_id = school.id
  * WHERE
  *     school.id = :schoolId!
- *     AND school.partner = TRUE
  * ```
  */
 export const getStudentPartnerOrgBySchoolId = new PreparedQuery<IGetStudentPartnerOrgBySchoolIdParams,IGetStudentPartnerOrgBySchoolIdResult>(getStudentPartnerOrgBySchoolIdIR);

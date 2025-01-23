@@ -8,6 +8,9 @@ import {
   getStudentPartnerOrgBySchoolId,
 } from '../../models/StudentPartnerOrg'
 import { CreateUserPayload } from '../../models/User'
+import { buildStudentPartnerOrg } from '../mocks/generate'
+import { insertSingleRow } from '../db-utils'
+import { getDbUlid } from '../../models/pgUtils'
 
 const client = getClient()
 
@@ -42,20 +45,55 @@ test('getStudentPartnerOrgByKey with site', async () => {
   expect(actual?.schoolId).toBeUndefined()
 })
 
-test('getStudentPartnerOrgBySchoolId', async () => {
-  const actual = await getStudentPartnerOrgBySchoolId(
-    client,
-    // "Another Approved Partner School"
-    '01919662-87fb-6ad2-8227-c1e38adf0907'
+describe('getStudentPartnerOrgBySchoolId', () => {
+  const createSchool = (overrides = {}) => {
+    return {
+      id: getDbUlid(),
+      name: faker.company.name(),
+      approved: true,
+      partner: true,
+      cityId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    }
+  }
+
+  test.each([true, false])(
+    'Returns the SPO for the school, if it exists, regardless of current school.partner status',
+    async (schoolIsPartner: boolean) => {
+      const school = createSchool({ partner: schoolIsPartner })
+      const insertedSchool = await insertSingleRow('schools', school, client)
+      const spo = buildStudentPartnerOrg({
+        schoolId: insertedSchool.id,
+      })
+      const insertedSpo = await insertSingleRow(
+        'student_partner_orgs',
+        spo,
+        client
+      )
+      const actual = await getStudentPartnerOrgBySchoolId(
+        client,
+        insertedSchool.id
+      )
+      expect(actual).toBeDefined()
+      expect(actual?.schoolId).toEqual(insertedSchool.id)
+      expect(actual?.partnerName).toEqual(insertedSpo.name)
+      expect(actual?.siteName).toBeUndefined()
+      expect(actual?.siteId).toBeUndefined()
+    }
   )
 
-  expect(actual).toBeTruthy()
-  expect(actual?.partnerId).toBe('01919662-8800-b5d6-dff4-97b4627082b9')
-  expect(actual?.partnerKey).toBe('another-approved-partner-school')
-  expect(actual?.partnerName).toBe('Another Approved Partner School')
-  expect(actual?.siteId).toBeUndefined()
-  expect(actual?.siteName).toBeUndefined()
-  expect(actual?.schoolId).toBe('01919662-87fb-6ad2-8227-c1e38adf0907')
+  test('Returns undefined if no SPO exists', async () => {
+    const school = createSchool({ partner: true })
+    const insertedSchool = await insertSingleRow('schools', school, client)
+    // Do not insert SPO
+    const actual = await getStudentPartnerOrgBySchoolId(
+      client,
+      insertedSchool.id
+    )
+    expect(actual).toBeUndefined()
+  })
 })
 
 test('createUserStudentPartnerOrgInstance creates the instance', async () => {
