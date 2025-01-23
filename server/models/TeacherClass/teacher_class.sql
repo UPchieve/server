@@ -25,9 +25,12 @@ WHERE
     class_id = :classId!;
 
 
-/* @name removeStudentFromClass */
+/*
+ @name removeStudentsFromClass
+ @param studentIds -> (...)
+ */
 DELETE FROM student_classes
-WHERE user_id = :studentId!
+WHERE user_id IN :studentIds!
     AND class_id = :classId!
 RETURNING
     user_id AS studentId;
