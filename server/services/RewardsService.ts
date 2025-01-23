@@ -14,7 +14,7 @@ import * as cache from '../cache'
 import { logError } from '../logger'
 import { Ulid } from '../models/pgUtils'
 import { isProductionEnvironment } from '../utils/environments'
-import { isTremendousEmbdedRewardsEnabled } from './FeatureFlagService'
+import { isTremendousEmbeddedRewardsEnabled } from './FeatureFlagService'
 
 const configuration = new Configuration({
   basePath: isProductionEnvironment()
@@ -270,6 +270,9 @@ export async function getUserRewards(
     )
 
     const allCampaigns = await getCampaigns()
+    const isEmbeddedRewardsEnabled = await isTremendousEmbeddedRewardsEnabled(
+      userId
+    )
 
     for (const reward of rewardsData) {
       if (!reward?.id || reward.delivery?.method !== 'LINK') continue
@@ -281,7 +284,7 @@ export async function getUserRewards(
           ? allCampaigns[campaignId]
           : { name: 'No Campaign' }
 
-      const rewardLink = (await isTremendousEmbdedRewardsEnabled(userId))
+      const rewardLink = isEmbeddedRewardsEnabled
         ? await getRewardEmbedLink(reward.id)
         : await getRewardLink(reward.id)
       userRewards.rewards.push({
@@ -341,8 +344,28 @@ export async function getRewardEmbedLink(rewardId: string) {
 }
 
 export async function getRewardLink(rewardId: string) {
+  // TODO: Make a utility method for the pattern of retrieving from cache/fetching/storing into cache
+  const cacheKey = `reward-link-${rewardId}`
+
+  let rewardLink: string | undefined
+  try {
+    rewardLink = await cache.get(cacheKey)
+    if (rewardLink) return rewardLink
+  } catch (error) {
+    // Ignore cache-related errors
+  }
+
   const { data } = await rewards.generateRewardLink(rewardId)
-  return data.reward.link ?? ''
+  rewardLink = data.reward.link ?? ''
+  if (rewardLink) {
+    try {
+      await cache.saveWithExpiration(cacheKey, rewardLink)
+    } catch (error) {
+      // Ignore cache-related errors
+    }
+  }
+
+  return rewardLink
 }
 
 /**
