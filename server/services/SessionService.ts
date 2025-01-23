@@ -1076,11 +1076,6 @@ export async function getStudentSessionDetails(studentId: Ulid) {
   })
 }
 
-type FallIncentiveSessionOverview = {
-  qualifiedSessions: Ulid[]
-  unqualifiedSessions: Ulid[]
-}
-
 function isQualifiedFallIncentiveSession(
   session: SessionRepo.FallIncentiveSession
 ) {
@@ -1094,29 +1089,15 @@ function isQualifiedFallIncentiveSession(
   )
 }
 
-export async function getFallIncentiveSessionOverview(
-  studentId: Ulid,
-  start: Date,
-  end?: Date
-): Promise<FallIncentiveSessionOverview> {
-  const sessions = await SessionRepo.getStudentSessionsForFallIncentive(
-    studentId,
-    start,
-    end
-  )
-  const qualifiedSessions: Ulid[] = []
-  const unqualifiedSessions: Ulid[] = []
-
-  for (const session of sessions) {
-    if (isQualifiedFallIncentiveSession(session))
-      qualifiedSessions.push(session.id)
-    else unqualifiedSessions.push(session.id)
-  }
-
-  return {
-    qualifiedSessions,
-    unqualifiedSessions,
-  }
+export async function isSessionQualifiedForFallIncentive(
+  sessionId: Ulid
+): Promise<boolean> {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const messages = await SessionRepo.getMessagesForFrontend(sessionId)
+  return isQualifiedFallIncentiveSession({
+    ...session,
+    totalMessages: messages.length,
+  })
 }
 
 export async function getOrCreateSessionAudio(

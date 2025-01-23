@@ -133,7 +133,8 @@ export async function getCollegeListWorkSheetFlag(userId: Ulid) {
 
 export type FallIncentiveFlagPayload = {
   incentiveStartDate: Date
-  maxQualifiedSessionsPerWeek: number
+  maxQualifiedSessionsPerUser: number
+  maxQualifiedSessionsPerWeek?: number
 }
 
 export async function getFallIncentiveProgramPayload(
@@ -149,6 +150,7 @@ export async function getFallIncentiveProgramPayload(
   return {
     incentiveStartDate: new Date(payload.incentiveStartDate),
     maxQualifiedSessionsPerWeek: payload.maxQualifiedSessionsPerWeek,
+    maxQualifiedSessionsPerUser: payload.maxQualifiedSessionsPerUser,
   }
 }
 

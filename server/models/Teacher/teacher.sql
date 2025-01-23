@@ -4,10 +4,10 @@ INSERT INTO teacher_profiles (user_id, school_id, created_at, updated_at)
 
 
 /* @name createTeacherClass */
-INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
-    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
+INSERT INTO teacher_classes (id, user_id, name, code, topic_id, clever_id, created_at, updated_at)
+    VALUES (:id!, :userId!, :name!, :code!, :topicId, :cleverId, NOW(), NOW())
 RETURNING
-    id, user_id, name, code, topic_id, active, created_at, updated_at;
+    id, user_id, name, code, topic_id, clever_id, created_at, updated_at;
 
 
 /* @name getTeacherById */
@@ -33,7 +33,8 @@ SELECT
     COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
     teacher_classes.updated_at,
-    teacher_classes.deactivated_on
+    teacher_classes.deactivated_on,
+    clever_id
 FROM
     teacher_classes
     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
