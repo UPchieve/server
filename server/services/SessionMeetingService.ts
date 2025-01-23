@@ -20,77 +20,122 @@ import {
   ListAttendeesCommandOutput,
   Meeting,
 } from '@aws-sdk/client-chime-sdk-meetings'
-import { getClient, runInTransaction, TransactionClient } from '../db'
+import { getClient, TransactionClient } from '../db'
 import { LookupError, RepoCreateError } from '../models/Errors'
 import logger from '../logger'
+import { SessionMeeting } from '../models/SessionMeeting'
+
+export type SessionMeetingWithAttendee = {
+  meeting: Meeting
+  attendee: Attendee
+}
+
+async function handleExistingMeeting({
+  existingMeeting,
+  sessionId,
+  userId,
+}: {
+  existingMeeting: SessionMeeting
+  sessionId: string
+  userId: string
+}): Promise<SessionMeetingWithAttendee> {
+  // If there is an existing meeting, check if it includes userId in the attendees.
+  // If not, create one, and return these.
+  const meeting = await getMeeting({
+    meetingId: existingMeeting.externalId,
+    sessionId,
+  })
+  const attendee = await getOrCreateAttendee({
+    userId,
+    meetingId: existingMeeting.externalId,
+    sessionId,
+  })
+  return { meeting, attendee }
+}
+
+async function handleNoExistingMeeting(
+  tc: TransactionClient,
+  {
+    sessionId,
+    userId,
+  }: {
+    sessionId: string
+    userId: string
+  }
+): Promise<SessionMeetingWithAttendee> {
+  const created = await createMeetingWithAttendee({ sessionId, userId })
+  const meeting = created.meeting
+  const attendee = created.attendee
+
+  try {
+    await SessionMeetingsRepo.insertSessionMeeting(
+      sessionId,
+      meeting.MeetingId!,
+      'chime',
+      tc
+    )
+    return { meeting, attendee }
+  } catch (err) {
+    if (err instanceof RepoCreateError) {
+      const sessionMeeting = await handleInsertSessionMeetingFailure(tc, {
+        sessionId,
+        externalMeetingId: meeting.ExternalMeetingId!,
+      })
+
+      return handleExistingMeeting({
+        existingMeeting: sessionMeeting,
+        sessionId,
+        userId,
+      })
+    } else {
+      throw err
+    }
+  }
+}
+
+async function handleInsertSessionMeetingFailure(
+  tc: TransactionClient,
+  {
+    externalMeetingId,
+    sessionId,
+  }: {
+    externalMeetingId: string
+    sessionId: string
+  }
+): Promise<SessionMeeting> {
+  logger.warn(
+    `Failed to create session_meeting for session ${sessionId}. Now attempting to fetch it`
+  )
+  // Sometimes the student and volunteer enter a race condition both trying to
+  // create the meeting at the same time. If this happens, fetch the meeting again
+  await deleteChimeMeeting(externalMeetingId)
+  const mtg = await SessionMeetingsRepo.getSessionMeetingBySessionId(
+    sessionId,
+    tc
+  )
+  if (!mtg)
+    throw new Error(
+      `Failed to create or fetch session_meeting for session ${sessionId}`
+    )
+  return mtg
+}
+
 export async function getOrCreateSessionMeeting(
   sessionId: string,
   userId: string,
   transactionClient?: TransactionClient
-): Promise<{
-  meeting: Meeting
-  attendee: Attendee
-}> {
-  return runInTransaction(async (tc: TransactionClient) => {
-    // Get existing meeting if it exists
-    let meeting: Meeting
-    let attendee: Attendee
-    let existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
-      sessionId,
-      tc
-    )
-
-    if (!existingMeeting) {
-      const created = await createMeetingWithAttendee({ sessionId, userId })
-      meeting = created.meeting
-      attendee = created.attendee
-
-      try {
-        await SessionMeetingsRepo.insertSessionMeeting(
-          sessionId,
-          meeting.MeetingId!,
-          'chime',
-          tc
-        )
-      } catch (err) {
-        if (err instanceof RepoCreateError) {
-          logger.warn(
-            `Failed to create session_meeting for session ${sessionId}. Now attempting to fetch it`
-          )
-          // Sometimes the student and volunteer enter a race condition both trying to
-          // create the meeting at the same time. If this happens, fetch the meeting again
-          await deleteChimeMeeting(created.meeting.MeetingId!)
-          const mtg = await SessionMeetingsRepo.getSessionMeetingBySessionId(
-            sessionId,
-            tc
-          )
-          if (!mtg)
-            throw new Error(
-              `Failed to create or fetch session_meeting for session ${sessionId}`
-            )
-          existingMeeting = mtg
-        } else {
-          throw err
-        }
-      }
-    }
-
-    if (existingMeeting) {
-      // If there is an existing meeting, check if it includes userId in the attendees.
-      // If not, create one, and return these.
-      meeting = await getMeeting({
-        meetingId: existingMeeting.externalId,
-        sessionId,
-      })
-      attendee = await getOrCreateAttendee({
-        userId,
-        meetingId: existingMeeting.externalId,
-        sessionId,
-      })
-    }
-
-    return { meeting, attendee }
-  }, transactionClient ?? getClient())
+): Promise<SessionMeetingWithAttendee> {
+  const client = transactionClient ?? getClient()
+  // Get existing meeting if it exists
+  let existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
+    sessionId,
+    client
+  )
+  if (existingMeeting) {
+    return await handleExistingMeeting({ existingMeeting, userId, sessionId })
+  } else {
+    return await handleNoExistingMeeting(client, { sessionId, userId })
+  }
 }
 async function getMeeting({
   meetingId,
