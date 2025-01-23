@@ -522,3 +522,17 @@ FROM
 ORDER BY
     ssq.display_priority ASC;
 
+
+/* @name getSurveyIdForLatestImpactStudySurveySubmission */
+SELECT
+    users_surveys.survey_id
+FROM
+    users_surveys
+    JOIN survey_types ON users_surveys.survey_type_id = survey_types.id
+WHERE
+    users_surveys.user_id = :userId!::uuid
+    AND survey_types.name = 'impact-study'
+ORDER BY
+    users_surveys.created_at DESC
+LIMIT 1;
+

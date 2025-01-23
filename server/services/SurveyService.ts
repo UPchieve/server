@@ -13,6 +13,8 @@ import {
   getLatestUserSubmissionsForSurveyBySurveyType,
   getLatestUserSubmissionsForSurveyBySurveyId,
   SurveryUserResponseDefinition,
+  getSurveyIdForLatestImpactStudySurveySubmission,
+  getSimpleSurveyDefinitionBySurveyId,
 } from '../models/Survey'
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
@@ -223,12 +225,17 @@ export async function getImpactSurveyDefinition() {
   return getSimpleSurveyDefinition('impact-study')
 }
 
-export async function getImpactStudySurveyResponses(
+export async function getLatestImpactStudySurveyResponses(
   userId: Ulid
-): Promise<SurveyQueryResponse> {
+): Promise<SurveyQueryResponse | undefined> {
+  const latestImpactSurveyId = await getSurveyIdForLatestImpactStudySurveySubmission(
+    userId
+  )
+  if (!latestImpactSurveyId) return
+
   const [submissions, survey] = await Promise.all([
     getLatestUserSubmissionsForSurveyBySurveyType(userId, 'impact-study'),
-    getSimpleSurveyDefinition('impact-study'),
+    getSimpleSurveyDefinitionBySurveyId(latestImpactSurveyId),
   ])
 
   const surveyWithSubmissions = survey.survey.map(question => {

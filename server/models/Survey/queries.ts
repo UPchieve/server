@@ -421,3 +421,17 @@ export async function getLatestUserSubmissionsForSurveyBySurveyId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getSurveyIdForLatestImpactStudySurveySubmission(
+  userId: Ulid
+): Promise<number | undefined> {
+  try {
+    const result = await pgQueries.getSurveyIdForLatestImpactStudySurveySubmission.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).surveyId
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
