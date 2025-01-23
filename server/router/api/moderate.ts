@@ -61,6 +61,7 @@ export function routeModeration(router: Router): void {
     .post(upload.single('frame'), async (req, res) => {
       const frameToModerate = req.file
       const sessionId = req.body.sessionId
+      const user = extractUser(req)
 
       if (!frameToModerate) {
         return res.status(400).json({ err: 'No file was attached' })
@@ -69,7 +70,9 @@ export function routeModeration(router: Router): void {
       try {
         const moderationResult = await ModerationService.moderateVideoFrame(
           frameToModerate.buffer,
-          sessionId
+          sessionId,
+          user.id,
+          user.isVolunteer
         )
         res.status(200).json(moderationResult)
       } catch (err) {

@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.10 (Debian 14.10-1.pgdg120+1)
--- Dumped by pg_dump version 14.15 (Homebrew)
+-- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped by pg_dump version 14.15 (Ubuntu 14.15-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -234,7 +234,7 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 -- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last_successful_clever_sync) FROM stdin;
 \.
 
 
@@ -242,7 +242,7 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 -- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on) FROM stdin;
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on, clever_id) FROM stdin;
 \.
 
 

@@ -133,7 +133,8 @@ export async function getCollegeListWorkSheetFlag(userId: Ulid) {
 
 export type FallIncentiveFlagPayload = {
   incentiveStartDate: Date
-  maxQualifiedSessionsPerWeek: number
+  maxQualifiedSessionsPerUser: number
+  maxQualifiedSessionsPerWeek?: number
 }
 
 export async function getFallIncentiveProgramPayload(
@@ -149,6 +150,7 @@ export async function getFallIncentiveProgramPayload(
   return {
     incentiveStartDate: new Date(payload.incentiveStartDate),
     maxQualifiedSessionsPerWeek: payload.maxQualifiedSessionsPerWeek,
+    maxQualifiedSessionsPerUser: payload.maxQualifiedSessionsPerUser,
   }
 }
 
@@ -163,6 +165,6 @@ export async function getTutorBotSubjectModelsPayload(
   return subjectModels?.[subjectName] ?? TUTOR_BOT_MODELS.CHAT_GPT_4O
 }
 
-export async function isTremendousEmbdedRewardsEnabled(userId: Ulid) {
+export async function isTremendousEmbeddedRewardsEnabled(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
 }

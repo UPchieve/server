@@ -208,6 +208,7 @@ describe('getUserFallIncentiveData', () => {
       {
         incentiveStartDate: new Date(),
         maxQualifiedSessionsPerWeek: 1,
+        maxQualifiedSessionsPerUser: 10,
       }
     )
 
@@ -223,6 +224,7 @@ describe('getUserFallIncentiveData', () => {
     const incentivePayload = {
       incentiveStartDate: new Date(),
       maxQualifiedSessionsPerWeek: 1,
+      maxQualifiedSessionsPerUser: 10,
     }
 
     mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
