@@ -1509,26 +1509,6 @@ export async function insertTutorBotSessionMessage(
   }
 }
 
-export async function getStudentSessionsForFallIncentive(
-  studentId: Ulid,
-  start: Date,
-  end?: Date
-): Promise<FallIncentiveSession[]> {
-  try {
-    const result = await pgQueries.getStudentSessionsForFallIncentive.run(
-      {
-        studentId,
-        start,
-        end,
-      },
-      getClient()
-    )
-    return result.map(row => makeRequired(row))
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getSessionTranscriptItems(sessionId: Ulid) {
   try {
     const result = await pgQueries.getSessionTranscript.run(
