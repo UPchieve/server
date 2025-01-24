@@ -197,12 +197,11 @@ test_database:
     CI: "true"
     DB_PORT: 5432
   before_script:
-    - npm ci --cache .npm --prefer-offline
-    - apt-get update && apt-get install -y postgresql-client
-    - |
-      while ! PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c '\q' 2>/dev/null; do
-      done
-    - |
+  - npm ci --cache .npm --prefer-offline
+  - apt-get update && apt-get install -y postgresql-client
+  - |
+      until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c '\q' 2>/dev/null; do :; done
+  - |
       for file in database/db_init/{schema,auth,test_seeds,seed_migrations}.sql; do
         PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
       done

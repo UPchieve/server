@@ -1,5 +1,6 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment //TestEnvironment is sandboxed to each test suite
 const Pool = require('pg').Pool
+const { execSync } = require('child_process')
 
 const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
@@ -8,7 +9,6 @@ const POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
 const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 
 let testPool
-
 class DbTestEnvironment extends NodeEnvironment {
 
   async setup() {
