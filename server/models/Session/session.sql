@@ -1116,10 +1116,8 @@ WITH results AS (
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
     AND sessions.ended_at IS NOT NULL
-    AND (:studentId::uuid IS NULL
-        OR sessions.student_id = :studentId::uuid)
-    AND (:volunteerId::uuid IS NULL
-        OR sessions.volunteer_id = :volunteerId::uuid)
+    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
 ORDER BY
     sessions.id
 )
