@@ -1,4 +1,4 @@
-const NodeEnvironment = require('jest-environment-node').TestEnvironment
+const NodeEnvironment = require('jest-environment-node').TestEnvironment //TestEnvironment is sandboxed to each test suite
 const Pool = require('pg').Pool
 
 const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
@@ -7,16 +7,14 @@ const POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
 const POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
 const DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 
+let testPool
+
 class DbTestEnvironment extends NodeEnvironment {
-  constructor(config) {
-    super(config)
-    this.testPool
-  }
 
   async setup() {
     await super.setup()
     try {
-      this.testPool = new Pool({
+      testPool = new Pool({
         database: DEFAULT_DB,
         user: POSTGRES_USER,
         password: POSTGRES_PASSWORD,
@@ -24,11 +22,10 @@ class DbTestEnvironment extends NodeEnvironment {
         host: POSTGRES_HOST,
       })
 
-      this.testPool.on('connect', async client => {
+      testPool.on('connect', async client => {
         await client.query('SET search_path TO upchieve;')
       })
-      this.global.__TEST_DB_CLIENT__ = this.testPool
-      this.global.__TEST_DB_NAME__ = this.testDbName
+      this.global.__TEST_DB_CLIENT__ = testPool
     } catch (error) {
       console.error('Error setting up test database:', error)
       throw error
@@ -37,8 +34,8 @@ class DbTestEnvironment extends NodeEnvironment {
 
   async teardown() {
     try {
-      if (this.testPool) {
-        await this.testPool.end()
+      if (testPool) {
+        await testPool.end()
       }
     } catch (error) {
       console.error('Error tearing down test database:', error)

@@ -8,5 +8,5 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/'],
   setupFilesAfterEnv: ['<rootDir>/server/tests/database/db-mocks-setup.ts'],
   transform: tsjPreset.transform,
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  moduleFileExtensions: ['ts'],
 }
