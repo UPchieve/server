@@ -219,7 +219,6 @@ lint:
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
-    - docker info # Verify Docker daemon connectivity
     - npm run lint
   rules:
     - if: '$TEST_DISABLED'
