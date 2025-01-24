@@ -978,15 +978,21 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
 }
 
 // TODO: implement these with cursor pagination
-export async function getSessionHistory(userId: Ulid, page: string) {
+export async function getSessionHistory(
+  userId: Ulid,
+  page: string,
+  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
+) {
   const pageNum = parseInt(page)
   const PER_PAGE = 5
   const skip = (pageNum - 1) * PER_PAGE
   const pastSessions = await SessionRepo.getSessionHistory(
     userId,
     PER_PAGE,
-    skip
+    skip,
+    filter
   )
+
   const isLastPage = pastSessions.length < PER_PAGE
 
   return { pastSessions, page: pageNum, isLastPage }
@@ -1144,4 +1150,14 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
+}
+
+export async function getPreviousSessionCountForPair(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<number> {
+  return await SessionRepo.getPreviousSessionCountForPair(
+    studentId,
+    volunteerId
+  )
 }
