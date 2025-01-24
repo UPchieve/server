@@ -1,6 +1,5 @@
 const NodeEnvironment = require('jest-environment-node').TestEnvironment //TestEnvironment is sandboxed to each test suite
 const Pool = require('pg').Pool
-const { execSync } = require('child_process')
 
 const POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
