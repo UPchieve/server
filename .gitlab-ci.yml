@@ -200,18 +200,10 @@ test_database:
     - npm ci --cache .npm --prefer-offline
     - apt-get update && apt-get install -y postgresql-client
     - |
-      timeout=30
-      until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c '\q' 2>/dev/null; do
-        >&2 echo "Postgres is unavailable"
-        timeout=$((timeout-1))
-        if [ $timeout -eq 0 ]; then
-          >&2 echo "Timeout waiting for Postgres"
-          exit 1
-        fi
+      while ! PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c '\q' 2>/dev/null; do
       done
     - |
-      for file in database/db_init/{schema,auth,local_auth,test_seeds,seed_migrations,refresh_materialized_views}.sql; do
-        echo "Executing $file..."
+      for file in database/db_init/{schema,auth,test_seeds,seed_migrations}.sql; do
         PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
       done
   script:
