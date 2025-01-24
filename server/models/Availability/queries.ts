@@ -263,6 +263,7 @@ export async function updateAvailabilityByVolunteerId(
 ): Promise<void> {
   return runInTransaction(async (tc: TransactionClient) => {
     const rows: pgQueries.IInsertNewAvailabilityParams[] = []
+    console.log('******1')
     for (const day in availability) {
       const availabilityDay = availability[day as DAYS]
       for (const hour in availabilityDay) {
@@ -278,15 +279,19 @@ export async function updateAvailabilityByVolunteerId(
           })
       }
     }
+    console.log('******2')
     const errors: string[] = []
 
     for (const row of rows) {
+      console.log('******3')
       const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
+      console.log('****result updateAvail', result)
       if (!(result.length && makeRequired(result[0])))
         errors.push(
           `Availability row ${JSON.stringify(row)} did not save correctly`
         )
     }
+    console.log('******4')
     if (errors.length) throw new Error(errors.join('\n'))
   }, tc)
 }

@@ -52,37 +52,49 @@ describe('VolunteerRepo', () => {
   })
 
   describe('getNextVolunteerToNotify', () => {
-    it('Returns the volunteer who was not recently notified', async () => {
+    it.only('Returns the volunteer who was not recently notified', async () => {
       const recentlyNotifiedVolunteer = await loadVolunteer()
       console.log('*****recently notified volunteer', recentlyNotifiedVolunteer)
       const expectedVolunteer = await loadVolunteer()
+      console.log('*****expected volunteer', expectedVolunteer)
       await loadNotification(
         // 2 hours old notification
         recentlyNotifiedVolunteer.id,
         completedUnmatchedSession.id,
         moment()
-          .subtract(4, 'hours')
+          .subtract(2, 'hours')
           .toDate()
       )
 
-      const subject_totals = await client.query(`
-        SELECT
-        subjects.name,
-        COUNT(*)::int AS total
-    FROM
-        upchieve.certification_subject_unlocks
-        JOIN upchieve.subjects ON subjects.id = certification_subject_unlocks.subject_id
-    WHERE
-        subjects.name = ANY (ARRAY[prealgebra] || COALESCE(undefined::text[], '{}'))
-    GROUP BY
-        subjects.name`)
+      // const users = await client.query(`SELECT * FROM upchieve.users;`)
+      // console.log('****users', users.rows)
 
-        console.log('****subject totals', subject_totals)
+      const avail = await client.query(`SELECT * FROM upchieve.availabilities where user_id = $1`, [expectedVolunteer.id])
+      console.log('*****avail', avail)
+
+      const subjs = await client.query(
+        `SELECT * FROM upchieve.users_certifications WHERE user_id = $1`,
+        [expectedVolunteer.id]
+      )
+      console.log('***subjects', subjs)
+    //   const subject_totals = await client.query(`
+    //     SELECT
+    //     subjects.name,
+    //     COUNT(*)::int AS total
+    // FROM
+    //     upchieve.certification_subject_unlocks
+    //     JOIN upchieve.subjects ON subjects.id = certification_subject_unlocks.subject_id
+    // WHERE
+    //     subjects.name = ANY (ARRAY[prealgebra] || COALESCE(undefined::text[], '{}'))
+    // GROUP BY
+    //     subjects.name`)
+
+    //     console.log('****subject totals', subject_totals)
 
       const result = await getNextVolunteerToNotify({
         subject: 'prealgebra',
         lastNotified: moment()
-          .subtract(4, 'hours')
+          .subtract(3, 'hours')
           .toDate(),
         isPartner: false,
         highLevelSubjects: undefined,
@@ -401,12 +413,13 @@ const loadVolunteerAvailability = async (
   volunteerId: string,
   availability: Availability
 ) => {
-  await updateAvailabilityByVolunteerId(
+  const updated = await updateAvailabilityByVolunteerId(
     volunteerId,
     availability,
     TIMEZONE,
     client
   )
+  console.log('****updated', updated)
 }
 
 const generateVolunteer = (): CreateVolunteerPayload => {
@@ -442,6 +455,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     v.volunteerPartnerOrg = options.partner as string
   }
   const res = await createVolunteer(v)
+  console.log('*****res', res)
   if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {
