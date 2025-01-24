@@ -13,6 +13,7 @@ class DbTestEnvironment extends NodeEnvironment {
 
   async setup() {
     await super.setup()
+
     try {
       testPool = new Pool({
         database: DEFAULT_DB,

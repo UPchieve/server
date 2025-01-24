@@ -206,7 +206,7 @@ test_database:
         PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
       done
   script:
-    - npm run test:database_ci
+    - npm run test:database
   rules:
     - if: '$TEST_DISABLED'
       when: never

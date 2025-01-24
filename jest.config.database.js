@@ -9,4 +9,6 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/server/tests/database/db-mocks-setup.ts'],
   transform: tsjPreset.transform,
   moduleFileExtensions: ['ts', 'js'],
+  globalSetup: '<rootDir>/server/tests/database/global-db-setup.ts',
+  globalTeardown: '<rootDir>/server/tests/database/global-db-teardown.ts',
 }
