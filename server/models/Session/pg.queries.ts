@@ -2324,7 +2324,9 @@ export interface IGetSessionHistoryParams {
   limit: number;
   minSessionLength: number;
   offset: number;
+  studentId?: string | null | void;
   userId: string;
+  volunteerId?: string | null | void;
 }
 
 /** 'GetSessionHistory' return type */
@@ -2348,7 +2350,7 @@ export interface IGetSessionHistoryQuery {
   result: IGetSessionHistoryResult;
 }
 
-const getSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1103,"b":1110},{"a":1139,"b":1146}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1223,"b":1240}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1420,"b":1426}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1442,"b":1449}]}],"statement":"WITH results AS (\n    SELECT DISTINCT ON (sessions.id)\n        sessions.id,\n        sessions.created_at AS created_at,\n        sessions.time_tutored::int AS time_tutored,\n        subjects.display_name AS subject,\n        topics.name AS topic,\n        topics.icon_link AS topic_icon_link,\n        volunteers.first_name AS volunteer_first_name,\n        volunteers.id AS volunteer_id,\n        students.id AS student_id,\n        students.first_name AS student_first_name,\n        (\n            CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n                TRUE\n            ELSE\n                FALSE\n            END) AS is_favorited\n    FROM\n        sessions\n        JOIN subjects ON subjects.id = sessions.subject_id\n        JOIN topics ON topics.id = subjects.topic_id\n        LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n        LEFT JOIN users students ON sessions.student_id = students.id\n        LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id\n    WHERE (students.id = :userId!\n        OR volunteers.id = :userId!)\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\nORDER BY\n    sessions.id\n)\nSELECT\n    *\nFROM\n    results\nORDER BY\n    created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"studentId":true,"volunteerId":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1103,"b":1110},{"a":1139,"b":1146}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1223,"b":1240}]},{"name":"studentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1366,"b":1375}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1446,"b":1457}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1582,"b":1588}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1604,"b":1611}]}],"statement":"WITH results AS (\n    SELECT DISTINCT ON (sessions.id)\n        sessions.id,\n        sessions.created_at AS created_at,\n        sessions.time_tutored::int AS time_tutored,\n        subjects.display_name AS subject,\n        topics.name AS topic,\n        topics.icon_link AS topic_icon_link,\n        volunteers.first_name AS volunteer_first_name,\n        volunteers.id AS volunteer_id,\n        students.id AS student_id,\n        students.first_name AS student_first_name,\n        (\n            CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n                TRUE\n            ELSE\n                FALSE\n            END) AS is_favorited\n    FROM\n        sessions\n        JOIN subjects ON subjects.id = sessions.subject_id\n        JOIN topics ON topics.id = subjects.topic_id\n        LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n        LEFT JOIN users students ON sessions.student_id = students.id\n        LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id\n    WHERE (students.id = :userId!\n        OR volunteers.id = :userId!)\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)\n    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)\nORDER BY\n    sessions.id\n)\nSELECT\n    *\nFROM\n    results\nORDER BY\n    created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
@@ -2385,6 +2387,8 @@ const getSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLengt
  *     AND sessions.time_tutored > :minSessionLength!::int
  *     AND sessions.volunteer_id IS NOT NULL
  *     AND sessions.ended_at IS NOT NULL
+ *     AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+ *     AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
  * ORDER BY
  *     sessions.id
  * )
@@ -2956,5 +2960,40 @@ const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":
  * ```
  */
 export const getSessionTranscript = new PreparedQuery<IGetSessionTranscriptParams,IGetSessionTranscriptResult>(getSessionTranscriptIR);
+
+
+/** 'GetPreviousSessionCountForPair' parameters type */
+export interface IGetPreviousSessionCountForPairParams {
+  studentId: string;
+  volunteerId: string;
+}
+
+/** 'GetPreviousSessionCountForPair' return type */
+export interface IGetPreviousSessionCountForPairResult {
+  total: number | null;
+}
+
+/** 'GetPreviousSessionCountForPair' query type */
+export interface IGetPreviousSessionCountForPairQuery {
+  params: IGetPreviousSessionCountForPairParams;
+  result: IGetPreviousSessionCountForPairResult;
+}
+
+const getPreviousSessionCountForPairIR: any = {"usedParamSet":{"studentId":true,"volunteerId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":85}]},{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":110,"b":122}]}],"statement":"SELECT\n    COUNT(*)::int AS total\nFROM\n    sessions\nWHERE\n    student_id = :studentId!\n    AND volunteer_id = :volunteerId!\n    AND ended_at IS NOT NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     COUNT(*)::int AS total
+ * FROM
+ *     sessions
+ * WHERE
+ *     student_id = :studentId!
+ *     AND volunteer_id = :volunteerId!
+ *     AND ended_at IS NOT NULL
+ * ```
+ */
+export const getPreviousSessionCountForPair = new PreparedQuery<IGetPreviousSessionCountForPairParams,IGetPreviousSessionCountForPairResult>(getPreviousSessionCountForPairIR);
 
 
