@@ -145,34 +145,14 @@ export async function getAssignmentById(
   }
 }
 
-export async function createStudentAssignment(
-  userId: Ulid,
-  assignmentId: Ulid,
-  tc: TransactionClient = getClient()
-) {
-  const assignment = await pgQueries.createStudentAssignment.run(
-    { userId, assignmentId },
-    tc
-  )
-  if (!assignment.length) {
-    throw new RepoCreateError('Unable to create student assignment.')
-  }
-  return makeSomeRequired(assignment[0], [
-    'userId',
-    'assignmentId',
-    'createdAt',
-    'updatedAt',
-  ])
-}
-
-export async function createStudentAssignments(
-  studentAssignments: CreateStudentAssignmentInput[],
-  tc: TransactionClient = getClient()
+export async function createStudentsAssignmentsForAll(
+  studentIds: Ulid[],
+  assignmentIds: Uuid[],
+  tc: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   try {
-    if (!studentAssignments.length) return []
-    const result = await pgQueries.createStudentAssignments.run(
-      { studentAssignments },
+    const result = await pgQueries.createStudentsAssignmentsForAll.run(
+      { userIds: studentIds, assignmentIds },
       tc
     )
     return result.map(r => makeRequired(r))

@@ -389,7 +389,9 @@ describe('registerStudent', () => {
 
     await registerStudent(student)
 
-    expect(mockedTeacherService.addStudentToTeacherClass).toHaveBeenCalledWith(
+    expect(
+      mockedTeacherService.addStudentToTeacherClassByClassCode
+    ).toHaveBeenCalledWith(
       USER_ID,
       student.classCode,
       expect.toBeTransactionClient()

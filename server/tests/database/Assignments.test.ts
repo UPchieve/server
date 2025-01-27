@@ -94,41 +94,34 @@ describe('createAssignment', () => {
   })
 })
 
-describe('createStudentAssignments', () => {
-  test('inserts a list student assignments', async () => {
+describe('createStudentsAssignmentsForAll', () => {
+  test('inserts a students_assignments for each student and assignment combo', async () => {
     const teacherClass = await createTestTeacherClass()
     const assignment1 = await createTestAssignment(teacherClass.id)
     const assignment2 = await createTestAssignment(teacherClass.id)
     const student1 = await createTestStudent()
     const student2 = await createTestStudent()
 
-    const result = await AssignmentsRepo.createStudentAssignments([
-      {
-        userId: student1.user_id,
-        assignmentId: assignment1.id,
-      },
-      {
-        userId: student2.user_id,
-        assignmentId: assignment1.id,
-      },
-      {
-        userId: student1.user_id,
-        assignmentId: assignment2.id,
-      },
-    ])
-    expect(result.length).toBe(3)
+    const result = await AssignmentsRepo.createStudentsAssignmentsForAll(
+      [student1.user_id, student2.user_id],
+      [assignment1.id, assignment2.id],
+      client
+    )
+    expect(result.length).toBe(4)
     expect(result[0].userId).toBe(student1.user_id)
     expect(result[0].assignmentId).toBe(assignment1.id)
-    expect(result[1].userId).toBe(student2.user_id)
-    expect(result[1].assignmentId).toBe(assignment1.id)
-    expect(result[2].userId).toBe(student1.user_id)
-    expect(result[2].assignmentId).toBe(assignment2.id)
+    expect(result[1].userId).toBe(student1.user_id)
+    expect(result[1].assignmentId).toBe(assignment2.id)
+    expect(result[2].userId).toBe(student2.user_id)
+    expect(result[2].assignmentId).toBe(assignment1.id)
+    expect(result[3].userId).toBe(student2.user_id)
+    expect(result[3].assignmentId).toBe(assignment2.id)
 
     const actualRows = await client.query(
       'SELECT * FROM students_assignments WHERE assignment_id = $1 OR assignment_id = $2',
       [assignment1.id, assignment2.id]
     )
-    expect(actualRows.rowCount).toBe(3)
+    expect(actualRows.rowCount).toBe(4)
     const actual = actualRows.rows.map(r =>
       makeSomeOptional(r, ['submittedAt'])
     )
@@ -208,50 +201,6 @@ describe('getAssignmentById', () => {
     )
     expect(actualAssignment).toEqual(
       expect.objectContaining(makeRequired(expectedAssignment.rows[0]))
-    )
-  })
-})
-
-describe('createStudentAssignment', () => {
-  test('creates an assignment for the student', async () => {
-    const student = await createTestStudent()
-    const teacherClass = await createTestTeacherClass()
-    const assignment = await createTestAssignment(teacherClass.id)
-
-    const created = await AssignmentsRepo.createStudentAssignment(
-      student.user_id,
-      assignment.id
-    )
-    expect(created).toEqual(
-      expect.objectContaining({
-        userId: student.user_id,
-        assignmentId: assignment.id,
-      })
-    )
-
-    const actualRow = await client.query(
-      'SELECT * FROM students_assignments WHERE user_id = $1 AND assignment_id = $2',
-      [student.user_id, assignment.id]
-    )
-    expect(actualRow.rowCount).toBe(1)
-    const actual = makeSomeOptional(actualRow.rows[0], ['submittedAt'])
-    expect(actual).toEqual(
-      expect.objectContaining({
-        userId: student.user_id,
-        assignmentId: assignment.id,
-      })
-    )
-  })
-
-  test('only allows students for a student assignment', async () => {
-    const volunteer = await createTestVolunteer()
-    const teacherClass = await createTestTeacherClass()
-    const assignment = await createTestAssignment(teacherClass.id)
-
-    await expect(
-      AssignmentsRepo.createStudentAssignment(volunteer.user_id, assignment.id)
-    ).rejects.toThrow(
-      'insert or update on table "students_assignments" violates foreign key constraint "students_assignments_user_id_fkey"'
     )
   })
 })

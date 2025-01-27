@@ -149,20 +149,11 @@ export async function addAssignmentForStudents(
   tc?: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
-    try {
-      const studentAssignments = await Promise.all(
-        studentIds.map(studentId => {
-          return AssignmentsRepo.createStudentAssignment(
-            studentId,
-            assignmentId,
-            tc
-          )
-        })
-      )
-      return studentAssignments
-    } catch (err) {
-      throw new Error((err as Error).message)
-    }
+    return AssignmentsRepo.createStudentsAssignmentsForAll(
+      studentIds,
+      [assignmentId],
+      tc
+    )
   }, tc)
 }
 
@@ -181,39 +172,19 @@ export async function addAssignmentForClass(
 }
 
 /*
- * Add the student to all the assignments that are assigned to the entire class.
+ * Add the students to all the assignments that are assigned to the entire class.
  */
-export async function addStudentToClassAssignments(
-  studentId: Ulid,
+export async function addStudentsToClassAssignments(
+  studentIds: Ulid[],
   classId: Uuid,
   tc: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const totalStudentsInClass = await TeacherClassRepo.getTotalStudentsInClass(
-      classId,
-      tc
-    )
-    const assignments = await AssignmentsRepo.getAssignmentsByClassId(
-      classId,
-      tc
-    )
-
-    const assignmentsToAdd = (
-      await Promise.all(
-        assignments.map(async a => {
-          const sa = await AssignmentsRepo.getStudentAssignmentCompletion(
-            a.id,
-            tc
-          )
-          if (sa.length === totalStudentsInClass) {
-            return a
-          }
-        })
-      )
-    ).filter((a): a is Assignment => !!a)
-
-    await AssignmentsRepo.createStudentAssignments(
-      assignmentsToAdd.map(a => ({ userId: studentId, assignmentId: a.id })),
+    const assignments = await getClassAssignments(classId, tc)
+    if (!assignments.length) return
+    return AssignmentsRepo.createStudentsAssignmentsForAll(
+      studentIds,
+      assignments.map(a => a.id),
       tc
     )
   }, tc)
@@ -342,4 +313,34 @@ export function haveSessionsMetAssignmentRequirements(
   })
 
   return filtered.length >= (assignment.numberOfSessions ?? 0)
+}
+
+/*
+ * Gets the assignments that are assigned to the entire class.
+ */
+async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const totalStudentsInClass = await TeacherClassRepo.getTotalStudentsInClass(
+      classId,
+      tc
+    )
+    const assignments = await AssignmentsRepo.getAssignmentsByClassId(
+      classId,
+      tc
+    )
+
+    return (
+      await Promise.all(
+        assignments.map(async a => {
+          const sa = await AssignmentsRepo.getStudentAssignmentCompletion(
+            a.id,
+            tc
+          )
+          if (sa.length === totalStudentsInClass) {
+            return a
+          }
+        })
+      )
+    ).filter((a): a is Assignment => !!a)
+  })
 }

@@ -15,7 +15,7 @@ export function routes(app: Express) {
       const authenticatedUser = extractUserIfExists(req)
 
       if (authenticatedUser?.email.toLowerCase() === email.toLowerCase()) {
-        const teacherClass = await TeacherService.addStudentToTeacherClass(
+        const teacherClass = await TeacherService.addStudentToTeacherClassByClassCode(
           authenticatedUser.id,
           classCode
         )
