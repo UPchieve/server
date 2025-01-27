@@ -261,41 +261,31 @@ export async function updateAvailabilityByVolunteerId(
   timezone: string,
   tc: TransactionClient
 ): Promise<void> {
-  // console.log('*******updateAvailabilityByVolunteerId')
-  // return runInTransaction(async (tc: TransactionClient) => {
-    // console.log('****before')
-    const rows: pgQueries.IInsertNewAvailabilityParams[] = []
-    // console.log('******1')
-    for (const day in availability) {
-      const availabilityDay = availability[day as DAYS]
-      for (const hour in availabilityDay) {
-        const parsedHour = HOUR_TO_UTC_MAPPING[hour as HOURS]
-        if (availabilityDay[hour as HOURS])
-          rows.push({
-            availableEnd: parsedHour + 1,
-            availableStart: parsedHour,
-            day,
-            id: getDbUlid(),
-            timezone: timezone,
-            userId,
-          })
-      }
+  const rows: pgQueries.IInsertNewAvailabilityParams[] = []
+  for (const day in availability) {
+    const availabilityDay = availability[day as DAYS]
+    for (const hour in availabilityDay) {
+      const parsedHour = HOUR_TO_UTC_MAPPING[hour as HOURS]
+      if (availabilityDay[hour as HOURS])
+        rows.push({
+          availableEnd: parsedHour + 1,
+          availableStart: parsedHour,
+          day,
+          id: getDbUlid(),
+          timezone: timezone,
+          userId,
+        })
     }
-    // console.log('******2')
-    const errors: string[] = []
-    // console.log('*****rows', rows)
-    for (const row of rows) {
-      // console.log('******3')
-      const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
-      // console.log('****result updateAvail', result)
-      if (!(result.length && makeRequired(result[0])))
-        errors.push(
-          `Availability row ${JSON.stringify(row)} did not save correctly`
-        )
-    }
-    // console.log('******4')
-    if (errors.length) throw new Error(errors.join('\n'))
-  // }, tc)
+  }
+  const errors: string[] = []
+  for (const row of rows) {
+    const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
+    if (!(result.length && makeRequired(result[0])))
+      errors.push(
+        `Availability row ${JSON.stringify(row)} did not save correctly`
+      )
+  }
+  if (errors.length) throw new Error(errors.join('\n'))
 }
 
 export async function clearAvailabilityForVolunteer(

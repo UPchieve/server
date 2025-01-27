@@ -79,7 +79,6 @@ export const buildFullAvailability = (): Availability => {
   for (let key of DAYS) {
     Object.assign(result, { [key]: { ...fullAvailabilityDay } })
   }
-  console.log('***availability', result)
   return result as Availability
 }
 

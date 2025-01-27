@@ -1596,7 +1596,6 @@ export async function getNextVolunteerToNotify(options: {
       options,
       getRoClient()
     )
-    console.log('***result', result)
     if (!result.length) return
     return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
   } catch (err) {

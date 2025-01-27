@@ -54,9 +54,7 @@ describe('VolunteerRepo', () => {
   describe('getNextVolunteerToNotify', () => {
     it('Returns the volunteer who was not recently notified', async () => {
       const recentlyNotifiedVolunteer = await loadVolunteer()
-      // console.log('*****recently notified volunteer', recentlyNotifiedVolunteer)
       const expectedVolunteer = await loadVolunteer()
-      // console.log('*****expected volunteer', expectedVolunteer)
       await loadNotification(
         // 2 hours old notification
         recentlyNotifiedVolunteer.id,
@@ -65,31 +63,6 @@ describe('VolunteerRepo', () => {
           .subtract(2, 'hours')
           .toDate()
       )
-
-      // const users = await client.query(`SELECT * FROM upchieve.users;`)
-      // console.log('****users', users.rows)
-
-      const avail = await client.query(`SELECT * FROM upchieve.availabilities where user_id = $1`, [expectedVolunteer.id])
-      // console.log('*****avail', avail)
-
-      const subjs = await client.query(
-        `SELECT * FROM upchieve.users_certifications WHERE user_id = $1`,
-        [expectedVolunteer.id]
-      )
-      // console.log('***subjects', subjs)
-    //   const subject_totals = await client.query(`
-    //     SELECT
-    //     subjects.name,
-    //     COUNT(*)::int AS total
-    // FROM
-    //     upchieve.certification_subject_unlocks
-    //     JOIN upchieve.subjects ON subjects.id = certification_subject_unlocks.subject_id
-    // WHERE
-    //     subjects.name = ANY (ARRAY[prealgebra] || COALESCE(undefined::text[], '{}'))
-    // GROUP BY
-    //     subjects.name`)
-
-    //     console.log('****subject totals', subject_totals)
 
       const result = await getNextVolunteerToNotify({
         subject: 'prealgebra',
@@ -102,7 +75,6 @@ describe('VolunteerRepo', () => {
         specificPartner: undefined,
         favoriteVolunteers: undefined,
       })
-      // console.log('****result', result)
       expect(result?.id).toEqual(expectedVolunteer.id)
     })
 
@@ -413,7 +385,6 @@ const loadVolunteerAvailability = async (
   volunteerId: string,
   availability: Availability
 ) => {
-  // console.log('******load volunteer func')
   await updateAvailabilityByVolunteerId(
     volunteerId,
     availability,
@@ -455,16 +426,13 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     v.volunteerPartnerOrg = options.partner as string
   }
   const res = await createVolunteer(v)
-  // console.log('*****res', res)
   if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {
       await addVolunteerCertification(res.id, subj)
     }
   }
-  // console.log('*****options', options)
   if (options.withFullAvailability) {
-    // console.log('*****inside if statement')
     await loadVolunteerAvailability(res.id, buildFullAvailability())
   }
   await updateVolunteerForAdmin(res.id, {
