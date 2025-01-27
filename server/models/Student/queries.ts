@@ -982,18 +982,6 @@ export async function getStudentProfilesByUserIds(
   }
 }
 
-export async function addStudentToTeacherClass(
-  tc: TransactionClient,
-  userId: Ulid,
-  classId: Ulid
-) {
-  try {
-    await pgQueries.addStudentToTeacherClass.run({ userId, classId }, tc)
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
 export async function updateStudentSchool(
   studentId: Ulid,
   schoolId: Uuid,
@@ -1009,5 +997,23 @@ export async function updateStudentSchool(
     )
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function addStudentsToTeacherClass(
+  studentIds: Ulid[],
+  classId: Uuid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.addStudentsToTeacherClass.run(
+      {
+        studentIds,
+        classId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

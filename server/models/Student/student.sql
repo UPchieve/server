@@ -758,9 +758,13 @@ WHERE
     student_profiles.user_id IN :userIds!;
 
 
-/* @name addStudentToTeacherClass */
+/*
+ @name addStudentsToTeacherClass
+ */
 INSERT INTO student_classes (user_id, class_id)
-    VALUES (:userId!, :classId!)
-ON CONFLICT (user_id, class_id)
+SELECT
+    UNNEST(:studentIds!::uuid[]),
+    :classId!
+ON CONFLICT
     DO NOTHING;
 

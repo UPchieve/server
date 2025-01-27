@@ -5,6 +5,8 @@ export type ban_types = 'complete' | 'live_media' | 'shadow';
 
 export type DateOrString = Date | string;
 
+export type stringArray = (string)[];
+
 /** 'GetGatesStudentById' parameters type */
 export interface IGetGatesStudentByIdParams {
   userId: string;
@@ -1697,32 +1699,34 @@ const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"par
 export const getStudentProfilesByUserIds = new PreparedQuery<IGetStudentProfilesByUserIdsParams,IGetStudentProfilesByUserIdsResult>(getStudentProfilesByUserIdsIR);
 
 
-/** 'AddStudentToTeacherClass' parameters type */
-export interface IAddStudentToTeacherClassParams {
+/** 'AddStudentsToTeacherClass' parameters type */
+export interface IAddStudentsToTeacherClassParams {
   classId: string;
-  userId: string;
+  studentIds: stringArray;
 }
 
-/** 'AddStudentToTeacherClass' return type */
-export type IAddStudentToTeacherClassResult = void;
+/** 'AddStudentsToTeacherClass' return type */
+export type IAddStudentsToTeacherClassResult = void;
 
-/** 'AddStudentToTeacherClass' query type */
-export interface IAddStudentToTeacherClassQuery {
-  params: IAddStudentToTeacherClassParams;
-  result: IAddStudentToTeacherClassResult;
+/** 'AddStudentsToTeacherClass' query type */
+export interface IAddStudentsToTeacherClassQuery {
+  params: IAddStudentsToTeacherClassParams;
+  result: IAddStudentsToTeacherClassResult;
 }
 
-const addStudentToTeacherClassIR: any = {"usedParamSet":{"userId":true,"classId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":60,"b":67}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":78}]}],"statement":"INSERT INTO student_classes (user_id, class_id)\n    VALUES (:userId!, :classId!)\nON CONFLICT (user_id, class_id)\n    DO NOTHING"};
+const addStudentsToTeacherClassIR: any = {"usedParamSet":{"studentIds":true,"classId":true},"params":[{"name":"studentIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":66,"b":77}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":93,"b":101}]}],"statement":"INSERT INTO student_classes (user_id, class_id)\nSELECT\n    UNNEST(:studentIds!::uuid[]),\n    :classId!\nON CONFLICT\n    DO NOTHING"};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO student_classes (user_id, class_id)
- *     VALUES (:userId!, :classId!)
- * ON CONFLICT (user_id, class_id)
+ * SELECT
+ *     UNNEST(:studentIds!::uuid[]),
+ *     :classId!
+ * ON CONFLICT
  *     DO NOTHING
  * ```
  */
-export const addStudentToTeacherClass = new PreparedQuery<IAddStudentToTeacherClassParams,IAddStudentToTeacherClassResult>(addStudentToTeacherClassIR);
+export const addStudentsToTeacherClass = new PreparedQuery<IAddStudentsToTeacherClassParams,IAddStudentsToTeacherClassResult>(addStudentsToTeacherClassIR);
 
 
