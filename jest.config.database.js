@@ -1,7 +1,7 @@
 const { defaults: tsjPreset } = require('ts-jest/presets')
 
 module.exports = {
-  setupFiles: ['<rootDir>/server/tests/setup.ts'],
+  setupFiles: ['<rootDir>/server/tests/mocks-setup.ts'],
   testEnvironment: '<rootDir>/server/tests/database/db-test-environment.js',
   roots: ['<rootDir>/server/tests/database'],
   runner: 'groups',

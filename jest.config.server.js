@@ -2,7 +2,7 @@ const { defaults: tsjPreset } = require('ts-jest/presets')
 
 module.exports = {
   setupFiles: [
-    "<rootDir>/server/tests/setup.ts",
+    "<rootDir>/server/tests/mocks-setup.ts",
   ],
   setupFilesAfterEnv: [
     "<rootDir>/server/tests/custom-matchers.ts",
