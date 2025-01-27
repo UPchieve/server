@@ -202,7 +202,7 @@ test_database:
   - export PGPASSWORD=$POSTGRES_PASSWORD
   - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
   - |
-      for file in database/db_init/{schema,auth,test_seeds,seed_migrations}.sql; do
+      for file in database/db_init/{schema,test_seeds,seed_migrations}.sql; do
         PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
       done
   script:
