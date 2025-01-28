@@ -30,7 +30,7 @@
     "test:backend:debug": "jest -c jest.config.server.js --logHeapUsage --detectOpenHandles --group=-email",
     "test:backend:full": "jest -c jest.config.server.js --detectOpenHandles --silent",
     "test:backend:watch": "jest -c jest.config.server.js --watch --runInBand --detectOpenHandles --group=-email --group=-database",
-    "test:database": "jest -c jest.config.database.js --max_old_space_size=1536 --maxWorkers=3",
+    "test:database": "jest -c jest.config.database.js --max_old_space_size=1536 --runInBand",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
     "pgtyped:check": "./bin/pgtyped_check.sh",
