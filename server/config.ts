@@ -410,6 +410,8 @@ const config: Static<typeof Config> = {
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  contextualModerationBatchSize:
+    Number(process.env.CONTEXTUAL_MODERATION_BATCH_SIZE) || 50,
 
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
