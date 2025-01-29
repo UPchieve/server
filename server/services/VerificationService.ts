@@ -83,6 +83,7 @@ function getVerificationMethod(
       return VERIFICATION_METHOD.SMS
     case VERIFICATION_TYPE.EMAIL_FOR_SIGNUP:
     case VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL:
+    case VERIFICATION_TYPE.EMAIL_FOR_EMAIL:
       return VERIFICATION_METHOD.EMAIL
     default:
       throw new Error('Unknown verification type')
@@ -128,7 +129,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
     existingUserId = await getUserIdByEmail(sendTo)
 
     if (
-      verificationType !== VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL &&
+      verificationType === VERIFICATION_TYPE.EMAIL_FOR_SIGNUP &&
       !existingUserId
     ) {
       throw new LookupError(
