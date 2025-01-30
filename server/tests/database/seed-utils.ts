@@ -13,7 +13,7 @@ export async function createTestUser(
         faker.person.firstName(),
         faker.person.lastName(),
         faker.internet.email(),
-        faker.lorem.word(),
+        faker.string.alphanumeric(20),
       ]
     )
   ).rows[0]
