@@ -1253,18 +1253,19 @@ export type SessionForSessionHistory = {
 export async function getSessionHistory(
   userId: Ulid,
   limit: number,
-  offset: number
+  offset: number,
+  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
 ): Promise<SessionForSessionHistory[]> {
   try {
-    const result = await pgQueries.getSessionHistory.run(
-      {
-        userId,
-        minSessionLength: config.minSessionLength,
-        limit,
-        offset,
-      },
-      getClient()
-    )
+    const params = {
+      userId,
+      minSessionLength: config.minSessionLength,
+      limit,
+      offset,
+      studentId: filter.studentId ?? null,
+      volunteerId: filter.volunteerId ?? null,
+    }
+    const result = await pgQueries.getSessionHistory.run(params, getClient())
 
     if (result.length) return result.map(v => makeRequired(v))
     return []
@@ -1525,6 +1526,21 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
         role: camelCased.role as USER_ROLES_TYPE,
       }
     })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPreviousSessionCountForPair(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<number> {
+  try {
+    const result = await pgQueries.getPreviousSessionCountForPair.run(
+      { studentId, volunteerId },
+      getClient()
+    )
+    return result[0].total ?? 0
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -1,3 +1,4 @@
+import config from '../config'
 import { NotAllowedError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import { getSimpleSurveyDefinitionBySurveyId } from '../models/Survey'
@@ -18,6 +19,10 @@ import {
 import { isUserInImpactStudy } from './ImpactStudyService'
 import { createContact } from './MailService'
 import { getLatestUserSubmissionsForSurveyId } from './SurveyService'
+import {
+  createGiftCardRewardLink,
+  getUserRewardBySurveyId,
+} from './RewardsService'
 
 export async function incentiveProgramEnrollmentEnroll(
   userId: Ulid,
@@ -61,9 +66,27 @@ export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
     throw new Error('Your survey submission was not saved')
 
   const isInImpactStudy = await isUserInImpactStudy(userId)
-  if (!isInImpactStudy) await enrollStudentToImpactStudy(userId)
+  let impactStudyEnrollmentAt
+  if (!isInImpactStudy)
+    impactStudyEnrollmentAt = await enrollStudentToImpactStudy(userId)
 
-  // TODO: Implement sending gift card reward
   if (survey.rewardAmount) {
+    const rewards = await getUserRewardBySurveyId(userId, survey.surveyId)
+    if (rewards.length)
+      throw new Error(
+        `You've already received a reward for this survey. Please update your answers from your Profile page`
+      )
+
+    const rewardPayload = {
+      userId,
+      surveyId: survey.surveyId,
+      amount: survey.rewardAmount,
+      name: user.firstName,
+      email: user.proxyEmail ?? user.email,
+      campaignId: config.tremendousImpactStudyCampaign,
+    }
+    await createGiftCardRewardLink(rewardPayload)
   }
+
+  return impactStudyEnrollmentAt
 }

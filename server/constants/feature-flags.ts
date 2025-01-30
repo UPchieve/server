@@ -12,4 +12,5 @@ export enum FEATURE_FLAGS {
   COLLEGE_LIST_WORKSHEET = 'college-list-worksheet',
   FALL_INCENTIVE_PROGRAM = 'fall-incentive-program',
   AI_TUTOR_BOT_SUBJECT_MODELS = 'ai-tutor-bot-subject-models',
+  TREMENDOUS_EMBDED_REWARDS = 'tremendous-embeded-rewards',
 }

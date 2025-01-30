@@ -55,8 +55,11 @@ export function routeProductFlags(router: Router) {
     const user = extractUser(req)
     const surveyId = asNumber(req.body.surveyId)
     try {
-      await UserProductFlagsService.impactStudyEnrollment(user.id, surveyId)
-      res.sendStatus(200)
+      const impactStudyEnrollmentAt = await UserProductFlagsService.impactStudyEnrollment(
+        user.id,
+        surveyId
+      )
+      res.json({ impactStudyEnrollmentAt })
     } catch (err) {
       resError(res, err)
     }

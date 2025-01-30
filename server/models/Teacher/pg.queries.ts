@@ -428,3 +428,33 @@ const updateTeacherSchoolIR: any = {"usedParamSet":{"schoolId":true,"userId":tru
 export const updateTeacherSchool = new PreparedQuery<IUpdateTeacherSchoolParams,IUpdateTeacherSchoolResult>(updateTeacherSchoolIR);
 
 
+/** 'UpdateLastSuccessfulCleverSync' parameters type */
+export interface IUpdateLastSuccessfulCleverSyncParams {
+  teacherId: string;
+}
+
+/** 'UpdateLastSuccessfulCleverSync' return type */
+export type IUpdateLastSuccessfulCleverSyncResult = void;
+
+/** 'UpdateLastSuccessfulCleverSync' query type */
+export interface IUpdateLastSuccessfulCleverSyncQuery {
+  params: IUpdateLastSuccessfulCleverSyncParams;
+  result: IUpdateLastSuccessfulCleverSyncResult;
+}
+
+const updateLastSuccessfulCleverSyncIR: any = {"usedParamSet":{"teacherId":true},"params":[{"name":"teacherId","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":102}]}],"statement":"UPDATE\n    teacher_profiles\nSET\n    last_successful_clever_sync = NOW()\nWHERE\n    user_id = :teacherId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     teacher_profiles
+ * SET
+ *     last_successful_clever_sync = NOW()
+ * WHERE
+ *     user_id = :teacherId!
+ * ```
+ */
+export const updateLastSuccessfulCleverSync = new PreparedQuery<IUpdateLastSuccessfulCleverSyncParams,IUpdateLastSuccessfulCleverSyncResult>(updateLastSuccessfulCleverSyncIR);
+
+

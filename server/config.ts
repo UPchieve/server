@@ -22,7 +22,7 @@ const config: Static<typeof Config> = {
   NODE_ENV: process.env.NODE_ENV || 'dev',
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
-  host: process.env.SUBWAY_SERVER_HOST || 'localhost:3000',
+  host: process.env.SUBWAY_SERVER_HOST || 'http://localhost:8080',
   additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge: parseInt(
@@ -410,6 +410,20 @@ const config: Static<typeof Config> = {
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+
+  tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
+  tremendousRewardDomain:
+    process.env.SUBWAY_TREMENDOUS_REWARD_DOMAIN ||
+    'reward.testflight.tremendous.com',
+  tremendousImpactStudyCampaign:
+    process.env.SUBWAY_TREMENDOUS_IMPACT_STUDY_CAMPAIGN || 'bogus',
+  tremendousCustomFieldsCacheExpirationSeconds:
+    Number(
+      process.env.SUBWAY_TREMENDOUS_CUSTOM_FIELDS_CACHE_EXPIRATION_SECONDS
+    ) || 86400,
+  tremendousCampaignCacheExpirationSeconds:
+    Number(process.env.SUBWAY_TREMENDOUS_CAMPAIGNS_CACHE_EXPIRATION_SECONDS) ||
+    86400,
 }
 
 module.exports = config

@@ -47,8 +47,7 @@ FROM
     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
     LEFT JOIN schools school ON spo.school_id = school.id
 WHERE
-    school.id = :schoolId!
-    AND school.partner = TRUE;
+    school.id = :schoolId!;
 
 
 /* @name getFullStudentPartnerOrgByKey */

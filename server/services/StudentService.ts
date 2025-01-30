@@ -193,3 +193,14 @@ export async function updateStudentSchool(
     }
   }, tc)
 }
+
+export async function addStudentsToTeacherClass(
+  studentIds: Ulid[],
+  classId: Uuid,
+  tc: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    if (!studentIds.length) return
+    return StudentRepo.addStudentsToTeacherClass(studentIds, classId, tc)
+  }, tc)
+}

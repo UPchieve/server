@@ -946,3 +946,40 @@ const getLatestUserSubmissionsForSurveyIR: any = {"usedParamSet":{"userId":true,
 export const getLatestUserSubmissionsForSurvey = new PreparedQuery<IGetLatestUserSubmissionsForSurveyParams,IGetLatestUserSubmissionsForSurveyResult>(getLatestUserSubmissionsForSurveyIR);
 
 
+/** 'GetSurveyIdForLatestImpactStudySurveySubmission' parameters type */
+export interface IGetSurveyIdForLatestImpactStudySurveySubmissionParams {
+  userId: string;
+}
+
+/** 'GetSurveyIdForLatestImpactStudySurveySubmission' return type */
+export interface IGetSurveyIdForLatestImpactStudySurveySubmissionResult {
+  surveyId: number;
+}
+
+/** 'GetSurveyIdForLatestImpactStudySurveySubmission' query type */
+export interface IGetSurveyIdForLatestImpactStudySurveySubmissionQuery {
+  params: IGetSurveyIdForLatestImpactStudySurveySubmissionParams;
+  result: IGetSurveyIdForLatestImpactStudySurveySubmissionResult;
+}
+
+const getSurveyIdForLatestImpactStudySurveySubmissionIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":171}]}],"statement":"SELECT\n    users_surveys.survey_id\nFROM\n    users_surveys\n    JOIN survey_types ON users_surveys.survey_type_id = survey_types.id\nWHERE\n    users_surveys.user_id = :userId!::uuid\n    AND survey_types.name = 'impact-study'\nORDER BY\n    users_surveys.created_at DESC\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     users_surveys.survey_id
+ * FROM
+ *     users_surveys
+ *     JOIN survey_types ON users_surveys.survey_type_id = survey_types.id
+ * WHERE
+ *     users_surveys.user_id = :userId!::uuid
+ *     AND survey_types.name = 'impact-study'
+ * ORDER BY
+ *     users_surveys.created_at DESC
+ * LIMIT 1
+ * ```
+ */
+export const getSurveyIdForLatestImpactStudySurveySubmission = new PreparedQuery<IGetSurveyIdForLatestImpactStudySurveySubmissionParams,IGetSurveyIdForLatestImpactStudySurveySubmissionResult>(getSurveyIdForLatestImpactStudySurveySubmissionIR);
+
+

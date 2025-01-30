@@ -153,7 +153,7 @@ export async function updateTeacherClass(data: {
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
-    throw new RepoUpsertError(err)
+    throw new RepoUpdateError(err)
   }
 }
 
@@ -167,7 +167,18 @@ export async function deactivateTeacherClass(id: string) {
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
-    throw new RepoUpsertError(err)
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateLastSuccessfulCleverSync(
+  teacherId: Ulid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.updateLastSuccessfulCleverSync.run({ teacherId }, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
 
