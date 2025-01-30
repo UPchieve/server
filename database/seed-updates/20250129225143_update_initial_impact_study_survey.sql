@@ -11,7 +11,7 @@ SELECT
     NOW()
 FROM
     upchieve.question_types qt
-    CROSS JOIN UNNEST(ARRAY['What is your current high school GPA?', 'What scale is your GPA on?', 'What course is your lowest grade in (please be specific in the course name)?', 'How many AP courses are you taking this year?', 'How many IB courses are you taking this year?', 'How many Dual enrollment courses are you taking this year?', 'How many Honors courses are you taking this year?']) AS sub (text)
+    CROSS JOIN UNNEST(ARRAY['What course is your lowest grade in (please be specific in the course name)?', 'How many AP courses are you taking this year?', 'How many IB courses are you taking this year?', 'How many Dual enrollment courses are you taking this year?', 'How many Honors courses are you taking this year?']) AS sub (text)
 WHERE
     qt.name = 'free response';
 
@@ -23,7 +23,7 @@ SELECT
     NOW()
 FROM
     upchieve.question_types qt
-    CROSS JOIN UNNEST(ARRAY['Do you know your current high school GPA?', 'What is your closest estimate of your current grades in school?', 'What is your lowest grade?', 'What subject is your lowest grade in?', 'Will you be the first person in your family to attend college?', 'Are you or have you ever been eligible for free or reduced price lunch at school?', 'Do you primarily speak English at home?', 'Do you have an IEP or 504 plan?']) AS sub (text)
+    CROSS JOIN UNNEST(ARRAY['What is your closest estimate of your current grades in school?', 'What is your lowest grade?', 'What subject is your lowest grade in?', 'Will you be the first person in your family to attend college?', 'Are you or have you ever been eligible for free or reduced price lunch at school?', 'Do you primarily speak English at home?', 'Do you have an IEP or 504 plan?']) AS sub (text)
 WHERE
     qt.name = 'multiple choice';
 
@@ -45,38 +45,32 @@ INSERT INTO upchieve.surveys_survey_questions (survey_id, survey_question_id, di
 SELECT
     s.id,
     sq.id,
-    CASE WHEN sq.question_text = 'Do you know your current high school GPA?' THEN
+    CASE WHEN sq.question_text = 'What is your closest estimate of your current grades in school?' THEN
         10
-    WHEN sq.question_text = 'What is your current high school GPA?' THEN
-        20
-    WHEN sq.question_text = 'What scale is your GPA on?' THEN
-        30
-    WHEN sq.question_text = 'What is your closest estimate of your current grades in school?' THEN
-        40
     WHEN sq.question_text = 'What is your lowest grade?' THEN
-        50
+        20
     WHEN sq.question_text = 'What subject is your lowest grade in?' THEN
-        60
+        30
     WHEN sq.question_text = 'What course is your lowest grade in (please be specific in the course name)?' THEN
-        70
+        40
     WHEN sq.question_text = 'How many AP courses are you taking this year?' THEN
-        80
+        50
     WHEN sq.question_text = 'How many IB courses are you taking this year?' THEN
-        90
+        60
     WHEN sq.question_text = 'How many Dual enrollment courses are you taking this year?' THEN
-        100
+        70
     WHEN sq.question_text = 'How many Honors courses are you taking this year?' THEN
-        110
+        80
     WHEN sq.question_text = 'What is your ethnicity? (Select all that apply)' THEN
-        120
+        90
     WHEN sq.question_text = 'Will you be the first person in your family to attend college?' THEN
-        130
+        100
     WHEN sq.question_text = 'Are you or have you ever been eligible for free or reduced price lunch at school?' THEN
-        140
+        110
     WHEN sq.question_text = 'Do you primarily speak English at home?' THEN
-        150
+        120
     WHEN sq.question_text = 'Do you have an IEP or 504 plan?' THEN
-        160
+        130
     ELSE
         0
     END AS priority,
@@ -84,7 +78,7 @@ SELECT
     NOW()
 FROM
     upchieve.surveys s
-    JOIN upchieve.survey_questions sq ON sq.question_text IN ('Do you know your current high school GPA?', 'What is your current high school GPA?', 'What scale is your GPA on?', 'What is your closest estimate of your current grades in school?', 'What is your lowest grade?', 'What subject is your lowest grade in?', 'What course is your lowest grade in (please be specific in the course name)?', 'How many AP courses are you taking this year?', 'How many IB courses are you taking this year?', 'How many Dual enrollment courses are you taking this year?', 'How many Honors courses are you taking this year?', 'What is your ethnicity? (Select all that apply)', 'Will you be the first person in your family to attend college?', 'Are you or have you ever been eligible for free or reduced price lunch at school?', 'Do you primarily speak English at home?', 'Do you have an IEP or 504 plan?')
+    JOIN upchieve.survey_questions sq ON sq.question_text IN ('What is your closest estimate of your current grades in school?', 'What is your lowest grade?', 'What subject is your lowest grade in?', 'What course is your lowest grade in (please be specific in the course name)?', 'How many AP courses are you taking this year?', 'How many IB courses are you taking this year?', 'How many Dual enrollment courses are you taking this year?', 'How many Honors courses are you taking this year?', 'What is your ethnicity? (Select all that apply)', 'Will you be the first person in your family to attend college?', 'Are you or have you ever been eligible for free or reduced price lunch at school?', 'Do you primarily speak English at home?', 'Do you have an IEP or 504 plan?')
 WHERE
     s.name = 'Impact Study Survey 1.0';
 
@@ -102,21 +96,9 @@ FROM
     JOIN upchieve.survey_questions sq ON sq.id = ssq.survey_question_id
     CROSS JOIN UNNEST(ARRAY[10, 20, 30, 40, 50, 60, 70, 80]) AS sub (text)
 WHERE (s.name = 'Impact Study Survey 1.0'
-    AND sq.question_text = 'Do you know your current high school GPA?'
-    AND rc.choice_text = 'Yes'
+    AND sq.question_text = 'What is your closest estimate of your current grades in school?'
+    AND rc.choice_text = 'A''s'
     AND sub.text::int = 10)
-    OR (s.name = 'Impact Study Survey 1.0'
-        AND sq.question_text = 'Do you know your current high school GPA?'
-        AND rc.choice_text = 'No'
-        AND sub.text::int = 20)
-    OR (s.name = 'Impact Study Survey 1.0'
-        AND sq.question_text = 'Do you know your current high school GPA?'
-        AND rc.choice_text = 'I''m not sure / Prefer not to answer'
-        AND sub.text::int = 30)
-    OR (s.name = 'Impact Study Survey 1.0'
-        AND sq.question_text = 'What is your closest estimate of your current grades in school?'
-        AND rc.choice_text = 'A''s'
-        AND sub.text::int = 10)
     OR (s.name = 'Impact Study Survey 1.0'
         AND sq.question_text = 'What is your closest estimate of your current grades in school?'
         AND rc.choice_text = 'A''s and B''s'
@@ -297,5 +279,5 @@ DELETE FROM upchieve.survey_response_choices
 WHERE choice_text IN ('I''m not sure / Prefer not to answer', 'A''s', 'A''s and B''s', 'B''s', 'B''s and C''s', 'C''s', 'C''s and D''s', 'D''s', 'D''s and below', 'Math', 'English', 'Science', 'Social Studies', 'Foreign Language', 'American Indian / Alaska Native', 'Asian', 'Black or African American', 'Hispanic or Latinx', 'Native Hawaiian / Pacific Islander', 'Middle Eastern or North African', 'White', 'Prefer not to answer');
 
 DELETE FROM upchieve.survey_questions
-WHERE question_text IN ('What is your current high school GPA?', 'What scale is your GPA on?', 'What course is your lowest grade in (please be specific in the course name)?', 'How many AP courses are you taking this year?', 'How many IB courses are you taking this year?', 'How many Dual enrollment courses are you taking this year?', 'How many Honors courses are you taking this year?', 'Do you know your current high school GPA?', 'What is your closest estimate of your current grades in school?', 'What is your lowest grade?', 'What subject is your lowest grade in?', 'Will you be the first person in your family to attend college?', 'Are you or have you ever been eligible for free or reduced price lunch at school?', 'Do you primarily speak English at home?', 'Do you have an IEP or 504 plan?', 'What is your ethnicity? (Select all that apply)');
+WHERE question_text IN ('What course is your lowest grade in (please be specific in the course name)?', 'How many AP courses are you taking this year?', 'How many IB courses are you taking this year?', 'How many Dual enrollment courses are you taking this year?', 'How many Honors courses are you taking this year?', 'What is your closest estimate of your current grades in school?', 'What is your lowest grade?', 'What subject is your lowest grade in?', 'Will you be the first person in your family to attend college?', 'Are you or have you ever been eligible for free or reduced price lunch at school?', 'Do you primarily speak English at home?', 'Do you have an IEP or 504 plan?', 'What is your ethnicity? (Select all that apply)');
 
