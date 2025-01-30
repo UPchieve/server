@@ -129,7 +129,9 @@ export async function initiateVerification(data: unknown): Promise<void> {
     existingUserId = await getUserIdByEmail(sendTo)
 
     if (
-      verificationType === VERIFICATION_TYPE.EMAIL_FOR_SIGNUP &&
+      // TODO: Refactor so that we only need to check against EMAIL_FOR_SIGNUP
+      verificationType !== VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL &&
+      verificationType !== VERIFICATION_TYPE.EMAIL_FOR_EMAIL &&
       !existingUserId
     ) {
       throw new LookupError(
