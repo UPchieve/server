@@ -88,3 +88,18 @@ services:
       ports:
         - "5501:6379"
       image: redis:6.2.1
+    database-ci:
+      profiles: ["db-test"]
+      image: postgres:14
+      container_name: database-ci
+      hostname: postgres
+      ports:
+        - "5500:5432"
+      environment:
+        - POSTGRES_DB=upchieve
+        - POSTGRES_USER=admin
+        - POSTGRES_PASSWORD=Password123
+      volumes:
+        - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+        - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+        - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
