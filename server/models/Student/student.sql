@@ -768,3 +768,14 @@ SELECT
 ON CONFLICT
     DO NOTHING;
 
+
+/* @name getStudentByCleverId */
+SELECT
+    sp.user_id AS id
+FROM
+    student_profiles sp
+    JOIN federated_credentials fc ON sp.user_id = fc.user_id
+WHERE
+    issuer LIKE '%clever%'
+    AND id = :cleverStudentId!;
+

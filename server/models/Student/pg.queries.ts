@@ -1730,3 +1730,37 @@ const addStudentsToTeacherClassIR: any = {"usedParamSet":{"studentIds":true,"cla
 export const addStudentsToTeacherClass = new PreparedQuery<IAddStudentsToTeacherClassParams,IAddStudentsToTeacherClassResult>(addStudentsToTeacherClassIR);
 
 
+/** 'GetStudentByCleverId' parameters type */
+export interface IGetStudentByCleverIdParams {
+  cleverStudentId: string;
+}
+
+/** 'GetStudentByCleverId' return type */
+export interface IGetStudentByCleverIdResult {
+  id: string;
+}
+
+/** 'GetStudentByCleverId' query type */
+export interface IGetStudentByCleverIdQuery {
+  params: IGetStudentByCleverIdParams;
+  result: IGetStudentByCleverIdResult;
+}
+
+const getStudentByCleverIdIR: any = {"usedParamSet":{"cleverStudentId":true},"params":[{"name":"cleverStudentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":180}]}],"statement":"SELECT\n    sp.user_id AS id\nFROM\n    student_profiles sp\n    JOIN federated_credentials fc ON sp.user_id = fc.user_id\nWHERE\n    issuer LIKE '%clever%'\n    AND id = :cleverStudentId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sp.user_id AS id
+ * FROM
+ *     student_profiles sp
+ *     JOIN federated_credentials fc ON sp.user_id = fc.user_id
+ * WHERE
+ *     issuer LIKE '%clever%'
+ *     AND id = :cleverStudentId!
+ * ```
+ */
+export const getStudentByCleverId = new PreparedQuery<IGetStudentByCleverIdParams,IGetStudentByCleverIdResult>(getStudentByCleverIdIR);
+
+
