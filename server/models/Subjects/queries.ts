@@ -351,3 +351,15 @@ export async function getSubjectNameIdMapping(): Promise<{
     throw new RepoReadError(err)
   }
 }
+
+export async function getTopicIdFromName(
+  topicName: string,
+  tc: TransactionClient
+): Promise<number | undefined> {
+  try {
+    const result = await pgQueries.getTopicIdFromName.run({ topicName }, tc)
+    if (result.length) return result[0].id
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
