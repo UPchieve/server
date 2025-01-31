@@ -411,7 +411,7 @@ async function handleVideoFrameModerationFailure({
 
   logger.warn(
     { sessionId, reasons: failureReasons, imageUrl: location },
-    'Screenshare triggered moderation'
+    'Image triggered moderation'
   )
 
   await handleModerationInfraction(userId, sessionId, {
