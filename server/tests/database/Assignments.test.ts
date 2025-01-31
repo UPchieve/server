@@ -246,6 +246,7 @@ describe('getAssignmentsByStudentId', () => {
   })
 })
 
+// TODO: Merge with other test seeds utils.
 async function createTestUser(): Promise<{ id: string }> {
   return (
     await client.query(
@@ -255,7 +256,7 @@ async function createTestUser(): Promise<{ id: string }> {
         faker.person.firstName(),
         faker.person.lastName(),
         faker.internet.email(),
-        faker.lorem.word(),
+        faker.string.alphanumeric(6),
       ]
     )
   ).rows[0]
