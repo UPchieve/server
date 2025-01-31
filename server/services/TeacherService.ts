@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { runInTransaction, TransactionClient } from '../db'
 import { InputError } from '../models/Errors'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsService from './AssignmentsService'
 import * as StudentService from './StudentService'
 import * as StudentRepo from '../models/Student'
@@ -80,6 +80,15 @@ export async function getTeacherClassById(id: Ulid) {
   })
 }
 
+export async function getStudentIdsInTeacherClass(
+  classId: Ulid,
+  tc: TransactionClient
+): Promise<Ulid[]> {
+  return runInTransaction(async (tc: TransactionClient) => {
+    return TeacherRepo.getStudentIdsInTeacherClass(tc, classId)
+  }, tc)
+}
+
 export async function getStudentsInTeacherClass(
   classId: Ulid,
   tc?: TransactionClient
@@ -127,7 +136,7 @@ export async function addStudentToTeacherClassByClassCode(
 
 export async function addStudentsToTeacherClassById(
   studentIds: Ulid[],
-  classId: Ulid,
+  classId: Uuid,
   tc: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
@@ -184,11 +193,11 @@ export async function deactivateTeacherClass(
 
 export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
   return runInTransaction(async (tc: TransactionClient) => {
-    return removeStudentsFromClass([studentId], classId, tc)
+    return removeStudentsFromTeacherClassById([studentId], classId, tc)
   })
 }
 
-export async function removeStudentsFromClass(
+export async function removeStudentsFromTeacherClassById(
   studentIds: Ulid[],
   classId: Ulid,
   tc: TransactionClient

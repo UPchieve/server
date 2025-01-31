@@ -27,6 +27,7 @@ import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
 import { insertFederatedCredential } from '../models/FederatedCredential'
 import { checkIpAddress, checkUser } from './AuthService'
 import { verifyEligibility } from './EligibilityService'
+import * as FederatedCredentialService from './FederatedCredentialService'
 import * as TeacherService from './TeacherService'
 import {
   createParentGuardian,
@@ -36,6 +37,7 @@ import { InputError } from '../models/Errors'
 import { createTeacher } from '../models/Teacher'
 
 export interface RosterStudentPayload {
+  cleverId?: string
   email: string
   firstName: string
   gradeLevel: string
@@ -119,6 +121,15 @@ export async function rosterPartnerStudents(
         }
         await upsertStudent(studentData, tc)
 
+        if (student.cleverId) {
+          await FederatedCredentialService.linkAccount(
+            student.cleverId,
+            FederatedCredentialService.Issuer.CLEVER,
+            user.id,
+            tc
+          )
+        }
+
         if (user.isCreated) {
           newUsers.push({ passwordResetToken, ...user })
         } else {
@@ -166,7 +177,10 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
   }
 }
 
-export async function registerStudent(data: RegisterStudentPayload) {
+export async function registerStudent(
+  data: RegisterStudentPayload,
+  tc?: TransactionClient
+) {
   await verifyStudentData(data)
   const newStudent = await runInTransaction(async (tc: TransactionClient) => {
     const passwordResetToken = useResetToken(data)
@@ -226,7 +240,7 @@ export async function registerStudent(data: RegisterStudentPayload) {
     }
 
     return user
-  })
+  }, tc)
 
   emitter.emit(USER_EVENTS.USER_CREATED, newStudent.id)
   emitter.emit(STUDENT_EVENTS.STUDENT_CREATED, newStudent.id)
