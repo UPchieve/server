@@ -3,8 +3,7 @@ const { defaults: tsjPreset } = require('ts-jest/presets')
 module.exports = {
   setupFiles: ['<rootDir>/server/tests/mocks-setup.ts'],
   testEnvironment: '<rootDir>/server/tests/database/db-test-environment.js',
-  roots: ['<rootDir>/server/tests/database/parallel'],
-  runner: 'groups',
+  roots: ['<rootDir>/server/tests/database/sequential'],
   testPathIgnorePatterns: ['/node_modules/'],
   setupFilesAfterEnv: ['<rootDir>/server/tests/database/db-mocks-setup.ts'],
   transform: tsjPreset.transform,

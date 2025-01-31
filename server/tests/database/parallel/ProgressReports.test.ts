@@ -1,5 +1,5 @@
-import { getClient } from '../../db'
-import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
+import { getClient } from '../../../db'
+import { Ulid, getDbUlid, getUuid } from '../../../models/pgUtils'
 import {
   ProgressReportDetailInsert,
   ProgressReportStatuses,
@@ -16,19 +16,19 @@ import {
   getProgressReportSummariesForMany,
   getProgressReportConceptsByReportId,
   getActiveSubjectPromptBySubjectName,
-} from '../../models/ProgressReports'
+} from '../../../models/ProgressReports'
 import {
   ProgressReportConcept,
   ProgressReportSummary,
-} from '../../services/ProgressReportsService'
+} from '../../../services/ProgressReportsService'
 import {
   buildProgressReportDetails,
   buildProgressReportSummary,
   buildProgressReportConcept,
   buildSessionRow,
   buildUserRow,
-} from '../mocks/generate'
-import { insertSingleRow } from '../db-utils'
+} from '../../mocks/generate'
+import { insertSingleRow } from '../../db-utils'
 
 const client = getClient()
 let userId: Ulid

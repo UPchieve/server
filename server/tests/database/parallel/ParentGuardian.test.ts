@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker'
-import { getClient } from '../../db'
-import { getDbUlid } from '../../models/pgUtils'
+import { getClient } from '../../../db'
+import { getDbUlid } from '../../../models/pgUtils'
 import {
   createParentGuardian,
   linkParentGuardianToStudent,
-} from '../../models/ParentGuardian'
+} from '../../../models/ParentGuardian'
 
 const client = getClient()
 

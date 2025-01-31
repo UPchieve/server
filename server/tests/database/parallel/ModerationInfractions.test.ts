@@ -1,11 +1,11 @@
-import { getClient } from '../../db'
-import * as ModerationInfractionsRepo from '../../models/ModerationInfractions/queries'
+import { getClient } from '../../../db'
+import * as ModerationInfractionsRepo from '../../../models/ModerationInfractions/queries'
 import {
   buildModerationInfractionRow,
   buildSessionRow,
-} from '../mocks/generate'
-import { getDbUlid } from '../../models/pgUtils'
-import { insertSingleRow } from '../db-utils'
+} from '../../mocks/generate'
+import { getDbUlid } from '../../../models/pgUtils'
+import { insertSingleRow } from '../../db-utils'
 
 describe('ModerationInfractions', () => {
   const dbClient = getClient()

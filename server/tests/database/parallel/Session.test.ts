@@ -3,14 +3,14 @@ import {
   buildSessionMessageRow,
   buildSessionRow,
   buildSessionVoiceMessage,
-} from '../mocks/generate'
-import { getClient } from '../../db'
+} from '../../mocks/generate'
+import { getClient } from '../../../db'
 import {
   getMessagesForFrontend,
   getSessionHistory,
   getTotalSessionHistory,
-} from '../../models/Session'
-import { insertSingleRow } from '../db-utils'
+} from '../../../models/Session'
+import { insertSingleRow } from '../../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
 

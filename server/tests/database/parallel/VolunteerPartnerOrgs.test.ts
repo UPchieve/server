@@ -1,4 +1,4 @@
-import { getVolunteerPartnerOrgIdByKey } from '../../models/VolunteerPartnerOrg'
+import { getVolunteerPartnerOrgIdByKey } from '../../../models/VolunteerPartnerOrg'
 
 test('getVolunteerPartnerOrgIdByKey when VPO with key exists', async () => {
   const actual = await getVolunteerPartnerOrgIdByKey('big-telecom')

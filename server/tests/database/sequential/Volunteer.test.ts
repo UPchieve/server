@@ -1,8 +1,8 @@
 import {
   Availability,
   updateAvailabilityByVolunteerId,
-} from '../../models/Availability'
-import { DAYS } from '../../constants'
+} from '../../../models/Availability'
+import { DAYS } from '../../../constants'
 import { faker } from '@faker-js/faker'
 import {
   addVolunteerCertification,
@@ -12,17 +12,17 @@ import {
   getNextVolunteerToNotify,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
-} from '../../models/Volunteer'
+} from '../../../models/Volunteer'
 import moment from 'moment'
-import { getClient } from '../../db'
-import { insertSingleRow } from '../db-utils'
+import { getClient } from '../../../db'
+import { insertSingleRow } from '../../db-utils'
 import {
   buildFullAvailability,
   buildNotification,
   buildSessionRow,
-} from '../mocks/generate'
+} from '../../mocks/generate'
 import { omit } from 'lodash'
-import { addFavoriteVolunteer } from '../../models/Student'
+import { addFavoriteVolunteer } from '../../../models/Student'
 
 const client = getClient()
 const TIMEZONE = 'EST'
