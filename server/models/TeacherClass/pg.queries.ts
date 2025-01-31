@@ -79,35 +79,35 @@ const getTotalStudentsInClassIR: any = {"usedParamSet":{"classId":true},"params"
 export const getTotalStudentsInClass = new PreparedQuery<IGetTotalStudentsInClassParams,IGetTotalStudentsInClassResult>(getTotalStudentsInClassIR);
 
 
-/** 'RemoveStudentFromClass' parameters type */
-export interface IRemoveStudentFromClassParams {
+/** 'RemoveStudentsFromClass' parameters type */
+export interface IRemoveStudentsFromClassParams {
   classId: string;
-  studentId: string;
+  studentIds: readonly (string)[];
 }
 
-/** 'RemoveStudentFromClass' return type */
-export interface IRemoveStudentFromClassResult {
+/** 'RemoveStudentsFromClass' return type */
+export interface IRemoveStudentsFromClassResult {
   studentid: string;
 }
 
-/** 'RemoveStudentFromClass' query type */
-export interface IRemoveStudentFromClassQuery {
-  params: IRemoveStudentFromClassParams;
-  result: IRemoveStudentFromClassResult;
+/** 'RemoveStudentsFromClass' query type */
+export interface IRemoveStudentsFromClassQuery {
+  params: IRemoveStudentsFromClassParams;
+  result: IRemoveStudentsFromClassResult;
 }
 
-const removeStudentFromClassIR: any = {"usedParamSet":{"studentId":true,"classId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":44,"b":54}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":83}]}],"statement":"DELETE FROM student_classes\nWHERE user_id = :studentId!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId"};
+const removeStudentsFromClassIR: any = {"usedParamSet":{"studentIds":true,"classId":true},"params":[{"name":"studentIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":45,"b":56}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":77,"b":85}]}],"statement":"DELETE FROM student_classes\nWHERE user_id IN :studentIds!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId"};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM student_classes
- * WHERE user_id = :studentId!
+ * WHERE user_id IN :studentIds!
  *     AND class_id = :classId!
  * RETURNING
  *     user_id AS studentId
  * ```
  */
-export const removeStudentFromClass = new PreparedQuery<IRemoveStudentFromClassParams,IRemoveStudentFromClassResult>(removeStudentFromClassIR);
+export const removeStudentsFromClass = new PreparedQuery<IRemoveStudentsFromClassParams,IRemoveStudentsFromClassResult>(removeStudentsFromClassIR);
 
 

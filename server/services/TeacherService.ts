@@ -170,7 +170,19 @@ export async function deactivateTeacherClass(id: string) {
 }
 
 export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
-  return TeacherClassRepo.removeStudentFromClass(studentId, classId)
+  return runInTransaction(async (tc: TransactionClient) => {
+    return removeStudentsFromClass([studentId], classId, tc)
+  })
+}
+
+export async function removeStudentsFromClass(
+  studentIds: Ulid[],
+  classId: Ulid,
+  tc: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    return TeacherClassRepo.removeStudentsFromClass(studentIds, classId, tc)
+  }, tc)
 }
 
 export async function adminUpdateTeacher(
