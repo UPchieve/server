@@ -248,6 +248,9 @@ export function addPassportAuthMiddleware() {
 }
 
 function getRedirectURI() {
-  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
-  return `${protocol}://${config.host}/auth/oauth2/redirect`
+  const host =
+    config.NODE_ENV === 'dev'
+      ? 'http://localhost:3000'
+      : `https://${config.host}`
+  return `${host}/auth/oauth2/redirect`
 }
