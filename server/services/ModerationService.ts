@@ -42,7 +42,6 @@ import {
   DetectToxicContentCommand,
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
-import { ObjectCannedACL, PutObjectCommand, S3 } from '@aws-sdk/client-s3'
 import { putObject } from './AwsService'
 
 const MINOR_AGE_THRESHOLD = 18
@@ -800,31 +799,36 @@ export const moderateImage = async (
   failureReasons?: ModerationFailureReasons
 }> => {
   const reqBody = {
-    timeout: 3 * 1000,
+    timeout: 6 * 1000,
     body: {
       image: {
         content: imageFile.buffer.toString('base64'),
       },
     },
   }
-  const result = await azureContentSafetyClient
-    .path('/image:analyze')
-    .post(reqBody)
+  let result
+  const errorLogMessage =
+    'Failed to get image analysis from Azure Content Safety'
+  try {
+    result = await azureContentSafetyClient.path('/image:analyze').post(reqBody)
+  } catch (err) {
+    logger.error({ sessionId, err }, errorLogMessage)
+    throw new Error('Could not moderate image')
+  }
 
   if (result.status !== '200') {
     const errResponse = result as AnalyzeImageDefaultResponse
     const logData = {
       error: errResponse.body.error,
     }
-    const logMsg = 'Failed to get image analysis from Azure Content Safety'
     if (
       errResponse.body.error.code ===
       AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
     ) {
-      logger.warn(logData, logMsg)
+      logger.warn(logData, errorLogMessage)
       throw new InputError('Image is invalid')
     }
-    logger.error(logData, logMsg)
+    logger.error(logData, errorLogMessage)
     throw new Error('Could not moderate image')
   }
 
