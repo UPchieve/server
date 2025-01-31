@@ -397,22 +397,17 @@ async function handleVideoFrameModerationFailure({
   sessionId,
   failureReasons,
   image,
+  bucketName,
 }: {
   userId: string
   sessionId: string
   failureReasons: VideoFrameModerationFailureReason[]
   image: Buffer
+  bucketName: string
 }) {
-  const moderatedScreenshareS3Key = `${sessionId}-${crypto
-    .randomBytes(8)
-    .toString('hex')}`
-  const bucketName = config.awsS3.moderatedScreenshareBucket
+  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
 
-  const { location } = await putObject(
-    bucketName,
-    moderatedScreenshareS3Key,
-    image
-  )
+  const { location } = await putObject(bucketName, s3Key, image)
 
   logger.warn(
     { sessionId, reasons: failureReasons, imageUrl: location },
@@ -431,10 +426,12 @@ async function handleVideoFrameModerationFailure({
 }
 
 export const moderateVideoFrame = async (
+  // @TODO Combine into one method with moderateImage.
   frame: Buffer,
   sessionId: string,
   userId: string,
-  isVolunteer: boolean
+  isVolunteer: boolean,
+  bucketName: string
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
@@ -460,6 +457,7 @@ export const moderateVideoFrame = async (
       sessionId,
       failureReasons,
       image: frame,
+      bucketName,
     })
   }
 
@@ -794,7 +792,8 @@ export const moderateImage = async (
     imageFile.buffer,
     sessionId,
     userId,
-    isVolunteer
+    isVolunteer,
+    config.awsS3.moderatedSessionImageUploadBucket
   )
   if (isEmpty(result.failureReasons)) return { isClean: true }
 
