@@ -46,9 +46,11 @@ export function routeModeration(router: Router): void {
       }
 
       try {
+        const userId = extractUser(req).id
         const moderationResult = await ModerationService.moderateImage(
           imageToModerate,
-          sessionId
+          sessionId,
+          userId
         )
         res.status(200).json(moderationResult)
       } catch (err) {

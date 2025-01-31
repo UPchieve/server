@@ -12,6 +12,7 @@ import * as UsersRepo from '../models/User/queries'
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
+  isImageUploadModerationEnabled,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
@@ -794,11 +795,16 @@ enum AnalyzeImageErrorCodeEnum {
 }
 export const moderateImage = async (
   imageFile: Express.Multer.File,
-  sessionId: string
+  sessionId: string,
+  userId?: string
 ): Promise<{
   isClean: boolean
   failureReasons?: ModerationFailureReasons
 }> => {
+  if (userId) {
+    const doModerateImage = await isImageUploadModerationEnabled(userId)
+    if (!doModerateImage) return { isClean: true }
+  }
   const reqBody = {
     timeout: 3 * 1000,
     body: {
