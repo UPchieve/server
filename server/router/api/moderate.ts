@@ -41,16 +41,17 @@ export function routeModeration(router: Router): void {
     .post(upload.single('image'), async (req, res) => {
       const imageToModerate = req.file
       const sessionId = req.body.sessionId
+      const user = extractUser(req)
       if (!imageToModerate) {
         return res.status(400).json({ err: 'No file was attached' })
       }
 
       try {
-        const userId = extractUser(req).id
         const moderationResult = await ModerationService.moderateImage(
           imageToModerate,
           sessionId,
-          userId
+          user?.id,
+          user?.isVolunteer
         )
         res.status(200).json(moderationResult)
       } catch (err) {

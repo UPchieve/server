@@ -113,10 +113,9 @@ const moderationLabelToFailureReason = (
 async function detectImageModerationFailures(
   image: Buffer,
   sessionId?: string
-): Promise<VideoFrameModerationFailureReason> {
-  let moderationLabelsResponse
+) {
   try {
-    moderationLabelsResponse = await awsRekognitionClient.send(
+    const moderationLabelsResponse = await awsRekognitionClient.send(
       new DetectModerationLabelsCommand({
         Image: {
           Bytes: image,
@@ -124,15 +123,14 @@ async function detectImageModerationFailures(
         MinConfidence: config.imageModerationMinConfidence,
       })
     )
+    const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
+    return moderationLabels
+      .filter(topLevelCategoryFilter)
+      .map(moderationLabelToFailureReason)
   } catch (err) {
     logger.error({ sessionId, err }, 'Failed to moderate image')
     throw new Error(`Failed to moderate image for session ${sessionId}`)
   }
-
-  const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
-  return moderationLabels
-    .filter(topLevelCategoryFilter)
-    .map(moderationLabelToFailureReason)
 }
 
 /*
@@ -784,47 +782,27 @@ export const moderateIndividualTranscription = async ({
   } as SanitizedTranscriptModerationResult
 }
 
-enum AnalyzeImageErrorCodeEnum {
-  INVALID_REQUEST_BODY = 'InvalidRequestBody',
-}
 export const moderateImage = async (
   imageFile: Express.Multer.File,
-  sessionId: string
+  sessionId: string,
+  userId: string,
+  isVolunteer: boolean
 ): Promise<{
   isClean: boolean
-  failureReasons?: ModerationFailureReasons
 }> => {
-  const result = await detectImageModerationFailures(
+  const result = await moderateVideoFrame(
     imageFile.buffer,
-    sessionId
+    sessionId,
+    userId,
+    isVolunteer
   )
-  if (isEmpty(result)) return { isClean: true }
+  if (isEmpty(result.failureReasons)) return { isClean: true }
 
-  const failureReasons = {
-    [result.reason]: [],
-  }
   return {
     isClean: false,
-    failureReasons: failureReasons as ModerationFailureReasons,
   }
 }
 
-const getImageModerationDecision = (
-  result: AnalyzeImage200Response
-): {
-  isClean: boolean
-  failureReasons?: ModerationFailureReasons
-} => {
-  const failureCategories = result.body.categoriesAnalysis.filter(
-    category =>
-      category.severity ?? 0 > AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD
-  )
-  const isClean = failureCategories.length === 0
-  return {
-    isClean,
-    ...(isClean ? {} : failureCategories),
-  }
-}
 /**
  * Enclose the given message in <student></student> or <tutor></tutor> tags.
  */
