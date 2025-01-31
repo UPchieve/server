@@ -128,6 +128,8 @@ export async function addStudentToTeacherClassByClassCode(
       tc
     )
     if (!teacherClass) throw new InputError('Invalid class code.')
+    if (teacherClass.cleverId)
+      throw new InputError('Unable to edit students in Clever class.')
 
     await addStudentsToTeacherClassById([userId], teacherClass.id, tc)
     return teacherClass
@@ -193,6 +195,11 @@ export async function deactivateTeacherClass(
 
 export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
   return runInTransaction(async (tc: TransactionClient) => {
+    const teacherClass = await TeacherRepo.getTeacherClassById(classId, tc)
+    if (!teacherClass) throw new InputError('Invalid class id.')
+    if (teacherClass.cleverId)
+      throw new InputError('Unable to edit students in Clever class.')
+
     return removeStudentsFromTeacherClassById([studentId], classId, tc)
   })
 }
