@@ -1,7 +1,10 @@
 import { Server } from 'socket.io'
+import logger from '../logger'
 
 export async function getSocketsFromRoom(io: Server, room: string) {
+  logger.info(`calling fetchSockets for room: ${room}`)
   const sockets = await io.in(room).fetchSockets()
+  logger.info(`fetch all sockets returned ${sockets.length}: ${sockets}`)
   return sockets
 }
 

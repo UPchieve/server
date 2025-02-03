@@ -22,6 +22,7 @@ import { isVolunteerUserType } from '../../utils/user-type'
 export function routeUser(router: Router): void {
   router.route('/user').get(async function(req, res) {
     const user = extractUser(req)
+    logger.info('THIS IS THE USER' + user.id)
     const parsedUser = await UserService.parseUser(user)
 
     return res.json({ user: parsedUser })

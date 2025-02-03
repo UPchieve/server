@@ -535,11 +535,11 @@ export async function beginRegularNotifications(
   // volunteers on the dashboard time to pick up the request
   const notificationSchedule = config.notificationSchedule.slice()
   const delay = notificationSchedule.shift()
-  await QueueService.add(
-    Jobs.NotifyTutors,
-    { sessionId, notificationSchedule, currentNotificationRound: 1 },
-    { delay, removeOnComplete: true, removeOnFail: true }
-  )
+  // await QueueService.add(
+  //   Jobs.NotifyTutors,
+  //   { sessionId, notificationSchedule, currentNotificationRound: 1 },
+  //   { delay, removeOnComplete: true, removeOnFail: true }
+  // )
 }
 
 /**
