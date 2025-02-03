@@ -1,5 +1,5 @@
 import logger from '../logger'
-import { chunk } from 'lodash'
+import { chunk, isEmpty } from 'lodash'
 import {
   CensoredSessionMessage,
   CENSORED_BY,
@@ -12,20 +12,13 @@ import * as UsersRepo from '../models/User/queries'
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
-  isImageUploadModerationEnabled,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
-import ContentSafetyClient, {
-  AnalyzeImage200Response,
-  AnalyzeImageDefaultResponse,
-} from '@azure-rest/ai-content-safety'
-import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
-import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
@@ -43,7 +36,6 @@ import {
   DetectToxicContentCommand,
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
-import { ObjectCannedACL, PutObjectCommand, S3 } from '@aws-sdk/client-s3'
 import { putObject } from './AwsService'
 
 const MINOR_AGE_THRESHOLD = 18
@@ -72,14 +64,6 @@ enum LangfuseGenerationName {
 }
 
 // Image moderation
-const AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD = 2
-const createAzureContentSafetyClient = () => {
-  const credential = new AzureKeyCredential(config.azureContentSafetyApiKey)
-  return ContentSafetyClient(config.azureContentSafetyBaseUrl, credential)
-}
-
-const azureContentSafetyClient = createAzureContentSafetyClient()
-
 const AWS_CONFIG = {
   region: config.awsModerationToolsRegion,
   credentials: {
@@ -126,19 +110,27 @@ const moderationLabelToFailureReason = (
     - Hate Symbols
   full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
 */
-async function detectImageModerationFailures(image: Buffer) {
-  const moderationLabelsResponse = await awsRekognitionClient.send(
-    new DetectModerationLabelsCommand({
-      Image: {
-        Bytes: image,
-      },
-      MinConfidence: config.imageModerationMinConfidence,
-    })
-  )
-  const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
-  return moderationLabels
-    .filter(topLevelCategoryFilter)
-    .map(moderationLabelToFailureReason)
+async function detectImageModerationFailures(
+  image: Buffer,
+  sessionId?: string
+) {
+  try {
+    const moderationLabelsResponse = await awsRekognitionClient.send(
+      new DetectModerationLabelsCommand({
+        Image: {
+          Bytes: image,
+        },
+        MinConfidence: config.imageModerationMinConfidence,
+      })
+    )
+    const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
+    return moderationLabels
+      .filter(topLevelCategoryFilter)
+      .map(moderationLabelToFailureReason)
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to moderate image')
+    throw new Error(`Failed to moderate image for session ${sessionId}`)
+  }
 }
 
 /*
@@ -405,26 +397,21 @@ async function handleVideoFrameModerationFailure({
   sessionId,
   failureReasons,
   image,
+  bucketName,
 }: {
   userId: string
   sessionId: string
   failureReasons: VideoFrameModerationFailureReason[]
   image: Buffer
+  bucketName: string
 }) {
-  const moderatedScreenshareS3Key = `${sessionId}-${crypto
-    .randomBytes(8)
-    .toString('hex')}`
-  const bucketName = config.awsS3.moderatedScreenshareBucket
+  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
 
-  const { location } = await putObject(
-    bucketName,
-    moderatedScreenshareS3Key,
-    image
-  )
+  const { location } = await putObject(bucketName, s3Key, image)
 
   logger.warn(
     { sessionId, reasons: failureReasons, imageUrl: location },
-    'Screenshare triggered moderation'
+    'Image triggered moderation'
   )
 
   await handleModerationInfraction(userId, sessionId, {
@@ -439,10 +426,12 @@ async function handleVideoFrameModerationFailure({
 }
 
 export const moderateVideoFrame = async (
+  // @TODO Combine into one method with moderateImage.
   frame: Buffer,
   sessionId: string,
   userId: string,
-  isVolunteer: boolean
+  isVolunteer: boolean,
+  bucketName: string
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
@@ -468,6 +457,7 @@ export const moderateVideoFrame = async (
       sessionId,
       failureReasons,
       image: frame,
+      bucketName,
     })
   }
 
@@ -790,78 +780,28 @@ export const moderateIndividualTranscription = async ({
   } as SanitizedTranscriptModerationResult
 }
 
-enum AnalyzeImageErrorCodeEnum {
-  INVALID_REQUEST_BODY = 'InvalidRequestBody',
-}
 export const moderateImage = async (
   imageFile: Express.Multer.File,
   sessionId: string,
-  userId?: string
+  userId: string,
+  isVolunteer: boolean
 ): Promise<{
   isClean: boolean
-  failureReasons?: ModerationFailureReasons
 }> => {
-  if (userId) {
-    const doModerateImage = await isImageUploadModerationEnabled(userId)
-    if (!doModerateImage) return { isClean: true }
-  }
-  const reqBody = {
-    timeout: 3 * 1000,
-    body: {
-      image: {
-        content: imageFile.buffer.toString('base64'),
-      },
-    },
-  }
-  const result = await azureContentSafetyClient
-    .path('/image:analyze')
-    .post(reqBody)
-
-  if (result.status !== '200') {
-    const errResponse = result as AnalyzeImageDefaultResponse
-    const logData = {
-      error: errResponse.body.error,
-    }
-    const logMsg = 'Failed to get image analysis from Azure Content Safety'
-    if (
-      errResponse.body.error.code ===
-      AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
-    ) {
-      logger.warn(logData, logMsg)
-      throw new InputError('Image is invalid')
-    }
-    logger.error(logData, logMsg)
-    throw new Error('Could not moderate image')
-  }
-
-  logger.info(
-    {
-      fileName: imageFile.originalname,
-      sessionId,
-      analysis: (result as AnalyzeImage200Response).body.categoriesAnalysis,
-    },
-    'Image moderation result'
+  const result = await moderateVideoFrame(
+    imageFile.buffer,
+    sessionId,
+    userId,
+    isVolunteer,
+    config.awsS3.moderatedSessionImageUploadBucket
   )
+  if (isEmpty(result.failureReasons)) return { isClean: true }
 
-  return getImageModerationDecision(result as AnalyzeImage200Response)
-}
-
-const getImageModerationDecision = (
-  result: AnalyzeImage200Response
-): {
-  isClean: boolean
-  failureReasons?: ModerationFailureReasons
-} => {
-  const failureCategories = result.body.categoriesAnalysis.filter(
-    category =>
-      category.severity ?? 0 > AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD
-  )
-  const isClean = failureCategories.length === 0
   return {
-    isClean,
-    ...(isClean ? {} : failureCategories),
+    isClean: false,
   }
 }
+
 /**
  * Enclose the given message in <student></student> or <tutor></tutor> tags.
  */
