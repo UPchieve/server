@@ -108,41 +108,70 @@ type TCleverSchoolData = {
 
 export type TCleverStudents = {
   data: Array<{
-    data: {
-      created: ISOString
-      district: string
-      email: string
-      last_modified: ISOString
-      name: { first: string; last: string; middle: string }
-      id: string
-      roles: {
-        student: {
-          credentials: { district_username: string }
-          dob: string // Like M/DD/YYYY
-          enrollments: []
-          gender: string
-          grade: string // Like 6, 7, 8, etc.
-          graduation_year: string
-          hispanic_ethnicity: string
-          location: {
-            address: string
-            city: string
-            state: string
-            zip: string
-          }
-          race: string
-          school: string
-          schools: string[]
-          sis_id: string
-          state_id: string
-          student_number: string
-          email: string
-        }
-      }
-    }
+    data: TCleverStudentData
     uri: string
   }>
   links: TCleverLinks
+}
+
+export type TCleverStudentData = {
+  created: ISOString
+  district: string
+  email: string
+  last_modified: ISOString
+  name: { first: string; last: string; middle: string }
+  id: string
+  roles: {
+    student: {
+      credentials: { district_username: string }
+      dob: string // Like M/DD/YYYY
+      enrollments: []
+      gender: string
+      grade: string // Like 6, 7, 8, etc.
+      graduation_year: string
+      hispanic_ethnicity: string
+      location: {
+        address: string
+        city: string
+        state: string
+        zip: string
+      }
+      race: string
+      school: string
+      schools: string[]
+      sis_id: string
+      state_id: string
+      student_number: string
+      email: string
+    }
+  }
+}
+
+export type TCleverSections = {
+  data: Array<{
+    data: TCleverSectionData
+    uri: string
+  }>
+  links: TCleverLinks
+}
+
+export type TCleverSectionData = {
+  course: string // Course ID.
+  created: ISOString
+  district: string // District ID.
+  grade: string // Like 6, 7, 8 etc.
+  last_modified: ISOString
+  name: string
+  period: string
+  school: string // School ID.
+  section_number: string
+  sis_id: string
+  students: Array<any>
+  subject: string // One-of: "english/language arts","math","science","social studies","language","homeroom/advisory", "interventions/online learning","technology and engineering","PE and health","arts and music","other",""
+  teacher: string // Teacher ID.
+  teachers: Array<any>
+  term_id: string
+  id: string // This section (i.e. class) ID.
 }
 
 export type UPchieveSchoolId = string
@@ -242,6 +271,40 @@ export async function getStudentsInSchool(
     headers: createBearerAuthHeader(accessToken),
   })
   return response.data.data ?? []
+}
+
+export async function getTeacherClasses(
+  cleverTeacherId: string,
+  accessToken: string
+): Promise<TCleverSectionData[]> {
+  const response = await axios.get<TCleverSections>(
+    API_BASE_URI + '/users/' + cleverTeacherId + '/sections',
+    {
+      headers: createBearerAuthHeader(accessToken),
+    }
+  )
+  return response.data.data.map(d => d.data)
+}
+
+export async function getTeacherStudents(
+  cleverTeacherId: string,
+  accessToken: string
+): Promise<TCleverStudentData[]> {
+  const response = await axios.get<TCleverStudents>(
+    API_BASE_URI + '/users/' + cleverTeacherId + '/mystudents',
+    {
+      headers: createBearerAuthHeader(accessToken),
+    }
+  )
+  return response.data.data.map(d => d.data)
+}
+
+export function isStudent(userType: string) {
+  return userType === 'student'
+}
+
+export function isTeacher(userType: string) {
+  return userType === 'teacher'
 }
 
 export function parseCleverGrade(grade?: string): number | undefined {
