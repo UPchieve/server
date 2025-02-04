@@ -1,12 +1,16 @@
+/**
+ * @group database/parallel
+ */
+
 import {
   createSessionAudio,
   getSessionAudioBySessionId,
   updateSessionAudio,
-} from '../../../models/SessionAudio'
-import { getDbUlid, Ulid } from '../../../models/pgUtils'
-import { buildSessionAudioRow, buildSessionRow } from '../../mocks/generate'
-import { getClient } from '../../../db'
-import { insertSingleRow } from '../../db-utils'
+} from '../../models/SessionAudio'
+import { getDbUlid, Ulid } from '../../models/pgUtils'
+import { buildSessionAudioRow, buildSessionRow } from '../mocks/generate'
+import { getClient } from '../../db'
+import { insertSingleRow } from '../db-utils'
 
 describe('SessionAudio', () => {
   const dbClient = getClient()

@@ -1,12 +1,16 @@
+/**
+ * @group database/parallel
+ */
+
 import {
   createStudentProfile,
   getStudentContactInfoById,
   upsertStudentProfile,
-} from '../../../models/Student/queries'
+} from '../../models/Student/queries'
 import { Ulid } from 'id128'
 import { faker } from '@faker-js/faker'
-import { CreateUserPayload } from '../../../models/User'
-import { getClient } from '../../../db'
+import { CreateUserPayload } from '../../models/User'
+import { getClient } from '../../db'
 
 const client = getClient()
 

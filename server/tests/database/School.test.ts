@@ -1,12 +1,16 @@
-import { getPartnerSchools } from '../../../models/School'
-import { getClient } from '../../../db'
-import { getDbUlid } from '../../../models/pgUtils'
-import { insertSingleRow } from '../../db-utils'
+/**
+ * @group database/parallel
+ */
+
+import { getPartnerSchools } from '../../models/School'
+import { getClient } from '../../db'
+import { getDbUlid } from '../../models/pgUtils'
+import { insertSingleRow } from '../db-utils'
 import {
   buildStudentPartnerOrg,
   buildStudentPartnerOrgUpchieveInstance,
-} from '../../mocks/generate'
-import * as SchoolService from '../../../services/SchoolService'
+} from '../mocks/generate'
+import * as SchoolService from '../../services/SchoolService'
 
 const client = getClient()
 

@@ -1,13 +1,17 @@
+/**
+ * @group database/parallel
+ */
+
 import { faker } from '@faker-js/faker'
-import { getClient } from '../../../db'
+import { getClient } from '../../db'
 import {
   getDbUlid,
   makeRequired,
   makeSomeOptional,
   Ulid,
   Uuid,
-} from '../../../models/pgUtils'
-import * as AssignmentsRepo from '../../../models/Assignments'
+} from '../../models/pgUtils'
+import * as AssignmentsRepo from '../../models/Assignments'
 
 const client = getClient()
 

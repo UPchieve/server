@@ -1,16 +1,20 @@
+/**
+ * @group database/parallel
+ */
+
 import { faker } from '@faker-js/faker'
 import { Ulid } from 'id128'
-import { getClient } from '../../../db'
+import { getClient } from '../../db'
 import {
   createUserStudentPartnerOrgInstance,
   deactivateUserStudentPartnerOrgInstance,
   getStudentPartnerOrgByKey,
   getStudentPartnerOrgBySchoolId,
-} from '../../../models/StudentPartnerOrg'
-import { CreateUserPayload } from '../../../models/User'
-import { buildStudentPartnerOrg } from '../../mocks/generate'
-import { insertSingleRow } from '../../db-utils'
-import { getDbUlid } from '../../../models/pgUtils'
+} from '../../models/StudentPartnerOrg'
+import { CreateUserPayload } from '../../models/User'
+import { buildStudentPartnerOrg } from '../mocks/generate'
+import { insertSingleRow } from '../db-utils'
+import { getDbUlid } from '../../models/pgUtils'
 
 const client = getClient()
 

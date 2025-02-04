@@ -1,12 +1,16 @@
+/**
+ * @group database/parallel
+ */
+
 import { faker } from '@faker-js/faker'
-import { getDbUlid } from '../../../../database/seeds/utils'
-import { getClient } from '../../../db'
-import * as TeacherClassRepo from '../../../models/TeacherClass'
+import { getDbUlid } from '../../../database/seeds/utils'
+import { getClient } from '../../db'
+import * as TeacherClassRepo from '../../models/TeacherClass'
 import {
   addTestStudentToTestTeacherClass,
   createTestStudent,
   createTestTeacherClass,
-} from '../seed-utils'
+} from './seed-utils'
 
 const client = getClient()
 

@@ -1,4 +1,8 @@
-import { getVolunteerPartnerOrgIdByKey } from '../../../models/VolunteerPartnerOrg'
+/**
+ * @group database/parallel
+ */
+
+import { getVolunteerPartnerOrgIdByKey } from '../../models/VolunteerPartnerOrg'
 
 test('getVolunteerPartnerOrgIdByKey when VPO with key exists', async () => {
   const actual = await getVolunteerPartnerOrgIdByKey('big-telecom')

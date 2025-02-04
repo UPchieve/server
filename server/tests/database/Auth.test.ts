@@ -1,7 +1,11 @@
-import { getClient } from '../../../db'
-import { getDbUlid } from '../../../models/pgUtils'
+/**
+ * @group database/parallel
+ */
+
+import { getClient } from '../../db'
+import { getDbUlid } from '../../models/pgUtils'
 import moment from 'moment'
-import { deleteAuthSessionsByUserId } from '../../../models/Auth'
+import { deleteAuthSessionsByUserId } from '../../models/Auth'
 
 describe('Auth', () => {
   const client = getClient()

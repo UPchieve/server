@@ -1,5 +1,9 @@
+/**
+ * @group database/parallel
+ */
+
 import { faker } from '@faker-js/faker'
-import { getClient } from '../../../db'
+import { getClient } from '../../db'
 import {
   banUserById,
   createUser,
@@ -8,27 +12,27 @@ import {
   getUserContactInfoById,
   upsertUser,
   UserContactInfo,
-} from '../../../models/User'
+} from '../../models/User'
 import {
   SESSION_REPORT_REASON,
   USER_BAN_REASONS,
   USER_BAN_TYPES,
-} from '../../../constants'
-import { reportSession } from '../../../services/SessionService'
+} from '../../constants'
+import { reportSession } from '../../services/SessionService'
 import {
   buildSessionRow,
   buildStudentPartnerOrg,
   buildStudentPartnerOrgUpchieveInstance,
   buildStudentProfile,
   buildUserRole,
-} from '../../mocks/generate'
-import { insertSingleRow } from '../../db-utils'
-import { adminUpdateUser } from '../../../services/UserService'
-import { getDbUlid } from '../../../models/pgUtils'
-import { getLegacyUser } from '../../../models/User/pg.queries'
+} from '../mocks/generate'
+import { insertSingleRow } from '../db-utils'
+import { adminUpdateUser } from '../../services/UserService'
+import { getDbUlid } from '../../models/pgUtils'
+import { getLegacyUser } from '../../models/User/pg.queries'
 
 const client = getClient()
-jest.mock('../../../services/MailService')
+jest.mock('../../services/MailService')
 
 test('createUser', async () => {
   const user = {
