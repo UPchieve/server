@@ -37,6 +37,40 @@ const getFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true},
 export const getFederatedCredential = new PreparedQuery<IGetFederatedCredentialParams,IGetFederatedCredentialResult>(getFederatedCredentialIR);
 
 
+/** 'GetFederatedCredentialForUser' parameters type */
+export interface IGetFederatedCredentialForUserParams {
+  userId: string;
+}
+
+/** 'GetFederatedCredentialForUser' return type */
+export interface IGetFederatedCredentialForUserResult {
+  id: string;
+  issuer: string;
+  userId: string | null;
+}
+
+/** 'GetFederatedCredentialForUser' query type */
+export interface IGetFederatedCredentialForUserQuery {
+  params: IGetFederatedCredentialForUserParams;
+  result: IGetFederatedCredentialForUserResult;
+}
+
+const getFederatedCredentialForUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":71}]}],"statement":"SELECT\n    *\nFROM\n    federated_credentials\nWHERE\n    user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     *
+ * FROM
+ *     federated_credentials
+ * WHERE
+ *     user_id = :userId!
+ * ```
+ */
+export const getFederatedCredentialForUser = new PreparedQuery<IGetFederatedCredentialForUserParams,IGetFederatedCredentialForUserResult>(getFederatedCredentialForUserIR);
+
+
 /** 'InsertFederatedCredential' parameters type */
 export interface IInsertFederatedCredentialParams {
   id: string;
