@@ -7,6 +7,7 @@ import {
   getFederatedCredential,
   insertFederatedCredential,
 } from '../../models/FederatedCredential/queries'
+import * as FedCredService from '../../services/FederatedCredentialService'
 import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
@@ -53,8 +54,17 @@ async function passportRegisterUser(
       return done(null, false)
     }
 
-    const existingUser = await getUserIdByEmail(email)
-    if (existingUser) {
+    const existingUserId = await getUserIdByEmail(email)
+    if (existingUserId) {
+      // We will link this account if the student has already used Clever with us.
+      const existingFedCred = await FedCredService.getFederatedCredentialByUserId(
+        existingUserId
+      )
+      // TODO: Use enum value for matching issuer that I have added in a different MR.
+      if (existingFedCred?.issuer.includes('clever')) {
+        await FedCredService.linkAccount(profile.id, issuer, existingUserId)
+        return done(null, { id: existingUserId })
+      }
       return done(null, false, {
         errorMessage: `Account with ${providerName} email already exists.`,
       })
