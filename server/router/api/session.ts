@@ -450,11 +450,12 @@ export function routeSession(router: Router) {
       const {
         meeting,
         attendee,
+        partnerAttendee,
       } = await SessionMeetingService.getOrCreateSessionMeeting(
         sessionId,
         userId
       )
-      return res.json({ meeting, attendee })
+      return res.json({ meeting, attendee, partnerAttendee })
     } catch (err) {
       resError(res, err)
     }

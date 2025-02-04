@@ -25,9 +25,10 @@ import { LookupError, RepoCreateError } from '../models/Errors'
 import logger from '../logger'
 import { SessionMeeting } from '../models/SessionMeeting'
 
-export type SessionMeetingWithAttendee = {
+export type SessionMeetingWithAttendees = {
   meeting: Meeting
   attendee: Attendee
+  partnerAttendee: Attendee | null
 }
 
 async function handleExistingMeeting({
@@ -38,19 +39,19 @@ async function handleExistingMeeting({
   existingMeeting: SessionMeeting
   sessionId: string
   userId: string
-}): Promise<SessionMeetingWithAttendee> {
+}): Promise<SessionMeetingWithAttendees> {
   // If there is an existing meeting, check if it includes userId in the attendees.
   // If not, create one, and return these.
   const meeting = await getMeeting({
     meetingId: existingMeeting.externalId,
     sessionId,
   })
-  const attendee = await getOrCreateAttendee({
+  const { attendee, partnerAttendee } = await getOrCreateAttendee({
     userId,
     meetingId: existingMeeting.externalId,
     sessionId,
   })
-  return { meeting, attendee }
+  return { meeting, attendee, partnerAttendee }
 }
 
 async function handleNoExistingMeeting(
@@ -62,7 +63,7 @@ async function handleNoExistingMeeting(
     sessionId: string
     userId: string
   }
-): Promise<SessionMeetingWithAttendee> {
+): Promise<SessionMeetingWithAttendees> {
   const created = await createMeetingWithAttendee({ sessionId, userId })
   const meeting = created.meeting
   const attendee = created.attendee
@@ -74,7 +75,7 @@ async function handleNoExistingMeeting(
       'chime',
       tc
     )
-    return { meeting, attendee }
+    return { meeting, attendee, partnerAttendee: null }
   } catch (err) {
     if (err instanceof RepoCreateError) {
       const sessionMeeting = await handleInsertSessionMeetingFailure(tc, {
@@ -124,7 +125,7 @@ export async function getOrCreateSessionMeeting(
   sessionId: string,
   userId: string,
   transactionClient?: TransactionClient
-): Promise<SessionMeetingWithAttendee> {
+): Promise<SessionMeetingWithAttendees> {
   const client = transactionClient ?? getClient()
   // Get existing meeting if it exists
   let existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
@@ -168,7 +169,7 @@ async function getOrCreateAttendee({
   userId: string
   meetingId: string
   sessionId: string
-}): Promise<Attendee> {
+}): Promise<{ attendee: Attendee; partnerAttendee: Attendee | null }> {
   const client = AwsChimeService.getClient()
   const attendees = await client.send<
     ListAttendeesCommandInput,
@@ -181,7 +182,14 @@ async function getOrCreateAttendee({
   const thisAttendee = (attendees.Attendees ?? []).find(
     a => a.ExternalUserId === userId
   )
-  if (thisAttendee) return thisAttendee
+  const otherAttendees = (attendees.Attendees ?? []).filter(
+    a => a.ExternalUserId !== userId
+  )
+  const partnerAttendee = otherAttendees.length ? otherAttendees[0] : null
+  if (thisAttendee) {
+    return { attendee: thisAttendee, partnerAttendee }
+  }
+
   const createdAttendee = await client.send<
     CreateAttendeeCommandInput,
     CreateAttendeeCommandOutput
@@ -195,7 +203,10 @@ async function getOrCreateAttendee({
     throw new Error(
       `Failed to create new attendee for user ${userId} for meeting ${meetingId} of session ${sessionId}`
     )
-  return createdAttendee.Attendee
+  return {
+    attendee: createdAttendee.Attendee,
+    partnerAttendee,
+  }
 }
 async function createMeetingWithAttendee({
   sessionId,
@@ -226,6 +237,7 @@ async function createMeetingWithAttendee({
       ...createAttendeeReq,
     })
   )
+
   if (!created.Meeting || !created.Attendees?.length)
     throw new Error(
       `Failed to create meeting for session ${sessionId} and attendee for user ${userId}`
