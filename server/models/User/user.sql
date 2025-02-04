@@ -28,6 +28,19 @@ ON CONFLICT (email)
         id, email, first_name, proxy_email, (xmax = 0) AS is_created;
 
 
+/* @name getUserVerificationByEmail */
+SELECT
+    id,
+    email,
+    email_verified,
+    phone_verified,
+    verified
+FROM
+    users
+WHERE
+    email = :email!;
+
+
 /* @name getUserIdByEmail */
 SELECT
     id

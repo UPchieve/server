@@ -8,7 +8,11 @@ import {
   insertFederatedCredential,
 } from '../../models/FederatedCredential/queries'
 import * as FedCredService from '../../services/FederatedCredentialService'
-import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
+import {
+  getUserForPassport,
+  getUserIdByEmail,
+  getUserVerificationByEmail,
+} from '../../models/User/queries'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
@@ -54,16 +58,13 @@ async function passportRegisterUser(
       return done(null, false)
     }
 
-    const existingUserId = await getUserIdByEmail(email)
-    if (existingUserId) {
-      // We will link this account if the student has already used Clever with us.
-      const existingFedCred = await FedCredService.getFederatedCredentialByUserId(
-        existingUserId
-      )
-      // TODO: Use enum value for matching issuer that I have added in a different MR.
-      if (existingFedCred?.issuer.includes('clever')) {
-        await FedCredService.linkAccount(profile.id, issuer, existingUserId)
-        return done(null, { id: existingUserId })
+    const existingUser = await getUserVerificationByEmail(email)
+    if (existingUser) {
+      // We will link this SSO account if the email matches an existing user
+      // who has the same email and that email was verified.
+      if (existingUser.verified && existingUser.emailVerified) {
+        await FedCredService.linkAccount(profile.id, issuer, existingUser.id)
+        return done(null, { id: existingUser.id })
       }
       return done(null, false, {
         errorMessage: `Account with ${providerName} email already exists.`,
