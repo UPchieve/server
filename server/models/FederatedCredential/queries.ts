@@ -28,7 +28,7 @@ export async function getFederatedCredentialForUser(userId: Ulid) {
       return makeRequired(result[0])
     }
   } catch (err) {
-    throw new RepoUpdateError(err)
+    throw new RepoReadError(err)
   }
 }
 
