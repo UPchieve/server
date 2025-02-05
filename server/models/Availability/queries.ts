@@ -261,34 +261,31 @@ export async function updateAvailabilityByVolunteerId(
   timezone: string,
   tc: TransactionClient
 ): Promise<void> {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const rows: pgQueries.IInsertNewAvailabilityParams[] = []
-    for (const day in availability) {
-      const availabilityDay = availability[day as DAYS]
-      for (const hour in availabilityDay) {
-        const parsedHour = HOUR_TO_UTC_MAPPING[hour as HOURS]
-        if (availabilityDay[hour as HOURS])
-          rows.push({
-            availableEnd: parsedHour + 1,
-            availableStart: parsedHour,
-            day,
-            id: getDbUlid(),
-            timezone: timezone,
-            userId,
-          })
-      }
+  const rows: pgQueries.IInsertNewAvailabilityParams[] = []
+  for (const day in availability) {
+    const availabilityDay = availability[day as DAYS]
+    for (const hour in availabilityDay) {
+      const parsedHour = HOUR_TO_UTC_MAPPING[hour as HOURS]
+      if (availabilityDay[hour as HOURS])
+        rows.push({
+          availableEnd: parsedHour + 1,
+          availableStart: parsedHour,
+          day,
+          id: getDbUlid(),
+          timezone: timezone,
+          userId,
+        })
     }
-    const errors: string[] = []
-
-    for (const row of rows) {
-      const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
-      if (!(result.length && makeRequired(result[0])))
-        errors.push(
-          `Availability row ${JSON.stringify(row)} did not save correctly`
-        )
-    }
-    if (errors.length) throw new Error(errors.join('\n'))
-  }, tc)
+  }
+  const errors: string[] = []
+  for (const row of rows) {
+    const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
+    if (!(result.length && makeRequired(result[0])))
+      errors.push(
+        `Availability row ${JSON.stringify(row)} did not save correctly`
+      )
+  }
+  if (errors.length) throw new Error(errors.join('\n'))
 }
 
 export async function clearAvailabilityForVolunteer(
