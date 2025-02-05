@@ -1,17 +1,18 @@
 import {
+  addStudentsToTeacherClass,
   createStudentProfile,
   getStudentContactInfoById,
   upsertStudentProfile,
 } from '../../models/Student/queries'
-import { Ulid } from 'id128'
 import { faker } from '@faker-js/faker'
 import { CreateUserPayload } from '../../models/User'
 import { getClient } from '../../db'
+import { getDbUlid, Ulid } from '../../models/pgUtils'
 
 const client = getClient()
 
 test('Make a connection', async () => {
-  const result = await getStudentContactInfoById(Ulid.generate().toRaw())
+  const result = await getStudentContactInfoById(getDbUlid())
   expect(result).toBeUndefined()
 })
 
@@ -252,14 +253,61 @@ describe('upsertStudentProfile', () => {
   })
 })
 
+describe('addStudentsToTeacherClass', () => {
+  test('adds multiple students to the class', async () => {
+    const u1 = await createStudentProfile(
+      { userId: (await createUser()).id },
+      client
+    )
+    const u2 = await createStudentProfile(
+      { userId: (await createUser()).id },
+      client
+    )
+    const u3 = await createStudentProfile(
+      { userId: (await createUser()).id },
+      client
+    )
+
+    const c = await createTeacherClass()
+
+    await addStudentsToTeacherClass(
+      [u1.userId, u2.userId, u3.userId],
+      c.id,
+      client
+    )
+
+    const actual = await client.query(
+      'SELECT * FROM student_classes WHERE class_id = $1',
+      [c.id]
+    )
+    expect(actual.rows.length).toBe(3)
+    const actualUserIds = new Set(actual.rows.map(r => r.user_id))
+    expect(actualUserIds.has(u1.userId)).toBe(true)
+    expect(actualUserIds.has(u2.userId)).toBe(true)
+    expect(actualUserIds.has(u3.userId)).toBe(true)
+  })
+
+  test('does not throw error if student ids array is empty', async () => {
+    const c = await createTeacherClass()
+
+    await addStudentsToTeacherClass([], c.id, client)
+
+    const actual = await client.query(
+      'SELECT * FROM student_classes WHERE class_id = $1',
+      [c.id]
+    )
+    expect(actual.rows.length).toBe(0)
+  })
+})
+
 async function createUser(
   userData: Partial<CreateUserPayload> = {}
-): Promise<{ id: string }> {
+): Promise<{ id: Ulid }> {
   return (
     await client.query(
       'INSERT INTO users (id, first_name, last_name, email, referral_code) VALUES($1, $2, $3, $4, $5) RETURNING id',
       [
-        Ulid.generate().toRaw(),
+        getDbUlid(),
         userData.firstName ?? faker.person.firstName(),
         userData.lastName ?? faker.person.lastName(),
         userData.email ?? faker.internet.email(),
@@ -273,4 +321,13 @@ async function getStudentProfile(userId: string) {
   return client.query('SELECT * FROM student_profiles WHERE user_id = $1', [
     userId,
   ])
+}
+
+async function createTeacherClass() {
+  return (
+    await client.query(
+      'INSERT INTO teacher_classes (id, name, code) VALUES ($1, $2, $3) RETURNING id',
+      [getDbUlid(), faker.word.noun(), faker.string.alpha(6)]
+    )
+  ).rows[0]
 }

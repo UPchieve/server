@@ -305,6 +305,9 @@ const config: Static<typeof Config> = {
     moderatedScreenshareBucket:
       process.env.SUBWAY_MODERATED_SCREENSHARE_BUCKET ||
       'moderated-screenshare-bucket',
+    moderatedSessionImageUploadBucket:
+      process.env.SUBWAY_MODERATED_SESSION_IMAGE_UPLOAD_BUCKET ||
+      'moderated-session-images-bucket',
   },
   awsModerationToolsRegion:
     process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',

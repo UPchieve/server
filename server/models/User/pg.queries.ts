@@ -143,6 +143,46 @@ const upsertUserIR: any = {"usedParamSet":{"id":true,"firstName":true,"lastName"
 export const upsertUser = new PreparedQuery<IUpsertUserParams,IUpsertUserResult>(upsertUserIR);
 
 
+/** 'GetUserVerificationByEmail' parameters type */
+export interface IGetUserVerificationByEmailParams {
+  email: string;
+}
+
+/** 'GetUserVerificationByEmail' return type */
+export interface IGetUserVerificationByEmailResult {
+  email: string;
+  emailVerified: boolean;
+  id: string;
+  phoneVerified: boolean;
+  verified: boolean;
+}
+
+/** 'GetUserVerificationByEmail' query type */
+export interface IGetUserVerificationByEmailQuery {
+  params: IGetUserVerificationByEmailParams;
+  result: IGetUserVerificationByEmailResult;
+}
+
+const getUserVerificationByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":118}]}],"statement":"SELECT\n    id,\n    email,\n    email_verified,\n    phone_verified,\n    verified\nFROM\n    users\nWHERE\n    email = :email!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     email,
+ *     email_verified,
+ *     phone_verified,
+ *     verified
+ * FROM
+ *     users
+ * WHERE
+ *     email = :email!
+ * ```
+ */
+export const getUserVerificationByEmail = new PreparedQuery<IGetUserVerificationByEmailParams,IGetUserVerificationByEmailResult>(getUserVerificationByEmailIR);
+
+
 /** 'GetUserIdByEmail' parameters type */
 export interface IGetUserIdByEmailParams {
   email: string;
