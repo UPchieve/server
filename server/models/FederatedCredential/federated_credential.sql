@@ -8,6 +8,15 @@ WHERE
     AND issuer = :issuer!;
 
 
+/* @name getFederatedCredentialForUser */
+SELECT
+    *
+FROM
+    federated_credentials
+WHERE
+    user_id = :userId!;
+
+
 /* @name insertFederatedCredential */
 INSERT INTO federated_credentials (id, issuer, user_id)
     VALUES (:id!, :issuer!, :userId!);

@@ -1017,3 +1017,20 @@ export async function addStudentsToTeacherClass(
     throw new RepoCreateError(err)
   }
 }
+
+export async function getStudentByCleverId(
+  cleverStudentId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<{ id: Ulid } | undefined> {
+  try {
+    const result = await pgQueries.getStudentByCleverId.run(
+      {
+        cleverStudentId,
+      },
+      tc
+    )
+    if (result.length) return result[0]
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

@@ -115,6 +115,18 @@ export async function getUserIdByPhone(
   }
 }
 
+export async function getUserVerificationByEmail(email: string) {
+  try {
+    const result = await pgQueries.getUserVerificationByEmail.run(
+      { email },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getUserIdByEmail(
   email: string
 ): Promise<Ulid | undefined> {

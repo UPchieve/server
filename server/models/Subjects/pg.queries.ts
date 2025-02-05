@@ -383,3 +383,35 @@ const getSubjectNameIdMappingIR: any = {"usedParamSet":{},"params":[],"statement
 export const getSubjectNameIdMapping = new PreparedQuery<IGetSubjectNameIdMappingParams,IGetSubjectNameIdMappingResult>(getSubjectNameIdMappingIR);
 
 
+/** 'GetTopicIdFromName' parameters type */
+export interface IGetTopicIdFromNameParams {
+  topicName: string;
+}
+
+/** 'GetTopicIdFromName' return type */
+export interface IGetTopicIdFromNameResult {
+  id: number;
+}
+
+/** 'GetTopicIdFromName' query type */
+export interface IGetTopicIdFromNameQuery {
+  params: IGetTopicIdFromNameParams;
+  result: IGetTopicIdFromNameResult;
+}
+
+const getTopicIdFromNameIR: any = {"usedParamSet":{"topicName":true},"params":[{"name":"topicName","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":66}]}],"statement":"SELECT\n    id\nFROM\n    upchieve.topics\nWHERE\n    name = :topicName!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id
+ * FROM
+ *     upchieve.topics
+ * WHERE
+ *     name = :topicName!
+ * ```
+ */
+export const getTopicIdFromName = new PreparedQuery<IGetTopicIdFromNameParams,IGetTopicIdFromNameResult>(getTopicIdFromNameIR);
+
+

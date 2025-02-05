@@ -7,7 +7,12 @@ import {
   getFederatedCredential,
   insertFederatedCredential,
 } from '../../models/FederatedCredential/queries'
-import { getUserForPassport, getUserIdByEmail } from '../../models/User/queries'
+import * as FedCredService from '../../services/FederatedCredentialService'
+import {
+  getUserForPassport,
+  getUserIdByEmail,
+  getUserVerificationByEmail,
+} from '../../models/User/queries'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
@@ -53,8 +58,14 @@ async function passportRegisterUser(
       return done(null, false)
     }
 
-    const existingUser = await getUserIdByEmail(email)
+    const existingUser = await getUserVerificationByEmail(email)
     if (existingUser) {
+      // We will link this SSO account if the email matches an existing user
+      // who has the same email and that email was verified.
+      if (existingUser.verified && existingUser.emailVerified) {
+        await FedCredService.linkAccount(profile.id, issuer, existingUser.id)
+        return done(null, { id: existingUser.id })
+      }
       return done(null, false, {
         errorMessage: `Account with ${providerName} email already exists.`,
       })
@@ -248,6 +259,9 @@ export function addPassportAuthMiddleware() {
 }
 
 function getRedirectURI() {
-  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
-  return `${protocol}://${config.host}/auth/oauth2/redirect`
+  const host =
+    config.NODE_ENV === 'dev'
+      ? 'http://localhost:3000'
+      : `https://${config.host}`
+  return `${host}/auth/oauth2/redirect`
 }
