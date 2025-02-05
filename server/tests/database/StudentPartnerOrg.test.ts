@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { faker } from '@faker-js/faker'
 import { Ulid } from 'id128'
 import { getClient } from '../../db'

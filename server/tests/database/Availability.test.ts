@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { Ulid } from 'id128'
 import { getAvailabilityForVolunteer } from '../../models/Availability/queries'
 import createNewAvailability from '../../utils/create-new-availability'

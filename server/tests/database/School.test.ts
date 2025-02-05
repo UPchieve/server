@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { getPartnerSchools } from '../../models/School'
 import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'

@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { getClient } from '../../db'
 import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
 import {

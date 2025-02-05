@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import {
   buildSessionAudioTranscriptMessageRow,
   buildSessionMessageRow,
