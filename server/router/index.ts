@@ -22,12 +22,19 @@ import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
+import cors from 'cors'
 
 export default function(app: Express, io: Server) {
   logger.info('initializing server routing')
 
   // initialize session store
   const sessionStore = SessionStore(app)
+
+  var corsOptions = {
+    origin: 'http://localhost:8080',
+  }
+
+  app.use(cors(corsOptions))
 
   // initialize passport AFTER session store (https://stackoverflow.com/a/30882574)
   authPassport.setupPassport()

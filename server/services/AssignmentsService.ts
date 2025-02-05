@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { runInTransaction, TransactionClient } from '../db'
-import { getDbUlid, Ulid, Uuid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'

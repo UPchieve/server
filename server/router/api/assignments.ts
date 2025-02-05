@@ -56,4 +56,6 @@ export function routeAssignments(router: Router): void {
       resError(res, err)
     }
   })
+
+  router.use(cors(corsOptions))
 }
