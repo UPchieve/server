@@ -115,13 +115,11 @@ export async function getSessionPhotoUploadUrl(
   }
 }
 
-export async function getPdfUploadUrl(
-  pdfS3Key: string
-): Promise<string> {
+export async function getPdfUploadUrl(pdfS3Key: string): Promise<string> {
   const signedUrlParams = {
     Bucket: config.awsS3.teacherUploadBucket,
     Key: pdfS3Key,
-    ACL: ObjectCannedACL.bucket_owner_full_control
+    ACL: ObjectCannedACL.bucket_owner_full_control,
   }
 
   try {
@@ -129,11 +127,11 @@ export async function getPdfUploadUrl(
       s3,
       new PutObjectCommand(signedUrlParams),
       {
-        expiresIn: 60 * 60
+        expiresIn: 60 * 60,
       }
     )
     return uploadUrl
-  } catch(error) {
+  } catch (error) {
     Sentry.captureException(error)
     logError(error as Error)
     return ''
