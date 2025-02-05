@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { getClient } from '../../db'
 import * as SessionAudioTranscriptMessagesRepo from '../../models/SessionAudioTranscriptMessages/queries'
 import { buildSessionRow } from '../mocks/generate'

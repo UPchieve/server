@@ -1,3 +1,7 @@
+/**
+ * @group database/sequential
+ */
+
 import {
   Availability,
   updateAvailabilityByVolunteerId,
