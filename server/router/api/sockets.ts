@@ -623,14 +623,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/sessions:leave', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            socket.leave(getSessionRoom(sessionId))
-            delete socket.data.sessionId
-            const user = extractSocketUser(socket)
             const sessionRoom = getSessionRoom(sessionId)
-            await socket
-              .to(sessionRoom)
-              .except(user.id)
-              .emit('sessions/partner:in-session', false)
+            // Ensure the user's socket is part of the session room before leaving.
+            // This prevents emitting session-presence from non-session participants
+            const isSocketInRoom = socket.rooms.has(sessionRoom)
+            if (isSocketInRoom) {
+              socket.leave(sessionRoom)
+              delete socket.data.sessionId
+              const user = extractSocketUser(socket)
+              await socket
+                .to(sessionRoom)
+                .except(user.id)
+                .emit('sessions/partner:in-session', false)
+            }
             resolve()
           } catch (error) {
             reject(error)
