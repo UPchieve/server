@@ -6,6 +6,18 @@ const OAUTH_BASE_URI = 'https://clever.com/oauth/tokens'
 const API_BASE_URI = 'https://api.clever.com/v3.0'
 const API_BASE_URI_WITHOUT_VERSION = 'https://api.clever.com'
 
+type TCleverSingleResponse<T> = {
+  data: T
+  links: TCleverLinks
+}
+
+type TCleverManyResponse<T> = {
+  data: Array<{
+    data: T
+  }>
+  links: TCleverLinks
+}
+
 type TCleverLinkType = 'self' | 'canonical'
 type TCleverLinks = Array<{
   rel: TCleverLinkType
@@ -228,11 +240,9 @@ export async function getUserProfile(
  */
 export async function getSchoolsInDistrict(
   accessToken: string
-): Promise<TCleverSchools['data']> {
-  const response = await axios.get<TCleverSchools>(API_BASE_URI + '/schools', {
-    headers: createBearerAuthHeader(accessToken),
-  })
-  return response.data.data
+): Promise<TCleverSchoolData[]> {
+  const url = API_BASE_URI + '/schools'
+  return cleverGetMany<TCleverSchoolData>(url, accessToken)
 }
 
 /*
@@ -241,14 +251,9 @@ export async function getSchoolsInDistrict(
 export async function getSchool(
   cleverSchoolId: string,
   accessToken: string
-): Promise<TCleverSchool['data']> {
-  const response = await axios.get<TCleverSchool>(
-    API_BASE_URI + '/schools/' + cleverSchoolId,
-    {
-      headers: createBearerAuthHeader(accessToken),
-    }
-  )
-  return response.data.data
+): Promise<TCleverSchoolData> {
+  const url = API_BASE_URI + '/schools/' + cleverSchoolId
+  return cleverGetSingle<TCleverSchoolData>(url, accessToken)
 }
 
 /*
@@ -260,43 +265,30 @@ export async function getStudentsInSchool(
   cleverSchoolId: string,
   accessToken: string,
   startingAfterId?: string
-): Promise<TCleverStudents['data']> {
+): Promise<TCleverStudentData[]> {
   const url =
     API_BASE_URI +
     '/schools/' +
     cleverSchoolId +
     '/users?primary=true&role=student&limit=500' +
     (startingAfterId ? `&starting_after=${startingAfterId}` : '')
-  const response = await axios.get<TCleverStudents>(url, {
-    headers: createBearerAuthHeader(accessToken),
-  })
-  return response.data.data ?? []
+  return cleverGetMany<TCleverStudentData>(url, accessToken)
 }
 
 export async function getTeacherClasses(
   cleverTeacherId: string,
   accessToken: string
 ): Promise<TCleverSectionData[]> {
-  const response = await axios.get<TCleverSections>(
-    API_BASE_URI + '/users/' + cleverTeacherId + '/sections',
-    {
-      headers: createBearerAuthHeader(accessToken),
-    }
-  )
-  return response.data.data.map(d => d.data)
+  const url = API_BASE_URI + '/users/' + cleverTeacherId + '/sections'
+  return cleverGetMany<TCleverSectionData>(url, accessToken)
 }
 
 export async function getTeacherStudents(
   cleverTeacherId: string,
   accessToken: string
 ): Promise<TCleverStudentData[]> {
-  const response = await axios.get<TCleverStudents>(
-    API_BASE_URI + '/users/' + cleverTeacherId + '/mystudents',
-    {
-      headers: createBearerAuthHeader(accessToken),
-    }
-  )
-  return response.data.data.map(d => d.data)
+  const url = API_BASE_URI + '/users/' + cleverTeacherId + '/mystudents'
+  return cleverGetMany<TCleverStudentData>(url, accessToken)
 }
 
 export function isStudent(userType: string) {
@@ -328,4 +320,24 @@ function createBearerAuthHeader(accessToken: string) {
   return {
     Authorization: `Bearer ${accessToken}`,
   }
+}
+
+async function cleverGetSingle<T>(
+  url: string,
+  accessToken: string
+): Promise<T> {
+  const response = await axios.get<TCleverSingleResponse<T>>(url, {
+    headers: createBearerAuthHeader(accessToken),
+  })
+  return response.data.data
+}
+
+async function cleverGetMany<T>(
+  url: string,
+  accessToken: string
+): Promise<T[]> {
+  const response = await axios.get<TCleverManyResponse<T>>(url, {
+    headers: createBearerAuthHeader(accessToken),
+  })
+  return response.data.data.map(d => d.data)
 }
