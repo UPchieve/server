@@ -16,6 +16,10 @@ import * as SchoolService from '../../services/SchoolService'
 export type TCleverPassportProfile = passport.Profile & {
   issuer: string
   schoolId?: Uuid
+  teacher?: {
+    classes: CleverAPIService.TCleverSectionData[]
+    students: CleverAPIService.TCleverStudentData[]
+  }
   userType: UserRole
 }
 
@@ -63,9 +67,21 @@ export default class CleverStrategy extends OAuth2Strategy {
           familyName: user.name.last,
           givenName: user.name.first,
         },
+        provider: 'Clever',
+        teacher: CleverAPIService.isTeacher(userType)
+          ? {
+              classes: await CleverAPIService.getTeacherClasses(
+                user.id,
+                accessToken
+              ),
+              students: await CleverAPIService.getTeacherStudents(
+                user.id,
+                accessToken
+              ),
+            }
+          : undefined,
         schoolId: upchieveSchoolId,
         userType: this.getUserType(user.roles),
-        provider: 'Clever',
       }
 
       return done(null, profile)
