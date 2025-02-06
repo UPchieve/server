@@ -3,10 +3,7 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as GoogleStrategy } from 'passport-google-oidc'
 import CleverStrategy, { TCleverPassportProfile } from './clever-strategy'
-import {
-  getFederatedCredential,
-  insertFederatedCredential,
-} from '../../models/FederatedCredential/queries'
+import { getFederatedCredential } from '../../models/FederatedCredential/queries'
 import * as FedCredService from '../../services/FederatedCredentialService'
 import {
   getUserForPassport,
@@ -220,7 +217,7 @@ export function addPassportAuthMiddleware() {
           }
           await UserCreationService.upsertStudent(data)
         }
-        await insertFederatedCredential(
+        await FedCredService.linkAccount(
           profile.id,
           profile.issuer,
           existingUserId

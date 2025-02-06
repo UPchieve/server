@@ -157,13 +157,13 @@ export async function updateTeacherClass(data: {
   }
 }
 
-export async function deactivateTeacherClass(id: string) {
+export async function deactivateTeacherClass(id: Ulid, tc: TransactionClient) {
   try {
     const updatedClass = await pgQueries.deactivateTeacherClass.run(
       {
         id,
       },
-      getClient()
+      tc
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
