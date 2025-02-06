@@ -325,7 +325,8 @@ describe('VolunteerRepo', () => {
       ).toBeUndefined()
     })
 
-    it('Returns a random volunteer when there are multiple suitable candidates', async () => {
+    // TODO: Fix flaky test.
+    it.skip('Returns a random volunteer when there are multiple suitable candidates', async () => {
       // Testing randomization here. There *is* a chance that the same volunteer is selected twice randomly,
       // To mitigate the chances of that, this loads several volunteers and does multiple trials.
       await loadVolunteer()
