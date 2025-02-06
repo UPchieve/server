@@ -10,9 +10,14 @@ import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
 import * as UserRepo from '../models/User'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
-import { Uuid } from 'id128'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { StudentUserProfile } from '../models/Student'
+
+export async function getTeacherById(userId: Ulid, tc?: TransactionClient) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    return TeacherRepo.getTeacherById(userId, tc)
+  }, tc)
+}
 
 export async function createTeacherClass(
   userId: Ulid,
