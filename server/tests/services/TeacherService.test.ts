@@ -96,6 +96,7 @@ describe('createTeacherClass', () => {
     mockedTeacherRepo.getTeacherClassByClassCode
       .mockResolvedValueOnce({
         id: 'a',
+        cleverId: undefined,
         userId: 'a',
         code: 'a',
         name: 'a',
@@ -107,6 +108,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'b',
+        cleverId: undefined,
         userId: 'b',
         code: 'b',
         name: 'b',
@@ -118,6 +120,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'c',
+        cleverId: undefined,
         userId: 'c',
         code: 'c',
         name: 'c',
@@ -129,6 +132,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'd',
+        cleverId: undefined,
         userId: 'd',
         code: 'd',
         name: 'd',
@@ -140,6 +144,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'e',
+        cleverId: undefined,
         userId: 'e',
         code: 'e',
         name: 'e',
@@ -161,6 +166,7 @@ describe('createTeacherClass', () => {
     mockedTeacherRepo.getTeacherClassByClassCode
       .mockResolvedValueOnce({
         id: 'a',
+        cleverId: undefined,
         userId: 'a',
         code: 'a',
         name: 'a',
@@ -172,6 +178,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'b',
+        cleverId: undefined,
         userId: 'b',
         code: 'b',
         name: 'b',
@@ -183,6 +190,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'c',
+        cleverId: undefined,
         userId: 'c',
         code: 'c',
         name: 'c',
@@ -194,6 +202,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'd',
+        cleverId: undefined,
         userId: 'd',
         code: 'd',
         name: 'd',
@@ -235,6 +244,7 @@ describe('getTeacherSchoolIdFromClassCode', () => {
   test(`returns the teacher's school id`, async () => {
     const teacherClass = {
       id: 'teacher-class-id',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'teacher-class-name',
       code: 'C0D3',
@@ -269,6 +279,7 @@ describe('getTeacherSchoolIdFromClassCode', () => {
   test('returns undefined if no teacher found with userId', async () => {
     const teacherClass = {
       id: 'teacher-class-id',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'teacher-class-name',
       code: 'C0D3',
@@ -292,6 +303,7 @@ describe('addStudentToTeacherClass', () => {
   test('adds a student to a teacher class', async () => {
     const teacherClass = {
       id: 'teacher-class-id',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'teacher-class-name',
       code: 'mo@r-c0d3',
@@ -319,6 +331,7 @@ describe('addStudentToTeacherClass', () => {
   test('adds the student to all the class assignments', async () => {
     const teacherClass = {
       id: 'classId',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'class name',
       code: 'AAA111',
