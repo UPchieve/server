@@ -53,34 +53,29 @@ export async function rosterDistrict(
     try {
       let upchieveSchool
 
-      const upchieveSchoolId = cleverToUPchieveIds?.[school.data.id]
+      const upchieveSchoolId = cleverToUPchieveIds?.[school.id]
       if (upchieveSchoolId) {
         upchieveSchool = await SchoolService.getSchool(upchieveSchoolId)
-      } else if (school.data.nces_id) {
-        upchieveSchool = await SchoolService.getSchoolByNcesId(
-          school.data.nces_id
-        )
+      } else if (school.nces_id) {
+        upchieveSchool = await SchoolService.getSchoolByNcesId(school.nces_id)
       }
 
       if (!upchieveSchool) {
         let failureReason
         if (upchieveSchoolId) {
           failureReason = `No UPchieve school found with ID of ${upchieveSchoolId}`
-        } else if (school.data.nces_id) {
-          failureReason = `No UPchieve school found with nces_id of ${school.data.nces_id}`
+        } else if (school.nces_id) {
+          failureReason = `No UPchieve school found with nces_id of ${school.nces_id}`
         } else {
           failureReason =
             'Clever school does not contain nces_id and no mapping to UPchieve school provided.'
         }
 
-        upsertReport.failedSchools[school.data.id] = failureReason
+        upsertReport.failedSchools[school.id] = failureReason
         continue
       }
 
-      let cleverStudents = await getStudentsInSchool(
-        school.data.id,
-        accessToken
-      )
+      let cleverStudents = await getStudentsInSchool(school.id, accessToken)
       while (cleverStudents.length) {
         const filteredOut: {
           id: string
@@ -90,24 +85,24 @@ export async function rosterDistrict(
         }[] = []
         const students = cleverStudents
           .filter(s => {
-            const grade = parseCleverGrade(s.data.roles.student.grade)
+            const grade = parseCleverGrade(s.roles.student.grade)
             if (grade && grade > 5 && grade < 13) {
               return true
             }
             filteredOut.push({
-              id: s.data.id,
-              email: s.data.email,
-              gradeLevel: s.data.roles.student.grade,
+              id: s.id,
+              email: s.email,
+              gradeLevel: s.roles.student.grade,
               parsedGradeLevel: grade,
             })
             return false
           })
           .map(s => {
             return {
-              firstName: s.data.name.first,
-              lastName: s.data.name.last,
-              email: s.data.email,
-              gradeLevel: s.data.roles.student.grade,
+              firstName: s.name.first,
+              lastName: s.name.last,
+              email: s.email,
+              gradeLevel: s.roles.student.grade,
             }
           })
 
@@ -118,8 +113,8 @@ export async function rosterDistrict(
         )
 
         const { created = [], updated = [], failed = [] } =
-          upsertReport.updatedSchools[school.data.id] || {}
-        upsertReport.updatedSchools[school.data.id] = {
+          upsertReport.updatedSchools[school.id] || {}
+        upsertReport.updatedSchools[school.id] = {
           upchieveSchoolId: upchieveSchool.id,
           created: [...created, ...result.created],
           updated: [...updated, ...result.updated],
@@ -127,16 +122,15 @@ export async function rosterDistrict(
           failed: [...failed, ...result.failed],
         }
 
-        const lastStudentCleverId =
-          cleverStudents[cleverStudents.length - 1].data.id
+        const lastStudentCleverId = cleverStudents[cleverStudents.length - 1].id
         cleverStudents = await getStudentsInSchool(
-          school.data.id,
+          school.id,
           accessToken,
           lastStudentCleverId
         )
       }
     } catch (err) {
-      upsertReport.failedSchools[school.data.id] = `Error: ${err}`
+      upsertReport.failedSchools[school.id] = `Error: ${err}`
       continue
     }
   }
