@@ -1,4 +1,5 @@
 import { Ulid, Uuid } from '../pgUtils'
+import { StudentUserProfile } from '../Student'
 
 export type TeacherProfile = {
   userId: Ulid
@@ -19,6 +20,10 @@ export type TeacherClass = {
   topicId?: number
   createdAt: Date
   updatedAt: Date
+}
+
+export type TeacherClassWithStudents = TeacherClass & {
+  students: StudentUserProfile[]
 }
 
 export type CreateTeacherClassPayload = Pick<
