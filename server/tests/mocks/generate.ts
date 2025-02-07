@@ -254,7 +254,6 @@ export function buildLegacyUser(
     pastSessions: [],
     lastActivityAt: undefined,
     referredBy: undefined,
-    type: 'student',
     userType: 'student',
     roleId: 1,
     sessionStats: {},
@@ -268,7 +267,6 @@ export function buildLegacyStudent(
   const legacyUser = buildLegacyUser()
   return {
     ...legacyUser,
-    type: 'student',
     userType: 'student',
     roleId: 1,
     gradeLevel: GRADES.NINTH,
@@ -290,7 +288,6 @@ export function buildLegacyVolunteer(
   const legacyUser = buildLegacyUser()
   return {
     ...legacyUser,
-    type: 'volunteer',
     userType: 'volunteer',
     roleId: 2,
     volunteerPartnerOrg: undefined,

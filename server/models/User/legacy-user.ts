@@ -20,7 +20,11 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
-import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
+import {
+  isStudentUserType,
+  isTeacherUserType,
+  isVolunteerUserType,
+} from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
@@ -55,7 +59,6 @@ export type LegacyUserModel = {
   lastActivityAt?: Date
   referralCode: string
   referredBy?: Ulid
-  type: string
   roleId: number
   sessionStats: UserSessionStats
   // volunteer
@@ -90,8 +93,11 @@ export type LegacyUserModel = {
   usesGoogle?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
+  // teacher
+  lastSuccessfulCleverSync?: Date
 }
 
+// TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
@@ -112,7 +118,6 @@ export async function getLegacyUserObject(
       'isTestUser',
       'isDeactivated',
       'referralCode',
-      'type',
     ])
     // manually parse out incoming bigint to number
     baseUser.hoursTutored =
@@ -137,6 +142,7 @@ export async function getLegacyUserObject(
     const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
     const studentUser: any = {}
+    const teacherUser: { usesClever?: boolean } = {}
     const userType = (await UserRolesService.getUserRolesById(userId)).userType
     const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
       userId,
@@ -196,11 +202,16 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
+    if (isTeacherUserType(userType)) {
+      teacherUser.usesClever =
+        baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
+    }
     const final = _.merge(
       { _id: baseUser.id, userType },
       baseUser,
       volunteerUser,
       studentUser,
+      teacherUser,
       { isBanned: baseUser.banType === 'complete' },
       {
         sessionStats,

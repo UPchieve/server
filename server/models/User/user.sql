@@ -442,12 +442,6 @@ SELECT
             FALSE
         END) AS is_volunteer,
     (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            'volunteer'
-        ELSE
-            'student'
-        END) AS TYPE,
-    (
         CASE WHEN admin_profiles.user_id IS NOT NULL THEN
             TRUE
         ELSE
@@ -487,7 +481,7 @@ SELECT
                 student_partner_orgs
             LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spoui.student_partner_org_id = student_partner_orgs.id
         WHERE
-            student_partner_orgs.school_id = student_profiles.school_id
+            student_partner_orgs.school_id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
             AND spoui.deactivated_on IS NULL) THEN
             TRUE
         ELSE
@@ -499,7 +493,8 @@ users_quizzes.total::int AS total_quizzes_passed,
 users_roles.role_id,
 muted_users_subject_alerts_agg.muted_subject_alerts,
 number_of_student_classes.count AS number_of_student_classes,
-federated_credentials_agg.issuers
+federated_credentials_agg.issuers,
+teacher_profiles.last_successful_clever_sync
 FROM
     users
     LEFT JOIN (
@@ -522,6 +517,7 @@ FROM
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+    LEFT JOIN teacher_profiles ON users.id = teacher_profiles.user_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
     LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id
@@ -592,7 +588,7 @@ FROM
         WHERE
             user_id = :userId!
             AND passed IS TRUE) AS users_quizzes ON TRUE
-    LEFT JOIN schools ON student_profiles.school_id = schools.id
+    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
