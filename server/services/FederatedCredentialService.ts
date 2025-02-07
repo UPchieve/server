@@ -1,11 +1,14 @@
-import * as Repo from '../models/FederatedCredential'
-import { Ulid } from '../models/pgUtils'
 import { runInTransaction, TransactionClient } from '../db'
-import { insertFederatedCredential } from '../models/FederatedCredential'
+import { Ulid } from '../models/pgUtils'
+import * as Repo from '../models/FederatedCredential'
 
 export enum Issuer {
   CLEVER = 'https://clever.com',
   GOOGLE = 'https://accounts.google.com',
+}
+
+export async function getFedCredForUser(profileId: string, issuer: string) {
+  return Repo.getFederatedCredential(profileId, issuer)
 }
 
 export async function linkAccount(
@@ -17,8 +20,4 @@ export async function linkAccount(
   return runInTransaction(async (tc: TransactionClient) => {
     await Repo.insertFederatedCredential(profileId, issuer, userId, tc)
   }, tc)
-}
-
-export async function getFederatedCredentialByUserId(userId: Ulid) {
-  return Repo.getFederatedCredentialForUser(userId)
 }

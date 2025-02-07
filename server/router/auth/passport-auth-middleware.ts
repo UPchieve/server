@@ -3,13 +3,10 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as GoogleStrategy } from 'passport-google-oidc'
 import CleverStrategy, { TCleverPassportProfile } from './clever-strategy'
-import { getFederatedCredential } from '../../models/FederatedCredential/queries'
+import * as UserRepo from '../../models/User/queries'
+import * as CleverAPIService from '../../services/CleverAPIService'
+import * as CleverRosterService from '../../services/CleverRosterService'
 import * as FedCredService from '../../services/FederatedCredentialService'
-import {
-  getUserForPassport,
-  getUserIdByEmail,
-  getUserVerificationByEmail,
-} from '../../models/User/queries'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
@@ -24,7 +21,10 @@ async function passportLoginUser(
   done: Function
 ) {
   try {
-    const existingFedCred = await getFederatedCredential(profileId, issuer)
+    const existingFedCred = await FedCredService.getFedCredForUser(
+      profileId,
+      issuer
+    )
     if (!existingFedCred) {
       return done(null, false)
     }
@@ -43,7 +43,10 @@ async function passportRegisterUser(
   done: Function
 ) {
   try {
-    const existingFedCred = await getFederatedCredential(profile.id, issuer)
+    const existingFedCred = await FedCredService.getFedCredForUser(
+      profile.id,
+      issuer
+    )
     if (existingFedCred) {
       return done(null, { id: existingFedCred.userId })
     }
@@ -55,7 +58,7 @@ async function passportRegisterUser(
       return done(null, false)
     }
 
-    const existingUser = await getUserVerificationByEmail(email)
+    const existingUser = await getUserVerificationByEmails(email, data?.email)
     if (existingUser) {
       // We will link this SSO account if the email matches an existing user
       // who has the same email and that email was verified.
@@ -92,7 +95,7 @@ export function addPassportAuthMiddleware() {
       },
       async function(email: string, passwordGiven: string, done: Function) {
         try {
-          const user = await getUserForPassport(email)
+          const user = await UserRepo.getUserForPassport(email)
 
           if (!user) {
             return done(null, false)
@@ -159,14 +162,13 @@ export function addPassportAuthMiddleware() {
       done: Function
     ) {
       const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-
       // Check if the user has already used Clever SSO.
-      const existingFedCred = await getFederatedCredential(
+      const existingFedCred = await FedCredService.getFedCredForUser(
         profile.id,
         profile.issuer
       )
       if (existingFedCred) {
-        if (userData && isStudent(profile)) {
+        if (userData && CleverAPIService.isStudent(profile.userType)) {
           const data = {
             schoolId: userData.schoolId,
             studentPartnerOrgKey: (userData as RegisterStudentPayload)
@@ -175,7 +177,18 @@ export function addPassportAuthMiddleware() {
               .studentPartnerOrgSiteName,
             userId: existingFedCred.userId,
           }
+          // Always upsert the student if there is data.
           await UserCreationService.upsertStudent(data)
+        } else if (
+          CleverAPIService.isTeacher(profile.userType) &&
+          profile.teacher
+        ) {
+          // Always update the teacher's classes whenever they sign in.
+          await CleverRosterService.rosterTeacherClasses(
+            existingFedCred.userId,
+            profile.teacher.classes,
+            profile.teacher.students
+          )
         }
         return done(null, { id: existingFedCred.userId })
       }
@@ -188,8 +201,7 @@ export function addPassportAuthMiddleware() {
         })
       }
 
-      const profileEmail = profile.emails?.[0]?.value
-      const email = profileEmail ?? userData?.email
+      const email = profile.emails?.[0]?.value ?? userData?.email
       if (!email) {
         // Redirect to get the email from the user so we can link
         // their account if an account already exists, or create an
@@ -204,29 +216,40 @@ export function addPassportAuthMiddleware() {
 
       // Check if the user already exists, but just hadn't used
       // Clever SSO before.
-      const existingUserId = await getUserIdByEmail(email)
-      if (existingUserId) {
-        if (userData && isStudent(profile)) {
+      const existingUser = await getUserVerificationByEmails(
+        email,
+        userData?.email
+      )
+      if (existingUser) {
+        if (userData && CleverAPIService.isStudent(profile.userType)) {
           const data = {
             schoolId: userData.schoolId,
             studentPartnerOrgKey: (userData as RegisterStudentPayload)
               .studentPartnerOrgKey,
             studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
               .studentPartnerOrgSiteName,
-            userId: existingUserId,
+            userId: existingUser.id,
           }
           await UserCreationService.upsertStudent(data)
+        } else if (
+          CleverAPIService.isTeacher(profile.userType) &&
+          profile.teacher
+        ) {
+          await CleverRosterService.rosterTeacherClasses(
+            existingUser.id,
+            profile.teacher.classes,
+            profile.teacher.students
+          )
         }
         await FedCredService.linkAccount(
           profile.id,
           profile.issuer,
-          existingUserId
+          existingUser.id
         )
-        return done(null, { id: existingUserId })
+        return done(null, { id: existingUser.id })
       }
 
-      // If the user hadn't previously used Clever SSO and didn't
-      // exist, register them.
+      // If the user doesn't exist, register them.
       const data = {
         ...userData,
         email,
@@ -236,22 +259,33 @@ export function addPassportAuthMiddleware() {
         profileId: profile.id,
         schoolId: profile.schoolId,
       }
-      if (isStudent(profile)) {
+      if (CleverAPIService.isStudent(profile.userType)) {
         const student = await UserCreationService.registerStudent(data)
         return done(null, student)
-      } else if (isTeacher(profile)) {
+      } else if (
+        CleverAPIService.isTeacher(profile.userType) &&
+        profile.teacher
+      ) {
         const teacher = await UserCreationService.registerTeacher(data)
+        await CleverRosterService.rosterTeacherClasses(
+          teacher.id,
+          profile.teacher.classes,
+          profile.teacher.students
+        )
         return done(null, teacher)
       }
     })
   )
+}
 
-  function isStudent(profile: TCleverPassportProfile) {
-    return profile.userType === 'student'
-  }
+async function getUserVerificationByEmails(
+  ...emails: Array<string | undefined>
+) {
+  for (const e of emails) {
+    if (!e) continue
 
-  function isTeacher(profile: TCleverPassportProfile) {
-    return profile.userType === 'teacher'
+    const user = await UserRepo.getUserVerificationByEmail(e)
+    if (user) return user
   }
 }
 
