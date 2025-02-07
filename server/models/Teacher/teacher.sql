@@ -25,6 +25,7 @@ WHERE
 /* @name getTeacherClassesByUserId */
 SELECT
     id,
+    clever_id,
     teacher_classes.user_id,
     name,
     code,
@@ -33,8 +34,7 @@ SELECT
     COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
     teacher_classes.updated_at,
-    teacher_classes.deactivated_on,
-    clever_id
+    teacher_classes.deactivated_on
 FROM
     teacher_classes
     LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id
@@ -47,6 +47,7 @@ GROUP BY
 /* @name getTeacherClassByClassCode */
 SELECT
     id,
+    clever_id,
     user_id,
     name,
     code,
@@ -64,6 +65,7 @@ WHERE
 /* @name getTeacherClassById */
 SELECT
     id,
+    clever_id,
     user_id,
     name,
     code,
