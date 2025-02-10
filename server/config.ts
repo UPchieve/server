@@ -431,6 +431,11 @@ const config: Static<typeof Config> = {
   tremendousCampaignCacheExpirationSeconds:
     Number(process.env.SUBWAY_TREMENDOUS_CAMPAIGNS_CACHE_EXPIRATION_SECONDS) ||
     86400,
+
+  // AWS Chime
+  awsChimeAccessKey: process.env.SUBWAY_AWS_CHIME_ACCESS_KEY || 'bogus',
+  awsChimeSecretAccessKey:
+    process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
 }
 
 module.exports = config

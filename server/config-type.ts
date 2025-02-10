@@ -278,4 +278,8 @@ export const Config = Record({
   tremendousImpactStudyCampaign: String,
   tremendousCustomFieldsCacheExpirationSeconds: Number,
   tremendousCampaignCacheExpirationSeconds: Number,
+
+  // AWS Chime
+  awsChimeAccessKey: String,
+  awsChimeSecretAccessKey: String,
 })
