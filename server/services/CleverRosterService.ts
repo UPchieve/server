@@ -1,82 +1,13 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import config from '../config'
-import { ISOString } from '../constants'
+import { runInTransaction, TransactionClient } from '../db'
+import { Ulid, Uuid } from '../models/pgUtils'
+import { TeacherClass, TeacherClassWithStudents } from '../models/Teacher'
+import * as CleverAPIService from './CleverAPIService'
+import * as FederatedCredentialService from './FederatedCredentialService'
 import * as SchoolService from './SchoolService'
+import * as StudentService from './StudentService'
+import * as SubjectsService from './SubjectsService'
+import * as TeacherService from './TeacherService'
 import * as UserCreationService from './UserCreationService'
-
-const OAUTH_BASE_URI = 'https://clever.com/oauth/tokens'
-const API_BASE_URI = 'https://api.clever.com/v3.0'
-
-type TCleverLinks = {
-  rel: string
-  uri: string
-}[]
-
-type TCleverDistrict = {
-  data: {
-    id: string
-    created: ISOString
-    owner: Object
-    access_token: string
-    scopes: string[]
-  }[]
-  links: TCleverLinks
-}
-
-type TCleverSchool = {
-  data: {
-    data: {
-      district: string
-      sis_id: string
-      nces_id?: string
-      last_modified: ISOString
-      name: string
-      school_number: string
-      created: ISOString
-      id: string
-    }
-    uri: string
-  }[]
-  links: TCleverLinks
-}
-
-type TCleverStudent = {
-  data: TCleverStudentData[]
-  links: TCleverLinks
-}
-
-type TCleverStudentData = {
-  data: {
-    created: ISOString
-    district: string
-    email: string
-    last_modified: ISOString
-    name: { first: string; last: string; middle: string }
-    id: string
-    roles: {
-      student: {
-        credentials: { district_username: string }
-        dob: string // Like M/DD/YYYY
-        enrollments: []
-        gender: string
-        grade: string // Like 6, 7, 8, etc.
-        graduation_year: string
-        hispanic_ethnicity: string
-        location: { address: string; city: string; state: string; zip: string }
-        race: string
-        school: string
-        schools: string[]
-        sis_id: string
-        state_id: string
-        student_number: string
-        email: string
-      }
-    }
-  }
-  uri: string
-}
-
-type UPchieveSchoolId = string
 
 /**
  * Clever Secure Sync Integration (i.e. rostering with Clever).
@@ -85,6 +16,7 @@ type UPchieveSchoolId = string
  * console in app.
  *
  * First, we get the district's access token using the district's id and basic auth.
+ *
  * With the district access token, we can then get the schools in the district and
  * the students within those schools. Once we have the students belonging to a school,
  * we can upsert the students.
@@ -95,14 +27,12 @@ type UPchieveSchoolId = string
  */
 export async function rosterDistrict(
   districtId: string,
-  cleverToUPchieveIds?: { [cleverSchoolId: string]: UPchieveSchoolId }
-) {
-  const accessToken = await getDistrictAccessToken(districtId)
-  const options = {
-    headers: createBearerAuthHeader(accessToken),
+  cleverToUPchieveIds?: {
+    [cleverSchoolId: string]: CleverAPIService.UPchieveSchoolId
   }
-
-  const schools = await getSchoolsInDistrict(options)
+) {
+  const accessToken = await CleverAPIService.getDistrictAccessToken(districtId)
+  const schools = await CleverAPIService.getSchoolsInDistrict(accessToken)
 
   const upsertReport: {
     updatedSchools: {
@@ -124,31 +54,32 @@ export async function rosterDistrict(
     try {
       let upchieveSchool
 
-      const upchieveSchoolId = cleverToUPchieveIds?.[school.data.id]
+      const upchieveSchoolId = cleverToUPchieveIds?.[school.id]
       if (upchieveSchoolId) {
         upchieveSchool = await SchoolService.getSchool(upchieveSchoolId)
-      } else if (school.data.nces_id) {
-        upchieveSchool = await SchoolService.getSchoolByNcesId(
-          school.data.nces_id
-        )
+      } else if (school.nces_id) {
+        upchieveSchool = await SchoolService.getSchoolByNcesId(school.nces_id)
       }
 
       if (!upchieveSchool) {
         let failureReason
         if (upchieveSchoolId) {
           failureReason = `No UPchieve school found with ID of ${upchieveSchoolId}`
-        } else if (school.data.nces_id) {
-          failureReason = `No UPchieve school found with nces_id of ${school.data.nces_id}`
+        } else if (school.nces_id) {
+          failureReason = `No UPchieve school found with nces_id of ${school.nces_id}`
         } else {
           failureReason =
             'Clever school does not contain nces_id and no mapping to UPchieve school provided.'
         }
 
-        upsertReport.failedSchools[school.data.id] = failureReason
+        upsertReport.failedSchools[school.id] = failureReason
         continue
       }
 
-      let cleverStudents = await getStudentsInSchool(school.data.id, options)
+      let cleverStudents = await CleverAPIService.getStudentsInSchool(
+        school.id,
+        accessToken
+      )
       while (cleverStudents.length) {
         const filteredOut: {
           id: string
@@ -157,25 +88,28 @@ export async function rosterDistrict(
           parsedGradeLevel?: number
         }[] = []
         const students = cleverStudents
-          .filter((s: TCleverStudentData) => {
-            const grade = parseCleverGrade(s.data.roles.student.grade)
+          .filter(s => {
+            const grade = CleverAPIService.parseCleverGrade(
+              s.roles.student.grade
+            )
             if (grade && grade > 5 && grade < 13) {
               return true
             }
             filteredOut.push({
-              id: s.data.id,
-              email: s.data.email,
-              gradeLevel: s.data.roles.student.grade,
+              id: s.id,
+              email: s.email,
+              gradeLevel: s.roles.student.grade,
               parsedGradeLevel: grade,
             })
             return false
           })
-          .map((s: TCleverStudentData) => {
+          .map(s => {
             return {
-              firstName: s.data.name.first,
-              lastName: s.data.name.last,
-              email: s.data.email,
-              gradeLevel: s.data.roles.student.grade,
+              firstName: s.name.first,
+              lastName: s.name.last,
+              email: s.email,
+              gradeLevel: s.roles.student.grade,
+              cleverId: s.id,
             }
           })
 
@@ -186,8 +120,8 @@ export async function rosterDistrict(
         )
 
         const { created = [], updated = [], failed = [] } =
-          upsertReport.updatedSchools[school.data.id] || {}
-        upsertReport.updatedSchools[school.data.id] = {
+          upsertReport.updatedSchools[school.id] || {}
+        upsertReport.updatedSchools[school.id] = {
           upchieveSchoolId: upchieveSchool.id,
           created: [...created, ...result.created],
           updated: [...updated, ...result.updated],
@@ -195,16 +129,15 @@ export async function rosterDistrict(
           failed: [...failed, ...result.failed],
         }
 
-        const lastStudentCleverId =
-          cleverStudents[cleverStudents.length - 1].data.id
-        cleverStudents = await getStudentsInSchool(
-          school.data.id,
-          options,
+        const lastStudentCleverId = cleverStudents[cleverStudents.length - 1].id
+        cleverStudents = await CleverAPIService.getStudentsInSchool(
+          school.id,
+          accessToken,
           lastStudentCleverId
         )
       }
     } catch (err) {
-      upsertReport.failedSchools[school.data.id] = `Error: ${err}`
+      upsertReport.failedSchools[school.id] = `Error: ${err}`
       continue
     }
   }
@@ -212,59 +145,230 @@ export async function rosterDistrict(
   return upsertReport
 }
 
-async function getDistrictAccessToken(districtId: string): Promise<string> {
-  const options = {
-    headers: createBasicAuthHeader(),
-  }
-  const response = await axios.get<TCleverDistrict>(
-    OAUTH_BASE_URI + '?district=' + districtId,
-    options
-  )
-  return response.data.data[0].access_token
+type CleverId = string
+type UcId = Ulid
+type UcCleverClass = TeacherClassWithStudents & {
+  cleverId: CleverId
 }
-
-async function getSchoolsInDistrict(options: AxiosRequestConfig) {
-  const response = await axios.get<TCleverSchool>(
-    API_BASE_URI + '/schools',
-    options
-  )
-  return response.data.data
-}
-
-async function getStudentsInSchool(
-  cleverSchoolId: string,
-  options: AxiosRequestConfig,
-  startingAfterId?: string
+/**
+ * To roster a teacher, we go through all their classes from Clever to see which
+ * are new, update the students in whichever are the same, and archive the
+ * ones that are no longer in Clever.
+ *
+ * We roster a teacher whenever they sign in with Clever. When they
+ * do so, we are able to use their access token to get their classes (called
+ * sections in Clever) and all their students.
+ *
+ * The Clever sections only contain a list of ids of the students in the class,
+ * which is why we also fetch all the students, so we have the
+ * necessary student data in the event we need to create them.
+ */
+export async function rosterTeacherClasses(
+  teacherId: Ulid,
+  cleverClasses: CleverAPIService.TCleverSectionData[],
+  cleverTeacherStudents: CleverAPIService.TCleverStudentData[]
 ) {
-  const url =
-    API_BASE_URI +
-    '/schools/' +
-    cleverSchoolId +
-    '/users?primary=true&role=student&limit=500' +
-    (startingAfterId ? `&starting_after=${startingAfterId}` : '')
-  const response = await axios.get(url, options)
-  return response.data.data ?? []
+  await runInTransaction(async (tc: TransactionClient) => {
+    const teacher = await TeacherService.getTeacherById(teacherId)
+    if (!teacher) {
+      return
+    }
+
+    const cleverStudentIdToUcId = new Map<CleverId, UcId>(
+      (
+        await Promise.all(
+          cleverTeacherStudents.map(async cleverStudent => {
+            const ucStudent = await findOrCreateUpchieveStudent(
+              cleverStudent,
+              teacher.schoolId,
+              tc
+            )
+            if (!ucStudent) return
+            return [cleverStudent.id, ucStudent.id]
+          })
+        )
+      ).filter((s): s is [CleverId, UcId] => !!s)
+    )
+
+    const cleverClassIdToUcClass = new Map<CleverId, UcCleverClass>(
+      (await TeacherService.getTeacherClasses(teacherId, tc))
+        .filter((ucClass): ucClass is UcCleverClass => !!ucClass.cleverId)
+        .map((ucClass: UcCleverClass) => [ucClass.cleverId, ucClass])
+    )
+    const cleverClassIdToCleverClass = new Map<
+      CleverId,
+      CleverAPIService.TCleverSectionData
+    >(cleverClasses.map(cleverClass => [cleverClass.id, cleverClass]))
+
+    const {
+      classesToAdd,
+      classesToUpdate,
+      classesToRemove,
+    } = categorizeTeacherClasses(
+      cleverClassIdToUcClass,
+      cleverClassIdToCleverClass
+    )
+
+    // Add all the new classes and students to those classes.
+    for (const cleverId of classesToAdd) {
+      const cleverClass = cleverClassIdToCleverClass.get(cleverId)
+      if (!cleverClass) continue
+      const newClass = await addCleverClass(teacherId, cleverClass, tc)
+
+      const ucStudents = cleverClass.students
+        .map(cleverStudentId => {
+          return cleverStudentIdToUcId.get(cleverStudentId)
+        })
+        .filter((s): s is UcId => !!s)
+      await TeacherService.addStudentsToTeacherClassById(
+        ucStudents,
+        newClass.id,
+        tc
+      )
+    }
+
+    // Add or remove students from existing classes.
+    for (const cleverId of classesToUpdate) {
+      const ucClass = cleverClassIdToUcClass.get(cleverId)
+      const cleverClass = cleverClassIdToCleverClass.get(cleverId)
+      if (!ucClass || !cleverClass) continue
+
+      const ucStudents = await TeacherService.getStudentIdsInTeacherClass(
+        ucClass.id,
+        tc
+      )
+      const { studentsToAdd, studentsToRemove } = categorizeStudentsInClass(
+        ucStudents,
+        cleverClass.students,
+        cleverStudentIdToUcId
+      )
+      if (studentsToAdd.length) {
+        await TeacherService.addStudentsToTeacherClassById(
+          studentsToAdd,
+          ucClass.id,
+          tc
+        )
+      }
+      if (studentsToRemove.length) {
+        await TeacherService.removeStudentsFromTeacherClassById(
+          studentsToRemove,
+          ucClass.id,
+          tc
+        )
+      }
+    }
+
+    // Archive any classes that are no longer in Clever.
+    await Promise.all(
+      classesToRemove.map(async cleverId => {
+        const ucClassId = cleverClassIdToUcClass.get(cleverId)?.id
+        if (!ucClassId) return
+        return TeacherService.deactivateTeacherClass(ucClassId, tc)
+      })
+    )
+
+    await TeacherService.updateLastSuccessfulCleverSync(teacherId, tc)
+  })
 }
 
-function createBasicAuthHeader() {
-  return {
-    Authorization:
-      'Basic ' +
-      Buffer.from(
-        config.cleverClientId + ':' + config.cleverClientSecret
-      ).toString('base64'),
+// Exported for testing.
+export async function findOrCreateUpchieveStudent(
+  cleverStudent: CleverAPIService.TCleverStudentData,
+  schoolId: Uuid | undefined,
+  tc: TransactionClient
+) {
+  if (
+    !isStudentInValidGrade(
+      CleverAPIService.parseCleverGrade(cleverStudent.roles.student.grade)
+    )
+  )
+    return
+
+  let student = await StudentService.getStudentByCleverId(cleverStudent.id, tc)
+  if (student) {
+    return student
   }
+
+  student = await StudentService.getStudentByEmail(cleverStudent.email, tc)
+  if (student) {
+    await FederatedCredentialService.linkAccount(
+      cleverStudent.id,
+      FederatedCredentialService.Issuer.CLEVER,
+      student.id,
+      tc
+    )
+    return student
+  }
+  const data = {
+    email: cleverStudent.email,
+    firstName: cleverStudent.name.first,
+    issuer: FederatedCredentialService.Issuer.CLEVER,
+    lastName: cleverStudent.name.last,
+    profileId: cleverStudent.id,
+    schoolId: schoolId,
+  }
+  return UserCreationService.registerStudent(data, tc)
 }
 
-function createBearerAuthHeader(accessToken: string) {
-  return {
-    Authorization: `Bearer ${accessToken}`,
-  }
+// Exported for testing.
+export function categorizeTeacherClasses(
+  ucClasses: Map<CleverId, TeacherClass>,
+  cleverClasses: Map<CleverId, CleverAPIService.TCleverSectionData>
+) {
+  const ucClassKeys = [...ucClasses.keys()]
+  const cleverClassKeys = [...cleverClasses.keys()]
+
+  // The Clever classes that we don't have in our db.
+  const classesToAdd = cleverClassKeys.filter(id => !ucClasses.has(id))
+  // The Clever classes that exist in both our db and from Clever.
+  const classesToUpdate = cleverClassKeys.filter(id => ucClasses.has(id))
+  // The Clever classes that are still in our db, but no longer in Clever.
+  const classesToRemove = ucClassKeys.filter(id => !cleverClasses.has(id))
+
+  return { classesToAdd, classesToUpdate, classesToRemove }
 }
 
-function parseCleverGrade(grade?: string) {
-  if (!grade) return
-  if (!isNaN(parseInt(grade))) {
-    return parseInt(grade)
-  }
+async function addCleverClass(
+  teacherId: Ulid,
+  cleverClass: CleverAPIService.TCleverSectionData,
+  tc: TransactionClient
+) {
+  const topicName = CleverAPIService.getTopicFromCleverSubject(
+    cleverClass.subject
+  )
+  const topicId = await SubjectsService.getTopicIdFromName(topicName, tc)
+  return TeacherService.createTeacherClass(
+    teacherId,
+    cleverClass.name,
+    topicId,
+    cleverClass.id,
+    tc
+  )
+}
+
+// Exported for testing.
+export function categorizeStudentsInClass(
+  ucStudentsInUcClass: UcId[],
+  cleverStudentsInCleverClass: CleverId[],
+  cleverStudentIdToUcId: Map<CleverId, UcId>
+) {
+  const ucStudentsInCleverClass = cleverStudentsInCleverClass
+    .map(cleverId => cleverStudentIdToUcId.get(cleverId))
+    .filter((cleverId): cleverId is CleverId => !!cleverId)
+
+  const ucStudentSet = new Set<UcId>(ucStudentsInUcClass)
+  const cleverStudentSet = new Set<UcId>(ucStudentsInCleverClass)
+
+  const studentsToAdd = ucStudentsInCleverClass.filter(ucId => {
+    return !ucStudentSet.has(ucId)
+  })
+  const studentsToRemove = ucStudentsInUcClass.filter(ucId => {
+    return !cleverStudentSet.has(ucId)
+  })
+
+  return { studentsToAdd, studentsToRemove }
+}
+
+export function isStudentInValidGrade(grade?: number) {
+  return grade && grade > 5 && grade < 13
 }

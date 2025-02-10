@@ -122,3 +122,16 @@ export async function getObjects(
 
   return Promise.all(urls)
 }
+
+export async function putObject(bucket: string, s3Key: string, body: Buffer) {
+  const signedUrlParams = {
+    Body: body,
+    Bucket: bucket,
+    Key: s3Key,
+    ACL: ObjectCannedACL.bucket_owner_full_control,
+  }
+  const command = new PutObjectCommand(signedUrlParams)
+  const response = await s3.send(command)
+  const location = `https://${bucket}.s3.amazonaws.com/${s3Key}`
+  return { response, location }
+}

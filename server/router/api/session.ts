@@ -327,13 +327,23 @@ export function routeSession(router: Router) {
   router.get('/sessions/history', async function(req, res) {
     try {
       const user = extractUser(req)
+      const filter = {
+        volunteerId: req.query.volunteerId
+          ? asUlid(req.query.volunteerId)
+          : undefined,
+        studentId: req.query.studentId
+          ? asUlid(req.query.studentId)
+          : undefined,
+      }
+
       const {
         pastSessions,
         page,
         isLastPage,
       } = await SessionService.getSessionHistory(
         user.id,
-        asString(req.query.page)
+        asString(req.query.page),
+        filter
       )
 
       res.json({ page, isLastPage, pastSessions })
@@ -344,6 +354,14 @@ export function routeSession(router: Router) {
 
   router.get('/sessions/history/total', async function(req, res) {
     try {
+      if (req.query.studentId && req.query.volunteerId) {
+        const total = await SessionService.getPreviousSessionCountForPair(
+          asUlid(req.query.studentId),
+          asUlid(req.query.volunteerId)
+        )
+        return res.json({ total })
+      }
+
       const user = extractUser(req)
       const total = await SessionService.getTotalSessionHistory(user.id)
 
@@ -439,21 +457,6 @@ export function routeSession(router: Router) {
         updateSessionAudioRequestValidator(req.body)
       )
       return res.json({ sessionAudio: updated })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.get('/sessions/:sessionId/call/participants', async function(
-    req,
-    res
-  ) {
-    try {
-      const sessionId = req.params.sessionId as string
-      const participants = await SessionService.getSessionCallParticipants(
-        sessionId
-      )
-      return res.json({ participants })
     } catch (err) {
       resError(res, err)
     }

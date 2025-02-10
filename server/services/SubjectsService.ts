@@ -1,6 +1,7 @@
 import { asFactory, asString } from '../utils/type-utils'
 import * as SubjectsRepo from '../models/Subjects'
 import Case from 'case'
+import { TransactionClient } from '../db'
 
 export type ValidSubjectAndTopicCheck = {
   subject: string
@@ -25,4 +26,12 @@ export async function isValidSubjectAndTopic(data: unknown): Promise<boolean> {
 
 export async function getTopics(): Promise<SubjectsRepo.GetTopicsResult[]> {
   return SubjectsRepo.getTopics()
+}
+
+export async function getTopicIdFromName(
+  topicName: string = '',
+  tc: TransactionClient
+) {
+  if (!topicName) return
+  return SubjectsRepo.getTopicIdFromName(topicName, tc)
 }

@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped by pg_dump version 14.15 (Ubuntu 14.15-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -234,7 +234,7 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 -- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM stdin;
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last_successful_clever_sync) FROM stdin;
 \.
 
 
@@ -242,7 +242,7 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at) FROM
 -- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on) FROM stdin;
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on, clever_id) FROM stdin;
 \.
 
 
@@ -2906,6 +2906,23 @@ COPY upchieve.survey_questions (id, question_type_id, question_text, created_at,
 20	1	Rate your analysis	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
 21	1	What was the problem	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
 22	3	Tell us more about the issue or how we can improve	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
+23	3	What's your GPA right now?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+24	3	What's your lowest grade this semester?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+25	3	Where do you hope to go to college?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+26	1	How confident are you about getting in?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+27	3	What course is your lowest grade in (please be specific in the course name)?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+28	3	How many AP courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+29	3	How many IB courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+30	3	How many Dual enrollment courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+31	3	How many Honors courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+32	1	What is your closest estimate of your current grades in school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+33	1	What is your lowest grade?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+34	1	What subject is your lowest grade in?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+35	1	Will you be the first person in your family to attend college?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+36	1	Are you or have you ever been eligible for free or reduced price lunch at school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+37	1	Do you primarily speak English at home?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+38	1	Do you have an IEP or 504 plan?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+39	2	What is your ethnicity? (Select all that apply)	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
 \.
 
 
@@ -3015,6 +3032,38 @@ COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updat
 96	0	My coach was bad	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
 97	0	What you told me to do is not helpful	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
 98	0	These aren't the concepts I'm studying	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
+99	0	I'm not sure / Prefer not to answer	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+100	0	A's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+101	0	A's and B's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+102	0	B's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+103	0	B's and C's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+104	0	C's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+105	0	C's and D's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+106	0	D's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+107	0	D's and below	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+108	0	Math	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+109	0	English	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+110	0	Science	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+111	0	Social Studies	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+112	0	Foreign Language	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+113	0	American Indian / Alaska Native	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+114	0	Asian	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+115	0	Black or African American	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+116	0	Hispanic or Latinx	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+117	0	Native Hawaiian / Pacific Islander	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+118	0	Middle Eastern or North African	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+119	0	White	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+120	0	Prefer not to answer	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+121	0	A/A+	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+122	0	A-	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+123	0	B+	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+124	0	B	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+125	0	B-	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+126	0	C+	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+127	0	C	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+128	0	C-	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+129	0	D	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+130	0	F	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
 \.
 
 
@@ -3022,27 +3071,28 @@ COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updat
 -- Data for Name: surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.surveys (id, name, created_at, updated_at, role_id) FROM stdin;
-1	STEM Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-2	Humanities Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-3	Reading Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-4	College Planning Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-5	College Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-6	College Applications Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-7	SAT Prep Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1
-8	Student Post-Session Survey	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.141444+00	1
-12	U.S. History Pre-Session Survey	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.141444+00	1
-9	General Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2
-10	SAT Prep Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2
-11	College Counseling Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2
-13	College Prep Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-14	College List Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-15	College Apps Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-16	Application Essays Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-17	Financial Aid Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1
-18	Essay Planning Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1
-19	Essay Feedback Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1
-20	Progress Report Rating Survey	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	1
+COPY upchieve.surveys (id, name, created_at, updated_at, role_id, reward_amount) FROM stdin;
+1	STEM Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+2	Humanities Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+3	Reading Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+4	College Planning Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+5	College Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+6	College Applications Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+7	SAT Prep Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+8	Student Post-Session Survey	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.141444+00	1	\N
+12	U.S. History Pre-Session Survey	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.141444+00	1	\N
+9	General Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+10	SAT Prep Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+11	College Counseling Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+13	College Prep Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+14	College List Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+15	College Apps Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+16	Application Essays Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+17	Financial Aid Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+18	Essay Planning Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
+19	Essay Feedback Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
+20	Progress Report Rating Survey	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	1	\N
+21	Impact Study Survey 1.0	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	1	10
 \.
 
 
@@ -3123,6 +3173,19 @@ COPY upchieve.surveys_survey_questions (id, survey_id, survey_question_id, displ
 70	20	20	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
 71	20	21	20	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
 72	20	22	30	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+77	21	27	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+78	21	28	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+79	21	29	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+80	21	30	70	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+81	21	31	80	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+82	21	32	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+83	21	33	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+84	21	34	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+85	21	35	100	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+86	21	36	110	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+87	21	37	120	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+88	21	38	130	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+89	21	39	90	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
 \.
 
 
@@ -3461,6 +3524,50 @@ COPY upchieve.survey_questions_response_choices (response_choice_id, display_pri
 98	50	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
 68	60	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
 68	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	72
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	85
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	86
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	87
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	88
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	85
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	86
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	87
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	88
+68	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	85
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	86
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	87
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	88
+100	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+101	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+102	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+103	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+104	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+105	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+106	70	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+107	80	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+108	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+109	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+110	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+111	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+112	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+113	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+114	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+115	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+116	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+117	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+118	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+119	70	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+120	80	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+121	10	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+122	20	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+123	30	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+124	40	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+125	50	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+126	60	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+127	70	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+128	80	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+129	90	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+130	100	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
 \.
 
 
@@ -3472,6 +3579,7 @@ COPY upchieve.survey_types (id, name, created_at, updated_at) FROM stdin;
 1	presession	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
 2	postsession	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
 4	progress-report	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+5	impact-study	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
 \.
 
 
@@ -3580,6 +3688,7 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 18	32	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
 19	33	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
 20	\N	4	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+21	\N	5	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
 \.
 
 
@@ -3628,16 +3737,16 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N
-01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N
-01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N
-01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N
-01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N
-01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N
-01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N
-01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N
-01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N
+COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at, impact_study_enrollment_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N	\N
+01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N	\N
+01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N	\N
+01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N
 \.
 
 
@@ -4055,7 +4164,7 @@ SELECT pg_catalog.setval('upchieve.subjects_id_seq', 33, true);
 -- Name: survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 22, true);
+SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 39, true);
 
 
 --
@@ -4069,28 +4178,28 @@ SELECT pg_catalog.setval('upchieve.survey_questions_question_tags_id_seq', 1, fa
 -- Name: survey_response_choices_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 98, true);
+SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 130, true);
 
 
 --
 -- Name: survey_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 4, true);
+SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 5, true);
 
 
 --
 -- Name: surveys_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_id_seq', 20, true);
+SELECT pg_catalog.setval('upchieve.surveys_id_seq', 21, true);
 
 
 --
 -- Name: surveys_survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 72, true);
+SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 89, true);
 
 
 --

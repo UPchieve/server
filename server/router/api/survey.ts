@@ -1,41 +1,23 @@
 import expressWs from 'express-ws'
 import {
-  savePresessionSurvey,
-  getPresessionSurveyForFeedback,
   getStudentsPresessionGoal,
   getSimpleSurveyDefinition,
-  getPostsessionSurveyDefinition,
   getPostsessionSurveyResponse,
   getProgressReportSurveyResponse,
 } from '../../models/Survey'
 import {
   getContextSharingForVolunteer,
-  getStudentPostsessionGoalRatings,
+  getLatestImpactStudySurveyResponses,
   parseUserRole,
   saveUserSurvey,
+  getImpactSurveyDefinition,
 } from '../../services/SurveyService'
+import * as SurveyService from '../../services/SurveyService'
 import { asString, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
-import { NotAuthenticatedError } from '../../models/Errors'
 
 export function routeSurvey(router: expressWs.Router): void {
-  router.post('/survey/presession/:sessionId', async (req, res) => {
-    const user = extractUser(req)
-    const { sessionId } = req.params
-    const { responseData } = req.body
-    try {
-      await savePresessionSurvey(
-        user.id,
-        asUlid(sessionId),
-        responseData // TODO: duck type validation
-      )
-      res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.post('/survey/save', async (req, res) => {
     const user = extractUser(req)
     const {
@@ -55,23 +37,6 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       await saveUserSurvey(user.id, data as unknown)
       res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
-  // This route only services the mobile app atm. Remove once
-  // the mobile app uses new presession survey work
-  router.get('/survey/presession/:sessionId', async (req, res) => {
-    const user = extractUser(req)
-    const { sessionId } = req.params
-
-    try {
-      const survey = await getPresessionSurveyForFeedback(
-        user.id,
-        asUlid(sessionId)
-      )
-      res.json({ survey })
     } catch (error) {
       resError(res, error)
     }
@@ -116,8 +81,7 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const { sessionId, role } = req.query
       let parsedRole = parseUserRole(asString(role))
-      const survey = await getPostsessionSurveyDefinition(
-        'postsession',
+      const survey = await SurveyService.getPostsessionSurveyDefinition(
         asString(sessionId),
         parsedRole
       )
@@ -167,13 +131,20 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   )
 
-  router.get('/survey/postsession/ratings', async (req, res) => {
-    const userId = req.user?.id
-    if (!userId) throw new NotAuthenticatedError()
-
+  router.get('/survey/impact-study', async (req, res) => {
     try {
-      const ratings = await getStudentPostsessionGoalRatings(userId)
-      return res.json({ ratings })
+      const survey = await getImpactSurveyDefinition()
+      return res.json(survey)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/survey/impact-study/responses', async (req, res) => {
+    try {
+      const user = extractUser(req)
+      const survey = await getLatestImpactStudySurveyResponses(user.id)
+      return res.json(survey)
     } catch (err) {
       resError(res, err)
     }

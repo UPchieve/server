@@ -115,6 +115,18 @@ export async function getUserIdByPhone(
   }
 }
 
+export async function getUserVerificationByEmail(email: string) {
+  try {
+    const result = await pgQueries.getUserVerificationByEmail.run(
+      { email },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getUserIdByEmail(
   email: string
 ): Promise<Ulid | undefined> {
@@ -390,7 +402,7 @@ type UserQuery = {
   lastName: string | undefined
   email: string | undefined
   partnerOrg: string | undefined
-  highSchool: string | undefined
+  school: string | undefined
 }
 function cleanPayload(payload: UserQuery): UserQuery {
   const temp: any = {}
@@ -415,7 +427,6 @@ export async function getUsersForAdminSearch(
     return result.map(v => {
       const user = makeSomeOptional(v, ['lastName'])
       return {
-        _id: user.id,
         userType: getUserTypeFromRoles((v.roles ?? []) as UserRole[], user.id),
         ...user,
       }
@@ -453,6 +464,7 @@ export async function getPastSessionsForAdminDetail(
     return result.map(v => {
       const temp = makeSomeOptional(v, [
         'volunteer',
+        'volunteerFirstName',
         'volunteerJoinedAt',
         'endedAt',
       ])
@@ -489,7 +501,6 @@ export async function getUserForAdminDetail(
       'isAdmin',
       'isDeactivated',
       'isTestUser',
-      'isVolunteer',
       'verified',
       'numPastSessions',
     ])
@@ -523,13 +534,11 @@ export async function getUserForAdminDetail(
       ...user,
       references: references.map(ref => ({
         ...ref,
-        _id: ref.id,
         status: ref.status.toUpperCase(),
       })),
       pastSessions: sessions.sort((a, b) =>
         a.createdAt > b.createdAt ? 1 : -1
       ),
-      _id: user.id,
       photoIdStatus: user.photoIdStatus?.toUpperCase(),
       background,
     }
@@ -749,6 +758,33 @@ export async function updateUserProxyEmail(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export type TAdminUpdateUserPayload = {
+  firstName?: string
+  lastName?: string
+  email: string
+  isVerified: boolean
+  ban_type?: USER_BAN_TYPES
+  ban_reason?: USER_BAN_REASONS
+  isDeactivated: boolean
+}
+export async function adminUpdateUser(
+  userId: Ulid,
+  updateData: TAdminUpdateUserPayload,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.adminUpdateUser.run(
+      {
+        userId,
+        ...updateData,
+      },
+      tc
+    )
   } catch (err) {
     throw new RepoUpdateError(err)
   }

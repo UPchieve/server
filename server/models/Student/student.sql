@@ -640,7 +640,7 @@ DELETE FROM student_favorite_volunteers
 WHERE student_id = volunteer_id;
 
 
-/* @name adminUpdateStudentSchool */
+/* @name updateStudentSchool */
 UPDATE
     student_profiles
 SET
@@ -747,7 +747,8 @@ SELECT
     email,
     COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
     users.created_at,
-    users.updated_at
+    users.updated_at,
+    school_id
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
@@ -757,9 +758,24 @@ WHERE
     student_profiles.user_id IN :userIds!;
 
 
-/* @name addStudentToTeacherClass */
+/*
+ @name addStudentsToTeacherClass
+ */
 INSERT INTO student_classes (user_id, class_id)
-    VALUES (:userId!, :classId!)
-ON CONFLICT (user_id, class_id)
+SELECT
+    UNNEST(:studentIds!::uuid[]),
+    :classId!
+ON CONFLICT
     DO NOTHING;
+
+
+/* @name getStudentByCleverId */
+SELECT
+    sp.user_id AS id
+FROM
+    student_profiles sp
+    JOIN federated_credentials fc ON sp.user_id = fc.user_id
+WHERE
+    issuer LIKE '%clever%'
+    AND id = :cleverStudentId!;
 

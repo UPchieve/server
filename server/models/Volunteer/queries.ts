@@ -1,4 +1,9 @@
-import { getAnalyticsClient, getClient, getRoClient } from '../../db'
+import {
+  getAnalyticsClient,
+  getClient,
+  getRoClient,
+  TransactionClient,
+} from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -53,11 +58,14 @@ export async function getVolunteerContactInfoById(
   }
 }
 
-export async function getSubjectsForVolunteer(userId: Ulid) {
+export async function getSubjectsForVolunteer(
+  userId: Ulid,
+  tc?: TransactionClient
+) {
   try {
     const result = await pgQueries.getSubjectsForVolunteer.run(
       { userId },
-      getClient()
+      tc ?? getClient()
     )
     const subjects = result.map(v => makeRequired(v).subject)
     return subjects
@@ -292,15 +300,15 @@ export async function updateVolunteerHourSummaryIntroById(
   }
 }
 
-export async function updateVolunteerThroughAvailability(
+export async function updateTimezoneByUserId(
   userId: Ulid,
   timezone?: string,
-  onboarded?: boolean
+  tc?: TransactionClient
 ): Promise<void> {
   try {
-    const result = await pgQueries.updateVolunteerThroughAvailability.run(
-      { userId, onboarded, timezone },
-      getClient()
+    const result = await pgQueries.updateTimezoneByUserId.run(
+      { userId, timezone },
+      tc || getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update did not return ok')
@@ -352,22 +360,24 @@ export type VolunteerForOnboarding = Pick<
   subjects: string[]
   availabilityLastModifiedAt?: Date
   country?: string
+  volunteerPartnerOrgKey?: string
 }
 export async function getVolunteerForOnboardingById(
-  userId: Ulid
+  userId: Ulid,
+  tc: TransactionClient = getClient()
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
-        userId: isPgId(userId) ? userId : undefined,
-        mongoUserId: isPgId(userId) ? undefined : userId,
+        userId,
       },
-      getClient()
+      tc
     )
     if (!result.length) return
     const volunteer = makeSomeOptional(result[0], [
       'availabilityLastModifiedAt',
       'country',
+      'volunteerPartnerOrgKey',
     ])
     const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
     if (volunteer.email) {
@@ -1066,11 +1076,14 @@ export async function updateVolunteerApproved(userId: Ulid): Promise<void> {
   }
 }
 
-export async function updateVolunteerOnboarded(userId: Ulid): Promise<void> {
+export async function updateVolunteerOnboarded(
+  userId: Ulid,
+  tc: TransactionClient
+): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerOnboarded.run(
       { userId },
-      getClient()
+      tc ?? getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
@@ -1137,12 +1150,13 @@ export async function getVolunteersForWaitingReferences(
 
 export async function addVolunteerCertification(
   userId: Ulid,
-  subject: string
+  subject: string,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.addVolunteerCertification.run(
       { userId, subject },
-      getClient()
+      tc ?? getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
@@ -1154,12 +1168,13 @@ export async function addVolunteerCertification(
 export async function updateVolunteerQuiz(
   userId: Ulid,
   quiz: string,
-  passed: boolean
+  passed: boolean,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerQuiz.run(
       { userId, quiz, passed },
-      getClient()
+      tc ?? getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
@@ -1612,28 +1627,26 @@ export type VolunteerForScheduleUpdate = {
   passedRequiredTraining: boolean
 }
 export async function getVolunteerForScheduleUpdate(
-  userId: Ulid
+  userId: Ulid,
+  tc: TransactionClient
 ): Promise<VolunteerForScheduleUpdate> {
-  const client = await getClient().connect()
   try {
     const result = await pgQueries.getVolunteerForScheduleUpdate.run(
       { userId },
-      client
+      tc
     )
     if (!result.length) throw new RepoReadError('Volunteer not found')
     const volunteer = makeSomeOptional(result[0], [
       'volunteerPartnerOrg',
       'subjects',
     ])
-    const availability = await getAvailabilityForVolunteer(volunteer.id, client)
+    const availability = await getAvailabilityForVolunteer(volunteer.id, tc)
     return {
       ...volunteer,
       availability,
     }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 

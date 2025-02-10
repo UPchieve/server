@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { getClient } from '../../db'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions/queries'
 import {

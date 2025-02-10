@@ -19,13 +19,14 @@ import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
 import { DAYS } from '../constants'
 import { LookupError, NotAllowedError } from '../models/Errors'
-import { getFeedbackBySessionId } from '../models/Feedback'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   Session,
+  SessionsToReview,
+  SessionTranscript,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -68,8 +69,6 @@ import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
-import { getSessionCallParticipantsCacheKey } from '../utils/session-utils'
-import { KeyNotFoundError } from '../cache'
 import { SessionMessageType } from '../router/api/sockets'
 
 export async function reviewSession(data: unknown) {
@@ -87,7 +86,10 @@ export async function reviewSession(data: unknown) {
 export async function sessionsToReview(
   data: unknown,
   filterBy: { studentFirstName?: string }
-) {
+): Promise<{
+  sessions: SessionsToReview[]
+  isLastPage: boolean
+}> {
   const page = asString(data)
   const pageNum = parseInt(page) || 1
   const PER_PAGE = 15
@@ -186,16 +188,20 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     sessionId,
   }
 
-  if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, emailData, {
-      removeOnComplete: true,
-      removeOnFail: true,
-    })
-  else
-    await cache.saveWithExpiration(
-      `${sessionId}-reported`,
-      JSON.stringify(emailData)
-    )
+  // @TODO - Update email sent to volunteers reported in-session by students
+  const shouldSendEmail = user.isVolunteer || source === 'recap'
+  if (shouldSendEmail) {
+    if (session.endedAt)
+      await QueueService.add(Jobs.EmailSessionReported, emailData, {
+        removeOnComplete: true,
+        removeOnFail: true,
+      })
+    else
+      await cache.saveWithExpiration(
+        `${sessionId}-reported`,
+        JSON.stringify(emailData)
+      )
+  }
 }
 
 export async function endSession(
@@ -268,6 +274,23 @@ export async function processSessionReported(sessionId: Ulid) {
   } catch (err) {
     // we don't care if the key is not found
     if (!(err instanceof cache.KeyNotFoundError)) throw err
+  }
+}
+
+export async function processSessionTranscript(sessionId: Ulid) {
+  try {
+    await QueueService.add(
+      Jobs.ModerateSessionTranscript,
+      { sessionId },
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    )
+  } catch (err) {
+    throw new Error(
+      `Failed to enqueue ModerateSessionTranscript job for session ${sessionId}, err=${err}`
+    )
   }
 }
 
@@ -510,7 +533,6 @@ export async function adminSessionView(data: unknown) {
   const sessionUserAgent = await getSessionRequestedUserAgentFromSessionId(
     sessionId
   )
-  const feedback = await getFeedbackBySessionId(sessionId)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
   const sessionPhotos = await AwsService.getObjects(
     bucket,
@@ -520,7 +542,6 @@ export async function adminSessionView(data: unknown) {
   return {
     ...session,
     userAgent: sessionUserAgent,
-    feedbacks: feedback,
     photos: sessionPhotos,
   }
 }
@@ -707,37 +728,47 @@ export async function joinSession(
 
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
-    const result = await runInTransaction(async (tc: TransactionClient) => {
-      try {
-        await SessionRepo.updateSessionVolunteerById(session.id, user.id, tc)
-      } catch (err) {
-        return { error: 'A volunteer has already joined the session' }
+    try {
+      await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+    } catch (err) {
+      throw new Error('A volunteer has already joined the session')
+    }
+
+    try {
+      await createSessionAction({
+        userId: user.id,
+        sessionId: session.id,
+        ...getUserAgentInfo(userAgent ? userAgent : ''),
+        ipAddress,
+        action: SESSION_USER_ACTIONS.JOINED,
+      })
+
+      captureEvent(user.id, EVENTS.SESSION_JOINED, {
+        event: EVENTS.SESSION_JOINED,
+        sessionId: session.id,
+        joinedFrom: joinedFrom || '',
+      })
+
+      captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
+        event: EVENTS.SESSION_MATCHED,
+        sessionId: session.id,
+      })
+    } catch (error) {
+      logger.error(
+        `Failed to log user joined session action for user ${user.id} in session ${session.id} : ${error}`
+      )
+    }
+
+    try {
+      const pushTokens = await getPushTokensByUserId(session.studentId)
+      if (pushTokens && pushTokens.length > 0) {
+        const tokens = pushTokens.map((token: PushToken) => token.token)
+        await PushTokenService.sendVolunteerJoined(session as Session, tokens)
       }
-    })
-    if (result?.error) throw new Error(result.error)
-    await createSessionAction({
-      userId: user.id,
-      sessionId: session.id,
-      ...getUserAgentInfo(userAgent ? userAgent : ''),
-      ipAddress,
-      action: SESSION_USER_ACTIONS.JOINED,
-    })
-
-    captureEvent(user.id, EVENTS.SESSION_JOINED, {
-      event: EVENTS.SESSION_JOINED,
-      sessionId: session.id,
-      joinedFrom: joinedFrom || '',
-    })
-
-    captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
-      event: EVENTS.SESSION_MATCHED,
-      sessionId: session.id,
-    })
-
-    const pushTokens = await getPushTokensByUserId(session.studentId)
-    if (pushTokens && pushTokens.length > 0) {
-      const tokens = pushTokens.map((token: PushToken) => token.token)
-      await PushTokenService.sendVolunteerJoined(session as Session, tokens)
+    } catch (error) {
+      logger.error(
+        `Failed to send FCM notifications to student ${session.studentId} for session ${session.id}: ${error}`
+      )
     }
   }
 
@@ -748,17 +779,23 @@ export async function joinSession(
     !isInitialVolunteerJoin &&
     session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
   ) {
-    await createSessionAction({
-      userId: user.id,
-      sessionId: session.id,
-      ...getUserAgentInfo(userAgent ? userAgent : ''),
-      ipAddress,
-      action: SESSION_USER_ACTIONS.REJOINED,
-    })
-    captureEvent(user.id, EVENTS.SESSION_REJOINED, {
-      event: EVENTS.SESSION_REJOINED,
-      sessionId: session.id,
-    })
+    try {
+      await createSessionAction({
+        userId: user.id,
+        sessionId: session.id,
+        ...getUserAgentInfo(userAgent ? userAgent : ''),
+        ipAddress,
+        action: SESSION_USER_ACTIONS.REJOINED,
+      })
+      captureEvent(user.id, EVENTS.SESSION_REJOINED, {
+        event: EVENTS.SESSION_REJOINED,
+        sessionId: session.id,
+      })
+    } catch (error) {
+      logger.error(
+        `Failed to log user rejoined session action for user ${user.id} in session ${session.id} : ${error}`
+      )
+    }
   }
 }
 
@@ -941,15 +978,21 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
 }
 
 // TODO: implement these with cursor pagination
-export async function getSessionHistory(userId: Ulid, page: string) {
+export async function getSessionHistory(
+  userId: Ulid,
+  page: string,
+  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
+) {
   const pageNum = parseInt(page)
   const PER_PAGE = 5
   const skip = (pageNum - 1) * PER_PAGE
   const pastSessions = await SessionRepo.getSessionHistory(
     userId,
     PER_PAGE,
-    skip
+    skip,
+    filter
   )
+
   const isLastPage = pastSessions.length < PER_PAGE
 
   return { pastSessions, page: pageNum, isLastPage }
@@ -1039,11 +1082,6 @@ export async function getStudentSessionDetails(studentId: Ulid) {
   })
 }
 
-type FallIncentiveSessionOverview = {
-  qualifiedSessions: Ulid[]
-  unqualifiedSessions: Ulid[]
-}
-
 function isQualifiedFallIncentiveSession(
   session: SessionRepo.FallIncentiveSession
 ) {
@@ -1057,29 +1095,15 @@ function isQualifiedFallIncentiveSession(
   )
 }
 
-export async function getFallIncentiveSessionOverview(
-  studentId: Ulid,
-  start: Date,
-  end?: Date
-): Promise<FallIncentiveSessionOverview> {
-  const sessions = await SessionRepo.getStudentSessionsForFallIncentive(
-    studentId,
-    start,
-    end
-  )
-  const qualifiedSessions: Ulid[] = []
-  const unqualifiedSessions: Ulid[] = []
-
-  for (const session of sessions) {
-    if (isQualifiedFallIncentiveSession(session))
-      qualifiedSessions.push(session.id)
-    else unqualifiedSessions.push(session.id)
-  }
-
-  return {
-    qualifiedSessions,
-    unqualifiedSessions,
-  }
+export async function isSessionQualifiedForFallIncentive(
+  sessionId: Ulid
+): Promise<boolean> {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const messages = await SessionRepo.getMessagesForFrontend(sessionId)
+  return isQualifiedFallIncentiveSession({
+    ...session,
+    totalMessages: messages.length,
+  })
 }
 
 export async function getOrCreateSessionAudio(
@@ -1118,51 +1142,22 @@ export async function updateSessionAudio(
   return updated
 }
 
-export async function getSessionCallParticipants(
+export async function getSessionTranscript(
   sessionId: string
-): Promise<string[]> {
-  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  try {
-    const result = await cache.get(cacheKey)
-    return JSON.parse(result)
-  } catch (err) {
-    if (err instanceof KeyNotFoundError) return []
-    else throw err
+): Promise<SessionTranscript> {
+  const messages = await SessionRepo.getSessionTranscriptItems(sessionId)
+  return {
+    sessionId,
+    messages,
   }
 }
 
-export async function addSessionCallParticipant(
-  sessionId: string,
-  userId: string
-): Promise<void> {
-  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  let result: string[]
-  try {
-    result = JSON.parse(await cache.get(cacheKey))
-  } catch (err) {
-    if (err instanceof KeyNotFoundError) result = []
-    else throw err
-  }
-  if (!result.includes(userId)) {
-    result.push(userId)
-  }
-  await cache.save(cacheKey, JSON.stringify(result))
-}
-
-export async function removeSessionCallParticipant(
-  sessionId: string,
-  userId: string
-): Promise<void> {
-  const cacheKey = getSessionCallParticipantsCacheKey(sessionId)
-  let result: string[]
-  try {
-    result = JSON.parse(await cache.get(cacheKey))
-  } catch (err) {
-    if (err instanceof KeyNotFoundError) result = []
-    else throw err
-  }
-  if (result.includes(userId)) {
-    result = result.filter(p => p !== userId)
-    await cache.save(cacheKey, JSON.stringify(result))
-  }
+export async function getPreviousSessionCountForPair(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<number> {
+  return await SessionRepo.getPreviousSessionCountForPair(
+    studentId,
+    volunteerId
+  )
 }

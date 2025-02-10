@@ -16,6 +16,7 @@ import {
   makeSomeRequired,
   makeSomeOptional,
   Ulid,
+  Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import * as SchoolRepo from '../School/queries'
@@ -77,13 +78,16 @@ export async function getStudentContactInfoById(
   }
 }
 
-export async function getStudentByEmail(email: string) {
+export async function getStudentByEmail(
+  email: string,
+  tc: TransactionClient
+): Promise<{ id: Ulid } | undefined> {
   try {
     const result = await pgQueries.getStudentByEmail.run(
       {
         email,
       },
-      getClient()
+      tc
     )
     if (result.length) {
       return makeRequired(result[0])
@@ -461,7 +465,7 @@ async function adminUpdateStudentPartnerOrgInstance(
         )
 
       if (newSchoolOrg.schoolId) {
-        const updateSchoolResult = await pgQueries.adminUpdateStudentSchool.run(
+        const updateSchoolResult = await pgQueries.updateStudentSchool.run(
           { userId: studentId, schoolId: newSchoolOrg.schoolId },
           client
         )
@@ -972,7 +976,7 @@ export async function getStudentProfilesByUserIds(
       tc
     )
     if (result.length) {
-      return result.map(r => makeSomeOptional(r, ['gradeLevel']))
+      return result.map(r => makeSomeOptional(r, ['gradeLevel', 'schoolId']))
     }
 
     return []
@@ -981,14 +985,55 @@ export async function getStudentProfilesByUserIds(
   }
 }
 
-export async function addStudentToTeacherClass(
-  tc: TransactionClient,
-  userId: Ulid,
-  classId: Ulid
+export async function updateStudentSchool(
+  studentId: Ulid,
+  schoolId: Uuid,
+  tc: TransactionClient
 ) {
   try {
-    await pgQueries.addStudentToTeacherClass.run({ userId, classId }, tc)
+    await pgQueries.updateStudentSchool.run(
+      {
+        userId: studentId,
+        schoolId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function addStudentsToTeacherClass(
+  studentIds: Ulid[],
+  classId: Uuid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.addStudentsToTeacherClass.run(
+      {
+        studentIds,
+        classId,
+      },
+      tc
+    )
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function getStudentByCleverId(
+  cleverStudentId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<{ id: Ulid } | undefined> {
+  try {
+    const result = await pgQueries.getStudentByCleverId.run(
+      {
+        cleverStudentId,
+      },
+      tc
+    )
+    if (result.length) return result[0]
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

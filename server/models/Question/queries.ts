@@ -7,7 +7,7 @@ import {
 import { makeRequired, makeSomeOptional, Pgid } from '../pgUtils'
 import { Question, Quiz, QuizUnlockCert, ReviewMaterial } from './types'
 import * as pgQueries from './pg.queries'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 
 export type QuestionQueryResult = Omit<Question, 'possibleAnswers'> & {
   possibleAnswers: pgQueries.Json
@@ -230,12 +230,13 @@ export async function getQuizByName(
 }
 
 export async function getQuizCertUnlocksByQuizName(
-  quizName: string
+  quizName: string,
+  tc?: TransactionClient
 ): Promise<QuizUnlockCert[]> {
   try {
     const results = await pgQueries.getQuizCertUnlocksByQuizName.run(
       { quizName },
-      getClient()
+      tc ?? getClient()
     )
     if (results.length) return results.map(v => makeRequired(v))
     return []

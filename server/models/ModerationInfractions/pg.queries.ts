@@ -1,5 +1,5 @@
 /** Types generated for queries found in "server/models/ModerationInfractions/moderation_infractions.sql" */
-import { PreparedQuery } from '@pgtyped/query';
+import { PreparedQuery } from '@pgtyped/runtime';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -22,7 +22,7 @@ export interface IInsertModerationInfractionQuery {
   result: IInsertModerationInfractionResult;
 }
 
-const insertModerationInfractionIR: any = {"name":"insertModerationInfraction","params":[{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":153,"b":155,"line":4,"col":17}]}},{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":159,"b":165,"line":4,"col":23},{"a":313,"b":319,"line":10,"col":19}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":169,"b":178,"line":4,"col":33},{"a":351,"b":360,"line":11,"col":30}]}},{"name":"reason","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":182,"b":188,"line":4,"col":46}]}}],"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"statement":{"body":"WITH insert_infraction AS (\nINSERT INTO moderation_infractions (id, user_id, session_id, reason)\n        VALUES (:id!, :userId!, :sessionId!, :reason!))\n    SELECT\n        1 + count(*) AS infraction_count\n    FROM\n        moderation_infractions\n    WHERE\n        user_id = :userId!\n            AND session_id = :sessionId!","loc":{"a":39,"b":360,"line":2,"col":0}}};
+const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":116}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126},{"a":273,"b":280}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139},{"a":311,"b":321}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":149}]}],"statement":"WITH insert_infraction AS (\nINSERT INTO moderation_infractions (id, user_id, session_id, reason)\n        VALUES (:id!, :userId!, :sessionId!, :reason!))\n    SELECT\n        1 + count(*) AS infraction_count\n    FROM\n        moderation_infractions\n    WHERE\n        user_id = :userId!\n            AND session_id = :sessionId!"};
 
 /**
  * Query generated from SQL:
@@ -44,7 +44,7 @@ export const insertModerationInfraction = new PreparedQuery<IInsertModerationInf
 
 /** 'UpdateModerationInfractionById' parameters type */
 export interface IUpdateModerationInfractionByIdParams {
-  active: boolean | null | void;
+  active?: boolean | null | void;
   id: string;
 }
 
@@ -57,7 +57,7 @@ export interface IUpdateModerationInfractionByIdQuery {
   result: IUpdateModerationInfractionByIdResult;
 }
 
-const updateModerationInfractionByIdIR: any = {"name":"updateModerationInfractionById","params":[{"name":"active","required":false,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":469,"b":474,"line":18,"col":23}]}},{"name":"id","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":501,"b":503,"line":20,"col":10}]}}],"usedParamSet":{"active":true,"id":true},"statement":{"body":"UPDATE\n    moderation_infractions\nSET\n    active = COALESCE(:active, active)\nWHERE\n    id = :id!","loc":{"a":408,"b":503,"line":15,"col":0}}};
+const updateModerationInfractionByIdIR: any = {"usedParamSet":{"active":true,"id":true},"params":[{"name":"active","required":false,"transform":{"type":"scalar"},"locs":[{"a":60,"b":66}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":95}]}],"statement":"UPDATE\n    moderation_infractions\nSET\n    active = COALESCE(:active, active)\nWHERE\n    id = :id!"};
 
 /**
  * Query generated from SQL:
@@ -96,7 +96,7 @@ export interface IGetModerationInfractionsByUserAndSessionQuery {
   result: IGetModerationInfractionsByUserAndSessionResult;
 }
 
-const getModerationInfractionsByUserAndSessionIR: any = {"name":"getModerationInfractionsByUserAndSession","params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":627,"b":633,"line":29,"col":15}]}},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"codeRefs":{"used":[{"a":657,"b":666,"line":30,"col":22}]}}],"usedParamSet":{"userId":true,"sessionId":true},"statement":{"body":"SELECT\n    *\nFROM\n    moderation_infractions\nWHERE\n    user_id = :userId!\n    AND session_id = :sessionId!","loc":{"a":561,"b":666,"line":24,"col":0}}};
+const getModerationInfractionsByUserAndSessionIR: any = {"usedParamSet":{"userId":true,"sessionId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":72}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":105}]}],"statement":"SELECT\n    *\nFROM\n    moderation_infractions\nWHERE\n    user_id = :userId!\n    AND session_id = :sessionId!"};
 
 /**
  * Query generated from SQL:

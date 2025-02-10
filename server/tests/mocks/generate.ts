@@ -254,7 +254,6 @@ export function buildLegacyUser(
     pastSessions: [],
     lastActivityAt: undefined,
     referredBy: undefined,
-    type: 'student',
     userType: 'student',
     roleId: 1,
     sessionStats: {},
@@ -268,7 +267,6 @@ export function buildLegacyStudent(
   const legacyUser = buildLegacyUser()
   return {
     ...legacyUser,
-    type: 'student',
     userType: 'student',
     roleId: 1,
     gradeLevel: GRADES.NINTH,
@@ -290,7 +288,6 @@ export function buildLegacyVolunteer(
   const legacyUser = buildLegacyUser()
   return {
     ...legacyUser,
-    type: 'volunteer',
     userType: 'volunteer',
     roleId: 2,
     volunteerPartnerOrg: undefined,
@@ -431,12 +428,12 @@ export function buildStudentPartnerOrg(
 ): Partial<StudentPartnerOrg> & { id: Ulid | string } {
   return {
     id: getDbUlid(),
-    key: 'school-helpers',
-    name: 'School Helpers',
+    key: faker.string.uuid(),
+    name: faker.string.uuid(),
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
-    signupCode: 'SCHOOLHELPERS',
+    signupCode: faker.string.uuid(),
     ...overrides,
   }
 }
@@ -453,12 +450,12 @@ export function buildStudentPartnerOrgUpchieveInstance(
   } as StudentPartnerOrgUpchieveInstance
 }
 
-export function buildSchool(overrides: Partial<School> = {}): School {
+export function buildSchool(
+  overrides: Partial<School> = {}
+): Omit<School, 'state' | 'isAdminApproved'> {
   return {
     id: getDbUlid(),
     name: 'Approved School',
-    state: 'NY',
-    isAdminApproved: true,
     isPartner: false,
     city: 'Brooklyn',
     ...overrides,
@@ -499,7 +496,7 @@ export const buildSimpleSurvey = (
   overrides: Partial<SurveyQuestionDefinition> = {}
 ): SurveyQuestionDefinition => {
   const survey = {
-    questionId: '1',
+    questionId: 1,
     questionText: "What is your primary goal for today's session?",
     displayPriority: 1,
     questionType: 'multiple choice',
@@ -525,6 +522,7 @@ export const buildSimpleSurveyResponse = (
     response: 'Complete a homework assignment',
     score: 1,
     displayOrder: 10,
+    questionId: 1,
     ...overrides,
   }
 

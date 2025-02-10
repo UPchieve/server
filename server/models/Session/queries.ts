@@ -14,11 +14,13 @@ import {
   Session,
   UserSessionStats,
   UserSessionsFilter,
+  MessageType,
 } from './types'
 import 'moment-timezone'
 import {
   USER_BAN_TYPES,
   USER_ROLES,
+  USER_ROLES_TYPE,
   USER_SESSION_METRICS,
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -252,6 +254,7 @@ export type SessionsToReview = {
   createdAt: Date
   endedAt: Date
   volunteer?: Ulid
+  volunteerFirstName?: string
   totalMessages: number
   type: string
   subTopic: string
@@ -279,6 +282,7 @@ export async function getSessionsToReview(
       result.map(async v => {
         const temp = makeSomeOptional(v, [
           'volunteer',
+          'volunteerFirstName',
           'reviewReasons',
           'studentCounselingFeedback',
         ])
@@ -647,6 +651,8 @@ export type CurrentSession = {
   endedBy?: Ulid
   toolType: string
   docEditorVersion?: number
+  studentBannedFromLiveMedia?: boolean
+  volunteerBannedFromLiveMedia?: boolean
 }
 
 export type SessionInfoForUser = {
@@ -697,6 +703,8 @@ export async function getCurrentSessionByUserId(
         'volunteerId',
         'endedAt',
         'volunteerJoinedAt',
+        'volunteerBannedFromLiveMedia',
+        'studentBannedFromLiveMedia',
       ])
       return handleSessionParsingForUser(session, tc)
     }
@@ -772,6 +780,8 @@ export async function getCurrentSessionBySessionId(
       'volunteerId',
       'endedAt',
       'endedBy',
+      'volunteerBannedFromLiveMedia',
+      'studentBannedFromLiveMedia',
     ])
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
@@ -1243,18 +1253,19 @@ export type SessionForSessionHistory = {
 export async function getSessionHistory(
   userId: Ulid,
   limit: number,
-  offset: number
+  offset: number,
+  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
 ): Promise<SessionForSessionHistory[]> {
   try {
-    const result = await pgQueries.getSessionHistory.run(
-      {
-        userId,
-        minSessionLength: config.minSessionLength,
-        limit,
-        offset,
-      },
-      getClient()
-    )
+    const params = {
+      userId,
+      minSessionLength: config.minSessionLength,
+      limit,
+      offset,
+      studentId: filter.studentId ?? null,
+      volunteerId: filter.volunteerId ?? null,
+    }
+    const result = await pgQueries.getSessionHistory.run(params, getClient())
 
     if (result.length) return result.map(v => makeRequired(v))
     return []
@@ -1499,21 +1510,37 @@ export async function insertTutorBotSessionMessage(
   }
 }
 
-export async function getStudentSessionsForFallIncentive(
-  studentId: Ulid,
-  start: Date,
-  end?: Date
-): Promise<FallIncentiveSession[]> {
+export async function getSessionTranscriptItems(sessionId: Ulid) {
   try {
-    const result = await pgQueries.getStudentSessionsForFallIncentive.run(
+    const result = await pgQueries.getSessionTranscript.run(
       {
-        studentId,
-        start,
-        end,
+        sessionId,
       },
       getClient()
     )
-    return result.map(row => makeRequired(row))
+    return result.map(row => {
+      const camelCased = makeRequired(row)
+      return {
+        ...camelCased,
+        messageType: camelCased.messageType as MessageType,
+        role: camelCased.role as USER_ROLES_TYPE,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPreviousSessionCountForPair(
+  studentId: Ulid,
+  volunteerId: Ulid
+): Promise<number> {
+  try {
+    const result = await pgQueries.getPreviousSessionCountForPair.run(
+      { studentId, volunteerId },
+      getClient()
+    )
+    return result[0].total ?? 0
   } catch (err) {
     throw new RepoReadError(err)
   }

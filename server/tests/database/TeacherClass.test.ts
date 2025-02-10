@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { faker } from '@faker-js/faker'
 import { getDbUlid } from '../../../database/seeds/utils'
 import { getClient } from '../../db'

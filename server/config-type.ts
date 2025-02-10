@@ -157,7 +157,6 @@ export const Config = Record({
   cacheKeys: Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String,
-    sessionCallParticipantsPrefix: String,
   }),
 
   // Sentry Data Source Name
@@ -199,7 +198,10 @@ export const Config = Record({
     region: String,
     photoIdBucket: String,
     sessionPhotoBucket: String,
+    moderatedScreenshareBucket: String,
+    moderatedSessionImageUploadBucket: String,
   }),
+  awsModerationToolsRegion: String,
   posthogToken: String,
   posthogPersonalApiToken: String,
   posthogFeatureFlagApiToken: String,
@@ -264,6 +266,14 @@ export const Config = Record({
   zoomVideoSdkKey: String,
   zoomVideoSdkSecret: String,
 
-  // Live media moderation
+  // Moderation
   maxModerationInfractionsPerSession: Number,
+  imageModerationMinConfidence: Number,
+  contextualModerationConfidenceThreshold: Number,
+
+  tremendousApiKey: String,
+  tremendousRewardDomain: String,
+  tremendousImpactStudyCampaign: String,
+  tremendousCustomFieldsCacheExpirationSeconds: Number,
+  tremendousCampaignCacheExpirationSeconds: Number,
 })

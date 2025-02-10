@@ -353,8 +353,10 @@ describe('registerStudent', () => {
       {
         email: student.email,
         emailVerified: true,
+        issuer: student.issuer,
         firstName: student.firstName,
         lastName: student.lastName,
+        profileId: student.profileId,
         verified: true,
       },
       expect.toBeTransactionClient()
@@ -387,7 +389,9 @@ describe('registerStudent', () => {
 
     await registerStudent(student)
 
-    expect(mockedTeacherService.addStudentToTeacherClass).toHaveBeenCalledWith(
+    expect(
+      mockedTeacherService.addStudentToTeacherClassByClassCode
+    ).toHaveBeenCalledWith(
       USER_ID,
       student.classCode,
       expect.toBeTransactionClient()
@@ -1005,11 +1009,13 @@ describe('registerTeacher', () => {
     expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
       {
         email: data.email,
+        emailVerified: false,
         firstName: data.firstName,
         lastName: data.lastName,
         otherSignupSource: data.signupSource,
         password: HASHED_PASSWORD_RESOLVED,
         signupSourceId: OTHER_SIGNUP_SOURCE_ID,
+        verified: false,
       },
       expect.toBeTransactionClient()
     )

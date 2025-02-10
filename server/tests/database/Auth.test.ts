@@ -1,3 +1,7 @@
+/**
+ * @group database/parallel
+ */
+
 import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'
 import moment from 'moment'

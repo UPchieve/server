@@ -9,7 +9,6 @@ import { routeVolunteers } from './volunteers'
 import { routeVerify } from './verify'
 import { routeSession } from './session'
 import { routeCalendar } from './calendar'
-import { routeFeedback } from './feedback'
 import { routeSockets } from './sockets'
 import { routeModeration } from './moderate'
 import { routePushToken } from './push-token'
@@ -32,6 +31,7 @@ import { routeVoiceMessages } from './voice-messages'
 import { routeTutorBot } from './tutor-bot'
 import { routeAssignments } from './assignments'
 import { routeZoom } from './zoom'
+import { routeRewards } from './rewards'
 
 export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   const router: expressWs.Router = Router()
@@ -44,7 +44,6 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeVoiceMessages(router)
   routeCalendar(router)
   routeTraining(router)
-  routeFeedback(router)
   routeSockets(io, sessionStore)
   routeModeration(router)
   routePushToken(router)
@@ -60,6 +59,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeTutorBot(router)
   routeAssignments(router)
   routeZoom(router)
+  routeRewards(router)
 
   router.post('/send-referral-email', async function(req, res) {
     try {

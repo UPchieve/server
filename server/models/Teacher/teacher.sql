@@ -4,10 +4,10 @@ INSERT INTO teacher_profiles (user_id, school_id, created_at, updated_at)
 
 
 /* @name createTeacherClass */
-INSERT INTO teacher_classes (id, user_id, name, code, topic_id, active, created_at, updated_at)
-    VALUES (:id!, :userId!, :name!, :code!, :topicId, TRUE, NOW(), NOW())
+INSERT INTO teacher_classes (id, user_id, name, code, topic_id, clever_id, created_at, updated_at)
+    VALUES (:id!, :userId!, :name!, :code!, :topicId, :cleverId, NOW(), NOW())
 RETURNING
-    id, user_id, name, code, topic_id, active, created_at, updated_at;
+    id, user_id, name, code, topic_id, clever_id, created_at, updated_at;
 
 
 /* @name getTeacherById */
@@ -25,6 +25,7 @@ WHERE
 /* @name getTeacherClassesByUserId */
 SELECT
     id,
+    clever_id,
     teacher_classes.user_id,
     name,
     code,
@@ -46,6 +47,7 @@ GROUP BY
 /* @name getTeacherClassByClassCode */
 SELECT
     id,
+    clever_id,
     user_id,
     name,
     code,
@@ -63,6 +65,7 @@ WHERE
 /* @name getTeacherClassById */
 SELECT
     id,
+    clever_id,
     user_id,
     name,
     code,
@@ -128,4 +131,22 @@ RETURNING
     active,
     created_at,
     updated_at;
+
+
+/* @name updateTeacherSchool */
+UPDATE
+    teacher_profiles
+SET
+    school_id = :schoolId
+WHERE
+    user_id = :userId!;
+
+
+/* @name updateLastSuccessfulCleverSync */
+UPDATE
+    teacher_profiles
+SET
+    last_successful_clever_sync = NOW()
+WHERE
+    user_id = :teacherId!;
 

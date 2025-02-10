@@ -1,4 +1,5 @@
 import logger from '../logger'
+import { chunk, isEmpty } from 'lodash'
 import {
   CensoredSessionMessage,
   CENSORED_BY,
@@ -15,17 +16,30 @@ import {
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
 import { TextPromptClient } from 'langfuse-core'
-import { LangfusePromptNameEnum } from './LangfuseService'
+import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
-import ContentSafetyClient, {
-  AnalyzeImage200Response,
-  AnalyzeImageDefaultResponse,
-} from '@azure-rest/ai-content-safety'
-import { AzureKeyCredential } from '@azure/core-auth'
 import config from '../config'
-import { InputError } from '../models/Errors'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
+import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
+import {
+  RekognitionClient,
+  DetectModerationLabelsCommand,
+  ModerationLabel,
+  DetectLabelsCommand,
+  DetectFacesCommand,
+  DetectTextCommand,
+} from '@aws-sdk/client-rekognition'
+import {
+  ComprehendClient,
+  DetectPiiEntitiesCommand,
+  DetectToxicContentCommand,
+} from '@aws-sdk/client-comprehend'
+import crypto from 'crypto'
+import { putObject } from './AwsService'
+
+const MINOR_AGE_THRESHOLD = 18
+import { LangfuseTraceClient } from 'langfuse-node'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -40,34 +54,440 @@ const PROFANITY_REGEX = /\b(4r5e|5h1t|5hit|a55s|ass-fucker|assfucker|assfukka|a_
 // Restrict access to have sessions on third party platforms
 const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 
-const LF_TRACE_NAME = 'moderateSessionMessage'
-const LF_GENERATION_NAME = 'getModerationDecision'
-
-// Image moderation
-const AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD = 2
-const createAzureContentSafetyClient = () => {
-  const credential = new AzureKeyCredential(config.azureContentSafetyApiKey)
-  return ContentSafetyClient(config.azureContentSafetyBaseUrl, credential)
+enum LangfuseTraceName {
+  MODERATE_SESSION_MESSAGE = 'moderateSessionMessage',
+  MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
+}
+enum LangfuseGenerationName {
+  SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
+  SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
 }
 
-const azureContentSafetyClient = createAzureContentSafetyClient()
+// Image moderation
+const AWS_CONFIG = {
+  region: config.awsModerationToolsRegion,
+  credentials: {
+    accessKeyId: config.awsS3.accessKeyId,
+    secretAccessKey: config.awsS3.secretAccessKey,
+  },
+}
+const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
+const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
-export async function createChatCompletion({
+type VideoFrameModerationFailureReason = {
+  reason: string
+  /*
+    Moderation labels from AWS Rekognition,
+      - Weapons, Nudity, Violence, Drug use, etc...
+  */
+  details?: any
+}
+
+const topLevelCategoryFilter = (label: ModerationLabel) =>
+  label.TaxonomyLevel === 1
+
+const moderationLabelToFailureReason = (
+  label: ModerationLabel
+): VideoFrameModerationFailureReason => {
+  return {
+    reason: label.Name ?? 'Unknown - no label name from AWS',
+    details: { confidence: label.Confidence },
+  }
+}
+
+/*
+  detect harmful content in the image
+  we are only looking at the top level categories for now:
+    - Explicit
+    - Non-Explicit Nudity of Intimate parts and Kissing
+    - Swimwear or Underwear
+    - Violence
+    - Visually Disturbing
+    - Drugs & Tobacco
+    - Alcohol
+    - Rude Gestures
+    - Gambling
+    - Hate Symbols
+  full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
+*/
+async function detectImageModerationFailures(
+  image: Buffer,
+  sessionId?: string
+) {
+  try {
+    const moderationLabelsResponse = await awsRekognitionClient.send(
+      new DetectModerationLabelsCommand({
+        Image: {
+          Bytes: image,
+        },
+        MinConfidence: config.imageModerationMinConfidence,
+      })
+    )
+    const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
+    return moderationLabels
+      .filter(topLevelCategoryFilter)
+      .map(moderationLabelToFailureReason)
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to moderate image')
+    throw new Error(`Failed to moderate image for session ${sessionId}`)
+  }
+}
+
+/*
+  determine if image depicts a minor
+*/
+async function detectMinorFailures(image: Buffer) {
+  const facesResponse = await awsRekognitionClient.send(
+    new DetectFacesCommand({
+      Image: {
+        Bytes: image,
+      },
+      Attributes: ['AGE_RANGE'],
+    })
+  )
+  const faces = facesResponse.FaceDetails ?? []
+  const faceFailures = faces
+    .filter(
+      face => face.AgeRange?.Low && face.AgeRange?.Low < MINOR_AGE_THRESHOLD
+    )
+    .map(face => ({
+      reason: `Minor detected in image`,
+      details: {
+        ageRange: face.AgeRange,
+        confidence: face.Confidence,
+      },
+    }))
+
+  if (faceFailures.length > 0) {
+    return faceFailures
+  }
+
+  // DetectFaces seems to be more accurate when it comes to detecting minors
+  // but we want to handle the case where faces are not in the image
+  const labelResponse = await awsRekognitionClient.send(
+    new DetectLabelsCommand({
+      Image: {
+        Bytes: image,
+      },
+      Settings: {
+        GeneralLabels: {
+          LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
+        },
+      },
+    })
+  )
+  const labels = labelResponse.Labels ?? []
+  const labelFailures = labels.map(label => ({
+    reason: `Minor detected in image`,
+    details: {
+      label: label.Name,
+      confidence: label.Confidence,
+    },
+  }))
+
+  return labelFailures
+}
+
+async function extractTextFromImage(image: Buffer) {
+  const extractedText = await awsRekognitionClient.send(
+    new DetectTextCommand({
+      Image: {
+        Bytes: image,
+      },
+    })
+  )
+  const detections = extractedText.TextDetections ?? []
+  const textSegments = detections
+    .filter(({ Type }) => Type === 'LINE')
+    .map(detection => detection.DetectedText ?? '')
+
+  return textSegments
+}
+
+const detectToxicContent = async (textSegments: string[]) => {
+  const toxicContent = []
+  const concatenatedText = textSegments.join(' ')
+  const result = await awsComprehendClient.send(
+    new DetectToxicContentCommand({
+      TextSegments: [{ Text: concatenatedText }],
+      LanguageCode: 'en',
+    })
+  )
+  if (result.ResultList) {
+    toxicContent.push(
+      ...result.ResultList.map(r => ({
+        text: concatenatedText,
+        result: r,
+      }))
+    )
+  }
+
+  const highToxicity = toxicContent
+    .filter(({ result }) => result.Toxicity && result.Toxicity > 0.5)
+    .map(({ result, text }) => ({
+      reason: 'High Toxicity',
+      details: {
+        toxicity: result.Toxicity,
+        text,
+        labels: result.Labels,
+      },
+    }))
+
+  return highToxicity
+}
+
+async function isLikelyToBeAPhoneNumber({
+  entityConfidence,
+  entityText,
+  sessionId,
+  isVolunteer,
+}: {
+  entityConfidence: number
+  entityText: string
+  sessionId: string
+  isVolunteer: boolean
+}) {
+  // Since many users will be sharing numbers that look like phone numbers,
+  // we want to moderate them in similar way we moderate phone numbers in messages.
+  // PII is very permisive with what's a phone number, so let's run it throough our regex
+  // and then through the false positive fallback
+  const isMaybePhone = entityConfidence > 0.9 && PHONE_REGEX.test(entityText)
+
+  if (!isMaybePhone) {
+    return false
+  }
+
+  const aiModerationResult = await getAiModerationResult(
+    {
+      message: entityText,
+      sessionId,
+    },
+    isVolunteer
+  )
+
+  return aiModerationResult?.isPhoneNumber ?? true
+}
+
+function isLikelyToBeAnAdderess({
+  entityConfidence,
+  entityText,
+}: {
+  entityConfidence: number
+  entityText: string
+}) {
+  // The PII api flags any part of an address as an ADDRESS.
+  // That means things like "Virginia" are flagged as an address.
+  // This attempts to filter out these false positives by checking if the text contains a space
+  // since actual addresses contain spaces
+  // and that the confidence is high
+  return entityConfidence > 0.9 && /\s/g.test(entityText)
+}
+
+function existsInArray(array: any[], item: any) {
+  return array.some(i => i === item)
+}
+
+async function detectPii(
+  text: string,
+  sessionId: string,
+  isVolunteer: boolean
+) {
+  const piiEntities = await awsComprehendClient.send(
+    new DetectPiiEntitiesCommand({
+      Text: text,
+      LanguageCode: 'en',
+    })
+  )
+  const entities = piiEntities.Entities ?? []
+
+  const links: {
+    reason: 'Link'
+    details: { text: string; confidence: number }
+  }[] = []
+  const emails: {
+    reason: 'Email'
+    details: { text: string; confidence: number }
+  }[] = []
+  const phones: {
+    reason: 'Phone'
+    details: { text: string; confidence: number }
+  }[] = []
+  const addresses: {
+    reason: 'Address'
+    details: { text: string; confidence: number }
+  }[] = []
+  for (const entity of entities) {
+    const entityStart = entity.BeginOffset
+    const entityEnd = entity.EndOffset
+    const entityText = text.slice(entityStart, entityEnd)
+    const entityConfidence = Number(entity.Score)
+
+    if (entity.Type === 'URL' && !existsInArray(links, entityText)) {
+      links.push({
+        reason: 'Link',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    } else if (entity.Type === 'EMAIL' && !existsInArray(emails, entityText)) {
+      emails.push({
+        reason: 'Email',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    } else if (
+      entity.Type === 'PHONE' &&
+      (await isLikelyToBeAPhoneNumber({
+        entityConfidence,
+        entityText,
+        sessionId,
+        isVolunteer,
+      })) &&
+      !existsInArray(phones, entityText)
+    ) {
+      phones.push({
+        reason: 'Phone',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    } else if (
+      entity.Type === 'ADDRESS' &&
+      isLikelyToBeAnAdderess({ entityConfidence, entityText }) &&
+      !existsInArray(addresses, entityText)
+    ) {
+      addresses.push({
+        reason: 'Address',
+        details: {
+          text: entityText,
+          confidence: entityConfidence,
+        },
+      })
+    }
+  }
+
+  return [...links, ...emails, ...phones, ...addresses]
+}
+
+async function detectTextModerationFailures(
+  image: Buffer,
+  sessionId: string,
+  isVolunteer: boolean
+) {
+  const textSegments = await extractTextFromImage(image)
+
+  if (textSegments.length === 0) {
+    return []
+  }
+
+  const [toxicity, pii] = await Promise.all([
+    detectToxicContent(textSegments),
+    detectPii(textSegments.join(' '), sessionId, isVolunteer),
+  ])
+
+  return [...toxicity, ...pii]
+}
+
+async function handleVideoFrameModerationFailure({
+  userId,
+  sessionId,
+  failureReasons,
+  image,
+  bucketName,
+}: {
+  userId: string
+  sessionId: string
+  failureReasons: VideoFrameModerationFailureReason[]
+  image: Buffer
+  bucketName: string
+}) {
+  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+
+  const { location } = await putObject(bucketName, s3Key, image)
+
+  logger.warn(
+    { sessionId, reasons: failureReasons, imageUrl: location },
+    'Image triggered moderation'
+  )
+
+  await handleModerationInfraction(userId, sessionId, {
+    failures: failureReasons.reduce((acc, reason) => {
+      acc[reason.reason] = {
+        ...reason.details,
+        imageUrl: location,
+      }
+      return acc
+    }, {} as Record<VideoFrameModerationFailureReason['reason'], VideoFrameModerationFailureReason['details']>),
+  })
+}
+
+export const moderateVideoFrame = async (
+  // @TODO Combine into one method with moderateImage.
+  frame: Buffer,
+  sessionId: string,
+  userId: string,
+  isVolunteer: boolean,
+  bucketName: string
+): Promise<{
+  failureReasons: VideoFrameModerationFailureReason[]
+}> => {
+  const [
+    moderationFailureReasons,
+    minorFailures,
+    textModerationFailureReasons,
+  ] = await Promise.all([
+    detectImageModerationFailures(frame),
+    detectMinorFailures(frame),
+    detectTextModerationFailures(frame, sessionId, isVolunteer),
+  ])
+
+  const failureReasons = [
+    ...moderationFailureReasons,
+    ...minorFailures,
+    ...textModerationFailureReasons,
+  ]
+
+  if (failureReasons.length > 0) {
+    await handleVideoFrameModerationFailure({
+      userId,
+      sessionId,
+      failureReasons,
+      image: frame,
+      bucketName,
+    })
+  }
+
+  return {
+    failureReasons,
+  }
+}
+
+export async function getIndividualSessionMessageModerationResponse({
   censoredSessionMessage,
   isVolunteer,
 }: {
-  censoredSessionMessage: CensoredSessionMessage
+  censoredSessionMessage: Pick<
+    CensoredSessionMessage,
+    'sessionId' | 'message'
+  > & { id?: string }
   isVolunteer: boolean
 }) {
   const model = 'gpt-4o'
-  const promptData = await getPromptData()
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION,
+    FALLBACK_MODERATION_PROMPT
+  )
   const t = LangfuseService.getClient().trace({
-    name: LF_TRACE_NAME,
+    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
     sessionId: censoredSessionMessage.sessionId,
   })
 
   const gen = t.generation({
-    name: LF_GENERATION_NAME,
+    name: LangfuseGenerationName.SESSION_MESSAGE_MODERATION_DECISION,
     model,
     input: { censoredSessionMessage, isVolunteer },
     // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
@@ -96,44 +516,36 @@ export async function createChatCompletion({
       output: chatCompletion,
     })
 
-    const decision = JSON.parse(chatCompletion.choices[0].message.content || '')
-    const logData = {
-      censoredSessionMessage,
-      decision: {
-        isClean: decision.appropriate,
-        reasons: decision.reasons,
-        promptUsed: promptData.version,
-      },
-    }
-    // @TODO: Eventually remove me from NR
-    logger.info(logData, 'AI moderation result')
-    return decision
+    return JSON.parse(chatCompletion.choices[0].message.content || '')
   } catch (err) {
     logger.error(
       {
         error: err,
-        censoredSessionMessageId: censoredSessionMessage.id,
+        censoredSessionMessageId:
+          censoredSessionMessage?.id ??
+          'No ID: Text was likely extracted from an image',
       },
       `Error while moderating session message`
     )
   }
 }
 
-const getPromptData = async (): Promise<{
+const getPromptData = async (
+  promptName: LangfusePromptNameEnum,
+  fallbackPrompt: string
+): Promise<{
   isFallback: boolean
   prompt: string
   version: string
   promptObject?: TextPromptClient
 }> => {
-  const promptName =
-    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION
   const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
   const isFallback = promptFromLangfuse === undefined
 
   return {
     isFallback,
     prompt: isFallback
-      ? FALLBACK_MODERATION_PROMPT
+      ? fallbackPrompt
       : (promptFromLangfuse! as TextPromptClient).prompt,
     version: isFallback
       ? 'FALLBACK'
@@ -144,7 +556,7 @@ const getPromptData = async (): Promise<{
   }
 }
 
-async function createChatCompletionJob({
+async function createIndividualSessionMessageModerationJob({
   censoredSessionMessage,
   isVolunteer,
 }: {
@@ -222,11 +634,11 @@ const regexModerate = (message: string): RegexModerationResult => {
 }
 
 const getAiModerationResult = async (
-  censoredSessionMessage: CensoredSessionMessage,
+  censoredSessionMessage: Pick<CensoredSessionMessage, 'sessionId' | 'message'>,
   isVolunteer: boolean
 ) => {
   return await timeLimit({
-    promise: createChatCompletion({
+    promise: getIndividualSessionMessageModerationResponse({
       censoredSessionMessage,
       isVolunteer,
     }),
@@ -282,7 +694,10 @@ export async function moderateMessage({
       result.failures =
         response === null ? result.failures : formatAiResponse(response)
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
-      await createChatCompletionJob({ censoredSessionMessage, isVolunteer })
+      await createIndividualSessionMessageModerationJob({
+        censoredSessionMessage,
+        isVolunteer,
+      })
     }
 
     logger.info(
@@ -297,7 +712,12 @@ export async function moderateMessage({
 const handleModerationInfraction = async (
   userId: string,
   sessionId: string,
-  reasons: ModerationFailureReasons
+  reasons:
+    | ModerationFailureReasons
+    | Record<
+        VideoFrameModerationFailureReason['reason'],
+        VideoFrameModerationFailureReason['details']
+      >
 ) => {
   const strikesForUserInSession = await ModerationInfractionsRepo.insertModerationInfraction(
     {
@@ -325,7 +745,7 @@ export type SanitizedTranscriptModerationResult = {
   failures: { [key: string]: string[] }
   sanitizedTranscript: string
 }
-export const moderateTranscript = async ({
+export const moderateIndividualTranscription = async ({
   transcript,
   sessionId,
   userId,
@@ -360,73 +780,28 @@ export const moderateTranscript = async ({
   } as SanitizedTranscriptModerationResult
 }
 
-enum AnalyzeImageErrorCodeEnum {
-  INVALID_REQUEST_BODY = 'InvalidRequestBody',
-}
 export const moderateImage = async (
   imageFile: Express.Multer.File,
-  sessionId: string
+  sessionId: string,
+  userId: string,
+  isVolunteer: boolean
 ): Promise<{
   isClean: boolean
-  failureReasons?: ModerationFailureReasons
 }> => {
-  const reqBody = {
-    timeout: 3 * 1000,
-    body: {
-      image: {
-        content: imageFile.buffer.toString('base64'),
-      },
-    },
-  }
-  const result = await azureContentSafetyClient
-    .path('/image:analyze')
-    .post(reqBody)
-
-  if (result.status !== '200') {
-    const errResponse = result as AnalyzeImageDefaultResponse
-    const logData = {
-      error: errResponse.body.error,
-    }
-    const logMsg = 'Failed to get image analysis from Azure Content Safety'
-    if (
-      errResponse.body.error.code ===
-      AnalyzeImageErrorCodeEnum.INVALID_REQUEST_BODY
-    ) {
-      logger.warn(logData, logMsg)
-      throw new InputError('Image is invalid')
-    }
-    logger.error(logData, logMsg)
-    throw new Error('Could not moderate image')
-  }
-
-  logger.info(
-    {
-      fileName: imageFile.originalname,
-      sessionId,
-      analysis: (result as AnalyzeImage200Response).body.categoriesAnalysis,
-    },
-    'Image moderation result'
+  const result = await moderateVideoFrame(
+    imageFile.buffer,
+    sessionId,
+    userId,
+    isVolunteer,
+    config.awsS3.moderatedSessionImageUploadBucket
   )
+  if (isEmpty(result.failureReasons)) return { isClean: true }
 
-  return getImageModerationDecision(result as AnalyzeImage200Response)
-}
-
-const getImageModerationDecision = (
-  result: AnalyzeImage200Response
-): {
-  isClean: boolean
-  failureReasons?: ModerationFailureReasons
-} => {
-  const failureCategories = result.body.categoriesAnalysis.filter(
-    category =>
-      category.severity ?? 0 > AZURE_IMAGE_ANALYSIS_CATEGORY_SEVERITY_THRESHOLD
-  )
-  const isClean = failureCategories.length === 0
   return {
-    isClean,
-    ...(isClean ? {} : failureCategories),
+    isClean: false,
   }
 }
+
 /**
  * Enclose the given message in <student></student> or <tutor></tutor> tags.
  */
@@ -436,6 +811,90 @@ export const wrapMessageInXmlTags = (
 ): string => {
   const xmlTag = isVolunteer ? 'tutor' : 'student'
   return `<${xmlTag}>${message}</${xmlTag}>`
+}
+
+const getSessionTranscriptModerationResult = async (
+  prompt: string,
+  chunkAsString: string,
+  model: string,
+  trace: LangfuseTraceClient,
+  promptObject?: TextPromptClient
+): Promise<TranscriptChunkModerationResult> => {
+  const gen = trace.generation({
+    name: LangfuseGenerationName.SESSION_TRANSCRIPT_MODERATION_DECISION,
+    model,
+    input: chunkAsString,
+    ...(promptObject && { prompt: promptObject }),
+  })
+  const result = await openai.chat.completions.create({
+    model,
+    messages: [
+      {
+        role: 'system',
+        content: prompt,
+      },
+      {
+        role: 'user',
+        content: chunkAsString,
+      },
+    ],
+    response_format: { type: 'json_object' },
+  })
+  gen.end({
+    output: result,
+  })
+  return JSON.parse(result.choices[0].message.content || '')
+}
+
+export type TranscriptChunkModerationResult = {
+  confidence: number // higher = more likely to be inappropriate
+  explanation: string
+}
+export const moderateTranscript = async (
+  transcript: SessionTranscript
+): Promise<TranscriptChunkModerationResult[]> => {
+  const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
+    return chunk.reduce((acc: string, item) => {
+      return (
+        acc + `<message><role>${item.role}</role>${item.message}</message>\n`
+      )
+    }, '')
+  }
+
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.SESSION_TRANSCRIPT_MODERATION,
+    FALLBACK_TRANSCRIPT_MODERATION_PROMPT
+  )
+
+  const t = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_TRANSCRIPT,
+    sessionId: transcript.sessionId,
+    metadata: {
+      sessionId: transcript.sessionId,
+    },
+  })
+
+  const model = 'gpt-4o'
+  const results: TranscriptChunkModerationResult[] = []
+  const chunks: SessionTranscriptItem[][] = chunk(transcript.messages, 50)
+  for (const chunk of chunks) {
+    const result = await getSessionTranscriptModerationResult(
+      promptData.prompt,
+      getChunkAsString(chunk),
+      model,
+      t,
+      promptData?.promptObject
+    )
+    results.push(result)
+  }
+  if (
+    results.some(
+      r => r.confidence >= config.contextualModerationConfidenceThreshold
+    )
+  ) {
+    t.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+  }
+  return results
 }
 
 export const FALLBACK_MODERATION_PROMPT = `
@@ -476,3 +935,15 @@ Acceptable values for the elements of the 'reasons' array are:
 - Direct quotes from literature
 - Profanity that is likely just a typo. In this event, prefer flagging the message as appropriate instead of inappropriate if and only if the context of the message indicates it was likely a mistake.
 </exceptions>`
+
+const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
+You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor and decide if it violates any policies.
+You will find the chat message in <message> tags and the role of the user who sent the message in the <role> tags. Policies are described in the <policy> tags.
+Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
+<policy>No hate speech</policy>
+<policy>No sexual or flirtatious content</policy>
+<policy>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.</policy>
+<policy>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.</policy>
+<policy>The nature of the conversation must be appropriate in a tutoring context</policy>
+Provide your response in this JSON format: "{ confidence: number, explanation: string }"
+`

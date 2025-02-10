@@ -18,11 +18,25 @@ export async function getFederatedCredential(id: string, issuer: string) {
   }
 }
 
+export async function getFederatedCredentialForUser(userId: Ulid) {
+  try {
+    const result = await pgQueries.getFederatedCredentialForUser.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) {
+      return makeRequired(result[0])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function insertFederatedCredential(
   id: string,
   issuer: string,
   userId: Ulid,
-  tc?: TransactionClient
+  tc: TransactionClient
 ) {
   try {
     await pgQueries.insertFederatedCredential.run(

@@ -6,6 +6,7 @@ import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { isVolunteerUserType } from '../../utils/user-type'
 import multer from 'multer'
+import config from '../../config'
 
 export function routeModeration(router: Router): void {
   const upload = multer()
@@ -41,6 +42,7 @@ export function routeModeration(router: Router): void {
     .post(upload.single('image'), async (req, res) => {
       const imageToModerate = req.file
       const sessionId = req.body.sessionId
+      const user = extractUser(req)
       if (!imageToModerate) {
         return res.status(400).json({ err: 'No file was attached' })
       }
@@ -48,7 +50,34 @@ export function routeModeration(router: Router): void {
       try {
         const moderationResult = await ModerationService.moderateImage(
           imageToModerate,
-          sessionId
+          sessionId,
+          user?.id,
+          user?.isVolunteer
+        )
+        res.status(200).json(moderationResult)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/moderate/video-frame')
+    .post(upload.single('frame'), async (req, res) => {
+      const frameToModerate = req.file
+      const sessionId = req.body.sessionId
+      const user = extractUser(req)
+
+      if (!frameToModerate) {
+        return res.status(400).json({ err: 'No file was attached' })
+      }
+
+      try {
+        const moderationResult = await ModerationService.moderateVideoFrame(
+          frameToModerate.buffer,
+          sessionId,
+          user.id,
+          user.isVolunteer,
+          config.awsS3.moderatedScreenshareBucket
         )
         res.status(200).json(moderationResult)
       } catch (err) {

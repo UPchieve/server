@@ -51,16 +51,12 @@ import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import moderateSessionMessage from '../../scripts/moderate-session-message'
+import moderateSessionTranscript from '../../scripts/moderate-session-transcript'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
-import {
-  turnOffStandaloneAiTutor,
-  turnOnStandaloneAiTutor,
-} from './tutor-bot/turn-standalone-ai-tutor-on-or-off'
-
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
@@ -147,10 +143,7 @@ export enum Jobs {
 
   // Moderation
   ModerateSessionMessage = 'ModerateSessionMessage',
-
-  // AI tutor bot
-  TurnOffStandaloneAiTutor = 'TurnOffStandaloneAiTutor',
-  TurnOnStandaloneAiTutor = 'TurnOnStandaloneAiTutor',
+  ModerateSessionTranscript = 'ModerateSessionTranscript',
 }
 
 // register new job processors here
@@ -425,16 +418,12 @@ const jobProcessors: JobProcessor[] = [
     processor: moderateSessionMessage,
   },
   {
+    name: Jobs.ModerateSessionTranscript,
+    processor: moderateSessionTranscript,
+  },
+  {
     name: Jobs.MigrateBannedAndTestUsersToBanType,
     processor: migrateBannedAndTestUsersToBanType,
-  },
-  {
-    name: Jobs.TurnOffStandaloneAiTutor,
-    processor: turnOffStandaloneAiTutor,
-  },
-  {
-    name: Jobs.TurnOnStandaloneAiTutor,
-    processor: turnOnStandaloneAiTutor,
   },
 ]
 

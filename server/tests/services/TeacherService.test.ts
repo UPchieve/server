@@ -4,7 +4,6 @@ import * as TeacherService from '../../services/TeacherService'
 import * as StudentRepo from '../../models/Student'
 import * as SubjectsRepo from '../../models/Subjects'
 import * as TeacherRepo from '../../models/Teacher'
-import { TeacherClass } from '../../models/TeacherClass'
 
 jest.mock('../../models/Student')
 jest.mock('../../models/Subjects')
@@ -97,6 +96,7 @@ describe('createTeacherClass', () => {
     mockedTeacherRepo.getTeacherClassByClassCode
       .mockResolvedValueOnce({
         id: 'a',
+        cleverId: undefined,
         userId: 'a',
         code: 'a',
         name: 'a',
@@ -108,6 +108,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'b',
+        cleverId: undefined,
         userId: 'b',
         code: 'b',
         name: 'b',
@@ -119,6 +120,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'c',
+        cleverId: undefined,
         userId: 'c',
         code: 'c',
         name: 'c',
@@ -130,6 +132,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'd',
+        cleverId: undefined,
         userId: 'd',
         code: 'd',
         name: 'd',
@@ -141,6 +144,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'e',
+        cleverId: undefined,
         userId: 'e',
         code: 'e',
         name: 'e',
@@ -162,6 +166,7 @@ describe('createTeacherClass', () => {
     mockedTeacherRepo.getTeacherClassByClassCode
       .mockResolvedValueOnce({
         id: 'a',
+        cleverId: undefined,
         userId: 'a',
         code: 'a',
         name: 'a',
@@ -173,6 +178,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'b',
+        cleverId: undefined,
         userId: 'b',
         code: 'b',
         name: 'b',
@@ -184,6 +190,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'c',
+        cleverId: undefined,
         userId: 'c',
         code: 'c',
         name: 'c',
@@ -195,6 +202,7 @@ describe('createTeacherClass', () => {
       })
       .mockResolvedValueOnce({
         id: 'd',
+        cleverId: undefined,
         userId: 'd',
         code: 'd',
         name: 'd',
@@ -236,6 +244,7 @@ describe('getTeacherSchoolIdFromClassCode', () => {
   test(`returns the teacher's school id`, async () => {
     const teacherClass = {
       id: 'teacher-class-id',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'teacher-class-name',
       code: 'C0D3',
@@ -270,6 +279,7 @@ describe('getTeacherSchoolIdFromClassCode', () => {
   test('returns undefined if no teacher found with userId', async () => {
     const teacherClass = {
       id: 'teacher-class-id',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'teacher-class-name',
       code: 'C0D3',
@@ -293,6 +303,7 @@ describe('addStudentToTeacherClass', () => {
   test('adds a student to a teacher class', async () => {
     const teacherClass = {
       id: 'teacher-class-id',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'teacher-class-name',
       code: 'mo@r-c0d3',
@@ -304,15 +315,15 @@ describe('addStudentToTeacherClass', () => {
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
 
-    const result = await TeacherService.addStudentToTeacherClass(
+    const result = await TeacherService.addStudentToTeacherClassByClassCode(
       teacherClass.userId,
       teacherClass.code
     )
 
-    expect(mockedStudentRepo.addStudentToTeacherClass).toHaveBeenCalledWith(
-      expect.toBeTransactionClient(),
-      teacherClass.userId,
-      teacherClass.id
+    expect(mockedStudentRepo.addStudentsToTeacherClass).toHaveBeenCalledWith(
+      [teacherClass.userId],
+      teacherClass.id,
+      expect.toBeTransactionClient()
     )
     expect(result).toBe(teacherClass)
   })
@@ -320,6 +331,7 @@ describe('addStudentToTeacherClass', () => {
   test('adds the student to all the class assignments', async () => {
     const teacherClass = {
       id: 'classId',
+      cleverId: undefined,
       userId: 'teacher-id',
       name: 'class name',
       code: 'AAA111',
@@ -332,15 +344,15 @@ describe('addStudentToTeacherClass', () => {
 
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
 
-    await TeacherService.addStudentToTeacherClass(
+    await TeacherService.addStudentToTeacherClassByClassCode(
       'studentId',
       teacherClass.code
     )
 
     expect(
-      mockedAssignmentsService.addStudentToClassAssignments
+      mockedAssignmentsService.addStudentsToClassAssignments
     ).toHaveBeenCalledWith(
-      'studentId',
+      ['studentId'],
       teacherClass.id,
       expect.toBeTransactionClient()
     )
@@ -349,7 +361,10 @@ describe('addStudentToTeacherClass', () => {
   test('throws error if no class with the class code', async () => {
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(undefined)
     expect(async () => {
-      await TeacherService.addStudentToTeacherClass('teacher-id', 'class-code')
+      await TeacherService.addStudentToTeacherClassByClassCode(
+        'teacher-id',
+        'class-code'
+      )
     }).rejects.toThrow()
   })
 })

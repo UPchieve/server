@@ -209,6 +209,7 @@ SELECT
     sessions.ended_at,
     sessions.created_at,
     sessions.volunteer_id AS volunteer,
+    volunteers.first_name AS volunteer_first_name,
     topics.name AS TYPE,
     subjects.name AS sub_topic,
     students.first_name AS student_first_name,
@@ -223,6 +224,7 @@ FROM
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
     LEFT JOIN topics ON topics.id = subjects.topic_id
     LEFT JOIN users students ON students.id = sessions.student_id
+    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
     LEFT JOIN feedbacks student_feedback ON (student_feedback.session_id = sessions.id
             AND student_feedback.user_id = sessions.student_id)
     LEFT JOIN LATERAL (
@@ -555,7 +557,30 @@ SELECT
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    CASE WHEN sessions.volunteer_id IS NULL THEN
+        FALSE
+    WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.volunteer_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS volunteer_banned_from_live_media, CASE WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.student_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS student_banned_from_live_media
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -635,7 +660,30 @@ SELECT
         ELSE
             NULL
         END) AS ended_by,
-    tool_types.name AS tool_type
+    tool_types.name AS tool_type,
+    CASE WHEN sessions.volunteer_id IS NULL THEN
+        FALSE
+    WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.volunteer_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS volunteer_banned_from_live_media, CASE WHEN (
+        SELECT
+            ban_type
+        FROM
+            upchieve.users
+        WHERE
+            id = sessions.student_id) = 'live_media' THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS student_banned_from_live_media
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
@@ -1068,6 +1116,8 @@ WITH results AS (
     AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
     AND sessions.ended_at IS NOT NULL
+    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
 ORDER BY
     sessions.id
 )
@@ -1271,45 +1321,74 @@ RETURNING
     id, session_id, message, tutor_bot_session_user_type, created_at;
 
 
-/* @name getStudentSessionsForFallIncentive */
+/* @name getSessionTranscript */
 SELECT
-    sessions.id,
-    (time_tutored)::float,
-    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,
-    session_reported_count.total <> 0 AS reported,
-    messages.total AS total_messages,
-    sessions.created_at
+    sm.id AS message_id,
+    sender_id AS user_id,
+    contents AS message,
+    sm.created_at,
+    CASE WHEN TRUE THEN
+        'chat'
+    END AS message_type,
+    CASE WHEN s.volunteer_id = sm.sender_id THEN
+        'volunteer'
+    ELSE
+        'student'
+    END AS ROLE
 FROM
-    sessions
-    LEFT JOIN session_reports ON session_reports.session_id = sessions.id
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            session_reports
-        WHERE
-            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            array_agg(name) AS flags
-        FROM
-            sessions_session_flags
-            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id
-        WHERE
-            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            session_messages
-        WHERE
-            session_messages.session_id = sessions.id) AS messages ON TRUE
+    session_messages sm
+    JOIN sessions s ON sm.session_id = s.id
 WHERE
-    sessions.student_id = :studentId!
-    AND sessions.ended_at IS NOT NULL
-    AND sessions.created_at >= :start!
-    AND ((:end)::timestamptz IS NULL
-        OR sessions.created_at <= (:end)::timestamptz)
+    sm.session_id = :sessionId!
+UNION
+SELECT
+    satm.id AS message_id,
+    satm.user_id,
+    satm.message,
+    satm.said_at AS created_at,
+    CASE WHEN TRUE THEN
+        'transcription'
+    END AS message_type,
+    CASE WHEN s.volunteer_id = satm.user_id THEN
+        'volunteer'
+    ELSE
+        'student'
+    END AS ROLE
+FROM
+    session_audio_transcript_messages satm
+    JOIN sessions s ON satm.session_id = s.id
+WHERE
+    satm.session_id = :sessionId!
+UNION
+SELECT
+    svm.id AS message_id,
+    svm.sender_id AS user_id,
+    svm.transcript AS message,
+    svm.created_at,
+    CASE WHEN TRUE THEN
+        'voice_message'
+    END AS message_type,
+    CASE WHEN s.volunteer_id = svm.sender_id THEN
+        'volunteer'
+    ELSE
+        'student'
+    END AS ROLE
+FROM
+    session_voice_messages svm
+    JOIN sessions s ON svm.session_id = s.id
+WHERE
+    svm.session_id = :sessionId!
 ORDER BY
     created_at ASC;
+
+
+/* @name getPreviousSessionCountForPair */
+SELECT
+    COUNT(*)::int AS total
+FROM
+    sessions
+WHERE
+    student_id = :studentId!
+    AND volunteer_id = :volunteerId!
+    AND ended_at IS NOT NULL;
 

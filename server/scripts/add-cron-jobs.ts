@@ -64,14 +64,6 @@ const jobTemplates: JobTemplate[] = [
     name: Jobs.UpdateGradeLevel,
     options: { repeat: { cron: '0 8 1 8 *', tz: 'America/New_York' } }, // On August 1st at 8am ET
   },
-  {
-    name: Jobs.TurnOffStandaloneAiTutor,
-    options: { repeat: { cron: '0 23 * * *', tz: 'America/New_York' } }, // Daily at 11pm ET
-  },
-  {
-    name: Jobs.TurnOnStandaloneAiTutor,
-    options: { repeat: { cron: '0 13 * * *', tz: 'America/New_York' } }, // Daily at 1pm ET
-  },
 ]
 
 const main = async (): Promise<void> => {

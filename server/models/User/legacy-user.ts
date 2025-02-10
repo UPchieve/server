@@ -2,11 +2,11 @@ import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import { GRADES, USER_BAN_REASONS, USER_BAN_TYPES } from '../../constants'
 import {
   Certifications,
-  Reference,
-  TrainingCourses,
-  getVolunteerTrainingCourses,
   getActiveQuizzesForVolunteers,
   getCertificationsForVolunteer,
+  getVolunteerTrainingCourses,
+  Reference,
+  TrainingCourses,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -20,9 +20,17 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
-import { isStudentUserType, isVolunteerUserType } from '../../utils/user-type'
+import {
+  isStudentUserType,
+  isTeacherUserType,
+  isVolunteerUserType,
+} from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
+import * as SurveyService from '../../services/SurveyService'
+import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
 import { UserRole } from './types'
+import * as AssignmentsService from '../../services/AssignmentsService'
+import { StudentAssignment } from '../Assignments/types'
 
 export type LegacyUserModel = {
   // pg
@@ -51,7 +59,6 @@ export type LegacyUserModel = {
   lastActivityAt?: Date
   referralCode: string
   referredBy?: Ulid
-  type: string
   roleId: number
   sessionStats: UserSessionStats
   // volunteer
@@ -84,8 +91,13 @@ export type LegacyUserModel = {
   isSchoolPartner?: boolean
   usesClever?: boolean
   usesGoogle?: boolean
+  studentAssignments?: StudentAssignment[]
+  ratings?: PostsessionSurveyRatingsMetric
+  // teacher
+  lastSuccessfulCleverSync?: Date
 }
 
+// TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
@@ -106,7 +118,6 @@ export async function getLegacyUserObject(
       'isTestUser',
       'isDeactivated',
       'referralCode',
-      'type',
     ])
     // manually parse out incoming bigint to number
     baseUser.hoursTutored =
@@ -131,7 +142,12 @@ export async function getLegacyUserObject(
     const sessionStats = await getUserSessionStats(userId)
     const volunteerUser: any = {}
     const studentUser: any = {}
+    const teacherUser: { usesClever?: boolean } = {}
     const userType = (await UserRolesService.getUserRolesById(userId)).userType
+    const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
+      userId,
+      userType
+    )
     if (isStudentUserType(userType)) {
       studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
         baseUser.id
@@ -141,6 +157,9 @@ export async function getLegacyUserObject(
       studentUser.usesClever =
         baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
       delete baseUser.issuers
+      studentUser.studentAssignments = await AssignmentsService.getAssignmentsByStudentId(
+        baseUser.id
+      )
     }
     if (isVolunteerUserType(userType)) {
       if (!baseUser.subjects) baseUser.subjects = []
@@ -183,15 +202,21 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
+    if (isTeacherUserType(userType)) {
+      teacherUser.usesClever =
+        baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
+    }
     const final = _.merge(
       { _id: baseUser.id, userType },
       baseUser,
       volunteerUser,
       studentUser,
+      teacherUser,
       { isBanned: baseUser.banType === 'complete' },
       {
         sessionStats,
-      }
+      },
+      { ratings }
     )
     return final as LegacyUserModel
   } catch (err) {

@@ -32,6 +32,19 @@ export type CreateAssignmentPayload = {
   title?: string
   studentIds: Array<string>
 }
+export type EditAssignmentPayload = {
+  id: string
+  description?: string
+  dueDate?: Date
+  isRequired?: boolean
+  minDurationInMinutes?: number
+  numberOfSessions?: number
+  startDate?: Date
+  subjectId?: number
+  title?: string
+  studentsToRemove?: Array<string>
+  studentsToAdd?: Array<string>
+}
 export const asAssignment = asFactory<CreateAssignmentPayload>({
   classId: asString,
   description: asOptional(asString),
@@ -44,21 +57,23 @@ export const asAssignment = asFactory<CreateAssignmentPayload>({
   title: asOptional(asString),
   studentIds: asArray(asString),
 })
+export const asEditedAssignment = asFactory<EditAssignmentPayload>({
+  id: asString,
+  description: asOptional(asString),
+  dueDate: asOptional(asDate),
+  isRequired: asOptional(asBoolean),
+  minDurationInMinutes: asOptional(asNumber),
+  numberOfSessions: asOptional(asNumber),
+  startDate: asOptional(asDate),
+  subjectId: asOptional(asNumber),
+  title: asOptional(asString),
+  studentsToRemove: asOptional(asArray(asString)),
+  studentsToAdd: asOptional(asArray(asString)),
+})
 
 export async function createAssignment(data: CreateAssignmentPayload) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const numSessions = data.numberOfSessions
-    if (numSessions && numSessions <= 0)
-      throw new InputError('Number of sessions must be greater than 0.')
-
-    const startDate = data.startDate
-    const dueDate = data.dueDate
-    if (
-      startDate &&
-      dueDate &&
-      moment(startDate).isSameOrAfter(moment(dueDate))
-    )
-      throw new InputError('Start date cannot be after the due date.')
+    validateAssignmentData(data)
 
     const assignment = await AssignmentsRepo.createAssignment(
       {
@@ -85,6 +100,37 @@ export async function createAssignment(data: CreateAssignmentPayload) {
   })
 }
 
+export async function editAssignment(data: EditAssignmentPayload) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    validateAssignmentData(data)
+
+    const assignment = await AssignmentsRepo.editAssignment(
+      {
+        id: data.id,
+        description: data.description,
+        dueDate: data.dueDate,
+        isRequired: data.isRequired ?? false,
+        minDurationInMinutes: data.minDurationInMinutes,
+        numberOfSessions: data.numberOfSessions,
+        startDate: data.startDate,
+        subjectId: data.subjectId,
+        title: data.title,
+      },
+      tc
+    )
+
+    if (data.studentsToRemove && data.studentsToRemove.length) {
+      await deleteStudentAssignmentsForStudents(data.studentsToRemove, data.id)
+    }
+
+    if (data.studentsToAdd && data.studentsToAdd.length) {
+      await addAssignmentForStudents(data.studentsToAdd, data.id, tc)
+    }
+
+    return assignment
+  })
+}
+
 export async function getAssignmentsByClassId(
   classId: Ulid
 ): Promise<AssignmentsRepo.Assignment[]> {
@@ -103,20 +149,11 @@ export async function addAssignmentForStudents(
   tc?: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
   return runInTransaction(async (tc: TransactionClient) => {
-    try {
-      const studentAssignments = await Promise.all(
-        studentIds.map(studentId => {
-          return AssignmentsRepo.createStudentAssignment(
-            studentId,
-            assignmentId,
-            tc
-          )
-        })
-      )
-      return studentAssignments
-    } catch (err) {
-      throw new Error((err as Error).message)
-    }
+    return AssignmentsRepo.createStudentsAssignmentsForAll(
+      studentIds,
+      [assignmentId],
+      tc
+    )
   }, tc)
 }
 
@@ -135,39 +172,19 @@ export async function addAssignmentForClass(
 }
 
 /*
- * Add the student to all the assignments that are assigned to the entire class.
+ * Add the students to all the assignments that are assigned to the entire class.
  */
-export async function addStudentToClassAssignments(
-  studentId: Ulid,
+export async function addStudentsToClassAssignments(
+  studentIds: Ulid[],
   classId: Uuid,
   tc: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
-    const totalStudentsInClass = await TeacherClassRepo.getTotalStudentsInClass(
-      classId,
-      tc
-    )
-    const assignments = await AssignmentsRepo.getAssignmentsByClassId(
-      classId,
-      tc
-    )
-
-    const assignmentsToAdd = (
-      await Promise.all(
-        assignments.map(async a => {
-          const sa = await AssignmentsRepo.getStudentAssignmentCompletion(
-            a.id,
-            tc
-          )
-          if (sa.length === totalStudentsInClass) {
-            return a
-          }
-        })
-      )
-    ).filter((a): a is Assignment => !!a)
-
-    await AssignmentsRepo.createStudentAssignments(
-      assignmentsToAdd.map(a => ({ userId: studentId, assignmentId: a.id })),
+    const assignments = await getClassAssignments(classId, tc)
+    if (!assignments.length) return
+    return AssignmentsRepo.createStudentsAssignmentsForAll(
+      studentIds,
+      assignments.map(a => a.id),
       tc
     )
   }, tc)
@@ -235,6 +252,51 @@ export async function updateStudentAssignmentAfterSession(
   }, tc)
 }
 
+export async function deleteAssignment(assignmentId: Uuid) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    await AssignmentsRepo.deleteSessionForStudentAssignment(assignmentId, tc)
+    await AssignmentsRepo.deleteStudentAssignment(assignmentId, tc)
+    await AssignmentsRepo.deleteAssignment(assignmentId, tc)
+  })
+}
+
+async function deleteStudentAssignmentsForStudents(
+  studentsToRemove: Uuid[],
+  assignmentId: Uuid
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    studentsToRemove.forEach(async studentId => {
+      await AssignmentsRepo.deleteSessionStudentAssignmentByStudentId(
+        studentId,
+        assignmentId,
+        tc
+      )
+
+      await AssignmentsRepo.deleteStudentAssignmentByStudentId(
+        studentId,
+        assignmentId,
+        tc
+      )
+    })
+  })
+}
+
+function validateAssignmentData(
+  data: Pick<
+    CreateAssignmentPayload,
+    'numberOfSessions' | 'startDate' | 'dueDate'
+  >
+) {
+  const numSessions = data.numberOfSessions
+  if (numSessions && numSessions <= 0)
+    throw new InputError('Number of sessions must be greater than 0.')
+
+  const startDate = data.startDate
+  const dueDate = data.dueDate
+  if (startDate && dueDate && moment(startDate).isSameOrAfter(moment(dueDate)))
+    throw new InputError('Start date cannot be after the due date.')
+}
+
 // Exported for testing.
 export function haveSessionsMetAssignmentRequirements(
   assignment: Omit<StudentAssignment, 'classId'>,
@@ -251,4 +313,34 @@ export function haveSessionsMetAssignmentRequirements(
   })
 
   return filtered.length >= (assignment.numberOfSessions ?? 0)
+}
+
+/*
+ * Gets the assignments that are assigned to the entire class.
+ */
+async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const totalStudentsInClass = await TeacherClassRepo.getTotalStudentsInClass(
+      classId,
+      tc
+    )
+    const assignments = await AssignmentsRepo.getAssignmentsByClassId(
+      classId,
+      tc
+    )
+
+    return (
+      await Promise.all(
+        assignments.map(async a => {
+          const sa = await AssignmentsRepo.getStudentAssignmentCompletion(
+            a.id,
+            tc
+          )
+          if (sa.length === totalStudentsInClass) {
+            return a
+          }
+        })
+      )
+    ).filter((a): a is Assignment => !!a)
+  })
 }

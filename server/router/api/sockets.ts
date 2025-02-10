@@ -28,7 +28,11 @@ import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
-import { getSocketIdsFromRoom, remoteJoinRoom } from '../../utils/socket-utils'
+import {
+  getSocketIdsFromRoom,
+  remoteJoinRoom,
+  emitSessionPresence,
+} from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
@@ -36,7 +40,7 @@ import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
 import {
-  moderateTranscript,
+  moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
 
@@ -181,100 +185,92 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     }
 
-    if (socket.recovered) logSocketEvent('recovered', socket)
+    if (socket.recovered) {
+      logSocketEvent('recovered', socket)
+      if (user && socket.data.sessionId) {
+        const sessionRoom = getSessionRoom(socket.data.sessionId)
+        await emitSessionPresence(io, socket.id, user.id, sessionRoom)
+      }
+    }
 
     // Tutor session management
     socket.on('join', async function(data) {
-      newrelic.startWebTransaction('/socket-io/join', () =>
-        new Promise<void>(async (resolve, reject) => {
-          if (!data || !data.sessionId) {
-            socket.emit('redirect')
-            resolve()
-            return
-          }
-
-          const { sessionId, joinedFrom } = data
-          const user = extractSocketUser(socket)
-
-          try {
-            // TODO: have middleware handle the auth
-            if (!user) throw new Error('User not authenticated')
-            if (
-              isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)) &&
-              !user.approved
-            )
-              throw new Error('Volunteer not approved')
-          } catch (error) {
-            socket.emit('redirect')
-            reject(error)
-            return
-          }
-
-          try {
-            // TODO: correctly type User from passport
-            await SessionService.joinSession(user, sessionId, {
-              socket,
-              joinedFrom,
-            })
-
-            const sessionRoom = getSessionRoom(sessionId)
-            const userSocketIds = await getSocketIdsFromRoom(io, user.id)
-            // Have all of the user's socket connections join the tutoring session room
-            for (const id of userSocketIds) {
-              await remoteJoinRoom(io, id, sessionRoom)
+      newrelic.startWebTransaction(
+        '/socket-io/join',
+        () =>
+          new Promise<void>(async (resolve, reject) => {
+            if (!data || !data.sessionId) {
+              socket.emit('redirect')
+              resolve()
+              return
             }
 
-            await socketService.emitSessionChange(sessionId)
-            // Attach the sessionId to the socket for analytics and debugging purposes
-            // Currently only one sessionId is attached to a socket at a time
-            socket.data.sessionId = data.sessionId
-            /**
-             *
-             * Emit to all other sockets that are not the users and are connected
-             * to the session room that we're now online.
-             *
-             * This handles cases where a user has
-             * multiple tabs of the session view open
-             *
-             */
-            await socket
-              .to(sessionRoom)
-              .except(user.id)
-              .emit('sessions/partner:in-session', true)
-            const sessionSocketIds = await getSocketIdsFromRoom(io, sessionRoom)
-            const partnerSocketIds = sessionSocketIds.filter(
-              id => !userSocketIds.includes(id)
-            )
-            // Emit to self if session partner is in session or not
-            await socket.emit(
-              'sessions/partner:in-session',
-              !!partnerSocketIds.length
-            )
-            resolve()
-          } catch (error) {
-            const session = await SessionRepo.getSessionById(sessionId)
-            socketService.bump(
-              socket,
-              {
-                endedAt: session.endedAt,
-                volunteer: session.volunteerId,
-                student: session.studentId,
-                sessionId: session.id,
-                userId: user.id,
-              },
-              error as Error
-            )
-            resolve()
-          }
-        }).catch(err => {
-          logger.error(
-            {
-              error: err?.message,
-              sessionId: data?.sessionId,
-            },
-            'Promise rejected while handling "join" event'
-          )
-        })
+            const { sessionId, joinedFrom } = data
+            const user = extractSocketUser(socket)
+
+            try {
+              // TODO: have middleware handle the auth
+              if (!user) throw new Error('User not authenticated')
+              if (
+                isVolunteerUserType(
+                  getUserTypeFromRoles(user.roles, user.id)
+                ) &&
+                !user.approved
+              )
+                throw new Error('Volunteer not approved')
+            } catch (error) {
+              socket.emit('redirect')
+              reject(error)
+              return
+            }
+
+            try {
+              // TODO: correctly type User from passport
+              await SessionService.joinSession(user, sessionId, {
+                socket,
+                joinedFrom,
+              })
+            } catch (error) {
+              logger.error(
+                `User ${user.id} failed to join session ${sessionId}: ${error}`
+              )
+              const session = await SessionRepo.getSessionById(sessionId)
+              socketService.bump(
+                socket,
+                {
+                  endedAt: session.endedAt,
+                  volunteer: session.volunteerId,
+                  student: session.studentId,
+                  sessionId: session.id,
+                  userId: user.id,
+                },
+                error as Error
+              )
+              resolve()
+              return
+            }
+
+            try {
+              const sessionRoom = getSessionRoom(sessionId)
+              const userSocketIds = await getSocketIdsFromRoom(io, user.id)
+              // Have all of the user's socket connections join the tutoring session room
+              for (const id of userSocketIds) {
+                remoteJoinRoom(io, id, sessionRoom)
+              }
+
+              await socketService.emitSessionChange(sessionId)
+              // Attach the sessionId to the socket for analytics and debugging purposes
+              // Currently only one sessionId is attached to a socket at a time
+              socket.data.sessionId = data.sessionId
+              await emitSessionPresence(io, socket.id, user.id, sessionRoom)
+              resolve()
+            } catch (error) {
+              logger.error(
+                `User ${user.id} failed to join sockets to session room for session ${sessionId}: ${error}`
+              )
+              resolve()
+            }
+          })
       )
     })
 
@@ -381,6 +377,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               type,
               transcript,
               saidAt,
+              zoomMessageId,
             } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
@@ -417,7 +414,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               saveMessageData.transcript = transcript
             }
             if (type === 'audio-transcription') {
-              const result = await moderateTranscript({
+              const result = await moderateIndividualTranscription({
                 transcript: message,
                 sessionId,
                 userId: user.id,
@@ -452,6 +449,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               sessionId: Ulid
               type?: SessionMessageType
               transcript?: string
+              zoomMessageId?: string
             } = {
               contents: sanitizedMessage ?? message,
               createdAt: createdAt,
@@ -459,6 +457,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               userType: userType,
               user: user.id,
               sessionId,
+              zoomMessageId,
             }
 
             if (type) {
@@ -624,14 +623,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/sessions:leave', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            socket.leave(getSessionRoom(sessionId))
-            delete socket.data.sessionId
-            const user = extractSocketUser(socket)
             const sessionRoom = getSessionRoom(sessionId)
-            await socket
-              .to(sessionRoom)
-              .except(user.id)
-              .emit('sessions/partner:in-session', false)
+            // Ensure the user's socket is part of the session room before leaving.
+            // This prevents emitting session-presence from non-session participants
+            const isSocketInRoom = socket.rooms.has(sessionRoom)
+            if (isSocketInRoom) {
+              socket.leave(sessionRoom)
+              delete socket.data.sessionId
+              const user = extractSocketUser(socket)
+              await socket
+                .to(sessionRoom)
+                .except(user.id)
+                .emit('sessions/partner:in-session', false)
+            }
             resolve()
           } catch (error) {
             reject(error)
@@ -647,65 +651,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         })
       )
     })
-
-    socket.on(
-      'sessions:joined-call',
-      async ({ sessionId }: { sessionId: string }) => {
-        newrelic.startWebTransaction('/socket-io/sessions:joined-call', () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const userId = extractSocketUser(socket).id
-              await SessionService.addSessionCallParticipant(sessionId, userId)
-              await socketService.emitPartnerJoinedSessionCallEvent(
-                sessionId,
-                userId
-              )
-            } catch (err) {
-              reject(err)
-            }
-          }).catch(err => {
-            logger.error(
-              {
-                error: err?.message,
-                sessionId,
-              },
-              'Promise rejected while handling "sessions:joined-call" event'
-            )
-          })
-        )
-      }
-    )
-
-    socket.on(
-      'sessions:left-call',
-      async ({ sessionId }: { sessionId: string }) => {
-        newrelic.startWebTransaction('/socket-io/sessions:left-call', () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const userId = extractSocketUser(socket).id
-              await SessionService.removeSessionCallParticipant(
-                sessionId,
-                userId
-              )
-              await socketService.emitPartnerLeftSessionCallEvent(
-                sessionId,
-                userId
-              )
-            } catch (err) {
-              reject(err)
-            }
-          }).catch(err => {
-            logger.error(
-              {
-                error: err?.message,
-                sessionId,
-              },
-              'Promise rejected while handling "sessions:left-call" event'
-            )
-          })
-        )
-      }
-    )
 
     socket.conn.once('upgrade', () => {
       socket.data.downgraded = false

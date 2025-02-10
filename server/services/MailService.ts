@@ -1421,6 +1421,11 @@ export async function sendStudentFavoritedVolunteerEmail(
 }
 
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug('Skipping createContact: ' + userIds)
+    return
+  }
+
   const listOfUserIds = Array.isArray(userIds) ? userIds : [userIds]
   const contacts = []
   let contactListId

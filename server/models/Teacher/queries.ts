@@ -1,12 +1,23 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoReadError,
+  RepoUpdateError,
+  RepoUpsertError,
+} from '../Errors'
 import {
   CreateTeacherClassPayload,
   CreateTeacherPayload,
   TeacherClass,
 } from './types'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import {
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  Ulid,
+  Uuid,
+} from '../pgUtils'
 
 export async function createTeacher(
   data: CreateTeacherPayload,
@@ -37,13 +48,14 @@ export async function createTeacherClass(
         name: data.name,
         code: data.code,
         topicId: data.topicId,
+        cleverId: data.cleverId,
       },
       tc
     )
     if (!teacherClass.length) {
       throw new RepoCreateError('Unable to create teacher class.')
     }
-    return makeSomeOptional(teacherClass[0], ['topicId'])
+    return makeSomeOptional(teacherClass[0], ['topicId', 'cleverId'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -74,7 +86,9 @@ export async function getTeacherClassesByUserId(
       { userId },
       tc
     )
-    return classes.map(c => makeSomeOptional(c, ['topicId', 'deactivatedOn']))
+    return classes.map(c =>
+      makeSomeOptional(c, ['topicId', 'deactivatedOn', 'cleverId'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -90,7 +104,11 @@ export async function getTeacherClassByClassCode(
       tc
     )
     if (teacherClass.length) {
-      return makeSomeOptional(teacherClass[0], ['topicId', 'deactivatedOn'])
+      return makeSomeOptional(teacherClass[0], [
+        'cleverId',
+        'topicId',
+        'deactivatedOn',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -101,7 +119,7 @@ export async function getTeacherClassById(id: Ulid, tc: TransactionClient) {
   try {
     const teacherClass = await pgQueries.getTeacherClassById.run({ id }, tc)
     if (teacherClass.length) {
-      return makeSomeOptional(teacherClass[0], ['topicId'])
+      return makeSomeOptional(teacherClass[0], ['cleverId', 'topicId'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -139,20 +157,49 @@ export async function updateTeacherClass(data: {
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
-    throw new RepoUpsertError(err)
+    throw new RepoUpdateError(err)
   }
 }
 
-export async function deactivateTeacherClass(id: string) {
+export async function deactivateTeacherClass(id: Ulid, tc: TransactionClient) {
   try {
     const updatedClass = await pgQueries.deactivateTeacherClass.run(
       {
         id,
       },
-      getClient()
+      tc
     )
     return makeSomeOptional(updatedClass[0], ['topicId'])
   } catch (err) {
-    throw new RepoUpsertError(err)
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateLastSuccessfulCleverSync(
+  teacherId: Ulid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.updateLastSuccessfulCleverSync.run({ teacherId }, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateTeacherSchool(
+  teacherId: Ulid,
+  schoolId: Uuid | undefined,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.updateTeacherSchool.run(
+      {
+        userId: teacherId,
+        schoolId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

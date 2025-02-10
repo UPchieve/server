@@ -25,12 +25,14 @@
     "lint:sql:manual": "pg-formatter --keyword-case=\"uppercase\" --inplace --placeholder=\":\\w+!\"",
     "lint:write": "npm run lint:backend && npm run lint:sql",
     "test": "npm run test:backend",
-    "test:backend": "jest -c jest.config.server.js --silent --group=-email --max_old_space_size=1536 --maxWorkers=3",
+    "test:backend": "jest -c jest.config.server.js --group=-email --max_old_space_size=1536 --maxWorkers=3",
     "test:backend:coverage": "jest -c jest.config.server.js --coverage --group=-email --max_old_space_size=1536 --maxWorkers=3",
     "test:backend:debug": "jest -c jest.config.server.js --logHeapUsage --detectOpenHandles --group=-email",
     "test:backend:full": "jest -c jest.config.server.js --detectOpenHandles --silent",
     "test:backend:watch": "jest -c jest.config.server.js --watch --runInBand --detectOpenHandles --group=-email --group=-database",
-    "test:database": "jest -c jest.config.database.js --max_old_space_size=1536 --maxWorkers=3",
+    "test:database:parallel": "jest --group=database/parallel -c jest.config.database.js --max_old_space_size=1536 --maxWorkers=3",
+    "test:database:sequential": "jest --group=database/sequential -c jest.config.database.js --max_old_space_size=1536 --runInBand",
+    "test:database": "npm run test:database:parallel && npm run test:database:sequential",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
     "pgtyped:check": "./bin/pgtyped_check.sh",
@@ -63,6 +65,8 @@
     "lint:sql:check"
   ],
   "dependencies": {
+    "@aws-sdk/client-comprehend": "^3.726.1",
+    "@aws-sdk/client-rekognition": "^3.726.0",
     "@aws-sdk/client-s3": "^3.588.0",
     "@aws-sdk/s3-request-presigner": "^3.588.0",
     "@azure-rest/ai-content-safety": "^1.0.0",
@@ -70,16 +74,15 @@
     "@azure/core-auth": "^1.7.2",
     "@azure/identity": "^1.2.3",
     "@azure/storage-blob": "^12.12.0",
-    "@pgtyped/cli": "^0.13.0",
-    "@pgtyped/query": "^0.13.0",
     "@sendgrid/mail": "^6.4.0",
-    "@sentry/node": "^5.30.0",
+    "@sentry/node": "^8.47.0",
+    "@sentry/profiling-node": "^8.47.0",
+    "@sentry/utils": "^8.47.0",
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-streams-adapter": "^0.2.2",
     "axios": "^1.6.8",
     "base64url": "^3.0.1",
     "bcrypt": "^5.0.1",
-    "body-parser": "^1.18.3",
     "bull": "^3.13.0",
     "case": "^1.6.3",
     "connect-pg-simple": "^7.0.0",
@@ -123,6 +126,7 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "swagger-ui-express": "^4.1.6",
+    "tremendous": "^3.8.0",
     "ts-custom-error": "^3.2.0",
     "twilio": "^3.58.0",
     "typescript": "^4.5.5",
@@ -133,10 +137,9 @@
     "yjs": "^13.6.11"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.3",
-    "@babel/preset-env": "^7.10.3",
-    "@babel/preset-typescript": "^7.10.1",
     "@faker-js/faker": "^8.4.1",
+    "@pgtyped/cli": "^2.3.0",
+    "@pgtyped/query": "^2.3.0",
     "@types/bcrypt": "^5.0.0",
     "@types/bull": "^3.12.2",
     "@types/connect-pg-simple": "^7.0.0",
@@ -165,11 +168,6 @@
     "@types/ua-parser-js": "0.7.35",
     "@types/uuid": "^8.3.1",
     "@types/validator": "^13.6.3",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "babel-eslint": "^10.1.0",
-    "babel-jest": "^29.7.0",
-    "babel-loader": "^8.2.2",
     "dotenv": "^16.3.1",
     "ioredis-mock": "^5.4.1",
     "jest": "^29.7.0",
@@ -190,8 +188,5 @@
   "engines": {
     "node": "~20.10.0",
     "npm": "~10.2.3"
-  },
-  "standard": {
-    "parser": "babel-eslint"
   }
 }

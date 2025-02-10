@@ -9,6 +9,7 @@ import {
 import { Ulid } from '../models/pgUtils'
 import { PartnerSchool } from '../models/School'
 import { getClient } from '../db'
+import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
 
 // helper to escape regex special characters
 function escapeRegex(str: string) {
@@ -111,8 +112,16 @@ export function updateApproval(schoolId: Ulid, isApproved: boolean) {
   return SchoolRepo.updateApproval(schoolId, isApproved)
 }
 
-export function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
-  return SchoolRepo.updateIsPartner(schoolId, isPartner)
+export async function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
+  const existingStudentPartnerOrg = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+    getClient(),
+    schoolId
+  )
+  return SchoolRepo.updateIsPartner(
+    schoolId,
+    isPartner,
+    existingStudentPartnerOrg?.partnerId
+  )
 }
 
 export interface AdminUpdate {

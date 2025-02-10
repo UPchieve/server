@@ -451,16 +451,15 @@ describe('addStudentToClassAssignments', () => {
         { firstName: '3', lastName: '3', submittedAt: null },
       ])
 
-    await AssignmentsService.addStudentToClassAssignments(
-      'studentId',
+    await AssignmentsService.addStudentsToClassAssignments(
+      ['studentId'],
       'classId',
       tc
     )
 
-    expect(mockedAssignmentRepo.createStudentAssignments).toHaveBeenCalledWith(
-      [{ userId: 'studentId', assignmentId: 'assignedToAll' }],
-      tc
-    )
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).toHaveBeenCalledWith(['studentId'], ['assignedToAll'], tc)
   })
 
   test('does not throw an error if no assignments for the class to add', async () => {
@@ -469,15 +468,14 @@ describe('addStudentToClassAssignments', () => {
     mockedAssignmentRepo.getAssignmentsByClassId.mockResolvedValue([])
     mockedAssignmentRepo.getStudentAssignmentCompletion.mockResolvedValue([])
 
-    await AssignmentsService.addStudentToClassAssignments(
-      'studentId',
+    await AssignmentsService.addStudentsToClassAssignments(
+      ['studentId'],
       'classId',
       tc
     )
 
-    expect(mockedAssignmentRepo.createStudentAssignments).toHaveBeenCalledWith(
-      [],
-      tc
-    )
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).not.toHaveBeenCalledWith()
   })
 })

@@ -138,3 +138,12 @@ SELECT
 FROM
     upchieve.subjects;
 
+
+/* @name getTopicIdFromName */
+SELECT
+    id
+FROM
+    upchieve.topics
+WHERE
+    name = :topicName!;
+

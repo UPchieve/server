@@ -59,42 +59,6 @@ beforeEach(async () => {
 const sessionId = getDbUlid()
 const progressReportId = getDbUlid()
 
-const SAVE_PRESESSION_SURVEY = `/survey/presession/${sessionId}`
-describe('/survey/presession/:sessionId', () => {
-  test('Should save the presession survey', async () => {
-    const payload = buildSimpleSurveyResponse()
-    const mockedSurvey = buildSimpleSurveyLegacy()
-    mockedSurveyRepo.savePresessionSurvey.mockImplementationOnce(
-      async () => mockedSurvey
-    )
-    const response = await sendPost(SAVE_PRESESSION_SURVEY, payload)
-    expect(mockedSurveyRepo.savePresessionSurvey).toHaveBeenCalledTimes(1)
-    expect(response.status).toBe(200)
-  })
-})
-
-const GET_PRESESSION_SURVEY_FOR_FEEDBACK = `/survey/presession/${sessionId}`
-describe('/survey/presession/:sessionId', () => {
-  test('Should get presession survey questions', async () => {
-    const payload = {}
-    const mockedSurvey = buildSimpleSurveyLegacy()
-    mockedSurveyRepo.getPresessionSurveyForFeedback.mockImplementationOnce(
-      async () => mockedSurvey
-    )
-    const response = await sendGet(GET_PRESESSION_SURVEY_FOR_FEEDBACK, payload)
-    expect(
-      mockedSurveyRepo.getPresessionSurveyForFeedback
-    ).toHaveBeenCalledTimes(1)
-    const expected = {
-      ...mockedSurvey,
-      createdAt: mockedSurvey.createdAt.toISOString(),
-      updatedAt: mockedSurvey.updatedAt.toISOString(),
-    }
-    expect(expected).toEqual(response.body.survey)
-    expect(response.status).toBe(200)
-  })
-})
-
 const GET_STUDENTS_PRESESSION_GOAL = `/survey/presession/${sessionId}/goal`
 describe('/survey/presession/:sessionId/goal', () => {
   test('Should get the students presession goal', async () => {
