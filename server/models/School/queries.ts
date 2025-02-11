@@ -59,45 +59,65 @@ export async function getSchoolById(
   }
 }
 
-export type GetSchoolsPayload = {
+type GetSchoolsInput = {
   name?: string
   state?: string
   city?: string
+  ncesId?: string
+  isPartner?: boolean
 }
-
-export async function getSchools(
-  data: GetSchoolsPayload,
+export async function getFilteredSchools(
+  data: GetSchoolsInput,
   limit: number,
-  offset: number
+  offset: number,
+  tc: TransactionClient
 ): Promise<School[]> {
   try {
-    const { name, state, city } = data
-    const result = await pgQueries.getSchools.run(
+    const result = await pgQueries.getFilteredSchools.run(
       {
-        name: name || null,
-        state: state || null,
-        city: city || null,
-        limit: limit,
-        offset: offset,
+        name: data.name || null,
+        state: data.state || null,
+        city: data.city || null,
+        ncesId: data.ncesId || null,
+        isPartner: data.isPartner ?? null,
+        limit,
+        offset,
       },
-      getClient()
+      tc
     )
-    return result
-      .map(v =>
-        makeSomeRequired(v, [
-          'id',
-          'name',
-          'city',
-          'state',
-          'isAdminApproved',
-          'isPartner',
-          'isSchoolWideTitle1',
-        ])
-      )
-      .map((s: School) => {
-        s.isApproved = isSchoolApproved(s)
-        return s
-      })
+    return result.map(v => {
+      const formatted = makeSomeRequired(v, [
+        'id',
+        'name',
+        'city',
+        'state',
+        'isAdminApproved',
+        'isPartner',
+      ])
+      ;(formatted as School).isApproved = isSchoolApproved(formatted)
+      return formatted
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getFilteredSchoolsTotalCount(
+  data: GetSchoolsInput,
+  tc: TransactionClient
+): Promise<number> {
+  try {
+    const result = await pgQueries.getFilteredSchoolsTotalCount.run(
+      {
+        name: data.name || null,
+        state: data.state || null,
+        city: data.city || null,
+        ncesId: data.ncesId || null,
+        isPartner: data.isPartner ?? null,
+      },
+      tc
+    )
+    return parseInt(result[0].count ?? '0')
   } catch (err) {
     throw new RepoReadError(err)
   }

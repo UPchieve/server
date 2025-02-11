@@ -1,4 +1,4 @@
-import { getDbUlid, getUuid, Ulid } from '../../models/pgUtils'
+import { getDbUlid, getUuid, Ulid, Uuid } from '../../models/pgUtils'
 import { Student } from '../../models/Student'
 import { Availability } from '../../models/Availability'
 import { User, UserContactInfo, UserRole } from '../../models/User'
@@ -451,13 +451,12 @@ export function buildStudentPartnerOrgUpchieveInstance(
 }
 
 export function buildSchool(
-  overrides: Partial<School> = {}
-): Omit<School, 'state' | 'isAdminApproved'> {
+  overrides: Partial<{ name: string; cityId: number }> = {}
+) {
   return {
     id: getDbUlid(),
     name: 'Approved School',
-    isPartner: false,
-    city: 'Brooklyn',
+    cityId: 1,
     ...overrides,
   }
 }
