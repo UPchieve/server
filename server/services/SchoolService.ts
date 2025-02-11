@@ -8,7 +8,7 @@ import {
 } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
 import { PartnerSchool } from '../models/School'
-import { getClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
 
 // helper to escape regex special characters
@@ -65,47 +65,44 @@ export async function getSchoolByNcesId(ncesId: string) {
   return SchoolRepo.getSchoolByNcesId(ncesId)
 }
 
-interface GetSchoolsPayload {
+type GetSchoolsPayload = {
   name?: string
   state?: string
   city?: string
+  ncesId?: string
+  isPartner?: boolean
+  limit?: number
   page?: number
 }
-const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
+export const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
   name: asOptional(asString),
   state: asOptional(asString),
   city: asOptional(asString),
+  ncesId: asOptional(asString),
+  isPartner: asOptional(asBoolean),
+  limit: asOptional(asNumber),
   page: asOptional(asNumber),
 })
-// TODO: clean up return type
-export async function getSchools(data: unknown) {
-  const { name, state, city, page } = asGetSchoolsPayload(data)
-  const pageNum = page || 1
-  const PER_PAGE = 15
-  const skip = (pageNum - 1) * PER_PAGE
 
-  try {
-    const schools = await SchoolRepo.getSchools(
-      {
-        name,
-        state,
-        city,
-        page,
-      } as GetSchoolsPayload,
-      PER_PAGE,
-      skip
-    )
+export async function getSchools(data: GetSchoolsPayload) {
+  const pageNum = data.page ?? 1
+  const pageLimit = data.limit ?? 15
+  // Get one more than the page limit to return to the client
+  // so we can determine whether there are additional pages.
+  const fetchLimit = pageLimit + 1
+  const offset = (pageNum - 1) * pageLimit
 
-    const isLastPage = schools.length < PER_PAGE
+  return runInTransaction(async (tc: TransactionClient) => {
+    const [schools, totalCount] = await Promise.all([
+      SchoolRepo.getFilteredSchools(data, fetchLimit, offset, tc),
+      SchoolRepo.getFilteredSchoolsTotalCount(data, tc),
+    ])
     return {
-      schools: schools.map(s => {
-        return { ...s, _id: s.id }
-      }),
-      isLastPage,
+      isLastPage: schools.length < fetchLimit,
+      totalCount,
+      schools: schools.slice(0, pageLimit),
     }
-  } catch (error) {
-    throw new Error((error as Error).message)
-  }
+  })
 }
 
 export function updateApproval(schoolId: Ulid, isApproved: boolean) {

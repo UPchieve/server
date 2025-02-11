@@ -5,9 +5,9 @@ import { faker } from '@faker-js/faker'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 
 jest.mock('../../models/School')
-describe('SchoolService', () => {
-  const mockSchoolRepo = mocked(SchoolRepo)
+const mockSchoolRepo = mocked(SchoolRepo)
 
+describe('SchoolService', () => {
   beforeEach(() => {
     jest.resetAllMocks()
   })
@@ -28,5 +28,35 @@ describe('SchoolService', () => {
 
     await SchoolService.search(query)
     expect(mockSchoolRepo.schoolSearch).toHaveBeenCalledWith(firstSeventyChars)
+  })
+})
+
+describe('getSchools', () => {
+  describe('returns correctly whether isLastPage', () => {
+    test('isLastPage = false', async () => {
+      mockSchoolRepo.getFilteredSchools.mockResolvedValue([
+        // @ts-ignore
+        { id: getDbUlid() },
+        // @ts-ignore
+        { id: getDbUlid() },
+        // @ts-ignore
+        { id: getDbUlid() },
+      ])
+
+      const result = await SchoolService.getSchools({ limit: 2 })
+      expect(result.isLastPage).toBe(false)
+    })
+
+    test('isLastPage = true', async () => {
+      mockSchoolRepo.getFilteredSchools.mockResolvedValue([
+        // @ts-ignore
+        { id: getDbUlid() },
+        // @ts-ignore
+        { id: getDbUlid() },
+      ])
+
+      const result = await SchoolService.getSchools({ limit: 2 })
+      expect(result.isLastPage).toBe(true)
+    })
   })
 })
