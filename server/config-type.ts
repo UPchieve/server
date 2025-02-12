@@ -270,6 +270,7 @@ export const Config = Record({
   maxModerationInfractionsPerSession: Number,
   imageModerationMinConfidence: Number,
   contextualModerationConfidenceThreshold: Number,
+  contextualModerationBatchSize: Number,
 
   tremendousApiKey: String,
   tremendousRewardDomain: String,

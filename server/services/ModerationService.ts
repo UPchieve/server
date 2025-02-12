@@ -876,7 +876,10 @@ export const moderateTranscript = async (
 
   const model = 'gpt-4o'
   const results: TranscriptChunkModerationResult[] = []
-  const chunks: SessionTranscriptItem[][] = chunk(transcript.messages, 50)
+  const chunks: SessionTranscriptItem[][] = chunk(
+    transcript.messages,
+    config.contextualModerationBatchSize
+  )
   for (const chunk of chunks) {
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
