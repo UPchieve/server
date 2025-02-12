@@ -4,15 +4,40 @@ import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
 import * as CleverRosterService from '../../services/CleverRosterService'
+import * as SchoolService from '../../services/SchoolService'
 import { getPartnerSchools } from '../../services/SchoolService'
 import {
   RosterStudentPayload,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
-import { asString } from '../../utils/type-utils'
+import {
+  asBoolean,
+  asNumber,
+  asOptional,
+  asString,
+} from '../../utils/type-utils'
 
 export function routeAdmin(app: Express, router: Router): void {
   const upload = multer()
+
+  router.get('/schools', async function(req, res) {
+    try {
+      const payload = {
+        name: asString(req.query.name),
+        state: asString(req.query.state),
+        city: asString(req.query.city),
+        ncesId: asString(req.query.ncesId),
+        isPartner: req.query.isPartner
+          ? asBoolean(req.query.isPartner)
+          : undefined,
+        page: asNumber(req.query.page),
+      }
+      const result = await SchoolService.getSchools(payload)
+      res.json(result)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 
   router.get('/schools/partner-schools', async function(_req, res) {
     try {

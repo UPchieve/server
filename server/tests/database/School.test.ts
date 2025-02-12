@@ -2,11 +2,12 @@
  * @group database/parallel
  */
 
-import { getPartnerSchools } from '../../models/School'
+import * as Repo from '../../models/School'
 import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'
 import { insertSingleRow } from '../db-utils'
 import {
+  buildSchool,
   buildStudentPartnerOrg,
   buildStudentPartnerOrgUpchieveInstance,
 } from '../mocks/generate'
@@ -14,9 +15,65 @@ import * as SchoolService from '../../services/SchoolService'
 
 const client = getClient()
 
+describe('getFilteredSchools', () => {
+  test('gets the partner schools if isPartner is true', async () => {
+    const data = {
+      isPartner: true,
+    }
+    const result = await Repo.getFilteredSchools(data, 15, 0, client)
+    expect(result.length).toBeTruthy()
+    for (const r of result) {
+      expect(r.isPartner).toBe(true)
+    }
+  })
+
+  test('gets non-partner schools if isPartner is false', async () => {
+    const data = {
+      isPartner: false,
+    }
+    const result = await Repo.getFilteredSchools(data, 15, 0, client)
+    expect(result.length).toBeTruthy()
+    for (const r of result) {
+      expect(r.isPartner).toBe(false)
+    }
+  })
+
+  test('gets all schools if isPartner is not set', async () => {
+    const data = {}
+    const result = await Repo.getFilteredSchools(data, 15, 0, client)
+    expect(result.length).toBeTruthy()
+  })
+
+  test('filters by the school with the NCES ID', async () => {
+    const data = {
+      ncesId: '111222333',
+    }
+    const school = await insertSingleRow(
+      'schools',
+      buildSchool({
+        name: 'School with NCES ID',
+        cityId: 1,
+      }),
+      client
+    )
+    const schoolMetadata = await insertSingleRow(
+      'school_nces_metadata',
+      {
+        schoolId: school.id,
+        ncessch: data.ncesId,
+      },
+      client
+    )
+
+    const result = await Repo.getFilteredSchools(data, 15, 0, client)
+    expect(result.length).toBe(1)
+    expect(result[0].ncesId).toBe(data.ncesId)
+  })
+})
+
 describe('getPartnerSchools', () => {
   test('gets the schools', async () => {
-    const result = await getPartnerSchools(client)
+    const result = await Repo.getPartnerSchools(client)
 
     expect(result?.length).toBeTruthy()
 
@@ -66,7 +123,7 @@ describe('getPartnerSchools', () => {
       [spoId, getDbUlid(), 'Phoenix', getDbUlid(), 'Tuscon']
     )
 
-    const result = await getPartnerSchools(client)
+    const result = await Repo.getPartnerSchools(client)
 
     expect(result).toBeTruthy()
     const schoolWithSites = result?.find(r => r.schoolId === schoolId)
