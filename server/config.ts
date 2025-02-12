@@ -413,6 +413,8 @@ const config: Static<typeof Config> = {
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  moderateMessageTimeLimitMs:
+    Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
     Number(process.env.CONTEXTUAL_MODERATION_BATCH_SIZE) || 50,
 

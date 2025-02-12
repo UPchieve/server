@@ -645,7 +645,7 @@ const getAiModerationResult = async (
     fallbackReturnValue: null,
     timeLimitReachedErrorMessage:
       'AI Moderation time limit reached. Returning regex value',
-    waitInMs: 3000,
+    waitInMs: config.moderateMessageTimeLimitMs,
   })
 }
 
