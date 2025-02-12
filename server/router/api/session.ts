@@ -26,6 +26,7 @@ import {
   CreateSessionAudioPayload,
   UpdateSessionAudioPayload,
 } from '../../models/SessionAudio'
+import * as SessionMeetingService from '../../services/SessionMeetingService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -437,6 +438,34 @@ export function routeSession(router: Router) {
         createSessionAudioRequestValidator(req.body)
       )
       return res.json({ sessionAudio: result })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/sessions/:sessionId/meeting', async function(req, res) {
+    try {
+      const sessionId = req.params.sessionId
+      const userId = extractUser(req).id
+      const {
+        meeting,
+        attendee,
+        partnerAttendee,
+      } = await SessionMeetingService.getOrCreateSessionMeeting(
+        sessionId,
+        userId
+      )
+      return res.json({ meeting, attendee, partnerAttendee })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.put('/sessions/:sessionId/meeting', async function(req, res) {
+    try {
+      const sessionId = req.params.sessionId
+      await SessionMeetingService.endMeeting(sessionId)
+      return res.sendStatus(204)
     } catch (err) {
       resError(res, err)
     }

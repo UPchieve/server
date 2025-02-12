@@ -1,3 +1,4 @@
+import * as SessionmeetingsService from '../services/SessionMeetingService'
 import crypto from 'crypto'
 import moment from 'moment'
 import * as cache from '../cache'
@@ -259,6 +260,8 @@ export async function endSession(
         tc
       )
   })
+
+  await SessionmeetingsService.endMeeting(sessionId)
 
   emitter.emit(SESSION_EVENTS.SESSION_ENDED, sessionId)
 }
