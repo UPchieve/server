@@ -88,17 +88,6 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/schools', authPassport.isAdmin, async function(req, res) {
-    try {
-      const { schools, isLastPage } = await SchoolService.getSchools(
-        req.query as unknown
-      )
-      res.json({ schools, isLastPage })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router.post('/school/approval', authPassport.isAdmin, async function(
     req,
     res
