@@ -282,4 +282,5 @@ export const Config = Record({
   // AWS Chime
   awsChimeAccessKey: String,
   awsChimeSecretAccessKey: String,
+  awsChimeRegion: String,
 })

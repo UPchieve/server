@@ -8,7 +8,7 @@ export function getClient() {
 
 const createClient = (): ChimeSDKMeetingsClient => {
   return new ChimeSDKMeetingsClient({
-    region: 'us-east-1',
+    region: config.awsChimeRegion,
     credentials: {
       accessKeyId: config.awsChimeAccessKey,
       secretAccessKey: config.awsChimeSecretAccessKey,

@@ -22,7 +22,7 @@ export interface IGetSessionMeetingBySessionIdQuery {
   result: IGetSessionMeetingBySessionIdResult;
 }
 
-const getSessionMeetingBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":62,"b":72}]}],"statement":"SELECT\n    *\nFROM\n    session_meetings\nWHERE\n    session_id = :sessionId!\nLIMIT 1"};
+const getSessionMeetingBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":62,"b":72}]}],"statement":"SELECT\n    *\nFROM\n    session_meetings\nWHERE\n    session_id = :sessionId!"};
 
 /**
  * Query generated from SQL:
@@ -33,7 +33,6 @@ const getSessionMeetingBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
  *     session_meetings
  * WHERE
  *     session_id = :sessionId!
- * LIMIT 1
  * ```
  */
 export const getSessionMeetingBySessionId = new PreparedQuery<IGetSessionMeetingBySessionIdParams,IGetSessionMeetingBySessionIdResult>(getSessionMeetingBySessionIdIR);

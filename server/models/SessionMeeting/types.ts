@@ -1,8 +1,10 @@
+import { Uuid } from '../pgUtils'
+
 export type SessionMeeting = {
-  id: string
+  id: Uuid
   externalId: string
   provider: string
-  sessionId: string
+  sessionId: Uuid
   createdAt: Date
   updatedAt: Date
 }

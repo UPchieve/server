@@ -436,6 +436,7 @@ const config: Static<typeof Config> = {
   awsChimeAccessKey: process.env.SUBWAY_AWS_CHIME_ACCESS_KEY || 'bogus',
   awsChimeSecretAccessKey:
     process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
+  awsChimeRegion: process.env.SUBWAY_AWS_CHIME_REGION || 'us-east-1',
 }
 
 module.exports = config

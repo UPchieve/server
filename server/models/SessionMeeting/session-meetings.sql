@@ -4,8 +4,7 @@ SELECT
 FROM
     session_meetings
 WHERE
-    session_id = :sessionId!
-LIMIT 1;
+    session_id = :sessionId!;
 
 
 /* @name insertSessionMeeting */

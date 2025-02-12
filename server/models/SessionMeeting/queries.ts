@@ -37,7 +37,14 @@ export async function getSessionMeetingBySessionId(
       },
       client ?? getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) {
+      if (result.length > 1) {
+        throw new RepoReadError(
+          `Found multiple session meetings for session ${sessionId} when max 1 is expected`
+        )
+      }
+      return makeRequired(result[0])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
