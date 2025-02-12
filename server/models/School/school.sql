@@ -1,6 +1,7 @@
 /* @name getSchoolById */
 SELECT
     schools.id,
+    meta.ncessch AS nces_id,
     COALESCE(schools.name, meta.sch_name) AS name,
     COALESCE(cities.name, meta.lcity) AS city,
     COALESCE(cities.us_state_code, meta.st) AS state,
@@ -8,7 +9,8 @@ SELECT
     meta.lea_name AS district,
     meta.school_year,
     approved AS is_admin_approved,
-    partner AS is_partner,
+    (spo.id IS NOT NULL
+        AND spoui.deactivated_on IS NULL) AS is_partner,
     meta.is_school_wide_title1,
     meta.title1_school_status,
     meta.national_school_lunch_program,
@@ -19,6 +21,8 @@ FROM
     schools
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+    LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
+    LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id
 WHERE
     schools.id = :schoolId!;
 
