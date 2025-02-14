@@ -252,12 +252,7 @@ export async function endMeeting(sessionId: string) {
   const existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
     sessionId
   )
-  if (!existingMeeting)
-    throw new LookupError(
-      `Cannot end session meeting: No meeting exists for session ${sessionId}`
-    )
-
-  await deleteChimeMeeting(existingMeeting.externalId)
+  if (existingMeeting) await deleteChimeMeeting(existingMeeting.externalId)
 }
 
 async function deleteChimeMeeting(meetingId: string) {
