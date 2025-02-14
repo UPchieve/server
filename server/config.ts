@@ -327,6 +327,7 @@ const config: Static<typeof Config> = {
    * https://github.com/Azure/azure-sdk-for-js/blob/master/sdk/identity/identity/README.md#define-a-custom-authentication-flow-with-the-chainedtokencredential
    *
    **/
+  azureClientId: process.env.AZURE_CLIENT_ID || 'bogus',
   whiteboardStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
   whiteboardStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
   whiteboardStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
@@ -345,6 +346,15 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_VOICE_MESSAGE_STORAGE_ACCOUNT_NAME || 'bogus',
   voiceMessageStorageContainer:
     process.env.SUBWAY_VOICE_MESSAGE_STORAGE_CONTAINER || 'bogus',
+  upchieveCdnStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
+  upchieveCdnStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
+  upchieveCdnStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
+  upchieveCdnStorageSubscriptionId:
+    process.env.SUBWAY_AZURE_UPCHIEVE_CDN_SUBSCRIPTION_ID || 'bogus',
+  upchieveCdnStorageAccountName:
+    process.env.SUBWAY_UPCHIEVE_CDN_STORAGE_ACCOUNT_NAME || 'bogus',
+  upchieveCdnStorageContainer:
+    process.env.SUBWAY_UPCHIEVE_CDN_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',

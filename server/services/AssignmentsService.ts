@@ -19,6 +19,10 @@ import {
   CreateStudentAssignmentResult,
   StudentAssignment,
 } from '../models/Assignments'
+import * as AzureService from './AzureService'
+import config from '../config'
+import { ClientSecretCredential } from '@azure/identity'
+import { BlobServiceClient } from '@azure/storage-blob'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -343,4 +347,34 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
       )
     ).filter((a): a is Assignment => !!a)
   })
+}
+
+/**
+ * Upload and retrieve uploaded assignments to and from Azure.
+ */
+const upchieveCdnStorageAccount = config.upchieveCdnStorageAccountName
+const upchieveCdnStorageCredential = new ClientSecretCredential(
+  config.upchieveCdnStorageTenantId,
+  config.upchieveCdnStorageAppId,
+  config.upchieveCdnStorageSecret
+)
+const blobServiceClient = new BlobServiceClient(
+  `https://${upchieveCdnStorageAccount}.blob.core.windows.net`,
+  upchieveCdnStorageCredential
+)
+
+export async function uploadAssignment(
+  assignmentId: Ulid,
+  fileName: string,
+  file: Express.Multer.File
+) {
+  console.log('****assignment service')
+  // console.log('******assignment id', assignmentId)
+  // console.log('****file name', fileName)
+  // console.log('****file', file)
+  await AzureService.uploadBlob(
+    config.upchieveCdnStorageContainer,
+    fileName,
+    file
+  )
 }
