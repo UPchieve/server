@@ -22,7 +22,16 @@ FROM
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
-    LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            spoui.deactivated_on
+        FROM
+            student_partner_orgs_upchieve_instances spoui
+        WHERE
+            spoui.student_partner_org_id = spo.id
+        ORDER BY
+            spoui.updated_at DESC
+        LIMIT 1) spoui ON TRUE
 WHERE
     schools.id = :schoolId!;
 
@@ -59,7 +68,16 @@ FROM
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
-    LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            spoui.deactivated_on
+        FROM
+            student_partner_orgs_upchieve_instances spoui
+        WHERE
+            spoui.student_partner_org_id = spo.id
+        ORDER BY
+            spoui.updated_at DESC
+        LIMIT 1) spoui ON TRUE
 WHERE (:name::text IS NULL
     OR schools.name ILIKE '%' || :name || '%'
     OR meta.sch_name ILIKE '%' || :name || '%')
@@ -86,7 +104,16 @@ FROM
     LEFT JOIN cities ON schools.city_id = cities.id
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
-    LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spo.id = spoui.student_partner_org_id
+    LEFT JOIN LATERAL (
+        SELECT
+            spoui.deactivated_on
+        FROM
+            student_partner_orgs_upchieve_instances spoui
+        WHERE
+            spoui.student_partner_org_id = spo.id
+        ORDER BY
+            spoui.updated_at DESC
+        LIMIT 1) spoui ON TRUE
 WHERE (:name::text IS NULL
     OR schools.name ILIKE '%' || :name || '%'
     OR meta.sch_name ILIKE '%' || :name || '%')
