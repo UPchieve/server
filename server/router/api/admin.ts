@@ -15,6 +15,7 @@ import {
   asNumber,
   asOptional,
   asString,
+  asUlid,
 } from '../../utils/type-utils'
 
 export function routeAdmin(app: Express, router: Router): void {
@@ -34,6 +35,16 @@ export function routeAdmin(app: Express, router: Router): void {
       }
       const result = await SchoolService.getSchools(payload)
       res.json(result)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/school/:schoolId', async function(req, res) {
+    try {
+      const schoolId = asUlid(req.params.schoolId)
+      const school = await SchoolService.getSchool(schoolId)
+      res.json({ school })
     } catch (err) {
       resError(res, err)
     }

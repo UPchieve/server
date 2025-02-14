@@ -55,23 +55,6 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/school/:schoolId', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const schoolId = asUlid(req.params.schoolId)
-      const school = await SchoolService.getSchool(schoolId)
-      res.json({
-        school: {
-          _id: school.id,
-          ...school,
-        },
-      })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
   router.put('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res
