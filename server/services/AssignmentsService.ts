@@ -368,10 +368,6 @@ export async function uploadAssignment(
   fileName: string,
   file: Express.Multer.File
 ) {
-  console.log('****assignment service')
-  // console.log('******assignment id', assignmentId)
-  // console.log('****file name', fileName)
-  // console.log('****file', file)
   await AzureService.uploadBlob(
     config.upchieveCdnStorageContainer,
     fileName,

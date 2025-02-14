@@ -62,9 +62,10 @@ export async function uploadBlob(
       containerName
     )
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-
+    console.log('****storage account name', upchieveCdnStorageAccount)
     console.log('Uploading to container:', containerName)
     console.log('Blob name:', blobName)
+    console.log('***white board storage credential', whiteboardStorageCredential)
 
     if (typeof content === 'string') {
       await blockBlobClient.upload(content, content.length)
@@ -72,11 +73,12 @@ export async function uploadBlob(
       console.log('Buffer length:', content.buffer.length)
 
       // Try with explicit options
-      await blockBlobClient.upload(content.buffer, content.buffer.length, {
-        blobHTTPHeaders: {
-          blobContentType: 'application/pdf', // Adjust based on your file type
-        },
-      })
+      await blockBlobClient.upload(content.buffer, content.buffer.length)
+      //   {
+      //   blobHTTPHeaders: {
+      //     blobContentType: 'application/pdf', // Adjust based on your file type
+      //   },
+      // })
     }
   } catch (error) {
     console.error('Full upload error:', error)
@@ -84,30 +86,3 @@ export async function uploadBlob(
   }
 }
 
-// export async function uploadBlob(
-//   containerName: string,
-//   blobName: string,
-//   content: string | { buffer: Express.Multer.File['buffer'] },
-// ): Promise<void> {
-//   const upchieveCdnStorageAccount = config.upchieveCdnStorageAccountName
-//   const upchieveBlobServiceClient = new BlobServiceClient(
-//     `https://${upchieveCdnStorageAccount}.blob.core.windows.net`,
-//     whiteboardStorageCredential
-//   )
-
-//   const containerClient = blobServiceClient.getContainerClient(containerName)
-//   const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-//   console.log('****content', content)
-//   if(typeof content === 'string') {
-//     await blockBlobClient.upload(content, content.length)
-//   } else {
-//     console.log('*****else')
-//       const containerClient = upchieveBlobServiceClient.getContainerClient(
-//         containerName
-//       )
-//       console.log('****container client', containerClient)
-//       const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-//       console.log('***blockBlogClient', blockBlobClient)
-//       await blockBlobClient.upload(content.buffer, content.buffer.length)
-//   }
-// }
