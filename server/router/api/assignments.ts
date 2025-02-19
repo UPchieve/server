@@ -42,14 +42,14 @@ export function routeAssignments(router: Router): void {
     }
   })
 
-  router.put('/assignment/upload', upload.single('file'), async (req, res) => {
+  router.put('/assignment/upload', upload.array('files'), async (req, res) => {
     try {
-      if (req.file) {
-        await AssignmentsService.uploadAssignment(
-          req.body.assignmentId,
-          req.body.fileName,
-          req.file
-        )
+      if (req.files) {
+        const files = req.files as Express.Multer.File[]
+        const assignmentId = req.body.assignmentId
+
+        await AssignmentsService.uploadAssignment(assignmentId, files)
+
         res.sendStatus(200)
       }
     } catch (err) {

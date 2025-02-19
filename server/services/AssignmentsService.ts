@@ -352,13 +352,16 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
  */
 export async function uploadAssignment(
   assignmentId: Ulid,
-  fileName: string,
-  file: Express.Multer.File
+  files: Express.Multer.File[]
 ) {
-  await AzureService.uploadBlob(
-    config.assignmentsStorageAccountName,
-    config.assignmentsStorageContainer,
-    `${assignmentId}/${fileName}`,
-    file
+  await Promise.all(
+    files.map(file => {
+      AzureService.uploadBlob(
+        config.assignmentsStorageAccountName,
+        config.assignmentsStorageContainer,
+        `${assignmentId}/${file.originalname}`,
+        file
+      )
+    })
   )
 }
