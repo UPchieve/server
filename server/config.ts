@@ -330,9 +330,6 @@ const config: Static<typeof Config> = {
   azureClientId: process.env.AZURE_CLIENT_ID || 'bogus',
   azureTenantId: process.env.AZURE_TENANT_ID || 'bogus',
   azureStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
-  whiteboardStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
-  whiteboardStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
-  whiteboardStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
   whiteboardStorageSubscriptionId:
     process.env.SUBWAY_AZURE_WHITEBOARD_SUBSCRIPTION_ID || 'bogus',
   whiteboardStorageAccountName:
