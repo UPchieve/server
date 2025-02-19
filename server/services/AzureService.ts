@@ -3,8 +3,8 @@ import { BlobServiceClient } from '@azure/storage-blob'
 import config from '../config'
 
 const azureStorageCredential = new ClientSecretCredential(
-  config.azureClientId,
   config.azureTenantId,
+  config.azureClientId,
   config.azureStorageSecret
 )
 
