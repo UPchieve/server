@@ -2,15 +2,10 @@ import { ClientSecretCredential } from '@azure/identity'
 import { BlobServiceClient } from '@azure/storage-blob'
 import config from '../config'
 
-const whiteboardStorageAccount = config.whiteboardStorageAccountName
-const whiteboardStorageCredential = new ClientSecretCredential(
-  config.whiteboardStorageTenantId,
-  config.whiteboardStorageAppId,
-  config.whiteboardStorageSecret
-)
-const blobServiceClient = new BlobServiceClient(
-  `https://${whiteboardStorageAccount}.blob.core.windows.net`,
-  whiteboardStorageCredential
+const azureStorageCredential = new ClientSecretCredential(
+  config.azureClientId,
+  config.azureTenantId,
+  config.azureStorageSecret
 )
 
 // a helper method used to read a Node.js readable stream into a Buffer
@@ -31,9 +26,14 @@ async function streamToBuffer(
 }
 
 export async function getBlob(
+  storageAccount: string,
   containerName: string,
   blobName: string
 ): Promise<string> {
+  const blobServiceClient = new BlobServiceClient(
+    `https://${storageAccount}.blob.core.windows.net`,
+    azureStorageCredential
+  )
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
@@ -47,42 +47,32 @@ export async function getBlob(
 }
 
 export async function uploadBlob(
+  storageAccount: string,
   containerName: string,
   blobName: string,
   content: string | { buffer: Express.Multer.File['buffer'] }
 ): Promise<void> {
   try {
-    const upchieveCdnStorageAccount = config.upchieveCdnStorageAccountName
-    const upchieveBlobServiceClient = new BlobServiceClient(
-      `https://${upchieveCdnStorageAccount}.blob.core.windows.net`,
-      whiteboardStorageCredential
+    const blobServiceClient = new BlobServiceClient(
+      `https://${storageAccount}.blob.core.windows.net`,
+      azureStorageCredential
     )
 
-    const containerClient = upchieveBlobServiceClient.getContainerClient(
-      containerName
-    )
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-    console.log('****storage account name', upchieveCdnStorageAccount)
-    console.log('Uploading to container:', containerName)
-    console.log('Blob name:', blobName)
-    console.log('***white board storage credential', whiteboardStorageCredential)
-
-    if (typeof content === 'string') {
+    if (typeof content == 'string') {
+      const containerClient = blobServiceClient.getContainerClient(
+        containerName
+      )
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName)
       await blockBlobClient.upload(content, content.length)
     } else {
-      console.log('Buffer length:', content.buffer.length)
-
-      // Try with explicit options
+      const containerClient = blobServiceClient.getContainerClient(
+        containerName
+      )
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName)
       await blockBlobClient.upload(content.buffer, content.buffer.length)
-      //   {
-      //   blobHTTPHeaders: {
-      //     blobContentType: 'application/pdf', // Adjust based on your file type
-      //   },
-      // })
     }
   } catch (error) {
     console.error('Full upload error:', error)
     throw error
   }
 }
-

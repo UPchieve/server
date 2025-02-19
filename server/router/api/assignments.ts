@@ -42,33 +42,18 @@ export function routeAssignments(router: Router): void {
     }
   })
 
-  router.post('/assignment/upload', upload.single('file'), async function(req, res) {
+  router.put('/assignment/upload', upload.single('file'), async (req, res) => {
     try {
-
-        if(req.file){
-          const file = req.file
-          const assignmentId = req.body.assignmentId
-          const fileName = req.body.fileName
-          const response = await AssignmentsService.uploadAssignment(
-            assignmentId,
-            fileName,
-            file
-          )
-
-          res.json({ response })
-        }
-      // console.log('***inside post request')
-      // console.log('***req body', req.body)
-      // const assignmentId = req.body.assignmentId as string
-      // const fileName = req.body.fileName as string
-      // const file = req.body.file as string
-      // console.log('***assignment id', assignmentId)
-      // console.log('****filename', fileName)
-      // console.log('****files', file)
-      // const response = await AssignmentsService.uploadAssignment(assignmentId, fileName, file)
-      // res.json({ response })
+      if (req.file) {
+        await AssignmentsService.uploadAssignment(
+          req.body.assignmentId,
+          req.body.fileName,
+          req.file
+        )
+        res.sendStatus(200)
+      }
     } catch (err) {
-      resError (res, err)
+      resError(res, err)
     }
   })
 }

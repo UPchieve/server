@@ -41,6 +41,7 @@ export const uploadedToStorage = async (
 ): Promise<boolean> => {
   try {
     await uploadBlob(
+      config.whiteboardStorageAccountName,
       config.whiteboardStorageContainer,
       sessionId.toString(),
       whiteboardDoc
@@ -70,6 +71,7 @@ export const uploadedToStorage = async (
 export const getDocFromStorage = async (sessionId: Ulid): Promise<string> => {
   try {
     const whiteboardDoc = await getBlob(
+      config.whiteboardStorageAccountName,
       config.whiteboardStorageContainer,
       sessionId.toString()
     )
