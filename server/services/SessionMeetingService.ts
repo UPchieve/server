@@ -29,6 +29,7 @@ export type SessionMeetingWithAttendees = {
   meeting: Meeting
   attendee: Attendee
   partnerAttendee: Attendee | null
+  transcriptionStarted: boolean
 }
 
 async function handleExistingMeeting({
@@ -46,12 +47,19 @@ async function handleExistingMeeting({
     meetingId: existingMeeting.externalId,
     sessionId,
   })
+
+  const transcriptionStarted = await AwsChimeService.startTranscription(
+    existingMeeting.externalId
+  )
+
+  console.log('transcriptionStarted existing', transcriptionStarted)
   const { attendee, partnerAttendee } = await getOrCreateAttendee({
     userId,
     meetingId: existingMeeting.externalId,
     sessionId,
   })
-  return { meeting, attendee, partnerAttendee }
+
+  return { meeting, attendee, partnerAttendee, transcriptionStarted }
 }
 
 async function handleNoExistingMeeting(
@@ -69,13 +77,17 @@ async function handleNoExistingMeeting(
   const attendee = created.attendee
 
   try {
+    const transcriptionStarted = await AwsChimeService.startTranscription(
+      meeting.MeetingId!
+    )
+
     await SessionMeetingsRepo.insertSessionMeeting(
       sessionId,
       meeting.MeetingId!,
       'chime',
       tc
     )
-    return { meeting, attendee, partnerAttendee: null }
+    return { meeting, attendee, partnerAttendee: null, transcriptionStarted }
   } catch (err) {
     if (err instanceof RepoCreateError) {
       const sessionMeeting = await handleInsertSessionMeetingFailure(tc, {
@@ -252,7 +264,11 @@ export async function endMeeting(sessionId: string) {
   const existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
     sessionId
   )
-  if (existingMeeting) await deleteChimeMeeting(existingMeeting.externalId)
+
+  if (existingMeeting) {
+    await AwsChimeService.stopTranscription(existingMeeting.externalId)
+    await deleteChimeMeeting(existingMeeting.externalId)
+  }
 }
 
 async function deleteChimeMeeting(meetingId: string) {
