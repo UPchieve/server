@@ -38,7 +38,10 @@ export async function startTranscription(meetingId: string) {
     )
     return transcribeResponse.$metadata.httpStatusCode === 200
   } catch (error) {
-    logger.error('Error starting transcription:', error)
+    logger.error(`Error starting transcription for meetingID: ${meetingId}:`, {
+      error,
+      meetingId,
+    })
     return false
   }
 }
