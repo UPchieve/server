@@ -52,7 +52,6 @@ async function handleExistingMeeting({
     existingMeeting.externalId
   )
 
-  console.log('transcriptionStarted existing', transcriptionStarted)
   const { attendee, partnerAttendee } = await getOrCreateAttendee({
     userId,
     meetingId: existingMeeting.externalId,
