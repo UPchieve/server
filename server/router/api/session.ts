@@ -451,11 +451,17 @@ export function routeSession(router: Router) {
         meeting,
         attendee,
         partnerAttendee,
+        transcriptionStarted,
       } = await SessionMeetingService.getOrCreateSessionMeeting(
         sessionId,
         userId
       )
-      return res.json({ meeting, attendee, partnerAttendee })
+      return res.json({
+        meeting,
+        attendee,
+        partnerAttendee,
+        transcriptionStarted,
+      })
     } catch (err) {
       resError(res, err)
     }
