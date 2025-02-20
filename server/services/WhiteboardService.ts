@@ -1,6 +1,6 @@
 import config from '../config'
 import logger from '../logger'
-import { getBlob, uploadBlob } from './AzureService'
+import { getBlob, uploadBlobString } from './AzureService'
 import { Ulid } from '../models/pgUtils'
 import * as cache from '../cache'
 
@@ -40,7 +40,7 @@ export const uploadedToStorage = async (
   attempts = 0
 ): Promise<boolean> => {
   try {
-    await uploadBlob(
+    await uploadBlobString(
       config.whiteboardStorageAccountName,
       config.whiteboardStorageContainer,
       sessionId.toString(),

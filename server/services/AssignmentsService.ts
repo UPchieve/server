@@ -356,7 +356,7 @@ export async function uploadAssignment(
 ) {
   await Promise.all(
     files.map(file => {
-      AzureService.uploadBlob(
+      AzureService.uploadBlobFile(
         config.assignmentsStorageAccountName,
         config.assignmentsStorageContainer,
         `${assignmentId}/${file.originalname}`,

@@ -330,8 +330,7 @@ const config: Static<typeof Config> = {
   azureClientId: process.env.AZURE_CLIENT_ID || 'bogus',
   azureTenantId: process.env.AZURE_TENANT_ID || 'bogus',
   azureStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
-  whiteboardStorageSubscriptionId:
-    process.env.SUBWAY_AZURE_WHITEBOARD_SUBSCRIPTION_ID || 'bogus',
+  azureSubscriptionId: process.env.AZURE_SUBSCRIPTION_ID || 'bogus',
   whiteboardStorageAccountName:
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
@@ -339,14 +338,10 @@ const config: Static<typeof Config> = {
   voiceMessageStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
   voiceMessageStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
   voiceMessageStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
-  voiceMessageStorageSubscriptionId:
-    process.env.SUBWAY_AZURE_VOICE_MESSAGE_SUBSCRIPTION_ID || 'bogus',
   voiceMessageStorageAccountName:
     process.env.SUBWAY_VOICE_MESSAGE_STORAGE_ACCOUNT_NAME || 'bogus',
   voiceMessageStorageContainer:
     process.env.SUBWAY_VOICE_MESSAGE_STORAGE_CONTAINER || 'bogus',
-  assignmentsSubscriptionId:
-    process.env.SUBWAY_AZURE_ASSIGNMENTS_SUBSCRIPTION_ID || 'bogus',
   assignmentsStorageAccountName:
     process.env.SUBWAY_ASSIGNMENTS_STORAGE_ACCOUNT_NAME || 'bogus',
   assignmentsStorageContainer:
