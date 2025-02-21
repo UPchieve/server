@@ -56,4 +56,17 @@ export function routeAssignments(router: Router): void {
       resError (res, err)
     }
   })
+
+  router.get('/assignment/:assignmentId/documents', async (req, res) => {
+    try {
+      const assignmentId = req.params.assignmentId as string
+      const assignmentDocuments = await AssignmentsService.getAssignmentDocuments(
+        assignmentId
+      )
+
+      res.json({ assignmentDocuments })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
