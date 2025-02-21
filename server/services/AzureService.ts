@@ -25,6 +25,33 @@ async function streamToBuffer(
   })
 }
 
+const blobClients = new Map<string, BlobServiceClient>([
+  [
+    config.whiteboardStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.whiteboardStorageAccountName}.blob.core.windows.net`,
+      azureStorageCredential
+    ),
+  ],
+  [
+    config.assignmentsStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.assignmentsFrontdoorHostName}.z02.azurefd.net`,
+      azureStorageCredential
+    ),
+  ],
+])
+
+function getBlobClient(storageAccountName: string): BlobServiceClient {
+  const client = blobClients.get(storageAccountName)
+  if (!client) {
+    throw new Error(
+      `No blob client configured for storage account: ${storageAccountName}`
+    )
+  }
+  return client
+}
+
 export async function getBlob(
   storageAccountName: string,
   containerName: string,
@@ -47,32 +74,25 @@ export async function getBlob(
 }
 
 export async function uploadBlobString(
-  storageAccount: string,
+  storageAccountName: string,
   containerName: string,
   blobName: string,
   content: string
 ) {
-  const blobServiceClient = new BlobServiceClient(
-    `https://${storageAccount}.blob.core.windows.net`,
-    azureStorageCredential
-  )
-
+  const blobServiceClient = getBlobClient(storageAccountName)
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blockBlobClient = containerClient.getBlockBlobClient(blobName)
   await blockBlobClient.upload(content, content.length)
 }
 
 export async function uploadBlobFile(
-  storageAccount: string,
+  storageAccountName: string,
   containerName: string,
   blobName: string,
   content: { buffer: Express.Multer.File['buffer'] }
 ): Promise<void> {
   try {
-    const blobServiceClient = new BlobServiceClient(
-      `https://${storageAccount}.blob.core.windows.net`,
-      azureStorageCredential
-    )
+    const blobServiceClient = getBlobClient(storageAccountName)
     const containerClient = blobServiceClient.getContainerClient(containerName)
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
     await blockBlobClient.upload(content.buffer, content.buffer.length)

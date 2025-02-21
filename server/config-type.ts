@@ -219,6 +219,7 @@ export const Config = Record({
   voiceMessageStorageContainer: String,
   assignmentsStorageAccountName: String,
   assignmentsStorageContainer: String,
+  assignmentsFrontdoorHostName: String,
   version: String,
   fileWorkRootPath: String,
   ipWhoIsApiKey: String,
