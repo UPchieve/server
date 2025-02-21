@@ -81,10 +81,7 @@ export async function getBlobsInFolder(
   containerName: string,
   folderPath: string
 ): Promise<BlobDocument[]> {
-  const blobServiceClient = new BlobServiceClient(
-    `https://${storageAccountName}.blob.core.windows.net`,
-    azureStorageCredential
-  )
+  const blobServiceClient = getBlobClient(storageAccountName)
 
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const documents = []
