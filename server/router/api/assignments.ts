@@ -3,8 +3,6 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import multer from 'multer'
 
-const upload = multer()
-
 export function routeAssignments(router: Router): void {
   router.get('/assignment/:assignmentId', async function(req, res) {
     try {
@@ -40,6 +38,10 @@ export function routeAssignments(router: Router): void {
     } catch (err) {
       resError(res, err)
     }
+  })
+
+  const upload = multer({
+    limits: { fileSize: 20 * 1024 * 1024 },
   })
 
   router.put('/assignment/upload', upload.array('files'), async (req, res) => {
