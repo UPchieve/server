@@ -303,10 +303,7 @@ export async function adminUpdateUser(data: unknown) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const userType = UserRolesService.getUserTypeFromRoles(
-    userBeforeUpdate.roles,
-    userId
-  )
+  const userType = userBeforeUpdate.roleContext.legacyRole
   const isVolunteer = UserRolesService.isVolunteerUserType(userType)
   const isStudent = UserRolesService.isStudentUserType(userType)
   const isTeacher = UserRolesService.isTeacherUserType(userType)

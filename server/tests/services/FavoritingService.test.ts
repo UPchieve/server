@@ -23,11 +23,11 @@ describe('emailFavoritedVolunteer', () => {
       .mockResolvedValueOnce({
         firstName: volunteerFirstName,
         email: volunteerEmail,
-        roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
       } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce({
         firstName: studentFirstName,
-        roleContext: new RoleContext(['student'], 'student'),
+        roleContext: new RoleContext(['student'], 'student', 'student'),
       } as UserContactInfo & { roleContext: RoleContext })
 
     await FavoritingService.emailFavoritedVolunteer('volunteerId', 'studentId')
@@ -43,7 +43,7 @@ describe('emailFavoritedVolunteer', () => {
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce({
         firstName: 'Veronica',
-        roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
       } as UserContactInfo & { roleContext: RoleContext })
 
     await FavoritingService.emailFavoritedVolunteer('volunteerId', 'studentId')
@@ -58,7 +58,7 @@ describe('emailFavoritedVolunteer', () => {
     mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({
         firstName: 'Harold',
-        roleContext: new RoleContext(['student'], 'student'),
+        roleContext: new RoleContext(['student'], 'student', 'student'),
       } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce(undefined)
 

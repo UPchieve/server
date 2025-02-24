@@ -111,6 +111,7 @@ export function buildUserContactInfo(
     firstName: getFirstName(),
     isVolunteer: false,
     roles: ['student'],
+    roleContext: new RoleContext(['student'], 'student', 'student'),
     isAdmin: false,
     volunteerPartnerOrg: undefined,
     studentPartnerOrg: undefined,
@@ -158,6 +159,7 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
     roles: ['student'] as UserRole[],
     roleContext: new RoleContext(
       overrides?.roles ?? ['student'],
+      overrides?.isVolunteer ? 'volunteer' : 'student',
       overrides?.isVolunteer ? 'volunteer' : 'student'
     ),
     ...overrides,
@@ -263,7 +265,8 @@ export function buildLegacyUser(
     userType: 'student',
     roleContext: new RoleContext(
       [overrides?.userType ?? 'student'],
-      overrides?.userType ?? 'student'
+      overrides?.userType ?? 'student',
+      'student'
     ),
     sessionStats: {},
     ...overrides,

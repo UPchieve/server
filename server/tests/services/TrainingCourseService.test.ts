@@ -5,6 +5,7 @@ import { faker } from '@faker-js/faker'
 import { UserContactInfo } from '../../models/User'
 import { TRAINING } from '../../constants'
 import logger from '../../logger'
+import { buildUserContactInfo } from '../mocks/generate'
 
 jest.mock('../../logger')
 jest.mock('../../models/Volunteer')
@@ -17,6 +18,7 @@ describe('TrainingCourseService', () => {
   const mockedVolunteerRepo = jest.mocked(VolunteerRepo)
   const mockedLogger = jest.mocked(logger)
   const volunteer: UserContactInfo = {
+    ...buildUserContactInfo(),
     id: getDbUlid(),
     banType: undefined,
     deactivated: false,

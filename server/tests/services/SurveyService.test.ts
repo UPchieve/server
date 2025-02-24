@@ -160,12 +160,12 @@ describe('getPostsessionSurveyDefinition', () => {
       .mockResolvedValueOnce({
         id: 'student-id',
         firstName: 'StudentName',
-        roleContext: new RoleContext(['student'], 'student'),
+        roleContext: new RoleContext(['student'], 'student', 'student'),
       } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce({
         id: 'volunteer-id',
         firstName: 'CoachName',
-        roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
       } as UserContactInfo & { roleContext: RoleContext })
 
     mockedSurveyRepo.getPostsessionSurveyDefinition.mockResolvedValue([
@@ -264,12 +264,12 @@ describe('getPostsessionSurveyDefinition', () => {
       .mockResolvedValueOnce({
         id: 'student-id',
         firstName: 'StudentName',
-        roleContext: new RoleContext(['student'], 'student'),
+        roleContext: new RoleContext(['student'], 'student', 'student'),
       } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce({
         id: 'volunteer-id',
         firstName: 'CoachName',
-        roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
       } as UserContactInfo & { roleContext: RoleContext })
 
     mockedSurveyRepo.getPostsessionSurveyDefinition.mockResolvedValue([

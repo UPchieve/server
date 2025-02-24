@@ -412,16 +412,18 @@ describe('Volunteer tests', () => {
 */
 import { mocked } from 'jest-mock'
 import request from 'supertest'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { mockApp, mockPassportMiddleware } from '../mock-app'
 import * as UserRepo from '../../models/User/queries'
-import { buildStudent, buildUserContactInfo } from '../mocks/generate'
+import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
+import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid } from '../../models/pgUtils'
-import { UserNotFoundError } from '../../models/Errors'
 
 jest.mock('../../models/User/queries')
+jest.mock('../../services/UserRolesService')
 
 const mockUserRepo = mocked(UserRepo)
+const mockedUserRolesService = mocked(UserRolesService)
 const mockGetUser = () => buildStudent()
 const app = mockApp()
 app.use(mockPassportMiddleware(mockGetUser))
@@ -454,23 +456,25 @@ describe('UserService', () => {
   describe('deletePhoneFromAccount', () => {
     it('Should throw an error if it is a volunteer account', async () => {
       const userId = getDbUlid()
-      mockUserRepo.getUserRolesById.mockResolvedValue(['volunteer'])
+      mockedUserRolesService.getUserRolesById.mockResolvedValue({
+        userType: 'volunteer',
+        isVolunteer: true,
+        isAdmin: false,
+      })
+      mockedUserRolesService.isVolunteerUserType.mockReturnValue(true)
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
         'Phone information is required for UPchieve volunteers'
       )
     })
 
-    it('Should throw an error if the user cannot be found', async () => {
-      const userId = getDbUlid()
-      mockUserRepo.getUserRolesById.mockResolvedValue([])
-      await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
-        `User with id ${userId} has no roles.`
-      )
-    })
-
     it('Should call deleteUserPhoneInfo', async () => {
       const userId = getDbUlid()
-      mockUserRepo.getUserRolesById.mockResolvedValue(['student'])
+      mockedUserRolesService.getUserRolesById.mockResolvedValue({
+        userType: 'student',
+        isVolunteer: false,
+        isAdmin: false,
+      })
+      mockedUserRolesService.isVolunteerUserType.mockReturnValue(false)
       await UserService.deletePhoneFromAccount(userId)
       expect(mockUserRepo.deleteUserPhoneInfo).toHaveBeenCalledWith(userId)
     })

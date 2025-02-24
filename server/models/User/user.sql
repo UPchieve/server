@@ -6,7 +6,9 @@ FROM
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
-    users.id = :id!;
+    users.id = :id!
+ORDER BY
+    users_roles.created_at ASC;
 
 
 /* @name createUser */

@@ -75,11 +75,15 @@ export type UserContactInfo = Pick<
   isVolunteer: boolean
   /** @deprecated Use {@link roleContext} */
   roles: UserRole[]
+  roleContext: RoleContext
   studentPartnerOrg?: string
   volunteerPartnerOrg?: string
 }
 
-export type UserForCreateSendGridContact = Omit<UserContactInfo, 'roles'> & {
+export type UserForCreateSendGridContact = Omit<
+  UserContactInfo,
+  'roles' | 'roleContext'
+> & {
   createdAt: Date
   lastName: string
   passedUpchieve101?: boolean
