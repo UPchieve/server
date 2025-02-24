@@ -400,9 +400,7 @@ export function routeSession(router: Router) {
         session.id,
         session.studentId,
         session.volunteerId,
-        UserRolesService.isVolunteerUserType(
-          UserRolesService.getUserTypeFromRoles(user.roles, user.id)
-        )
+        user.roleContext.legacyRole === 'volunteer'
       )
       res.json({ session, isRecapDmsAvailable })
     } catch (err) {

@@ -25,7 +25,7 @@ export interface IGetUserRolesByIdQuery {
   result: IGetUserRolesByIdResult;
 }
 
-const getUserRolesByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":190}]}],"statement":"SELECT\n    user_roles.name\nFROM\n    users\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE\n    users.id = :id!"};
+const getUserRolesByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":190}]}],"statement":"SELECT\n    user_roles.name\nFROM\n    users\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE\n    users.id = :id!\nORDER BY\n    users_roles.created_at ASC"};
 
 /**
  * Query generated from SQL:
@@ -38,6 +38,8 @@ const getUserRolesByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"i
  *     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
  * WHERE
  *     users.id = :id!
+ * ORDER BY
+ *     users_roles.created_at ASC
  * ```
  */
 export const getUserRolesById = new PreparedQuery<IGetUserRolesByIdParams,IGetUserRolesByIdResult>(getUserRolesByIdIR);

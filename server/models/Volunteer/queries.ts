@@ -16,7 +16,11 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Quizzes, VolunteersForAnalyticsReport } from './types'
+import {
+  Quizzes,
+  VolunteerProfile,
+  VolunteersForAnalyticsReport,
+} from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
@@ -1195,7 +1199,7 @@ export type CreateVolunteerPayload = {
   signupSourceId?: number
   otherSignupSource?: string
 }
-export type CreatedVolunteer = VolunteerContactInfo & {
+export type CreatedVolunteer = Omit<VolunteerContactInfo, 'roleContext'> & {
   deactivated: boolean
   testUser: boolean
   createdAt: Date
@@ -1206,6 +1210,36 @@ export type CreatedVolunteer = VolunteerContactInfo & {
   otherSignupSource?: string
   userType: UserRole
 }
+
+export async function createVolunteerProfile(
+  userId: Ulid,
+  {
+    timezone,
+    partnerOrgId,
+  }: {
+    timezone: string | null
+    partnerOrgId: string | null
+  },
+  tc?: TransactionClient
+) {
+  try {
+    const profileResult = await pgQueries.createVolunteerProfile.run(
+      {
+        userId,
+        timezone,
+        partnerOrgId,
+      },
+      tc ?? getClient()
+    )
+    if (!profileResult.length)
+      throw new Error(
+        'Failed to create volunteer profile: Insert did not return new row'
+      )
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload
 ): Promise<CreatedVolunteer> {
@@ -1230,11 +1264,11 @@ export async function createVolunteer(
     if (!userResult.length && makeRequired(userResult[0]).id)
       throw new Error('Insert query did not return new row')
     const user = makeSomeOptional(userResult[0], ['banType'])
-    const profileResult = await pgQueries.createVolunteerProfile.run(
+    await createVolunteerProfile(
+      userId,
       {
-        userId: user.id,
-        timezone: volunteerData.timezone,
-        partnerOrgId: partnerOrg?.partnerId,
+        timezone: volunteerData.timezone ?? null,
+        partnerOrgId: partnerOrg?.partnerId ?? null,
       },
       client
     )
@@ -1253,9 +1287,6 @@ export async function createVolunteer(
           'Could not create volunteer: user partner org instance creation did not return rows'
         )
     }
-
-    if (!profileResult.length && makeRequired(profileResult[0]).ok)
-      throw new Error('Insert query did not return new row')
     await client.query('COMMIT')
     await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER, client)
     return {
@@ -1744,6 +1775,24 @@ export async function getVolunteersForAnalyticsReport(
       } as VolunteersForAnalyticsReport
     })
     return volunteers
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerProfile(
+  userId: Ulid,
+  client?: TransactionClient
+): Promise<VolunteerProfile | undefined> {
+  try {
+    const result = await pgQueries.getVolunteerProfileByUserId.run(
+      {
+        userId,
+      },
+      client ?? getClient()
+    )
+    if (result.length)
+      return makeSomeRequired(result[0], ['userId', 'createdAt', 'updatedAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }

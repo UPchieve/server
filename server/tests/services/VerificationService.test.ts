@@ -415,7 +415,7 @@ describe('VerificationService', () => {
       beforeEach(async () => {
         mockedUserService.getUserContactInfo.mockResolvedValue({
           ...buildUserContactInfo(),
-          roleContext: new RoleContext(['student'], 'student'),
+          roleContext: new RoleContext(['student'], 'student', 'student'),
         })
         mockedUserRepo.getUserRolesById.mockResolvedValue(['student'])
       })

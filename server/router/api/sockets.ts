@@ -33,7 +33,6 @@ import {
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
-import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
 import {
   moderateIndividualTranscription,
@@ -62,12 +61,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (
-    UserRolesService.isVolunteerUserType(
-      getUserTypeFromRoles(user.roles, user.id)
-    )
-  )
-    socket.join('volunteers')
+  if (user.roleContext.legacyRole === 'volunteer') socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -212,12 +206,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (
-                UserRolesService.isVolunteerUserType(
-                  getUserTypeFromRoles(user.roles, user.id)
-                ) &&
-                !user.approved
-              )
+              if (user.roleContext.legacyRole === 'volunteer')
                 throw new Error('Volunteer not approved')
             } catch (error) {
               socket.emit('redirect')
@@ -441,7 +430,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (chatbot && !(chatbot === user.id))
               await SessionService.handleMessageActivity(sessionId)
 
-            const userType = getUserTypeFromRoles(dbUser.roles, user.id)
+            const userType = dbUser.roleContext.legacyRole
             const messageData: {
               contents: string
               createdAt: Date

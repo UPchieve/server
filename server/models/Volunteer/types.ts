@@ -75,3 +75,9 @@ export type VolunteersForAnalyticsReport = {
   totalSessions: number
   totalSessionsWithinRange: number
 } & UniqueStudentsHelped
+
+export type VolunteerProfile = {
+  userId: Ulid
+  createdAt: Date
+  updatedAt: Date
+}
