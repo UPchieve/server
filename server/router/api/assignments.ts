@@ -53,7 +53,7 @@ export function routeAssignments(router: Router): void {
         res.sendStatus(200)
       }
     } catch (err) {
-      resError (res, err)
+      resError(res, err)
     }
   })
 

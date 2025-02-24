@@ -50,8 +50,6 @@ export async function getPhotoIdUploadUrl(
     ACL: ObjectCannedACL.bucket_owner_full_control,
   }
 
-  console.log('****signed Url Params', signedUrlParams)
-
   try {
     const uploadUrl = await getSignedUrl(
       s3,
@@ -60,7 +58,6 @@ export async function getPhotoIdUploadUrl(
         expiresIn: 60 * 60, // link expiration
       }
     )
-    console.log('****upload url', uploadUrl)
     return uploadUrl
   } catch (error) {
     Sentry.captureException(error)
@@ -74,8 +71,6 @@ export async function getPhotoIdUrl(photoIdS3Key: string): Promise<string> {
     Bucket: config.awsS3.photoIdBucket,
     Key: photoIdS3Key,
   }
-
-  console.log('****get photo id url signed url params', signedUrlParams)
 
   try {
     const photoUrl = await getSignedUrl(
@@ -105,29 +100,6 @@ export async function getSessionPhotoUploadUrl(
       new PutObjectCommand(signedUrlParams),
       {
         expiresIn: 60 * 60, // link expiration
-      }
-    )
-    return uploadUrl
-  } catch (error) {
-    Sentry.captureException(error)
-    logError(error as Error)
-    return ''
-  }
-}
-
-export async function getPdfUploadUrl(pdfS3Key: string): Promise<string> {
-  const signedUrlParams = {
-    Bucket: config.awsS3.teacherUploadBucket,
-    Key: pdfS3Key,
-    ACL: ObjectCannedACL.bucket_owner_full_control,
-  }
-
-  try {
-    const uploadUrl = await getSignedUrl(
-      s3,
-      new PutObjectCommand(signedUrlParams),
-      {
-        expiresIn: 60 * 60,
       }
     )
     return uploadUrl
