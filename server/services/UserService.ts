@@ -14,7 +14,6 @@ import {
   UserNotFoundError,
   NotAllowedError,
   InputError,
-  DEFAULT_ERROR_MESSAGE,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
@@ -41,11 +40,6 @@ import {
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
-  isStudentUserType,
-  isVolunteerUserType,
-  isTeacherUserType,
-} from '../utils/user-type'
-import {
   asBoolean,
   asEnum,
   asFactory,
@@ -65,7 +59,7 @@ export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
 
   // Approved volunteer
-  if (isVolunteerUserType(user.userType) && user.isApproved) {
+  if (UserRolesService.isVolunteerUserType(user.userType) && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -312,9 +306,9 @@ export async function adminUpdateUser(data: unknown) {
     userBeforeUpdate.roles,
     userId
   )
-  const isVolunteer = isVolunteerUserType(userType)
-  const isStudent = isStudentUserType(userType)
-  const isTeacher = isTeacherUserType(userType)
+  const isVolunteer = UserRolesService.isVolunteerUserType(userType)
+  const isStudent = UserRolesService.isStudentUserType(userType)
+  const isTeacher = UserRolesService.isTeacherUserType(userType)
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
@@ -459,7 +453,7 @@ export async function updateUserProfile(
 
 export async function deletePhoneFromAccount(userId: Ulid) {
   const user = await UserRolesService.getUserRolesById(userId)
-  if (isVolunteerUserType(user.userType)) {
+  if (UserRolesService.isVolunteerUserType(user.userType)) {
     throw new InputError(
       'Phone information is required for UPchieve volunteers'
     )

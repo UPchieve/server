@@ -36,13 +36,13 @@ import {
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
-import { isVolunteerUserType } from '../../utils/user-type'
 import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
 import {
   moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
+import * as UserRolesService from '../../services/UserRolesService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -65,7 +65,11 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)))
+  if (
+    UserRolesService.isVolunteerUserType(
+      getUserTypeFromRoles(user.roles, user.id)
+    )
+  )
     socket.join('volunteers')
 }
 
@@ -212,7 +216,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
               if (
-                isVolunteerUserType(
+                UserRolesService.isVolunteerUserType(
                   getUserTypeFromRoles(user.roles, user.id)
                 ) &&
                 !user.approved
@@ -454,7 +458,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             } = {
               contents: sanitizedMessage ?? message,
               createdAt: createdAt,
-              isVolunteer: isVolunteerUserType(userType),
+              isVolunteer: UserRolesService.isVolunteerUserType(userType),
               userType: userType,
               user: user.id,
               sessionId,
@@ -478,7 +482,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                 sessionId: sessionId,
                 message,
-                isVolunteer: isVolunteerUserType(userType),
+                isVolunteer: UserRolesService.isVolunteerUserType(userType),
                 userType: userType,
               })
             }

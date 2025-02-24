@@ -19,11 +19,6 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from '../utils/user-type'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -1445,7 +1440,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       [SG_CUSTOM_FIELDS.joined]: user.createdAt,
     }
 
-    if (isVolunteerUserType(userRoles.userType)) {
+    if (UserRolesService.isVolunteerUserType(userRoles.userType)) {
       contactListId = config.sendgrid.contactList.volunteers
       const volunteer = user
       customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
@@ -1459,7 +1454,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
           await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
         ).key
       }
-    } else if (isStudentUserType(userRoles.userType)) {
+    } else if (UserRolesService.isStudentUserType(userRoles.userType)) {
       contactListId = config.sendgrid.contactList.students
       const student = user
       if (student.studentGradeLevel)
@@ -1476,7 +1471,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
         customFields[SG_CUSTOM_FIELDS.fallIncentiveEnrollmentAt] =
           productFlags.fallIncentiveEnrollmentAt
       }
-    } else if (isTeacherUserType(userRoles.userType)) {
+    } else if (UserRolesService.isTeacherUserType(userRoles.userType)) {
       contactListId = config.sendgrid.contactList.teachers
     }
     contacts.push({

@@ -20,11 +20,6 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
@@ -146,9 +141,10 @@ export async function getLegacyUserObject(
       userId,
       userType
     )
-    if (isStudentUserType(userType)) {
-      studentUser.latestRequestedSubjects =
-        await getUsersLatestSubjectsByUserId(baseUser.id)
+    if (UserRolesService.isStudentUserType(userType)) {
+      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
+        baseUser.id
+      )
       studentUser.usesGoogle =
         baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
       studentUser.usesClever =
@@ -157,7 +153,7 @@ export async function getLegacyUserObject(
       studentUser.studentAssignments =
         await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
     }
-    if (isVolunteerUserType(userType)) {
+    if (UserRolesService.isVolunteerUserType(userType)) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
@@ -198,7 +194,7 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    if (isTeacherUserType(userType)) {
+    if (UserRolesService.isTeacherUserType(userType)) {
       teacherUser.usesClever =
         baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
     }
