@@ -57,10 +57,7 @@ export async function getBlob(
   containerName: string,
   blobName: string
 ): Promise<string> {
-  const blobServiceClient = new BlobServiceClient(
-    `https://${storageAccountName}.blob.core.windows.net`,
-    azureStorageCredential
-  )
+  const blobServiceClient = getBlobClient(storageAccountName)
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
