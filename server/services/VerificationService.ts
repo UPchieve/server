@@ -20,7 +20,6 @@ import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
 import * as UserRolesService from './UserRolesService'
 import {
-  getUserContactInfoById,
   getUserIdByEmail,
   getUserIdByPhone,
   updateUserProxyEmail,
@@ -28,6 +27,7 @@ import {
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
+import * as UserService from './UserService'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -159,7 +159,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
 }
 
 async function sendEmails(userId: Ulid): Promise<void> {
-  const user = await getUserContactInfoById(userId)
+  const user = await UserService.getUserContactInfo(userId)
   if (!user) return
 
   const userType = UserRolesService.getUserTypeFromRoles(user.roles, user.id)

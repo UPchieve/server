@@ -36,7 +36,10 @@ import {
   UserForAdmin,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
-import { getUserTypeFromRoles } from '../../services/UserRolesService'
+import {
+  getUserTypeFromRoles,
+  RoleContext,
+} from '../../services/UserRolesService'
 
 export async function createUser(
   user: CreateUserPayload,

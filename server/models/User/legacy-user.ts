@@ -26,6 +26,7 @@ import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
 import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
+import { RoleContext } from '../../services/UserRolesService'
 
 export type LegacyUserModel = {
   // pg
@@ -40,13 +41,17 @@ export type LegacyUserModel = {
   firstname: string
   phone?: string
   college?: string
+  /** @deprecated */
   isVolunteer: boolean
+  /** @deprecated */
   userType: UserRole
+  /** @deprecated */
   isAdmin: boolean
   //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
+  roleContext: RoleContext
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
@@ -200,6 +205,7 @@ export async function getLegacyUserObject(
       teacherUser.usesClever =
         baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
     }
+    const roleContext = await UserRolesService.getRoleContext(userId, client)
     const final = _.merge(
       { _id: baseUser.id, userType },
       baseUser,
@@ -210,7 +216,8 @@ export async function getLegacyUserObject(
       {
         sessionStats,
       },
-      { ratings }
+      { ratings },
+      { roleContext }
     )
     return final as LegacyUserModel
   } catch (err) {

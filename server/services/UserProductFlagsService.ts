@@ -3,10 +3,10 @@ import { NotAllowedError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import { getSimpleSurveyDefinitionBySurveyId } from '../models/Survey'
 import {
-  getUserContactInfoById,
   getUserVerificationInfoById,
   updateUserProxyEmail,
 } from '../models/User'
+import * as UserService from '../services/UserService'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import {
   enrollStudentToFallIncentiveProgram,
@@ -53,7 +53,7 @@ export async function incentiveProgramEnrollmentEnroll(
 }
 
 export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
-  const user = await getUserContactInfoById(userId)
+  const user = await UserService.getUserContactInfo(userId)
   if (!user) throw new NotAllowedError('No user found')
 
   const survey = await getSimpleSurveyDefinitionBySurveyId(surveyId)

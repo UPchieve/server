@@ -1,5 +1,6 @@
 import { USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
+import { RoleContext } from '../../services/UserRolesService'
 
 export type UserRole = 'volunteer' | 'student' | 'teacher' | 'admin'
 
@@ -72,6 +73,7 @@ export type UserContactInfo = Pick<
   approved?: boolean
   isAdmin: boolean
   isVolunteer: boolean
+  /** @deprecated Use {@link roleContext} */
   roles: UserRole[]
   studentPartnerOrg?: string
   volunteerPartnerOrg?: string
