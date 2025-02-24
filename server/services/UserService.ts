@@ -19,7 +19,6 @@ import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
 import {
   UserContactInfo,
-  getUserContactInfoById,
   getUsersForAdminSearch,
   deleteUser,
   updateUserProfileById,
@@ -54,6 +53,8 @@ import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
+import { RoleContext } from './UserRolesService'
+import { getClient, TransactionClient } from '../db'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
@@ -296,7 +297,7 @@ export async function adminUpdateUser(data: unknown) {
     partnerSchool,
     schoolId,
   } = asAdminUpdate(data)
-  const userBeforeUpdate = await getUserContactInfoById(userId)
+  const userBeforeUpdate = await getUserContactInfo(userId)
 
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('id', userId)
@@ -468,6 +469,19 @@ export async function getUserByReferralCode(referralCode: string) {
     return {
       ...user,
       userType: userRoles.userType,
+    }
+  }
+}
+
+export async function getUserContactInfo(
+  userId: string
+): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
+  const baseUserInfo = await UserRepo.getUserContactInfoById(userId)
+  if (baseUserInfo) {
+    const roleContext = await UserRolesService.getRoleContext(userId)
+    return {
+      ...baseUserInfo,
+      roleContext,
     }
   }
 }

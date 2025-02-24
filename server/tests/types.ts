@@ -1,6 +1,7 @@
 import { GRADES } from '../constants'
 import { Ulid } from '../models/pgUtils'
 import { User, UserRole } from '../models/User'
+import { RoleContext } from '../services/UserRolesService'
 
 export interface RegistrationForm {
   firstName: string
@@ -33,7 +34,9 @@ export type AppUser = {
   isTestUser: boolean
   isAdmin: boolean
   isVolunteer: boolean
+  /** @deprecated Use {@link roleContext} instead */
   roles: UserRole[]
+  roleContext: RoleContext
 } & User
 
 export type AppStudent = {

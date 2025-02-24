@@ -84,7 +84,7 @@ export class RoleContext {
 export async function getRoleContext(
   userId: string,
   tc?: TransactionClient
-): Promise<RoleContext | undefined> {
+): Promise<RoleContext> {
   try {
     const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
     const roleContextStr = await CacheService.get(key)

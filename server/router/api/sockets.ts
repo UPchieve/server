@@ -15,11 +15,8 @@ import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import {
-  getUserContactInfoById,
-  UserContactInfo,
-  UserRole,
-} from '../../models/User'
+import { UserContactInfo, UserRole } from '../../models/User'
+import * as UserService from '../../services/UserService'
 import { captureEvent } from '../../services/AnalyticsService'
 import { isChatBotEnabled } from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
@@ -387,7 +384,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
-            const dbUser = await getUserContactInfoById(user.id)
+            const dbUser = await UserService.getUserContactInfo(user.id)
             if (!dbUser) return resolve()
             if (source === 'recap' && !!dbUser.banType) return resolve()
 
