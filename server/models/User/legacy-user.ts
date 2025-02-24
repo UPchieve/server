@@ -54,7 +54,6 @@ export type LegacyUserModel = {
   lastActivityAt?: Date
   referralCode: string
   referredBy?: Ulid
-  roleId: number
   sessionStats: UserSessionStats
   // volunteer
   isOnboarded?: boolean

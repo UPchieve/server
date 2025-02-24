@@ -255,7 +255,6 @@ export function buildLegacyUser(
     lastActivityAt: undefined,
     referredBy: undefined,
     userType: 'student',
-    roleId: 1,
     sessionStats: {},
     ...overrides,
   }
@@ -268,7 +267,6 @@ export function buildLegacyStudent(
   return {
     ...legacyUser,
     userType: 'student',
-    roleId: 1,
     gradeLevel: GRADES.NINTH,
     schoolName: '',
     latestRequestedSubjects: [],
@@ -289,7 +287,6 @@ export function buildLegacyVolunteer(
   return {
     ...legacyUser,
     userType: 'volunteer',
-    roleId: 2,
     volunteerPartnerOrg: undefined,
     subjects: [],
     activeSubjects: [],
