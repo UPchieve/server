@@ -1,4 +1,4 @@
-import { getClient, TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
@@ -19,20 +19,7 @@ export async function getUserRolesById(
     userType: roleContext.legacyRole,
     isAdmin: roleContext.isAdmin(),
     // TODO: Remove once no longer any references.
-    isVolunteer: roles.includes('volunteer'),
-  }
-}
-
-/**
- * @deprecated Use {@link RoleContext} instead
- */
-export function getUserTypeFromRoles(roles: UserRole[] = [], userId: Ulid) {
-  const userTypes = roles.filter(r => r !== 'admin')
-  // For now, we assume all users have one role, not including admin.
-  if (!userTypes.length) {
-    throw new Error(`User with id ${userId} has no roles.`)
-  } else if (userTypes.length > 1) {
-    throw new Error(`Unexpected number of roles for user with id ${userId}.`)
+    isVolunteer: roleContext.legacyRole === 'volunteer',
   }
 }
 
@@ -60,10 +47,12 @@ export function isTeacherUserType(userType: UserRole) {
 export class RoleContext {
   readonly roles: UserRole[]
   readonly activeRole: UserRole
+  readonly legacyRole: UserRole // TODO - Remove me after fully switching to RoleContext
 
-  constructor(roles: UserRole[], activeRole: UserRole) {
+  constructor(roles: UserRole[], activeRole: UserRole, legacyRole: UserRole) {
     this.roles = roles
     this.activeRole = activeRole
+    this.legacyRole = legacyRole
   }
 
   isActiveRole(role: UserRole) {
@@ -84,33 +73,37 @@ export async function getRoleContext(
   userId: string,
   tc?: TransactionClient
 ): Promise<RoleContext> {
-  try {
-    const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
-    const roleContextStr = await CacheService.get(key)
-    const data: { activeRole: UserRole; roles: UserRole[] } = JSON.parse(
-      roleContextStr
+  const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
+  const roleContextStr = await UserRolesCacheService.getRoleContext(key)
+  if (roleContextStr) {
+    const data: {
+      activeRole: UserRole
+      roles: UserRole[]
+      legacyRole?: UserRole
+    } = JSON.parse(roleContextStr)
+    return new RoleContext(
+      data.roles,
+      data.activeRole,
+      data.legacyRole ?? data.activeRole
     )
-    return new RoleContext(data.roles, data.activeRole)
-  } catch (err) {
-    if (!(err instanceof KeyNotFoundError)) {
-      throw err
-    }
+  } else {
     // On cache miss: Create RoleContext from DB and save to cache
     const roles = await UserRepo.getUserRolesById(userId, tc ?? getClient())
-    const activeRole = roles.filter(
-      r => r === 'volunteer' || r === 'student' || r === 'teacher'
-    )[0] // @TODO Handle failure.
-    const roleContext = new RoleContext(roles, activeRole)
-    await updateRoleContext(userId, roles, activeRole)
+    const activeRole = roles.filter(r => r !== 'admin')[0]
+    const roleContext = new RoleContext(roles, activeRole, roles[0])
+    await updateRoleContext(
+      userId,
+      new RoleContext(roles, activeRole, roles[0])
+    )
     return roleContext
   }
 }
 
-export async function updateRoleContext(
+async function updateRoleContext(
   userId: string,
-  roles: UserRole[],
-  activeRole: UserRole
+  newRoleContext: RoleContext
 ): Promise<void> {
   const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
-  await CacheService.save(key, JSON.stringify({ roles, activeRole }))
+  const value = JSON.stringify(newRoleContext)
+  await UserRolesCacheService.saveRoleContext(key, value)
 }
