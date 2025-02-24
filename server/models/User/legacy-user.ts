@@ -20,6 +20,11 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
+import {
+  isStudentUserType,
+  isTeacherUserType,
+  isVolunteerUserType,
+} from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
