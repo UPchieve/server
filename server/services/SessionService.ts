@@ -66,11 +66,11 @@ import {
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
 import { TransactionClient, runInTransaction } from '../db'
-import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
 import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
+import * as UserRolesService from '../services/UserRolesService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
@@ -147,7 +147,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   // Autoban users if a session is reported from the recap page
   const isBanReason =
     reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
-  const isVolunteer = isVolunteerUserType(
+  const isVolunteer = UserRolesService.isVolunteerUserType(
     getUserTypeFromRoles(reportedBy.roles, reportedBy.id)
   )
   const reportedUser = isVolunteer ? session.studentId : session.volunteerId
@@ -570,7 +570,11 @@ export async function startSession(
       )
 
     const userId = user.id
-    if (isVolunteerUserType(getUserTypeFromRoles(user.roles, userId)))
+    if (
+      UserRolesService.isVolunteerUserType(
+        getUserTypeFromRoles(user.roles, userId)
+      )
+    )
       throw new sessionUtils.StartSessionError(
         'Volunteers cannot create new sessions'
       )
@@ -717,8 +721,8 @@ export async function joinSession(
   }
 
   const userType = getUserTypeFromRoles(user.roles, user.id)
-  const isStudent = isStudentUserType(userType)
-  const isVolunteer = isVolunteerUserType(userType)
+  const isStudent = UserRolesService.isStudentUserType(userType)
+  const isVolunteer = UserRolesService.isVolunteerUserType(userType)
   if (isStudent && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error(`A student cannot join another student's session`)
@@ -906,7 +910,11 @@ export async function generateAndStoreWaitTimeHeatMap(
 export async function getWaitTimeHeatMap(
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
-  if (isStudentUserType(getUserTypeFromRoles(user.roles, user.id)))
+  if (
+    UserRolesService.isStudentUserType(
+      getUserTypeFromRoles(user.roles, user.id)
+    )
+  )
     throw new NotAllowedError('Only volunteers may view the heat map')
   try {
     const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)

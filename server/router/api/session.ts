@@ -19,8 +19,7 @@ import {
   asString,
   asUlid,
 } from '../../utils/type-utils'
-import { isVolunteerUserType } from '../../utils/user-type'
-import { getUserTypeFromRoles } from '../../services/UserRolesService'
+import * as UserRolesService from '../../services/UserRolesService'
 import multer from 'multer'
 import {
   CreateSessionAudioPayload,
@@ -403,7 +402,9 @@ export function routeSession(router: Router) {
         session.id,
         session.studentId,
         session.volunteerId,
-        isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id))
+        UserRolesService.isVolunteerUserType(
+          UserRolesService.getUserTypeFromRoles(user.roles, user.id)
+        )
       )
       res.json({ session, isRecapDmsAvailable })
     } catch (err) {

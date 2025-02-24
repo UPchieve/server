@@ -28,11 +28,6 @@ import {
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from '../utils/user-type'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -169,7 +164,7 @@ async function sendEmails(userId: Ulid): Promise<void> {
 
   const userType = UserRolesService.getUserTypeFromRoles(user.roles, user.id)
 
-  if (isVolunteerUserType(userType)) {
+  if (UserRolesService.isVolunteerUserType(userType)) {
     if (user.volunteerPartnerOrg) {
       await MailService.sendPartnerVolunteerWelcomeEmail(
         user.email,
@@ -181,13 +176,13 @@ async function sendEmails(userId: Ulid): Promise<void> {
         user.firstName
       )
     }
-  } else if (isStudentUserType(userType)) {
+  } else if (UserRolesService.isStudentUserType(userType)) {
     await MailService.sendStudentOnboardingWelcomeEmail(
       user.email,
       user.firstName
     )
     await StudentService.queueOnboardingEmails(user.id)
-  } else if (isTeacherUserType(userType)) {
+  } else if (UserRolesService.isTeacherUserType(userType)) {
     await MailService.sendTeacherOnboardingWelcomeEmail(
       user.email,
       user.firstName

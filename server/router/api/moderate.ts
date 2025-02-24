@@ -4,7 +4,6 @@ import { resError } from '../res-error'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
-import { isVolunteerUserType } from '../../utils/user-type'
 import multer from 'multer'
 import config from '../../config'
 
@@ -14,7 +13,7 @@ export function routeModeration(router: Router): void {
   router.route('/moderate/message').post(async (req, res) => {
     try {
       const user = extractUser(req)
-      const isVolunteer = isVolunteerUserType(
+      const isVolunteer = UserRolesService.isVolunteerUserType(
         UserRolesService.getUserTypeFromRoles(user.roles, user.id)
       )
       const args = req.body?.content
