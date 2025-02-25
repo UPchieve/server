@@ -1,9 +1,8 @@
-import { getClient, runInTransaction, TransactionClient } from '../db'
+import { getClient, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
 import * as UserRolesCacheService from '../services/UserRolesCacheService'
-import * as VolunteerRepo from '../models/Volunteer'
 import config from '../config'
 import { InputError } from '../models/Errors'
 
@@ -97,6 +96,21 @@ export async function getRoleContext(
     )
     return roleContext
   }
+}
+
+export async function switchActiveRole(
+  userId: string,
+  newActiveRole: Exclude<UserRole, 'admin' | 'teacher'>
+): Promise<void> {
+  const existingRoleContext = await getRoleContext(userId)
+  if (!existingRoleContext.hasRole(newActiveRole))
+    throw new InputError('User does not have the requested role')
+  const newRoleContext = new RoleContext(
+    existingRoleContext.roles,
+    newActiveRole,
+    existingRoleContext.legacyRole
+  )
+  await updateRoleContext(userId, newRoleContext)
 }
 
 async function updateRoleContext(
