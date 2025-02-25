@@ -1711,12 +1711,3 @@ WHERE
     volunteer_partner_orgs.key = :partnerOrgKey
 LIMIT 1;
 
-
-/* @name getVolunteerProfileByUserId */
-SELECT
-    *
-FROM
-    volunteer_profiles
-WHERE
-    user_id = :userId!;
-

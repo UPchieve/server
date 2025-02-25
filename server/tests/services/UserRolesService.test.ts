@@ -75,7 +75,7 @@ describe('getRoleContext', () => {
   })
 })
 
-describe('updateActiveRole', () => {
+describe('switchActiveRole', () => {
   it('Calls the cache to save the data', async () => {
     const userId = 'some-user'
     const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
@@ -87,7 +87,7 @@ describe('updateActiveRole', () => {
     mockedCacheService.getRoleContext.mockResolvedValue(
       JSON.stringify(existingRoleContext)
     )
-    await UserRolesService.updateActiveRole(userId, 'volunteer')
+    await UserRolesService.switchActiveRole(userId, 'volunteer')
     expect(mockedCacheService.saveRoleContext).toHaveBeenCalledTimes(1)
     expect(mockedCacheService.saveRoleContext).toHaveBeenCalledWith(
       key,
