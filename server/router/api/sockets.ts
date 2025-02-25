@@ -429,7 +429,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (chatbot && !(chatbot === user.id))
               await SessionService.handleMessageActivity(sessionId)
 
-            const userType = dbUser.roleContext.legacyRole
+            const userType = dbUser.roleContext.activeRole
             const messageData: {
               contents: string
               createdAt: Date
@@ -443,7 +443,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             } = {
               contents: sanitizedMessage ?? message,
               createdAt: createdAt,
-              isVolunteer: UserRolesService.isVolunteerUserType(userType),
+              isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
               userType: userType,
               user: user.id,
               sessionId,
@@ -467,7 +467,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                 sessionId: sessionId,
                 message,
-                isVolunteer: UserRolesService.isVolunteerUserType(userType),
+                isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
                 userType: userType,
               })
             }
