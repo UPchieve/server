@@ -1,6 +1,6 @@
-import { getClient, TransactionClient } from '../db'
-import { Ulid } from '../models/pgUtils'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as UserRepo from '../models/User'
+import * as VolunteerRepo from '../models/Volunteer'
 import { UserRole } from '../models/User'
 import * as CacheService from '../cache'
 import config from '../config'
@@ -90,4 +90,47 @@ async function updateRoleContext(
 
 function getRoleContextCacheKey(userId: string): string {
   return `${config.cacheKeys.userRoleContextPrefix}${userId}`
+}
+
+export async function updateActiveRole(
+  userId: string,
+  newActiveRole: Exclude<UserRole, 'teacher' | 'admin'>
+): Promise<void> {
+  const existingRoleContext = await getRoleContext(userId)
+  if (existingRoleContext.activeRole === newActiveRole) return
+  if (!existingRoleContext.hasRole(newActiveRole)) {
+    throw new InputError(`User does not have role ${newActiveRole}`)
+  }
+  await updateRoleContext(
+    userId,
+    new RoleContext(
+      existingRoleContext.roles,
+      newActiveRole,
+      existingRoleContext.legacyRole
+    )
+  )
+}
+
+export async function addVolunteerRoleToUser(userId: string): Promise<void> {
+  const tc = getClient()
+  const existingRoleContext = await getRoleContext(userId, tc)
+  if (existingRoleContext.roles.includes('volunteer'))
+    throw new InputError('User already has volunteer role')
+
+  await runInTransaction(async tc => {
+    await UserRepo.insertUserRoleByUserId(userId, 'volunteer', tc)
+    await VolunteerRepo.createVolunteerProfile(
+      userId,
+      { timezone: null, partnerOrgId: null },
+      tc
+    )
+  }, tc)
+  await updateRoleContext(
+    userId,
+    new RoleContext(
+      [...existingRoleContext.roles, 'volunteer'],
+      existingRoleContext.activeRole,
+      existingRoleContext.legacyRole
+    )
+  )
 }
