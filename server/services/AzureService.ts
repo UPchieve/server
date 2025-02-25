@@ -72,7 +72,7 @@ export async function getBlob(
 
 type BlobDocument = {
   name: string
-  content: string
+  url: string
   contentType: string
 }
 
@@ -90,16 +90,12 @@ export async function getBlobsInFolder(
 
   for await (const blob of blobs) {
     const blobClient = containerClient.getBlobClient(blob.name)
-    const downloadBlockBlobResponse = await blobClient.download()
-    const blobContent = await streamToBuffer(
-      downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
-    )
-
+    const url = blobClient.url
     const fileName = blob.name.split('/').pop() || blob.name
 
     documents.push({
       name: fileName,
-      content: blobContent.toString('base64'),
+      url: url,
       contentType: getContentType(fileName),
     })
   }
@@ -129,9 +125,7 @@ export async function uploadBlobFile(
     const blobServiceClient = getBlobClient(storageAccountName)
     const containerClient = blobServiceClient.getContainerClient(containerName)
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-    await blockBlobClient.upload(content.buffer, content.buffer.length, {
-      blobHTTPHeaders: { blobContentType: content.mimetype },
-    })
+    await blockBlobClient.upload(content.buffer, content.buffer.length, { blobHTTPHeaders: { blobContentType: content.mimetype}})
   } catch (error) {
     console.error('Full upload error:', error)
     throw error
@@ -140,6 +134,7 @@ export async function uploadBlobFile(
 
 //gets content type for file name using the file extension so we
 //can use this function for any uploaded file types
+//common types: https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types
 const getContentType = (fileName: string): string => {
   const lastDotIndex = fileName.lastIndexOf('.')
   if (lastDotIndex === -1) return 'application/octet-stream'
