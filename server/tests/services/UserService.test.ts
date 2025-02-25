@@ -418,6 +418,7 @@ import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid } from '../../models/pgUtils'
+import { UserRole } from '../../models/User'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/UserRolesService')
@@ -456,12 +457,31 @@ describe('UserService', () => {
   describe('deletePhoneFromAccount', () => {
     it('Should throw an error if it is a volunteer account', async () => {
       const userId = getDbUlid()
-      mockedUserRolesService.getUserRolesById.mockResolvedValue({
-        userType: 'volunteer',
-        isVolunteer: true,
-        isAdmin: false,
-      })
-      mockedUserRolesService.isVolunteerUserType.mockReturnValue(true)
+      const mockRoleContext = {
+        roles: ['volunteer'] as UserRole[],
+        activeRole: 'volunteer' as UserRole,
+        legacyRole: 'volunteer' as UserRole,
+        hasRole: jest.fn().mockReturnValue(true),
+        isActiveRole: jest.fn(),
+        isAdmin: jest.fn(),
+      }
+      mockedUserRolesService.getRoleContext.mockResolvedValue(mockRoleContext)
+      await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
+        'Phone information is required for UPchieve volunteers'
+      )
+    })
+
+    it('Should throw an error if the account has the volunteer role', async () => {
+      const userId = getDbUlid()
+      const mockRoleContext = {
+        roles: ['volunteer'] as UserRole[],
+        activeRole: 'volunteer' as UserRole,
+        legacyRole: 'volunteer' as UserRole,
+        hasRole: jest.fn().mockReturnValue(true),
+        isActiveRole: jest.fn(),
+        isAdmin: jest.fn(),
+      }
+      mockedUserRolesService.getRoleContext.mockResolvedValue(mockRoleContext)
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
         'Phone information is required for UPchieve volunteers'
       )
@@ -469,12 +489,15 @@ describe('UserService', () => {
 
     it('Should call deleteUserPhoneInfo', async () => {
       const userId = getDbUlid()
-      mockedUserRolesService.getUserRolesById.mockResolvedValue({
-        userType: 'student',
-        isVolunteer: false,
-        isAdmin: false,
-      })
-      mockedUserRolesService.isVolunteerUserType.mockReturnValue(false)
+      const mockRoleContext = {
+        roles: ['student'] as UserRole[],
+        activeRole: 'student' as UserRole,
+        legacyRole: 'student' as UserRole,
+        hasRole: jest.fn().mockReturnValue(false),
+        isActiveRole: jest.fn(),
+        isAdmin: jest.fn(),
+      }
+      mockedUserRolesService.getRoleContext.mockResolvedValue(mockRoleContext)
       await UserService.deletePhoneFromAccount(userId)
       expect(mockUserRepo.deleteUserPhoneInfo).toHaveBeenCalledWith(userId)
     })

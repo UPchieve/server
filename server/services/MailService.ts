@@ -1425,7 +1425,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   let contactListId
   for (const userId of listOfUserIds) {
     const user = await getUserToCreateSendGridContact(userId)
-    const userRoles = await UserRolesService.getUserRolesById(userId)
+    const userRoleContext = await UserRolesService.getRoleContext(user.id)
     const productFlags = await getPublicUPFByUserId(userId)
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(
@@ -1433,14 +1433,17 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       ),
       [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
       [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
-      [SG_CUSTOM_FIELDS.userType]: String(userRoles.userType),
+      // TODO - RoleContext changes - add separate field for isStudent and drop userType field once we aren't using it.
+      [SG_CUSTOM_FIELDS.userType]: String(
+        userRoleContext.legacyRole === 'volunteer'
+      ),
       [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
       [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
       [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
       [SG_CUSTOM_FIELDS.joined]: user.createdAt,
     }
 
-    if (UserRolesService.isVolunteerUserType(userRoles.userType)) {
+    if (userRoleContext.legacyRole === 'volunteer') {
       contactListId = config.sendgrid.contactList.volunteers
       const volunteer = user
       customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
@@ -1454,7 +1457,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
           await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
         ).key
       }
-    } else if (UserRolesService.isStudentUserType(userRoles.userType)) {
+    } else if (userRoleContext.legacyRole === 'student') {
       contactListId = config.sendgrid.contactList.students
       const student = user
       if (student.studentGradeLevel)
@@ -1471,7 +1474,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
         customFields[SG_CUSTOM_FIELDS.fallIncentiveEnrollmentAt] =
           productFlags.fallIncentiveEnrollmentAt
       }
-    } else if (UserRolesService.isTeacherUserType(userRoles.userType)) {
+    } else if (userRoleContext.legacyRole === 'teacher') {
       contactListId = config.sendgrid.contactList.teachers
     }
     contacts.push({
