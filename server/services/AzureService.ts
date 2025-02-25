@@ -86,13 +86,15 @@ export async function uploadBlobFile(
   storageAccountName: string,
   containerName: string,
   blobName: string,
-  content: { buffer: Express.Multer.File['buffer'] }
+  content: Express.Multer.File
 ): Promise<void> {
   try {
     const blobServiceClient = getBlobClient(storageAccountName)
     const containerClient = blobServiceClient.getContainerClient(containerName)
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-    await blockBlobClient.upload(content.buffer, content.buffer.length)
+    await blockBlobClient.upload(content.buffer, content.buffer.length, {
+      blobHTTPHeaders: { blobContentType: content.mimetype },
+    })
   } catch (error) {
     console.error('Full upload error:', error)
     throw error
