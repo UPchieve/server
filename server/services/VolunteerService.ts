@@ -15,7 +15,6 @@ import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 import { TransactionClient } from '../db'
-import { VolunteerProfile } from '../models/Volunteer'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -288,10 +287,4 @@ export async function onboardVolunteer(
       event: EVENTS.ACCOUNT_ONBOARDED,
     })
   }
-}
-
-export async function getVolunteerProfile(
-  userId: string
-): Promise<VolunteerProfile | undefined> {
-  return await VolunteerRepo.getVolunteerProfile(userId)
 }
