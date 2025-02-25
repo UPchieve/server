@@ -8,23 +8,6 @@ const azureStorageCredential = new ClientSecretCredential(
   config.azureStorageSecret
 )
 
-// a helper method used to read a Node.js readable stream into a Buffer
-async function streamToBuffer(
-  readableStream: NodeJS.ReadableStream
-): Promise<Buffer> {
-  // TODO: is there a way to do this async?
-  return new Promise((resolve, reject) => {
-    const chunks: any[] = []
-    readableStream.on('data', (data: any) => {
-      chunks.push(data instanceof Buffer ? data : Buffer.from(data))
-    })
-    readableStream.on('end', () => {
-      resolve(Buffer.concat(chunks))
-    })
-    readableStream.on('error', reject)
-  })
-}
-
 const blobClients = new Map<string, BlobServiceClient>([
   [
     config.whiteboardStorageAccountName,
@@ -41,6 +24,23 @@ const blobClients = new Map<string, BlobServiceClient>([
     ),
   ],
 ])
+
+// a helper method used to read a Node.js readable stream into a Buffer
+async function streamToBuffer(
+  readableStream: NodeJS.ReadableStream
+): Promise<Buffer> {
+  // TODO: is there a way to do this async?
+  return new Promise((resolve, reject) => {
+    const chunks: any[] = []
+    readableStream.on('data', (data: any) => {
+      chunks.push(data instanceof Buffer ? data : Buffer.from(data))
+    })
+    readableStream.on('end', () => {
+      resolve(Buffer.concat(chunks))
+    })
+    readableStream.on('error', reject)
+  })
+}
 
 function getBlobClient(storageAccountName: string): BlobServiceClient {
   const client = blobClients.get(storageAccountName)

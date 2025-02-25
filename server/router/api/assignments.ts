@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import * as AssignmentsService from '../../services/AssignmentsService'
+import { asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 import multer from 'multer'
 
@@ -32,7 +33,7 @@ export function routeAssignments(router: Router): void {
 
   router.delete('/assignment/:assignmentId', async function(req, res) {
     try {
-      const assignmentId = req.params.assignmentId as string
+      const assignmentId = asString(req.params.assignmentId)
       if (assignmentId) {
         await AssignmentsService.deleteAssignment(assignmentId)
         res.sendStatus(200)
