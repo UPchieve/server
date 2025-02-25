@@ -775,33 +775,41 @@ const getProgressReportSurveyResponseIR: any = {"usedParamSet":{"progressReportI
 export const getProgressReportSurveyResponse = new PreparedQuery<IGetProgressReportSurveyResponseParams,IGetProgressReportSurveyResponseResult>(getProgressReportSurveyResponseIR);
 
 
-/** 'GetStudentPostsessionSurveyGoalQuestionRatings' parameters type */
-export interface IGetStudentPostsessionSurveyGoalQuestionRatingsParams {
+/** 'GetPostsessionSurveyResponsesForSessionsByUserId' parameters type */
+export interface IGetPostsessionSurveyResponsesForSessionsByUserIdParams {
   userId: string;
 }
 
-/** 'GetStudentPostsessionSurveyGoalQuestionRatings' return type */
-export interface IGetStudentPostsessionSurveyGoalQuestionRatingsResult {
+/** 'GetPostsessionSurveyResponsesForSessionsByUserId' return type */
+export interface IGetPostsessionSurveyResponsesForSessionsByUserIdResult {
   choiceText: string;
   createdAt: Date;
+  roleInSession: string | null;
   score: number;
   sessionId: string;
+  submitterUserId: string;
   surveyResponseChoiceId: number | null;
 }
 
-/** 'GetStudentPostsessionSurveyGoalQuestionRatings' query type */
-export interface IGetStudentPostsessionSurveyGoalQuestionRatingsQuery {
-  params: IGetStudentPostsessionSurveyGoalQuestionRatingsParams;
-  result: IGetStudentPostsessionSurveyGoalQuestionRatingsResult;
+/** 'GetPostsessionSurveyResponsesForSessionsByUserId' query type */
+export interface IGetPostsessionSurveyResponsesForSessionsByUserIdQuery {
+  params: IGetPostsessionSurveyResponsesForSessionsByUserIdParams;
+  result: IGetPostsessionSurveyResponsesForSessionsByUserIdResult;
 }
 
-const getStudentPostsessionSurveyGoalQuestionRatingsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":522,"b":529},{"a":555,"b":562}]}],"statement":"SELECT\n    s.id AS session_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score,\n    src.choice_text\nFROM\n    sessions s\n    JOIN upchieve.users_surveys us ON us.session_id = s.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND st.name = 'postsession'\nAND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'\nAND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')\nORDER BY\n    uss.created_at DESC"};
+const getPostsessionSurveyResponsesForSessionsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":60,"b":67},{"a":677,"b":684},{"a":710,"b":717}]}],"statement":"SELECT\n    s.id AS session_id,\n    CASE WHEN s.student_id = :userId! THEN\n        'student'\n    ELSE\n        'volunteer'\n    END AS role_in_session,\n    us.user_id AS submitter_user_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score,\n    src.choice_text\nFROM\n    sessions s\n    JOIN upchieve.users_surveys us ON us.session_id = s.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND st.name = 'postsession'\nAND sq.question_text IN ('Your goal for this session was to %s. Did UPchieve help you achieve your goal?', '%s''s goal for this session was to %s. Were you able to help them achieve their goal?')\nAND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED', 'Somewhat', 'Mostly', 'A lot')\nORDER BY\n    uss.created_at DESC"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     s.id AS session_id,
+ *     CASE WHEN s.student_id = :userId! THEN
+ *         'student'
+ *     ELSE
+ *         'volunteer'
+ *     END AS role_in_session,
+ *     us.user_id AS submitter_user_id,
  *     us.created_at,
  *     uss.survey_response_choice_id,
  *     src.score,
@@ -816,61 +824,13 @@ const getStudentPostsessionSurveyGoalQuestionRatingsIR: any = {"usedParamSet":{"
  * WHERE (s.student_id = :userId!
  *     OR s.volunteer_id = :userId!)
  * AND st.name = 'postsession'
- * AND sq.question_text = 'Your goal for this session was to %s. Did UPchieve help you achieve your goal?'
- * AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED')
+ * AND sq.question_text IN ('Your goal for this session was to %s. Did UPchieve help you achieve your goal?', '%s''s goal for this session was to %s. Were you able to help them achieve their goal?')
+ * AND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED', 'Somewhat', 'Mostly', 'A lot')
  * ORDER BY
  *     uss.created_at DESC
  * ```
  */
-export const getStudentPostsessionSurveyGoalQuestionRatings = new PreparedQuery<IGetStudentPostsessionSurveyGoalQuestionRatingsParams,IGetStudentPostsessionSurveyGoalQuestionRatingsResult>(getStudentPostsessionSurveyGoalQuestionRatingsIR);
-
-
-/** 'GetVolunteerPostsessionSurveyGoalQuestionRatings' parameters type */
-export interface IGetVolunteerPostsessionSurveyGoalQuestionRatingsParams {
-  userId: string;
-}
-
-/** 'GetVolunteerPostsessionSurveyGoalQuestionRatings' return type */
-export interface IGetVolunteerPostsessionSurveyGoalQuestionRatingsResult {
-  choiceText: string;
-  createdAt: Date;
-  score: number;
-  sessionId: string;
-  surveyResponseChoiceId: number | null;
-}
-
-/** 'GetVolunteerPostsessionSurveyGoalQuestionRatings' query type */
-export interface IGetVolunteerPostsessionSurveyGoalQuestionRatingsQuery {
-  params: IGetVolunteerPostsessionSurveyGoalQuestionRatingsParams;
-  result: IGetVolunteerPostsessionSurveyGoalQuestionRatingsResult;
-}
-
-const getVolunteerPostsessionSurveyGoalQuestionRatingsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":522,"b":529},{"a":555,"b":562}]}],"statement":"SELECT\n    s.id AS session_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score,\n    src.choice_text\nFROM\n    sessions s\n    JOIN upchieve.users_surveys us ON us.session_id = s.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND st.name = 'postsession'\nAND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'\nAND src.choice_text IN ('Not at all', 'Sorta but not really', 'Somewhat', 'Mostly', 'A lot')"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     s.id AS session_id,
- *     us.created_at,
- *     uss.survey_response_choice_id,
- *     src.score,
- *     src.choice_text
- * FROM
- *     sessions s
- *     JOIN upchieve.users_surveys us ON us.session_id = s.id
- *     JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
- *     JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id
- *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
- *     JOIN upchieve.survey_types st ON st.id = us.survey_type_id
- * WHERE (s.student_id = :userId!
- *     OR s.volunteer_id = :userId!)
- * AND st.name = 'postsession'
- * AND sq.question_text = '%s''s goal for this session was to %s. Were you able to help them achieve their goal?'
- * AND src.choice_text IN ('Not at all', 'Sorta but not really', 'Somewhat', 'Mostly', 'A lot')
- * ```
- */
-export const getVolunteerPostsessionSurveyGoalQuestionRatings = new PreparedQuery<IGetVolunteerPostsessionSurveyGoalQuestionRatingsParams,IGetVolunteerPostsessionSurveyGoalQuestionRatingsResult>(getVolunteerPostsessionSurveyGoalQuestionRatingsIR);
+export const getPostsessionSurveyResponsesForSessionsByUserId = new PreparedQuery<IGetPostsessionSurveyResponsesForSessionsByUserIdParams,IGetPostsessionSurveyResponsesForSessionsByUserIdResult>(getPostsessionSurveyResponsesForSessionsByUserIdIR);
 
 
 /** 'GetLatestUserSubmissionsForSurvey' parameters type */

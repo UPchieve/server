@@ -1,8 +1,7 @@
 import { Ulid } from '../models/pgUtils'
 import {
   getPresessionSurveyResponse,
-  getStudentPostsessionSurveyGoalQuestionRatings,
-  getVolunteerPostsessionSurveyGoalQuestionRatings,
+  getUserPostsessionSurveyResponses,
   PostsessionSurveyGoalResponse,
   saveUserSurveyAndSubmissions,
   SimpleSurveyResponse,
@@ -31,6 +30,7 @@ import {
 } from '../utils/type-utils'
 import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
 import { emitter } from './EventsService'
+import { partition } from 'lodash'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -90,47 +90,69 @@ export async function saveUserSurvey(
 }
 
 export type PostsessionSurveyRatingsMetric = {
-  selfReportedRating: {
+  selfReportedStudentRating: {
     total: number
     average: number
   }
-  partnerReportedRating: {
+  selfReportedVolunteerRating: {
+    total: number
+    average: number
+  }
+  partnerReportedStudentRating: {
+    total: number
+    average: number
+  }
+  partnerReportedVolunteerRating: {
     total: number
     average: number
   }
 }
 export const getUserPostsessionGoalRatingsMetrics = async (
-  userId: string,
-  userRole: string
+  userId: string
 ): Promise<PostsessionSurveyRatingsMetric> => {
-  const isTutor = userRole === 'volunteer' || userRole === 'admin'
-  const ratingsFromStudentsRaw = await getStudentPostsessionSurveyGoalQuestionRatings(
-    userId
-  )
-  const ratingsFromVolunteersRaw = await getVolunteerPostsessionSurveyGoalQuestionRatings(
-    userId
-  )
+  const surveyResponses = await getUserPostsessionSurveyResponses(userId)
 
   const getAverage = (ratings: PostsessionSurveyGoalResponse[]): number => {
     if (!ratings.length) return 0
     return ratings.reduce((acc, next) => acc + next.score, 0) / ratings.length
   }
 
-  const studentRating = {
-    total: ratingsFromStudentsRaw.length,
-    average: getAverage(ratingsFromStudentsRaw),
-  }
-  const volunteerRating = {
-    total: ratingsFromVolunteersRaw.length,
-    average: getAverage(ratingsFromVolunteersRaw),
-  }
+  const partitionBySubmitterUser = partition(
+    surveyResponses,
+    r => r.submitterUserId === userId
+  )
+  const partitionByRoleInSession = partition(
+    partitionBySubmitterUser[0],
+    r => r.roleInSession === 'student'
+  )
 
-  const selfReportedRating = isTutor ? volunteerRating : studentRating
-  const partnerReportedRating = isTutor ? studentRating : volunteerRating
+  const submissionsAsStudent = partitionByRoleInSession[0]
+  const submissionsAsVolunteer = partitionByRoleInSession[1]
+
+  const partnerPartitionByRoleInSession = partition(
+    partitionBySubmitterUser[1],
+    r => r.roleInSession === 'student'
+  )
+  const partnerSubmissionsAsStudent = partnerPartitionByRoleInSession[0]
+  const partnerSubmissionsAsVolunteer = partnerPartitionByRoleInSession[1]
 
   return {
-    selfReportedRating,
-    partnerReportedRating,
+    selfReportedStudentRating: {
+      total: submissionsAsStudent.length,
+      average: getAverage(submissionsAsStudent),
+    },
+    selfReportedVolunteerRating: {
+      total: submissionsAsVolunteer.length,
+      average: getAverage(submissionsAsVolunteer),
+    },
+    partnerReportedStudentRating: {
+      total: partnerSubmissionsAsStudent.length,
+      average: getAverage(partnerSubmissionsAsStudent),
+    },
+    partnerReportedVolunteerRating: {
+      total: partnerSubmissionsAsVolunteer.length,
+      average: getAverage(partnerSubmissionsAsVolunteer),
+    },
   }
 }
 

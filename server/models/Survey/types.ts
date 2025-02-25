@@ -91,6 +91,8 @@ export type SurveyQueryResponse = {
 
 export type PostsessionSurveyGoalResponse = {
   sessionId: string
+  roleInSession: string
+  submitterUserId: string
   createdAt: Date
   surveyResponseChoiceId: number
   score: number
