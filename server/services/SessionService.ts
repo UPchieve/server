@@ -713,9 +713,9 @@ export async function joinSession(
     throw new Error('Session has ended')
   }
 
-  const userType = user.roleContext.legacyRole
-  const isStudent = UserRolesService.isStudentUserType(userType)
-  const isVolunteer = UserRolesService.isVolunteerUserType(userType)
+  const userType = user.roleContext.activeRole
+  const isStudent = user.roleContext.isActiveRole('student')
+  const isVolunteer = user.roleContext.isActiveRole('volunteer')
   if (isStudent && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error(`A student cannot join another student's session`)
