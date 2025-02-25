@@ -242,18 +242,15 @@ export function routeUser(router: Router): void {
 
     try {
       const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
-      const userRoles = await UserRolesService.getUserRolesById(userId)
+      const roleConext = await UserRolesService.getRoleContext(userId)
 
       let resUser: any = user
-      if (
-        UserRolesService.isVolunteerUserType(userRoles.userType) &&
-        user.photoIdS3Key
-      ) {
+      if (roleConext.hasRole('volunteer') && user.photoIdS3Key) {
         const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
         resUser = Object.assign(resUser, { photoUrl })
       }
 
-      res.json({ ...user, userType: userRoles.userType })
+      res.json({ ...user, userType: roleConext.legacyRole }) // TODO - Show multiple roles in admin tool
     } catch (err) {
       resError(res, err)
     }
