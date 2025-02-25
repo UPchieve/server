@@ -20,11 +20,6 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
@@ -145,14 +140,14 @@ export async function getLegacyUserObject(
     const volunteerUser: any = {}
     const studentUser: any = {}
     const teacherUser: { usesClever?: boolean } = {}
-    const userType = (await UserRolesService.getUserRolesById(userId)).userType
+    const roleContext = await UserRolesService.getRoleContext(userId)
     const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
-      userId,
-      userType
+      userId
     )
-    if (UserRolesService.isStudentUserType(userType)) {
-      studentUser.latestRequestedSubjects =
-        await getUsersLatestSubjectsByUserId(baseUser.id)
+    if (roleContext.isActiveRole('student')) {
+      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
+        baseUser.id
+      )
       studentUser.usesGoogle =
         baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
       studentUser.usesClever =
@@ -161,7 +156,7 @@ export async function getLegacyUserObject(
       studentUser.studentAssignments =
         await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
     }
-    if (UserRolesService.isVolunteerUserType(userType)) {
+    if (roleContext.isActiveRole('volunteer')) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
@@ -202,13 +197,12 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    if (UserRolesService.isTeacherUserType(userType)) {
+    if (roleContext.isActiveRole('teacher')) {
       teacherUser.usesClever =
         baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
     }
-    const roleContext = await UserRolesService.getRoleContext(userId, client)
     const final = _.merge(
-      { _id: baseUser.id, userType },
+      { _id: baseUser.id, userType: roleContext.activeRole },
       baseUser,
       volunteerUser,
       studentUser,

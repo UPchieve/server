@@ -356,35 +356,17 @@ export async function getProgressReportSurveyResponse(
   }
 }
 
-export const getStudentPostsessionSurveyGoalQuestionRatings = async (
+export const getUserPostsessionSurveyResponses = async (
   userId: string
 ): Promise<PostsessionSurveyGoalResponse[]> => {
   try {
-    const ratings =
-      await pgQueries.getStudentPostsessionSurveyGoalQuestionRatings.run(
-        {
-          userId,
-        },
-        getRoClient()
-      )
-    return ratings.map((r) => makeRequired(r)) ?? []
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export const getVolunteerPostsessionSurveyGoalQuestionRatings = async (
-  userId: string
-): Promise<PostsessionSurveyGoalResponse[]> => {
-  try {
-    const ratings =
-      await pgQueries.getVolunteerPostsessionSurveyGoalQuestionRatings.run(
-        {
-          userId,
-        },
-        getRoClient()
-      )
-    return ratings.map((r) => makeRequired(r)) ?? []
+    const ratings = await pgQueries.getPostsessionSurveyResponsesForSessionsByUserId.run(
+      {
+        userId,
+      },
+      getRoClient()
+    )
+    return ratings.map(r => makeRequired(r)) ?? []
   } catch (err) {
     throw new RepoReadError(err)
   }
