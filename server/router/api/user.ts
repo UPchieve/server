@@ -277,8 +277,8 @@ export function routeUser(router: Router): void {
   router.put('/user/roles/active', async function(req, res) {
     try {
       const user = await extractUser(req)
-      const role = req.body.role
-      await UserRolesService.updateActiveRole(user.id, role)
+      const activeRole = req.body.activeRole
+      await UserRolesService.switchActiveRole(user.id, activeRole)
       return res.sendStatus(204)
     } catch (err) {
       resError(res, err)

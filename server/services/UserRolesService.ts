@@ -71,6 +71,7 @@ export async function switchActiveRole(
   const existingRoleContext = await getRoleContext(userId)
   if (!existingRoleContext.hasRole(newActiveRole))
     throw new InputError('User does not have the requested role')
+  if (existingRoleContext.activeRole === newActiveRole) return
   const newRoleContext = new RoleContext(
     existingRoleContext.roles,
     newActiveRole,
