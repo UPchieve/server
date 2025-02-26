@@ -125,7 +125,9 @@ export async function uploadBlobFile(
     const blobServiceClient = getBlobClient(storageAccountName)
     const containerClient = blobServiceClient.getContainerClient(containerName)
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-    await blockBlobClient.upload(content.buffer, content.buffer.length, { blobHTTPHeaders: { blobContentType: content.mimetype}})
+    await blockBlobClient.upload(content.buffer, content.buffer.length, {
+      blobHTTPHeaders: { blobContentType: content.mimetype },
+    })
   } catch (error) {
     console.error('Full upload error:', error)
     throw error
