@@ -18,6 +18,7 @@ import {
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
 import * as UserService from '../services/UserService'
+import * as UserRolesService from '../services/UserRolesService'
 import { getTotalSessionsByUserId } from '../models/User'
 import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
 import {
@@ -106,53 +107,72 @@ export type PostsessionSurveyRatingsMetric = {
     total: number
     average: number
   }
+  // Legacy values
+  selfReportedRating: {
+    total: number
+    average: number
+  }
+  partnerReportedRating: {
+    total: number
+    average: number
+  }
 }
 export const getUserPostsessionGoalRatingsMetrics = async (
   userId: string
 ): Promise<PostsessionSurveyRatingsMetric> => {
   const surveyResponses = await getUserPostsessionSurveyResponses(userId)
+  const legacyRole = (await UserRolesService.getRoleContext(userId)).legacyRole
 
   const getAverage = (ratings: PostsessionSurveyGoalResponse[]): number => {
     if (!ratings.length) return 0
     return ratings.reduce((acc, next) => acc + next.score, 0) / ratings.length
   }
 
-  const partitionBySubmitterUser = partition(
+  const [selfSubmissions, partnerSubmissions] = partition(
     surveyResponses,
     r => r.submitterUserId === userId
   )
-  const partitionByRoleInSession = partition(
-    partitionBySubmitterUser[0],
+
+  const [selfRatingAsStudent, selfRatingAsVolunteer] = partition(
+    selfSubmissions,
     r => r.roleInSession === 'student'
   )
+  const [
+    partnerRatingsOfStudentUser,
+    partnerRatingsOfVolunteerUser,
+  ] = partition(partnerSubmissions, r => r.roleInSession === 'volunteer')
 
-  const submissionsAsStudent = partitionByRoleInSession[0]
-  const submissionsAsVolunteer = partitionByRoleInSession[1]
-
-  const partnerPartitionByRoleInSession = partition(
-    partitionBySubmitterUser[1],
-    r => r.roleInSession === 'student'
-  )
-  const partnerSubmissionsAsStudent = partnerPartitionByRoleInSession[0]
-  const partnerSubmissionsAsVolunteer = partnerPartitionByRoleInSession[1]
+  const selfReportedStudentRating = {
+    total: selfRatingAsStudent.length,
+    average: getAverage(selfRatingAsStudent),
+  }
+  const selfReportedVolunteerRating = {
+    total: selfRatingAsVolunteer.length,
+    average: getAverage(selfRatingAsVolunteer),
+  }
+  const partnerReportedStudentRating = {
+    total: partnerRatingsOfStudentUser.length,
+    average: getAverage(partnerRatingsOfStudentUser),
+  }
+  const partnerReportedVolunteerRating = {
+    total: partnerRatingsOfVolunteerUser.length,
+    average: getAverage(partnerRatingsOfVolunteerUser),
+  }
 
   return {
-    selfReportedStudentRating: {
-      total: submissionsAsStudent.length,
-      average: getAverage(submissionsAsStudent),
-    },
-    selfReportedVolunteerRating: {
-      total: submissionsAsVolunteer.length,
-      average: getAverage(submissionsAsVolunteer),
-    },
-    partnerReportedStudentRating: {
-      total: partnerSubmissionsAsStudent.length,
-      average: getAverage(partnerSubmissionsAsStudent),
-    },
-    partnerReportedVolunteerRating: {
-      total: partnerSubmissionsAsVolunteer.length,
-      average: getAverage(partnerSubmissionsAsVolunteer),
-    },
+    selfReportedStudentRating,
+    selfReportedVolunteerRating,
+    partnerReportedStudentRating,
+    partnerReportedVolunteerRating,
+    // Legacy values
+    selfReportedRating:
+      legacyRole === 'student'
+        ? selfReportedStudentRating
+        : selfReportedVolunteerRating,
+    partnerReportedRating:
+      legacyRole === 'student'
+        ? partnerReportedStudentRating
+        : partnerReportedVolunteerRating,
   }
 }
 
