@@ -2,16 +2,28 @@ import { ClientSecretCredential } from '@azure/identity'
 import { BlobServiceClient } from '@azure/storage-blob'
 import config from '../config'
 
-const whiteboardStorageAccount = config.whiteboardStorageAccountName
-const whiteboardStorageCredential = new ClientSecretCredential(
-  config.whiteboardStorageTenantId,
-  config.whiteboardStorageAppId,
-  config.whiteboardStorageSecret
+const azureStorageCredential = new ClientSecretCredential(
+  config.azureTenantId,
+  config.azureClientId,
+  config.azureStorageSecret
 )
-const blobServiceClient = new BlobServiceClient(
-  `https://${whiteboardStorageAccount}.blob.core.windows.net`,
-  whiteboardStorageCredential
-)
+
+const blobClients = new Map<string, BlobServiceClient>([
+  [
+    config.whiteboardStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.whiteboardStorageAccountName}.blob.core.windows.net`,
+      azureStorageCredential
+    ),
+  ],
+  [
+    config.assignmentsStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.assignmentsFrontdoorHostName}.z02.azurefd.net`,
+      azureStorageCredential
+    ),
+  ],
+])
 
 // a helper method used to read a Node.js readable stream into a Buffer
 async function streamToBuffer(
@@ -30,10 +42,22 @@ async function streamToBuffer(
   })
 }
 
+function getBlobClient(storageAccountName: string): BlobServiceClient {
+  const client = blobClients.get(storageAccountName)
+  if (!client) {
+    throw new Error(
+      `No blob client configured for storage account: ${storageAccountName}`
+    )
+  }
+  return client
+}
+
 export async function getBlob(
+  storageAccountName: string,
   containerName: string,
   blobName: string
 ): Promise<string> {
+  const blobServiceClient = getBlobClient(storageAccountName)
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blobClient = containerClient.getBlobClient(blobName)
   const downloadBlockBlobResponse = await blobClient.download()
@@ -46,12 +70,28 @@ export async function getBlob(
   return blobContent
 }
 
-export async function uploadBlob(
+export async function uploadBlobString(
+  storageAccountName: string,
   containerName: string,
   blobName: string,
   content: string
-): Promise<void> {
+) {
+  const blobServiceClient = getBlobClient(storageAccountName)
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blockBlobClient = containerClient.getBlockBlobClient(blobName)
   await blockBlobClient.upload(content, content.length)
+}
+
+export async function uploadBlobFile(
+  storageAccountName: string,
+  containerName: string,
+  blobName: string,
+  content: Express.Multer.File
+): Promise<void> {
+  const blobServiceClient = getBlobClient(storageAccountName)
+  const containerClient = blobServiceClient.getContainerClient(containerName)
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+  await blockBlobClient.upload(content.buffer, content.buffer.length, {
+    blobHTTPHeaders: { blobContentType: content.mimetype },
+  })
 }
