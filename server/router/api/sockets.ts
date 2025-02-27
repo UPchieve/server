@@ -28,11 +28,7 @@ import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
-import {
-  getSocketIdsFromRoom,
-  remoteJoinRoom,
-  emitSessionPresence,
-} from '../../utils/socket-utils'
+import { emitSessionPresence } from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
@@ -99,7 +95,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
   })
 
-  // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function(socket: SocketUser) {
     const {
       request: { user },
@@ -252,12 +247,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               const sessionRoom = getSessionRoom(sessionId)
-              const userSocketIds = await getSocketIdsFromRoom(io, user.id)
-              // Have all of the user's socket connections join the tutoring session room
-              for (const id of userSocketIds) {
-                remoteJoinRoom(io, id, sessionRoom)
-              }
-
+              await socket.join(sessionRoom)
               await socketService.emitSessionChange(sessionId)
               // Attach the sessionId to the socket for analytics and debugging purposes
               // Currently only one sessionId is attached to a socket at a time
@@ -303,7 +293,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               const sessionRoom = getSessionRoom(sessionId)
-              await remoteJoinRoom(io, socket.id, sessionRoom)
+              await socket.join(sessionRoom)
               socket.emit('sessions/recap:joined')
               // Attach the sessionId to the socket for analytics and debugging purposes
               // Currently only one sessionId is attached to a socket at a time
@@ -608,6 +598,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('disconnecting', () => {
+      if (socket.data.sessionId)
+        socket
+          .to(getSessionRoom(socket.data.sessionId))
+          .emit('not-typing', { sessionId: socket.data.sessionId })
+
       const user = extractSocketUser(socket)
       for (const room of socket.rooms) {
         if (room.includes('sessions')) {
@@ -670,6 +665,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           timestamp: Date.now(),
         })
       }
+
+      if (
+        user &&
+        packet.type === 'ping' &&
+        socket.data.sessionId &&
+        socket.conn.transport.name === 'polling'
+      )
+        emitSessionPresence(
+          io,
+          socket.id,
+          user.id,
+          getSessionRoom(socket.data.sessionId)
+        )
     })
 
     // Log socket connection-related events for analytics and debugging
