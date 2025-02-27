@@ -206,7 +206,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.roleContext.legacyRole === 'volunteer' && !user.approved)
+              if (user.roleContext.isActiveRole('volunteer') && !user.approved)
                 throw new Error('Volunteer not approved')
             } catch (error) {
               socket.emit('redirect')
