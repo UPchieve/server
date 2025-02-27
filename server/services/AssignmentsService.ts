@@ -19,6 +19,8 @@ import {
   CreateStudentAssignmentResult,
   StudentAssignment,
 } from '../models/Assignments'
+import * as AzureService from './AzureService'
+import config from '../config'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -343,4 +345,23 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
       )
     ).filter((a): a is Assignment => !!a)
   })
+}
+
+/**
+ * Upload and retrieve uploaded assignments to and from Azure.
+ */
+export async function uploadAssignment(
+  assignmentId: Ulid,
+  files: Express.Multer.File[]
+) {
+  await Promise.all(
+    files.map(file => {
+      AzureService.uploadBlobFile(
+        config.assignmentsStorageAccountName,
+        config.assignmentsStorageContainer,
+        `${assignmentId}/${file.originalname}`,
+        file
+      )
+    })
+  )
 }
