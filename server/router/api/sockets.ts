@@ -189,12 +189,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
 
     // Tutor session management
-    socket.on('join', async function(data) {
+    socket.on('join', async function(data, callback) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
           new Promise<void>(async (resolve, reject) => {
             if (!data || !data.sessionId) {
+              if (callback)
+                callback({ status: 200, error: 'Missing sessionId' })
               socket.emit('redirect')
               resolve()
               return
@@ -214,6 +216,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               )
                 throw new Error('Volunteer not approved')
             } catch (error) {
+              if (callback)
+                callback({ status: 200, error: (error as Error).message })
               socket.emit('redirect')
               reject(error)
               return
@@ -230,6 +234,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 `User ${user.id} failed to join session ${sessionId}: ${error}`
               )
               const session = await SessionRepo.getSessionById(sessionId)
+              if (callback)
+                callback({ status: 200, error: (error as Error).message })
               socketService.bump(
                 socket,
                 {
@@ -253,11 +259,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               // Currently only one sessionId is attached to a socket at a time
               socket.data.sessionId = data.sessionId
               await emitSessionPresence(io, socket.id, user.id, sessionRoom)
+              if (callback) callback({ status: 200 })
               resolve()
             } catch (error) {
               logger.error(
                 `User ${user.id} failed to join sockets to session room for session ${sessionId}: ${error}`
               )
+              if (callback)
+                callback({ status: 200, error: (error as Error).message })
               resolve()
             }
           })

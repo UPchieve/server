@@ -10,7 +10,10 @@ export type SocketDelta = Delta & {
 }
 
 export type ClientToServerEvents = {
-  join: (data: { sessionId: Ulid; joinedFrom: string }) => void
+  join: (
+    data: { sessionId: Ulid; joinedFrom: string },
+    callback?: Function
+  ) => void
   'activity-prompt-sent': (data: { sessionId: Ulid }) => void
   'auto-end-session': (data: { sessionId: Ulid }) => void
   'sessions/recap:join': (data: { sessionId: Ulid }) => void
