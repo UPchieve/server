@@ -73,7 +73,6 @@ export async function getBlob(
 type BlobDocument = {
   name: string
   url: string
-  contentType: string
 }
 
 export async function getBlobsInFolder(
@@ -95,8 +94,7 @@ export async function getBlobsInFolder(
 
     documents.push({
       name: fileName,
-      url: url,
-      contentType: getContentType(fileName),
+      url: url
     })
   }
 
@@ -132,32 +130,4 @@ export async function uploadBlobFile(
     console.error('Full upload error:', error)
     throw error
   }
-}
-
-//gets content type for file name using the file extension so we
-//can use this function for any uploaded file types
-//common types: https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types
-const getContentType = (fileName: string): string => {
-  const lastDotIndex = fileName.lastIndexOf('.')
-  if (lastDotIndex === -1) return 'application/octet-stream'
-
-  const extension = fileName.slice(lastDotIndex + 1).toLowerCase()
-  const contentTypes: { [key: string]: string } = {
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx:
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    xls: 'application/vnd.ms-excel',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ppt: 'application/vnd.ms-powerpoint',
-    pptx:
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    txt: 'text/plain',
-    csv: 'text/csv',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-  }
-  return contentTypes[extension] || 'application/octet-stream'
 }
