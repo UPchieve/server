@@ -31,7 +31,7 @@ export function routeAssignments(router: Router): void {
 
   router.delete('/assignment/:assignmentId', async function(req, res) {
     try {
-      const assignmentId = req.params.assignmentId as string
+      const assignmentId = asString(req.params.assignmentId)
       if (assignmentId) {
         await AssignmentsService.deleteAssignment(assignmentId)
         res.sendStatus(200)

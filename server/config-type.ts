@@ -272,10 +272,17 @@ export const Config = Record({
   maxModerationInfractionsPerSession: Number,
   imageModerationMinConfidence: Number,
   contextualModerationConfidenceThreshold: Number,
+  moderateMessageTimeLimitMs: Number,
+  contextualModerationBatchSize: Number,
 
   tremendousApiKey: String,
   tremendousRewardDomain: String,
   tremendousImpactStudyCampaign: String,
   tremendousCustomFieldsCacheExpirationSeconds: Number,
   tremendousCampaignCacheExpirationSeconds: Number,
+
+  // AWS Chime
+  awsChimeAccessKey: String,
+  awsChimeSecretAccessKey: String,
+  awsChimeRegion: String,
 })

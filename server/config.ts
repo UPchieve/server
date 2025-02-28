@@ -416,6 +416,10 @@ const config: Static<typeof Config> = {
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  moderateMessageTimeLimitMs:
+    Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
+  contextualModerationBatchSize:
+    Number(process.env.CONTEXTUAL_MODERATION_BATCH_SIZE) || 50,
 
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
@@ -430,6 +434,12 @@ const config: Static<typeof Config> = {
   tremendousCampaignCacheExpirationSeconds:
     Number(process.env.SUBWAY_TREMENDOUS_CAMPAIGNS_CACHE_EXPIRATION_SECONDS) ||
     86400,
+
+  // AWS Chime
+  awsChimeAccessKey: process.env.SUBWAY_AWS_CHIME_ACCESS_KEY || 'bogus',
+  awsChimeSecretAccessKey:
+    process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
+  awsChimeRegion: process.env.SUBWAY_AWS_CHIME_REGION || 'us-east-1',
 }
 
 module.exports = config

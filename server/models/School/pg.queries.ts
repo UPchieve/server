@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/School/school.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type NumberOrString = number | string;
+
 export type stringArray = (string)[];
 
 /** 'GetSchoolById' parameters type */
@@ -15,10 +17,11 @@ export interface IGetSchoolByIdResult {
   frlEligible: number | null;
   id: string;
   isAdminApproved: boolean;
-  isPartner: boolean;
+  isPartner: boolean | null;
   isSchoolWideTitle1: boolean;
   name: string | null;
   nationalSchoolLunchProgram: string | null;
+  ncesId: string | null;
   nslpDirectCertification: number | null;
   schoolYear: string | null;
   state: string | null;
@@ -33,13 +36,14 @@ export interface IGetSchoolByIdQuery {
   result: IGetSchoolByIdResult;
 }
 
-const getSchoolByIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":661,"b":670}]}],"statement":"SELECT\n    schools.id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.name, meta.lcity) AS city,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    meta.lzip AS zip,\n    meta.lea_name AS district,\n    meta.school_year,\n    approved AS is_admin_approved,\n    partner AS is_partner,\n    meta.is_school_wide_title1,\n    meta.title1_school_status,\n    meta.national_school_lunch_program,\n    meta.total_students,\n    meta.nslp_direct_certification,\n    meta.frl_eligible\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nWHERE\n    schools.id = :schoolId!"};
+const getSchoolByIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1102,"b":1111}]}],"statement":"SELECT\n    schools.id,\n    meta.ncessch AS nces_id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.name, meta.lcity) AS city,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    meta.lzip AS zip,\n    meta.lea_name AS district,\n    meta.school_year,\n    approved AS is_admin_approved,\n    (spo.id IS NOT NULL\n        AND spoui.deactivated_on IS NULL) AS is_partner,\n    meta.is_school_wide_title1,\n    meta.title1_school_status,\n    meta.national_school_lunch_program,\n    meta.total_students,\n    meta.nslp_direct_certification,\n    meta.frl_eligible\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id\n    LEFT JOIN LATERAL (\n        SELECT\n            spoui.deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances spoui\n        WHERE\n            spoui.student_partner_org_id = spo.id\n        ORDER BY\n            spoui.updated_at DESC\n        LIMIT 1) spoui ON TRUE\nWHERE\n    schools.id = :schoolId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     schools.id,
+ *     meta.ncessch AS nces_id,
  *     COALESCE(schools.name, meta.sch_name) AS name,
  *     COALESCE(cities.name, meta.lcity) AS city,
  *     COALESCE(cities.us_state_code, meta.st) AS state,
@@ -47,7 +51,8 @@ const getSchoolByIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name"
  *     meta.lea_name AS district,
  *     meta.school_year,
  *     approved AS is_admin_approved,
- *     partner AS is_partner,
+ *     (spo.id IS NOT NULL
+ *         AND spoui.deactivated_on IS NULL) AS is_partner,
  *     meta.is_school_wide_title1,
  *     meta.title1_school_status,
  *     meta.national_school_lunch_program,
@@ -58,6 +63,17 @@ const getSchoolByIdIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name"
  *     schools
  *     LEFT JOIN cities ON schools.city_id = cities.id
  *     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+ *     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             spoui.deactivated_on
+ *         FROM
+ *             student_partner_orgs_upchieve_instances spoui
+ *         WHERE
+ *             spoui.student_partner_org_id = spo.id
+ *         ORDER BY
+ *             spoui.updated_at DESC
+ *         LIMIT 1) spoui ON TRUE
  * WHERE
  *     schools.id = :schoolId!
  * ```
@@ -97,26 +113,29 @@ const getSchoolByNcesIdIR: any = {"usedParamSet":{"ncessch":true},"params":[{"na
 export const getSchoolByNcesId = new PreparedQuery<IGetSchoolByNcesIdParams,IGetSchoolByNcesIdResult>(getSchoolByNcesIdIR);
 
 
-/** 'GetSchools' parameters type */
-export interface IGetSchoolsParams {
+/** 'GetFilteredSchools' parameters type */
+export interface IGetFilteredSchoolsParams {
   city?: string | null | void;
-  limit: number;
+  isPartner?: boolean | null | void;
+  limit: NumberOrString;
   name?: string | null | void;
-  offset: number;
+  ncesId?: string | null | void;
+  offset: NumberOrString;
   state?: string | null | void;
 }
 
-/** 'GetSchools' return type */
-export interface IGetSchoolsResult {
+/** 'GetFilteredSchools' return type */
+export interface IGetFilteredSchoolsResult {
   city: string | null;
   district: string | null;
   frlEligible: number | null;
   id: string;
   isAdminApproved: boolean;
-  isPartner: boolean;
+  isPartner: boolean | null;
   isSchoolWideTitle1: boolean;
   name: string | null;
   nationalSchoolLunchProgram: string | null;
+  ncesId: string | null;
   nslpDirectCertification: number | null;
   state: string | null;
   title1SchoolStatus: string | null;
@@ -124,26 +143,28 @@ export interface IGetSchoolsResult {
   zip: string | null;
 }
 
-/** 'GetSchools' query type */
-export interface IGetSchoolsQuery {
-  params: IGetSchoolsParams;
-  result: IGetSchoolsResult;
+/** 'GetFilteredSchools' query type */
+export interface IGetFilteredSchoolsQuery {
+  params: IGetFilteredSchoolsParams;
+  result: IGetFilteredSchoolsResult;
 }
 
-const getSchoolsIR: any = {"usedParamSet":{"name":true,"state":true,"city":true,"limit":true,"offset":true},"params":[{"name":"name","required":false,"transform":{"type":"scalar"},"locs":[{"a":623,"b":627},{"a":676,"b":680},{"a":723,"b":727}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":742,"b":747},{"a":784,"b":789},{"a":825,"b":830}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":838,"b":842},{"a":889,"b":893},{"a":933,"b":937},{"a":978,"b":982}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":998,"b":1004}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1018,"b":1025}]}],"statement":"SELECT\n    schools.id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.name, meta.lcity) AS city,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    meta.lzip AS zip,\n    meta.lea_name AS district,\n    approved AS is_admin_approved,\n    partner AS is_partner,\n    meta.is_school_wide_title1,\n    meta.title1_school_status,\n    meta.national_school_lunch_program,\n    meta.total_students,\n    meta.nslp_direct_certification,\n    meta.frl_eligible\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\nWHERE (:name::text IS NULL\n    OR schools.name ILIKE '%' || :name || '%'\n    OR meta.sch_name ILIKE '%' || :name || '%')\nAND (:state::text IS NULL\n    OR meta.st ILIKE :state\n    OR cities.us_state_code ILIKE :state)\nAND (:city::text IS NULL\n    OR meta.mcity ILIKE '%' || :city || '%'\n    OR meta.lcity ILIKE '%' || :city || '%'\n    OR cities.name ILIKE '%' || :city || '%')\nLIMIT :limit!::int OFFSET :offset!::int"};
+const getFilteredSchoolsIR: any = {"usedParamSet":{"name":true,"state":true,"city":true,"ncesId":true,"isPartner":true,"limit":true,"offset":true},"params":[{"name":"name","required":false,"transform":{"type":"scalar"},"locs":[{"a":1064,"b":1068},{"a":1117,"b":1121},{"a":1164,"b":1168}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":1183,"b":1188},{"a":1225,"b":1230},{"a":1266,"b":1271}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":1279,"b":1283},{"a":1330,"b":1334},{"a":1374,"b":1378},{"a":1419,"b":1423}]},{"name":"ncesId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1438,"b":1444},{"a":1482,"b":1488}]},{"name":"isPartner","required":false,"transform":{"type":"scalar"},"locs":[{"a":1496,"b":1505},{"a":1531,"b":1540}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1622,"b":1628}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1637,"b":1644}]}],"statement":"SELECT\n    schools.id,\n    meta.ncessch AS nces_id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.name, meta.lcity) AS city,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    meta.lzip AS zip,\n    meta.lea_name AS district,\n    approved AS is_admin_approved,\n    (spo.id IS NOT NULL\n        AND spoui.deactivated_on IS NULL) AS is_partner,\n    meta.is_school_wide_title1,\n    meta.title1_school_status,\n    meta.national_school_lunch_program,\n    meta.total_students,\n    meta.nslp_direct_certification,\n    meta.frl_eligible\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id\n    LEFT JOIN LATERAL (\n        SELECT\n            spoui.deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances spoui\n        WHERE\n            spoui.student_partner_org_id = spo.id\n        ORDER BY\n            spoui.updated_at DESC\n        LIMIT 1) spoui ON TRUE\nWHERE (:name::text IS NULL\n    OR schools.name ILIKE '%' || :name || '%'\n    OR meta.sch_name ILIKE '%' || :name || '%')\nAND (:state::text IS NULL\n    OR meta.st ILIKE :state\n    OR cities.us_state_code ILIKE :state)\nAND (:city::text IS NULL\n    OR meta.mcity ILIKE '%' || :city || '%'\n    OR meta.lcity ILIKE '%' || :city || '%'\n    OR cities.name ILIKE '%' || :city || '%')\nAND (:ncesId::text IS NULL\n    OR meta.ncessch = :ncesId)\nAND (:isPartner::boolean IS NULL\n    OR :isPartner::boolean = (spo.id IS NOT NULL\n        AND spoui.deactivated_on IS NULL))\nLIMIT :limit! OFFSET :offset!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     schools.id,
+ *     meta.ncessch AS nces_id,
  *     COALESCE(schools.name, meta.sch_name) AS name,
  *     COALESCE(cities.name, meta.lcity) AS city,
  *     COALESCE(cities.us_state_code, meta.st) AS state,
  *     meta.lzip AS zip,
  *     meta.lea_name AS district,
  *     approved AS is_admin_approved,
- *     partner AS is_partner,
+ *     (spo.id IS NOT NULL
+ *         AND spoui.deactivated_on IS NULL) AS is_partner,
  *     meta.is_school_wide_title1,
  *     meta.title1_school_status,
  *     meta.national_school_lunch_program,
@@ -154,6 +175,17 @@ const getSchoolsIR: any = {"usedParamSet":{"name":true,"state":true,"city":true,
  *     schools
  *     LEFT JOIN cities ON schools.city_id = cities.id
  *     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+ *     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             spoui.deactivated_on
+ *         FROM
+ *             student_partner_orgs_upchieve_instances spoui
+ *         WHERE
+ *             spoui.student_partner_org_id = spo.id
+ *         ORDER BY
+ *             spoui.updated_at DESC
+ *         LIMIT 1) spoui ON TRUE
  * WHERE (:name::text IS NULL
  *     OR schools.name ILIKE '%' || :name || '%'
  *     OR meta.sch_name ILIKE '%' || :name || '%')
@@ -164,10 +196,77 @@ const getSchoolsIR: any = {"usedParamSet":{"name":true,"state":true,"city":true,
  *     OR meta.mcity ILIKE '%' || :city || '%'
  *     OR meta.lcity ILIKE '%' || :city || '%'
  *     OR cities.name ILIKE '%' || :city || '%')
- * LIMIT :limit!::int OFFSET :offset!::int
+ * AND (:ncesId::text IS NULL
+ *     OR meta.ncessch = :ncesId)
+ * AND (:isPartner::boolean IS NULL
+ *     OR :isPartner::boolean = (spo.id IS NOT NULL
+ *         AND spoui.deactivated_on IS NULL))
+ * LIMIT :limit! OFFSET :offset!
  * ```
  */
-export const getSchools = new PreparedQuery<IGetSchoolsParams,IGetSchoolsResult>(getSchoolsIR);
+export const getFilteredSchools = new PreparedQuery<IGetFilteredSchoolsParams,IGetFilteredSchoolsResult>(getFilteredSchoolsIR);
+
+
+/** 'GetFilteredSchoolsTotalCount' parameters type */
+export interface IGetFilteredSchoolsTotalCountParams {
+  city?: string | null | void;
+  isPartner?: boolean | null | void;
+  name?: string | null | void;
+  ncesId?: string | null | void;
+  state?: string | null | void;
+}
+
+/** 'GetFilteredSchoolsTotalCount' return type */
+export interface IGetFilteredSchoolsTotalCountResult {
+  count: string | null;
+}
+
+/** 'GetFilteredSchoolsTotalCount' query type */
+export interface IGetFilteredSchoolsTotalCountQuery {
+  params: IGetFilteredSchoolsTotalCountParams;
+  result: IGetFilteredSchoolsTotalCountResult;
+}
+
+const getFilteredSchoolsTotalCountIR: any = {"usedParamSet":{"name":true,"state":true,"city":true,"ncesId":true,"isPartner":true},"params":[{"name":"name","required":false,"transform":{"type":"scalar"},"locs":[{"a":525,"b":529},{"a":578,"b":582},{"a":625,"b":629}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":644,"b":649},{"a":686,"b":691},{"a":727,"b":732}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":740,"b":744},{"a":791,"b":795},{"a":835,"b":839},{"a":880,"b":884}]},{"name":"ncesId","required":false,"transform":{"type":"scalar"},"locs":[{"a":899,"b":905},{"a":943,"b":949}]},{"name":"isPartner","required":false,"transform":{"type":"scalar"},"locs":[{"a":957,"b":966},{"a":992,"b":1001}]}],"statement":"SELECT\n    COUNT(*)\nFROM\n    schools\n    LEFT JOIN cities ON schools.city_id = cities.id\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id\n    LEFT JOIN LATERAL (\n        SELECT\n            spoui.deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances spoui\n        WHERE\n            spoui.student_partner_org_id = spo.id\n        ORDER BY\n            spoui.updated_at DESC\n        LIMIT 1) spoui ON TRUE\nWHERE (:name::text IS NULL\n    OR schools.name ILIKE '%' || :name || '%'\n    OR meta.sch_name ILIKE '%' || :name || '%')\nAND (:state::text IS NULL\n    OR meta.st ILIKE :state\n    OR cities.us_state_code ILIKE :state)\nAND (:city::text IS NULL\n    OR meta.mcity ILIKE '%' || :city || '%'\n    OR meta.lcity ILIKE '%' || :city || '%'\n    OR cities.name ILIKE '%' || :city || '%')\nAND (:ncesId::text IS NULL\n    OR meta.ncessch = :ncesId)\nAND (:isPartner::boolean IS NULL\n    OR :isPartner::boolean = (spo.id IS NOT NULL\n        AND spoui.deactivated_on IS NULL))"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     COUNT(*)
+ * FROM
+ *     schools
+ *     LEFT JOIN cities ON schools.city_id = cities.id
+ *     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
+ *     LEFT JOIN student_partner_orgs spo ON schools.id = spo.school_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             spoui.deactivated_on
+ *         FROM
+ *             student_partner_orgs_upchieve_instances spoui
+ *         WHERE
+ *             spoui.student_partner_org_id = spo.id
+ *         ORDER BY
+ *             spoui.updated_at DESC
+ *         LIMIT 1) spoui ON TRUE
+ * WHERE (:name::text IS NULL
+ *     OR schools.name ILIKE '%' || :name || '%'
+ *     OR meta.sch_name ILIKE '%' || :name || '%')
+ * AND (:state::text IS NULL
+ *     OR meta.st ILIKE :state
+ *     OR cities.us_state_code ILIKE :state)
+ * AND (:city::text IS NULL
+ *     OR meta.mcity ILIKE '%' || :city || '%'
+ *     OR meta.lcity ILIKE '%' || :city || '%'
+ *     OR cities.name ILIKE '%' || :city || '%')
+ * AND (:ncesId::text IS NULL
+ *     OR meta.ncessch = :ncesId)
+ * AND (:isPartner::boolean IS NULL
+ *     OR :isPartner::boolean = (spo.id IS NOT NULL
+ *         AND spoui.deactivated_on IS NULL))
+ * ```
+ */
+export const getFilteredSchoolsTotalCount = new PreparedQuery<IGetFilteredSchoolsTotalCountParams,IGetFilteredSchoolsTotalCountResult>(getFilteredSchoolsTotalCountIR);
 
 
 /** 'SchoolSearch' parameters type */

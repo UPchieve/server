@@ -5,6 +5,7 @@ import { Ulid } from '../pgUtils'
 // frontend: clone id prop into the upchieveId prop to support legacy code
 export type School = {
   id: Ulid
+  ncesId?: string
   name: string
   city: string
   state: string

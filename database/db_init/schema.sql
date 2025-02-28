@@ -1614,6 +1614,20 @@ ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
 
 
 --
+-- Name: session_meetings; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_meetings (
+    id uuid NOT NULL,
+    external_id text NOT NULL,
+    provider text NOT NULL,
+    session_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: session_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3712,6 +3726,22 @@ ALTER TABLE ONLY upchieve.session_flags
 
 
 --
+-- Name: session_meetings session_meetings_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_meetings
+    ADD CONSTRAINT session_meetings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_meetings session_meetings_unique; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_meetings
+    ADD CONSTRAINT session_meetings_unique UNIQUE (session_id, provider);
+
+
+--
 -- Name: session_messages session_messages_mongo_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4535,6 +4565,13 @@ CREATE INDEX session_audio_transcript_messages_user_id_idx ON upchieve.users USI
 
 
 --
+-- Name: session_meetings_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_meetings_session_id_idx ON upchieve.session_meetings USING btree (session_id);
+
+
+--
 -- Name: session_messages_session_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -5246,6 +5283,14 @@ ALTER TABLE ONLY upchieve.session_failed_joins
 
 ALTER TABLE ONLY upchieve.session_failed_joins
     ADD CONSTRAINT session_failed_joins_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: session_meetings session_meetings_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_meetings
+    ADD CONSTRAINT session_meetings_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
 
 
 --
@@ -6245,4 +6290,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241216172437'),
     ('20241216172507'),
     ('20241216193347'),
-    ('20241217040206');
+    ('20241217040206'),
+    ('20250121173556');

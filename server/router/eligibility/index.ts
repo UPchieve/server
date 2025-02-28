@@ -55,23 +55,6 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/school/:schoolId', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const schoolId = asUlid(req.params.schoolId)
-      const school = await SchoolService.getSchool(schoolId)
-      res.json({
-        school: {
-          _id: school.id,
-          ...school,
-        },
-      })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
   router.put('/school/:schoolId', authPassport.isAdmin, async function(
     req,
     res
@@ -83,17 +66,6 @@ export function routes(app: Express) {
         ...req.body,
       } as unknown)
       res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.get('/schools', authPassport.isAdmin, async function(req, res) {
-    try {
-      const { schools, isLastPage } = await SchoolService.getSchools(
-        req.query as unknown
-      )
-      res.json({ schools, isLastPage })
     } catch (err) {
       resError(res, err)
     }
