@@ -1,10 +1,8 @@
 import { Router } from 'express'
 import * as AssignmentsService from '../../services/AssignmentsService'
-import { asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 import multer from 'multer'
-
-const upload = multer()
+import { asString } from '../../utils/type-utils'
 
 export function routeAssignments(router: Router): void {
   router.get('/assignment/:assignmentId', async function(req, res) {
@@ -43,6 +41,10 @@ export function routeAssignments(router: Router): void {
     }
   })
 
+  const upload = multer({
+    limits: { fileSize: 20 * 1024 * 1024 },
+  })
+
   router.put('/assignment/upload', upload.array('files'), async (req, res) => {
     try {
       if (req.files) {
@@ -53,6 +55,19 @@ export function routeAssignments(router: Router): void {
 
         res.sendStatus(200)
       }
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/assignment/:assignmentId/documents', async (req, res) => {
+    try {
+      const assignmentId = asString(req.params.assignmentId)
+      const assignmentDocuments = await AssignmentsService.getAssignmentDocuments(
+        assignmentId
+      )
+
+      res.json({ assignmentDocuments })
     } catch (err) {
       resError(res, err)
     }

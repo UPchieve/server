@@ -70,6 +70,37 @@ export async function getBlob(
   return blobContent
 }
 
+type BlobDocument = {
+  name: string
+  url: string
+}
+
+export async function getBlobsInFolder(
+  storageAccountName: string,
+  containerName: string,
+  folderPath: string
+): Promise<BlobDocument[]> {
+  const blobServiceClient = getBlobClient(storageAccountName)
+
+  const containerClient = blobServiceClient.getContainerClient(containerName)
+  const documents = []
+
+  const blobs = containerClient.listBlobsFlat({ prefix: folderPath })
+
+  for await (const blob of blobs) {
+    const blobClient = containerClient.getBlobClient(blob.name)
+    const url = blobClient.url
+    const fileName = blob.name.split('/').pop() || blob.name
+
+    documents.push({
+      name: fileName,
+      url: url,
+    })
+  }
+
+  return documents
+}
+
 export async function uploadBlobString(
   storageAccountName: string,
   containerName: string,
@@ -88,10 +119,15 @@ export async function uploadBlobFile(
   blobName: string,
   content: Express.Multer.File
 ): Promise<void> {
-  const blobServiceClient = getBlobClient(storageAccountName)
-  const containerClient = blobServiceClient.getContainerClient(containerName)
-  const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-  await blockBlobClient.upload(content.buffer, content.buffer.length, {
-    blobHTTPHeaders: { blobContentType: content.mimetype },
-  })
+  try {
+    const blobServiceClient = getBlobClient(storageAccountName)
+    const containerClient = blobServiceClient.getContainerClient(containerName)
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+    await blockBlobClient.upload(content.buffer, content.buffer.length, {
+      blobHTTPHeaders: { blobContentType: content.mimetype },
+    })
+  } catch (error) {
+    console.error('Full upload error:', error)
+    throw error
+  }
 }
