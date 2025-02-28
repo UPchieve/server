@@ -2,6 +2,7 @@ import { Router } from 'express'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import multer from 'multer'
+import { asString } from '../../utils/type-utils'
 
 export function routeAssignments(router: Router): void {
   router.get('/assignment/:assignmentId', async function(req, res) {
@@ -61,7 +62,7 @@ export function routeAssignments(router: Router): void {
 
   router.get('/assignment/:assignmentId/documents', async (req, res) => {
     try {
-      const assignmentId = req.params.assignmentId as string
+      const assignmentId = asString(req.params.assignmentId)
       const assignmentDocuments = await AssignmentsService.getAssignmentDocuments(
         assignmentId
       )
