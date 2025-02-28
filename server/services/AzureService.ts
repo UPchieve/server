@@ -94,7 +94,7 @@ export async function getBlobsInFolder(
 
     documents.push({
       name: fileName,
-      url: url
+      url: url,
     })
   }
 
