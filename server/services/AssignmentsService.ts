@@ -365,3 +365,11 @@ export async function uploadAssignment(
     })
   )
 }
+
+export async function getAssignmentDocuments(assignmentId: Ulid) {
+  return await AzureService.getBlobsInFolder(
+    config.assignmentsStorageAccountName,
+    config.assignmentsStorageContainer,
+    `${assignmentId}`
+  )
+}
