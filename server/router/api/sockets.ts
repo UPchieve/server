@@ -209,8 +209,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (user.roleContext.isActiveRole('volunteer') && !user.approved)
                 throw new Error('Volunteer not approved')
             } catch (error) {
+              logger.error(
+                error,
+                'Failed to join session socket: Invalid user state'
+              )
               socket.emit('redirect')
-              reject(error)
               return
             }
 

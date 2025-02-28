@@ -67,7 +67,7 @@ export async function getRoleContext(
 export async function switchActiveRole(
   userId: string,
   newActiveRole: Exclude<UserRole, 'admin' | 'teacher'>
-): Promise<void> {
+): Promise<Exclude<UserRole, 'admin' | 'teacher'>> {
   const existingRoleContext = await getRoleContext(userId)
   if (!existingRoleContext.hasRole(newActiveRole))
     throw new InputError('User does not have the requested role')
@@ -78,6 +78,7 @@ export async function switchActiveRole(
     existingRoleContext.legacyRole
   )
   await updateRoleContext(userId, newRoleContext)
+  return newActiveRole
 }
 
 async function updateRoleContext(
