@@ -7,7 +7,7 @@ import { Uuid4, Exception } from 'id128'
 
 // Use via asOptional(asPrimitive)
 export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
-  return function(s: unknown, errMsg?: string): T | undefined {
+  return function (s: unknown, errMsg?: string): T | undefined {
     if (s === undefined || s === null) return undefined
     return as(s, errMsg)
   }
@@ -49,11 +49,11 @@ export function asBoolean(s: unknown, errMsg?: string): boolean {
 
 // Use via asArray(asPrimitive)
 export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
-  return function(s: unknown, errMsg?: string): T[] {
+  return function (s: unknown, errMsg?: string): T[] {
     if (Array.isArray(s)) {
       const maybeT = s as T[]
       if (
-        maybeT.every(item => {
+        maybeT.every((item) => {
           as(item, errMsg) // running `asFoo` validator will throw if it fails
           return true
         })
@@ -89,7 +89,7 @@ export function asAny(s: unknown): any {
  * @todo: create better usage -> asEnum<USER_BAN_REASON>(USER_BAN_REASON.ADMIN)
  **/
 export function asEnum<T>(e: any) {
-  return function(s: unknown, errMsg?: string) {
+  return function (s: unknown, errMsg?: string) {
     for (const value of Object.values(e)) {
       if (value === s) return s as T
     }
@@ -122,7 +122,7 @@ type KeyValidators<T> = {
  * })
  */
 export function asFactory<T extends object>(keyValidators: KeyValidators<T>) {
-  return function(data: unknown, errMsg = ''): T {
+  return function (data: unknown, errMsg = ''): T {
     if (typeof data === 'object' && data !== null) {
       const maybeT = data as T
       for (const key of Object.keys(keyValidators) as Array<keyof T>) {
@@ -136,7 +136,7 @@ export function asFactory<T extends object>(keyValidators: KeyValidators<T>) {
 
 // @note: proof of concept
 export function asUnion<T>(fns: ((s: unknown, errMsg?: string) => T)[]) {
-  return function(s: unknown, errMsg?: string) {
+  return function (s: unknown, errMsg?: string) {
     if (Array.isArray(fns)) {
       const errors = []
       const isUnion = false
@@ -166,6 +166,5 @@ export function isPgId(id: string): boolean {
   }
 }
 
-export type ExtractValues<
-  T extends { readonly [k: string]: string }
-> = T[keyof T]
+export type ExtractValues<T extends { readonly [k: string]: string }> =
+  T[keyof T]

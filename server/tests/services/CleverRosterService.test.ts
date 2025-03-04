@@ -97,8 +97,8 @@ describe('rosterTeacherClasses', () => {
 
     await CleverRosterService.rosterTeacherClasses(
       teacherId,
-      (cleverClasses as unknown) as CleverAPIService.TCleverSectionData[],
-      (cleverStudents as unknown) as CleverAPIService.TCleverStudentData[]
+      cleverClasses as unknown as CleverAPIService.TCleverSectionData[],
+      cleverStudents as unknown as CleverAPIService.TCleverStudentData[]
     )
 
     expect(
@@ -222,8 +222,8 @@ describe('rosterTeacherClasses', () => {
 
     await CleverRosterService.rosterTeacherClasses(
       teacherId,
-      (cleverClasses as unknown) as CleverAPIService.TCleverSectionData[],
-      (cleverStudents as unknown) as CleverAPIService.TCleverStudentData[]
+      cleverClasses as unknown as CleverAPIService.TCleverSectionData[],
+      cleverStudents as unknown as CleverAPIService.TCleverStudentData[]
     )
 
     expect(mockedTeacherService.createTeacherClass).not.toHaveBeenCalled()
@@ -286,7 +286,7 @@ describe('rosterTeacherClasses', () => {
     await CleverRosterService.rosterTeacherClasses(
       teacherId,
       [],
-      (cleverStudents as unknown) as CleverAPIService.TCleverStudentData[]
+      cleverStudents as unknown as CleverAPIService.TCleverStudentData[]
     )
 
     expect(mockedTeacherService.createTeacherClass).not.toHaveBeenCalled()
@@ -331,7 +331,7 @@ describe('rosterTeacherClasses', () => {
       }
 
       const ucStudent1 = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent1 as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent1 as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -345,7 +345,7 @@ describe('rosterTeacherClasses', () => {
         },
       }
       const ucStudent2 = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent2 as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent2 as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -359,7 +359,7 @@ describe('rosterTeacherClasses', () => {
         },
       }
       const ucStudent3 = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent3 as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent3 as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -371,7 +371,7 @@ describe('rosterTeacherClasses', () => {
         },
       }
       const ucStudent4 = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent4 as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent4 as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -392,7 +392,7 @@ describe('rosterTeacherClasses', () => {
       })
 
       const ucStudent = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -420,7 +420,7 @@ describe('rosterTeacherClasses', () => {
       })
 
       const ucStudent = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -469,7 +469,7 @@ describe('rosterTeacherClasses', () => {
       })
 
       const ucStudent = await CleverRosterService.findOrCreateUpchieveStudent(
-        (cleverStudent as unknown) as CleverAPIService.TCleverStudentData,
+        cleverStudent as unknown as CleverAPIService.TCleverStudentData,
         'school-id',
         TC
       )
@@ -508,11 +508,8 @@ describe('rosterTeacherClasses', () => {
         ['update-this-class', {}],
       ])
 
-      const {
-        classesToAdd,
-        classesToUpdate,
-        classesToRemove,
-      } = CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
+      const { classesToAdd, classesToUpdate, classesToRemove } =
+        CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
 
       expect(classesToAdd.length).toBe(1)
       expect(classesToAdd[0]).toBe('add-this-class')
@@ -530,11 +527,8 @@ describe('rosterTeacherClasses', () => {
         ['789', {}],
       ])
 
-      const {
-        classesToAdd,
-        classesToUpdate,
-        classesToRemove,
-      } = CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
+      const { classesToAdd, classesToUpdate, classesToRemove } =
+        CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
 
       expect(classesToAdd.length).toBe(3)
       expect(classesToUpdate.length).toBe(0)
@@ -551,11 +545,8 @@ describe('rosterTeacherClasses', () => {
         ['bbb', {}],
       ])
 
-      const {
-        classesToAdd,
-        classesToUpdate,
-        classesToRemove,
-      } = CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
+      const { classesToAdd, classesToUpdate, classesToRemove } =
+        CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
 
       expect(classesToAdd.length).toBe(0)
       expect(classesToUpdate.length).toBe(2)
@@ -571,11 +562,8 @@ describe('rosterTeacherClasses', () => {
       ])
       const cleverClasses = new Map<string, any>([])
 
-      const {
-        classesToAdd,
-        classesToUpdate,
-        classesToRemove,
-      } = CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
+      const { classesToAdd, classesToUpdate, classesToRemove } =
+        CleverRosterService.categorizeTeacherClasses(ucClasses, cleverClasses)
 
       expect(classesToAdd.length).toBe(0)
       expect(classesToUpdate.length).toBe(0)
@@ -596,14 +584,12 @@ describe('rosterTeacherClasses', () => {
         ['c-6', 'uc-6'],
       ])
 
-      const {
-        studentsToAdd,
-        studentsToRemove,
-      } = CleverRosterService.categorizeStudentsInClass(
-        ucStudents,
-        cleverStudents,
-        mapOfAll
-      )
+      const { studentsToAdd, studentsToRemove } =
+        CleverRosterService.categorizeStudentsInClass(
+          ucStudents,
+          cleverStudents,
+          mapOfAll
+        )
 
       expect(studentsToAdd.length).toBe(2)
       expect(studentsToRemove.length).toBe(2)
@@ -621,14 +607,12 @@ describe('rosterTeacherClasses', () => {
         ['c-44', 'uc-44'],
       ])
 
-      const {
-        studentsToAdd,
-        studentsToRemove,
-      } = CleverRosterService.categorizeStudentsInClass(
-        ucStudents,
-        cleverStudents,
-        mapOfAll
-      )
+      const { studentsToAdd, studentsToRemove } =
+        CleverRosterService.categorizeStudentsInClass(
+          ucStudents,
+          cleverStudents,
+          mapOfAll
+        )
 
       expect(studentsToAdd.length).toBe(4)
       expect(studentsToRemove.length).toBe(0)
@@ -644,14 +628,12 @@ describe('rosterTeacherClasses', () => {
         ['c-dd', 'uc-dd'],
       ])
 
-      const {
-        studentsToAdd,
-        studentsToRemove,
-      } = CleverRosterService.categorizeStudentsInClass(
-        ucStudents,
-        cleverStudents,
-        mapOfAll
-      )
+      const { studentsToAdd, studentsToRemove } =
+        CleverRosterService.categorizeStudentsInClass(
+          ucStudents,
+          cleverStudents,
+          mapOfAll
+        )
 
       expect(studentsToAdd.length).toBe(0)
       expect(studentsToRemove.length).toBe(4)

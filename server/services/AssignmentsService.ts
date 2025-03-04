@@ -186,7 +186,7 @@ export async function addStudentsToClassAssignments(
     if (!assignments.length) return
     return AssignmentsRepo.createStudentsAssignmentsForAll(
       studentIds,
-      assignments.map(a => a.id),
+      assignments.map((a) => a.id),
       tc
     )
   }, tc)
@@ -238,11 +238,12 @@ export async function updateStudentAssignmentAfterSession(
     const assignment = await getStudentAssignmentForSession(sessionId, tc)
     if (!assignment) return
 
-    const assignmentSessions = await AssignmentsRepo.getSessionsForStudentAssignment(
-      studentId,
-      assignment.id,
-      tc
-    )
+    const assignmentSessions =
+      await AssignmentsRepo.getSessionsForStudentAssignment(
+        studentId,
+        assignment.id,
+        tc
+      )
 
     if (haveSessionsMetAssignmentRequirements(assignment, assignmentSessions)) {
       await AssignmentsRepo.markStudentAssignmentAsCompleted(
@@ -267,7 +268,7 @@ async function deleteStudentAssignmentsForStudents(
   assignmentId: Uuid
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
-    studentsToRemove.forEach(async studentId => {
+    studentsToRemove.forEach(async (studentId) => {
       await AssignmentsRepo.deleteSessionStudentAssignmentByStudentId(
         studentId,
         assignmentId,
@@ -304,7 +305,7 @@ export function haveSessionsMetAssignmentRequirements(
   assignment: Omit<StudentAssignment, 'classId'>,
   sessions: { volunteerJoinedAt?: Date; endedAt?: Date }[]
 ) {
-  const filtered = sessions.filter(session => {
+  const filtered = sessions.filter((session) => {
     if (!session.volunteerJoinedAt) return false
     if (!session.endedAt) return false
 
@@ -333,7 +334,7 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
 
     return (
       await Promise.all(
-        assignments.map(async a => {
+        assignments.map(async (a) => {
           const sa = await AssignmentsRepo.getStudentAssignmentCompletion(
             a.id,
             tc
@@ -355,7 +356,7 @@ export async function uploadAssignment(
   files: Express.Multer.File[]
 ) {
   await Promise.all(
-    files.map(file => {
+    files.map((file) => {
       AzureService.uploadBlobFile(
         config.assignmentsStorageAccountName,
         config.assignmentsStorageContainer,

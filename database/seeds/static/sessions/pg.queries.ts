@@ -29,8 +29,7 @@ const insertReportReasonIR: any = {
   ],
   usedParamSet: { reason: true },
   statement: {
-    body:
-      'INSERT INTO report_reasons (reason, created_at, updated_at)\n    VALUES (:reason!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO report_reasons (reason, created_at, updated_at)\n    VALUES (:reason!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 31, b: 175, line: 2, col: 0 },
   },
 }
@@ -79,8 +78,7 @@ const insertSessionFlagIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO session_flags (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO session_flags (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 210, b: 349, line: 11, col: 0 },
   },
 }

@@ -49,7 +49,7 @@ export async function getTopics(
       },
       tc
     )
-    return results.map(r => makeSomeOptional(r, ['iconLink']))
+    return results.map((r) => makeSomeOptional(r, ['iconLink']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -58,7 +58,7 @@ export async function getTopics(
 export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
   try {
     const result = await pgQueries.getSubjects.run(undefined, getClient())
-    const mappedResult = result.map(row =>
+    const mappedResult = result.map((row) =>
       makeSomeOptional(row, ['topicIconLink', 'topicColor'])
     )
     const subjects = {} as AllSubjectsWithTopics
@@ -113,7 +113,7 @@ export function generateTrainingRow(
   const topicTrainingRows = {} as TrainingRowPerTopic
   for (const [topicName, data] of Object.entries(groups)) {
     topicTrainingRows[topicName] = []
-    const groupedRows = _.groupBy(data, row => row.rowName)
+    const groupedRows = _.groupBy(data, (row) => row.rowName)
 
     for (const rows of Object.values(groupedRows)) {
       const item: TrainingRow = {
@@ -149,12 +149,12 @@ export async function getCertSubjectUnlocks(): Promise<TrainingRowPerTopic> {
     )
     // remove certifications that unlock themselves
     const computedSubjects = certificationUnlocks
-      .map(v => makeRequired(v))
-      .filter(row => row.unlockedSubjectName !== row.certName)
+      .map((v) => makeRequired(v))
+      .filter((row) => row.unlockedSubjectName !== row.certName)
 
     const computedSubjectGrouped = _.groupBy(
       computedSubjects,
-      row => row.topicName
+      (row) => row.topicName
     )
     const processedSubjectGrouped = processTrainingRow(computedSubjectGrouped, {
       rowName: 'unlockedSubjectName',
@@ -172,9 +172,7 @@ export async function getCertSubjectUnlocks(): Promise<TrainingRowPerTopic> {
   }
 }
 
-export async function getComputedSubjectUnlocks(): Promise<
-  TrainingRowPerTopic
-> {
+export async function getComputedSubjectUnlocks(): Promise<TrainingRowPerTopic> {
   try {
     // Get the computed subjects that are unlocked when a combination of
     // quizzes have been completed
@@ -185,12 +183,12 @@ export async function getComputedSubjectUnlocks(): Promise<
     )
     // remove certifications that unlock themselves
     const computedSubjects = certificationUnlocks
-      .map(v => makeRequired(v))
-      .filter(row => row.unlockedSubjectName !== row.certName)
+      .map((v) => makeRequired(v))
+      .filter((row) => row.unlockedSubjectName !== row.certName)
 
     const computedSubjectGrouped = _.groupBy(
       computedSubjects,
-      row => row.topicName
+      (row) => row.topicName
     )
     const processedSubjectGrouped = processTrainingRow(computedSubjectGrouped, {
       rowName: 'unlockedSubjectName',
@@ -215,13 +213,13 @@ export async function getQuizCertUnlocks(): Promise<TrainingRowPerTopic> {
       undefined,
       getClient()
     )
-    const mappedQuizCertificationsResults = quizCertificationResults.map(v =>
+    const mappedQuizCertificationsResults = quizCertificationResults.map((v) =>
       makeRequired(v)
     )
 
     const quizTopicGroups = _.groupBy(
       mappedQuizCertificationsResults,
-      row => row.topicName
+      (row) => row.topicName
     )
     const processedQuizTopics = processTrainingRow(quizTopicGroups, {
       rowName: 'quizName',
@@ -246,7 +244,7 @@ export async function getTrainingCourses(): Promise<TrainingCourses[]> {
       undefined,
       getClient()
     )
-    if (result.length) return result.map(row => makeRequired(row))
+    if (result.length) return result.map((row) => makeRequired(row))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -263,7 +261,7 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
       getClient()
     )
     const subjectTypes: TrainingItemWithOrder[] = topics
-      .map(v => {
+      .map((v) => {
         const mappedTopics = makeRequired(v)
         return {
           ...mappedTopics,
@@ -277,7 +275,7 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
     const computedSubjects = await getComputedSubjectUnlocks()
     const quizCertificationUnlocks = await getQuizCertUnlocks()
     const trainingCourses = await getTrainingCourses()
-    const requiredTraining = trainingCourses.map(v => {
+    const requiredTraining = trainingCourses.map((v) => {
       const mappedTraining = makeRequired(v)
       return {
         displayName: mappedTraining.displayName,
@@ -294,7 +292,7 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
       // that unlock certs
       if (!quizCertificationUnlocks[topic.key]) {
         trainingView.subjectTypes = trainingView.subjectTypes.filter(
-          header => header.key !== topic.key
+          (header) => header.key !== topic.key
         )
         continue
       }
@@ -332,15 +330,13 @@ export async function getSubjectNameIdMapping(): Promise<{
   [subjectName: string]: number
 }> {
   try {
-    let subjectNameIdMappingResult = await pgQueries.getSubjectNameIdMapping.run(
-      undefined,
-      getClient()
-    )
+    let subjectNameIdMappingResult =
+      await pgQueries.getSubjectNameIdMapping.run(undefined, getClient())
     if (!subjectNameIdMappingResult.length)
       throw new RepoReadError(
         'Select query did not return ok (subjectNameIdMappingResult)'
       )
-    subjectNameIdMappingResult.map(v => makeRequired(v))
+    subjectNameIdMappingResult.map((v) => makeRequired(v))
     let subjectNameIdMapping: { [name: string]: number } = {}
     for (const subjectNameAndId of subjectNameIdMappingResult) {
       subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id

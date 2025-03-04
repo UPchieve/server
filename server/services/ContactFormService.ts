@@ -61,9 +61,8 @@ async function sendContactForm(topic: string, message: string, email: string) {
 }
 
 export async function saveContactFormSubmission(data: unknown) {
-  const { topic, userEmail, userId, message } = asContactFormSubmissionData(
-    data
-  )
+  const { topic, userEmail, userId, message } =
+    asContactFormSubmissionData(data)
   if (!topicIsValid(topic) || !isEmail(userEmail) || !messageIsValid(message))
     throw new InputError('Contact form submission data not valid')
   await nr.startSegment(

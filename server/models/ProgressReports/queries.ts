@@ -248,7 +248,7 @@ export async function getProgressReportSummariesForMany(
       tc ?? getClient()
     )
     if (result.length)
-      return result.map(v => makeSomeOptional(v, ['reportReadAt']))
+      return result.map((v) => makeSomeOptional(v, ['reportReadAt']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -267,7 +267,7 @@ export async function getProgressReportConceptsByReportId(
       tc ?? getClient()
     )
     if (result.length)
-      return result.map(v => makeSomeOptional(v, ['reportReadAt']))
+      return result.map((v) => makeSomeOptional(v, ['reportReadAt']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -285,17 +285,18 @@ export async function getProgressReportSessionsForSubjectByPagination(
   tc?: TransactionClient
 ): Promise<ProgressReportSessionPaginated[]> {
   try {
-    const result = await pgQueries.getProgressReportSessionsForSubjectByPagination.run(
-      {
-        userId,
-        subject: data.subject,
-        analysisType: data.analysisType,
-        limit: data.limit,
-        offset: data.offset,
-      },
-      tc ?? getClient()
-    )
-    if (result.length) return result.map(row => makeRequired(row))
+    const result =
+      await pgQueries.getProgressReportSessionsForSubjectByPagination.run(
+        {
+          userId,
+          subject: data.subject,
+          analysisType: data.analysisType,
+          limit: data.limit,
+          offset: data.offset,
+        },
+        tc ?? getClient()
+      )
+    if (result.length) return result.map((row) => makeRequired(row))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -309,15 +310,16 @@ export async function getAllProgressReportIdsByUserIdAndSubject(
   tc?: TransactionClient
 ): Promise<Ulid[]> {
   try {
-    const result = await pgQueries.getAllProgressReportIdsByUserIdAndSubject.run(
-      {
-        userId,
-        subject,
-        analysisType,
-      },
-      tc ?? getClient()
-    )
-    if (result.length) return result.map(row => makeRequired(row).id)
+    const result =
+      await pgQueries.getAllProgressReportIdsByUserIdAndSubject.run(
+        {
+          userId,
+          subject,
+          analysisType,
+        },
+        tc ?? getClient()
+      )
+    if (result.length) return result.map((row) => makeRequired(row).id)
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -376,13 +378,14 @@ export async function getProgressReportOverviewUnreadStatsByUserId(
   tc?: TransactionClient
 ): Promise<ProgressReportOverviewUnreadStat[]> {
   try {
-    const result = await pgQueries.getProgressReportOverviewUnreadStatsByUserId.run(
-      {
-        userId,
-      },
-      tc ?? getClient()
-    )
-    return result.map(row => makeRequired(row))
+    const result =
+      await pgQueries.getProgressReportOverviewUnreadStatsByUserId.run(
+        {
+          userId,
+        },
+        tc ?? getClient()
+      )
+    return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -393,12 +396,13 @@ export async function getLatestProgressReportOverviewSubjectByUserId(
   tc?: TransactionClient
 ): Promise<string | undefined> {
   try {
-    const result = await pgQueries.getLatestProgressReportOverviewSubjectByUserId.run(
-      {
-        userId,
-      },
-      tc ?? getClient()
-    )
+    const result =
+      await pgQueries.getLatestProgressReportOverviewSubjectByUserId.run(
+        {
+          userId,
+        },
+        tc ?? getClient()
+      )
     if (result.length) return makeRequired(result[0]).name
   } catch (err) {
     throw new RepoReadError(err)

@@ -39,7 +39,7 @@ export async function updateSchedule(
 
     const volunteer = await getVolunteerForScheduleUpdate(user.id, tc)
     if (
-      Object.keys(volunteer.availability).some(key => {
+      Object.keys(volunteer.availability).some((key) => {
         if (typeof newAvailability[key as DAYS] === 'undefined') {
           // day-of-week property needs to be defined
           return true
@@ -47,7 +47,7 @@ export async function updateSchedule(
 
         // time-of-day properties also need to be defined
         return Object.keys(volunteer.availability[key as DAYS]).some(
-          key2 =>
+          (key2) =>
             typeof newAvailability[key as DAYS][key2 as HOURS] === 'undefined'
         )
       })

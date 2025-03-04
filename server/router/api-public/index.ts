@@ -8,30 +8,29 @@ import { InputError } from '../../models/Errors'
 export function routes(app: Express) {
   const router: Router = express.Router()
 
-  router.post('/students/class', async function(req, res) {
+  router.post('/students/class', async function (req, res) {
     try {
       const classCode = req.body.classCode as string
       const email = req.body.email as string
       const authenticatedUser = extractUserIfExists(req)
 
       if (authenticatedUser?.email.toLowerCase() === email.toLowerCase()) {
-        const teacherClass = await TeacherService.addStudentToTeacherClassByClassCode(
-          authenticatedUser.id,
-          classCode
-        )
+        const teacherClass =
+          await TeacherService.addStudentToTeacherClassByClassCode(
+            authenticatedUser.id,
+            classCode
+          )
         return res.json({ teacherClass })
       }
 
-      const teacherClass = await TeacherService.getTeacherClassByClassCode(
-        classCode
-      )
+      const teacherClass =
+        await TeacherService.getTeacherClassByClassCode(classCode)
       if (!teacherClass) {
         throw new InputError('Invalid class code.')
       }
 
-      const isExistingStudent = await StudentService.doesStudentWithEmailExist(
-        email
-      )
+      const isExistingStudent =
+        await StudentService.doesStudentWithEmailExist(email)
       res.json({ isExistingStudent })
     } catch (err) {
       resError(res, err)

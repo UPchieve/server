@@ -6,7 +6,7 @@ export default async function main() {
   try {
     await db.connect()
 
-    await db.runInTransaction(async tc => {
+    await db.runInTransaction(async (tc) => {
       await migrateUsers(tc)
     })
   } catch (e) {

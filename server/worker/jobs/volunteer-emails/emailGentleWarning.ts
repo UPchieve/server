@@ -18,9 +18,8 @@ export default async (job: Job<EmailGentleWarningJobData>): Promise<void> => {
   const { name: currentJob } = job
   const sessionId = asString(job.data.sessionId)
   // replaced by getVolunteersForGentleWarning
-  const volunteerWithNotifications = await getVolunteersForGentleWarning(
-    sessionId
-  )
+  const volunteerWithNotifications =
+    await getVolunteersForGentleWarning(sessionId)
 
   if (volunteerWithNotifications.length === 0) return
 

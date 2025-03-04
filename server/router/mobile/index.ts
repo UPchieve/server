@@ -14,7 +14,7 @@ export function routes(app: express.Express): void {
   }
 
   // used in native app to workaround iOS 3rd party cookie limitation
-  app.use('/setcookie', function(req, res) {
+  app.use('/setcookie', function (req, res) {
     res.cookie('mobile_cookie', '1', { maxAge: 3600 * 24 * 365 * 10 })
     res.redirect(302, 'http://localhost:12380?redirected')
   })

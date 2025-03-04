@@ -33,11 +33,11 @@ describe('backfillStudentUsersRoles', () => {
     const after = await client.query('SELECT * FROM users_roles;')
     expect(after.rows.length).toBe(2)
 
-    const urStudent1 = after.rows.filter(r => r.user_id === idStudent1)
+    const urStudent1 = after.rows.filter((r) => r.user_id === idStudent1)
     expect(urStudent1.length).toBe(1)
     expect(urStudent1[0].role_id).toBe(STUDENT_USER_ROLE_ID)
 
-    const urStudent2 = after.rows.filter(r => r.user_id === idStudent2)
+    const urStudent2 = after.rows.filter((r) => r.user_id === idStudent2)
     expect(urStudent2.length).toBe(1)
     expect(urStudent2[0].role_id).toBe(STUDENT_USER_ROLE_ID)
   })
@@ -57,7 +57,7 @@ describe('backfillStudentUsersRoles', () => {
       [idStudent1, idStudent2, idStudent3]
     )
     expect(before.rows.length).toBe(3)
-    before.rows.forEach(r => expect(r.student_partner_org_id).toBeNull())
+    before.rows.forEach((r) => expect(r.student_partner_org_id).toBeNull())
 
     await backfill(client)
 
@@ -74,7 +74,7 @@ describe('backfillStudentUsersRoles', () => {
       APPROVED_PARTNER_SCHOOL_SPO_ID,
       ANOTHER_APPROVED_PARTNER_SCHOOL_SPO_ID,
     ].sort()
-    expect(after.rows.map(r => r.student_partner_org_id).sort()).toEqual(
+    expect(after.rows.map((r) => r.student_partner_org_id).sort()).toEqual(
       expected
     )
   })

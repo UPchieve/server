@@ -220,7 +220,7 @@ export async function getUserProfile(
     options
   )
 
-  const canonicalLink = meResponse.data.links.find(link => {
+  const canonicalLink = meResponse.data.links.find((link) => {
     if (link.rel === 'canonical') return true
   })
   if (!canonicalLink) {
@@ -361,5 +361,5 @@ async function cleverGetMany<T>(
   const response = await axios.get<TCleverManyResponse<T>>(url, {
     headers: createBearerAuthHeader(accessToken),
   })
-  return response.data.data.map(d => d.data)
+  return response.data.data.map((d) => d.data)
 }

@@ -9,7 +9,7 @@ export function routeWebhooks(router: Router): void {
   router.post(
     '/webhooks/progress-reports/processed',
     authPassport.isWorker,
-    async function(req, res) {
+    async function (req, res) {
       try {
         const userId = asUlid(req.body.userId)
         const sessionId = req.body.sessionId

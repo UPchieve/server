@@ -203,7 +203,7 @@ describe('getQuizScore', () => {
     const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
     const unlockedCerts = buildQuizUnlockCert(cert)
     const unlockedSubjectNames = unlockedCerts.map(
-      cert => cert.unlockedCertName
+      (cert) => cert.unlockedCertName
     )
     const currentSubjects: string[] = []
     const mockVolunteerForOnboarding = {
@@ -304,7 +304,7 @@ describe('getQuizScore', () => {
     const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
     const unlockedCerts = buildQuizUnlockCert(cert)
     const unlockedSubjectNames = unlockedCerts.map(
-      cert => cert.unlockedCertName
+      (cert) => cert.unlockedCertName
     )
     const currentSubjects: string[] = []
     const mockVolunteerForOnboarding = {
@@ -476,7 +476,7 @@ describe('getQuizScore', () => {
     ])
     const unlockedCerts = buildQuizUnlockCert(cert)
     const unlockedSubjectNames = unlockedCerts.map(
-      cert => cert.unlockedCertName
+      (cert) => cert.unlockedCertName
     )
     const currentSubjects: string[] = []
     const mockVolunteerForOnboarding = {
@@ -648,12 +648,12 @@ describe('getQuizScore', () => {
     const unlockedCerts = buildQuizUnlockCert(cert)
     const currentSubjects = [CERTS.PREALGREBA, CERTS.ALGEBRA_ONE]
     const unlockedSubjectNames = unlockedCerts
-      .map(cert => {
+      .map((cert) => {
         // TODO: fix `any` type coercion
         if (!currentSubjects.includes(cert.unlockedCertName as any))
           return cert.unlockedCertName
       })
-      .filter(subject => !!subject)
+      .filter((subject) => !!subject)
     const mockVolunteerForOnboarding = {
       id: volunteer.id,
       email: volunteer.email,

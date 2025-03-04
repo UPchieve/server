@@ -10,7 +10,7 @@ import {
 } from '../../models/Subjects'
 
 export function routeSubjects(router: Router): void {
-  router.get('/subjects', async function(req, res) {
+  router.get('/subjects', async function (req, res) {
     try {
       const subjects = await getSubjectsWithTopic()
       res.json({
@@ -21,7 +21,7 @@ export function routeSubjects(router: Router): void {
     }
   })
 
-  router.get('/subjects/training', async function(req, res) {
+  router.get('/subjects/training', async function (req, res) {
     try {
       const trainingView = await getVolunteerTrainingData()
       res.json({
@@ -32,7 +32,7 @@ export function routeSubjects(router: Router): void {
     }
   })
 
-  router.get('/subjects/is-valid', async function(req, res) {
+  router.get('/subjects/is-valid', async function (req, res) {
     try {
       const isValid = await isValidSubjectAndTopic(req.query)
       res.json({ isValid })
@@ -41,7 +41,7 @@ export function routeSubjects(router: Router): void {
     }
   })
 
-  router.get('/topics', async function(_req, res) {
+  router.get('/topics', async function (_req, res) {
     try {
       const topics = await getTopics()
       res.json({ topics })

@@ -6,7 +6,7 @@ import * as UserService from '../../services/UserService'
 export function routes(app: express.Express): void {
   const router = express.Router()
 
-  router.get('/:referralCode', async function(req, res) {
+  router.get('/:referralCode', async function (req, res) {
     try {
       const referralCode = asString(req.params.referralCode)
       const user = await UserService.getUserByReferralCode(referralCode)

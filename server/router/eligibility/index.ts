@@ -20,7 +20,7 @@ export function routes(app: Express) {
   const router: Router = express.Router()
 
   // Check if a student is eligible
-  router.route('/check').post(async function(req, res) {
+  router.route('/check').post(async function (req, res) {
     try {
       const result = await checkEligibility(req.ip, req.body as unknown)
       return res.json(result)
@@ -55,93 +55,98 @@ export function routes(app: Express) {
     }
   })
 
-  router.put('/school/:schoolId', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const schoolId = asUlid(req.params.schoolId)
-      await SchoolService.adminUpdateSchool({
-        schoolId,
-        ...req.body,
-      } as unknown)
-      res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
+  router.put(
+    '/school/:schoolId',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const schoolId = asUlid(req.params.schoolId)
+        await SchoolService.adminUpdateSchool({
+          schoolId,
+          ...req.body,
+        } as unknown)
+        res.sendStatus(200)
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.post('/school/approval', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const schoolId = asUlid(req.body.schoolId)
-      const isApproved = asBoolean(req.body.isApproved)
-      await SchoolService.updateApproval(schoolId, isApproved)
-      res.sendStatus(200)
-    } catch (err) {
-      Sentry.captureException(err)
-      resError(res, err)
+  router.post(
+    '/school/approval',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const schoolId = asUlid(req.body.schoolId)
+        const isApproved = asBoolean(req.body.isApproved)
+        await SchoolService.updateApproval(schoolId, isApproved)
+        res.sendStatus(200)
+      } catch (err) {
+        Sentry.captureException(err)
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.post('/school/partner', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const schoolId = asUlid(req.body.schoolId)
-      const isPartner = asBoolean(req.body.isPartner)
-      await SchoolService.updateIsPartner(schoolId, isPartner)
-      res.sendStatus(200)
-    } catch (err) {
-      Sentry.captureException(err)
-      resError(res, err)
+  router.post(
+    '/school/partner',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const schoolId = asUlid(req.body.schoolId)
+        const isPartner = asBoolean(req.body.isPartner)
+        await SchoolService.updateIsPartner(schoolId, isPartner)
+        res.sendStatus(200)
+      } catch (err) {
+        Sentry.captureException(err)
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/ineligible-students', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const PER_PAGE = 15
+  router.get(
+    '/ineligible-students',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const PER_PAGE = 15
 
-      const page = req.query.page ? parseInt(req.query.page as string) : 1
-      const skip = (page - 1) * PER_PAGE
-      const ineligibleStudents = await getIneligibleStudentsPaginated(
-        PER_PAGE,
-        skip
-      )
-      const isLastPage = ineligibleStudents.length < PER_PAGE
+        const page = req.query.page ? parseInt(req.query.page as string) : 1
+        const skip = (page - 1) * PER_PAGE
+        const ineligibleStudents = await getIneligibleStudentsPaginated(
+          PER_PAGE,
+          skip
+        )
+        const isLastPage = ineligibleStudents.length < PER_PAGE
 
-      res.json({ ineligibleStudents, isLastPage })
-    } catch (err) {
-      resError(res, err)
+        res.json({ ineligibleStudents, isLastPage })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/zip-codes/:zipCode', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    const zipCode = asString(req.params.zipCode)
+  router.get(
+    '/zip-codes/:zipCode',
+    authPassport.isAdmin,
+    async function (req, res) {
+      const zipCode = asString(req.params.zipCode)
 
-    try {
-      const result = await getZipCodeByZipCode(zipCode)
-      if (!result) res.sendStatus(404)
-      else
-        res.json({
-          zipCode: { ...result },
-        })
-    } catch (err) {
-      Sentry.captureException(err)
-      resError(res, err)
+      try {
+        const result = await getZipCodeByZipCode(zipCode)
+        if (!result) res.sendStatus(404)
+        else
+          res.json({
+            zipCode: { ...result },
+          })
+      } catch (err) {
+        Sentry.captureException(err)
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/ip-check', async function(req, res) {
+  router.get('/ip-check', async function (req, res) {
     try {
       await IpAddressService.checkIpAddress(req.ip)
       res.sendStatus(200)
@@ -150,7 +155,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/check-zip-code/:zipCode', async function(req, res) {
+  router.get('/check-zip-code/:zipCode', async function (req, res) {
     try {
       const zipCode = asString(req.params.zipCode)
       const result = await checkZipCode(zipCode)
@@ -160,7 +165,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/signup-sources/students', async function(req, res) {
+  router.get('/signup-sources/students', async function (req, res) {
     try {
       const signupSources = await getStudentSignupSources()
       res.json({ signupSources })
@@ -169,7 +174,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.post('/big-future/email', async function(req, res) {
+  router.post('/big-future/email', async function (req, res) {
     try {
       const email = asString(req.body.email)
       await rpush('big-future-emails', email)

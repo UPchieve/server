@@ -78,7 +78,7 @@ describe('getPartnerSchools', () => {
     expect(result?.length).toBeTruthy()
 
     const approvedSchool = result?.find(
-      r => r.schoolName === 'Approved Partner School'
+      (r) => r.schoolName === 'Approved Partner School'
     )
     expect(approvedSchool?.schoolId).toBe(
       '01919662-87fb-d63d-788d-7417e752f5d0'
@@ -86,7 +86,7 @@ describe('getPartnerSchools', () => {
     expect(approvedSchool?.partnerKey).toBe('approved-partner-school')
     expect(approvedSchool?.partnerSites?.length).toBe(0)
     const anotherApprovedSchool = result?.find(
-      r => r.schoolName === 'Another Approved Partner School'
+      (r) => r.schoolName === 'Another Approved Partner School'
     )
     expect(anotherApprovedSchool?.schoolId).toBe(
       '01919662-87fb-6ad2-8227-c1e38adf0907'
@@ -126,7 +126,7 @@ describe('getPartnerSchools', () => {
     const result = await Repo.getPartnerSchools(client)
 
     expect(result).toBeTruthy()
-    const schoolWithSites = result?.find(r => r.schoolId === schoolId)
+    const schoolWithSites = result?.find((r) => r.schoolId === schoolId)
     expect(schoolWithSites?.schoolName).toBe('School with Sites')
     expect(schoolWithSites?.partnerKey).toBe('school-with-sites')
     expect(schoolWithSites?.partnerSites?.length).toBe(2)
@@ -180,7 +180,7 @@ describe('getPartnerSchools', () => {
         await client.query(
           'SELECT * FROM student_partner_orgs_upchieve_instances'
         )
-      ).rows.filter(row => row.student_partner_org_id === spo.id)
+      ).rows.filter((row) => row.student_partner_org_id === spo.id)
       expect(spoInstances.length).toEqual(1)
       expect(spoInstances[0].deactivated_on).not.toBeNull()
     })
@@ -221,7 +221,7 @@ describe('getPartnerSchools', () => {
         [spo1.id, spo2.id]
       )
       expect(spoInstancesBefore.rows.length).toEqual(2)
-      spoInstancesBefore.rows.forEach(instance => {
+      spoInstancesBefore.rows.forEach((instance) => {
         expect(instance.deactivated_on).toBeNull()
       })
 
@@ -233,7 +233,7 @@ describe('getPartnerSchools', () => {
         [spo1.id, spo2.id]
       )
       expect(spoInstancesAfter.rows.length).toEqual(2)
-      spoInstancesAfter.rows.forEach(instance => {
+      spoInstancesAfter.rows.forEach((instance) => {
         const deactivatedDate = new Date(instance.deactivated_on)
         expect(deactivatedDate.getDate()).toEqual(new Date().getDate())
       })
@@ -259,7 +259,7 @@ describe('getPartnerSchools', () => {
         await client.query(
           'SELECT * FROM student_partner_orgs_upchieve_instances'
         )
-      ).rows.filter(row => row.student_partner_org_id === spo.id)
+      ).rows.filter((row) => row.student_partner_org_id === spo.id)
       expect(spoInstances.length).toEqual(1)
       expect(spoInstances[0].deactivated_on).toBeNull()
     })
@@ -299,9 +299,12 @@ describe('getPartnerSchools', () => {
         await client.query(
           'SELECT * FROM student_partner_orgs_upchieve_instances'
         )
-      ).rows.filter(row => row.student_partner_org_id === spoResults.rows[0].id)
+      ).rows.filter(
+        (row) => row.student_partner_org_id === spoResults.rows[0].id
+      )
       expect(
-        spoInstances.filter(instance => instance.deactivated_on === null).length
+        spoInstances.filter((instance) => instance.deactivated_on === null)
+          .length
       ).toEqual(1)
     })
   })

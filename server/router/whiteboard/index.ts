@@ -238,7 +238,7 @@ const messageHandlers: {
 export function routes(app: Express): void {
   const router = express.Router()
 
-  router.ws('/room/:sessionId', function(wsClient, req, next) {
+  router.ws('/room/:sessionId', function (wsClient, req, next) {
     let initialized = false
     let sessionId: string
 
@@ -266,7 +266,7 @@ export function routes(app: Express): void {
       wsEmitter.removeClientFromRoom(wsClient, sessionId)
     })
 
-    wsClient.on('message', rawMessage => {
+    wsClient.on('message', (rawMessage) => {
       if (rawMessage === 'p1ng') {
         // Respond to ping and exit early
         wsClient.send('p0ng')
@@ -292,7 +292,7 @@ export function routes(app: Express): void {
     next()
   })
 
-  router.ws('/admin/:sessionId', async function(wsClient, req) {
+  router.ws('/admin/:sessionId', async function (wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
     try {
       let document: string | undefined
@@ -317,7 +317,7 @@ export function routes(app: Express): void {
     }
   })
 
-  router.ws('/recap/:sessionId', async function(wsClient, req) {
+  router.ws('/recap/:sessionId', async function (wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
     try {
       const document = await WhiteboardService.getDocFromStorage(sessionId)
@@ -334,7 +334,7 @@ export function routes(app: Express): void {
     }
   })
 
-  router.route('/reset').post(async function(req, res, next) {
+  router.route('/reset').post(async function (req, res, next) {
     const {
       body: { sessionId },
     } = req

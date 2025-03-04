@@ -192,7 +192,7 @@ export async function getFavoriteVolunteersByStudentId(
       { studentId },
       getClient()
     )
-    return result.map(row => makeRequired(row).id)
+    return result.map((row) => makeRequired(row).id)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -209,7 +209,7 @@ export async function getFavoriteVolunteersPaginated(
       getClient()
     )
     return {
-      favoriteVolunteers: result.map(row => makeRequired(row)),
+      favoriteVolunteers: result.map((row) => makeRequired(row)),
       isLastPage: result.length < limit,
     }
   } catch (err) {
@@ -341,11 +341,9 @@ async function adminUpdateStudentPartnerOrgInstance(
     if (schoolPartnerKey && !newSchoolOrg)
       throw new Error(`New school org ${schoolPartnerKey} does not exist`)
 
-    const activePartnerOrgInstanceResults = await pgQueries.getPartnerOrgsByStudent.run(
-      { studentId },
-      client
-    )
-    const activePartnerOrgInstances = activePartnerOrgInstanceResults.map(v =>
+    const activePartnerOrgInstanceResults =
+      await pgQueries.getPartnerOrgsByStudent.run({ studentId }, client)
+    const activePartnerOrgInstances = activePartnerOrgInstanceResults.map((v) =>
       makeSomeOptional(v, ['schoolId', 'siteName'])
     )
 
@@ -377,10 +375,11 @@ async function adminUpdateStudentPartnerOrgInstance(
         (activePartnerInstance.name !== newPartnerOrg.partnerName ||
           activePartnerInstance.siteName !== newPartnerOrg.siteName))
     ) {
-      const updateResult = await pgQueries.adminDeactivateStudentPartnershipInstance.run(
-        { userId: studentId, spoId: activePartnerInstance.id },
-        client
-      )
+      const updateResult =
+        await pgQueries.adminDeactivateStudentPartnershipInstance.run(
+          { userId: studentId, spoId: activePartnerInstance.id },
+          client
+        )
       if (!makeRequired(updateResult[0]).ok)
         throw new Error(
           `Deactivating active partner org instance failed for student ${studentId}`
@@ -392,10 +391,11 @@ async function adminUpdateStudentPartnerOrgInstance(
         newSchoolOrg &&
         activeSchoolInstance.name !== newSchoolOrg.partnerName)
     ) {
-      const updateResult = await pgQueries.adminDeactivateStudentPartnershipInstance.run(
-        { userId: studentId, spoId: activeSchoolInstance.id },
-        client
-      )
+      const updateResult =
+        await pgQueries.adminDeactivateStudentPartnershipInstance.run(
+          { userId: studentId, spoId: activeSchoolInstance.id },
+          client
+        )
       if (!makeRequired(updateResult[0]).ok)
         throw new Error(
           `Deactivating active partner org instance failed for student ${studentId}`
@@ -501,10 +501,11 @@ export async function adminUpdateStudent(
       transactionClient
     )
 
-    const updateProductFlagsResult = await pgQueries.updateStudentInGatesStudy.run(
-      { userId: studentId, inGatesStudy: update.inGatesStudy },
-      transactionClient
-    )
+    const updateProductFlagsResult =
+      await pgQueries.updateStudentInGatesStudy.run(
+        { userId: studentId, inGatesStudy: update.inGatesStudy },
+        transactionClient
+      )
 
     await adminUpdateStudentPartnerOrgInstance(
       studentId,
@@ -627,14 +628,15 @@ export async function createStudent(
       )
 
       if (partnerOrg) {
-        const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstance.run(
-          {
-            userId,
-            spoName: partnerOrg.partnerName,
-            spoSiteName: studentData.partnerSite,
-          },
-          transactionClient
-        )
+        const spoInstanceResult =
+          await pgQueries.createUserStudentPartnerOrgInstance.run(
+            {
+              userId,
+              spoName: partnerOrg.partnerName,
+              spoSiteName: studentData.partnerSite,
+            },
+            transactionClient
+          )
         if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
           throw new RepoCreateError(
             'Could not create student: user partner org instance creation did not return rows'
@@ -648,13 +650,14 @@ export async function createStudent(
       )
 
       if (school && school.isPartner) {
-        const spoInstanceResult = await pgQueries.createUserStudentPartnerOrgInstanceWithSchoolId.run(
-          {
-            userId,
-            schoolId: school.id,
-          },
-          transactionClient
-        )
+        const spoInstanceResult =
+          await pgQueries.createUserStudentPartnerOrgInstanceWithSchoolId.run(
+            {
+              userId,
+              schoolId: school.id,
+            },
+            transactionClient
+          )
         if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
           throw new RepoCreateError(
             'Could not create student: user school partner instance creation did not return rows'
@@ -754,7 +757,7 @@ export async function getSessionReport(
     )
 
     if (result.length) {
-      return result.map(r =>
+      return result.map((r) =>
         makeSomeOptional(r, [
           'partnerSite',
           'waitTimeMins',
@@ -857,8 +860,8 @@ export async function getStudentSignupSources(): Promise<
     )
     if (result.length) {
       // query returns sources in a random order, but we want to make sure Other is at the end
-      const res = result.map(row => makeRequired(row))
-      const otherIndex = res.findIndex(x => x.name === 'Other')
+      const res = result.map((row) => makeRequired(row))
+      const otherIndex = res.findIndex((x) => x.name === 'Other')
       const other = res.splice(otherIndex, 1)[0]
       res.push(other)
       return res
@@ -887,7 +890,9 @@ export async function getActivePartnersForStudent(
     )
 
     if (result.length)
-      return result.map(row => makeSomeOptional(row, ['schoolId', 'siteName']))
+      return result.map((row) =>
+        makeSomeOptional(row, ['schoolId', 'siteName'])
+      )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -900,16 +905,14 @@ export async function getStudentIdsForGradeLevelSgUpdate(): Promise<Ulid[]> {
       getClient()
     )
 
-    if (result.length) return result.map(row => makeRequired(row).userId)
+    if (result.length) return result.map((row) => makeRequired(row).userId)
     return []
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function countDuplicateStudentVolunteerFavorites(): Promise<
-  number
-> {
+export async function countDuplicateStudentVolunteerFavorites(): Promise<number> {
   try {
     const result = await pgQueries.countDuplicateStudentVolunteerFavorites.run(
       undefined,
@@ -958,7 +961,7 @@ export async function getStudentProfileByUserId(
   userId: Ulid
 ): Promise<Student> {
   const students = await getStudentProfilesByUserIds(getClient(), [userId])
-  if (students.length) return (students[0] as unknown) as Student
+  if (students.length) return students[0] as unknown as Student
   else
     throw new RepoReadError(
       `getStudentProfileByUserId: Could not find student with user id ${userId}`
@@ -976,7 +979,7 @@ export async function getStudentProfilesByUserIds(
       tc
     )
     if (result.length) {
-      return result.map(r => makeSomeOptional(r, ['gradeLevel', 'schoolId']))
+      return result.map((r) => makeSomeOptional(r, ['gradeLevel', 'schoolId']))
     }
 
     return []

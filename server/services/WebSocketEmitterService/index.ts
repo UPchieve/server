@@ -73,7 +73,7 @@ export class WebSocketEmitter {
 
   public removeClientFromRoom(ws: UpgradedWebSocket, roomId: string) {
     this.rooms[roomId] = this.rooms[roomId].filter(
-      roomClients => roomClients.id !== ws.id
+      (roomClients) => roomClients.id !== ws.id
     )
     if (this.rooms[roomId].length === 0) delete this.rooms[roomId]
   }

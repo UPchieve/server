@@ -211,7 +211,7 @@ export async function getAssociatedPartner(
   // should have priority matching with its partner volunteer org counterpart
   if (
     partnerOrg &&
-    config.priorityMatchingPartnerOrgs.some(org => partnerOrg === org)
+    config.priorityMatchingPartnerOrgs.some((org) => partnerOrg === org)
   )
     return await getAssociatedPartnerByPartnerOrg(partnerOrg)
 
@@ -219,12 +219,12 @@ export async function getAssociatedPartner(
     // Determine if the student's school belongs to a sponsor org that
     // should have priority matching with its partner volunteer org counterpart
     const sponsorOrgs = await getSponsorOrgs()
-    const matchingOrg = sponsorOrgs.find(org => org.key === sponsorOrg)
+    const matchingOrg = sponsorOrgs.find((org) => org.key === sponsorOrg)
     if (
       highSchoolId &&
       matchingOrg &&
       Array.isArray(matchingOrg.schoolIds) &&
-      matchingOrg.schoolIds.some(schoolId => schoolId === highSchoolId)
+      matchingOrg.schoolIds.some((schoolId) => schoolId === highSchoolId)
     )
       return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
 
@@ -250,9 +250,8 @@ export async function notifyVolunteer(
   )
   if (!student) return
 
-  const favoriteVolunteers = await StudentsRepo.getFavoriteVolunteersByStudentId(
-    student.id
-  )
+  const favoriteVolunteers =
+    await StudentsRepo.getFavoriteVolunteersByStudentId(student.id)
 
   const associatedPartner = student.studentPartnerOrg
     ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
@@ -292,9 +291,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(15, 'minutes')
-            .toDate(),
+          lastNotified: moment().subtract(15, 'minutes').toDate(),
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
@@ -309,9 +306,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(3, 'days')
-            .toDate(),
+          lastNotified: moment().subtract(3, 'days').toDate(),
           isPartner: true,
           highLevelSubjects,
           disqualifiedVolunteers,
@@ -325,9 +320,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(3, 'days')
-            .toDate(),
+          lastNotified: moment().subtract(3, 'days').toDate(),
           isPartner: false,
           highLevelSubjects,
           disqualifiedVolunteers,
@@ -342,9 +335,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(1, 'day')
-            .toDate(),
+          lastNotified: moment().subtract(1, 'day').toDate(),
           isPartner: true,
           highLevelSubjects,
           disqualifiedVolunteers,
@@ -358,9 +349,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(1, 'day')
-            .toDate(),
+          lastNotified: moment().subtract(1, 'day').toDate(),
           isPartner: false,
           highLevelSubjects,
           disqualifiedVolunteers,
@@ -373,9 +362,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(1, 'day')
-            .toDate(),
+          lastNotified: moment().subtract(1, 'day').toDate(),
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
@@ -388,9 +375,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(1, 'hour')
-            .toDate(),
+          lastNotified: moment().subtract(1, 'hour').toDate(),
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
@@ -403,9 +388,7 @@ export async function notifyVolunteer(
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
-          lastNotified: moment()
-            .subtract(15, 'minutes')
-            .toDate(),
+          lastNotified: moment().subtract(15, 'minutes').toDate(),
           isPartner: undefined,
           highLevelSubjects: undefined,
           disqualifiedVolunteers,
@@ -421,10 +404,11 @@ export async function notifyVolunteer(
   for (const priorityFilter of volunteerPriority) {
     volunteer = await priorityFilter.query()
     if (volunteer) {
-      const volunteerMutedSubject = await VolunteerRepo.checkIfVolunteerMutedSubject(
-        volunteer.id,
-        session.subject
-      )
+      const volunteerMutedSubject =
+        await VolunteerRepo.checkIfVolunteerMutedSubject(
+          volunteer.id,
+          session.subject
+        )
       if (volunteerMutedSubject) {
         volunteer = undefined
         continue
@@ -570,7 +554,7 @@ export async function fetchOrCreateRateLimit() {
     .rateLimits.list()
 
   const targetRateLimit = rateLimits.find(
-    rateLimit =>
+    (rateLimit) =>
       rateLimit.uniqueName === config.twilioVerificationRateLimitUniqueName
   )
   if (targetRateLimit) {

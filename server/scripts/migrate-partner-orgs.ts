@@ -32,9 +32,7 @@ function parseJsonFile(file: any): PartnerRepresentation[] {
   return out
 }
 
-export default async function migrateHistoricalPartnershipsData(): Promise<
-  void
-> {
+export default async function migrateHistoricalPartnershipsData(): Promise<void> {
   const client = await getClient().connect()
 
   try {

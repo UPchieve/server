@@ -29,15 +29,13 @@ export async function getIncorrectHourSummaryStats(
   fromDate: Date,
   toDate: Date
 ): Promise<HourSummaryStats> {
-  const [
-    quizzesPassed,
-    elapsedAvailability,
-    timeTutoredMS,
-  ] = await Promise.all([
-    getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
-    getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
-    getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
-  ])
+  const [quizzesPassed, elapsedAvailability, timeTutoredMS] = await Promise.all(
+    [
+      getQuizzesPassedForDateRange(volunteerId, fromDate, toDate),
+      getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
+      getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
+    ]
+  )
 
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2)
   const totalCoachingHours = Number(timeTutoredInHours)
@@ -59,14 +57,8 @@ export async function getIncorrectHourSummaryStats(
 
 export default async function sendWeeklyHourSummaryApology(): Promise<void> {
   //  Monday-Sunday
-  const lastMonday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .startOf('isoWeek')
-  const lastSunday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .endOf('isoWeek')
+  const lastMonday = moment().utc().subtract(1, 'weeks').startOf('isoWeek')
+  const lastSunday = moment().utc().subtract(1, 'weeks').endOf('isoWeek')
 
   const volunteers = await getVolunteersForWeeklyHourSummary()
 
@@ -82,7 +74,7 @@ export default async function sendWeeklyHourSummaryApology(): Promise<void> {
     } = volunteer
     try {
       const customCheck = config.customVolunteerPartnerOrgs.some(
-        org => org === volunteerPartnerOrg
+        (org) => org === volunteerPartnerOrg
       )
       let summaryStats
       let incorrectSummaryStats
