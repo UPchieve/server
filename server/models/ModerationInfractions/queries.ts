@@ -72,7 +72,7 @@ export async function getModerationInfractionsByUserAndSession(
       client
     )
     if (!result.length) return []
-    return result.map(r => {
+    return result.map((r) => {
       const camelCase = camelCaseKeys(r)
       return {
         id: camelCase.id,

@@ -5,31 +5,29 @@ import multer from 'multer'
 import { asString } from '../../utils/type-utils'
 
 export function routeAssignments(router: Router): void {
-  router.get('/assignment/:assignmentId', async function(req, res) {
+  router.get('/assignment/:assignmentId', async function (req, res) {
     try {
       const assignmentId = req.params.assignmentId as string
-      const assignment = await AssignmentsService.getAssignmentById(
-        assignmentId
-      )
+      const assignment =
+        await AssignmentsService.getAssignmentById(assignmentId)
       res.json({ assignment })
     } catch (err) {
       resError(res, err)
     }
   })
 
-  router.get('/assignment/:assignmentId/students', async function(req, res) {
+  router.get('/assignment/:assignmentId/students', async function (req, res) {
     try {
       const assignmentId = req.params.assignmentId as string
-      const studentAssignments = await AssignmentsService.getStudentAssignmentCompletion(
-        assignmentId
-      )
+      const studentAssignments =
+        await AssignmentsService.getStudentAssignmentCompletion(assignmentId)
       res.json({ studentAssignments })
     } catch (err) {
       resError(res, err)
     }
   })
 
-  router.delete('/assignment/:assignmentId', async function(req, res) {
+  router.delete('/assignment/:assignmentId', async function (req, res) {
     try {
       const assignmentId = asString(req.params.assignmentId)
       if (assignmentId) {
@@ -63,9 +61,8 @@ export function routeAssignments(router: Router): void {
   router.get('/assignment/:assignmentId/documents', async (req, res) => {
     try {
       const assignmentId = asString(req.params.assignmentId)
-      const assignmentDocuments = await AssignmentsService.getAssignmentDocuments(
-        assignmentId
-      )
+      const assignmentDocuments =
+        await AssignmentsService.getAssignmentDocuments(assignmentId)
 
       res.json({ assignmentDocuments })
     } catch (err) {

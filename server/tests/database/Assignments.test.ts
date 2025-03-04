@@ -126,7 +126,7 @@ describe('createStudentsAssignmentsForAll', () => {
       [assignment1.id, assignment2.id]
     )
     expect(actualRows.rowCount).toBe(4)
-    const actual = actualRows.rows.map(r =>
+    const actual = actualRows.rows.map((r) =>
       makeSomeOptional(r, ['submittedAt'])
     )
     expect(result).toEqual(expect.objectContaining(actual))
@@ -146,9 +146,8 @@ describe('getAssignmentsByClassId', () => {
     // One assignment for `otherTeacherClass`.
     await createTestAssignment(otherTeacherClass.id)
 
-    const teacherClassAssignments = await AssignmentsRepo.getAssignmentsByClassId(
-      teacherClass.id
-    )
+    const teacherClassAssignments =
+      await AssignmentsRepo.getAssignmentsByClassId(teacherClass.id)
     expect(teacherClassAssignments.length).toBe(3)
     for (const c of teacherClassAssignments) {
       expect(c).toMatchObject({
@@ -167,9 +166,8 @@ describe('getAssignmentsByClassId', () => {
       })
     }
 
-    const otherTeacherClassAssignments = await AssignmentsRepo.getAssignmentsByClassId(
-      otherTeacherClass.id
-    )
+    const otherTeacherClassAssignments =
+      await AssignmentsRepo.getAssignmentsByClassId(otherTeacherClass.id)
     expect(otherTeacherClassAssignments.length).toBe(1)
     for (const c of teacherClassAssignments) {
       expect(c).toMatchObject({

@@ -60,16 +60,12 @@ describe('VolunteerRepo', () => {
         // 2 hours old notification
         recentlyNotifiedVolunteer.id,
         completedUnmatchedSession.id,
-        moment()
-          .subtract(2, 'hours')
-          .toDate()
+        moment().subtract(2, 'hours').toDate()
       )
 
       const result = await getNextVolunteerToNotify({
         subject: 'prealgebra',
-        lastNotified: moment()
-          .subtract(3, 'hours')
-          .toDate(),
+        lastNotified: moment().subtract(3, 'hours').toDate(),
         isPartner: false,
         highLevelSubjects: undefined,
         disqualifiedVolunteers: undefined,
@@ -136,7 +132,7 @@ describe('VolunteerRepo', () => {
       // Make volunteer1 available every day except today
       const currentDayOfWeek = new Date().toDateString().split(' ')[0] // i.e. Mon
       const currentAvailabilityDay = DAYS.find(
-        d => d.toLowerCase().slice(0, 3) == currentDayOfWeek.toLowerCase()
+        (d) => d.toLowerCase().slice(0, 3) == currentDayOfWeek.toLowerCase()
       )!
       const availability = omit(buildFullAvailability(), currentAvailabilityDay)
       await loadVolunteerAvailability(v1.id, availability as Availability)
@@ -213,7 +209,7 @@ describe('VolunteerRepo', () => {
 
     it.each([undefined, false])(
       'Does not return a partner volunteer from `specificPartner` if isPartner=%s',
-      async isPartner => {
+      async (isPartner) => {
         // If specificPartner is passed, it must be true that isPartner = true for it to return a volunteer.
         const partnerOrg = 'health-co'
         const vol = await loadVolunteer({ partner: partnerOrg })

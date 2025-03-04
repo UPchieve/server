@@ -23,7 +23,7 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
   if (rows.length > 2) {
     throw new Error('Found more than 2 feedbacks for a session')
   }
-  const newRows = rows.map(v =>
+  const newRows = rows.map((v) =>
     makeSomeOptional(v, [
       'legacyFeedbacks',
       'studentCounselingFeedback',

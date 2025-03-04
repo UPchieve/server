@@ -33,7 +33,7 @@ export default async (
     const start = moment(startDate).utc()
     const end = moment(endDate).utc()
     const customCheck = config.customVolunteerPartnerOrgs.some(
-      org => org === volunteerPartnerOrg
+      (org) => org === volunteerPartnerOrg
     )
     let summaryStats
     if (volunteer.sentHourSummaryIntroEmail === undefined) return

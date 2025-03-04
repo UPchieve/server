@@ -179,9 +179,8 @@ export async function registerPartnerVolunteer(
   // Volunteer partner org check
   let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration
   try {
-    volunteerPartnerManifest = await getVolunteerPartnerOrgForRegistrationByKey(
-      volunteerPartnerOrg
-    )
+    volunteerPartnerManifest =
+      await getVolunteerPartnerOrgForRegistrationByKey(volunteerPartnerOrg)
   } catch (err) {
     throw new RegistrationError('Invalid volunteer partner organization')
   }

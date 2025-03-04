@@ -4,7 +4,7 @@ export const buildIdAnswerMapHelper = (
   questions: QuestionRepo.Question[],
   incorrectAnswerAmount = 0
 ): { [id: string]: string } => {
-  const idAnswerList = questions.map(question => {
+  const idAnswerList = questions.map((question) => {
     const data: any = {}
     const questionId = question.id
     data[questionId] = question.correctAnswer

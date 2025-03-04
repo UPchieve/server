@@ -8,7 +8,7 @@ import { getApiKeyFromHeader } from '../../utils/auth-utils'
 
 const PgStore = CreatePgStore(session)
 
-export default function(app: Express) {
+export default function (app: Express) {
   const store = new PgStore({
     pool: getClient(),
     schemaName: 'auth',
@@ -48,7 +48,7 @@ export default function(app: Express) {
     ]
     const apiKey = getApiKeyFromHeader(req)
     if (
-      exclusions.some(ex => req.url.indexOf(ex) !== -1) ||
+      exclusions.some((ex) => req.url.indexOf(ex) !== -1) ||
       (apiKey && apiKey === config.subwayApiCredentials)
     ) {
       next()

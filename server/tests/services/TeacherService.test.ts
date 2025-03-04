@@ -270,9 +270,8 @@ describe('getTeacherSchoolIdFromClassCode', () => {
 
   test('returns undefined if no class with the class code', async () => {
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(undefined)
-    const result = await TeacherService.getTeacherSchoolIdFromClassCode(
-      '@noth3R-C0D3'
-    )
+    const result =
+      await TeacherService.getTeacherSchoolIdFromClassCode('@noth3R-C0D3')
     expect(result).toBeUndefined()
   })
 
@@ -292,9 +291,8 @@ describe('getTeacherSchoolIdFromClassCode', () => {
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
     mockedTeacherRepo.getTeacherById.mockResolvedValue(undefined)
 
-    const result = await TeacherService.getTeacherSchoolIdFromClassCode(
-      'mo@r-c0d3'
-    )
+    const result =
+      await TeacherService.getTeacherSchoolIdFromClassCode('mo@r-c0d3')
     expect(result).toBeUndefined()
   })
 })

@@ -48,22 +48,23 @@ const sendVerificationCommon = async (
   }
 }
 export function routeVerify(router: Router) {
-  router
-    .route('/verify/send')
-    .post(async function(req: Request, res: Response) {
-      await sendVerificationCommon(req, res)
-    })
+  router.route('/verify/send').post(async function (
+    req: Request,
+    res: Response
+  ) {
+    await sendVerificationCommon(req, res)
+  })
 
   router
     .route('/verify/v2/send')
-    .post(authPassport.checkRecaptcha, async function(
-      req: Request,
-      res: Response
-    ) {
-      await sendVerificationCommon(req, res)
-    })
+    .post(
+      authPassport.checkRecaptcha,
+      async function (req: Request, res: Response) {
+        await sendVerificationCommon(req, res)
+      }
+    )
 
-  router.route('/verify/confirm').post(async function(req, res) {
+  router.route('/verify/confirm').post(async function (req, res) {
     const user = extractUser(req)
     const payload = {
       userId: user.id,

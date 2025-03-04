@@ -257,7 +257,7 @@ export async function getUserRewards(
     )
     const rewardIds = paginatedRewards
       .filter((reward): reward is { id: string } => !!reward.id)
-      .map(reward => reward.id)
+      .map((reward) => reward.id)
 
     /**
      *
@@ -266,18 +266,17 @@ export async function getUserRewards(
      *
      */
     const rewardsData = await Promise.all(
-      rewardIds.map(id => getUserRewardByRewardId(id))
+      rewardIds.map((id) => getUserRewardByRewardId(id))
     )
 
     const allCampaigns = await getCampaigns()
-    const isEmbeddedRewardsEnabled = await isTremendousEmbeddedRewardsEnabled(
-      userId
-    )
+    const isEmbeddedRewardsEnabled =
+      await isTremendousEmbeddedRewardsEnabled(userId)
 
     for (const reward of rewardsData) {
       if (!reward?.id || reward.delivery?.method !== 'LINK') continue
       const campaignId = reward.custom_fields?.find(
-        field => field.label === CustomFieldLabels.CAMPAIGN_ID
+        (field) => field.label === CustomFieldLabels.CAMPAIGN_ID
       )?.value
       const campaign =
         campaignId && allCampaigns[campaignId]

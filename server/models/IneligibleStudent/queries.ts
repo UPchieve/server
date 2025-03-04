@@ -54,7 +54,7 @@ export async function getIneligibleStudentsPaginated(
       { limit, offset },
       getClient()
     )
-    return result.map(v => {
+    return result.map((v) => {
       const ret = makeSomeRequired(v, ['createdAt', 'email', 'updatedAt'])
       ret.email = ret.email.toLowerCase()
       return ret

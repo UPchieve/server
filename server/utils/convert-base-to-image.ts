@@ -10,9 +10,7 @@ export async function convertBase64ToImage(
   const extension = contentType.split('/')[1]
   const outputBuffer =
     extension === 'webp'
-      ? await sharp(inputBuffer)
-          .png({ quality: 90 })
-          .toBuffer()
+      ? await sharp(inputBuffer).png({ quality: 90 }).toBuffer()
       : inputBuffer
   return outputBuffer
 }

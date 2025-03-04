@@ -55,7 +55,9 @@ export async function getTotalElapsedAvailabilityForDateRange(
 
   let totalElapsedAvailability = 0
   const allDocs = historyDocs.concat(legacyDocs)
-  const byDay = _.groupBy(allDocs, doc => moment(doc.recordedAt).startOf('day'))
+  const byDay = _.groupBy(allDocs, (doc) =>
+    moment(doc.recordedAt).startOf('day')
+  )
   for (const day in byDay) {
     const doc = byDay[day].sort((a, b) =>
       a.recordedAt > b.recordedAt ? 1 : -1

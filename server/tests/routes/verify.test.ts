@@ -230,8 +230,7 @@ describe('verify', () => {
         expect(res).toMatchObject({
           status: 403,
           body: {
-            err:
-              'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.',
+            err: 'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.',
           },
         })
       })
@@ -254,15 +253,14 @@ describe('verify', () => {
         expect(response).toMatchObject({
           status: 429,
           body: {
-            err:
-              "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one.",
+            err: "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one.",
           },
         })
       })
 
       it.each([400, 404, 500])(
         'Should return 500 when Twilio throws a %s',
-        async twilioStatusCode => {
+        async (twilioStatusCode) => {
           const expectedErr = new TwilioError(
             'Some error message',
             twilioStatusCode
@@ -281,8 +279,7 @@ describe('verify', () => {
           expect(response).toMatchObject({
             status: 500,
             body: {
-              err:
-                'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.',
+              err: 'We were unable to send you a verification code. Please contact the UPchieve team at support@upchieve.org for help.',
             },
           })
         }
@@ -297,7 +294,7 @@ describe('verify', () => {
 
     it.each([false, true, undefined])(
       'Should correctly handle optional field forSignup',
-      async forSignup => {
+      async (forSignup) => {
         const req = {
           userId: '123',
           sendTo: 'hellothere@gmail.com',
@@ -332,8 +329,7 @@ describe('verify', () => {
         expect(res).toMatchObject({
           status: 400,
           body: {
-            err:
-              'The code has expired. Please request a new verification code and try again.',
+            err: 'The code has expired. Please request a new verification code and try again.',
           },
         })
       })
@@ -354,8 +350,7 @@ describe('verify', () => {
         expect(res).toMatchObject({
           status: 500,
           body: {
-            err:
-              'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
+            err: 'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
           },
         })
       })
@@ -376,8 +371,7 @@ describe('verify', () => {
         expect(res).toMatchObject({
           status: 500,
           body: {
-            err:
-              'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
+            err: 'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
           },
         })
       })
@@ -400,8 +394,7 @@ describe('verify', () => {
         expect(res).toMatchObject({
           status: 403,
           body: {
-            err:
-              'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.',
+            err: 'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.',
           },
         })
       })

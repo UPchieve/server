@@ -52,12 +52,8 @@ for (const metric of Object.values(METRIC_PROCESSORS)) {
 
 // registered as listener on session-ended
 export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
-  const {
-    session,
-    studentUSM,
-    volunteerUSM,
-    surveyResponses,
-  } = await getValuesToPrepareMetrics(sessionId)
+  const { session, studentUSM, volunteerUSM, surveyResponses } =
+    await getValuesToPrepareMetrics(sessionId)
   const payload = await prepareMetrics(
     SESSION_METRICS_PROCESSORS,
     session,
@@ -72,12 +68,8 @@ export async function prepareSessionProcessors(sessionId: Ulid): Promise<void> {
 export async function prepareFeedbackProcessors(
   sessionId: Ulid
 ): Promise<void> {
-  const {
-    session,
-    studentUSM,
-    volunteerUSM,
-    surveyResponses,
-  } = await getValuesToPrepareMetrics(sessionId)
+  const { session, studentUSM, volunteerUSM, surveyResponses } =
+    await getValuesToPrepareMetrics(sessionId)
   const payload = await prepareMetrics(
     FEEDBACK_METRICS_PROCESSORS,
     session,
@@ -90,12 +82,8 @@ export async function prepareFeedbackProcessors(
 
 // registered as listener on session-reported
 export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
-  const {
-    session,
-    studentUSM,
-    volunteerUSM,
-    surveyResponses,
-  } = await getValuesToPrepareMetrics(asString(sessionId))
+  const { session, studentUSM, volunteerUSM, surveyResponses } =
+    await getValuesToPrepareMetrics(asString(sessionId))
 
   const payload = await prepareMetrics(
     REPORT_METRICS_PROCESSORS,
@@ -107,18 +95,15 @@ export async function prepareReportProcessors(sessionId: Ulid): Promise<void> {
   emitter.emit(USM_EVENTS.REPORT_PROCESSORS_READY, payload)
 }
 
-export async function getValuesToPrepareMetrics(
-  sessionId: Ulid
-): Promise<{
+export async function getValuesToPrepareMetrics(sessionId: Ulid): Promise<{
   session: Session
   studentUSM: UserSessionMetrics
   volunteerUSM?: UserSessionMetrics
   surveyResponses?: PostsessionSurveyResponse[]
 }> {
   const session = await getSessionById(sessionId)
-  const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
-    sessionId
-  )
+  const surveyResponses =
+    await getPostsessionSurveyResponsesForSessionMetrics(sessionId)
   const uvd = { session } as UpdateValueData
 
   const studentUSM = await getUSMByUserId(uvd.session.studentId)
@@ -152,9 +137,8 @@ export async function prepareMetrics(
   const outputs: MetricProcessorOutputs = {}
   for (const metric of metrics) {
     try {
-      outputs[
-        metric.constructor.name as keyof MetricProcessorOutputs
-      ] = metric.computeUpdateValue(uvd)
+      outputs[metric.constructor.name as keyof MetricProcessorOutputs] =
+        metric.computeUpdateValue(uvd)
     } catch (err) {
       logger.error(
         `Metrics processor ${metric.constructor.name} failed to compute update value`
@@ -381,7 +365,7 @@ export const processTriggerMetricActions = metricProcessorFactory(
   (acc: Promise<void>[][]): Promise<void>[] => acc.flat(),
   async (actions: Promise<void>[], session: Session): Promise<void> => {
     const results = await Promise.allSettled(actions)
-    results.forEach(result => {
+    results.forEach((result) => {
       if (result.status === 'rejected')
         logger.error(
           `failed to trigger side effect action for session: ${session.id} - error: ${result.reason}`

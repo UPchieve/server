@@ -28,12 +28,8 @@ export default async (
   job: Job<StudentSessionActionsJobData>
 ): Promise<void> => {
   const { data, name: currentJob } = job
-  const {
-    studentId,
-    volunteerId,
-    sessionSubtopic,
-    sessionDate,
-  } = asStudentActionsData(data)
+  const { studentId, volunteerId, sessionSubtopic, sessionDate } =
+    asStudentActionsData(data)
   const student = await getStudentContactInfoById(studentId)
   let volunteer
   if (volunteerId) volunteer = await getVolunteerContactInfoById(volunteerId)

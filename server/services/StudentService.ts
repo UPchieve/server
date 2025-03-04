@@ -74,9 +74,8 @@ export async function checkAndUpdateVolunteerFavoriting(
 ) {
   return await runInTransaction(async (tc: TransactionClient) => {
     if (isFavorite) {
-      const totalFavoriteVolunteers = await StudentRepo.getTotalFavoriteVolunteers(
-        studentId.toString()
-      )
+      const totalFavoriteVolunteers =
+        await StudentRepo.getTotalFavoriteVolunteers(studentId.toString())
       if (totalFavoriteVolunteers >= config.favoriteVolunteerLimit) {
         throw new FavoriteLimitReachedError('Favorite volunteer limit reached.')
       }
@@ -149,10 +148,9 @@ export async function getStudentByEmail(
 export async function getActiveClassesForStudent(
   studentId: Ulid
 ): Promise<TeacherClassResult[]> {
-  const teacherClasses = await TeacherClassRepo.getTeacherClassesForStudent(
-    studentId
-  )
-  return teacherClasses.filter(c => c.active)
+  const teacherClasses =
+    await TeacherClassRepo.getTeacherClassesForStudent(studentId)
+  return teacherClasses.filter((c) => c.active)
 }
 
 export async function updateStudentSchool(
@@ -168,10 +166,11 @@ export async function updateStudentSchool(
 
     // Deactivate the previous school SPO instance if necessary.
     if (!previousSchoolId) return
-    const previousSchoolSpo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-      tc,
-      previousSchoolId
-    )
+    const previousSchoolSpo =
+      await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+        tc,
+        previousSchoolId
+      )
     if (previousSchoolSpo) {
       await StudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance(
         tc,
@@ -182,10 +181,11 @@ export async function updateStudentSchool(
 
     // Activate the new school SPO instance if necessary.
     if (!newSchoolId) return
-    const newSchoolSpo = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-      tc,
-      newSchoolId
-    )
+    const newSchoolSpo =
+      await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+        tc,
+        newSchoolId
+      )
     if (newSchoolSpo) {
       await StudentPartnerOrgRepo.createUserStudentPartnerOrgInstance(
         {

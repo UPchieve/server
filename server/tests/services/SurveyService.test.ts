@@ -41,9 +41,8 @@ describe('getContextSharingForVolunteer', () => {
     )
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(mockSession)
 
-    const result = await SurveyService.getContextSharingForVolunteer(
-      getDbUlid()
-    )
+    const result =
+      await SurveyService.getContextSharingForVolunteer(getDbUlid())
 
     const expected = {
       responses: mockedSurveyReponse,
@@ -215,10 +214,11 @@ describe('getPostsessionSurveyDefinition', () => {
       },
     ])
 
-    const actualSurveyDefinition = await SurveyService.getPostsessionSurveyDefinition(
-      'session-id',
-      'student'
-    )
+    const actualSurveyDefinition =
+      await SurveyService.getPostsessionSurveyDefinition(
+        'session-id',
+        'student'
+      )
 
     expect(actualSurveyDefinition).toBeDefined()
     expect(actualSurveyDefinition?.surveyId).toBe(10)
@@ -279,10 +279,11 @@ describe('getPostsessionSurveyDefinition', () => {
       },
     ])
 
-    const actualSurveyDefinition = await SurveyService.getPostsessionSurveyDefinition(
-      'session-id',
-      'student'
-    )
+    const actualSurveyDefinition =
+      await SurveyService.getPostsessionSurveyDefinition(
+        'session-id',
+        'student'
+      )
 
     expect(actualSurveyDefinition?.survey.length).toBe(0)
   })

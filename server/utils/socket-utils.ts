@@ -10,7 +10,7 @@ export async function getSocketIdsFromRoom(
   room: string
 ): Promise<string[]> {
   const sockets = await getSocketsFromRoom(io, room)
-  return sockets.map(socket => socket.id)
+  return sockets.map((socket) => socket.id)
 }
 
 export function remoteJoinRoom(io: Server, socketId: string, room: string) {
@@ -33,12 +33,10 @@ export async function emitSessionPresence(
   room: string
 ) {
   const userSocketIds = await getSocketIdsFromRoom(io, userId)
-  io.to(room)
-    .except(userId)
-    .emit('sessions/partner:in-session', true)
+  io.to(room).except(userId).emit('sessions/partner:in-session', true)
   const sessionSocketIds = await getSocketIdsFromRoom(io, room)
   const partnerSocketIds = sessionSocketIds.filter(
-    id => !userSocketIds.includes(id)
+    (id) => !userSocketIds.includes(id)
   )
   // Emit to self if session partner is in session or not
   io.to(socketId).emit('sessions/partner:in-session', !!partnerSocketIds.length)

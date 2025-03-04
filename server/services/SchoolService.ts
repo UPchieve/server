@@ -13,7 +13,7 @@ import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
 
 // helper to escape regex special characters
 function escapeRegex(str: string) {
-  return str.replace(/[.*|\\+?{}()[^$]/g, c => '\\' + c)
+  return str.replace(/[.*|\\+?{}()[^$]/g, (c) => '\\' + c)
 }
 
 type SchoolForFrontend = {
@@ -37,7 +37,7 @@ export async function search(query: string): Promise<SchoolForFrontend[]> {
       }
       return 0
     })
-    .map(school => {
+    .map((school) => {
       return {
         id: school.id,
         upchieveId: school.id,
@@ -110,10 +110,11 @@ export function updateApproval(schoolId: Ulid, isApproved: boolean) {
 }
 
 export async function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
-  const existingStudentPartnerOrg = await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-    getClient(),
-    schoolId
-  )
+  const existingStudentPartnerOrg =
+    await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+      getClient(),
+      schoolId
+    )
   return SchoolRepo.updateIsPartner(
     schoolId,
     isPartner,

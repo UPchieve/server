@@ -12,7 +12,7 @@ export async function getAssociatedPartners(): Promise<AssociatedPartner[]> {
       undefined,
       getClient()
     )
-    const orgs: AssociatedPartner[] = result.map(org =>
+    const orgs: AssociatedPartner[] = result.map((org) =>
       makeSomeOptional(org, [
         'studentPartnerOrg',
         'studentPartnerOrgId',
@@ -97,10 +97,11 @@ export async function getAssociatedPartnerByVolunteerPartnerKey(
   key: string
 ): Promise<AssociatedPartner | undefined> {
   try {
-    const result = await pgQueries.getAssociatedPartnerByVolunteerPartnerKey.run(
-      { key },
-      getClient()
-    )
+    const result =
+      await pgQueries.getAssociatedPartnerByVolunteerPartnerKey.run(
+        { key },
+        getClient()
+      )
     if (result.length)
       return makeSomeOptional(result[0], [
         'studentPartnerOrg',
@@ -117,9 +118,8 @@ export async function getAssociatedPartnerByVolunteerPartnerKey(
 export async function getAssociatedPartnersAndSchools(
   partnerOrg: string
 ): Promise<AssociatedPartnersAndSchools> {
-  const associatedPartner = await getAssociatedPartnerByVolunteerPartnerKey(
-    partnerOrg
-  )
+  const associatedPartner =
+    await getAssociatedPartnerByVolunteerPartnerKey(partnerOrg)
   const associatedStudentPartnerOrgs: string[] = []
   const associatedPartnerSchools: string[] = []
 

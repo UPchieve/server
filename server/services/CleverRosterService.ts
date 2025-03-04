@@ -88,7 +88,7 @@ export async function rosterDistrict(
           parsedGradeLevel?: number
         }[] = []
         const students = cleverStudents
-          .filter(s => {
+          .filter((s) => {
             const grade = CleverAPIService.parseCleverGrade(
               s.roles.student.grade
             )
@@ -103,7 +103,7 @@ export async function rosterDistrict(
             })
             return false
           })
-          .map(s => {
+          .map((s) => {
             return {
               firstName: s.name.first,
               lastName: s.name.last,
@@ -119,8 +119,11 @@ export async function rosterDistrict(
           false
         )
 
-        const { created = [], updated = [], failed = [] } =
-          upsertReport.updatedSchools[school.id] || {}
+        const {
+          created = [],
+          updated = [],
+          failed = [],
+        } = upsertReport.updatedSchools[school.id] || {}
         upsertReport.updatedSchools[school.id] = {
           upchieveSchoolId: upchieveSchool.id,
           created: [...created, ...result.created],
@@ -177,7 +180,7 @@ export async function rosterTeacherClasses(
     const cleverStudentIdToUcId = new Map<CleverId, UcId>(
       (
         await Promise.all(
-          cleverTeacherStudents.map(async cleverStudent => {
+          cleverTeacherStudents.map(async (cleverStudent) => {
             const ucStudent = await findOrCreateUpchieveStudent(
               cleverStudent,
               teacher.schoolId,
@@ -198,16 +201,13 @@ export async function rosterTeacherClasses(
     const cleverClassIdToCleverClass = new Map<
       CleverId,
       CleverAPIService.TCleverSectionData
-    >(cleverClasses.map(cleverClass => [cleverClass.id, cleverClass]))
+    >(cleverClasses.map((cleverClass) => [cleverClass.id, cleverClass]))
 
-    const {
-      classesToAdd,
-      classesToUpdate,
-      classesToRemove,
-    } = categorizeTeacherClasses(
-      cleverClassIdToUcClass,
-      cleverClassIdToCleverClass
-    )
+    const { classesToAdd, classesToUpdate, classesToRemove } =
+      categorizeTeacherClasses(
+        cleverClassIdToUcClass,
+        cleverClassIdToCleverClass
+      )
 
     // Add all the new classes and students to those classes.
     for (const cleverId of classesToAdd) {
@@ -216,7 +216,7 @@ export async function rosterTeacherClasses(
       const newClass = await addCleverClass(teacherId, cleverClass, tc)
 
       const ucStudents = cleverClass.students
-        .map(cleverStudentId => {
+        .map((cleverStudentId) => {
           return cleverStudentIdToUcId.get(cleverStudentId)
         })
         .filter((s): s is UcId => !!s)
@@ -260,7 +260,7 @@ export async function rosterTeacherClasses(
 
     // Archive any classes that are no longer in Clever.
     await Promise.all(
-      classesToRemove.map(async cleverId => {
+      classesToRemove.map(async (cleverId) => {
         const ucClassId = cleverClassIdToUcClass.get(cleverId)?.id
         if (!ucClassId) return
         return TeacherService.deactivateTeacherClass(ucClassId, tc)
@@ -319,11 +319,11 @@ export function categorizeTeacherClasses(
   const cleverClassKeys = [...cleverClasses.keys()]
 
   // The Clever classes that we don't have in our db.
-  const classesToAdd = cleverClassKeys.filter(id => !ucClasses.has(id))
+  const classesToAdd = cleverClassKeys.filter((id) => !ucClasses.has(id))
   // The Clever classes that exist in both our db and from Clever.
-  const classesToUpdate = cleverClassKeys.filter(id => ucClasses.has(id))
+  const classesToUpdate = cleverClassKeys.filter((id) => ucClasses.has(id))
   // The Clever classes that are still in our db, but no longer in Clever.
-  const classesToRemove = ucClassKeys.filter(id => !cleverClasses.has(id))
+  const classesToRemove = ucClassKeys.filter((id) => !cleverClasses.has(id))
 
   return { classesToAdd, classesToUpdate, classesToRemove }
 }
@@ -353,16 +353,16 @@ export function categorizeStudentsInClass(
   cleverStudentIdToUcId: Map<CleverId, UcId>
 ) {
   const ucStudentsInCleverClass = cleverStudentsInCleverClass
-    .map(cleverId => cleverStudentIdToUcId.get(cleverId))
+    .map((cleverId) => cleverStudentIdToUcId.get(cleverId))
     .filter((cleverId): cleverId is CleverId => !!cleverId)
 
   const ucStudentSet = new Set<UcId>(ucStudentsInUcClass)
   const cleverStudentSet = new Set<UcId>(ucStudentsInCleverClass)
 
-  const studentsToAdd = ucStudentsInCleverClass.filter(ucId => {
+  const studentsToAdd = ucStudentsInCleverClass.filter((ucId) => {
     return !ucStudentSet.has(ucId)
   })
-  const studentsToRemove = ucStudentsInUcClass.filter(ucId => {
+  const studentsToRemove = ucStudentsInUcClass.filter((ucId) => {
     return !cleverStudentSet.has(ucId)
   })
 

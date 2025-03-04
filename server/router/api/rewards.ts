@@ -5,7 +5,7 @@ import { extractUser } from '../extract-user'
 import { asNumber } from '../../utils/type-utils'
 
 export function routeRewards(router: Router): void {
-  router.get('/rewards', async function(req, res) {
+  router.get('/rewards', async function (req, res) {
     try {
       const user = extractUser(req)
       const offset = asNumber(req.query.offset)

@@ -29,8 +29,7 @@ const insertBanReasonIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO ban_reasons (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO ban_reasons (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 28, b: 165, line: 2, col: 0 },
   },
 }
@@ -79,8 +78,7 @@ const insertGradeLevelIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO grade_levels (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO grade_levels (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 199, b: 337, line: 11, col: 0 },
   },
 }
@@ -129,8 +127,7 @@ const insertPhotoIdStatusIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO photo_id_statuses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO photo_id_statuses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 374, b: 517, line: 20, col: 0 },
   },
 }
@@ -179,8 +176,7 @@ const insertSignupSourceIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO signup_sources (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO signup_sources (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 553, b: 693, line: 29, col: 0 },
   },
 }
@@ -229,8 +225,7 @@ const insertUserRoleIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO user_roles (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO user_roles (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 725, b: 861, line: 38, col: 0 },
   },
 }
@@ -279,8 +274,7 @@ const insertVolunteerReferenceStatusIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO volunteer_reference_statuses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO volunteer_reference_statuses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 909, b: 1063, line: 47, col: 0 },
   },
 }

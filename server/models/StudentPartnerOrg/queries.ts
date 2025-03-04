@@ -93,7 +93,7 @@ export async function getStudentPartnerOrgs() {
       undefined,
       getClient()
     )
-    const orgs: StudentPartnerOrg[] = result.map(org => {
+    const orgs: StudentPartnerOrg[] = result.map((org) => {
       const temp = makeSomeOptional(org, ['sites'])
       return {
         ...temp,

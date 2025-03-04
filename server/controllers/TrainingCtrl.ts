@@ -46,7 +46,7 @@ export async function getQuestions(
   )
   const questionsBySubcategory = _.groupBy(
     isStandardizedCertsActive ? filteredSubcategoryQuestions : questions,
-    question => question.subcategory
+    (question) => question.subcategory
   )
 
   const shuffledQuestions = _.shuffle(
@@ -91,13 +91,13 @@ export async function getQuizScore(
     const { user, idAnswerMap, ip } = options
     const cert = options.category
     const objIDs = Object.keys(idAnswerMap)
-    const numIDs = objIDs.map(id => Number(id))
+    const numIDs = objIDs.map((id) => Number(id))
     const questions = await QuestionModel.getMultipleQuestionsById(numIDs)
     const SUBJECT_THRESHOLD = 0.8
     const TRAINING_THRESHOLD = 0.9
 
     const score = questions.filter(
-      question => question.correctAnswer === idAnswerMap[question.id]
+      (question) => question.correctAnswer === idAnswerMap[question.id]
     ).length
 
     const percent = score / questions.length
@@ -130,7 +130,7 @@ export async function getQuizScore(
         tc
       )
       const unlockedSubjects = quizCertUnlocks.map(
-        cert => cert.unlockedCertName
+        (cert) => cert.unlockedCertName
       )
 
       const currentSubjects = await VolunteerModel.getSubjectsForVolunteer(
@@ -153,10 +153,8 @@ export async function getQuizScore(
         }
       }
       // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
-      const volunteerProfile = await VolunteerModel.getVolunteerForOnboardingById(
-        user.id,
-        tc
-      )
+      const volunteerProfile =
+        await VolunteerModel.getVolunteerForOnboardingById(user.id, tc)
       const hasSubjects =
         unlockedSubjects.length > 0 || currentSubjects.length > 0
       const passedUpchieve101 =
@@ -298,5 +296,5 @@ export function filterSubtopicsFromQuestions(
   }
 
   const subtopicsToFilter = new Set(filterSubtopicsOut[subject])
-  return questions.filter(q => !subtopicsToFilter.has(q.subcategory))
+  return questions.filter((q) => !subtopicsToFilter.has(q.subcategory))
 }

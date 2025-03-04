@@ -12,7 +12,7 @@ export async function getPushTokensByUserId(
       { userId },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map((v) => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }

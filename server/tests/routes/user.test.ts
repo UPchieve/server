@@ -87,7 +87,7 @@ describe('PUT /user', () => {
 
   it.each(['', false, null])(
     'Should throw an error when phone is invalid (phone = %s)',
-    async phone => {
+    async (phone) => {
       const request = {
         userId: '123',
         phone,

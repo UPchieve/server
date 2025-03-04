@@ -173,7 +173,7 @@ class LowCoachRatingFromStudent extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const coachRatingFromStudent = uvd.surveyResponses?.find(
-      resp =>
+      (resp) =>
         resp.questionText === 'Overall, how supportive was your coach today?'
     )?.score
     if (coachRatingFromStudent && coachRatingFromStudent <= 2) {
@@ -192,7 +192,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const sessionRatingFromSTudent = uvd.surveyResponses?.find(resp =>
+    const sessionRatingFromSTudent = uvd.surveyResponses?.find((resp) =>
       resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
     )?.score
     if (sessionRatingFromSTudent && sessionRatingFromSTudent <= 2) {
@@ -211,7 +211,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
-    const sessionRatingFromCoach = uvd.surveyResponses?.find(resp =>
+    const sessionRatingFromCoach = uvd.surveyResponses?.find((resp) =>
       resp.questionText.endsWith(
         'Were you able to help them achieve their goal?'
       )
@@ -245,7 +245,7 @@ class RudeOrInappropriate extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const meanOrInappropriate = uvd.surveyResponses?.find(
-      resp => resp.response === 'Student was mean or inappropriate'
+      (resp) => resp.response === 'Student was mean or inappropriate'
     )
     if (meanOrInappropriate) {
       return 1
@@ -266,7 +266,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const onlyLookingForAnswers = uvd.surveyResponses?.find(
-      resp =>
+      (resp) =>
         resp.response === 'Student was pressuring me to do their work for them'
     )
     if (onlyLookingForAnswers) {
@@ -306,7 +306,7 @@ class CommentFromStudent extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const studentComment = uvd.surveyResponses?.find(
-      resp =>
+      (resp) =>
         resp.questionText === 'Your thoughts' && resp.userRole === 'student'
     )
     if (studentComment) {
@@ -325,7 +325,7 @@ class CommentFromVolunteer extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const volunteerComment = uvd.surveyResponses?.find(
-      resp =>
+      (resp) =>
         resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer'
     )
     if (volunteerComment) {
@@ -377,7 +377,7 @@ class HasHadTechnicalIssues extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const techIssues = uvd.surveyResponses?.find(
-      resp => resp.response === 'Tech issue'
+      (resp) => resp.response === 'Tech issue'
     )
     if (techIssues) {
       return 1
@@ -395,7 +395,7 @@ class PersonalIdentifyingInfo extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const personalInfo = uvd.surveyResponses?.find(
-      resp =>
+      (resp) =>
         resp.response ===
         'Student shared their email, last name, or other personally identifiable information'
     )
@@ -416,7 +416,7 @@ class GradedAssignment extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const gradedAssignment = uvd.surveyResponses?.find(
-      resp => resp.response === 'Student was working on a quiz or exam'
+      (resp) => resp.response === 'Student was working on a quiz or exam'
     )
     if (gradedAssignment) {
       return 1
@@ -435,7 +435,7 @@ class CoachUncomfortable extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const coachUncomfortable = uvd.surveyResponses?.find(
-      resp => resp.response === 'Student made me feel uncomfortable'
+      (resp) => resp.response === 'Student made me feel uncomfortable'
     )
     if (coachUncomfortable) {
       return 1
@@ -454,7 +454,7 @@ class StudentCrisis extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const studentInCrisis = uvd.surveyResponses?.find(
-      resp =>
+      (resp) =>
         resp.response ===
         'Student is in severe emotional distress and/or unsafe'
     )

@@ -16,12 +16,11 @@ export default async function moderateSessionTranscript(
     const transcript = await SessionService.getSessionTranscript(
       job.data.sessionId
     )
-    const moderationResults = await ModerationService.moderateTranscript(
-      transcript
-    )
+    const moderationResults =
+      await ModerationService.moderateTranscript(transcript)
     const confidenceThreshold = config.contextualModerationConfidenceThreshold
     const flaggedChunks = moderationResults.filter(
-      chunk => chunk.confidence >= confidenceThreshold
+      (chunk) => chunk.confidence >= confidenceThreshold
     )
     if (flaggedChunks.length) {
       logger.info(

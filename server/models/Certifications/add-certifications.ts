@@ -28,7 +28,7 @@ function unlockedSubjects(userCertifications: Certifications) {
       // TrainingCtrl.hasRequiredTraining(cert as keyof Certifications, userCertifications) &&
       CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING]
     )
-      CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach(subject =>
+      CERT_UNLOCKING[cert as keyof typeof CERT_UNLOCKING].forEach((subject) =>
         currentSubjects.add(subject)
       )
   }
@@ -63,7 +63,7 @@ async function addCertificationsForPassedQuiz(
       { userId, quizzes },
       getClient()
     )
-    return result.map(v => makeRequired(v).name)
+    return result.map((v) => makeRequired(v).name)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -75,8 +75,8 @@ async function getVolunteersWithCerts(): Promise<VolunteerWithCerts[]> {
       undefined,
       getClient()
     )
-    const rows = result.map(v => makeRequired(v))
-    const rowsByUser = _.groupBy(rows, v => v.userId)
+    const rows = result.map((v) => makeRequired(v))
+    const rowsByUser = _.groupBy(rows, (v) => v.userId)
 
     const users: VolunteerWithCerts[] = []
     for (const [user, rows] of Object.entries(rowsByUser)) {
@@ -101,8 +101,8 @@ async function getVolunteersWithCerts(): Promise<VolunteerWithCerts[]> {
 
 async function processVolunteer(volunteer: VolunteerWithCerts): Promise<void> {
   const passedQuizzes = Object.entries(volunteer.certifications)
-    .map(v => (v[1].passed ? v[0] : ''))
-    .filter(v => v !== '')
+    .map((v) => (v[1].passed ? v[0] : ''))
+    .filter((v) => v !== '')
   const appUnlockedSubjects = unlockedSubjects(volunteer.certifications)
 
   await addCertificationsForPassedQuiz(volunteer.id, passedQuizzes)

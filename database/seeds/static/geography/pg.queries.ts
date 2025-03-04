@@ -36,8 +36,7 @@ const insertUsStateIR: any = {
   ],
   usedParamSet: { name: true, code: true },
   statement: {
-    body:
-      'INSERT INTO us_states (name, code, created_at, updated_at)\n    VALUES (:name!, :code!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    name AS ok',
+    body: 'INSERT INTO us_states (name, code, created_at, updated_at)\n    VALUES (:name!, :code!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    name AS ok',
     loc: { a: 26, b: 177, line: 2, col: 0 },
   },
 }
@@ -120,8 +119,7 @@ const insertZipCodeIR: any = {
     longitude: true,
   },
   statement: {
-    body:
-      'INSERT INTO postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    code AS ok',
+    body: 'INSERT INTO postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at)\n    VALUES (:code!, :usStateCode!, :income!, POINT(:latitude!, :longitude!), NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    code AS ok',
     loc: { a: 208, b: 438, line: 11, col: 0 },
   },
 }
@@ -177,8 +175,7 @@ const insertWeekdayIR: any = {
   ],
   usedParamSet: { id: true, day: true },
   statement: {
-    body:
-      'INSERT INTO weekdays (id, day, created_at, updated_at)\n    VALUES (:id!, :day!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO weekdays (id, day, created_at, updated_at)\n    VALUES (:id!, :day!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 469, b: 611, line: 20, col: 0 },
   },
 }

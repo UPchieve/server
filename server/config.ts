@@ -32,7 +32,7 @@ const config: Static<typeof Config> = {
   smtp: {
     host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
     port: parseInt(process.env.SUBWAY_SMTP_PORT || '2525'),
-    secure: ((process.env.SUBWAY_SMTP_SECURE as unknown) as boolean) || false,
+    secure: (process.env.SUBWAY_SMTP_SECURE as unknown as boolean) || false,
     user: process.env.SUBWAY_SMTP_USER || '',
     password: process.env.SUBWAY_SMTP_PASSWORD || '',
   },

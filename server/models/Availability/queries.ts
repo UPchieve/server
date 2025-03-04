@@ -101,7 +101,7 @@ export async function getAvailabilityForVolunteer(
       { userId },
       tc
     )
-    return buildAvailabilityModel(result.map(v => makeRequired(v)))
+    return buildAvailabilityModel(result.map((v) => makeRequired(v)))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -117,8 +117,8 @@ export async function getAvailabilityForVolunteerHeatmap(
     )
     const availabilities: AvailabilitySnapshot[] = []
     const groups = _.groupBy(
-      result.map(v => makeRequired(v)),
-      row => row.userId
+      result.map((v) => makeRequired(v)),
+      (row) => row.userId
     )
     for (const user in groups) {
       const rows = groups[user]
@@ -139,11 +139,12 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
   end: Date
 ): Promise<AvailabilityHistory[]> {
   try {
-    const result = await pgQueries.getAvailabilityHistoryForDatesByVolunteerId.run(
-      { userId, start, end },
-      getClient()
-    )
-    const rows = result.map(row => makeRequired(row))
+    const result =
+      await pgQueries.getAvailabilityHistoryForDatesByVolunteerId.run(
+        { userId, start, end },
+        getClient()
+      )
+    const rows = result.map((row) => makeRequired(row))
     const rowsByDate = _.groupBy(rows, 'recordedAt')
 
     const histories: AvailabilityHistory[] = []
@@ -151,7 +152,7 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
       new Date(a[0]) > new Date(b[0]) ? 1 : -1
     )) {
       const availability = buildAvailabilityModel(
-        rows.map(v => makeRequired(v))
+        rows.map((v) => makeRequired(v))
       )
       histories.push({
         volunteerId: userId,
@@ -171,11 +172,12 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
   end: Date
 ): Promise<AvailabilityHistory[]> {
   try {
-    const result = await pgQueries.getLegacyAvailabilityHistoryForDatesByVolunteerId.run(
-      { userId, start, end },
-      getClient()
-    )
-    const rows = result.map(row => makeSomeOptional(row, ['timezone']))
+    const result =
+      await pgQueries.getLegacyAvailabilityHistoryForDatesByVolunteerId.run(
+        { userId, start, end },
+        getClient()
+      )
+    const rows = result.map((row) => makeSomeOptional(row, ['timezone']))
     const rowsByDate = _.groupBy(rows, 'recordedAt')
     const histories: AvailabilityHistory[] = []
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
@@ -249,7 +251,7 @@ export async function getAvailabilityForVolunteerByDate(
       { userId, recordedAt: date },
       getClient()
     )
-    return buildAvailabilityModel(result.map(v => makeRequired(v)))
+    return buildAvailabilityModel(result.map((v) => makeRequired(v)))
   } catch (err) {
     throw new RepoReadError(err)
   }

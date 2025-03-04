@@ -18,7 +18,7 @@ describe('timeLimit', () => {
       })
     ).toStrictEqual('it won')
     // wait to make sure we successfully cleared the timeout
-    await new Promise(r => setTimeout(r, waitInMs + 10))
+    await new Promise((r) => setTimeout(r, waitInMs + 10))
     expect(mockedLogger.error).toHaveBeenCalledTimes(0)
   })
 
@@ -35,7 +35,7 @@ describe('timeLimit', () => {
       })
     ).toStrictEqual('it lost')
     // wait to make sure we successfully cleared the timeout
-    await new Promise(r => setTimeout(r, waitInMs + 10))
+    await new Promise((r) => setTimeout(r, waitInMs + 10))
     expect(mockedLogger.error).toHaveBeenCalledTimes(1)
     expect(mockedLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -47,7 +47,7 @@ describe('timeLimit', () => {
   it('loses to time limit', async () => {
     const partialMessage = 'This test should throw an error with this message'
     const result = await timeLimit({
-      promise: new Promise(r => setTimeout(() => r('it won'), 10)),
+      promise: new Promise((r) => setTimeout(() => r('it won'), 10)),
       fallbackReturnValue: 'it lost',
       timeLimitReachedErrorMessage: partialMessage,
       waitInMs: 1,

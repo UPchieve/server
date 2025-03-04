@@ -68,9 +68,7 @@ export default async (
     incentivePayload.incentiveStartDate
   )
   // We're using ISO week to have the week's starting point as Monday
-  const thisMonday = moment()
-    .startOf('isoWeek')
-    .utc()
+  const thisMonday = moment().startOf('isoWeek').utc()
   const fallIncentiveEnrollmentAt = moment(
     productFlags?.fallIncentiveEnrollmentAt
   ).utc()

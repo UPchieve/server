@@ -23,7 +23,7 @@ function eventObservabilityWrapper(
       } finally {
         transaction.end()
       }
-    }).catch(error => {
+    }).catch((error) => {
       logger.error(`error in event handler newrelic transaction: ${error}`)
       nr.noticeError(error)
     })

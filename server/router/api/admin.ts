@@ -21,7 +21,7 @@ import {
 export function routeAdmin(app: Express, router: Router): void {
   const upload = multer()
 
-  router.get('/schools', async function(req, res) {
+  router.get('/schools', async function (req, res) {
     try {
       const payload = {
         name: asString(req.query.name),
@@ -40,7 +40,7 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
-  router.get('/school/:schoolId', async function(req, res) {
+  router.get('/school/:schoolId', async function (req, res) {
     try {
       const schoolId = asUlid(req.params.schoolId)
       const school = await SchoolService.getSchool(schoolId)
@@ -50,7 +50,7 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
-  router.get('/schools/partner-schools', async function(_req, res) {
+  router.get('/schools/partner-schools', async function (_req, res) {
     try {
       const schools = await getPartnerSchools()
       res.send(schools)
@@ -59,32 +59,33 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
-  router.post('/roster-students', upload.single('studentsFile'), async function(
-    req,
-    res
-  ) {
-    try {
-      if (!req.body.schoolId || !req.file) {
-        res.status(500).json({
-          err: 'Missing required data.',
-        })
-        return
+  router.post(
+    '/roster-students',
+    upload.single('studentsFile'),
+    async function (req, res) {
+      try {
+        if (!req.body.schoolId || !req.file) {
+          res.status(500).json({
+            err: 'Missing required data.',
+          })
+          return
+        }
+        const students = readCsvFromBuffer<RosterStudentPayload>(
+          req.file.buffer,
+          ['firstName', 'lastName', 'email', 'gradeLevel']
+        )
+        const { failed, updated } = await rosterPartnerStudents(
+          students,
+          req.body.schoolId
+        )
+        res.json({ failed, updated })
+      } catch (error) {
+        resError(res, error)
       }
-      const students = readCsvFromBuffer<RosterStudentPayload>(
-        req.file.buffer,
-        ['firstName', 'lastName', 'email', 'gradeLevel']
-      )
-      const { failed, updated } = await rosterPartnerStudents(
-        students,
-        req.body.schoolId
-      )
-      res.json({ failed, updated })
-    } catch (error) {
-      resError(res, error)
     }
-  })
+  )
 
-  router.post('/clever/roster', async function(req, res) {
+  router.post('/clever/roster', async function (req, res) {
     const districtId = asString(req.body.districtId)
     const cleverToUPchieveIds = req.body.cleverToUPchieveIds
       ? JSON.parse(req.body.cleverToUPchieveIds)
