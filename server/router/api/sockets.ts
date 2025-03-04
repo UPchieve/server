@@ -597,20 +597,16 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('disconnecting', () => {
-      if (socket.data.sessionId)
-        socket
-          .to(getSessionRoom(socket.data.sessionId))
-          .emit('not-typing', { sessionId: socket.data.sessionId })
-
-      const user = extractSocketUser(socket)
-      for (const room of socket.rooms) {
-        if (room.includes('sessions')) {
-          socket
-            .to(room)
-            .except(user.id)
-            .emit('sessions/partner:in-session', false)
+    socket.on('disconnecting', async () => {
+      try {
+        const user = extractSocketUser(socket)
+        const sessionId = socket.data.sessionId
+        if (user && sessionId) {
+          const sessionRoom = getSessionRoom(sessionId)
+          await emitSessionPresence(io, socket.id, user.id, sessionRoom, true)
         }
+      } catch (error) {
+        logger.error(error)
       }
     })
 
@@ -623,13 +619,16 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             // This prevents emitting session-presence from non-session participants
             const isSocketInRoom = socket.rooms.has(sessionRoom)
             if (isSocketInRoom) {
-              socket.leave(sessionRoom)
+              await socket.leave(sessionRoom)
               delete socket.data.sessionId
               const user = extractSocketUser(socket)
-              await socket
-                .to(sessionRoom)
-                .except(user.id)
-                .emit('sessions/partner:in-session', false)
+              await emitSessionPresence(
+                io,
+                socket.id,
+                user.id,
+                sessionRoom,
+                true
+              )
             }
             resolve()
           } catch (error) {
