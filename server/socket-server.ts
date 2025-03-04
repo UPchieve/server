@@ -16,7 +16,7 @@ import {
   SocketData,
 } from './types/socket-types'
 
-export default function(server: http.Server) {
+export default function (server: http.Server) {
   const io = new Server<
     ClientToServerEvents,
     ServerToClientEvents,

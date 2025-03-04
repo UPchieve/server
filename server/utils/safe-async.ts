@@ -3,7 +3,7 @@ export interface AsyncResult<T> {
   error?: Error
 }
 
-export const safeAsync = async function<T>(
+export const safeAsync = async function <T>(
   p: Promise<T>
 ): Promise<AsyncResult<T>> {
   try {

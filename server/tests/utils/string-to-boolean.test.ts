@@ -18,7 +18,7 @@ describe('stringToBoolean', () => {
 
   it.each([' something else ', 'tuxedo cat', '1', '0'])(
     "Throws an error if a string that is not 'true' or 'false' is provided",
-    given => {
+    (given) => {
       expect(() => stringToBoolean(given)).toThrow(
         "Given string needs to resemble 'true' or 'false'"
       )

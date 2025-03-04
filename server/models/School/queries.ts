@@ -85,7 +85,7 @@ export async function getFilteredSchools(
       },
       tc
     )
-    return result.map(v => {
+    return result.map((v) => {
       const formatted = makeSomeRequired(v, [
         'id',
         'name',
@@ -218,7 +218,7 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
 export async function schoolSearch(query: string): Promise<School[]> {
   try {
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    return results.map(v => makeSomeOptional(v, ['district']))
+    return results.map((v) => makeSomeOptional(v, ['district']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -320,7 +320,9 @@ export async function getPartnerSchools(
 ): Promise<PartnerSchool[] | undefined> {
   try {
     const schools = await pgQueries.getPartnerSchools.run(undefined, tc)
-    return schools.map(s => makeSomeOptional(s, ['partnerKey', 'partnerSites']))
+    return schools.map((s) =>
+      makeSomeOptional(s, ['partnerKey', 'partnerSites'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

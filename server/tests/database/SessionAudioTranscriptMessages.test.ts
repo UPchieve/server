@@ -26,15 +26,16 @@ describe('SessionAudioTranscriptMessages repo', () => {
     it('Inserts the message', async () => {
       const saidAt = new Date()
       const message = 'this is a test'
-      const result = await SessionAudioTranscriptMessagesRepo.insertSessionAudioTranscriptMessage(
-        {
-          userId,
-          sessionId,
-          message,
-          saidAt,
-        },
-        client
-      )
+      const result =
+        await SessionAudioTranscriptMessagesRepo.insertSessionAudioTranscriptMessage(
+          {
+            userId,
+            sessionId,
+            message,
+            saidAt,
+          },
+          client
+        )
       expect(typeof result).toEqual('string')
     })
   })

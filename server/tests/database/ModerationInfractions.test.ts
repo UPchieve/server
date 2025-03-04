@@ -101,13 +101,14 @@ describe('ModerationInfractions', () => {
       ]
       await insertSingleRow('moderation_infractions', infractions[0], dbClient)
       await insertSingleRow('moderation_infractions', infractions[1], dbClient)
-      const result = await ModerationInfractionsRepo.getModerationInfractionsByUserAndSession(
-        userId,
-        sessionId,
-        dbClient
-      )
+      const result =
+        await ModerationInfractionsRepo.getModerationInfractionsByUserAndSession(
+          userId,
+          sessionId,
+          dbClient
+        )
       expect(result.length).toEqual(2)
-      expect(result.map(infraction => infraction.reason)).toEqual([
+      expect(result.map((infraction) => infraction.reason)).toEqual([
         infractionReason1,
         infractionReason2,
       ])

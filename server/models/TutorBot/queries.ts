@@ -19,7 +19,7 @@ export async function getTutorBotConversationsByUserId(
       },
       client
     )
-    return results.map(row => makeSomeOptional(row, ['sessionId']))
+    return results.map((row) => makeSomeOptional(row, ['sessionId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -74,14 +74,13 @@ export async function getTutorBotConversationMessagesBySessionId(
   client: TransactionClient = getClient()
 ) {
   try {
-    const [
-      conversation,
-    ] = await pgQueries.getTutorBotConversationBySessionId.run(
-      {
-        sessionId,
-      },
-      client
-    )
+    const [conversation] =
+      await pgQueries.getTutorBotConversationBySessionId.run(
+        {
+          sessionId,
+        },
+        client
+      )
     if (conversation) {
       const results = await pgQueries.getTutorBotConversationMessagesById.run(
         {

@@ -285,7 +285,7 @@ describe('addStudentsToTeacherClass', () => {
       [c.id]
     )
     expect(actual.rows.length).toBe(3)
-    const actualUserIds = new Set(actual.rows.map(r => r.user_id))
+    const actualUserIds = new Set(actual.rows.map((r) => r.user_id))
     expect(actualUserIds.has(u1.userId)).toBe(true)
     expect(actualUserIds.has(u2.userId)).toBe(true)
     expect(actualUserIds.has(u3.userId)).toBe(true)

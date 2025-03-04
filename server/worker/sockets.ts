@@ -27,11 +27,11 @@ socket.on('connect', () => {
   logger.info('Worker socket connected')
 })
 
-socket.on('connect_error', error => {
+socket.on('connect_error', (error) => {
   logger.error(`Worker socket connection error: ${error.message} - ${error}`)
 })
 
-socket.on('disconnect', reason => {
+socket.on('disconnect', (reason) => {
   if (reason === 'io server disconnect' || reason === 'transport close')
     socket.connect()
   logger.warn(`Worker socket disconnected: ${reason}`)
@@ -45,11 +45,11 @@ socket.on('reconnect_failed', () => {
   logger.error('Worker socket failed to reconnect')
 })
 
-socket.on('reconnect_error', error => {
+socket.on('reconnect_error', (error) => {
   logger.error(`Worker socket reconnection error: ${error.message} - ${error}`)
 })
 
-socket.on('error', error => {
+socket.on('error', (error) => {
   logger.error(`Worker socket general error: ${error.message} - ${error}`)
 })
 

@@ -28,9 +28,7 @@ describe('Session repo', () => {
       it('Reports the correct number of total sessions for the user', async () => {
         const timeTutored = 100000
         const endedAt = new Date()
-        const createdAt = moment()
-          .subtract(1, 'hours')
-          .toDate()
+        const createdAt = moment().subtract(1, 'hours').toDate()
         for (const i in range(0, 5)) {
           const sessionRow = await buildSessionRow({
             studentId,
@@ -69,18 +67,10 @@ describe('Session repo', () => {
     })
 
     it('Returns all session messages', async () => {
-      const t1 = moment()
-        .subtract(5, 'minute')
-        .toDate()
-      const t2 = moment()
-        .subtract(4, 'minutes')
-        .toDate()
-      const t3 = moment()
-        .subtract(3, 'minutes')
-        .toDate()
-      const t4 = moment()
-        .subtract(2, 'minutes')
-        .toDate()
+      const t1 = moment().subtract(5, 'minute').toDate()
+      const t2 = moment().subtract(4, 'minutes').toDate()
+      const t3 = moment().subtract(3, 'minutes').toDate()
+      const t4 = moment().subtract(2, 'minutes').toDate()
 
       // A regular chat/text message
       const firstMessage = buildSessionMessageRow(studentId, sessionId, {
@@ -118,13 +108,13 @@ describe('Session repo', () => {
 
       const messagesInOrder = await getMessagesForFrontend(sessionId, dbClient)
       expect(messagesInOrder.length).toEqual(4)
-      expect(messagesInOrder.map(message => message.createdAt)).toEqual([
+      expect(messagesInOrder.map((message) => message.createdAt)).toEqual([
         t1,
         t2,
         t3,
         t4,
       ])
-      expect(messagesInOrder.map(message => message.contents)).toEqual([
+      expect(messagesInOrder.map((message) => message.contents)).toEqual([
         '1',
         '2',
         '3',

@@ -239,7 +239,7 @@ describe('insertProgressReport', () => {
     'error',
     'complete',
   ]
-  statuses.forEach(status => {
+  statuses.forEach((status) => {
     test(`Creates progress report with ${status} status`, async () => {
       const reportId = await insertProgressReport(userId, status, 1, client)
       const actual = await getProgressReport(reportId, status)
@@ -549,16 +549,16 @@ describe('getProgressReportSummariesForMany', () => {
     }
 
     const result = await getProgressReportSummariesForMany(
-      reports.map(report => report.id)
+      reports.map((report) => report.id)
     )
 
     for (const row of result) {
       const matchingSummary = reports.find(
-        report => report.summary.id === row.id
+        (report) => report.summary.id === row.id
       )
       if (!matchingSummary) continue
       const matchingDetail = matchingSummary.summary.details.find(
-        detail => detail.id === row.detailId
+        (detail) => detail.id === row.detailId
       )
       if (!matchingDetail) continue
 
@@ -605,7 +605,7 @@ describe('getProgressReportConceptsByReportId', () => {
     for (const row of result) {
       for (const concept of data.concepts) {
         const matchingDetail = concept.details.find(
-          detail => detail.id === row.detailId
+          (detail) => detail.id === row.detailId
         )
         if (!matchingDetail) continue
 

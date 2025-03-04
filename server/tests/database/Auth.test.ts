@@ -25,9 +25,7 @@ describe('Auth', () => {
     const user1Sid1 = getDbUlid()
     const user1Sid2 = getDbUlid()
     const user2Sid = getDbUlid()
-    const expiresAt = moment()
-      .add(1, 'day')
-      .toDate()
+    const expiresAt = moment().add(1, 'day').toDate()
     const user1Id = getDbUlid()
     const user2Id = getDbUlid()
     const user1SessionJson = JSON.stringify({
@@ -64,7 +62,7 @@ describe('Auth', () => {
     const user1Rows = [existingSessions.rows[0], existingSessions.rows[1]]
     const user2Row = existingSessions.rows[2]
     expect(existingSessions.rows.length).toEqual(3)
-    user1Rows.forEach(row => {
+    user1Rows.forEach((row) => {
       expect(row['sess']['passport']['user']).toEqual(user1Id)
     })
     expect(user2Row['sess']['passport']['user']).toEqual(user2Id)

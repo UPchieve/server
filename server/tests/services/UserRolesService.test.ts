@@ -11,7 +11,7 @@ const mockedUserRepo = mocked(UserRepo)
 describe('getUserRolesById', () => {
   test.each(['student', 'teacher', 'volunteer'])(
     'returns %s as the correct userType',
-    async expectedUserType => {
+    async (expectedUserType) => {
       mockedUserRepo.getUserRolesById.mockResolvedValueOnce([
         expectedUserType as UserRole,
       ])
@@ -22,7 +22,7 @@ describe('getUserRolesById', () => {
 
   test.each([true, false])(
     'returns whether someone is/is not admin',
-    async isAdmin => {
+    async (isAdmin) => {
       mockedUserRepo.getUserRolesById.mockResolvedValueOnce(
         isAdmin ? ['admin', 'volunteer'] : ['volunteer']
       )
@@ -33,7 +33,7 @@ describe('getUserRolesById', () => {
 
   test.each([{ returnValue: [] }, { returnValue: ['admin'] }])(
     'throws if no user types other than admin',
-    async mockedReturnValue => {
+    async (mockedReturnValue) => {
       mockedUserRepo.getUserRolesById.mockResolvedValueOnce(
         mockedReturnValue.returnValue as UserRole[]
       )
@@ -50,7 +50,7 @@ describe('getUserRolesById', () => {
     { returnValue: ['student', 'volunteer', 'teacher'] },
   ])(
     'throws if more than user type other than admin',
-    async mockedReturnValue => {
+    async (mockedReturnValue) => {
       mockedUserRepo.getUserRolesById.mockResolvedValueOnce(
         mockedReturnValue.returnValue as UserRole[]
       )

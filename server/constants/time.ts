@@ -9,7 +9,7 @@ export const DAYS = <const>[
   'Friday',
   'Saturday',
 ]
-export type DAYS = typeof DAYS[number]
+export type DAYS = (typeof DAYS)[number]
 
 export const HOURS = <const>[
   '12a',
@@ -37,7 +37,7 @@ export const HOURS = <const>[
   '10p',
   '11p',
 ]
-export type HOURS = typeof HOURS[number]
+export type HOURS = (typeof HOURS)[number]
 
 export type HOURS_UTC =
   | 0

@@ -20,13 +20,8 @@ import { resError } from '../res-error'
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/save', async (req, res) => {
     const user = extractUser(req)
-    const {
-      surveyId,
-      surveyTypeId,
-      sessionId,
-      progressReportId,
-      submissions,
-    } = req.body
+    const { surveyId, surveyTypeId, sessionId, progressReportId, submissions } =
+      req.body
     const data = {
       surveyId,
       surveyTypeId,
@@ -105,7 +100,7 @@ export function routeSurvey(router: expressWs.Router): void {
     }
   })
 
-  router.get('/survey/progress-report', async function(req, res) {
+  router.get('/survey/progress-report', async function (req, res) {
     try {
       const survey = await getSimpleSurveyDefinition('progress-report')
       res.json({ survey })
@@ -116,7 +111,7 @@ export function routeSurvey(router: expressWs.Router): void {
 
   router.get(
     '/survey/progress-report/:progressReportId/response',
-    async function(req, res) {
+    async function (req, res) {
       try {
         const user = extractUser(req)
         const progressReportId = asString(req.params.progressReportId)

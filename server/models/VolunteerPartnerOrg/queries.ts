@@ -12,10 +12,11 @@ export async function getVolunteerPartnerOrgForRegistrationByKey(
   key: string
 ): Promise<VolunteerPartnerOrgForRegistration> {
   try {
-    const result = await pgQueries.getVolunteerPartnerOrgForRegistrationByKey.run(
-      { key },
-      getClient()
-    )
+    const result =
+      await pgQueries.getVolunteerPartnerOrgForRegistrationByKey.run(
+        { key },
+        getClient()
+      )
     if (!(result.length && makeRequired(result[0])))
       throw new Error(`no volunteer partner org found with key ${key}`)
     return makeSomeOptional(result[0], ['domains'])
@@ -66,7 +67,7 @@ export async function getVolunteerPartnerOrgs(): Promise<
       undefined,
       getClient()
     )
-    const orgs: VolunteerPartnerOrg[] = result.map(org => {
+    const orgs: VolunteerPartnerOrg[] = result.map((org) => {
       const temp = makeSomeOptional(org, ['domains'])
       return {
         ...temp,

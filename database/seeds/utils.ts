@@ -20,7 +20,7 @@ type InsertResult = {
 }
 export async function wrapInsert<
   T extends InsertResult[],
-  K extends InsertParams
+  K extends InsertParams,
 >(
   tableName: string,
   fn: (arg: K, client: typeof pgClient) => Promise<T>,

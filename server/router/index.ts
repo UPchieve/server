@@ -23,7 +23,7 @@ import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
 
-export default function(app: Express, io: Server) {
+export default function (app: Express, io: Server) {
   logger.info('initializing server routing')
 
   // initialize session store
@@ -48,11 +48,11 @@ export default function(app: Express, io: Server) {
   ReferralRouter.routes(app)
   SubjectsRouter.routes(app)
 
-  app.get('/healthz', function(_req, res) {
+  app.get('/healthz', function (_req, res) {
     res.status(200).json({ version: config.version })
   })
 
-  app.get('/api-public/feature-flags', async function(req, res) {
+  app.get('/api-public/feature-flags', async function (req, res) {
     const user = extractUserIfExists(req)
     const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
     const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()

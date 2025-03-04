@@ -298,7 +298,7 @@ export async function getReferredBy(
   }
 }
 
-export const hashPassword = async function(password: string): Promise<string> {
+export const hashPassword = async function (password: string): Promise<string> {
   const salt = await bcrypt.genSalt(config.saltRounds)
   const hash = await bcrypt.hash(password, salt)
   return hash
@@ -336,11 +336,11 @@ export function isSupportedSsoProvider(provider?: string) {
 
 // Passport functions
 function setupPassport() {
-  passport.serializeUser(function(user: Express.User, done: Function) {
+  passport.serializeUser(function (user: Express.User, done: Function) {
     done(null, user.id)
   })
 
-  passport.deserializeUser(async function(id: Ulid, done: Function) {
+  passport.deserializeUser(async function (id: Ulid, done: Function) {
     try {
       const user = await getUserContactInfoById(id)
       if (!user) throw new Error('User not found for authenticated session')
@@ -377,7 +377,7 @@ function isWorker(req: Request, res: Response, next: NextFunction) {
 function bypassMiddlewareForWebhooks(
   fn: (req: Request, res: Response, next: NextFunction) => void
 ) {
-  return function(req: Request, res: Response, next: NextFunction) {
+  return function (req: Request, res: Response, next: NextFunction) {
     if (req.path.includes('/webhooks/') && req.method === 'POST') {
       next()
     } else {
@@ -422,8 +422,7 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
       })
     } else {
       res.status(500).json({
-        err:
-          'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+        err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
       })
     }
   }

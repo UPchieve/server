@@ -68,7 +68,7 @@ const invalidTopicData = {
 test('contact form service saves form submission with email', async () => {
   mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         const id = getDbUlid()
         const doc: ContactFormSubmission = {
           id: id,
@@ -83,7 +83,7 @@ test('contact form service saves form submission with email', async () => {
     }
   )
   mockedMailService.sendContactForm.mockImplementationOnce(() => {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       resolve()
     })
   })
@@ -97,7 +97,7 @@ test('contact form service saves form submission with email', async () => {
 test('contact form service saves form submission with user id', async () => {
   mockedContactFormSubmissionRepo.createContactFormByEmail.mockImplementationOnce(
     () => {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         const doc: ContactFormSubmission = {
           id: getDbUlid(),
           userId: getDbUlid(),
@@ -112,7 +112,7 @@ test('contact form service saves form submission with user id', async () => {
     }
   )
   mockedMailService.sendContactForm.mockImplementationOnce(() => {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       resolve()
     })
   })

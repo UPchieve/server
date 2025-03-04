@@ -20,7 +20,8 @@ describe('ReportService', () => {
   let mockGetHourSummaryStats: jest.Mock
 
   beforeEach(() => {
-    mockGetAssociatedPartnersAndSchools = AssociatedPartnerRepo.getAssociatedPartnersAndSchools as jest.Mock
+    mockGetAssociatedPartnersAndSchools =
+      AssociatedPartnerRepo.getAssociatedPartnersAndSchools as jest.Mock
     mockGetAssociatedPartnersAndSchools.mockResolvedValue({
       associatedPartnerSchools: ['1'],
       associatedStudentPartnerOrgs: ['2'],
@@ -32,7 +33,8 @@ describe('ReportService', () => {
       totalElapsedAvailability: 10,
       totalVolunteerHours: 10,
     })
-    mockGetVolunteersForAnalyticsReport = VolunteerRepo.getVolunteersForAnalyticsReport as jest.Mock
+    mockGetVolunteersForAnalyticsReport =
+      VolunteerRepo.getVolunteersForAnalyticsReport as jest.Mock
   })
 
   afterEach(() => {
@@ -78,12 +80,12 @@ describe('ReportService', () => {
       expect(mockGetVolunteersForAnalyticsReport).toHaveBeenCalledTimes(3) // 3 batches
       expect(mockGetHourSummaryStats).toHaveBeenCalledTimes(10) // 5 total volunteers, called 2x per volunteer
       expect(actual.report.length).toEqual(volunteers.length)
-      expect(actual.report.map(row => row.email)).toEqual(
-        volunteers.map(v => v.email)
+      expect(actual.report.map((row) => row.email)).toEqual(
+        volunteers.map((v) => v.email)
       )
 
       // Verify the expected batch starts/finishes are logged
-      times(3, n =>
+      times(3, (n) =>
         expect(mockedLogger.info).toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining(
@@ -91,7 +93,7 @@ describe('ReportService', () => {
           )
         )
       )
-      times(3, n =>
+      times(3, (n) =>
         expect(mockedLogger.info).toHaveBeenCalledWith(
           expect.anything(),
           expect.stringContaining(`Completed batch #${n + 1}`)
@@ -105,7 +107,7 @@ describe('ReportService', () => {
 
     it.each([2, 1])(
       'May generate a full report in a single batch',
-      async totalVolunteers => {
+      async (totalVolunteers) => {
         mockGetVolunteersForAnalyticsReport.mockResolvedValue(
           times(totalVolunteers, buildTestVolunteerForAnalyticsReport)
         )

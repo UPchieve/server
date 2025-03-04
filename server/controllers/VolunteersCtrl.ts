@@ -24,8 +24,8 @@ function aggregateAvailabilities(
   availability: Availability,
   aggAvailabilities: AvailabilityAggregation
 ): AvailabilityAggregation {
-  Object.keys(availability).map(day => {
-    Object.keys(availability[day as DAYS]).map(time => {
+  Object.keys(availability).map((day) => {
+    Object.keys(availability[day as DAYS]).map((time) => {
       // create headers based on the user's availability object
       if (!aggAvailabilities.daysOfWeek) {
         aggAvailabilities.daysOfWeek = Object.keys(availability) as DAYS[]
@@ -70,10 +70,11 @@ function findMinAndMax(
 export async function getVolunteersAvailability(
   certifiedSubject: string
 ): Promise<AvailabilityAggregation> {
-  const availabilities = await getAvailabilityForVolunteerHeatmap(
-    certifiedSubject
+  const availabilities =
+    await getAvailabilityForVolunteerHeatmap(certifiedSubject)
+  const check = availabilities.find(
+    (v) => v.availability.Sunday['12a'] === true
   )
-  const check = availabilities.find(v => v.availability.Sunday['12a'] === true)
 
   let aggAvailabilities: AvailabilityAggregation = {
     table: Array(7)

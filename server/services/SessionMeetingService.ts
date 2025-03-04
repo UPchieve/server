@@ -191,10 +191,10 @@ async function getOrCreateAttendee({
     })
   )
   const thisAttendee = (attendees.Attendees ?? []).find(
-    a => a.ExternalUserId === userId
+    (a) => a.ExternalUserId === userId
   )
   const otherAttendees = (attendees.Attendees ?? []).filter(
-    a => a.ExternalUserId !== userId
+    (a) => a.ExternalUserId !== userId
   )
   const partnerAttendee = otherAttendees.length ? otherAttendees[0] : null
   if (thisAttendee) {
@@ -260,9 +260,8 @@ async function createMeetingWithAttendee({
 }
 
 export async function endMeeting(sessionId: string) {
-  const existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
-    sessionId
-  )
+  const existingMeeting =
+    await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId)
 
   if (existingMeeting) {
     await AwsChimeService.stopTranscription(existingMeeting.externalId)

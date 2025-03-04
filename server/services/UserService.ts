@@ -418,15 +418,8 @@ const asUserQuery = asFactory<UserQuery>({
 
 // getUsersForAdmin with a typed interface for these query params
 export async function getUsers(data: unknown) {
-  const {
-    userId,
-    firstName,
-    lastName,
-    email,
-    partnerOrg,
-    school,
-    page,
-  } = asUserQuery(data)
+  const { userId, firstName, lastName, email, partnerOrg, school, page } =
+    asUserQuery(data)
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
