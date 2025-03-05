@@ -20,7 +20,7 @@ import { InputError, NotAllowedError } from '../../models/Errors'
 import { isVolunteerUserType } from '../../utils/user-type'
 
 export function routeUser(router: Router): void {
-  router.route('/user').get(async function(req, res) {
+  router.route('/user').get(async function (req, res) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user)
 
@@ -220,20 +220,21 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.get('/user/email/:userEmail', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    const { userEmail } = req.params
-    try {
-      const userId = await getUserIdByEmail(userEmail)
-      res.json({ userId: userId })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/user/email/:userEmail',
+    authPassport.isAdmin,
+    async function (req, res) {
+      const { userEmail } = req.params
+      try {
+        const userId = await getUserIdByEmail(userEmail)
+        res.json({ userId: userId })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/user/:userId', authPassport.isAdmin, async function(req, res) {
+  router.get('/user/:userId', authPassport.isAdmin, async function (req, res) {
     const { userId } = req.params
     const page = Number(req.query.page || '1')
 
@@ -256,7 +257,7 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.get('/users', authPassport.isAdmin, async function(req, res) {
+  router.get('/users', authPassport.isAdmin, async function (req, res) {
     try {
       const payload = {
         ...req.query,

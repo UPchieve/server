@@ -117,7 +117,7 @@ export function removeImageInsertsFromQuillDoc(
   if (!quillDoc) return ''
   const document: Delta = JSON.parse(quillDoc)
   const filteredOps = document.ops.filter(
-    op => op.insert && typeof op.insert === 'string'
+    (op) => op.insert && typeof op.insert === 'string'
   )
   document.ops = filteredOps
   return JSON.stringify(document)
@@ -127,10 +127,10 @@ function extractBase64ImagesFromQuillDoc(quillDoc: string): string[] {
   const document: Delta = JSON.parse(quillDoc)
   const base64Images: string[] = document.ops
     .filter(
-      op => op.insert && typeof op.insert === 'object' && 'image' in op.insert
+      (op) => op.insert && typeof op.insert === 'object' && 'image' in op.insert
     )
-    .map(op => (op.insert as { image: string }).image)
-    .filter(src => src.startsWith('data:image'))
+    .map((op) => (op.insert as { image: string }).image)
+    .filter((src) => src.startsWith('data:image'))
   return base64Images
 }
 
@@ -222,8 +222,8 @@ async function formatSessionsForBotPrompt(
       sessions.map(formatTranscriptAndEditor)
     )
     const formattedSessions = results
-      .filter(result => result.status === 'fulfilled')
-      .map(result => (result as PromiseFulfilledResult<string>).value)
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => (result as PromiseFulfilledResult<string>).value)
       .join('\n')
     return formattedSessions
   } else return ''
@@ -332,7 +332,7 @@ export async function generateProgressReportForUser(
     response: botReport,
     debug: botReport,
   })
-  const sessionIds = sessions.map(s => s.id)
+  const sessionIds = sessions.map((s) => s.id)
   const reportId = await saveProgressReport({
     userId,
     sessionIds,

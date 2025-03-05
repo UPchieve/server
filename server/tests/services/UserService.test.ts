@@ -442,7 +442,7 @@ describe('UserService', () => {
         smsConsent: true,
         phone: '+8608880001',
       },
-    ])('Should call the user repo with the correct data', async req => {
+    ])('Should call the user repo with the correct data', async (req) => {
       await UserService.updateUserProfile('123', req)
       expect(mockUserRepo.updateUserProfileById).toHaveBeenCalledWith(
         '123',

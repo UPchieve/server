@@ -19,7 +19,7 @@ export const timeLimit = async <ResolveWith>({
 }): Promise<any> => {
   let timeoutId: undefined | ReturnType<typeof setTimeout>
   return await Promise.race([
-    new Promise<ResolveWith>(resolve => {
+    new Promise<ResolveWith>((resolve) => {
       timeoutId = setTimeout(() => {
         logger.error(
           new Error(
@@ -29,7 +29,7 @@ export const timeLimit = async <ResolveWith>({
         resolve(fallbackReturnValue)
       }, waitInMs)
     }),
-    promise.catch(e => {
+    promise.catch((e) => {
       logger.error(
         new Error(`${waitInMs} Passed in promise rejected with ${e}`)
       )

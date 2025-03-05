@@ -7,7 +7,7 @@ export default async function main() {
   try {
     await db.connect()
 
-    await db.runInTransaction(async tc => {
+    await db.runInTransaction(async (tc) => {
       await backfill(tc)
     })
   } catch (e) {
@@ -27,7 +27,7 @@ export async function backfill(tc: db.TransactionClient) {
       AND ur.role_id IS NULL
       AND ss.name = 'Roster';
   `)
-  const userIds = userIdsResult.rows.map(r => r.id)
+  const userIds = userIdsResult.rows.map((r) => r.id)
 
   // Cache the id mapping of school to student partner org
   // so we don't need to access db for all 1500 students.

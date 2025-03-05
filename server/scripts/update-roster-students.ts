@@ -17,7 +17,7 @@ async function main() {
 
     for (const student of students) {
       try {
-        await db.runInTransaction(async tc => {
+        await db.runInTransaction(async (tc) => {
           const password = await hashPassword(student.password)
           const userResult = await tc.query(
             'UPDATE users SET password = $1, password_reset_token = null, created_at = NOW(), updated_at = NOW(), last_activity_at = NOW() WHERE email = $2 RETURNING id',

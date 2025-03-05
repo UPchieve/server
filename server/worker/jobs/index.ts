@@ -443,7 +443,7 @@ EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 
 export const addJobProcessors = (queue: Queue): void => {
   try {
-    map(jobProcessors, jobProcessor =>
+    map(jobProcessors, (jobProcessor) =>
       queue.process(jobProcessor.name, (job /*, done*/) => {
         return new Promise<void>((res, rej) => {
           newrelic
@@ -462,7 +462,7 @@ export const addJobProcessors = (queue: Queue): void => {
                 transaction.end()
               }
             })
-            .catch(error => {
+            .catch((error) => {
               logger.error(
                 `error in job processor newrelic transaction: ${error}`
               )

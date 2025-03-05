@@ -8,7 +8,7 @@ import { PoolClient } from 'pg'
 export async function getSponsorOrgs() {
   try {
     const result = await pgQueries.getSponsorOrgs.run(undefined, getClient())
-    const orgs: SponsorOrg[] = result.map(org =>
+    const orgs: SponsorOrg[] = result.map((org) =>
       makeSomeOptional(org, [
         'schoolIds',
         'studentPartnerOrgKeys',

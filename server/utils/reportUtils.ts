@@ -194,11 +194,12 @@ async function getVolunteerData<V extends VolunteerForTotalHours>(
   start: Date,
   end: Date
 ) {
-  const quizPassedActions = await UserActionRepo.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
-    volunteer.id,
-    start,
-    end
-  )
+  const quizPassedActions =
+    await UserActionRepo.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
+      volunteer.id,
+      start,
+      end
+    )
   const sessions = await SessionRepo.getSessionsForVolunteerHourSummary(
     volunteer.id,
     start,
@@ -223,11 +224,8 @@ async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
 ): Promise<TelecomRow[]> {
   const totalCerts = countCerts(volunteer.quizzes)
   if (totalCerts === 0) return []
-  const {
-    sessions,
-    availabilityForDateRange,
-    quizPassedActions,
-  } = await getVolunteerData(volunteer, start, end)
+  const { sessions, availabilityForDateRange, quizPassedActions } =
+    await getVolunteerData(volunteer, start, end)
   // Accumulate hours into rows
   const rows = []
 
@@ -254,7 +252,7 @@ async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
 }
 
 export async function generateTelecomReport<
-  V extends VolunteerForTelecomReport
+  V extends VolunteerForTelecomReport,
 >(volunteers: V[], start: Date, end: Date): Promise<TelecomRow[]> {
   const volunteerPartnerReport = []
   const errors = []
@@ -302,17 +300,10 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
     const totalCerts = countCerts(volunteer.quizzes)
     if (totalCerts === 0) return emptyHours()
 
-    const {
-      sessions,
-      availabilityForDateRange,
-      quizPassedActions,
-    } = await getVolunteerData(volunteer, start, end)
-    const {
-      totalTime,
-      sessionTime,
-      availabilityTime,
-      certificationTime,
-    } = telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
+    const { sessions, availabilityForDateRange, quizPassedActions } =
+      await getVolunteerData(volunteer, start, end)
+    const { totalTime, sessionTime, availabilityTime, certificationTime } =
+      telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
     const row = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
@@ -585,11 +576,12 @@ export async function getAnalyticsReportSummary(
     ).toFixed(2)
   )
 
-  const uniqueStudentSummary = await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
-    partnerOrg,
-    startDate,
-    endDate
-  )
+  const uniqueStudentSummary =
+    await VolunteerRepo.getUniqueStudentsHelpedForAnalyticsReportSummary(
+      partnerOrg,
+      startDate,
+      endDate
+    )
 
   summary.uniqueStudentsHelped.total = uniqueStudentSummary
     ? uniqueStudentSummary.totalUniqueStudentsHelped
@@ -601,9 +593,10 @@ export async function getAnalyticsReportSummary(
   summary.uniquePartnerStudentsHelped.total = uniqueStudentSummary
     ? uniqueStudentSummary.totalUniquePartnerStudentsHelped
     : 0
-  summary.uniquePartnerStudentsHelped.totalWithinDateRange = uniqueStudentSummary
-    ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange
-    : 0
+  summary.uniquePartnerStudentsHelped.totalWithinDateRange =
+    uniqueStudentSummary
+      ? uniqueStudentSummary.totalUniquePartnerStudentsHelpedWithinRange
+      : 0
   return summary
 }
 
@@ -714,9 +707,10 @@ export function processAnalyticsReportDataSheet(
 ) {
   const columnsWithHeaderKeys = []
   const formattedColumnHeaders = []
-  const isCustomAnalyticsReport = config.corporatePartnerReports.customAnalyticsReportPartnerOrgs.includes(
-    partnerOrg
-  )
+  const isCustomAnalyticsReport =
+    config.corporatePartnerReports.customAnalyticsReportPartnerOrgs.includes(
+      partnerOrg
+    )
   for (const [key, value] of Object.entries(analyticsReportDataHeaderMapping)) {
     if (
       !isCustomAnalyticsReport &&
@@ -766,24 +760,18 @@ export function processAnalyticsReportDataSheet(
     worksheet.getCell('M1').value = sectionalHeaders.totalVolunteerHours
     worksheet.getCell('R1').value = sectionalHeaders.dateRangeImpact
     worksheet.getCell('W1').value = sectionalHeaders.dateRangeHours
-    worksheet.getCell(
-      'J2'
-    ).value = `Total sessions with ${partnerName} students`
-    worksheet.getCell(
-      'L2'
-    ).value = `Total unique ${partnerName} students helped`
-    worksheet.getCell(
-      'N2'
-    ).value = `Total tutoring hours with ${partnerName} students`
-    worksheet.getCell(
-      'T2'
-    ).value = `Sessions completed with ${partnerName} students within date range`
-    worksheet.getCell(
-      'V2'
-    ).value = `Unique ${partnerName} students impacted within date range`
-    worksheet.getCell(
-      'X2'
-    ).value = `Tutoring hours with ${partnerName} students within date range`
+    worksheet.getCell('J2').value =
+      `Total sessions with ${partnerName} students`
+    worksheet.getCell('L2').value =
+      `Total unique ${partnerName} students helped`
+    worksheet.getCell('N2').value =
+      `Total tutoring hours with ${partnerName} students`
+    worksheet.getCell('T2').value =
+      `Sessions completed with ${partnerName} students within date range`
+    worksheet.getCell('V2').value =
+      `Unique ${partnerName} students impacted within date range`
+    worksheet.getCell('X2').value =
+      `Tutoring hours with ${partnerName} students within date range`
     worksheet.mergeCells('A1:G1')
     worksheet.mergeCells('H1:L1')
     worksheet.mergeCells('M1:Q1')
@@ -835,7 +823,7 @@ export function processAnalyticsReportSummarySheet(
 
   for (const [key, data] of Object.entries(summary) as [
     keyof typeof analyticsReportSummaryHeaderMapping,
-    AnalyticsReportSummaryData
+    AnalyticsReportSummaryData,
   ][]) {
     let description =
       analyticsReportSummaryHeaderMapping[
@@ -881,9 +869,8 @@ export const asValidateVolunteerReportQuery = asFactory<VolunteerReportQuery>({
 })
 
 export async function validateVolunteerReportQuery(data: unknown) {
-  const { partnerOrg, startDate, endDate } = asValidateVolunteerReportQuery(
-    data
-  )
+  const { partnerOrg, startDate, endDate } =
+    asValidateVolunteerReportQuery(data)
   const startMoment = moment(startDate, 'MM-DD-YYYY', true)
   const endMoment = moment(endDate, 'MM-DD-YYYY', true)
 
@@ -894,9 +881,8 @@ export async function validateVolunteerReportQuery(data: unknown) {
   if (startMoment.toDate() >= endMoment.toDate())
     throw new InputError('Invalid date range')
 
-  const partnerOrgId = await VolunteerPartnerOrgRepo.getVolunteerPartnerOrgIdByKey(
-    partnerOrg
-  )
+  const partnerOrgId =
+    await VolunteerPartnerOrgRepo.getVolunteerPartnerOrgIdByKey(partnerOrg)
   if (!partnerOrg) throw new ReportNoDataFoundError('No partner org provided')
   if (!partnerOrgId)
     throw new ReportNoDataFoundError('No partner org found with given key')
@@ -934,19 +920,17 @@ const studentReportValidators = {
   sponsorOrg: asOptional(asString),
 }
 
-export const asValidateStudentSessionReportQuery = asFactory<
-  StudentReportQuery
->({
-  ...studentReportValidators,
-})
+export const asValidateStudentSessionReportQuery =
+  asFactory<StudentReportQuery>({
+    ...studentReportValidators,
+  })
 
-export const asValidateStudentUsageReportQuery = asFactory<
-  StudentUsageReportQuery
->({
-  joinedBefore: asString,
-  joinedAfter: asString,
-  ...studentReportValidators,
-})
+export const asValidateStudentUsageReportQuery =
+  asFactory<StudentUsageReportQuery>({
+    joinedBefore: asString,
+    joinedAfter: asString,
+    ...studentReportValidators,
+  })
 
 function isValidReportDateFormat(dateString: string) {
   const isStrictMode = true

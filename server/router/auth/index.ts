@@ -35,7 +35,7 @@ async function trackLoggedIn(userId: Ulid, ipAddress: string) {
 export function routes(app: Express) {
   const router = Router()
 
-  router.route('/logout').get(async function(req, res) {
+  router.route('/logout').get(async function (req, res) {
     const userId = req.user?.id
     req.session.destroy(() => {
       /* do nothing */
@@ -64,7 +64,7 @@ export function routes(app: Express) {
     // Delegate auth logic to passport middleware
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
-    async function(req: Request, res: Response) {
+    async function (req: Request, res: Response) {
       const legacyUser = await getLegacyUserObject(extractUser(req).id)
       await trackLoggedIn(legacyUser.id, req.ip)
       res.json({ user: legacyUser })
@@ -114,7 +114,7 @@ export function routes(app: Express) {
       return
     }
     const strategy = provider
-    passport.authenticate(strategy, async function(_, user, data) {
+    passport.authenticate(strategy, async function (_, user, data) {
       if (data?.profileId && data?.issuer) {
         const validator = getUuid()
         ;(req.session as SessionWithSsoData).sso = {
@@ -151,7 +151,7 @@ export function routes(app: Express) {
     })(req, res)
   })
 
-  router.route('/register/checkcred').post(async function(req, res) {
+  router.route('/register/checkcred').post(async function (req, res) {
     try {
       const checked = await AuthService.checkCredential(req.body as unknown)
       return res.json({ checked })
@@ -160,7 +160,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/student').post(async function(req, res) {
+  router.route('/register/student').post(async function (req, res) {
     try {
       const { fedCredData } = (req.session as SessionWithSsoData).sso ?? {}
       if (fedCredData && req.body.validator === fedCredData.validator) {
@@ -202,7 +202,7 @@ export function routes(app: Express) {
   })
 
   // == Remove once midtown clean-up.
-  router.route('/register/student/open').post(async function(req, res) {
+  router.route('/register/student/open').post(async function (req, res) {
     try {
       const data = registerStudentValidator({
         ...req.body,
@@ -219,7 +219,7 @@ export function routes(app: Express) {
   })
 
   // == Remove once midtown clean-up.
-  router.route('/register/student/partner').post(async function(req, res) {
+  router.route('/register/student/partner').post(async function (req, res) {
     try {
       const data = registerStudentValidator({
         ...req.body,
@@ -237,7 +237,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/teacher').post(async function(req, res) {
+  router.route('/register/teacher').post(async function (req, res) {
     try {
       const data = registerTeacherValidator({
         ...req.body,
@@ -251,7 +251,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/volunteer/open').post(async function(req, res) {
+  router.route('/register/volunteer/open').post(async function (req, res) {
     try {
       const volunteer = await AuthService.registerVolunteer({
         ...req.body,
@@ -265,7 +265,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/volunteer/partner').post(async function(req, res) {
+  router.route('/register/volunteer/partner').post(async function (req, res) {
     try {
       const volunteer = await AuthService.registerPartnerVolunteer({
         ...req.body,
@@ -279,7 +279,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/partner/volunteer').get(async function(req, res) {
+  router.route('/partner/volunteer').get(async function (req, res) {
     try {
       if (!req.query.hasOwnProperty('partnerId'))
         throw new InputError('Missing volunteerPartnerId query string')
@@ -292,7 +292,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/partner/student').get(async function(req, res) {
+  router.route('/partner/student').get(async function (req, res) {
     try {
       if (!req.query.hasOwnProperty('partnerId'))
         throw new InputError('Missing studentPartnerId query string')
@@ -311,7 +311,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/partner/student/code').get(async function(req, res) {
+  router.route('/partner/student/code').get(async function (req, res) {
     try {
       if (!req.query.hasOwnProperty('partnerSignupCode'))
         throw new InputError('Missing partnerSignupCode query string')
@@ -327,7 +327,7 @@ export function routes(app: Express) {
   router
     .route('/partner/student-partners')
     .all(authPassport.isAdmin)
-    .get(async function(req, res) {
+    .get(async function (req, res) {
       try {
         const partnerOrgs = await AuthService.lookupStudentPartners()
         res.json({ partnerOrgs })
@@ -339,7 +339,7 @@ export function routes(app: Express) {
   router
     .route('/partner/volunteer-partners')
     .all(authPassport.isAdmin)
-    .get(async function(req, res) {
+    .get(async function (req, res) {
       try {
         const partnerOrgs = await AuthService.lookupVolunteerPartners()
         res.json({ partnerOrgs })
@@ -351,7 +351,7 @@ export function routes(app: Express) {
   router
     .route('/partner/sponsor-orgs')
     .all(authPassport.isAdmin)
-    .get(async function(req, res) {
+    .get(async function (req, res) {
       try {
         const sponsorOrgs = await AuthService.lookupSponsorOrgs()
         res.json({ sponsorOrgs })
@@ -360,7 +360,7 @@ export function routes(app: Express) {
       }
     })
 
-  router.route('/reset/send').post(async function(req, res) {
+  router.route('/reset/send').post(async function (req, res) {
     try {
       const reqEmail = asString(req.body.email)
       const email = reqEmail.toLowerCase()
@@ -386,25 +386,25 @@ export function routes(app: Express) {
         req.logout()
       }
       res.status(200).json({
-        msg:
-          'If an account with this email address exists then we will send a password reset email',
+        msg: 'If an account with this email address exists then we will send a password reset email',
       })
     } catch (err) {
       resError(res, err)
     }
   })
 
-  router.post('/reset/confirm', authPassport.checkRecaptcha, async function(
-    req: Request,
-    res: Response
-  ) {
-    try {
-      await AuthService.confirmReset(req.body as unknown)
-      res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
+  router.post(
+    '/reset/confirm',
+    authPassport.checkRecaptcha,
+    async function (req: Request, res: Response) {
+      try {
+        await AuthService.confirmReset(req.body as unknown)
+        res.sendStatus(200)
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
   app.use('/auth', router)
 }

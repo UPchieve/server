@@ -54,19 +54,11 @@ async function sendEmailToInactiveVolunteers(
 }
 
 function getStartOfDayFromDaysAgo(daysAgo: number): Date {
-  return moment()
-    .utc()
-    .subtract(daysAgo, 'days')
-    .startOf('day')
-    .toDate()
+  return moment().utc().subtract(daysAgo, 'days').startOf('day').toDate()
 }
 
 function getEndOfDayFromDaysAgo(daysAgo: number): Date {
-  return moment()
-    .utc()
-    .subtract(daysAgo, 'days')
-    .endOf('day')
-    .toDate()
+  return moment().utc().subtract(daysAgo, 'days').endOf('day').toDate()
 }
 
 export default async (): Promise<void> => {
@@ -102,11 +94,8 @@ export default async (): Promise<void> => {
   )
 
   if (volunteers) {
-    const {
-      inactiveThirtyDays,
-      inactiveSixtyDays,
-      inactiveNinetyDays,
-    } = volunteers
+    const { inactiveThirtyDays, inactiveSixtyDays, inactiveNinetyDays } =
+      volunteers
     const errors = []
     try {
       await sendEmailToInactiveVolunteers(

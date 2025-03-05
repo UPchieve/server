@@ -4,7 +4,7 @@ import { resError } from '../res-error'
 import { Readable } from 'stream'
 
 export function routeVoiceMessages(router: Router) {
-  router.get('/voice-messages/:voiceMessageId', async function(req, res) {
+  router.get('/voice-messages/:voiceMessageId', async function (req, res) {
     try {
       let start
       let end

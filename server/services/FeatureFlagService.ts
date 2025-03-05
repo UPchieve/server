@@ -108,7 +108,7 @@ export async function getAiModerationFeatureFlag(
   userId: Ulid
 ): Promise<keyof typeof AI_MODERATION_STATE> {
   return timeLimit({
-    promise: new Promise(async r => {
+    promise: new Promise(async (r) => {
       const result = await productClient.getFeatureFlag(
         FEATURE_FLAGS.AI_MODERATION,
         userId

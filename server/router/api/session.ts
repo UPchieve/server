@@ -33,7 +33,7 @@ export function routeSession(router: Router) {
   const socketService = SocketService.getInstance()
   const upload = multer()
 
-  router.route('/session/new').post(async function(req, res) {
+  router.route('/session/new').post(async function (req, res) {
     try {
       const user = extractUser(req)
       const sessionData = asStartSessionData({
@@ -52,7 +52,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/end').post(async function(req, res) {
+  router.route('/session/end').post(async function (req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
@@ -73,7 +73,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/check').post(async function(req, res) {
+  router.route('/session/check').post(async function (req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
@@ -89,7 +89,7 @@ export function routeSession(router: Router) {
   })
 
   // TODO: switch to a GET request
-  router.route('/session/current').post(async function(req, res) {
+  router.route('/session/current').post(async function (req, res) {
     try {
       const user = extractUser(req)
       const currentSession = await SessionService.currentSession(user.id)
@@ -106,12 +106,11 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/recap-dms').post(async function(req, res) {
+  router.route('/session/recap-dms').post(async function (req, res) {
     try {
       const sessionId = asString(req.body.sessionId)
-      const currentSession = await SessionService.getRecapSessionForDms(
-        sessionId
-      )
+      const currentSession =
+        await SessionService.getRecapSessionForDms(sessionId)
       if (!currentSession) {
         resError(res, new LookupError('No current session'), 404)
       } else {
@@ -125,7 +124,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/latest').post(async function(req, res) {
+  router.route('/session/latest').post(async function (req, res) {
     try {
       const user = extractUser(req)
       const latestSession = await SessionService.studentLatestSession(user.id)
@@ -143,35 +142,40 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.get('/session/review', authPassport.isAdmin, async function(req, res) {
-    try {
-      const { sessions, isLastPage } = await SessionService.sessionsToReview(
-        req.query.page as unknown,
-        { studentFirstName: req.query.studentFirstName as string }
-      )
-      res.json({ sessions, isLastPage })
-    } catch (error) {
-      resError(res, error)
+  router.get(
+    '/session/review',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const { sessions, isLastPage } = await SessionService.sessionsToReview(
+          req.query.page as unknown,
+          { studentFirstName: req.query.studentFirstName as string }
+        )
+        res.json({ sessions, isLastPage })
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 
-  router.put('/session/:sessionId', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const { sessionId } = req.params
-      await SessionService.reviewSession({
-        ...req.body,
-        sessionId,
-      } as unknown)
-      res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
+  router.put(
+    '/session/:sessionId',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const { sessionId } = req.params
+        await SessionService.reviewSession({
+          ...req.body,
+          sessionId,
+        } as unknown)
+        res.sendStatus(200)
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 
-  router.get('/session/:sessionId/photo-url', async function(req, res) {
+  router.get('/session/:sessionId/photo-url', async function (req, res) {
     try {
       const { sessionId } = req.params
       const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
@@ -186,7 +190,7 @@ export function routeSession(router: Router) {
   router.post(
     '/session/:sessionId/voice-message',
     upload.single('message'),
-    async function(req, res) {
+    async function (req, res) {
       try {
         // 1. save to database
         // 2. upload to storage
@@ -209,7 +213,7 @@ export function routeSession(router: Router) {
     }
   )
 
-  router.post('/session/:sessionId/report', async function(req, res) {
+  router.post('/session/:sessionId/report', async function (req, res) {
     try {
       const { sessionId } = req.params
       const user = extractUser(req)
@@ -224,7 +228,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.post('/session/:sessionId/timed-out', async function(req, res) {
+  router.post('/session/:sessionId/timed-out', async function (req, res) {
     try {
       const { sessionId } = req.params
       const { timeout } = req.body
@@ -243,50 +247,48 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.get('/sessions', authPassport.isAdmin, async function(req, res) {
+  router.get('/sessions', authPassport.isAdmin, async function (req, res) {
     try {
-      const {
-        sessions,
-        isLastPage,
-      } = await SessionService.adminFilteredSessions(req.query as unknown)
+      const { sessions, isLastPage } =
+        await SessionService.adminFilteredSessions(req.query as unknown)
       res.json({ sessions, isLastPage })
     } catch (error) {
       resError(res, error)
     }
   })
 
-  router.get('/session/:sessionId/admin', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    try {
-      const { sessionId } = req.params
-      const session = await SessionService.adminSessionView(
-        sessionId as unknown
-      )
-      res.json({ session })
-    } catch (error) {
-      resError(res, error)
+  router.get(
+    '/session/:sessionId/admin',
+    authPassport.isAdmin,
+    async function (req, res) {
+      try {
+        const { sessionId } = req.params
+        const session = await SessionService.adminSessionView(
+          sessionId as unknown
+        )
+        res.json({ session })
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 
-  router.put('/session/:sessionId/tutor-bot-conversation', async function(
-    req,
-    res
-  ) {
-    try {
-      const botResponse = await TutorBotService.getOrCreateConversationBySessionId(
-        {
-          sessionId: req.params.sessionId,
-        }
-      )
-      return res.json(botResponse).status(200)
-    } catch (err) {
-      resError(res, err)
+  router.put(
+    '/session/:sessionId/tutor-bot-conversation',
+    async function (req, res) {
+      try {
+        const botResponse =
+          await TutorBotService.getOrCreateConversationBySessionId({
+            sessionId: req.params.sessionId,
+          })
+        return res.json(botResponse).status(200)
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/session/:sessionId', async function(req, res) {
+  router.get('/session/:sessionId', async function (req, res) {
     try {
       const { sessionId } = req.params
       // TODO: could be undefined
@@ -300,7 +302,7 @@ export function routeSession(router: Router) {
   router.get(
     '/session/:sessionId/notifications',
     authPassport.isAdmin,
-    async function(req, res) {
+    async function (req, res) {
       try {
         const { sessionId } = req.params
         const notifications = await SessionService.getSessionNotifications(
@@ -313,19 +315,18 @@ export function routeSession(router: Router) {
     }
   )
 
-  router.get('/session/:sessionId/assignment', async function(req, res) {
+  router.get('/session/:sessionId/assignment', async function (req, res) {
     try {
       const { sessionId } = req.params
-      const assignment = await AssignmentsService.getStudentAssignmentForSession(
-        sessionId
-      )
+      const assignment =
+        await AssignmentsService.getStudentAssignmentForSession(sessionId)
       res.json({ assignment })
     } catch (error) {
       resError(res, error)
     }
   })
 
-  router.get('/sessions/history', async function(req, res) {
+  router.get('/sessions/history', async function (req, res) {
     try {
       const user = extractUser(req)
       const filter = {
@@ -337,15 +338,12 @@ export function routeSession(router: Router) {
           : undefined,
       }
 
-      const {
-        pastSessions,
-        page,
-        isLastPage,
-      } = await SessionService.getSessionHistory(
-        user.id,
-        asString(req.query.page),
-        filter
-      )
+      const { pastSessions, page, isLastPage } =
+        await SessionService.getSessionHistory(
+          user.id,
+          asString(req.query.page),
+          filter
+        )
 
       res.json({ page, isLastPage, pastSessions })
     } catch (err) {
@@ -353,7 +351,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.get('/sessions/history/total', async function(req, res) {
+  router.get('/sessions/history/total', async function (req, res) {
     try {
       if (req.query.studentId && req.query.volunteerId) {
         const total = await SessionService.getPreviousSessionCountForPair(
@@ -372,25 +370,25 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.post('/sessions/history/:sessionId/eligible', async function(
-    req,
-    res
-  ) {
-    try {
-      const { sessionId } = req.params
-      const { studentId, volunteerId } = req.body
-      const isEligible = await SessionService.isEligibleForSessionRecap(
-        sessionId,
-        asString(studentId),
-        asString(volunteerId)
-      )
-      res.json({ isEligible })
-    } catch (err) {
-      resError(res, err)
+  router.post(
+    '/sessions/history/:sessionId/eligible',
+    async function (req, res) {
+      try {
+        const { sessionId } = req.params
+        const { studentId, volunteerId } = req.body
+        const isEligible = await SessionService.isEligibleForSessionRecap(
+          sessionId,
+          asString(studentId),
+          asString(volunteerId)
+        )
+        res.json({ isEligible })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/sessions/:sessionId/recap', async function(req, res) {
+  router.get('/sessions/:sessionId/recap', async function (req, res) {
     try {
       const user = extractUser(req)
       const { sessionId } = req.params
@@ -411,26 +409,24 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.get('/sessions/student/:studentId', async function(req, res) {
+  router.get('/sessions/student/:studentId', async function (req, res) {
     try {
       const studentId = req.params.studentId as string
-      const sessionDetails = await SessionService.getStudentSessionDetails(
-        studentId
-      )
+      const sessionDetails =
+        await SessionService.getStudentSessionDetails(studentId)
       res.json({ sessionDetails })
     } catch (err) {
       resError(res, err)
     }
   })
 
-  const createSessionAudioRequestValidator = asFactory<
-    CreateSessionAudioPayload
-  >({
-    volunteerJoinedAt: asOptional(asDate),
-    studentJoinedAt: asOptional(asDate),
-    resourceUri: asOptional(asString),
-  })
-  router.post('/sessions/:sessionId/call', async function(req, res) {
+  const createSessionAudioRequestValidator =
+    asFactory<CreateSessionAudioPayload>({
+      volunteerJoinedAt: asOptional(asDate),
+      studentJoinedAt: asOptional(asDate),
+      resourceUri: asOptional(asString),
+    })
+  router.post('/sessions/:sessionId/call', async function (req, res) {
     try {
       const sessionId = req.params.sessionId as string
       const result = await SessionService.getOrCreateSessionAudio(
@@ -443,19 +439,12 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.post('/sessions/:sessionId/meeting', async function(req, res) {
+  router.post('/sessions/:sessionId/meeting', async function (req, res) {
     try {
       const sessionId = req.params.sessionId
       const userId = extractUser(req).id
-      const {
-        meeting,
-        attendee,
-        partnerAttendee,
-        transcriptionStarted,
-      } = await SessionMeetingService.getOrCreateSessionMeeting(
-        sessionId,
-        userId
-      )
+      const { meeting, attendee, partnerAttendee, transcriptionStarted } =
+        await SessionMeetingService.getOrCreateSessionMeeting(sessionId, userId)
       return res.json({
         meeting,
         attendee,
@@ -467,7 +456,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.put('/sessions/:sessionId/meeting', async function(req, res) {
+  router.put('/sessions/:sessionId/meeting', async function (req, res) {
     try {
       const sessionId = req.params.sessionId
       await SessionMeetingService.endMeeting(sessionId)
@@ -477,14 +466,13 @@ export function routeSession(router: Router) {
     }
   })
 
-  const updateSessionAudioRequestValidator = asFactory<
-    UpdateSessionAudioPayload
-  >({
-    volunteerJoinedAt: asOptional(asDate),
-    studentJoinedAt: asOptional(asDate),
-    resourceUri: asOptional(asString),
-  })
-  router.put('/sessions/:sessionId/call', async function(req, res) {
+  const updateSessionAudioRequestValidator =
+    asFactory<UpdateSessionAudioPayload>({
+      volunteerJoinedAt: asOptional(asDate),
+      studentJoinedAt: asOptional(asDate),
+      resourceUri: asOptional(asString),
+    })
+  router.put('/sessions/:sessionId/call', async function (req, res) {
     try {
       const sessionId = req.params.sessionId as string
       const updated = await SessionService.updateSessionAudio(

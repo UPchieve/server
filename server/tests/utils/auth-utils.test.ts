@@ -103,10 +103,10 @@ describe('authPassport', () => {
       new Error('Test'),
     ])(
       'Should not call next() if the request fails recaptcha validations due to %s',
-      async err => {
-        ;(RecaptchaService.validateRequestRecaptcha as jest.Mock).mockRejectedValue(
-          err
-        )
+      async (err) => {
+        ;(
+          RecaptchaService.validateRequestRecaptcha as jest.Mock
+        ).mockRejectedValue(err)
         const req = {
           headers: {
             'g-recaptcha-response': 'testToken',

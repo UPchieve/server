@@ -233,9 +233,7 @@ export const addMessageToConversation = async (
   }, parentTransaction)
 }
 
-async function getPromptDataFor(
-  subjectName: string
-): Promise<{
+async function getPromptDataFor(subjectName: string): Promise<{
   isFallback: boolean
   prompt: string
   version: string
@@ -290,11 +288,13 @@ const getOpenAiBotResponse = async (
     subjectName: string
   },
   tc: TransactionClient = getClient()
-): Promise<TutorBotConversationMessage & {
-  traceId: string
-  obeservationId: string | null
-  status: string
-}> => {
+): Promise<
+  TutorBotConversationMessage & {
+    traceId: string
+    obeservationId: string | null
+    status: string
+  }
+> => {
   // Save the latest user message to DB and create the transcript of the conversation so far
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
@@ -376,11 +376,13 @@ const getBotResponse = async (
     subjectName: string
   },
   tc: TransactionClient = getClient()
-): Promise<TutorBotConversationMessage & {
-  traceId: string
-  obeservationId: string | null
-  status: string
-}> => {
+): Promise<
+  TutorBotConversationMessage & {
+    traceId: string
+    obeservationId: string | null
+    status: string
+  }
+> => {
   // Save the latest user message to DB and create the transcript of the conversation so far
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
@@ -467,7 +469,7 @@ const createPromptFromTranscript = (
   transcript: TutorBotConversationTranscript
 ): string => {
   let prompt = ''
-  transcript.messages.forEach(m => {
+  transcript.messages.forEach((m) => {
     const senderTag = m.senderUserType === 'bot' ? '<|assistant|>' : '<|user|>'
 
     prompt += `${senderTag}\n${m.message}<|end|>${
@@ -478,10 +480,7 @@ const createPromptFromTranscript = (
   // start removing the earlier messages
   if (byteSize(prompt) > 1024) {
     while (byteSize(prompt) > 1024) {
-      prompt = prompt
-        .split('<|end|>\n')
-        .slice(1)
-        .join('<|end|>\n')
+      prompt = prompt.split('<|end|>\n').slice(1).join('<|end|>\n')
     }
   }
   return prompt

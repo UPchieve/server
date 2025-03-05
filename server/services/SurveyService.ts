@@ -42,15 +42,14 @@ export type SaveSurveyAndSubmissions = SaveUserSurvey & {
   submissions: SaveUserSurveySubmission[]
 }
 
-export const asSaveUserSurveyAndSubmissions = asFactory<
-  SaveSurveyAndSubmissions
->({
-  surveyId: asNumber,
-  sessionId: asOptional(asString),
-  progressReportId: asOptional(asString),
-  surveyTypeId: asNumber,
-  submissions: asArray(asSurveySubmissions),
-})
+export const asSaveUserSurveyAndSubmissions =
+  asFactory<SaveSurveyAndSubmissions>({
+    surveyId: asNumber,
+    sessionId: asOptional(asString),
+    progressReportId: asOptional(asString),
+    surveyTypeId: asNumber,
+    submissions: asArray(asSurveySubmissions),
+  })
 
 type VolunteerContextResponse = {
   totalStudentSessions: number
@@ -82,7 +81,7 @@ export async function saveUserSurvey(
   }
   // filter out questions the user didn't answer
   const submissions = survey.submissions.filter(
-    resp => resp.responseChoiceId !== null
+    (resp) => resp.responseChoiceId !== null
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
   if (userSurvey.sessionId)
@@ -104,12 +103,10 @@ export const getUserPostsessionGoalRatingsMetrics = async (
   userRole: string
 ): Promise<PostsessionSurveyRatingsMetric> => {
   const isTutor = userRole === 'volunteer' || userRole === 'admin'
-  const ratingsFromStudentsRaw = await getStudentPostsessionSurveyGoalQuestionRatings(
-    userId
-  )
-  const ratingsFromVolunteersRaw = await getVolunteerPostsessionSurveyGoalQuestionRatings(
-    userId
-  )
+  const ratingsFromStudentsRaw =
+    await getStudentPostsessionSurveyGoalQuestionRatings(userId)
+  const ratingsFromVolunteersRaw =
+    await getVolunteerPostsessionSurveyGoalQuestionRatings(userId)
 
   const getAverage = (ratings: PostsessionSurveyGoalResponse[]): number => {
     if (!ratings.length) return 0
@@ -228,9 +225,8 @@ export async function getImpactSurveyDefinition() {
 export async function getLatestImpactStudySurveyResponses(
   userId: Ulid
 ): Promise<SurveyQueryResponse | undefined> {
-  const latestImpactSurveyId = await getSurveyIdForLatestImpactStudySurveySubmission(
-    userId
-  )
+  const latestImpactSurveyId =
+    await getSurveyIdForLatestImpactStudySurveySubmission(userId)
   if (!latestImpactSurveyId) return
 
   const [submissions, survey] = await Promise.all([
@@ -238,9 +234,9 @@ export async function getLatestImpactStudySurveyResponses(
     getSimpleSurveyDefinitionBySurveyId(latestImpactSurveyId),
   ])
 
-  const surveyWithSubmissions = survey.survey.map(question => {
+  const surveyWithSubmissions = survey.survey.map((question) => {
     const matchingSubmission = submissions.find(
-      submission => submission.questionId === question.questionId
+      (submission) => submission.questionId === question.questionId
     )
 
     const userResponse = matchingSubmission

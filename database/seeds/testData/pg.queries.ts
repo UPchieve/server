@@ -71,8 +71,7 @@ const insertSchoolIR: any = {
     cityId: true,
   },
   statement: {
-    body:
-      'INSERT INTO schools (id, name, approved, partner, city_id, created_at, updated_at)\n    VALUES (:id!, :name!, :approved!, :partner!, :cityId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO schools (id, name, approved, partner, city_id, created_at, updated_at)\n    VALUES (:id!, :name!, :approved!, :partner!, :cityId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 25, b: 229, line: 2, col: 0 },
   },
 }
@@ -176,8 +175,7 @@ const insertStudentUserIR: any = {
     verified: true,
   },
   statement: {
-    body:
-      'WITH ins AS (\nINSERT INTO users (id, email, PASSWORD, first_name, last_name, referral_code, verified, created_at, updated_at)\n        VALUES (:id!, :email!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        users\n    WHERE\n        email = :email!',
+    body: 'WITH ins AS (\nINSERT INTO users (id, email, PASSWORD, first_name, last_name, referral_code, verified, created_at, updated_at)\n        VALUES (:id!, :email!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        users\n    WHERE\n        email = :email!',
     loc: { a: 264, b: 696, line: 11, col: 0 },
   },
 }
@@ -264,8 +262,7 @@ const insertStudentProfileIR: any = {
     gradeLevelId: true,
   },
   statement: {
-    body:
-      'INSERT INTO student_profiles (user_id, student_partner_org_id, school_id, grade_level_id, created_at, updated_at)\n    VALUES (:userId!, :studentPartnerOrgId, :schoolId, :gradeLevelId, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO student_profiles (user_id, student_partner_org_id, school_id, grade_level_id, created_at, updated_at)\n    VALUES (:userId!, :studentPartnerOrgId, :schoolId, :gradeLevelId, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
     loc: { a: 734, b: 985, line: 32, col: 0 },
   },
 }
@@ -393,8 +390,7 @@ const insertVolunteerUserIR: any = {
     timeTutored: true,
   },
   statement: {
-    body:
-      'WITH ins AS (\nINSERT INTO users (id, email, phone, PASSWORD, first_name, last_name, referral_code, verified, test_user, time_tutored, created_at, updated_at)\n        VALUES (:id!, :email!, :phone!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, :testUser!, :timeTutored!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        users\n    WHERE\n        email = :email!',
+    body: 'WITH ins AS (\nINSERT INTO users (id, email, phone, PASSWORD, first_name, last_name, referral_code, verified, test_user, time_tutored, created_at, updated_at)\n        VALUES (:id!, :email!, :phone!, :password!, :firstName!, :lastName!, :referralCode!, :verified!, :testUser!, :timeTutored!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id\n    FROM\n        users\n    WHERE\n        email = :email!',
     loc: { a: 1022, b: 1522, line: 41, col: 0 },
   },
 }
@@ -455,8 +451,7 @@ const insertUserSessionMetricsIR: any = {
   ],
   usedParamSet: { id: true },
   statement: {
-    body:
-      'INSERT INTO user_session_metrics (user_id, created_at, updated_at)\n    VALUES (:id!, NOW(), NOW())\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO user_session_metrics (user_id, created_at, updated_at)\n    VALUES (:id!, NOW(), NOW())\nRETURNING\n    user_id AS ok',
     loc: { a: 1564, b: 1689, line: 62, col: 0 },
   },
 }
@@ -545,8 +540,7 @@ const insertVolunteerProfileIR: any = {
     volunteerPartnerOrgId: true,
   },
   statement: {
-    body:
-      'INSERT INTO volunteer_profiles (user_id, timezone, approved, onboarded, college, volunteer_partner_org_id, created_at, updated_at)\n    VALUES (:userId!, :timezone!, :approved!, :onboarded!, :college!, :volunteerPartnerOrgId, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO volunteer_profiles (user_id, timezone, approved, onboarded, college, volunteer_partner_org_id, created_at, updated_at)\n    VALUES (:userId!, :timezone!, :approved!, :onboarded!, :college!, :volunteerPartnerOrgId, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
     loc: { a: 1729, b: 2021, line: 69, col: 0 },
   },
 }
@@ -602,8 +596,7 @@ const insertUserCertificationIR: any = {
   ],
   usedParamSet: { userId: true, certificationId: true },
   statement: {
-    body:
-      'INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\n    VALUES (:userId!, :certificationId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO users_certifications (user_id, certification_id, created_at, updated_at)\n    VALUES (:userId!, :certificationId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
     loc: { a: 2062, b: 2255, line: 78, col: 0 },
   },
 }
@@ -673,8 +666,7 @@ const insertIntoUserQuizzesIR: any = {
   ],
   usedParamSet: { userId: true, quizId: true, attempts: true, passed: true },
   statement: {
-    body:
-      'INSERT INTO users_quizzes (user_id, quiz_id, attempts, passed, created_at, updated_at)\n    VALUES (:userId!, :quizId!, :attempts!, :passed!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO users_quizzes (user_id, quiz_id, attempts, passed, created_at, updated_at)\n    VALUES (:userId!, :quizId!, :attempts!, :passed!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
     loc: { a: 2294, b: 2502, line: 87, col: 0 },
   },
 }
@@ -723,8 +715,7 @@ const insertAdminProfileIR: any = {
   ],
   usedParamSet: { userId: true },
   statement: {
-    body:
-      'INSERT INTO admin_profiles (user_id, created_at, updated_at)\n    VALUES (:userId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO admin_profiles (user_id, created_at, updated_at)\n    VALUES (:userId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
     loc: { a: 2538, b: 2688, line: 96, col: 0 },
   },
 }
@@ -799,8 +790,7 @@ const insertSessionIR: any = {
     subjectId: true,
   },
   statement: {
-    body:
-      'INSERT INTO sessions (id, student_id, volunteer_id, subject_id, created_at, updated_at)\n    VALUES (:id!, :studentId!, :volunteerId!, :subjectId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO sessions (id, student_id, volunteer_id, subject_id, created_at, updated_at)\n    VALUES (:id!, :studentId!, :volunteerId!, :subjectId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 2719, b: 2928, line: 105, col: 0 },
   },
 }
@@ -856,8 +846,7 @@ const insertStudentFavoriteVolunteersIR: any = {
   ],
   usedParamSet: { studentId: true, volunteerId: true },
   statement: {
-    body:
-      'INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at)\n    VALUES (:studentId!, :volunteerId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    student_id AS ok',
+    body: 'INSERT INTO student_favorite_volunteers (student_id, volunteer_id, created_at, updated_at)\n    VALUES (:studentId!, :volunteerId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    student_id AS ok',
     loc: { a: 2977, b: 3178, line: 114, col: 0 },
   },
 }
@@ -1058,8 +1047,7 @@ const getAlgebraOneSubcategoriesIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      "SELECT\n    qs.id,\n    qs.name\nFROM\n    quiz_subcategories qs\n    JOIN quizzes q ON q.id = qs.quiz_id\nWHERE\n    q.name = 'algebraOne'",
+    body: "SELECT\n    qs.id,\n    qs.name\nFROM\n    quiz_subcategories qs\n    JOIN quizzes q ON q.id = qs.quiz_id\nWHERE\n    q.name = 'algebraOne'",
     loc: { a: 3570, b: 3701, line: 155, col: 0 },
   },
 }
@@ -1136,8 +1124,7 @@ const insertQuizQuestionIR: any = {
     quizSubcategoryId: true,
   },
   statement: {
-    body:
-      'INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, quiz_subcategory_id, created_at, updated_at)\n    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :quizSubcategoryId!, NOW(), NOW())\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO quiz_questions (question_text, possible_answers, correct_answer, quiz_subcategory_id, created_at, updated_at)\n    VALUES (:questionText!, :possibleAnswers!, :correctAnswer!, :quizSubcategoryId!, NOW(), NOW())\nRETURNING\n    id AS ok',
     loc: { a: 3737, b: 3979, line: 166, col: 0 },
   },
 }
@@ -1191,8 +1178,7 @@ const insertCityIR: any = {
   ],
   usedParamSet: { name: true, usStateCode: true },
   statement: {
-    body:
-      'INSERT INTO cities (name, us_state_code, created_at, updated_at)\n    VALUES (:name!, :usStateCode!, NOW(), NOW())\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO cities (name, us_state_code, created_at, updated_at)\n    VALUES (:name!, :usStateCode!, NOW(), NOW())\nRETURNING\n    id AS ok',
     loc: { a: 4007, b: 4142, line: 173, col: 0 },
   },
 }
@@ -1239,8 +1225,7 @@ const insertUserProductFlagsIR: any = {
   ],
   usedParamSet: { id: true },
   statement: {
-    body:
-      'INSERT INTO user_product_flags (user_id, created_at, updated_at)\n    VALUES (:id!, NOW(), NOW())\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO user_product_flags (user_id, created_at, updated_at)\n    VALUES (:id!, NOW(), NOW())\nRETURNING\n    user_id AS ok',
     loc: { a: 4182, b: 4305, line: 180, col: 0 },
   },
 }
@@ -1287,8 +1272,7 @@ const insertSchoolStudentPartnersIR: any = {
   ],
   usedParamSet: { schoolName: true },
   statement: {
-    body:
-      "INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    schools.id,\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!\nRETURNING\n    id AS ok",
+    body: "INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    schools.id,\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND name = :schoolName!\nRETURNING\n    id AS ok",
     loc: { a: 4350, b: 4820, line: 187, col: 0 },
   },
 }
@@ -1357,8 +1341,7 @@ const insertUsersRolesIR: any = {
   ],
   usedParamSet: { userId: true, roleName: true },
   statement: {
-    body:
-      'INSERT INTO users_roles (role_id, user_id, created_at, updated_at)\nSELECT\n    subquery.id,\n    :userId!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        user_roles\n    WHERE\n        user_roles.name = :roleName!) AS subquery\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
+    body: 'INSERT INTO users_roles (role_id, user_id, created_at, updated_at)\nSELECT\n    subquery.id,\n    :userId!,\n    NOW(),\n    NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        user_roles\n    WHERE\n        user_roles.name = :roleName!) AS subquery\nON CONFLICT\n    DO NOTHING\nRETURNING\n    user_id AS ok',
     loc: { a: 4854, b: 5150, line: 209, col: 0 },
   },
 }

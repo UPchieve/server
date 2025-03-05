@@ -21,7 +21,7 @@ export function routes(app: Express): void {
   // in it. When the call is answered, Twilio sends a request to this
   // URL, and our server responds with TwiML containing the decoded message text
   // and the configured voice for the text-to-speech conversion.
-  router.post('/message/:message', function(req, res) {
+  router.post('/message/:message', function (req, res) {
     try {
       const message = decodeURIComponent(req.params.message)
       logger.info('Making TwiML for voice message')
@@ -41,7 +41,7 @@ export function routes(app: Express): void {
   /**
    * This route handles SMS messages sent to our Twilio numbers
    */
-  router.post('/incoming-sms', async function(req, res, next) {
+  router.post('/incoming-sms', async function (req, res, next) {
     const twiml = new twilio.twiml.MessagingResponse()
 
     // TODO: duck type validation
@@ -56,7 +56,8 @@ export function routes(app: Express): void {
      * If a volunteer responds "Yes" to a text notification, send
      * them a link to the session that they were notified about.
      */
-    const yesRegex = /\b(yes|yeah|yea|yess|yesss|ye|ya|yaa|yee|y|yeh|yah|sure)\b/gim
+    const yesRegex =
+      /\b(yes|yeah|yea|yess|yesss|ye|ya|yaa|yee|y|yeh|yah|sure)\b/gim
     const isYesMessage = !!incomingMessage.match(yesRegex)
 
     if (isYesMessage) {

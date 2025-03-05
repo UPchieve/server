@@ -101,7 +101,7 @@ export async function getAssignmentsByClassId(
       { classId },
       tc
     )
-    return assignments.map(a =>
+    return assignments.map((a) =>
       makeSomeOptional(a, [
         'description',
         'title',
@@ -155,7 +155,7 @@ export async function createStudentsAssignmentsForAll(
       { userIds: studentIds, assignmentIds },
       tc
     )
-    return result.map(r => makeRequired(r))
+    return result.map((r) => makeRequired(r))
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -182,7 +182,7 @@ export async function getAssignmentsByStudentId(
 ) {
   try {
     const result = await pgQueries.getAssignmentsByStudentId.run({ userId }, tc)
-    const assignments = result.map(assignment => {
+    const assignments = result.map((assignment) => {
       return makeSomeRequired(assignment, [
         'classId',
         'id',
@@ -198,7 +198,7 @@ export async function getAssignmentsByStudentId(
         assignment.id
       )
 
-      const filtered = assignmentSessions.filter(session => {
+      const filtered = assignmentSessions.filter((session) => {
         if (parseInt(session.timeTutored) === 0) return false
         const timeTutoredInMins = parseInt(session.timeTutored) / 60000
 
@@ -226,7 +226,7 @@ export async function getAllAssignmentsForTeacher(
       { userId },
       tc
     )
-    return assignments.map(a =>
+    return assignments.map((a) =>
       makeSomeRequired(a, [
         'classId',
         'id',
@@ -245,10 +245,8 @@ export async function getStudentAssignmentCompletion(
   tc: TransactionClient = getClient()
 ) {
   try {
-    const studentAssignments = await pgQueries.getStudentAssignmentCompletion.run(
-      { assignmentId },
-      tc
-    )
+    const studentAssignments =
+      await pgQueries.getStudentAssignmentCompletion.run({ assignmentId }, tc)
     return studentAssignments
   } catch (err) {
     throw new RepoReadError(err)
@@ -260,10 +258,8 @@ export async function getStudentAssignmentForSession(
   tc: TransactionClient = getClient()
 ) {
   try {
-    const studentAssignment = await pgQueries.getStudentAssignmentForSession.run(
-      { sessionId },
-      tc
-    )
+    const studentAssignment =
+      await pgQueries.getStudentAssignmentForSession.run({ sessionId }, tc)
     if (!studentAssignment.length) return
     return makeSomeRequired(studentAssignment[0], [
       'id',
@@ -307,7 +303,7 @@ export async function getSessionsForStudentAssignment(
       { userId, assignmentId },
       tc
     )
-    return sessions.map(s =>
+    return sessions.map((s) =>
       makeSomeOptional(s, ['volunteerJoinedAt', 'endedAt'])
     )
   } catch (err) {

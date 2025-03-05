@@ -6,7 +6,7 @@ const SURVEY_TYPES = <const>[
   'progress-report',
   'impact-study',
 ]
-export type SurveyType = typeof SURVEY_TYPES[number]
+export type SurveyType = (typeof SURVEY_TYPES)[number]
 
 export type PresessionSurveyResponseData = {
   'primary-goal': {

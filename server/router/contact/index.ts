@@ -11,7 +11,7 @@ async function submissionHandler(req: Request, res: Response) {
   await nr.startSegment(
     'router:contactFormSubmission:save',
     true,
-    async function() {
+    async function () {
       try {
         await saveContactFormSubmission(requestData)
         res.status(200).json({

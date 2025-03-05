@@ -5,7 +5,7 @@ import { getSubjectsWithTopic } from '../../models/Subjects'
 export function routes(app: Express): void {
   const router: Router = express.Router()
 
-  router.get('/subjects', async function(_, res) {
+  router.get('/subjects', async function (_, res) {
     try {
       const subjects = await getSubjectsWithTopic()
       res.json({

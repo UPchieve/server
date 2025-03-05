@@ -13,7 +13,7 @@ export async function getTeacherClassesForStudent(
       { studentId },
       tc
     )
-    return teacherClasses.map(c => makeSomeOptional(c, ['topicId']))
+    return teacherClasses.map((c) => makeSomeOptional(c, ['topicId']))
   } catch (err) {
     throw new RepoReadError(err)
   }

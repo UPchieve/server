@@ -37,7 +37,7 @@ const main = async (): Promise<void> => {
         lockDuration: 1000 * 60 * 30,
       },
     })
-    queue.on('error', error => {
+    queue.on('error', (error) => {
       logger.error(`error in queue: ${error}`)
       newrelic.noticeError(error)
     })
@@ -56,7 +56,7 @@ const main = async (): Promise<void> => {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   logger.error(`error in worker main: ${error}`)
   newrelic.noticeError(error)
 })

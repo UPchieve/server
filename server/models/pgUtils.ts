@@ -27,27 +27,27 @@ function camelCaseKeys(obj: any): any {
   return temp
 }
 
-export type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <
-  T
->() => T extends Y ? 1 : 2
-  ? true
-  : false
-type Filter<KeyType, ExcludeType> = Equals<KeyType, ExcludeType> extends true
-  ? never
-  : KeyType extends ExcludeType
-  ? never
-  : KeyType
+export type Equals<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+    ? true
+    : false
+type Filter<KeyType, ExcludeType> =
+  Equals<KeyType, ExcludeType> extends true
+    ? never
+    : KeyType extends ExcludeType
+      ? never
+      : KeyType
 
 type Required<T> = T extends null ? never : T extends undefined ? never : T
-type SetRequired<BaseType, Keys extends keyof BaseType> = BaseType &
-  { [K in Keys]: Required<BaseType[K]> }
+type SetRequired<BaseType, Keys extends keyof BaseType> = BaseType & {
+  [K in Keys]: Required<BaseType[K]>
+}
 
 type NullToUndefined<T> = T extends null ? undefined : T
 type Optional<T> = NullToUndefined<T> | undefined
 type SetOptional<BaseType, Keys extends keyof BaseType> = {
   [K in Filter<keyof BaseType, Keys>]: NullToUndefined<BaseType[K]>
-} &
-  { [K in Keys]: Optional<BaseType[K]> }
+} & { [K in Keys]: Optional<BaseType[K]> }
 
 class UnexpectedNullError extends CustomError {}
 export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {

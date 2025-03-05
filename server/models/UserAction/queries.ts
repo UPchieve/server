@@ -26,10 +26,11 @@ export async function getQuizzesPassedForDateRangeById(
   end: Date
 ): Promise<number> {
   try {
-    const result = await pgQueries.getQuizzesPassedForDateRangeByVolunteerId.run(
-      { userId, start, end },
-      getClient()
-    )
+    const result =
+      await pgQueries.getQuizzesPassedForDateRangeByVolunteerId.run(
+        { userId, start, end },
+        getClient()
+      )
     if (result.length) return makeRequired(result[0]).total
     return 0
   } catch (err) {
@@ -43,11 +44,12 @@ export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
   end: Date
 ): Promise<QuizzesPassedForDateRange[]> {
   try {
-    const result = await pgQueries.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId.run(
-      { userId, start, end },
-      getClient()
-    )
-    if (result.length) return result.map(row => makeRequired(row))
+    const result =
+      await pgQueries.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId.run(
+        { userId, start, end },
+        getClient()
+      )
+    if (result.length) return result.map((row) => makeRequired(row))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -58,10 +60,11 @@ export async function getSessionRequestedUserAgentFromSessionId(
   sessionId: Ulid
 ): Promise<UserActionAgent | undefined> {
   try {
-    const result = await pgQueries.getSessionRequestedUserAgentFromSessionId.run(
-      { sessionId },
-      getClient()
-    )
+    const result =
+      await pgQueries.getSessionRequestedUserAgentFromSessionId.run(
+        { sessionId },
+        getClient()
+      )
     if (result.length)
       return makeSomeOptional(result[0], [
         'browser',

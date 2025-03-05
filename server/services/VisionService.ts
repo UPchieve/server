@@ -19,7 +19,7 @@ const client: ImageAnalysisClient = isValidConfigToken(
   : createMockImageAnalysisClient()
 
 function createMockImageAnalysisClient(): ImageAnalysisClient {
-  return ({
+  return {
     path: () => ({
       post: async () => ({
         status: '200',
@@ -36,7 +36,7 @@ function createMockImageAnalysisClient(): ImageAnalysisClient {
         },
       }),
     }),
-  } as unknown) as ImageAnalysisClient
+  } as unknown as ImageAnalysisClient
 }
 
 async function analyzeImageBuffer(

@@ -444,7 +444,7 @@ export async function sendReferenceFormApology(
 }
 
 export async function sendApprovedNotOnboardedEmail<
-  V extends VolunteerContactInfo
+  V extends VolunteerContactInfo,
 >(volunteer: V): Promise<void> {
   const overrides = {
     categories: ['approved not onboarded email'],
@@ -465,7 +465,7 @@ export async function sendReadyToCoachEmail<V extends VolunteerContactInfo>(
 ): Promise<void> {
   const readyToCoachTemplate = volunteer.volunteerPartnerOrg
     ? config.customVolunteerPartnerOrgs.some(
-        org => org === volunteer.volunteerPartnerOrg
+        (org) => org === volunteer.volunteerPartnerOrg
       )
       ? config.sendgrid.customPartnerReadyToCoachTemplate
       : config.sendgrid.partnerReadyToCoachTemplate
@@ -511,7 +511,7 @@ export async function sendBannedUserAlert(
 }
 
 export async function sendRejectedPhotoSubmission<
-  V extends VolunteerContactInfo
+  V extends VolunteerContactInfo,
 >(volunteer: V): Promise<void> {
   const overrides = {
     categories: ['photo rejected email'],
@@ -638,9 +638,8 @@ export async function sendHourSummaryEmail(
   customOrg = false
 ): Promise<void> {
   const formattedCoachingHours = getFormattedHourSummaryTime(totalCoachingHours)
-  const formattedVolunteerHours = getFormattedHourSummaryTime(
-    totalVolunteerHours
-  )
+  const formattedVolunteerHours =
+    getFormattedHourSummaryTime(totalVolunteerHours)
 
   const overrides = {
     asm: {

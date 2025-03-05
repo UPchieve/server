@@ -59,11 +59,8 @@ export default async function BackfillEmailVolunteerInactive(
   )
 
   if (volunteers) {
-    const {
-      inactiveThirtyDays,
-      inactiveSixtyDays,
-      inactiveNinetyDays,
-    } = volunteers
+    const { inactiveThirtyDays, inactiveSixtyDays, inactiveNinetyDays } =
+      volunteers
     const errors = []
     try {
       await sendEmailToInactiveVolunteers(
@@ -139,17 +136,9 @@ async function sendEmailToInactiveVolunteers(
 }
 
 function getStartOfDayFromDaysAgo(start: Date, daysAgo: number): Date {
-  return moment(start)
-    .utc()
-    .subtract(daysAgo, 'days')
-    .startOf('day')
-    .toDate()
+  return moment(start).utc().subtract(daysAgo, 'days').startOf('day').toDate()
 }
 
 function getEndOfDayFromDaysAgo(start: Date, daysAgo: number): Date {
-  return moment(start)
-    .utc()
-    .subtract(daysAgo, 'days')
-    .endOf('day')
-    .toDate()
+  return moment(start).utc().subtract(daysAgo, 'days').endOf('day').toDate()
 }

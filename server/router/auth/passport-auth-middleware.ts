@@ -93,7 +93,7 @@ export function addPassportAuthMiddleware() {
         usernameField: 'email',
         passwordField: 'password',
       },
-      async function(email: string, passwordGiven: string, done: Function) {
+      async function (email: string, passwordGiven: string, done: Function) {
         try {
           const user = await UserRepo.getUserForPassport(email)
 
@@ -135,7 +135,7 @@ export function addPassportAuthMiddleware() {
         prompt: 'select_account',
         passReqToCallback: true,
       },
-      async function(
+      async function (
         req: Request,
         issuer: string,
         profile: passport.Profile,
@@ -154,7 +154,7 @@ export function addPassportAuthMiddleware() {
 
   passport.use(
     'clever',
-    new CleverStrategy({ callbackURL: getRedirectURI() }, async function(
+    new CleverStrategy({ callbackURL: getRedirectURI() }, async function (
       req: Request,
       _accessToken: string,
       _refreshToken: string,

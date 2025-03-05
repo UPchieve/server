@@ -17,7 +17,7 @@ export async function getUserRolesById(
 }
 
 export function getUserTypeFromRoles(roles: UserRole[] = [], userId: Ulid) {
-  const userTypes = roles.filter(r => r !== 'admin')
+  const userTypes = roles.filter((r) => r !== 'admin')
   // For now, we assume all users have one role, not including admin.
   if (!userTypes.length) {
     throw new Error(`User with id ${userId} has no roles.`)

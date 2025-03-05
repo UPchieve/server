@@ -45,20 +45,20 @@ let roClient: Pool | undefined
 let analyticsClient: Pool | undefined
 
 export async function setupDbConnection() {
-  getClient().on('error', err => console.error(`PG ERROR: ${err}`))
-  getRoClient().on('error', err => console.error(`PG ERROR: ${err}`))
-  getAnalyticsClient().on('error', err => console.error(`PG ERROR: ${err}`))
+  getClient().on('error', (err) => console.error(`PG ERROR: ${err}`))
+  getRoClient().on('error', (err) => console.error(`PG ERROR: ${err}`))
+  getAnalyticsClient().on('error', (err) => console.error(`PG ERROR: ${err}`))
 
   try {
     getClient()
       .connect()
-      .then(v => v.release())
+      .then((v) => v.release())
     getRoClient()
       .connect()
-      .then(v => v.release())
+      .then((v) => v.release())
     getAnalyticsClient()
       .connect()
-      .then(v => v.release())
+      .then((v) => v.release())
   } catch (err) {
     logger.error(`Could not connect to db with error ${err}`)
     logError(err as Error)
@@ -70,7 +70,7 @@ export async function connect(): Promise<void> {
   try {
     getClient()
       .connect()
-      .then(v => v.release())
+      .then((v) => v.release())
   } catch (err) {
     logger.error(`Could not connect to db with error ${err}`)
     logError(err as Error)
