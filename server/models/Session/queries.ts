@@ -841,43 +841,6 @@ export async function updateSessionVolunteerById(
   }
 }
 
-export type SessionForChatbot = {
-  id: Ulid
-  messages: MessageForFrontend[]
-  topic: string
-  subject: string
-  volunteerJoinedAt?: Date
-  createdAt: Date
-  endedAt?: Date
-  student: Ulid
-  studentFirstName: string
-  toolType: string
-}
-export async function getSessionForChatbot(
-  sessionId: Ulid
-): Promise<SessionForChatbot | undefined> {
-  const client = await getClient().connect()
-  try {
-    const result = await pgQueries.getSessionForChatbot.run(
-      { sessionId },
-      client
-    )
-    const session = makeSomeOptional(result[0], [
-      'endedAt',
-      'volunteerJoinedAt',
-    ])
-    const messages = await getMessagesForFrontend(sessionId, client)
-    return {
-      ...session,
-      messages,
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  } finally {
-    client.release()
-  }
-}
-
 export async function addMessageToSessionById(
   sessionId: Ulid,
   senderId: Ulid,

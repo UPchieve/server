@@ -18,12 +18,10 @@ import * as SessionRepo from '../../models/Session/queries'
 import { UserContactInfo, UserRole } from '../../models/User'
 import * as UserService from '../../services/UserService'
 import { captureEvent } from '../../services/AnalyticsService'
-import { isChatBotEnabled } from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
-import { lookupChatbotFromCache } from '../../utils/chatbot-lookup'
 import getSessionRoom from '../../utils/get-session-room'
 import {
   getSocketIdsFromRoom,
@@ -42,13 +40,6 @@ import * as UserRolesService from '../../services/UserRolesService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
-// Custom API key handlers
-async function handleChatBot(socket: Socket, key: string) {
-  logger.debug(`Attempted key: ${key}`)
-  if (key !== config.socketApiKey) throw new Error('User not authenticated')
-  logger.debug('Chatbot connected to socket!')
-}
-
 async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
@@ -66,8 +57,6 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
   const socketService = SocketService.getInstance()
-
-  let chatbot: Ulid | undefined
 
   // Authentication middleware for sockets
   const wrap = (middleware: Function) => (socket: Socket, next: Function) =>
@@ -110,73 +99,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       if (!socketApiKey) {
         socket.emit('redirect')
         throw new Error('User not authenticated')
-      }
-    }
-
-    if (isChatBotEnabled()) {
-      chatbot = await lookupChatbotFromCache()
-      if (!chatbot) logger.error(`Chatbot user not found`)
-      else {
-        // chatbot activity prompt handler
-        socket.on('activity-prompt-sent', async function (data) {
-          newrelic.startWebTransaction('/socket-io/chatbot', () =>
-            new Promise<void>(async (resolve, reject) => {
-              try {
-                const { sessionId } = data
-                if (!sessionId)
-                  throw new Error('SessionId not included in payload')
-                logger.debug('Acitivty prompt sent for session ', sessionId)
-                await cache.saveWithExpiration(
-                  `${SESSION_ACTIVITY_KEY}-${sessionId}`,
-                  'true',
-                  60 * 45
-                )
-                resolve()
-              } catch (err) {
-                reject(err)
-              }
-            }).catch((err) => {
-              logger.error(
-                {
-                  error: err?.message,
-                  sessionId: data?.sessionId,
-                },
-                'Promise rejected while handling "activity-prompt-sent" event'
-              )
-            })
-          )
-        })
-
-        // chatbot end session handler
-        socket.on('auto-end-session', async function (data) {
-          newrelic.startWebTransaction('/socket-io/chatbot', () =>
-            new Promise<void>(async (resolve, reject) => {
-              try {
-                const { sessionId } = data
-                if (!sessionId)
-                  throw new Error('SessionId not included in payload')
-                logger.debug('Chatbot ending session ', sessionId)
-                await SessionService.endSession(
-                  sessionId,
-                  null,
-                  true,
-                  socketService
-                )
-                resolve()
-              } catch (err) {
-                reject(err)
-              }
-            }).catch((err) => {
-              logger.error(
-                {
-                  error: err?.message,
-                  sessionId: data?.sessionId,
-                },
-                'Promise rejected while handling "auto-end-session" event'
-              )
-            })
-          )
-        })
       }
     }
 
@@ -427,12 +349,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             const messageId = await SessionService.saveMessage(
               user,
               createdAt,
-              saveMessageData,
-              chatbot
+              saveMessageData
             )
-
-            if (chatbot && !(chatbot === user.id))
-              await SessionService.handleMessageActivity(sessionId)
 
             const userType = dbUser.roleContext.activeRole
             const messageData: {
