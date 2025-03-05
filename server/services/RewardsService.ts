@@ -17,10 +17,11 @@ import { isProductionEnvironment } from '../utils/environments'
 import { isTremendousEmbeddedRewardsEnabled } from './FeatureFlagService'
 
 const configuration = new Configuration({
+  accessToken: config.tremendousApiKey,
+  apiKey: config.tremendousApiKey,
   basePath: isProductionEnvironment()
     ? Environments.production
     : Environments.testflight,
-  accessToken: config.tremendousApiKey,
 })
 const orders = new OrdersApi(configuration)
 const fields = new FieldsApi(configuration)
