@@ -36,7 +36,6 @@ import {
   UserForAdmin,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
-import * as UserRolesService from '../../services/UserRolesService'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -418,21 +417,16 @@ export async function getUsersForAdminSearch(
   payload: UserQuery,
   limit: number,
   offset: number
-): Promise<UserForAdmin[]> {
+): Promise<Omit<UserForAdmin, 'userType'>[]> {
   try {
     const client = getClient()
     const result = await pgQueries.getUsersForAdminSearch.run(
       { ...cleanPayload(payload), limit, offset },
       client
     )
-    const roleContext = await UserRolesService.getUserRolesById(
-      payload.userId!,
-      client
-    )
     return result.map(v => {
       const user = makeSomeOptional(v, ['lastName'])
       return {
-        userType: roleContext.userType,
         ...user,
       }
     })

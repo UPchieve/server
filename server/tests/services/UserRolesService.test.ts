@@ -2,15 +2,15 @@ import { mocked } from 'jest-mock'
 
 import * as UserRolesService from '../../services/UserRolesService'
 import * as UserRepo from '../../models/User/queries'
-import * as UserRolesCacheService from '../../services/UserRolesCacheService'
+import * as CacheService from '../../cache'
 import { RoleContext } from '../../services/UserRolesService'
 import config from '../../config'
 import { UserRole } from '../../models/User'
 
 jest.mock('../../models/User/queries')
-jest.mock('../../services/UserRolesCacheService')
+jest.mock('../../cache')
 const mockedUserRepo = mocked(UserRepo)
-const mockedCacheService = mocked(UserRolesCacheService)
+const mockedCacheService = mocked(CacheService)
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -56,7 +56,7 @@ describe('getRoleContext', () => {
       'student',
       'student'
     )
-    mockedCacheService.getRoleContext.mockResolvedValue(
+    mockedCacheService.getIfExists.mockResolvedValue(
       JSON.stringify(existingRoleContext)
     )
     const result = await UserRolesService.getRoleContext('some-key')
@@ -66,7 +66,7 @@ describe('getRoleContext', () => {
   })
 
   it('Generates role context from the DB if no entry in cache', async () => {
-    mockedCacheService.getRoleContext.mockResolvedValue(undefined)
+    mockedCacheService.getIfExists.mockResolvedValue(undefined)
     mockedUserRepo.getUserRolesById.mockResolvedValue(['volunteer', 'admin'])
     const result = await UserRolesService.getRoleContext('some-key')
     expect(result.legacyRole).toEqual('volunteer')
@@ -84,12 +84,12 @@ describe('switchActiveRole', () => {
       'student',
       'student'
     )
-    mockedCacheService.getRoleContext.mockResolvedValue(
+    mockedCacheService.getIfExists.mockResolvedValue(
       JSON.stringify(existingRoleContext)
     )
     await UserRolesService.switchActiveRole(userId, 'volunteer')
-    expect(mockedCacheService.saveRoleContext).toHaveBeenCalledTimes(1)
-    expect(mockedCacheService.saveRoleContext).toHaveBeenCalledWith(
+    expect(mockedCacheService.getIfExists).toHaveBeenCalledTimes(1)
+    expect(mockedCacheService.save).toHaveBeenCalledWith(
       key,
       JSON.stringify(
         new RoleContext(
