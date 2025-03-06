@@ -249,7 +249,11 @@ export function routeUser(router: Router): void {
         resUser = Object.assign(resUser, { photoUrl })
       }
 
-      res.json({ ...user, userType: roleConext.legacyRole }) // TODO - Show multiple roles in admin tool
+      res.json({
+        ...user,
+        userType: roleConext.legacyRole,
+        roles: roleConext.roles,
+      })
     } catch (err) {
       resError(res, err)
     }
