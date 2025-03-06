@@ -38,7 +38,6 @@ import {
   moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
-import * as UserRolesService from '../../services/UserRolesService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -201,7 +200,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId, joinedFrom } = data
-            const user = extractSocketUser(socket)
+            const user = await extractSocketUser(socket)
 
             try {
               // TODO: have middleware handle the auth
@@ -279,7 +278,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId } = data
-            const user = extractSocketUser(socket)
+            const user = await extractSocketUser(socket)
 
             try {
               const session = await SessionRepo.getSessionById(sessionId)
@@ -600,8 +599,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('disconnecting', () => {
-      const user = extractSocketUser(socket)
+    socket.on('disconnecting', async () => {
+      const user = await extractSocketUser(socket)
       for (const room of socket.rooms) {
         if (room.includes('sessions')) {
           socket
@@ -623,7 +622,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (isSocketInRoom) {
               socket.leave(sessionRoom)
               delete socket.data.sessionId
-              const user = extractSocketUser(socket)
+              const user = await extractSocketUser(socket)
               await socket
                 .to(sessionRoom)
                 .except(user.id)
