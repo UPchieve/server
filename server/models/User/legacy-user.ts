@@ -202,7 +202,11 @@ export async function getLegacyUserObject(
         baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
     }
     const final = _.merge(
-      { _id: baseUser.id, userType: roleContext.activeRole },
+      {
+        _id: baseUser.id,
+        userType: roleContext.activeRole,
+        roles: roleContext.roles,
+      },
       baseUser,
       volunteerUser,
       studentUser,

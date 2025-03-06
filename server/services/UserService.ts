@@ -55,7 +55,6 @@ import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { RoleContext } from './UserRolesService'
-import { getClient, TransactionClient } from '../db'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
