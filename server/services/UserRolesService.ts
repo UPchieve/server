@@ -71,7 +71,8 @@ export async function switchActiveRole(
   const existingRoleContext = await getRoleContext(userId)
   if (!existingRoleContext.hasRole(newActiveRole))
     throw new InputError('User does not have the requested role')
-  if (existingRoleContext.activeRole === newActiveRole) return
+  if (existingRoleContext.activeRole === newActiveRole)
+    return existingRoleContext.activeRole
   const newRoleContext = new RoleContext(
     existingRoleContext.roles,
     newActiveRole,
@@ -92,25 +93,6 @@ async function updateRoleContext(
 
 function getRoleContextCacheKey(userId: string): string {
   return `${config.cacheKeys.userRoleContextPrefix}${userId}`
-}
-
-export async function updateActiveRole(
-  userId: string,
-  newActiveRole: Exclude<UserRole, 'teacher' | 'admin'>
-): Promise<void> {
-  const existingRoleContext = await getRoleContext(userId)
-  if (existingRoleContext.activeRole === newActiveRole) return
-  if (!existingRoleContext.hasRole(newActiveRole)) {
-    throw new InputError(`User does not have role ${newActiveRole}`)
-  }
-  await updateRoleContext(
-    userId,
-    new RoleContext(
-      existingRoleContext.roles,
-      newActiveRole,
-      existingRoleContext.legacyRole
-    )
-  )
 }
 
 export async function addVolunteerRoleToUser(userId: string): Promise<void> {
