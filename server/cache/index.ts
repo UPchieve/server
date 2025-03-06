@@ -67,6 +67,10 @@ export async function get(key: string): Promise<string> {
   return value
 }
 
+export async function getIfExists(key: string): Promise<string | undefined> {
+  return (await redisClient.get(key)) || undefined
+}
+
 export async function remove(key: string): Promise<number> {
   return await redisClient.del(key)
 }

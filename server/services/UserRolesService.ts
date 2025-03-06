@@ -2,7 +2,7 @@ import { getClient, TransactionClient } from '../db'
 import { Ulid } from '../models/pgUtils'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
-import * as UserRolesCacheService from '../services/UserRolesCacheService'
+import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
 
@@ -72,8 +72,8 @@ export async function getRoleContext(
   userId: string,
   tc?: TransactionClient
 ): Promise<RoleContext> {
-  const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
-  const roleContextStr = await UserRolesCacheService.getRoleContext(key)
+  const key = getRoleContextCacheKey(userId)
+  const roleContextStr = await CacheService.getIfExists(key)
   if (roleContextStr) {
     const data: {
       activeRole: UserRole
@@ -88,6 +88,9 @@ export async function getRoleContext(
   } else {
     // On cache miss: Create RoleContext from DB and save to cache
     const roles = await UserRepo.getUserRolesById(userId, tc ?? getClient())
+    if (!roles.length) {
+      throw new Error('User is missing roles')
+    }
     const activeRole = roles.filter(r => r !== 'admin')[0]
     const roleContext = new RoleContext(roles, activeRole, roles[0])
     await updateRoleContext(
@@ -117,7 +120,11 @@ async function updateRoleContext(
   userId: string,
   newRoleContext: RoleContext
 ): Promise<void> {
-  const key = `${config.cacheKeys.userRoleContextPrefix}${userId}`
+  const key = getRoleContextCacheKey(userId)
   const value = JSON.stringify(newRoleContext)
-  await UserRolesCacheService.saveRoleContext(key, value)
+  await CacheService.save(key, value)
+}
+
+function getRoleContextCacheKey(userId: string): string {
+  return `${config.cacheKeys.userRoleContextPrefix}${userId}`
 }

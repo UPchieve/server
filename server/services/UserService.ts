@@ -23,6 +23,7 @@ import {
   deleteUser,
   updateUserProfileById,
   deleteUserPhoneInfo,
+  UserForAdmin,
 } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -409,9 +410,18 @@ const asUserQuery = asFactory<UserQuery>({
 })
 
 // getUsersForAdmin with a typed interface for these query params
-export async function getUsers(data: unknown) {
-  const { userId, firstName, lastName, email, partnerOrg, school, page } =
-    asUserQuery(data)
+export async function getUsers(
+  data: unknown
+): Promise<{ users: UserForAdmin[]; isLastPage: boolean }> {
+  const {
+    userId,
+    firstName,
+    lastName,
+    email,
+    partnerOrg,
+    school,
+    page,
+  } = asUserQuery(data)
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
@@ -430,8 +440,17 @@ export async function getUsers(data: unknown) {
       skip
     )
 
+    const withUserTypes = users.map(async u => {
+      const roleContext = await UserRolesService.getRoleContext(u.id)
+      return {
+        ...u,
+        userType: roleContext.legacyRole,
+      }
+    })
+    const usersWithUserType = await Promise.all(withUserTypes)
+
     const isLastPage = users.length < PER_PAGE
-    return { users, isLastPage }
+    return { users: usersWithUserType, isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }
