@@ -63,10 +63,7 @@ import {
   getSessionRecapDmsFeatureFlag,
   isChatBotEnabled,
 } from './FeatureFlagService'
-import {
-  getStudentPartnerInfoById,
-  StudentUserProfile,
-} from '../models/Student'
+import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
 import { TransactionClient, runInTransaction } from '../db'
 import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
@@ -991,21 +988,27 @@ export async function getTotalSessionHistory(userId: Ulid) {
 
 export async function getSessionRecap(
   sessionId: Ulid,
-  userId: Ulid
+  userId: Ulid,
+  isTeacher: boolean
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
 
-  const isSessionParticipant = sessionUtils.isSessionParticipant(
-    session.studentId,
-    session.volunteerId,
-    userId
-  )
-
-  if (!isSessionParticipant) {
+  if (!isTeacher) {
+    if (
+      !sessionUtils.isSessionParticipant(
+        session.studentId,
+        session.volunteerId,
+        userId
+      )
+    ) {
+      throw new NotAllowedError(
+        'Only session participants are allowed to view this session'
+      )
+    }
+  } else {
     const classes = await getTeacherClasses(userId)
     const studentsInClasses: string[] = []
     classes.forEach((currentClass) => {
-      console.log('****current class students', currentClass.students)
       currentClass.students.forEach((student) =>
         studentsInClasses.push(student.id)
       )
