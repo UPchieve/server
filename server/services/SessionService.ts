@@ -63,7 +63,10 @@ import {
   getSessionRecapDmsFeatureFlag,
   isChatBotEnabled,
 } from './FeatureFlagService'
-import { getStudentPartnerInfoById } from '../models/Student'
+import {
+  getStudentPartnerInfoById,
+  StudentUserProfile,
+} from '../models/Student'
 import * as Y from 'yjs'
 import { TransactionClient, runInTransaction } from '../db'
 import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
@@ -71,6 +74,10 @@ import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
+import {
+  getStudentIdsInTeacherClass,
+  getTeacherClasses,
+} from './TeacherService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -987,16 +994,30 @@ export async function getSessionRecap(
   userId: Ulid
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
-  if (
-    !sessionUtils.isSessionParticipant(
-      session.studentId,
-      session.volunteerId,
-      userId
-    )
+
+  const isSessionParticipant = sessionUtils.isSessionParticipant(
+    session.studentId,
+    session.volunteerId,
+    userId
   )
-    throw new NotAllowedError(
-      'Only session participants are allowed to view this session'
-    )
+
+  if (!isSessionParticipant) {
+    const classes = await getTeacherClasses(userId)
+    const studentsInClasses: string[] = []
+    classes.forEach((currentClass) => {
+      console.log('****current class students', currentClass.students)
+      currentClass.students.forEach((student) =>
+        studentsInClasses.push(student.id)
+      )
+    })
+
+    if (!studentsInClasses.includes(session.studentId)) {
+      throw new NotAllowedError(
+        'Teacher can only view sessions for students in their classes'
+      )
+    }
+  }
+
   return session
 }
 
