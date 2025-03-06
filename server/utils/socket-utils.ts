@@ -1,4 +1,5 @@
 import { Server } from 'socket.io'
+import logger from '../logger'
 
 export async function getSocketsFromRoom(io: Server, room: string) {
   const sockets = await io.in(room).fetchSockets()
@@ -32,14 +33,23 @@ export async function emitSessionPresence(
   userId: string,
   room: string
 ) {
+  logger.info('TEST - In emitSessionPresence')
   const userSocketIds = await getSocketIdsFromRoom(io, userId)
+  logger.info(
+    `TEST - Got userSocketIds ${userSocketIds}. About to emit sessions/partner:in-session event to room ${room} (except for user ${userId})`
+  )
   io.to(room)
     .except(userId)
     .emit('sessions/partner:in-session', true)
   const sessionSocketIds = await getSocketIdsFromRoom(io, room)
+  logger.info(`TEST - Got socket IDS from room: ${sessionSocketIds}`)
   const partnerSocketIds = sessionSocketIds.filter(
     id => !userSocketIds.includes(id)
   )
   // Emit to self if session partner is in session or not
+  logger.info('TEST - About to emit sessions/partner:in-session')
   io.to(socketId).emit('sessions/partner:in-session', !!partnerSocketIds.length)
+  logger.info(
+    `TEST - Emitted sessions/partner:in-session with value ${!!partnerSocketIds.length}`
+  )
 }

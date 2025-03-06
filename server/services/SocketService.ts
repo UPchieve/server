@@ -44,6 +44,11 @@ class SocketService {
 
   async updateSessionList(): Promise<void> {
     const sessions = await getUnfulfilledSessions()
+    logger.info(
+      `About to emit sessions event to volunteers room with sessions ${sessions.map(
+        s => s._id
+      )}`
+    )
     this.io.in('volunteers').emit('sessions', sessions)
   }
 
@@ -51,10 +56,13 @@ class SocketService {
     sessionId: Ulid,
     tc?: TransactionClient
   ): Promise<void> {
+    logger.info(`TEST - In emitSessionChange for session ${sessionId}`)
     const session = await this.getSessionData(sessionId, tc)
+    logger.info(`TEST - Got session ${session.id}`)
     await addDocEditorVersionTo(session)
+    logger.info('TEST - About to emit session-change event')
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
-
+    logger.info('TEST - Emitted session-change event.')
     await this.updateSessionList()
   }
 

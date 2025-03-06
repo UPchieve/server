@@ -251,11 +251,20 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             try {
+              logger.info('TEST - Joining sockets to session room...')
               const sessionRoom = getSessionRoom(sessionId)
+              logger.info(`TEST - Got session room ${sessionRoom}`)
               const userSocketIds = await getSocketIdsFromRoom(io, user.id)
+              logger.info(`TEST - Got userSocketIds ${userSocketIds}`)
               // Have all of the user's socket connections join the tutoring session room
               for (const id of userSocketIds) {
+                logger.info(
+                  `TEST - Calling remoteJoinRoom for user socket ID ${id}`
+                )
                 remoteJoinRoom(io, id, sessionRoom)
+                logger.info(
+                  `TEST - Finished remoteJoinRoom for user socket ID ${id}`
+                )
               }
 
               await socketService.emitSessionChange(sessionId)

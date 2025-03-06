@@ -371,7 +371,9 @@ export async function addDocEditorVersionTo(
   session: SessionRepo.CurrentSession
 ): Promise<void> {
   if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    logger.info('addDocEditorVersionTo: using document editor.')
     session.docEditorVersion = await getDocEditorVersion(session.id)
+    logger.info(`Set session docEditorVersion to ${session.docEditorVersion}`)
   }
 }
 
