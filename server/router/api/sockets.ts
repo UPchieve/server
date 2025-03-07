@@ -99,6 +99,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
   })
 
+  io.on('fetchSocketsInRoom', (cb) => {
+    cb([...io.of('/').sockets.values()])
+  })
+
   // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function (socket: SocketUser) {
     const {

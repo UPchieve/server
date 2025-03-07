@@ -1,8 +1,20 @@
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io'
 
-export async function getSocketsFromRoom(io: Server, room: string) {
-  const sockets = await io.in(room).fetchSockets()
-  return sockets
+export async function getSocketsFromRoom(
+  io: Server,
+  room: string
+): Promise<Socket[]> {
+  return new Promise((resolve, reject) => {
+    io.serverSideEmit(
+      'fetchSocketsInRoom',
+      room,
+      (err: Error | null, responses: Socket[][]) => {
+        console.log('Socket responses in fetchSocketsInRoom', responses)
+        if (err) reject(err)
+        else resolve(responses.flat())
+      }
+    )
+  })
 }
 
 export async function getSocketIdsFromRoom(
