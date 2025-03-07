@@ -11,7 +11,7 @@ export async function getSocketsFromRoom(
       (err: Error | null, responses: Socket[][]) => {
         console.log('Socket responses in fetchSocketsInRoom', responses)
         if (err) reject(err)
-        else resolve([])
+        else resolve(responses.flat())
       }
     )
   })
