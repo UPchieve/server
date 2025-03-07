@@ -1,8 +1,7 @@
 import { Ulid } from '../models/pgUtils'
 import {
   getPresessionSurveyResponse,
-  getStudentPostsessionSurveyGoalQuestionRatings,
-  getVolunteerPostsessionSurveyGoalQuestionRatings,
+  getUserPostsessionSurveyResponses,
   PostsessionSurveyGoalResponse,
   saveUserSurveyAndSubmissions,
   SimpleSurveyResponse,
@@ -19,6 +18,7 @@ import {
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
 import * as UserService from '../services/UserService'
+import * as UserRolesService from '../services/UserRolesService'
 import { getTotalSessionsByUserId } from '../models/User'
 import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
 import {
@@ -31,6 +31,7 @@ import {
 } from '../utils/type-utils'
 import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
 import { emitter } from './EventsService'
+import { partition } from 'lodash'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -89,6 +90,23 @@ export async function saveUserSurvey(
 }
 
 export type PostsessionSurveyRatingsMetric = {
+  selfReportedStudentRating: {
+    total: number
+    average: number
+  }
+  selfReportedVolunteerRating: {
+    total: number
+    average: number
+  }
+  partnerReportedStudentRating: {
+    total: number
+    average: number
+  }
+  partnerReportedVolunteerRating: {
+    total: number
+    average: number
+  }
+  // Legacy values
   selfReportedRating: {
     total: number
     average: number
@@ -99,35 +117,59 @@ export type PostsessionSurveyRatingsMetric = {
   }
 }
 export const getUserPostsessionGoalRatingsMetrics = async (
-  userId: string,
-  userRole: string
+  userId: string
 ): Promise<PostsessionSurveyRatingsMetric> => {
-  const isTutor = userRole === 'volunteer' || userRole === 'admin'
-  const ratingsFromStudentsRaw =
-    await getStudentPostsessionSurveyGoalQuestionRatings(userId)
-  const ratingsFromVolunteersRaw =
-    await getVolunteerPostsessionSurveyGoalQuestionRatings(userId)
+  const surveyResponses = await getUserPostsessionSurveyResponses(userId)
+  const legacyRole = (await UserRolesService.getRoleContext(userId)).legacyRole
 
   const getAverage = (ratings: PostsessionSurveyGoalResponse[]): number => {
     if (!ratings.length) return 0
     return ratings.reduce((acc, next) => acc + next.score, 0) / ratings.length
   }
 
-  const studentRating = {
-    total: ratingsFromStudentsRaw.length,
-    average: getAverage(ratingsFromStudentsRaw),
-  }
-  const volunteerRating = {
-    total: ratingsFromVolunteersRaw.length,
-    average: getAverage(ratingsFromVolunteersRaw),
-  }
+  const [selfSubmissions, partnerSubmissions] = partition(
+    surveyResponses,
+    (r) => r.submitterUserId === userId
+  )
 
-  const selfReportedRating = isTutor ? volunteerRating : studentRating
-  const partnerReportedRating = isTutor ? studentRating : volunteerRating
+  const [selfRatingAsStudent, selfRatingAsVolunteer] = partition(
+    selfSubmissions,
+    (r) => r.roleInSession === 'student'
+  )
+  const [partnerRatingsOfStudentUser, partnerRatingsOfVolunteerUser] =
+    partition(partnerSubmissions, (r) => r.roleInSession === 'volunteer')
+
+  const selfReportedStudentRating = {
+    total: selfRatingAsStudent.length,
+    average: getAverage(selfRatingAsStudent),
+  }
+  const selfReportedVolunteerRating = {
+    total: selfRatingAsVolunteer.length,
+    average: getAverage(selfRatingAsVolunteer),
+  }
+  const partnerReportedStudentRating = {
+    total: partnerRatingsOfStudentUser.length,
+    average: getAverage(partnerRatingsOfStudentUser),
+  }
+  const partnerReportedVolunteerRating = {
+    total: partnerRatingsOfVolunteerUser.length,
+    average: getAverage(partnerRatingsOfVolunteerUser),
+  }
 
   return {
-    selfReportedRating,
-    partnerReportedRating,
+    selfReportedStudentRating,
+    selfReportedVolunteerRating,
+    partnerReportedStudentRating,
+    partnerReportedVolunteerRating,
+    // Legacy values
+    selfReportedRating:
+      legacyRole === 'student'
+        ? selfReportedStudentRating
+        : selfReportedVolunteerRating,
+    partnerReportedRating:
+      legacyRole === 'student'
+        ? partnerReportedStudentRating
+        : partnerReportedVolunteerRating,
   }
 }
 

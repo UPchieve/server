@@ -140,12 +140,10 @@ export async function getLegacyUserObject(
     const volunteerUser: any = {}
     const studentUser: any = {}
     const teacherUser: { usesClever?: boolean } = {}
-    const userType = (await UserRolesService.getUserRolesById(userId)).userType
-    const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
-      userId,
-      userType
-    )
-    if (UserRolesService.isStudentUserType(userType)) {
+    const roleContext = await UserRolesService.getRoleContext(userId)
+    const ratings =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
+    if (roleContext.isActiveRole('student')) {
       studentUser.latestRequestedSubjects =
         await getUsersLatestSubjectsByUserId(baseUser.id)
       studentUser.usesGoogle =
@@ -156,7 +154,7 @@ export async function getLegacyUserObject(
       studentUser.studentAssignments =
         await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
     }
-    if (UserRolesService.isVolunteerUserType(userType)) {
+    if (roleContext.isActiveRole('volunteer')) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
@@ -197,13 +195,16 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    if (UserRolesService.isTeacherUserType(userType)) {
+    if (roleContext.isActiveRole('teacher')) {
       teacherUser.usesClever =
         baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
     }
-    const roleContext = await UserRolesService.getRoleContext(userId, client)
     const final = _.merge(
-      { _id: baseUser.id, userType },
+      {
+        _id: baseUser.id,
+        userType: roleContext.activeRole,
+        roles: roleContext.roles,
+      },
       baseUser,
       volunteerUser,
       studentUser,

@@ -1,5 +1,4 @@
 import * as ModerationService from '../../services/ModerationService'
-import * as UserRolesService from '../../services/UserRolesService'
 import { resError } from '../res-error'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
@@ -13,8 +12,7 @@ export function routeModeration(router: Router): void {
   router.route('/moderate/message').post(async (req, res) => {
     try {
       const user = extractUser(req)
-      const roleContext = await UserRolesService.getRoleContext(user.id)
-      const isVolunteer = roleContext.legacyRole === 'volunteer'
+      const isVolunteer = user.roleContext.legacyRole === 'volunteer'
       const args = req.body?.content
         ? {
             // Support old versions of high-line and midtown
@@ -49,8 +47,8 @@ export function routeModeration(router: Router): void {
         const moderationResult = await ModerationService.moderateImage(
           imageToModerate,
           sessionId,
-          user?.id,
-          user?.isVolunteer
+          user.id,
+          user.isVolunteer
         )
         res.status(200).json(moderationResult)
       } catch (err) {

@@ -2,11 +2,7 @@ import { Job } from 'bull'
 import { USER_BAN_REASONS } from '../../../constants'
 import { getReportedUser } from '../../../models/User'
 import * as MailService from '../../../services/MailService'
-import {
-  isStudentUserType,
-  isVolunteerUserType,
-} from '../../../services/UserRolesService'
-import * as UserRolesService from '../../../services/UserRolesService'
+import { getSessionById } from '../../../models/Session'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 
@@ -27,6 +23,7 @@ async function emailReportedSession(
   } = job
   const userId = asString(job.data.userId)
   const sessionId = asString(job.data.sessionId)
+  const session = await getSessionById(sessionId)
 
   // a user should receive this email regardless of banned status
   // need full user to create sendGrid contact below
@@ -70,9 +67,10 @@ async function emailReportedSession(
         `Failed to send report alert email: ${reportAlert.error.message}`
       )
 
-    const userRoles = await UserRolesService.getUserRolesById(user.id)
+    const reportedUserRole =
+      session.studentId === userId ? 'student' : 'volunteer'
 
-    if (isVolunteerUserType(userRoles.userType)) {
+    if (reportedUserRole === 'volunteer') {
       const volunteerEmail = await safeAsync(
         MailService.sendCoachReported(user.email, user.firstName)
       )
@@ -80,7 +78,7 @@ async function emailReportedSession(
         errors.push(
           `Failed to send volunteer ${user.id} email for report: ${volunteerEmail.error.message}`
         )
-    } else if (isStudentUserType(userRoles.userType)) {
+    } else if (reportedUserRole === 'student') {
       const studentEmail = await safeAsync(
         MailService.sendStudentReported(
           user.email,

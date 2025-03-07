@@ -395,12 +395,13 @@ export function routeSession(router: Router) {
         asUlid(sessionId),
         user.id
       )
+      const isSessionVolunteer = session.volunteerId === user.id
 
       const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
         session.id,
         session.studentId,
         session.volunteerId,
-        user.roleContext.legacyRole === 'volunteer'
+        isSessionVolunteer
       )
       res.json({ session, isRecapDmsAvailable })
     } catch (err) {

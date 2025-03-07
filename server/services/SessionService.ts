@@ -141,8 +141,10 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   // Autoban users if a session is reported from the recap page
   const isBanReason =
     reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
-  const isVolunteer = reportedBy.roleContext.legacyRole === 'volunteer'
-  const reportedUser = isVolunteer ? session.studentId : session.volunteerId
+  const isSessionVolunteer = reportedBy.id === session.volunteerId
+  const reportedUser = isSessionVolunteer
+    ? session.studentId
+    : session.volunteerId
   if (isBanReason) {
     await UserRepo.banUserById(
       reportedUser,
@@ -162,7 +164,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     })
 
     if (source === 'recap') {
-      const sessionFlags = isVolunteer
+      const sessionFlags = isSessionVolunteer
         ? [USER_SESSION_METRICS.coachReportedStudentDm]
         : [USER_SESSION_METRICS.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
@@ -553,7 +555,7 @@ export async function startSession(
       )
 
     const userId = user.id
-    if (user.roleContext.legacyRole === 'volunteer')
+    if (user.roleContext.isActiveRole('volunteer'))
       throw new sessionUtils.StartSessionError(
         'Volunteers cannot create new sessions'
       )
@@ -695,9 +697,8 @@ export async function joinSession(
     throw new Error('Session has ended')
   }
 
-  const userType = user.roleContext.legacyRole
-  const isStudent = UserRolesService.isStudentUserType(userType)
-  const isVolunteer = UserRolesService.isVolunteerUserType(userType)
+  const isStudent = user.roleContext.isActiveRole('student')
+  const isVolunteer = user.roleContext.isActiveRole('volunteer')
   if (isStudent && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error(`A student cannot join another student's session`)
@@ -883,7 +884,7 @@ export async function generateAndStoreWaitTimeHeatMap(
 export async function getWaitTimeHeatMap(
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
-  if (user.roleContext.legacyRole === 'volunteer')
+  if (user.roleContext.isActiveRole('student'))
     throw new NotAllowedError('Only volunteers may view the heat map')
   try {
     const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)

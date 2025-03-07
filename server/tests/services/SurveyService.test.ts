@@ -1,10 +1,12 @@
 import { mocked } from 'jest-mock'
 import * as SurveyService from '../../services/SurveyService'
 import * as UserService from '../../services/UserService'
+import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyRepo from '../../models/Survey/queries'
 import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import {
+  buildPostsessionSurveyGoalResponse,
   buildSession,
   buildSimpleSurveyResponse,
   buildUserSurvey,
@@ -17,16 +19,19 @@ import { emitter } from '../../services/EventsService'
 import { Session } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
 import { RoleContext } from '../../services/UserRolesService'
+import { PostsessionSurveyGoalResponse } from '../../models/Survey'
 
 jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/Session/queries')
 jest.mock('../../services/UserService')
+jest.mock('../../services/UserRolesService')
 
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedUserRepo = mocked(UserRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedUserService = mocked(UserService)
+const mockedUserRolesService = mocked(UserRolesService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -294,5 +299,76 @@ describe('getPostsessionSurveyDefinition', () => {
       )
 
     expect(actualSurveyDefinition?.survey.length).toBe(0)
+  })
+})
+
+describe('getUserPostsessionGoalRatingsMetrics', () => {
+  it('Returns the correct totals and averages', async () => {
+    const userId = '123'
+    const otherUserId = '456'
+    mockedUserRolesService.getRoleContext.mockResolvedValue({
+      legacyRole: 'student',
+    } as any)
+    const surveyResponses: PostsessionSurveyGoalResponse[] = [
+      // self-reported
+      // user was the student
+      buildPostsessionSurveyGoalResponse({
+        roleInSession: 'student',
+        submitterUserId: userId,
+        score: 3,
+      }),
+      buildPostsessionSurveyGoalResponse({
+        roleInSession: 'student',
+        submitterUserId: userId,
+        score: 3,
+      }),
+      // user was the volunteer
+      buildPostsessionSurveyGoalResponse({
+        roleInSession: 'volunteer',
+        submitterUserId: userId,
+        score: 4,
+      }),
+
+      // partner submissions
+      // partner was the volunteer
+      buildPostsessionSurveyGoalResponse({
+        roleInSession: 'volunteer',
+        submitterUserId: otherUserId,
+        score: 5,
+      }),
+    ]
+    mockedSurveyRepo.getUserPostsessionSurveyResponses.mockResolvedValue(
+      surveyResponses
+    )
+
+    const result =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
+    expect(result).toEqual({
+      selfReportedStudentRating: {
+        total: 2,
+        average: 3,
+      },
+      selfReportedVolunteerRating: {
+        total: 1,
+        average: 4,
+      },
+      partnerReportedStudentRating: {
+        total: 1,
+        average: 5,
+      },
+      partnerReportedVolunteerRating: {
+        total: 0,
+        average: 0,
+      },
+      // Legacy values
+      selfReportedRating: {
+        total: 2,
+        average: 3,
+      },
+      partnerReportedRating: {
+        total: 1,
+        average: 5,
+      },
+    })
   })
 })

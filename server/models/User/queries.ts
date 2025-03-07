@@ -426,9 +426,7 @@ export async function getUsersForAdminSearch(
     )
     return result.map((v) => {
       const user = makeSomeOptional(v, ['lastName'])
-      return {
-        ...user,
-      }
+      return user
     })
   } catch (err) {
     throw new RepoReadError(err)

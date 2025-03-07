@@ -61,7 +61,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (user.roleContext.legacyRole === 'volunteer') socket.join('volunteers')
+  if (user.roleContext.isActiveRole('volunteer')) socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -206,7 +206,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (user.roleContext.legacyRole === 'volunteer' && !user.approved)
+              if (user.roleContext.isActiveRole('volunteer') && !user.approved)
                 throw new Error('Volunteer not approved')
             } catch (error) {
               socket.emit('redirect')
@@ -430,7 +430,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (chatbot && !(chatbot === user.id))
               await SessionService.handleMessageActivity(sessionId)
 
-            const userType = dbUser.roleContext.legacyRole
+            const userType = dbUser.roleContext.activeRole
             const messageData: {
               contents: string
               createdAt: Date
@@ -444,7 +444,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             } = {
               contents: sanitizedMessage ?? message,
               createdAt: createdAt,
-              isVolunteer: UserRolesService.isVolunteerUserType(userType),
+              isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
               userType: userType,
               user: user.id,
               sessionId,
@@ -468,7 +468,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                 sessionId: sessionId,
                 message,
-                isVolunteer: UserRolesService.isVolunteerUserType(userType),
+                isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
                 userType: userType,
               })
             }

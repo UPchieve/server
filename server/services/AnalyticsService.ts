@@ -5,11 +5,6 @@ import { UserRole } from '../models/User'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import { ISODateString } from '../types/dates'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from './UserRolesService'
 import logger from '../logger'
 
 export const captureEvent = (
@@ -83,7 +78,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       isTestUser: user.isTestUser,
     } as AnalyticPersonProperties
 
-    if (isVolunteerUserType(user.userType)) {
+    if (user.roleContext.isActiveRole('volunteer')) {
       personProperties.onboarded = user.isOnboarded
       personProperties.approved = user.isApproved
       personProperties.partner = user.volunteerPartnerOrg ?? null
@@ -98,7 +93,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
         ...personProperties,
         ...certificationInfo,
       }
-    } else if (isStudentUserType(user.userType)) {
+    } else if (user.roleContext.isActiveRole('student')) {
       personProperties.partner = user.studentPartnerOrg ?? null
       personProperties.gradeLevel = user.gradeLevel ?? null
       if (user.isSchoolPartner)
@@ -107,7 +102,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
         productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
       personProperties.usesClever = user.usesClever
       personProperties.usesGoogle = user.usesGoogle
-    } else if (isTeacherUserType(user.userType)) {
+    } else if (user.roleContext.isActiveRole('teacher')) {
       // TODO: TEACHER PROFILES.
     }
   } catch (error) {

@@ -55,13 +55,12 @@ import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { RoleContext } from './UserRolesService'
-import { getClient, TransactionClient } from '../db'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
 
   // Approved volunteer
-  if (UserRolesService.isVolunteerUserType(user.userType) && user.isApproved) {
+  if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -304,10 +303,9 @@ export async function adminUpdateUser(data: unknown) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const userType = userBeforeUpdate.roleContext.legacyRole
-  const isVolunteer = UserRolesService.isVolunteerUserType(userType)
-  const isStudent = UserRolesService.isStudentUserType(userType)
-  const isTeacher = UserRolesService.isTeacherUserType(userType)
+  const isVolunteer = userBeforeUpdate.roleContext.legacyRole === 'volunteer'
+  const isStudent = userBeforeUpdate.roleContext.legacyRole === 'student'
+  const isTeacher = userBeforeUpdate.roleContext.legacyRole === 'teacher'
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
@@ -462,8 +460,8 @@ export async function updateUserProfile(
 }
 
 export async function deletePhoneFromAccount(userId: Ulid) {
-  const user = await UserRolesService.getUserRolesById(userId)
-  if (UserRolesService.isVolunteerUserType(user.userType)) {
+  const roleContext = await UserRolesService.getRoleContext(userId)
+  if (roleContext.hasRole('volunteer')) {
     throw new InputError(
       'Phone information is required for UPchieve volunteers'
     )
@@ -474,10 +472,10 @@ export async function deletePhoneFromAccount(userId: Ulid) {
 export async function getUserByReferralCode(referralCode: string) {
   const user = await UserRepo.getUserByReferralCode(referralCode)
   if (user) {
-    const userRoles = await UserRolesService.getUserRolesById(user.id)
+    const roleContext = await UserRolesService.getRoleContext(user.id)
     return {
       ...user,
-      userType: userRoles.userType,
+      userType: roleContext.legacyRole,
     }
   }
 }

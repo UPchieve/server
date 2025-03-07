@@ -20,6 +20,7 @@ import {
   SimpleSurveyResponse,
   UserSurvey,
   UserSurveySubmission,
+  PostsessionSurveyGoalResponse,
 } from '../../models/Survey'
 import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
@@ -146,7 +147,6 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
 }
 
 export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
-  // @TODO update AppUser?
   const userRow = buildUserRow()
   return {
     ...userRow,
@@ -569,6 +569,21 @@ export const buildUserSurvey = (
   }
 
   return survey
+}
+
+export const buildPostsessionSurveyGoalResponse = (
+  overrides: Partial<PostsessionSurveyGoalResponse> = {}
+): PostsessionSurveyGoalResponse => {
+  return {
+    sessionId: getDbUlid(),
+    roleInSession: 'student',
+    submitterUserId: getDbUlid(),
+    createdAt: new Date(),
+    surveyResponseChoiceId: 1,
+    score: 1,
+    choiceText: 'choice',
+    ...overrides,
+  }
 }
 
 export const buildProgressReportDetails = (

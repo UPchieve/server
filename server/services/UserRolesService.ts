@@ -1,52 +1,15 @@
 import { getClient, TransactionClient } from '../db'
-import { Ulid } from '../models/pgUtils'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
 import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
 
-/**
- * @deprecated Use {@link RoleContext} instead
- */
-export async function getUserRolesById(
-  userId: Ulid,
-  tc: TransactionClient = getClient()
-) {
-  const roleContext = await getRoleContext(userId, tc)
-  return {
-    userType: roleContext.legacyRole,
-    isAdmin: roleContext.isAdmin(),
-    // TODO: Remove once no longer any references.
-    isVolunteer: roleContext.legacyRole === 'volunteer',
-  }
-}
-
-/**
- * @deprecated Use {@link RoleContext} instead
- */
-export function isVolunteerUserType(userType: UserRole) {
-  return userType === 'volunteer'
-}
-
-/**
- * @deprecated Use {@link RoleContext} instead
- */
-export function isStudentUserType(userType: UserRole) {
-  return userType === 'student'
-}
-
-/**
- * @deprecated Use {@link RoleContext} instead
- */
-export function isTeacherUserType(userType: UserRole) {
-  return userType === 'teacher'
-}
-
 export class RoleContext {
   readonly roles: UserRole[]
   readonly activeRole: UserRole
-  readonly legacyRole: UserRole // TODO - Remove me after fully switching to RoleContext
+  /** @deprecated */
+  readonly legacyRole: UserRole
 
   constructor(roles: UserRole[], activeRole: UserRole, legacyRole: UserRole) {
     this.roles = roles
@@ -63,8 +26,7 @@ export class RoleContext {
   }
 
   isAdmin() {
-    // @TODO Can just use hasRole.
-    return this.roles.includes('admin')
+    return this.hasRole('admin')
   }
 }
 
