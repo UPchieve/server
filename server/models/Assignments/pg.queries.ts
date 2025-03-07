@@ -374,6 +374,7 @@ export interface IGetStudentAssignmentForSessionParams {
 export interface IGetStudentAssignmentForSessionResult {
   assignedAt: Date;
   classId: string;
+  className: string;
   description: string | null;
   dueDate: Date | null;
   id: string;
@@ -393,7 +394,7 @@ export interface IGetStudentAssignmentForSessionQuery {
   result: IGetStudentAssignmentForSessionResult;
 }
 
-const getStudentAssignmentForSessionIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":575,"b":584}]}],"statement":"SELECT\n    a.id,\n    a.class_id,\n    a.title,\n    a.description,\n    a.number_of_sessions,\n    a.min_duration_in_minutes,\n    a.due_date,\n    a.start_date,\n    a.subject_id,\n    a.is_required,\n    subjects.name AS subject_name,\n    sa.created_at AS assigned_at,\n    sa.submitted_at\nFROM\n    assignments a\n    LEFT JOIN students_assignments sa ON sa.assignment_id = a.id\n    LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id\n        AND ssa.user_id = sa.user_id\n    LEFT JOIN subjects ON a.subject_id = subjects.id\nWHERE\n    ssa.session_id = :sessionId"};
+const getStudentAssignmentForSessionIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":657,"b":666}]}],"statement":"SELECT\n    a.id,\n    a.class_id,\n    a.title,\n    a.description,\n    a.number_of_sessions,\n    a.min_duration_in_minutes,\n    a.due_date,\n    a.start_date,\n    a.subject_id,\n    a.is_required,\n    subjects.name AS subject_name,\n    sa.created_at AS assigned_at,\n    sa.submitted_at,\n    tc.name AS class_name\nFROM\n    assignments a\n    LEFT JOIN students_assignments sa ON sa.assignment_id = a.id\n    LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id\n        AND ssa.user_id = sa.user_id\n    LEFT JOIN subjects ON a.subject_id = subjects.id\n    LEFT JOIN teacher_classes tc ON a.class_id = tc.id\nWHERE\n    ssa.session_id = :sessionId"};
 
 /**
  * Query generated from SQL:
@@ -411,13 +412,15 @@ const getStudentAssignmentForSessionIR: any = {"usedParamSet":{"sessionId":true}
  *     a.is_required,
  *     subjects.name AS subject_name,
  *     sa.created_at AS assigned_at,
- *     sa.submitted_at
+ *     sa.submitted_at,
+ *     tc.name AS class_name
  * FROM
  *     assignments a
  *     LEFT JOIN students_assignments sa ON sa.assignment_id = a.id
  *     LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id
  *         AND ssa.user_id = sa.user_id
  *     LEFT JOIN subjects ON a.subject_id = subjects.id
+ *     LEFT JOIN teacher_classes tc ON a.class_id = tc.id
  * WHERE
  *     ssa.session_id = :sessionId
  * ```
