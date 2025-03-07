@@ -4,7 +4,6 @@ import { resError } from '../res-error'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
-import { isVolunteerUserType } from '../../utils/user-type'
 import multer from 'multer'
 import config from '../../config'
 
@@ -14,9 +13,8 @@ export function routeModeration(router: Router): void {
   router.route('/moderate/message').post(async (req, res) => {
     try {
       const user = extractUser(req)
-      const isVolunteer = isVolunteerUserType(
-        UserRolesService.getUserTypeFromRoles(user.roles, user.id)
-      )
+      const roleContext = await UserRolesService.getRoleContext(user.id)
+      const isVolunteer = roleContext.legacyRole === 'volunteer'
       const args = req.body?.content
         ? {
             // Support old versions of high-line and midtown

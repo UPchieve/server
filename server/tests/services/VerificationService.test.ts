@@ -232,6 +232,7 @@ import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
+import * as UserService from '../../services/UserService'
 import {
   AlreadyInUseError,
   InputError,
@@ -240,15 +241,18 @@ import {
   TwilioError,
 } from '../../models/Errors'
 import { buildUserContactInfo } from '../mocks/generate'
+import { RoleContext } from '../../services/UserRolesService'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/TwilioService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
 jest.mock('../../services/FeatureFlagService')
+jest.mock('../../services/UserService')
 
 const mockedTwilioService = mocked(TwilioService)
 const mockedUserRepo = mocked(UserRepo)
+const mockedUserService = mocked(UserService)
 const mockedMailService = mocked(MailService)
 const mockFeatureFlagService = mocked(FeatureFlagService)
 
@@ -409,9 +413,10 @@ describe('VerificationService', () => {
 
     describe('Sending emails at the end of verification', () => {
       beforeEach(async () => {
-        mockedUserRepo.getUserContactInfoById.mockResolvedValue(
-          buildUserContactInfo()
-        )
+        mockedUserService.getUserContactInfo.mockResolvedValue({
+          ...buildUserContactInfo(),
+          roleContext: new RoleContext(['student'], 'student', 'student'),
+        })
         mockedUserRepo.getUserRolesById.mockResolvedValue(['student'])
       })
 

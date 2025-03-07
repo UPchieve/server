@@ -1,6 +1,7 @@
 import { Ulid } from '../models/pgUtils'
 import { getSessionById } from '../models/Session'
-import { getUserContactInfoById, UserContactInfo } from '../models/User'
+import { UserContactInfo } from '../models/User'
+import * as UserService from '../services/UserService'
 import { getUPFByUserId, UserProductFlags } from '../models/UserProductFlags'
 import { Jobs } from '../worker/jobs'
 import {
@@ -65,7 +66,7 @@ export async function getUserFallIncentiveData(
   userId: string,
   enrollmentFlag: boolean
 ): Promise<UserAndFallIncentiveData | undefined> {
-  const user = await getUserContactInfoById(userId)
+  const user = await UserService.getUserContactInfo(userId)
   const productFlags = await getUPFByUserId(userId)
   const incentivePayload = await getFallIncentiveProgramPayload(userId)
 

@@ -6,7 +6,9 @@ FROM
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
-    users.id = :id!;
+    users.id = :id!
+ORDER BY
+    users_roles.created_at ASC;
 
 
 /* @name createUser */
@@ -306,8 +308,7 @@ SELECT
         ELSE
             users.last_name
         END) AS last_name,
-    users.created_at,
-    array_agg(user_roles.name) AS roles
+    users.created_at
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -317,8 +318,6 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
-    LEFT JOIN users_roles ON users_roles.user_id = users.id
-    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE ((:userId)::uuid IS NULL
     OR users.id = :userId)
 AND ((:email)::text IS NULL

@@ -1,5 +1,6 @@
 import { mocked } from 'jest-mock'
 import * as SurveyService from '../../services/SurveyService'
+import * as UserService from '../../services/UserService'
 import * as SurveyRepo from '../../models/Survey/queries'
 import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
@@ -15,14 +16,17 @@ import { FEEDBACK_EVENTS } from '../../constants'
 import { emitter } from '../../services/EventsService'
 import { Session } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
+import { RoleContext } from '../../services/UserRolesService'
 
 jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/Session/queries')
+jest.mock('../../services/UserService')
 
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedUserRepo = mocked(UserRepo)
 const mockedSessionRepo = mocked(SessionRepo)
+const mockedUserService = mocked(UserService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -151,15 +155,17 @@ describe('getPostsessionSurveyDefinition', () => {
       subjectDisplayName: 'Prealgebra',
     } as Session)
     mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValue('eat cake')
-    mockedUserRepo.getUserContactInfoById
+    mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({
         id: 'student-id',
         firstName: 'StudentName',
-      } as UserContactInfo)
+        roleContext: new RoleContext(['student'], 'student', 'student'),
+      } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce({
         id: 'volunteer-id',
         firstName: 'CoachName',
-      } as UserContactInfo)
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+      } as UserContactInfo & { roleContext: RoleContext })
 
     mockedSurveyRepo.getPostsessionSurveyDefinition.mockResolvedValue([
       {
@@ -254,15 +260,17 @@ describe('getPostsessionSurveyDefinition', () => {
       subjectDisplayName: 'Reading',
     } as Session)
     mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValue(undefined)
-    mockedUserRepo.getUserContactInfoById
+    mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({
         id: 'student-id',
         firstName: 'StudentName',
-      } as UserContactInfo)
+        roleContext: new RoleContext(['student'], 'student', 'student'),
+      } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce({
         id: 'volunteer-id',
         firstName: 'CoachName',
-      } as UserContactInfo)
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+      } as UserContactInfo & { roleContext: RoleContext })
 
     mockedSurveyRepo.getPostsessionSurveyDefinition.mockResolvedValue([
       {

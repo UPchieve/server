@@ -1,12 +1,12 @@
-import { getUserContactInfoById } from '../models/User'
 import * as MailService from './MailService'
+import * as UserService from './UserService'
 
 export async function emailFavoritedVolunteer(
   volunteerId: string,
   studentId: string
 ) {
-  const volunteer = await getUserContactInfoById(volunteerId)
-  const student = await getUserContactInfoById(studentId)
+  const volunteer = await UserService.getUserContactInfo(volunteerId)
+  const student = await UserService.getUserContactInfo(studentId)
 
   if (!volunteer || !student) {
     return

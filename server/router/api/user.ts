@@ -17,7 +17,6 @@ import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
-import { isVolunteerUserType } from '../../utils/user-type'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -246,7 +245,10 @@ export function routeUser(router: Router): void {
       const userRoles = await UserRolesService.getUserRolesById(userId)
 
       let resUser: any = user
-      if (isVolunteerUserType(userRoles.userType) && user.photoIdS3Key) {
+      if (
+        UserRolesService.isVolunteerUserType(userRoles.userType) &&
+        user.photoIdS3Key
+      ) {
         const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
         resUser = Object.assign(resUser, { photoUrl })
       }

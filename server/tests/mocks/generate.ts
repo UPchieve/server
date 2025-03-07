@@ -50,6 +50,7 @@ import { LegacyUserModel } from '../../models/User/legacy-user'
 import { SessionAudio } from '../../models/SessionAudio'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
+import { RoleContext } from '../../services/UserRolesService'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -110,6 +111,7 @@ export function buildUserContactInfo(
     firstName: getFirstName(),
     isVolunteer: false,
     roles: ['student'],
+    roleContext: new RoleContext(['student'], 'student', 'student'),
     isAdmin: false,
     volunteerPartnerOrg: undefined,
     studentPartnerOrg: undefined,
@@ -144,6 +146,7 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
 }
 
 export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
+  // @TODO update AppUser?
   const userRow = buildUserRow()
   return {
     ...userRow,
@@ -154,6 +157,11 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
     isAdmin: false,
     isVolunteer: false,
     roles: ['student'] as UserRole[],
+    roleContext: new RoleContext(
+      overrides?.roles ?? ['student'],
+      overrides?.isVolunteer ? 'volunteer' : 'student',
+      overrides?.isVolunteer ? 'volunteer' : 'student'
+    ),
     ...overrides,
   }
 }
@@ -255,7 +263,11 @@ export function buildLegacyUser(
     lastActivityAt: undefined,
     referredBy: undefined,
     userType: 'student',
-    roleId: 1,
+    roleContext: new RoleContext(
+      [overrides?.userType ?? 'student'],
+      overrides?.userType ?? 'student',
+      'student'
+    ),
     sessionStats: {},
     ...overrides,
   }
@@ -268,7 +280,6 @@ export function buildLegacyStudent(
   return {
     ...legacyUser,
     userType: 'student',
-    roleId: 1,
     gradeLevel: GRADES.NINTH,
     schoolName: '',
     latestRequestedSubjects: [],
@@ -289,7 +300,6 @@ export function buildLegacyVolunteer(
   return {
     ...legacyUser,
     userType: 'volunteer',
-    roleId: 2,
     volunteerPartnerOrg: undefined,
     subjects: [],
     activeSubjects: [],

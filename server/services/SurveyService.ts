@@ -18,7 +18,7 @@ import {
 } from '../models/Survey'
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
-import * as UserRepo from '../models/User'
+import * as UserService from '../services/UserService'
 import { getTotalSessionsByUserId } from '../models/User'
 import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
 import {
@@ -145,11 +145,11 @@ export async function getPostsessionSurveyDefinition(
   // Get the replacement column options.
   const session = await SessionRepo.getSessionById(sessionId)
   const studentName =
-    (await UserRepo.getUserContactInfoById(session.studentId))?.firstName ?? ''
+    (await UserService.getUserContactInfo(session.studentId))?.firstName ?? ''
   let coachName: string = ''
   if (session.volunteerId) {
     coachName =
-      (await UserRepo.getUserContactInfoById(session.volunteerId))?.firstName ??
+      (await UserService.getUserContactInfo(session.volunteerId))?.firstName ??
       ''
   }
   const subjectName = session.subjectDisplayName

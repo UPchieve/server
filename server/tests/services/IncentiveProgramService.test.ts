@@ -1,6 +1,6 @@
 import { mocked } from 'jest-mock'
 import * as SessionRepo from '../../models/Session'
-import * as UserRepo from '../../models/User'
+import * as UserService from '../../services/UserService'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags'
 import QueueService from '../../services/QueueService'
 import {
@@ -20,13 +20,13 @@ import {
 import { getDbUlid } from '../../models/pgUtils'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 
-jest.mock('../../models/User')
+jest.mock('../../services/UserService')
 jest.mock('../../models/Session')
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/FeatureFlagService')
 
-const mockedUserRepo = mocked(UserRepo)
+const mockedUserService = mocked(UserService)
 const mockedUserProductFlagsRepo = mocked(UserProductFlagsRepo)
 const mockedFeatureFlagsService = mocked(FeatureFlagsService)
 const mockedSessionRepo = mocked(SessionRepo)
@@ -166,14 +166,14 @@ describe('getUserFallIncentiveData', () => {
 
   test('Should return undefined if no user is found', async () => {
     const user = buildUser()
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(undefined)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(undefined)
     const result = await getUserFallIncentiveData(user.id, true)
     expect(result).toBeUndefined()
   })
 
   test('Should return undefined if no product flags are found', async () => {
     const user = buildUser()
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValueOnce(undefined)
 
     const result = await getUserFallIncentiveData(user.id, true)
@@ -183,7 +183,7 @@ describe('getUserFallIncentiveData', () => {
   test('Should return undefined if no payload is found for the incentive feature flag', async () => {
     const user = buildUser()
     const productFlags = buildUserProductFlags()
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValueOnce(
       productFlags
     )
@@ -200,7 +200,7 @@ describe('getUserFallIncentiveData', () => {
     const productFlags = buildUserProductFlags({
       fallIncentiveEnrollmentAt: undefined,
     })
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValueOnce(
       productFlags
     )
@@ -227,7 +227,7 @@ describe('getUserFallIncentiveData', () => {
       maxQualifiedSessionsPerUser: 10,
     }
 
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     mockedUserProductFlagsRepo.getUPFByUserId.mockResolvedValueOnce(
       productFlags
     )
