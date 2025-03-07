@@ -379,7 +379,7 @@ export async function getVolunteerForOnboardingById(
       'country',
       'volunteerPartnerOrgKey',
     ])
-    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id)
+    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
     if (volunteer.email) {
       volunteer.email = volunteer.email.toLowerCase()
     }
@@ -721,13 +721,12 @@ export type TrainingCourse = {
 type VolunteerTrainingCourses = { [key: string]: TrainingCourse }
 export async function getVolunteerTrainingCourses(
   userId: Ulid,
-  poolClient?: PoolClient
+  tc?: TransactionClient
 ): Promise<VolunteerTrainingCourses> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getVolunteerTrainingCourses.run(
       { userId },
-      client
+      tc ?? getClient()
     )
     const map: VolunteerTrainingCourses = {}
     for (const row of result) {
@@ -753,7 +752,8 @@ export async function updateVolunteerTrainingById(
   trainingCourse: string,
   complete: boolean,
   progress: number,
-  materialKey: string
+  materialKey: string,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerTrainingById.run(
@@ -764,7 +764,7 @@ export async function updateVolunteerTrainingById(
         progress,
         materialKey,
       },
-      getClient()
+      tc ?? getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
