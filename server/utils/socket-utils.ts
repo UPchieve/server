@@ -1,8 +1,11 @@
 import { Server } from 'socket.io'
 
 export async function getSocketsFromRoom(io: Server, room: string) {
-  const sockets = await io.in(room).fetchSockets()
-  return sockets
+  // Normally we'd just do: `return await io.in(room).fetchSockets()`
+  // However this doesn't seem to work with Valkey on our redis stream adapter, so this is a workaround
+  // More info: https://github.com/socketio/socket.io/issues/4183#issuecomment-982181865
+  const sockets = Array.from(io.sockets.sockets.values())
+  return sockets.filter((s) => s.rooms.has(room))
 }
 
 export async function getSocketIdsFromRoom(
