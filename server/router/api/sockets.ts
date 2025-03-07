@@ -61,7 +61,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (user.roleContext.legacyRole === 'volunteer') socket.join('volunteers')
+  if (user.roleContext.isActiveRole('volunteer')) socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {

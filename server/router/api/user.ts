@@ -242,18 +242,18 @@ export function routeUser(router: Router): void {
 
     try {
       const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
-      const roleConext = await UserRolesService.getRoleContext(userId)
+      const roleContext = await UserRolesService.getRoleContext(userId)
 
       let resUser: any = user
-      if (roleConext.hasRole('volunteer') && user.photoIdS3Key) {
+      if (roleContext.hasRole('volunteer') && user.photoIdS3Key) {
         const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
         resUser = Object.assign(resUser, { photoUrl })
       }
 
       res.json({
         ...user,
-        userType: roleConext.legacyRole,
-        roles: roleConext.roles,
+        userType: roleContext.legacyRole,
+        roles: roleContext.roles,
       })
     } catch (err) {
       resError(res, err)

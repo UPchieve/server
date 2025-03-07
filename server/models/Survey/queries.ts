@@ -360,13 +360,14 @@ export const getUserPostsessionSurveyResponses = async (
   userId: string
 ): Promise<PostsessionSurveyGoalResponse[]> => {
   try {
-    const ratings = await pgQueries.getPostsessionSurveyResponsesForSessionsByUserId.run(
-      {
-        userId,
-      },
-      getRoClient()
-    )
-    return ratings.map(r => makeRequired(r)) ?? []
+    const ratings =
+      await pgQueries.getPostsessionSurveyResponsesForSessionsByUserId.run(
+        {
+          userId,
+        },
+        getRoClient()
+      )
+    return ratings.map((r) => makeRequired(r)) ?? []
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -141,13 +141,11 @@ export async function getLegacyUserObject(
     const studentUser: any = {}
     const teacherUser: { usesClever?: boolean } = {}
     const roleContext = await UserRolesService.getRoleContext(userId)
-    const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
-      userId
-    )
+    const ratings =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
     if (roleContext.isActiveRole('student')) {
-      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
-        baseUser.id
-      )
+      studentUser.latestRequestedSubjects =
+        await getUsersLatestSubjectsByUserId(baseUser.id)
       studentUser.usesGoogle =
         baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
       studentUser.usesClever =

@@ -1,5 +1,4 @@
 import { getClient, TransactionClient } from '../db'
-import { Ulid } from '../models/pgUtils'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
 import * as CacheService from '../cache'
@@ -54,7 +53,7 @@ export async function getRoleContext(
     if (!roles.length) {
       throw new Error('User is missing roles')
     }
-    const activeRole = roles.filter(r => r !== 'admin')[0]
+    const activeRole = roles.filter((r) => r !== 'admin')[0]
     const roleContext = new RoleContext(roles, activeRole, roles[0])
     await updateRoleContext(
       userId,

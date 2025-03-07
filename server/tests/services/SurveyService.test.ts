@@ -341,9 +341,8 @@ describe('getUserPostsessionGoalRatingsMetrics', () => {
       surveyResponses
     )
 
-    const result = await SurveyService.getUserPostsessionGoalRatingsMetrics(
-      userId
-    )
+    const result =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
     expect(result).toEqual({
       selfReportedStudentRating: {
         total: 2,

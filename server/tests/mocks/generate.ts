@@ -147,7 +147,6 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
 }
 
 export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
-  // @TODO update AppUser?
   const userRow = buildUserRow()
   return {
     ...userRow,

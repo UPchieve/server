@@ -162,8 +162,6 @@ async function sendOnboardingEmails(userId: Ulid): Promise<void> {
   const user = await UserService.getUserContactInfo(userId)
   if (!user) return
 
-  const userType = user.roleContext.legacyRole
-
   if (user.roleContext.isActiveRole('volunteer')) {
     if (user.volunteerPartnerOrg) {
       await MailService.sendPartnerVolunteerWelcomeEmail(

@@ -129,17 +129,15 @@ export const getUserPostsessionGoalRatingsMetrics = async (
 
   const [selfSubmissions, partnerSubmissions] = partition(
     surveyResponses,
-    r => r.submitterUserId === userId
+    (r) => r.submitterUserId === userId
   )
 
   const [selfRatingAsStudent, selfRatingAsVolunteer] = partition(
     selfSubmissions,
-    r => r.roleInSession === 'student'
+    (r) => r.roleInSession === 'student'
   )
-  const [
-    partnerRatingsOfStudentUser,
-    partnerRatingsOfVolunteerUser,
-  ] = partition(partnerSubmissions, r => r.roleInSession === 'volunteer')
+  const [partnerRatingsOfStudentUser, partnerRatingsOfVolunteerUser] =
+    partition(partnerSubmissions, (r) => r.roleInSession === 'volunteer')
 
   const selfReportedStudentRating = {
     total: selfRatingAsStudent.length,

@@ -1426,7 +1426,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   let contactListId
   for (const userId of listOfUserIds) {
     const user = await getUserToCreateSendGridContact(userId)
-    const userRoleContext = await UserRolesService.getRoleContext(user.id)
+    const userRoleContext = await UserRolesService.getRoleContext(userId)
     const productFlags = await getPublicUPFByUserId(userId)
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(
