@@ -146,9 +146,8 @@ export async function getLegacyUserObject(
       userType
     )
     if (UserRolesService.isStudentUserType(userType)) {
-      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
-        baseUser.id
-      )
+      studentUser.latestRequestedSubjects =
+        await getUsersLatestSubjectsByUserId(baseUser.id)
       studentUser.usesGoogle =
         baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
       studentUser.usesClever =

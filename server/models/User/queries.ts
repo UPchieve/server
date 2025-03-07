@@ -424,7 +424,7 @@ export async function getUsersForAdminSearch(
       { ...cleanPayload(payload), limit, offset },
       client
     )
-    return result.map(v => {
+    return result.map((v) => {
       const user = makeSomeOptional(v, ['lastName'])
       return {
         ...user,

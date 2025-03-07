@@ -413,15 +413,8 @@ const asUserQuery = asFactory<UserQuery>({
 export async function getUsers(
   data: unknown
 ): Promise<{ users: UserForAdmin[]; isLastPage: boolean }> {
-  const {
-    userId,
-    firstName,
-    lastName,
-    email,
-    partnerOrg,
-    school,
-    page,
-  } = asUserQuery(data)
+  const { userId, firstName, lastName, email, partnerOrg, school, page } =
+    asUserQuery(data)
   const pageNum = page || 1
   const PER_PAGE = 15
   const skip = (pageNum - 1) * PER_PAGE
@@ -440,7 +433,7 @@ export async function getUsers(
       skip
     )
 
-    const withUserTypes = users.map(async u => {
+    const withUserTypes = users.map(async (u) => {
       const roleContext = await UserRolesService.getRoleContext(u.id)
       return {
         ...u,
