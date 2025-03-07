@@ -94,18 +94,15 @@ export const legacyCourses: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Upchieve Student Testimonials and Feedback',
-                url:
-                  'https://cdn.upchieve.org/training-courses/upchieve101/student-testimonials-and-feedback.pdf',
+                url: 'https://cdn.upchieve.org/training-courses/upchieve101/student-testimonials-and-feedback.pdf',
               },
               {
                 displayName: 'Overview of Inequity in Higher Education',
-                url:
-                  'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf',
+                url: 'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf',
               },
               {
                 displayName: "Overview of Covid-19's Impact on Education",
-                url:
-                  'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime',
+                url: 'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime',
               },
             ],
           },
@@ -284,8 +281,7 @@ export const legacyCourses: TrainingCourse[] = [
               },
               {
                 displayName: 'Podcast on Desegregation',
-                url:
-                  'https://www.thisamericanlife.org/562/the-problem-we-all-live-with-part-one',
+                url: 'https://www.thisamericanlife.org/562/the-problem-we-all-live-with-part-one',
               },
             ],
           },
@@ -379,18 +375,15 @@ export const legacyCoursesv2: TrainingCourse[] = [
               {
                 displayName:
                   'Get Ready to Make a Difference: What Our Students Say',
-                url:
-                  'https://cdn.upchieve.org/training-courses/upchieve101/what-our-students-have-to-say.pdf',
+                url: 'https://cdn.upchieve.org/training-courses/upchieve101/what-our-students-have-to-say.pdf',
               },
               {
                 displayName: 'Overview of Inequity in Higher Education',
-                url:
-                  'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf',
+                url: 'http://pellinstitute.org/downloads/publications-Indicators_of_Higher_Education_Equity_in_the_US_2018_Historical_Trend_Report.pdf',
               },
               {
                 displayName: "Overview of Covid-19's Impact on Education",
-                url:
-                  'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime',
+                url: 'https://www.mckinsey.com/industries/public-and-social-sector/our-insights/covid-19-and-student-learning-in-the-united-states-the-hurt-could-last-a-lifetime',
               },
             ],
           },
@@ -478,18 +471,15 @@ export const legacyCoursesv2: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Learning What Students Know',
-                url:
-                  'https://docs.google.com/forms/d/1NotpEz8-vBDfWP0O0ejuLehTAaUp6cNoJHGxYMx4jF8/viewform?edit_requested=true',
+                url: 'https://docs.google.com/forms/d/1NotpEz8-vBDfWP0O0ejuLehTAaUp6cNoJHGxYMx4jF8/viewform?edit_requested=true',
               },
               {
                 displayName: 'Giving Effective Praise',
-                url:
-                  'https://docs.google.com/forms/d/1XRt5QldoD_-LURjiE7VOxqBvNAjgj2ARenQa15jk5g4/viewform?edit_requested=true',
+                url: 'https://docs.google.com/forms/d/1XRt5QldoD_-LURjiE7VOxqBvNAjgj2ARenQa15jk5g4/viewform?edit_requested=true',
               },
               {
                 displayName: 'Responding to Student Errors',
-                url:
-                  'https://docs.google.com/forms/d/e/1FAIpQLSfM48ah4KLpuoYEBVisvQ5s6LUgQjt01F2epdym_kuN6tfjQQ/viewform',
+                url: 'https://docs.google.com/forms/d/e/1FAIpQLSfM48ah4KLpuoYEBVisvQ5s6LUgQjt01F2epdym_kuN6tfjQQ/viewform',
               },
             ],
           },
@@ -551,8 +541,7 @@ export const legacyCoursesv2: TrainingCourse[] = [
               },
               {
                 displayName: 'Podcast on Desegregation',
-                url:
-                  'https://www.thisamericanlife.org/562/the-problem-we-all-live-with-part-one',
+                url: 'https://www.thisamericanlife.org/562/the-problem-we-all-live-with-part-one',
               },
             ],
           },
@@ -618,13 +607,11 @@ export const legacyCoursesv2: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Reminder: Join UPchieve Slack Community',
-                url:
-                  'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-1gihzt03n-Sj58fEdBiZjVwc4DPDdg0g',
+                url: 'https://join.slack.com/t/upchieveaccommunity/shared_invite/zt-1gihzt03n-Sj58fEdBiZjVwc4DPDdg0g',
               },
               {
                 displayName: `Register for UPchieve's Monthly Coach Meetings`,
-                url:
-                  'https://us02web.zoom.us/meeting/register/uZUsduiqrzgiO4_zJG9YvVJcx8vBxt4snA',
+                url: 'https://us02web.zoom.us/meeting/register/uZUsduiqrzgiO4_zJG9YvVJcx8vBxt4snA',
               },
             ],
           },
@@ -656,8 +643,7 @@ export const courses: TrainingCourse[] = [
             links: [
               {
                 displayName: 'Summary',
-                url:
-                  'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf',
+                url: 'https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf',
               },
             ],
           },
@@ -718,7 +704,7 @@ function addUsingOurPlatformTo101(course: TrainingCourse) {
   }
 
   const coachingModule = updatedCourse.modules.find(
-    module => module.name === 'Coaching on UPchieve'
+    (module) => module.name === 'Coaching on UPchieve'
   )
   if (coachingModule) coachingModule.materials.unshift(material)
   return updatedCourse
@@ -755,7 +741,7 @@ export const getProgress = async (
   userId: Ulid
 ): Promise<number> => {
   const requiredMaterials = await getRequiredMaterials(courseKey, userId)
-  const completedMaterials = requiredMaterials.filter(mat =>
+  const completedMaterials = requiredMaterials.filter((mat) =>
     userCompleted.includes(mat)
   )
   const fraction = completedMaterials.length / requiredMaterials.length

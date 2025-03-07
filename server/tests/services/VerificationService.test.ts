@@ -277,7 +277,7 @@ describe('VerificationService', () => {
       },
     ])(
       'Should call Twilio to initiate verification when given valid data',
-      async data => {
+      async (data) => {
         const req = {
           userId: '123',
           firstName: 'Louise',
@@ -302,7 +302,7 @@ describe('VerificationService', () => {
       '123123123123123', // too long
     ])(
       'Should throw an InputError when given an invalid phone number',
-      async phoneNumber => {
+      async (phoneNumber) => {
         const expectedErrorMsg = 'Must supply a valid phone number'
         const req = {
           userId: '123',

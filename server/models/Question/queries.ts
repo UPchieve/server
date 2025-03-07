@@ -28,8 +28,8 @@ export async function listQuestions(
   try {
     const questions = await pgQueries.list.run({ ...filters }, getClient())
 
-    const result = questions.map(v => makeSomeOptional(v, ['imageSrc']))
-    const parsedResult = result.map(res => parseQueryResult(res))
+    const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
+    const parsedResult = result.map((res) => parseQueryResult(res))
     return parsedResult
   } catch (err) {
     throw new RepoReadError(err)
@@ -148,7 +148,7 @@ export async function destroy(questionId: Pgid): Promise<void> {
 export async function getCategories(): Promise<pgQueries.ICategoriesResult[]> {
   try {
     const result = await pgQueries.categories.run(undefined, getClient())
-    return result.map(v => makeRequired(v))
+    return result.map((v) => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -162,7 +162,7 @@ export async function getSubcategoriesForQuiz(
       { quizName },
       getClient()
     )
-    return result.map(v => makeRequired(v))
+    return result.map((v) => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -176,8 +176,8 @@ export async function getMultipleQuestionsById(
       { ids },
       getClient()
     )
-    const result = questions.map(v => makeSomeOptional(v, ['imageSrc']))
-    const parsedResult = result.map(res => parseQueryResult(res))
+    const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
+    const parsedResult = result.map((res) => parseQueryResult(res))
     return parsedResult
   } catch (err) {
     throw new RepoReadError(err)
@@ -194,8 +194,8 @@ export async function getQuestionsByCategory(
       { category, limit, offset },
       getClient()
     )
-    const result = questions.map(v => makeSomeOptional(v, ['imageSrc']))
-    const parsedResult = result.map(res => parseQueryResult(res))
+    const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
+    const parsedResult = result.map((res) => parseQueryResult(res))
     return parsedResult
   } catch (err) {
     throw new RepoReadError(err)
@@ -210,7 +210,7 @@ export async function getQuizReviewMaterials(
       { category },
       getClient()
     )
-    const result = materials.map(v => makeRequired(v))
+    const result = materials.map((v) => makeRequired(v))
     return result
   } catch (err) {
     throw new RepoReadError(err)
@@ -238,7 +238,7 @@ export async function getQuizCertUnlocksByQuizName(
       { quizName },
       tc ?? getClient()
     )
-    if (results.length) return results.map(v => makeRequired(v))
+    if (results.length) return results.map((v) => makeRequired(v))
     return []
   } catch (err) {
     throw new RepoReadError(err)

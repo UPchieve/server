@@ -37,8 +37,7 @@ const insertCertificationIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO certifications (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO certifications (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 32, b: 172, line: 2, col: 0 },
   },
 }
@@ -87,8 +86,7 @@ const insertQuizIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO quizzes (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO quizzes (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 200, b: 333, line: 11, col: 0 },
   },
 }
@@ -144,8 +142,7 @@ const insertCertificationGrantIR: any = {
   ],
   usedParamSet: { quizId: true, certificationId: true },
   statement: {
-    body:
-      'INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)\n    VALUES (:quizId!, :certificationId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    quiz_id AS ok',
+    body: 'INSERT INTO quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)\n    VALUES (:quizId!, :certificationId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    quiz_id AS ok',
     loc: { a: 375, b: 573, line: 20, col: 0 },
   },
 }
@@ -201,8 +198,7 @@ const insertQuizSubcategoryIR: any = {
   ],
   usedParamSet: { quizId: true, name: true },
   statement: {
-    body:
-      'INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at)\n    VALUES (:quizId!, :name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO quiz_subcategories (quiz_id, name, created_at, updated_at)\n    VALUES (:quizId!, :name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 612, b: 775, line: 29, col: 0 },
   },
 }
@@ -277,8 +273,7 @@ const insertQuizQuestionIR: any = {
     questionText: true,
   },
   statement: {
-    body:
-      'INSERT INTO quiz_questions (correct_answer, possible_answers, quiz_subcategory_id, question_text, created_at, updated_at)\n    VALUES (:correctAnswer!, :possibleAnswers!, :subCategoryId!, :questionText!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO quiz_questions (correct_answer, possible_answers, quiz_subcategory_id, question_text, created_at, updated_at)\n    VALUES (:correctAnswer!, :possibleAnswers!, :subCategoryId!, :questionText!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 811, b: 1076, line: 38, col: 0 },
   },
 }
@@ -361,8 +356,7 @@ const insertSubjectIR: any = {
     topicId: true,
   },
   statement: {
-    body:
-      'INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at)\n    VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO subjects (name, display_name, display_order, tool_type_id, topic_id, created_at, updated_at)\n    VALUES (:name!, :displayName!, :displayOrder!, :toolTypeId!, :topicId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 1107, b: 1350, line: 47, col: 0 },
   },
 }
@@ -418,8 +412,7 @@ const insertCertificationSubjectUnlocksIR: any = {
   ],
   usedParamSet: { certificationId: true, subjectId: true },
   statement: {
-    body:
-      'INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at)\n    VALUES (:certificationId!, :subjectId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    subject_id AS ok',
+    body: 'INSERT INTO certification_subject_unlocks (certification_id, subject_id, created_at, updated_at)\n    VALUES (:certificationId!, :subjectId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    subject_id AS ok',
     loc: { a: 1401, b: 1612, line: 56, col: 0 },
   },
 }
@@ -468,8 +461,7 @@ const insertToolTypeIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO tool_types (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO tool_types (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 1644, b: 1780, line: 65, col: 0 },
   },
 }
@@ -532,8 +524,7 @@ const insertTopicIR: any = {
   ],
   usedParamSet: { name: true, displayName: true, dashboardOrder: true },
   statement: {
-    body:
-      'INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)\n    VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO topics (name, display_name, dashboard_order, created_at, updated_at)\n    VALUES (:name!, :displayName!, :dashboardOrder!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 1809, b: 2005, line: 74, col: 0 },
   },
 }
@@ -582,8 +573,7 @@ const insertTrainingCourseIR: any = {
   ],
   usedParamSet: { name: true },
   statement: {
-    body:
-      'INSERT INTO training_courses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    name AS ok',
+    body: 'INSERT INTO training_courses (name, created_at, updated_at)\n    VALUES (:name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    name AS ok',
     loc: { a: 2043, b: 2187, line: 83, col: 0 },
   },
 }

@@ -17,7 +17,7 @@ export async function getNotificationsByVolunteerId(
       { userId },
       getClient()
     )
-    return result.map(v =>
+    return result.map((v) =>
       makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful'])
     )
   } catch (err) {
@@ -41,7 +41,7 @@ export async function getSessionNotificationsWithSessionId(
       { sessionId },
       getClient()
     )
-    return result.map(v => {
+    return result.map((v) => {
       const row: any = makeSomeOptional(v, [
         'sentAt',
         'messageId',
@@ -77,7 +77,7 @@ export async function getNotificationsForGentleWarning(
       { sessionId },
       getClient()
     )
-    return result.map(v => {
+    return result.map((v) => {
       const ret = makeRequired(v)
       ret.email = ret.email.toLowerCase()
       return ret
@@ -119,7 +119,7 @@ export async function getEmailNotificationsByTemplateId(
       },
       getClient()
     )
-    return result.map(row => makeSomeOptional(row, ['sessionId']))
+    return result.map((row) => makeSomeOptional(row, ['sessionId']))
   } catch (err) {
     throw new RepoReadError(err)
   }

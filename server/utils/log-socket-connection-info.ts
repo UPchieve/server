@@ -118,10 +118,10 @@ export const logSocketEvent = (
           reason as keyof typeof SERVER_DISCONNECT_REASONS
         ]
       : event === 'client_disconnect' && reason
-      ? CLIENT_DISCONNECT_REASONS[
-          reason as keyof typeof CLIENT_DISCONNECT_REASONS
-        ]
-      : undefined
+        ? CLIENT_DISCONNECT_REASONS[
+            reason as keyof typeof CLIENT_DISCONNECT_REASONS
+          ]
+        : undefined
 
   try {
     const analyticsData = {

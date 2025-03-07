@@ -61,7 +61,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeZoom(router)
   routeRewards(router)
 
-  router.post('/send-referral-email', async function(req, res) {
+  router.post('/send-referral-email', async function (req, res) {
     try {
       if (!req.user) {
         res.json({ success: false })

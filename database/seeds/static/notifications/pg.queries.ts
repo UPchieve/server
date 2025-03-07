@@ -29,8 +29,7 @@ const insertNotificationMethodIR: any = {
   ],
   usedParamSet: { method: true },
   statement: {
-    body:
-      'INSERT INTO notification_methods (method, created_at, updated_at)\n    VALUES (:method!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO notification_methods (method, created_at, updated_at)\n    VALUES (:method!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 37, b: 187, line: 2, col: 0 },
   },
 }
@@ -79,8 +78,7 @@ const insertNotificationTypeIR: any = {
   ],
   usedParamSet: { type: true },
   statement: {
-    body:
-      'INSERT INTO notification_types (TYPE, created_at, updated_at)\n    VALUES (:type!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO notification_types (TYPE, created_at, updated_at)\n    VALUES (:type!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 227, b: 371, line: 11, col: 0 },
   },
 }
@@ -136,8 +134,7 @@ const insertPriorityGroupIR: any = {
   ],
   usedParamSet: { name: true, priority: true },
   statement: {
-    body:
-      'INSERT INTO notification_priority_groups (name, priority, created_at, updated_at)\n    VALUES (:name!, :priority!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO notification_priority_groups (name, priority, created_at, updated_at)\n    VALUES (:name!, :priority!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 408, b: 584, line: 20, col: 0 },
   },
 }

@@ -11,10 +11,10 @@ import { client as productClient } from './product-client'
 function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
   const shutDownSocketServer = promisify(ioServer.close).bind(ioServer)
 
-  return async function(signal: string) {
+  return async function (signal: string) {
     logger.info(`${signal} signal received`)
     // immediately stop accepting new connections to the server
-    server.close(async err => {
+    server.close(async (err) => {
       if (err) {
         logger.error(err as Error)
         process.exit(1)
@@ -43,10 +43,10 @@ function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
      */
     // allow for existing connections to finish up their responses before forcibly closing them
     await setTimeout(500)
-    getConnections().forEach(conn => conn.end())
+    getConnections().forEach((conn) => conn.end())
     // destroy any running connections that may have not been ended
     await setTimeout(5000, () => {
-      getConnections().forEach(conn => conn.destroy())
+      getConnections().forEach((conn) => conn.destroy())
     })
   }
 }

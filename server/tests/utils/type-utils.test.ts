@@ -109,7 +109,7 @@ describe('asFunction', () => {
       return ''
     }
     const arrowFunction = () => ''
-    const anonymousFunction = function() {
+    const anonymousFunction = function () {
       return ''
     }
     expect(() => asFunction(namedFunction)).not.toThrow()

@@ -54,7 +54,7 @@ export async function getRoleContext(
     if (!roles.length) {
       throw new Error('User is missing roles')
     }
-    const activeRole = roles.filter(r => r !== 'admin')[0]
+    const activeRole = roles.filter((r) => r !== 'admin')[0]
     const roleContext = new RoleContext(roles, activeRole, roles[0])
     await updateRoleContext(
       userId,
@@ -101,7 +101,7 @@ export async function addVolunteerRoleToUser(userId: string): Promise<void> {
   if (existingRoleContext.roles.includes('volunteer'))
     throw new InputError('User already has volunteer role')
 
-  await runInTransaction(async tc => {
+  await runInTransaction(async (tc) => {
     await UserRepo.insertUserRoleByUserId(userId, 'volunteer', tc)
     await VolunteerRepo.createVolunteerProfile(
       userId,

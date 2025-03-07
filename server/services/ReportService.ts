@@ -73,9 +73,7 @@ type UsageReport = {
 
 const formatDate = (date: string | Date): Date | string => {
   if (!date) return '--'
-  return moment(date)
-    .tz('America/New_York')
-    .format('l h:mm a')
+  return moment(date).tz('America/New_York').format('l h:mm a')
 }
 
 function dateStringToDateEST(dateString: string): Date {
@@ -117,7 +115,7 @@ export const sessionReport = async (
   })
 
   if (report && report.length) {
-    const formattedSessions = report.map(row => {
+    const formattedSessions = report.map((row) => {
       return {
         Topic: row.topic,
         Subtopic: row.subject,
@@ -171,7 +169,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
 
   if (report && report.length) {
     const studentUsage = Promise.all(
-      report.map(async student => {
+      report.map(async (student) => {
         const dataFormat: UsageReport = {
           'First name': student.firstName,
           'Last name': student.lastName,
@@ -216,13 +214,12 @@ export async function getTelecomReport(data: unknown) {
   const { partnerOrg, startDate, endDate } = asTelecomReportPayload(data)
   if (
     !partnerOrg ||
-    !config.customVolunteerPartnerOrgs.some(org => org === partnerOrg)
+    !config.customVolunteerPartnerOrgs.some((org) => org === partnerOrg)
   )
     return []
   try {
-    const volunteers = await VolunteerRepo.getVolunteersForTelecomReport(
-      partnerOrg
-    )
+    const volunteers =
+      await VolunteerRepo.getVolunteersForTelecomReport(partnerOrg)
 
     return await generateTelecomReport(
       volunteers,
@@ -266,16 +263,14 @@ async function processBatch(
     cursor
   )
   const nextCursor =
-    batch.length < batchSize + 1 ? null : batch.pop()?.userId ?? null
+    batch.length < batchSize + 1 ? null : (batch.pop()?.userId ?? null)
 
   // Fetch individual volunteer data
   for (const volunteer of batch) {
     const hourSummaryTotal = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
       new Date(volunteer.createdAt),
-      moment()
-        .utc()
-        .toDate()
+      moment().utc().toDate()
     )
     const hourSummaryDateRange = await VolunteerService.getHourSummaryStats(
       volunteer.userId,
@@ -367,9 +362,8 @@ export async function writeAnalyticsReport(
   const dataSheet = workbook.addWorksheet('Data', sheetOptions)
   const formattedStartDate = moment(startDate, 'MM-DD-YYYY').format('MM/DD/YY')
   const formattedEndDate = moment(endDate, 'MM-DD-YYYY').format('MM/DD/YY')
-  const partner = await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(
-    partnerOrg
-  )
+  const partner =
+    await VolunteerPartnerOrgRepo.getFullVolunteerPartnerOrgByKey(partnerOrg)
   const partnerName = partner.name
   processAnalyticsReportSummarySheet(
     data.summary,
@@ -395,12 +389,8 @@ export async function writeAnalyticsReport(
 
 export async function getAnalyticsReport(data: unknown) {
   try {
-    const {
-      partnerOrg,
-      partnerOrgId,
-      startDate,
-      endDate,
-    } = await validateVolunteerReportQuery(data)
+    const { partnerOrg, partnerOrgId, startDate, endDate } =
+      await validateVolunteerReportQuery(data)
 
     const logData = {
       volunteerPartnerOrgId: partnerOrgId,

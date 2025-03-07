@@ -123,10 +123,8 @@ export async function getLegacyUserObject(
       baseUser.hoursTutored || Number(baseUser.hoursTutored)
     // The frontend still expects ALL possible certification objects on the legacy user
     // So we get all quizzes and map their name to a fresh QuizInfo object
-    const legacyCertificationsResult = await pgQueries.getLegacyCertifications.run(
-      undefined,
-      client
-    )
+    const legacyCertificationsResult =
+      await pgQueries.getLegacyCertifications.run(undefined, client)
     const legacyCertifications = legacyCertificationsResult.reduce((agg, v) => {
       const name = makeRequired(v).name
       return {
@@ -143,21 +141,18 @@ export async function getLegacyUserObject(
     const studentUser: any = {}
     const teacherUser: { usesClever?: boolean } = {}
     const roleContext = await UserRolesService.getRoleContext(userId)
-    const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
-      userId
-    )
+    const ratings =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
     if (roleContext.isActiveRole('student')) {
-      studentUser.latestRequestedSubjects = await getUsersLatestSubjectsByUserId(
-        baseUser.id
-      )
+      studentUser.latestRequestedSubjects =
+        await getUsersLatestSubjectsByUserId(baseUser.id)
       studentUser.usesGoogle =
-        baseUser.issuers?.some(issuer => issuer.includes('google')) ?? false
+        baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
       studentUser.usesClever =
-        baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
+        baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
       delete baseUser.issuers
-      studentUser.studentAssignments = await AssignmentsService.getAssignmentsByStudentId(
-        baseUser.id
-      )
+      studentUser.studentAssignments =
+        await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
     }
     if (roleContext.isActiveRole('volunteer')) {
       if (!baseUser.subjects) baseUser.subjects = []
@@ -168,7 +163,7 @@ export async function getLegacyUserObject(
         client
       )
       const references = await getReferencesByVolunteer(userId, client)
-      volunteerUser.references = references.map(ref => ({
+      volunteerUser.references = references.map((ref) => ({
         ...ref,
         _id: ref.id,
         status: ref.status.toUpperCase(),
@@ -202,7 +197,7 @@ export async function getLegacyUserObject(
     }
     if (roleContext.isActiveRole('teacher')) {
       teacherUser.usesClever =
-        baseUser.issuers?.some(issuer => issuer.includes('clever')) ?? false
+        baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
     }
     const final = _.merge(
       {

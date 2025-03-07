@@ -18,7 +18,7 @@ function getMockedWebSocket() {
     send: jest.fn(),
   }
   // @note: partial mock of WebSocket
-  return (mockedWs as unknown) as UpgradedWebSocket
+  return mockedWs as unknown as UpgradedWebSocket
 }
 
 describe('WebSocketEmitterService public methods', () => {

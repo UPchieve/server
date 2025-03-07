@@ -32,7 +32,7 @@ const config: Static<typeof Config> = {
   smtp: {
     host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
     port: parseInt(process.env.SUBWAY_SMTP_PORT || '2525'),
-    secure: ((process.env.SUBWAY_SMTP_SECURE as unknown) as boolean) || false,
+    secure: (process.env.SUBWAY_SMTP_SECURE as unknown as boolean) || false,
     user: process.env.SUBWAY_SMTP_USER || '',
     password: process.env.SUBWAY_SMTP_PASSWORD || '',
   },
@@ -328,11 +328,10 @@ const config: Static<typeof Config> = {
    * https://github.com/Azure/azure-sdk-for-js/blob/master/sdk/identity/identity/README.md#define-a-custom-authentication-flow-with-the-chainedtokencredential
    *
    **/
-  whiteboardStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
-  whiteboardStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
-  whiteboardStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
-  whiteboardStorageSubscriptionId:
-    process.env.SUBWAY_AZURE_WHITEBOARD_SUBSCRIPTION_ID || 'bogus',
+  azureClientId: process.env.AZURE_CLIENT_ID || 'bogus',
+  azureTenantId: process.env.AZURE_TENANT_ID || 'bogus',
+  azureStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
+  azureSubscriptionId: process.env.AZURE_SUBSCRIPTION_ID || 'bogus',
   whiteboardStorageAccountName:
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
@@ -340,12 +339,16 @@ const config: Static<typeof Config> = {
   voiceMessageStorageAppId: process.env.AZURE_CLIENT_ID || 'bogus',
   voiceMessageStorageTenantId: process.env.AZURE_TENANT_ID || 'bogus',
   voiceMessageStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
-  voiceMessageStorageSubscriptionId:
-    process.env.SUBWAY_AZURE_VOICE_MESSAGE_SUBSCRIPTION_ID || 'bogus',
   voiceMessageStorageAccountName:
     process.env.SUBWAY_VOICE_MESSAGE_STORAGE_ACCOUNT_NAME || 'bogus',
   voiceMessageStorageContainer:
     process.env.SUBWAY_VOICE_MESSAGE_STORAGE_CONTAINER || 'bogus',
+  assignmentsStorageAccountName:
+    process.env.SUBWAY_ASSIGNMENTS_STORAGE_ACCOUNT_NAME || 'bogus',
+  assignmentsStorageContainer:
+    process.env.SUBWAY_ASSIGNMENTS_STORAGE_CONTAINER || 'bogus',
+  assignmentsFrontdoorHostName:
+    process.env.SUBWAY_ASSIGNMENTS_FRONTDOOR_HOSTNAME || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',

@@ -29,15 +29,13 @@ export async function getHourSummaryStats(
   toDate: Date
 ): Promise<HourSummaryStats> {
   // TODO: promise.all fails fast, do we want this? - handle error?
-  const [
-    quizzesPassed,
-    elapsedAvailability,
-    timeTutoredMS,
-  ] = await Promise.all([
-    getQuizzesPassedForDateRangeById(volunteerId, fromDate, toDate),
-    getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
-    getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
-  ])
+  const [quizzesPassed, elapsedAvailability, timeTutoredMS] = await Promise.all(
+    [
+      getQuizzesPassedForDateRangeById(volunteerId, fromDate, toDate),
+      getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
+      getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
+    ]
+  )
 
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2)
   const totalCoachingHours = Number(timeTutoredInHours)
@@ -117,9 +115,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   )
 }
 
-export async function getVolunteersToReview(
-  page: number = 1
-): Promise<{
+export async function getVolunteersToReview(page: number = 1): Promise<{
   volunteers: any[]
   isLastPage: boolean
 }> {
@@ -149,9 +145,8 @@ export async function updatePendingVolunteerStatus(
   volunteerId: Ulid,
   photoIdStatus: string
 ): Promise<void> {
-  const volunteerBeforeUpdate = await VolunteerRepo.getVolunteerForPendingStatus(
-    volunteerId
-  )
+  const volunteerBeforeUpdate =
+    await VolunteerRepo.getVolunteerForPendingStatus(volunteerId)
   if (!volunteerBeforeUpdate) return
 
   const hasCompletedBackgroundInfo =

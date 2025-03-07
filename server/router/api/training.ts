@@ -14,7 +14,7 @@ import { QUIZ_USER_ACTIONS } from '../../constants'
 import { getQuizReviewMaterials } from '../../models/Question/queries'
 
 export function routeTraining(router: Router): void {
-  router.post('/training/questions', async function(req, res) {
+  router.post('/training/questions', async function (req, res) {
     try {
       const user = extractUser(req)
       const questions = await TrainingCtrl.getQuestions(
@@ -31,7 +31,7 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.post('/training/score', async function(req, res) {
+  router.post('/training/score', async function (req, res) {
     try {
       const { ip } = req
       const user = extractUser(req)
@@ -39,18 +39,13 @@ export function routeTraining(router: Router): void {
       const category = asString(req.body.category)
       const idAnswerMap = req.body.idAnswerMap // TODO: duck type validation
 
-      const {
-        tries,
-        passed,
-        score,
-        idCorrectAnswerMap,
-        isTrainingSubject,
-      } = await TrainingCtrl.getQuizScore({
-        user: user,
-        ip,
-        category: category as keyof Certifications,
-        idAnswerMap,
-      })
+      const { tries, passed, score, idCorrectAnswerMap, isTrainingSubject } =
+        await TrainingCtrl.getQuizScore({
+          user: user,
+          ip,
+          category: category as keyof Certifications,
+          idAnswerMap,
+        })
 
       if (passed) {
         await createQuizAction({
@@ -93,7 +88,7 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.get('/training/review/:category', async function(req, res) {
+  router.get('/training/review/:category', async function (req, res) {
     try {
       const user = extractUser(req)
       const category = asString(req.params.category)
@@ -115,7 +110,7 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.get('/training/course/:courseKey', async function(req, res) {
+  router.get('/training/course/:courseKey', async function (req, res) {
     try {
       const user = extractUser(req)
       const courseKey = asString(req.params.courseKey)
@@ -130,19 +125,22 @@ export function routeTraining(router: Router): void {
     }
   })
 
-  router.post('/training/course/:courseKey/progress', async function(req, res) {
-    try {
-      const user = extractUser(req)
-      const courseKey = asString(req.params.courseKey)
-      const materialKey = asString(req.body.materialKey)
-      const result = await TrainingCourseService.recordProgress(
-        user,
-        courseKey as keyof TrainingCourses,
-        materialKey
-      )
-      res.status(200).json(result)
-    } catch (err) {
-      resError(res, err)
+  router.post(
+    '/training/course/:courseKey/progress',
+    async function (req, res) {
+      try {
+        const user = extractUser(req)
+        const courseKey = asString(req.params.courseKey)
+        const materialKey = asString(req.body.materialKey)
+        const result = await TrainingCourseService.recordProgress(
+          user,
+          courseKey as keyof TrainingCourses,
+          materialKey
+        )
+        res.status(200).json(result)
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 }

@@ -54,10 +54,11 @@ export type ProgressReportSessionFilter = UserSessionsFilter & {
   analysisType: ProgressReportAnalysisTypes
 }
 
-export type ProgressReportOverviewSubjectStat = ProgressReportOverviewUnreadStat & {
-  overallGrade: number
-  latestReportCreatedAt: Date
-}
+export type ProgressReportOverviewSubjectStat =
+  ProgressReportOverviewUnreadStat & {
+    overallGrade: number
+    latestReportCreatedAt: Date
+  }
 
 export type ProgressReportPromptTemplateVariables = {
   responseInstructions: string

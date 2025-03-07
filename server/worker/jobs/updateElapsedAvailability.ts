@@ -24,10 +24,7 @@ export default async (): Promise<void> => {
     const availability = await getAvailabilityForVolunteer(volunteerId)
     if (!availability || countAvailabilitySelected(availability) === 0) continue
 
-    const yesterday = moment()
-      .utc()
-      .subtract(1, 'days')
-      .format('dddd')
+    const yesterday = moment().utc().subtract(1, 'days').format('dddd')
     const availabilityDay = availability[yesterday as DAYS]
     const elapsedAvailability = getElapsedAvailabilityForDay(availabilityDay)
 

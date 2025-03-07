@@ -38,6 +38,7 @@ import {
   moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
+import * as UserRolesService from '../../services/UserRolesService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -94,7 +95,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   })
 
   // TODO: handle transport close errors from worker socket disconnecting
-  io.on('connection', async function(socket: SocketUser) {
+  io.on('connection', async function (socket: SocketUser) {
     const {
       request: { user },
       handshake: {
@@ -117,7 +118,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       if (!chatbot) logger.error(`Chatbot user not found`)
       else {
         // chatbot activity prompt handler
-        socket.on('activity-prompt-sent', async function(data) {
+        socket.on('activity-prompt-sent', async function (data) {
           newrelic.startWebTransaction('/socket-io/chatbot', () =>
             new Promise<void>(async (resolve, reject) => {
               try {
@@ -134,7 +135,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               } catch (err) {
                 reject(err)
               }
-            }).catch(err => {
+            }).catch((err) => {
               logger.error(
                 {
                   error: err?.message,
@@ -147,7 +148,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         })
 
         // chatbot end session handler
-        socket.on('auto-end-session', async function(data) {
+        socket.on('auto-end-session', async function (data) {
           newrelic.startWebTransaction('/socket-io/chatbot', () =>
             new Promise<void>(async (resolve, reject) => {
               try {
@@ -165,7 +166,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               } catch (err) {
                 reject(err)
               }
-            }).catch(err => {
+            }).catch((err) => {
               logger.error(
                 {
                   error: err?.message,
@@ -188,7 +189,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
 
     // Tutor session management
-    socket.on('join', async function(data) {
+    socket.on('join', async function (data) {
       newrelic.startWebTransaction(
         '/socket-io/join',
         () =>
@@ -266,7 +267,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('sessions/recap:join', async function(data) {
+    socket.on('sessions/recap:join', async function (data) {
       newrelic.startWebTransaction(
         '/socket-io/sessions/recap:join',
         () =>
@@ -330,7 +331,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           } catch (error) {
             reject(error)
           }
-        }).catch(err => {
+        }).catch((err) => {
           logger.error(
             {
               error: err?.message,
@@ -341,7 +342,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('typing', data => {
+    socket.on('typing', (data) => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
         socket
           .to(getSessionRoom(data.sessionId))
@@ -349,7 +350,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('notTyping', data => {
+    socket.on('notTyping', (data) => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
         socket
           .to(getSessionRoom(data.sessionId))
@@ -357,7 +358,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('message', async data => {
+    socket.on('message', async (data) => {
       newrelic.startWebTransaction('/socket-io/message', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
@@ -414,8 +415,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               })
               if (!result.isClean) {
                 messageIsUnclean = true
-                const sanitized = (result as SanitizedTranscriptModerationResult)
-                  .sanitizedTranscript
+                const sanitized = (
+                  result as SanitizedTranscriptModerationResult
+                ).sanitizedTranscript
                 saveMessageData.message = sanitized
                 sanitizedMessage = sanitized
               }
@@ -481,7 +483,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             socket.emit('messageError', { sessionId: data.sessionId })
             reject(error)
           }
-        }).catch(err => {
+        }).catch((err) => {
           logger.error(
             {
               error: err?.message,
@@ -498,9 +500,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/requestQuillState', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            const quillState = await QuillDocService.lockAndGetDocCacheState(
-              sessionId
-            )
+            const quillState =
+              await QuillDocService.lockAndGetDocCacheState(sessionId)
             let doc = quillState?.doc
 
             if (quillState?.lastDeltaStored)
@@ -517,7 +518,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (error instanceof LockError) socket.emit('retryLoadingDoc')
             else reject(error)
           }
-        }).catch(err => {
+        }).catch((err) => {
           logger.error(
             {
               error: err?.message,
@@ -586,7 +587,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('error', function(error) {
+    socket.on('error', function (error) {
       newrelic.startWebTransaction('/socket-io/error', () => {
         logger.error(`Socket error: ${error}`)
         Sentry.captureException(error)
@@ -632,7 +633,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           } catch (error) {
             reject(error)
           }
-        }).catch(err => {
+        }).catch((err) => {
           logger.error(
             {
               error: err?.message,
@@ -649,7 +650,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       logSocketEvent('transportUpgrade', socket)
     })
 
-    socket.conn.on('packet', packet => {
+    socket.conn.on('packet', (packet) => {
       if (
         packet.type === 'ping' &&
         socket.conn.transport.name !== 'websocket' &&

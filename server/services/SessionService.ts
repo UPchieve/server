@@ -72,9 +72,8 @@ import { SessionMessageType } from '../router/api/sockets'
 import * as UserRolesService from '../services/UserRolesService'
 
 export async function reviewSession(data: unknown) {
-  const { sessionId, reviewed, toReview } = sessionUtils.asReviewSessionData(
-    data
-  )
+  const { sessionId, reviewed, toReview } =
+    sessionUtils.asReviewSessionData(data)
   return SessionRepo.updateSessionReviewedStatusById(
     sessionId,
     reviewed,
@@ -125,12 +124,8 @@ export async function handleDmReporting(
 }
 
 export async function reportSession(user: UserContactInfo, data: unknown) {
-  const {
-    sessionId,
-    reportReason,
-    reportMessage,
-    source,
-  } = sessionUtils.asReportSessionData(data)
+  const { sessionId, reportReason, reportMessage, source } =
+    sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   // Only matched sessions can be reported
   if (!session.volunteerId)
@@ -146,8 +141,10 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   // Autoban users if a session is reported from the recap page
   const isBanReason =
     reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
-  const isVolunteer = reportedBy.roleContext.legacyRole === 'volunteer'
-  const reportedUser = isVolunteer ? session.studentId : session.volunteerId
+  const isSessionVolunteer = reportedBy.id === session.volunteerId
+  const reportedUser = isSessionVolunteer
+    ? session.studentId
+    : session.volunteerId
   if (isBanReason) {
     await UserRepo.banUserById(
       reportedUser,
@@ -167,7 +164,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     })
 
     if (source === 'recap') {
-      const sessionFlags = isVolunteer
+      const sessionFlags = isSessionVolunteer
         ? [USER_SESSION_METRICS.coachReportedStudentDm]
         : [USER_SESSION_METRICS.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
@@ -310,9 +307,8 @@ export async function processCalculateMetrics(sessionId: Ulid) {
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
-  const session = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
-    sessionId
-  )
+  const session =
+    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
   const fifteenMinutes = 1000 * 60 * 15
   const isLongSession = session.timeTutored
     ? session.timeTutored >= fifteenMinutes
@@ -518,9 +514,8 @@ export async function adminFilteredSessions(data: unknown) {
 
 export async function adminSessionView(data: unknown) {
   const sessionId = asString(data)
-  const session = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
-    sessionId
-  )
+  const session =
+    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
 
   if (
     sessionUtils.isSubjectUsingDocumentEditor(session.toolType) &&
@@ -530,9 +525,8 @@ export async function adminSessionView(data: unknown) {
     session.quillDoc = JSON.stringify(quillDoc)
   }
 
-  const sessionUserAgent = await getSessionRequestedUserAgentFromSessionId(
-    sessionId
-  )
+  const sessionUserAgent =
+    await getSessionRequestedUserAgentFromSessionId(sessionId)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
   const sessionPhotos = await AwsService.getObjects(
     bucket,
@@ -551,14 +545,8 @@ export async function startSession(
   data: sessionUtils.StartSessionData
 ) {
   return await runInTransaction(async (tc: TransactionClient) => {
-    const {
-      subject,
-      topic,
-      assignmentId,
-      docEditorVersion,
-      userAgent,
-      ip,
-    } = data
+    const { subject, topic, assignmentId, docEditorVersion, userAgent, ip } =
+      data
 
     const subjectAndTopic = await getSubjectAndTopic(subject, topic, tc)
     if (!subjectAndTopic)
@@ -567,7 +555,7 @@ export async function startSession(
       )
 
     const userId = user.id
-    if (user.roleContext.legacyRole === 'volunteer')
+    if (user.roleContext.isActiveRole('volunteer'))
       throw new sessionUtils.StartSessionError(
         'Volunteers cannot create new sessions'
       )
@@ -671,12 +659,8 @@ export async function studentLatestSession(data: unknown) {
 }
 
 export async function sessionTimedOut(user: UserContactInfo, data: unknown) {
-  const {
-    sessionId,
-    timeout,
-    ip,
-    userAgent,
-  } = sessionUtils.asSessionTimedOutData(data)
+  const { sessionId, timeout, ip, userAgent } =
+    sessionUtils.asSessionTimedOutData(data)
   await createSessionAction({
     userId: user.id,
     sessionId: sessionId,
@@ -713,7 +697,6 @@ export async function joinSession(
     throw new Error('Session has ended')
   }
 
-  const userType = user.roleContext.activeRole
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
   if (isStudent && session.studentId !== user.id) {
@@ -878,9 +861,7 @@ export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
   )
 
   for (const entry of map) {
-    const day = moment()
-      .weekday(entry.day)
-      .format('dddd')
+    const day = moment().weekday(entry.day).format('dddd')
     const hour = UTC_TO_HOUR_MAPPING[entry.hour as HOURS_UTC]
     heatMap[day as DAYS][hour] = entry.averageWaitTime
   }
@@ -903,7 +884,7 @@ export async function generateAndStoreWaitTimeHeatMap(
 export async function getWaitTimeHeatMap(
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
-  if (user.roleContext.legacyRole === 'volunteer')
+  if (user.roleContext.isActiveRole('student'))
     throw new NotAllowedError('Only volunteers may view the heat map')
   try {
     const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
@@ -934,17 +915,14 @@ export async function volunteersAvailableForSession(
   sessionId: Ulid,
   subject: string
 ): Promise<boolean> {
-  const [
-    activeVolunteers,
-    notifiedForSession,
-    notifiedLastFifteenMins,
-  ] = await Promise.all([
-    TwilioService.getActiveSessionVolunteers(),
-    VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
-    VolunteerRepo.getVolunteersNotifiedSinceDate(
-      TwilioService.relativeDate(15 * 60 * 1000)
-    ),
-  ])
+  const [activeVolunteers, notifiedForSession, notifiedLastFifteenMins] =
+    await Promise.all([
+      TwilioService.getActiveSessionVolunteers(),
+      VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
+      VolunteerRepo.getVolunteersNotifiedSinceDate(
+        TwilioService.relativeDate(15 * 60 * 1000)
+      ),
+    ])
   const excludedVolunteers = [
     ...activeVolunteers,
     ...notifiedForSession,
@@ -1025,9 +1003,8 @@ export async function isEligibleForSessionRecap(
   studentId: Ulid,
   volunteerId: Ulid
 ): Promise<boolean> {
-  const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
-    volunteerId
-  )
+  const isAllowDmsToPartnerStudentsActive =
+    await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg) return false
@@ -1051,14 +1028,12 @@ export async function isRecapDmsAvailable(
   volunteerId: Ulid,
   isVolunteer: boolean
 ): Promise<boolean> {
-  const hasBannedParticipant = await SessionRepo.sessionHasBannedParticipant(
-    sessionId
-  )
+  const hasBannedParticipant =
+    await SessionRepo.sessionHasBannedParticipant(sessionId)
   if (hasBannedParticipant) return false
 
-  const isAllowDmsToPartnerStudentsActive = await getAllowDmsToPartnerStudentsFeatureFlag(
-    volunteerId
-  )
+  const isAllowDmsToPartnerStudentsActive =
+    await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg) return false
@@ -1066,9 +1041,8 @@ export async function isRecapDmsAvailable(
 
   const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
   if (!flag) return false
-  const sentMessages = await SessionRepo.volunteerSentMessageAfterSessionEnded(
-    sessionId
-  )
+  const sentMessages =
+    await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
   return sentMessages || isVolunteer
 }
 
@@ -1118,9 +1092,8 @@ export async function getOrCreateSessionAudio(
     studentJoinedAt?: Date
   }
 ): Promise<SessionAudioRepo.SessionAudio> {
-  const maybeSessionAudio = await SessionAudioRepo.getSessionAudioBySessionId(
-    sessionId
-  )
+  const maybeSessionAudio =
+    await SessionAudioRepo.getSessionAudioBySessionId(sessionId)
   if (maybeSessionAudio) return maybeSessionAudio
   return await SessionAudioRepo.createSessionAudio({
     sessionId,

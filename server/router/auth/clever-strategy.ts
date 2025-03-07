@@ -51,7 +51,7 @@ export default class CleverStrategy extends OAuth2Strategy {
       const user = await CleverAPIService.getUserProfile(accessToken)
       const userType = this.getUserType(user.roles)
       const cleverSchoolId = user.roles.hasOwnProperty(userType)
-        ? user.roles[userType as keyof typeof user.roles]?.school ?? ''
+        ? (user.roles[userType as keyof typeof user.roles]?.school ?? '')
         : ''
       const upchieveSchoolId = await this.getSchoolId(
         cleverSchoolId,

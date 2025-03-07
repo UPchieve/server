@@ -8,8 +8,8 @@ export default async (): Promise<void> => {
   const volunteers = await getVolunteersForEmailReferenceApology()
 
   const alreadySent = flatten(
-    volunteers.map(vol => {
-      return vol.references.map(ref => ({
+    volunteers.map((vol) => {
+      return vol.references.map((ref) => ({
         reference: ref,
         volunteer: vol,
       }))

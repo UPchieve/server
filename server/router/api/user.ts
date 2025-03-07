@@ -19,7 +19,7 @@ import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
-  router.route('/user').get(async function(req, res) {
+  router.route('/user').get(async function (req, res) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user)
 
@@ -219,20 +219,21 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.get('/user/email/:userEmail', authPassport.isAdmin, async function(
-    req,
-    res
-  ) {
-    const { userEmail } = req.params
-    try {
-      const userId = await getUserIdByEmail(userEmail)
-      res.json({ userId: userId })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/user/email/:userEmail',
+    authPassport.isAdmin,
+    async function (req, res) {
+      const { userEmail } = req.params
+      try {
+        const userId = await getUserIdByEmail(userEmail)
+        res.json({ userId: userId })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/user/:userId', authPassport.isAdmin, async function(req, res) {
+  router.get('/user/:userId', authPassport.isAdmin, async function (req, res) {
     const { userId } = req.params
     const page = Number(req.query.page || '1')
 
@@ -241,25 +242,25 @@ export function routeUser(router: Router): void {
 
     try {
       const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
-      const roleConext = await UserRolesService.getRoleContext(userId)
+      const roleContext = await UserRolesService.getRoleContext(userId)
 
       let resUser: any = user
-      if (roleConext.hasRole('volunteer') && user.photoIdS3Key) {
+      if (roleContext.hasRole('volunteer') && user.photoIdS3Key) {
         const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
         resUser = Object.assign(resUser, { photoUrl })
       }
 
       res.json({
         ...user,
-        userType: roleConext.legacyRole,
-        roles: roleConext.roles,
+        userType: roleContext.legacyRole,
+        roles: roleContext.roles,
       })
     } catch (err) {
       resError(res, err)
     }
   })
 
-  router.get('/users', authPassport.isAdmin, async function(req, res) {
+  router.get('/users', authPassport.isAdmin, async function (req, res) {
     try {
       const payload = {
         ...req.query,
@@ -274,7 +275,7 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.put('/user/roles/active', async function(req, res) {
+  router.put('/user/roles/active', async function (req, res) {
     try {
       const user = await extractUser(req)
       const requestedRole = req.body.activeRole
@@ -288,7 +289,7 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.post('/user/roles/volunteer', async function(req, res) {
+  router.post('/user/roles/volunteer', async function (req, res) {
     try {
       const user = await extractUser(req)
       await UserRolesService.addVolunteerRoleToUser(user.id)

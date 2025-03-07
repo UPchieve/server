@@ -55,8 +55,7 @@ const insertVolunteerPartnerOrgIR: any = {
     receiveWeeklyHourSummaryEmail: true,
   },
   statement: {
-    body:
-      'INSERT INTO volunteer_partner_orgs (id, name, KEY, receive_weekly_hour_summary_email, created_at, updated_at)\n    VALUES (:id!, :name!, :key!, :receiveWeeklyHourSummaryEmail!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO volunteer_partner_orgs (id, name, KEY, receive_weekly_hour_summary_email, created_at, updated_at)\n    VALUES (:id!, :name!, :key!, :receiveWeeklyHourSummaryEmail!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 38, b: 276, line: 2, col: 0 },
   },
 }
@@ -155,8 +154,7 @@ const insertStudentPartnerOrgIR: any = {
     signupCode: true,
   },
   statement: {
-    body:
-      'INSERT INTO student_partner_orgs (id, name, KEY, high_school_signup, college_signup, school_signup_required, signup_code, created_at, updated_at)\n    VALUES (:id!, :name!, :key!, :highSchoolSignup!, :collegeSignup!, :schoolSignupRequired!, :signupCode!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO student_partner_orgs (id, name, KEY, high_school_signup, college_signup, school_signup_required, signup_code, created_at, updated_at)\n    VALUES (:id!, :name!, :key!, :highSchoolSignup!, :collegeSignup!, :schoolSignupRequired!, :signupCode!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 317, b: 633, line: 11, col: 0 },
   },
 }
@@ -219,8 +217,7 @@ const insertStudentPartnerOrgSiteIR: any = {
   ],
   usedParamSet: { id: true, name: true, studentPartnerOrgId: true },
   statement: {
-    body:
-      'INSERT INTO student_partner_org_sites (id, name, student_partner_org_id, created_at, updated_at)\n    VALUES (:id!, :name!, :studentPartnerOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO student_partner_org_sites (id, name, student_partner_org_id, created_at, updated_at)\n    VALUES (:id!, :name!, :studentPartnerOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 678, b: 886, line: 20, col: 0 },
   },
 }
@@ -283,8 +280,7 @@ const insertRequiredEmailDomainIR: any = {
   ],
   usedParamSet: { id: true, domain: true, volunteerPartnerOrgId: true },
   statement: {
-    body:
-      'INSERT INTO required_email_domains (id, DOMAIN, volunteer_partner_org_id, created_at, updated_at)\n    VALUES (:id!, :domain!, :volunteerPartnerOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO required_email_domains (id, DOMAIN, volunteer_partner_org_id, created_at, updated_at)\n    VALUES (:id!, :domain!, :volunteerPartnerOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 929, b: 1142, line: 29, col: 0 },
   },
 }
@@ -361,8 +357,7 @@ const insertAssociatedPartnerIR: any = {
   ],
   usedParamSet: { id: true, key: true, vpoId: true, spoId: true, soId: true },
   statement: {
-    body:
-      'INSERT INTO associated_partners (id, KEY, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at)\n    VALUES (:id!, :key!, :vpoId!, :spoId, :soId, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO associated_partners (id, KEY, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at)\n    VALUES (:id!, :key!, :vpoId!, :spoId, :soId, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 1183, b: 1434, line: 38, col: 0 },
   },
 }
@@ -425,8 +420,7 @@ const insertSponsorOrgIR: any = {
   ],
   usedParamSet: { id: true, key: true, name: true },
   statement: {
-    body:
-      'INSERT INTO sponsor_orgs (id, KEY, name, created_at, updated_at)\n    VALUES (:id!, :key!, :name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
+    body: 'INSERT INTO sponsor_orgs (id, KEY, name, created_at, updated_at)\n    VALUES (:id!, :key!, :name!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    id AS ok',
     loc: { a: 1468, b: 1628, line: 47, col: 0 },
   },
 }
@@ -482,8 +476,7 @@ const insertSchoolsSponsorOrgIR: any = {
   ],
   usedParamSet: { schoolId: true, sponsorOrgId: true },
   statement: {
-    body:
-      'INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at)\n    VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    school_id AS ok',
+    body: 'INSERT INTO schools_sponsor_orgs (school_id, sponsor_org_id, created_at, updated_at)\n    VALUES (:schoolId!, :sponsorOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    school_id AS ok',
     loc: { a: 1669, b: 1863, line: 56, col: 0 },
   },
 }
@@ -539,8 +532,7 @@ const insertStudentPartnerSponsorOrgIR: any = {
   ],
   usedParamSet: { spoId: true, sponsorOrgId: true },
   statement: {
-    body:
-      'INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at)\n    VALUES (:spoId!, :sponsorOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    student_partner_org_id AS ok',
+    body: 'INSERT INTO student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor_org_id, created_at, updated_at)\n    VALUES (:spoId!, :sponsorOrgId!, NOW(), NOW())\nON CONFLICT\n    DO NOTHING\nRETURNING\n    student_partner_org_id AS ok',
     loc: { a: 1911, b: 2141, line: 65, col: 0 },
   },
 }
@@ -578,8 +570,7 @@ const insertStudentPartnerOrgInstancesIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo',
+    body: 'INSERT INTO student_partner_orgs_upchieve_instances (id, student_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    spo.id,\n    spo.created_at,\n    NOW()\nFROM\n    student_partner_orgs spo',
     loc: { a: 2191, b: 2399, line: 74, col: 0 },
   },
 }
@@ -619,8 +610,7 @@ const insertExistingStudentPartnerOrgRelationshipsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    sp.student_partner_org_site_id,\n    sp.student_partner_org_user_id,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\nWHERE\n    sp.student_partner_org_id IS NOT NULL',
+    body: 'INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    sp.student_partner_org_id,\n    sp.student_partner_org_site_id,\n    sp.student_partner_org_user_id,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\nWHERE\n    sp.student_partner_org_id IS NOT NULL',
     loc: { a: 2461, b: 2894, line: 85, col: 0 },
   },
 }
@@ -665,8 +655,7 @@ const insertExistingPartnerSchoolRelationshipsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    spo.id,\n    NULL,\n    NULL,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\n    JOIN student_partner_orgs spo ON spo.school_id = sp.school_id',
+    body: 'INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, student_partner_org_user_id, created_at, updated_at)\nSELECT\n    users.id,\n    spo.id,\n    NULL,\n    NULL,\n    sp.created_at,\n    NOW()\nFROM\n    users\n    JOIN student_profiles sp ON sp.user_id = users.id\n    JOIN student_partner_orgs spo ON spo.school_id = sp.school_id',
     loc: { a: 2952, b: 3332, line: 101, col: 0 },
   },
 }
@@ -710,8 +699,7 @@ const insertExistingVolunteerPartnerOrgsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    vpo.id,\n    vpo.created_at,\n    NOW()\nFROM\n    volunteer_partner_orgs vpo',
+    body: 'INSERT INTO volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    vpo.id,\n    vpo.created_at,\n    NOW()\nFROM\n    volunteer_partner_orgs vpo',
     loc: { a: 3384, b: 3598, line: 116, col: 0 },
   },
 }
@@ -751,8 +739,7 @@ const insertExistingVolunteerPartnerOrgRelationshipsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL',
+    body: 'INSERT INTO users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    users.id,\n    vp.volunteer_partner_org_id,\n    vp.created_at,\n    NOW()\nFROM\n    users\n    JOIN volunteer_profiles vp ON vp.user_id = users.id\nWHERE\n    vp.volunteer_partner_org_id IS NOT NULL',
     loc: { a: 3662, b: 3975, line: 127, col: 0 },
   },
 }
@@ -795,8 +782,7 @@ const insertExistingSponsorOrgsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO sponsor_orgs_upchieve_instances (id, sponsor_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    so.id,\n    so.created_at,\n    NOW()\nFROM\n    sponsor_orgs so',
+    body: 'INSERT INTO sponsor_orgs_upchieve_instances (id, sponsor_org_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    so.id,\n    so.created_at,\n    NOW()\nFROM\n    sponsor_orgs so',
     loc: { a: 4018, b: 4199, line: 141, col: 0 },
   },
 }
@@ -836,8 +822,7 @@ const insertExistingPartnerOrgSponsorOrgRelationshipsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO student_partner_orgs_sponsor_orgs_instances (student_partner_org_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sposo.student_partner_org_id,\n    sposo.sponsor_org_id,\n    sposo.created_at,\n    NOW()\nFROM\n    student_partner_orgs_sponsor_orgs sposo',
+    body: 'INSERT INTO student_partner_orgs_sponsor_orgs_instances (student_partner_org_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sposo.student_partner_org_id,\n    sposo.sponsor_org_id,\n    sposo.created_at,\n    NOW()\nFROM\n    student_partner_orgs_sponsor_orgs sposo',
     loc: { a: 4264, b: 4531, line: 152, col: 0 },
   },
 }
@@ -855,10 +840,11 @@ const insertExistingPartnerOrgSponsorOrgRelationshipsIR: any = {
  *     student_partner_orgs_sponsor_orgs sposo
  * ```
  */
-export const insertExistingPartnerOrgSponsorOrgRelationships = new PreparedQuery<
-  IInsertExistingPartnerOrgSponsorOrgRelationshipsParams,
-  IInsertExistingPartnerOrgSponsorOrgRelationshipsResult
->(insertExistingPartnerOrgSponsorOrgRelationshipsIR)
+export const insertExistingPartnerOrgSponsorOrgRelationships =
+  new PreparedQuery<
+    IInsertExistingPartnerOrgSponsorOrgRelationshipsParams,
+    IInsertExistingPartnerOrgSponsorOrgRelationshipsResult
+  >(insertExistingPartnerOrgSponsorOrgRelationshipsIR)
 
 /** 'InsertExistingSchoolsSponsorOrgRelationships' parameters type */
 export type IInsertExistingSchoolsSponsorOrgRelationshipsParams = void
@@ -877,8 +863,7 @@ const insertExistingSchoolsSponsorOrgRelationshipsIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO schools_sponsor_orgs_instances (school_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sso.school_id,\n    sso.sponsor_org_id,\n    sso.created_at,\n    NOW()\nFROM\n    schools_sponsor_orgs sso',
+    body: 'INSERT INTO schools_sponsor_orgs_instances (school_id, sponsor_org_id, created_at, updated_at)\nSELECT\n    sso.school_id,\n    sso.sponsor_org_id,\n    sso.created_at,\n    NOW()\nFROM\n    schools_sponsor_orgs sso',
     loc: { a: 4593, b: 4800, line: 163, col: 0 },
   },
 }
@@ -918,8 +903,7 @@ const insertStudentPartnerOrgAssociatedPartnersIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_partner_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_partner_org_id IS NOT NULL',
+    body: 'INSERT INTO student_partner_orgs_volunteer_partner_orgs_instances (student_partner_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_partner_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_partner_org_id IS NOT NULL',
     loc: { a: 4859, b: 5178, line: 174, col: 0 },
   },
 }
@@ -961,8 +945,7 @@ const insertSponsorOrgAssociatedPartnersIR: any = {
   params: [],
   usedParamSet: {},
   statement: {
-    body:
-      'INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_sponsor_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_sponsor_org_id IS NOT NULL',
+    body: 'INSERT INTO sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, volunteer_partner_org_id, created_at, updated_at)\nSELECT\n    ap.student_sponsor_org_id,\n    ap.volunteer_partner_org_id,\n    ap.created_at,\n    NOW()\nFROM\n    associated_partners ap\nWHERE\n    ap.student_sponsor_org_id IS NOT NULL',
     loc: { a: 5230, b: 5533, line: 187, col: 0 },
   },
 }

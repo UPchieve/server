@@ -46,7 +46,7 @@ function chatbotSentMessage(
   session: SessionForChatbot,
   chatbot: Ulid
 ): boolean {
-  return session.messages.some(msg => chatbot === msg.user)
+  return session.messages.some((msg) => chatbot === msg.user)
 }
 
 function lastChatbotMessage(
@@ -54,7 +54,7 @@ function lastChatbotMessage(
   chatbot: Ulid
 ): MessageForFrontend {
   return session.messages
-    .filter(msg => msg.user === chatbot)
+    .filter((msg) => msg.user === chatbot)
     .sort((x, y) => (x.createdAt > y.createdAt ? 1 : 0))
     .slice(-1)[0]
 }
@@ -80,7 +80,8 @@ export const m2 = {
 
 export const m3a = {
   key: 'M3A',
-  content: () => `To save time, please respond to the questions below in the chat and copy and paste what you’re working on into the document editor.\n
+  content:
+    () => `To save time, please respond to the questions below in the chat and copy and paste what you’re working on into the document editor.\n
   ❓ What do you need help with today?\n
   💡 What do you think you should do first?`,
   requirements: async (session: SessionForChatbot, chatbot: Ulid) =>
@@ -100,7 +101,8 @@ export const m3a = {
 
 export const m3b = {
   key: 'M3B',
-  content: () => `To save time, please respond to the questions below in the chat and upload any photos or write out problems on the whiteboard.\n
+  content:
+    () => `To save time, please respond to the questions below in the chat and upload any photos or write out problems on the whiteboard.\n
   ❓ What do you need help with today?\n
   💡 What do you think the first step is?`,
   requirements: async (session: SessionForChatbot, chatbot: Ulid) =>
@@ -119,7 +121,8 @@ export const m3b = {
 
 export const m3c = {
   key: 'M3C',
-  content: () => `To save time, please respond to the questions below in the chat and if it makes sense, copy and paste what you’re working on into the document editor.\n
+  content:
+    () => `To save time, please respond to the questions below in the chat and if it makes sense, copy and paste what you’re working on into the document editor.\n
   ❓ What do you hope to accomplish today?\n
   💡 Where do you think we should start?`,
   requirements: async (session: SessionForChatbot, chatbot: Ulid) =>
@@ -176,7 +179,7 @@ export const m5 = {
       !!lastChatbotMsg &&
       lastChatbotMsg.contents === m4.content() &&
       session.messages.some(
-        msg =>
+        (msg) =>
           msg.createdAt > lastChatbotMsg.createdAt &&
           session.student === msg.user
       )
@@ -230,7 +233,7 @@ export const m7 = {
       !!lastChatbotMsg &&
       lastChatbotMsg.contents === m6.content() &&
       session.messages.some(
-        msg =>
+        (msg) =>
           msg.createdAt > lastChatbotMsg.createdAt &&
           session.student === msg.user
       )
@@ -252,7 +255,7 @@ export const m8 = {
     `We can’t seem to find a coach for you right now. 😭 Please come back and try again soon—we promise this almost never happens! (tip: if you answered the questions about what you need help with, copy your answer before you go so you can paste it in your next session).`,
   requirements: async (session: SessionForChatbot, chatbot: Ulid) => {
     const chatbotMessages = session.messages
-      .filter(msg => msg.user === chatbot)
+      .filter((msg) => msg.user === chatbot)
       .sort((x, y) => (x.createdAt > y.createdAt ? 1 : 0))
     const lastChatbotMsg = chatbotMessages.slice(-1)[0]
     return (
@@ -263,7 +266,7 @@ export const m8 = {
         moment(lastChatbotMsg.createdAt) &&
       (lastChatbotMsg.contents === m7.content() ||
         ([m3a.content(), m3b.content(), m3c.content()].some(
-          content => content === lastChatbotMsg.contents
+          (content) => content === lastChatbotMsg.contents
         ) &&
           !(await volunteersAvailableForSession(session.id, session.subject))))
     )
@@ -283,14 +286,14 @@ export const m9 = {
       x.createdAt < y.createdAt ? 1 : -1
     )
     const lastPromptMsg = messages.find(
-      msg => msg.contents === m4.content() || msg.contents === m6.content()
+      (msg) => msg.contents === m4.content() || msg.contents === m6.content()
     )
     return (
       !!lastPromptMsg &&
       moment().subtract(WAIT_FOR_REPLY - ONE_MINUTE, 'milliseconds') >=
         moment(lastPromptMsg.createdAt) &&
       !session.messages.some(
-        msg =>
+        (msg) =>
           msg.createdAt > lastPromptMsg.createdAt &&
           session.student === msg.user
       )

@@ -57,7 +57,7 @@ beforeEach(() => {
 })
 
 function createSessionsWithMessages(sessions: SessionRepo.UserSessions[]) {
-  return sessions.map(session => ({
+  return sessions.map((session) => ({
     ...session,
     messages: [{ ...buildMessageForFrontend({ user: userId }) }],
   }))
@@ -233,18 +233,19 @@ describe('getSessionsToAnalyzeForProgressReport', () => {
     mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
     mockedSessionRepo.getMessagesForFrontend.mockImplementation(
       (sessionId: Ulid) => {
-        const session = sessionsWithMessages.find(s => s.id === sessionId)
+        const session = sessionsWithMessages.find((s) => s.id === sessionId)
         return Promise.resolve(session ? session.messages : [])
       }
     )
 
-    const result = await ProgressReportsService.getSessionsToAnalyzeForProgressReport(
-      userId,
-      {
-        sessionId: session.id,
-        subject: session.subjectName,
-      }
-    )
+    const result =
+      await ProgressReportsService.getSessionsToAnalyzeForProgressReport(
+        userId,
+        {
+          sessionId: session.id,
+          subject: session.subjectName,
+        }
+      )
     expect(result).toHaveLength(1)
     expect(mockedSessionRepo.getUserSessionsByUserId).toHaveBeenCalledWith(
       userId,
@@ -276,17 +277,18 @@ describe('getSessionsToAnalyzeForProgressReport', () => {
     mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
     mockedSessionRepo.getMessagesForFrontend.mockImplementation(
       (sessionId: Ulid) => {
-        const session = sessionsWithMessages.find(s => s.id === sessionId)
+        const session = sessionsWithMessages.find((s) => s.id === sessionId)
         return Promise.resolve(session ? session.messages : [])
       }
     )
 
-    const result = await ProgressReportsService.getSessionsToAnalyzeForProgressReport(
-      userId,
-      {
-        subject,
-      }
-    )
+    const result =
+      await ProgressReportsService.getSessionsToAnalyzeForProgressReport(
+        userId,
+        {
+          subject,
+        }
+      )
     expect(result).toHaveLength(2)
     expect(mockedSessionRepo.getUserSessionsByUserId).toHaveBeenCalledWith(
       userId,
@@ -345,23 +347,19 @@ describe('generateProgressReportForUser', () => {
     mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
     mockedSessionRepo.getMessagesForFrontend.mockImplementation(
       (sessionId: Ulid) => {
-        const session = sessionsWithMessages.find(s => s.id === sessionId)
+        const session = sessionsWithMessages.find((s) => s.id === sessionId)
         return Promise.resolve(session ? session.messages : [])
       }
     )
-    const {
+    const { summary, concepts } =
+      await ProgressReportsService.getProgressReportSummaryAndConcepts(reportId)
+    const progressReport = buildProgressReport({
+      id: reportId,
       summary,
       concepts,
-    } = await ProgressReportsService.getProgressReportSummaryAndConcepts(
-      reportId
-    )
-    const progressReport = buildProgressReport({
-        id: reportId,
-        summary,
-        concepts,
-      })
-      // This is smelly. There should be a proper mock for this
-      // This uses the types defined in OpenAI
+    })
+    // This is smelly. There should be a proper mock for this
+    // This uses the types defined in OpenAI
     ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
       id: getDbUlid(),
       choices: [
@@ -438,9 +436,8 @@ describe('getProgressReportOverviewSubjectStats', () => {
     mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValueOnce(
       [summaryRow]
     )
-    const result = await ProgressReportsService.getProgressReportOverviewSubjectStats(
-      userId
-    )
+    const result =
+      await ProgressReportsService.getProgressReportOverviewSubjectStats(userId)
 
     expect(mockedData).toMatchObject(result)
     expect(
@@ -464,9 +461,10 @@ describe('getLatestProgressReportOverviewSubject', () => {
     mockedProgressReportsRepo.getLatestProgressReportOverviewSubjectByUserId.mockResolvedValueOnce(
       subject
     )
-    const result = await ProgressReportsService.getLatestProgressReportOverviewSubject(
-      userId
-    )
+    const result =
+      await ProgressReportsService.getLatestProgressReportOverviewSubject(
+        userId
+      )
 
     expect(subject).toEqual(result)
     expect(
@@ -488,17 +486,15 @@ describe('hasActiveSubjectPrompt', () => {
     mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockRejectedValueOnce(
       mockError
     )
-    const resultOne = await ProgressReportsService.hasActiveSubjectPrompt(
-      'algebraOne'
-    )
+    const resultOne =
+      await ProgressReportsService.hasActiveSubjectPrompt('algebraOne')
     expect(resultOne).toBeFalsy()
 
     mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
       mockActivePrompt
     )
-    const resultTwo = await ProgressReportsService.hasActiveSubjectPrompt(
-      'reading'
-    )
+    const resultTwo =
+      await ProgressReportsService.hasActiveSubjectPrompt('reading')
     expect(resultTwo).toBeFalsy()
   })
 
@@ -510,9 +506,8 @@ describe('hasActiveSubjectPrompt', () => {
     mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
       mockActivePrompt
     )
-    const result = await ProgressReportsService.hasActiveSubjectPrompt(
-      'reading'
-    )
+    const result =
+      await ProgressReportsService.hasActiveSubjectPrompt('reading')
     expect(result).toBeTruthy()
   })
 })
@@ -533,10 +528,11 @@ describe('getActivePromptWithTemplateReplacement', () => {
       ...student,
       userId: student.id,
     })
-    const result = await ProgressReportsService.getActiveSubjectPromptWithTemplateReplacement(
-      student.id,
-      subject
-    )
+    const result =
+      await ProgressReportsService.getActiveSubjectPromptWithTemplateReplacement(
+        student.id,
+        subject
+      )
     expect(expectedPrompt).toBe(result.prompt)
   })
 })

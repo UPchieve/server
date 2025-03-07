@@ -8,23 +8,19 @@ export async function priorityGroups(): Promise<NameToId> {
       priority: -1,
     },
     {
-      name:
-        'Partner volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
+      name: 'Partner volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 1,
     },
     {
-      name:
-        'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
+      name: 'Regular volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 2,
     },
     {
-      name:
-        'Partner volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
+      name: 'Partner volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       priority: 3,
     },
     {
-      name:
-        'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
+      name: 'Regular volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       priority: 4,
     },
     {
@@ -40,13 +36,11 @@ export async function priorityGroups(): Promise<NameToId> {
       priority: 7,
     },
     {
-      name:
-        'Verizon volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
+      name: 'Verizon volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"',
       priority: 8,
     },
     {
-      name:
-        'Verizon volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
+      name: 'Verizon volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"',
       priority: 9,
     },
     {
@@ -62,13 +56,11 @@ export async function priorityGroups(): Promise<NameToId> {
       priority: -1,
     },
     {
-      name:
-        'LEGACY: All volunteers - not notified in the last 15 mins who don\'t have "high level subjects"',
+      name: 'LEGACY: All volunteers - not notified in the last 15 mins who don\'t have "high level subjects"',
       priority: -1,
     },
     {
-      name:
-        'LEGACY: Mizuho and Atlassian volunteers - Not notified in last 3 days',
+      name: 'LEGACY: Mizuho and Atlassian volunteers - Not notified in last 3 days',
       priority: -1,
     },
     {

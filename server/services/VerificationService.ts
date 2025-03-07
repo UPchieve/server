@@ -18,7 +18,6 @@ import {
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
-import * as UserRolesService from './UserRolesService'
 import {
   getUserIdByEmail,
   getUserIdByPhone,
@@ -161,8 +160,6 @@ export async function initiateVerification(data: unknown): Promise<void> {
 async function sendOnboardingEmails(userId: Ulid): Promise<void> {
   const user = await UserService.getUserContactInfo(userId)
   if (!user) return
-
-  const userType = user.roleContext.legacyRole
 
   if (user.roleContext.isActiveRole('volunteer')) {
     if (user.volunteerPartnerOrg) {

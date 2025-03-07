@@ -54,7 +54,7 @@ export async function getTeacherClasses(
       tc
     )
     const teacherClassesAndStudents = await Promise.all(
-      teacherClasses.map(async teacherClass => {
+      teacherClasses.map(async (teacherClass) => {
         const students = await getStudentsInTeacherClass(teacherClass.id, tc)
         return {
           ...teacherClass,
@@ -246,7 +246,7 @@ export async function adminUpdateTeacher(
       const teacherClasses = await getTeacherClasses(teacherId, tc)
       const allTeacherStudents = _.uniqBy(
         teacherClasses
-          .map(teacherClass => {
+          .map((teacherClass) => {
             return teacherClass.students
           })
           .reduce((a, b) => {
@@ -256,7 +256,7 @@ export async function adminUpdateTeacher(
       )
 
       await Promise.all(
-        allTeacherStudents.map(async student => {
+        allTeacherStudents.map(async (student) => {
           // This check for schoolId is necessary again to prevent ts error.
           if (!updateData.schoolId) return
           return StudentService.updateStudentSchool(

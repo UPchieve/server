@@ -6,7 +6,7 @@ import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 
 export function routeCalendar(router: Router): void {
-  router.post('/calendar/save', async function(req, res) {
+  router.post('/calendar/save', async function (req, res) {
     try {
       const user = extractUser(req)
       if (!req.body.hasOwnProperty('availability'))
@@ -24,7 +24,7 @@ export function routeCalendar(router: Router): void {
     }
   })
 
-  router.post('/calendar/clear', async function(req, res) {
+  router.post('/calendar/clear', async function (req, res) {
     try {
       const user = extractUser(req)
       await clearSchedule(user, asString(req.body.tz))

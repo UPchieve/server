@@ -4,7 +4,7 @@ export function fixNumberInt<T>(obj: T): any {
   if (!obj) return
 
   if (obj instanceof Array) {
-    return obj.map(v => fixNumberInt(v))
+    return obj.map((v) => fixNumberInt(v))
   }
 
   if (obj instanceof Object) {

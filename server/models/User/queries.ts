@@ -160,8 +160,8 @@ export async function getUserRolesById(
   try {
     const result = await pgQueries.getUserRolesById.run({ id }, tc)
     return result
-      .filter(row => !!row.name)
-      .map(row => makeRequired(row).name as UserRole)
+      .filter((row) => !!row.name)
+      .map((row) => makeRequired(row).name as UserRole)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -187,7 +187,7 @@ export async function getUserContactInfoById(
         'proxyEmail',
       ])
       ret.email = ret.email.toLowerCase()
-      const roles = (ret.roles ?? []).filter(r => !!r)
+      const roles = (ret.roles ?? []).filter((r) => !!r)
       if (!roles.length) {
         logger.error(`User with id ${ret.id} has no user roles.`)
       }
@@ -424,7 +424,7 @@ export async function getUsersForAdminSearch(
       { ...cleanPayload(payload), limit, offset },
       client
     )
-    return result.map(v => {
+    return result.map((v) => {
       const user = makeSomeOptional(v, ['lastName'])
       return user
     })
@@ -458,7 +458,7 @@ export async function getPastSessionsForAdminDetail(
       { userId, limit, offset },
       client
     )
-    return result.map(v => {
+    return result.map((v) => {
       const temp = makeSomeOptional(v, [
         'volunteer',
         'volunteerFirstName',
@@ -529,7 +529,7 @@ export async function getUserForAdminDetail(
 
     return {
       ...user,
-      references: references.map(ref => ({
+      references: references.map((ref) => ({
         ...ref,
         status: ref.status.toUpperCase(),
       })),
@@ -649,7 +649,7 @@ export async function updateUserProfileById(
           userId: Ulid
           subjectId: number
         }[] = []
-        mutedSubjectAlertIds.forEach(subjectId =>
+        mutedSubjectAlertIds.forEach((subjectId) =>
           mutedSubjectAlertIdsWithUserId.push({ userId, subjectId })
         )
         await pgQueries.insertMutedUserSubjectAlerts.run(
@@ -737,7 +737,7 @@ export async function getUsersLatestSubjectsByUserId(
       { userId },
       getClient()
     )
-    if (result.length) return result.map(row => makeRequired(row).subject)
+    if (result.length) return result.map((row) => makeRequired(row).subject)
     return []
   } catch (err) {
     throw new RepoReadError(err)
