@@ -62,6 +62,8 @@ const SG_CUSTOM_FIELDS = {
   banType: 'e22_T',
   isTestUser: 'e4_T',
   isVolunteer: 'e6_T',
+  isTeacher: 'e35_T',
+  isStudent: 'e36_T',
   isAdmin: 'e7_T',
   isFakeUser: 'e8_T',
   isDeactivated: 'e9_T',
@@ -72,7 +74,6 @@ const SG_CUSTOM_FIELDS = {
   volunteerPartnerOrgDisplay: 'e14_T',
   passedUpchieve101: 'e17_T',
   studentGradeLevel: 'w20_T',
-  userType: 'w21_T',
   fallIncentiveEnrollmentAt: 'e34_D',
 }
 
@@ -1425,7 +1426,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   let contactListId
   for (const userId of listOfUserIds) {
     const user = await getUserToCreateSendGridContact(userId)
-    const userRoles = await UserRolesService.getUserRolesById(userId)
+    const userRoleContext = await UserRolesService.getRoleContext(userId)
     const productFlags = await getPublicUPFByUserId(userId)
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(
@@ -1433,16 +1434,17 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       ),
       [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
       [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
-      [SG_CUSTOM_FIELDS.userType]: String(userRoles.userType),
       [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
+      [SG_CUSTOM_FIELDS.isTeacher]: String(userRoleContext.hasRole('teacher')),
+      [SG_CUSTOM_FIELDS.isStudent]: String(userRoleContext.hasRole('student')),
       [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
       [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
       [SG_CUSTOM_FIELDS.joined]: user.createdAt,
     }
 
-    if (UserRolesService.isVolunteerUserType(userRoles.userType)) {
+    if (userRoleContext.hasRole('volunteer')) {
       contactListId = config.sendgrid.contactList.volunteers
-      const volunteer = user
+      const volunteer = { ...user }
       customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
         volunteer.passedUpchieve101
       )
@@ -1454,9 +1456,10 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
           await getFullVolunteerPartnerOrgByKey(volunteer.volunteerPartnerOrg)
         ).key
       }
-    } else if (UserRolesService.isStudentUserType(userRoles.userType)) {
+    }
+    if (userRoleContext.hasRole('student')) {
       contactListId = config.sendgrid.contactList.students
-      const student = user
+      const student = { ...user }
       if (student.studentGradeLevel)
         customFields[SG_CUSTOM_FIELDS.studentGradeLevel] =
           student.studentGradeLevel
@@ -1471,7 +1474,8 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
         customFields[SG_CUSTOM_FIELDS.fallIncentiveEnrollmentAt] =
           productFlags.fallIncentiveEnrollmentAt
       }
-    } else if (UserRolesService.isTeacherUserType(userRoles.userType)) {
+    }
+    if (userRoleContext.hasRole('teacher')) {
       contactListId = config.sendgrid.contactList.teachers
     }
     contacts.push({

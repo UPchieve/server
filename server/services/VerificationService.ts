@@ -158,13 +158,11 @@ export async function initiateVerification(data: unknown): Promise<void> {
   }
 }
 
-async function sendEmails(userId: Ulid): Promise<void> {
+async function sendOnboardingEmails(userId: Ulid): Promise<void> {
   const user = await UserService.getUserContactInfo(userId)
   if (!user) return
 
-  const userType = user.roleContext.legacyRole
-
-  if (UserRolesService.isVolunteerUserType(userType)) {
+  if (user.roleContext.isActiveRole('volunteer')) {
     if (user.volunteerPartnerOrg) {
       await MailService.sendPartnerVolunteerWelcomeEmail(
         user.email,
@@ -176,13 +174,13 @@ async function sendEmails(userId: Ulid): Promise<void> {
         user.firstName
       )
     }
-  } else if (UserRolesService.isStudentUserType(userType)) {
+  } else if (user.roleContext.isActiveRole('student')) {
     await MailService.sendStudentOnboardingWelcomeEmail(
       user.email,
       user.firstName
     )
     await StudentService.queueOnboardingEmails(user.id)
-  } else if (UserRolesService.isTeacherUserType(userType)) {
+  } else if (user.roleContext.isActiveRole('teacher')) {
     await MailService.sendTeacherOnboardingWelcomeEmail(
       user.email,
       user.firstName
@@ -244,7 +242,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       await updateUserProxyEmail(userId, sendTo)
     else await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
     if (shouldSendOnboardingEmails) {
-      await sendEmails(userId)
+      await sendOnboardingEmails(userId)
     }
   }
 
