@@ -25,7 +25,7 @@ export interface IGetUserRolesByIdQuery {
   result: IGetUserRolesByIdResult;
 }
 
-const getUserRolesByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":190}]}],"statement":"SELECT\n    user_roles.name\nFROM\n    users\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE\n    users.id = :id!"};
+const getUserRolesByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":190}]}],"statement":"SELECT\n    user_roles.name\nFROM\n    users\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE\n    users.id = :id!\nORDER BY\n    users_roles.created_at ASC"};
 
 /**
  * Query generated from SQL:
@@ -38,6 +38,8 @@ const getUserRolesByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"i
  *     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
  * WHERE
  *     users.id = :id!
+ * ORDER BY
+ *     users_roles.created_at ASC
  * ```
  */
 export const getUserRolesById = new PreparedQuery<IGetUserRolesByIdParams,IGetUserRolesByIdResult>(getUserRolesByIdIR);
@@ -880,7 +882,6 @@ export interface IGetUsersForAdminSearchResult {
   firstName: string;
   id: string;
   lastName: string | null;
-  roles: stringArray | null;
 }
 
 /** 'GetUsersForAdminSearch' query type */
@@ -889,7 +890,7 @@ export interface IGetUsersForAdminSearchQuery {
   result: IGetUsersForAdminSearchResult;
 }
 
-const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":true,"firstName":true,"lastName":true,"partnerOrg":true,"school":true,"limit":true,"offset":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1035,"b":1041},{"a":1076,"b":1082}]},{"name":"email","required":false,"transform":{"type":"scalar"},"locs":[{"a":1091,"b":1096},{"a":1146,"b":1151}]},{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1168,"b":1177},{"a":1232,"b":1241}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1258,"b":1266},{"a":1320,"b":1328}]},{"name":"partnerOrg","required":false,"transform":{"type":"scalar"},"locs":[{"a":1345,"b":1355},{"a":1408,"b":1418},{"a":1454,"b":1464}]},{"name":"school","required":false,"transform":{"type":"scalar"},"locs":[{"a":1473,"b":1479},{"a":1530,"b":1536},{"a":1597,"b":1603}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1673,"b":1679}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1695,"b":1702}]}],"statement":"SELECT\n    users.id,\n    users.email,\n    users.first_name,\n    (\n        CASE WHEN student_profiles.user_id IS NOT NULL THEN\n            NULL\n        ELSE\n            users.last_name\n        END) AS last_name,\n    users.created_at,\n    array_agg(user_roles.name) AS roles\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE ((:userId)::uuid IS NULL\n    OR users.id = :userId)\nAND ((:email)::text IS NULL\n    OR users.email ILIKE ('%' || :email || '%'))\nAND ((:firstName)::text IS NULL\n    OR users.first_name ILIKE ('%' || :firstName || '%'))\nAND ((:lastName)::text IS NULL\n    OR users.last_name ILIKE ('%' || :lastName || '%'))\nAND ((:partnerOrg)::text IS NULL\n    OR volunteer_partner_orgs.key = :partnerOrg\n    OR student_partner_orgs.key = :partnerOrg)\nAND ((:school)::text IS NULL\n    OR schools.name ILIKE ('%' || :school || '%')\n    OR school_nces_metadata.sch_name ILIKE ('%' || :school || '%'))\nGROUP BY\n    users.id,\n    student_profiles.user_id\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":true,"firstName":true,"lastName":true,"partnerOrg":true,"school":true,"limit":true,"offset":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":870,"b":876},{"a":911,"b":917}]},{"name":"email","required":false,"transform":{"type":"scalar"},"locs":[{"a":926,"b":931},{"a":981,"b":986}]},{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1003,"b":1012},{"a":1067,"b":1076}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1093,"b":1101},{"a":1155,"b":1163}]},{"name":"partnerOrg","required":false,"transform":{"type":"scalar"},"locs":[{"a":1180,"b":1190},{"a":1243,"b":1253},{"a":1289,"b":1299}]},{"name":"school","required":false,"transform":{"type":"scalar"},"locs":[{"a":1308,"b":1314},{"a":1365,"b":1371},{"a":1432,"b":1438}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1508,"b":1514}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1530,"b":1537}]}],"statement":"SELECT\n    users.id,\n    users.email,\n    users.first_name,\n    (\n        CASE WHEN student_profiles.user_id IS NOT NULL THEN\n            NULL\n        ELSE\n            users.last_name\n        END) AS last_name,\n    users.created_at\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\nWHERE ((:userId)::uuid IS NULL\n    OR users.id = :userId)\nAND ((:email)::text IS NULL\n    OR users.email ILIKE ('%' || :email || '%'))\nAND ((:firstName)::text IS NULL\n    OR users.first_name ILIKE ('%' || :firstName || '%'))\nAND ((:lastName)::text IS NULL\n    OR users.last_name ILIKE ('%' || :lastName || '%'))\nAND ((:partnerOrg)::text IS NULL\n    OR volunteer_partner_orgs.key = :partnerOrg\n    OR student_partner_orgs.key = :partnerOrg)\nAND ((:school)::text IS NULL\n    OR schools.name ILIKE ('%' || :school || '%')\n    OR school_nces_metadata.sch_name ILIKE ('%' || :school || '%'))\nGROUP BY\n    users.id,\n    student_profiles.user_id\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
@@ -904,8 +905,7 @@ const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":tru
  *         ELSE
  *             users.last_name
  *         END) AS last_name,
- *     users.created_at,
- *     array_agg(user_roles.name) AS roles
+ *     users.created_at
  * FROM
  *     users
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -915,8 +915,6 @@ const getUsersForAdminSearchIR: any = {"usedParamSet":{"userId":true,"email":tru
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
  *     LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id
- *     LEFT JOIN users_roles ON users_roles.user_id = users.id
- *     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
  * WHERE ((:userId)::uuid IS NULL
  *     OR users.id = :userId)
  * AND ((:email)::text IS NULL

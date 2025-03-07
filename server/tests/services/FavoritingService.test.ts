@@ -1,13 +1,14 @@
 import { mocked } from 'jest-mock'
 import * as FavoritingService from '../../services/FavoritingService'
 import * as MailService from '../../services/MailService'
-import * as UserRepo from '../../models/User'
+import * as UserService from '../../services/UserService'
 import { UserContactInfo } from '../../models/User'
+import { RoleContext } from '../../services/UserRolesService'
 
 jest.mock('../../services/MailService')
-jest.mock('../../models/User')
+jest.mock('../../services/UserService')
 const mockedMailService = mocked(MailService)
-const mockedUserRepo = mocked(UserRepo)
+const mockedUserService = mocked(UserService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -18,48 +19,52 @@ describe('emailFavoritedVolunteer', () => {
     const volunteerFirstName = 'volunteerFirstName'
     const volunteerEmail = 'volunteer@email.com'
     const studentFirstName = 'studentFirstName'
-    mockedUserRepo.getUserContactInfoById
+    mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({
         firstName: volunteerFirstName,
         email: volunteerEmail,
-      } as UserContactInfo)
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+      } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce({
         firstName: studentFirstName,
-      } as UserContactInfo)
+        roleContext: new RoleContext(['student'], 'student', 'student'),
+      } as UserContactInfo & { roleContext: RoleContext })
 
     await FavoritingService.emailFavoritedVolunteer('volunteerId', 'studentId')
 
-    expect(mockedUserRepo.getUserContactInfoById).toHaveBeenCalledTimes(2)
+    expect(mockedUserService.getUserContactInfo).toHaveBeenCalledTimes(2)
     expect(
       mockedMailService.sendStudentFavoritedVolunteerEmail
     ).toHaveBeenCalledWith(volunteerEmail, volunteerFirstName, studentFirstName)
   })
 
   test('does nothing if no volunteer for id', async () => {
-    mockedUserRepo.getUserContactInfoById
+    mockedUserService.getUserContactInfo
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce({
         firstName: 'Veronica',
-      } as UserContactInfo)
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+      } as UserContactInfo & { roleContext: RoleContext })
 
     await FavoritingService.emailFavoritedVolunteer('volunteerId', 'studentId')
 
-    expect(mockedUserRepo.getUserContactInfoById).toHaveBeenCalledTimes(2)
+    expect(mockedUserService.getUserContactInfo).toHaveBeenCalledTimes(2)
     expect(
       mockedMailService.sendStudentFavoritedVolunteerEmail
     ).not.toHaveBeenCalled()
   })
 
   test('does nothing if no student for id', async () => {
-    mockedUserRepo.getUserContactInfoById
+    mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({
         firstName: 'Harold',
-      } as UserContactInfo)
+        roleContext: new RoleContext(['student'], 'student', 'student'),
+      } as UserContactInfo & { roleContext: RoleContext })
       .mockResolvedValueOnce(undefined)
 
     await FavoritingService.emailFavoritedVolunteer('volunteerId', 'studentId')
 
-    expect(mockedUserRepo.getUserContactInfoById).toHaveBeenCalledTimes(2)
+    expect(mockedUserService.getUserContactInfo).toHaveBeenCalledTimes(2)
     expect(
       mockedMailService.sendStudentFavoritedVolunteerEmail
     ).not.toHaveBeenCalled()

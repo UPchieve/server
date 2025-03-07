@@ -3,7 +3,7 @@ import emailFallIncentiveInvitedToEnrollReminder, {
   EmailFallIncentiveInvitedToEnrollReminderJobData,
 } from '../../../worker/jobs/student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import * as MailService from '../../../services/MailService'
-import * as UserRepo from '../../../models/User'
+import * as UserService from '../../../services/UserService'
 import { Job } from 'bull'
 import { buildUser } from '../../mocks/generate'
 import { log } from '../../../worker/logger'
@@ -11,9 +11,9 @@ import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../services/MailService')
 jest.mock('../../../logger')
-jest.mock('../../../models/User')
+jest.mock('../../../services/UserService')
 
-const mockedUserRepo = mocked(UserRepo)
+const mockedUserService = mocked(UserService)
 const mockedMailService = mocked(MailService)
 
 describe('emailFallIncentiveInvitedToEnrollReminder', () => {
@@ -22,7 +22,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
   })
 
   test('Should return without sending email if no user is found', async () => {
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(undefined)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(undefined)
     const jobData: Job<EmailFallIncentiveInvitedToEnrollReminderJobData> = {
       data: {
         userId: '123',
@@ -38,7 +38,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
 
   test('Should send an invited reminder email if user is found', async () => {
     const user = buildUser()
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     const jobData: Job<EmailFallIncentiveInvitedToEnrollReminderJobData> = {
       data: {
         userId: user.id,
@@ -57,7 +57,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
   test('Should catch error when sending invited reminder email', async () => {
     const user = buildUser()
     const error = 'Failed to send reminder email'
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     mockedMailService.sendFallIncentiveInvitedToEnrollReminderEmail.mockRejectedValueOnce(
       error
     )

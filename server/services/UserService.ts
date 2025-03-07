@@ -14,17 +14,16 @@ import {
   UserNotFoundError,
   NotAllowedError,
   InputError,
-  DEFAULT_ERROR_MESSAGE,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
 import {
   UserContactInfo,
-  getUserContactInfoById,
   getUsersForAdminSearch,
   deleteUser,
   updateUserProfileById,
   deleteUserPhoneInfo,
+  UserForAdmin,
 } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -41,11 +40,6 @@ import {
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
-  isStudentUserType,
-  isVolunteerUserType,
-  isTeacherUserType,
-} from '../utils/user-type'
-import {
   asBoolean,
   asEnum,
   asFactory,
@@ -60,12 +54,14 @@ import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
+import { RoleContext } from './UserRolesService'
+import { getClient, TransactionClient } from '../db'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
 
   // Approved volunteer
-  if (isVolunteerUserType(user.userType) && user.isApproved) {
+  if (UserRolesService.isVolunteerUserType(user.userType) && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -302,19 +298,16 @@ export async function adminUpdateUser(data: unknown) {
     partnerSchool,
     schoolId,
   } = asAdminUpdate(data)
-  const userBeforeUpdate = await getUserContactInfoById(userId)
+  const userBeforeUpdate = await getUserContactInfo(userId)
 
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const userType = UserRolesService.getUserTypeFromRoles(
-    userBeforeUpdate.roles,
-    userId
-  )
-  const isVolunteer = isVolunteerUserType(userType)
-  const isStudent = isStudentUserType(userType)
-  const isTeacher = isTeacherUserType(userType)
+  const userType = userBeforeUpdate.roleContext.legacyRole
+  const isVolunteer = UserRolesService.isVolunteerUserType(userType)
+  const isStudent = UserRolesService.isStudentUserType(userType)
+  const isTeacher = UserRolesService.isTeacherUserType(userType)
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
@@ -417,7 +410,9 @@ const asUserQuery = asFactory<UserQuery>({
 })
 
 // getUsersForAdmin with a typed interface for these query params
-export async function getUsers(data: unknown) {
+export async function getUsers(
+  data: unknown
+): Promise<{ users: UserForAdmin[]; isLastPage: boolean }> {
   const { userId, firstName, lastName, email, partnerOrg, school, page } =
     asUserQuery(data)
   const pageNum = page || 1
@@ -438,8 +433,17 @@ export async function getUsers(data: unknown) {
       skip
     )
 
+    const withUserTypes = users.map(async (u) => {
+      const roleContext = await UserRolesService.getRoleContext(u.id)
+      return {
+        ...u,
+        userType: roleContext.legacyRole,
+      }
+    })
+    const usersWithUserType = await Promise.all(withUserTypes)
+
     const isLastPage = users.length < PER_PAGE
-    return { users, isLastPage }
+    return { users: usersWithUserType, isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }
@@ -459,7 +463,7 @@ export async function updateUserProfile(
 
 export async function deletePhoneFromAccount(userId: Ulid) {
   const user = await UserRolesService.getUserRolesById(userId)
-  if (isVolunteerUserType(user.userType)) {
+  if (UserRolesService.isVolunteerUserType(user.userType)) {
     throw new InputError(
       'Phone information is required for UPchieve volunteers'
     )
@@ -474,6 +478,19 @@ export async function getUserByReferralCode(referralCode: string) {
     return {
       ...user,
       userType: userRoles.userType,
+    }
+  }
+}
+
+export async function getUserContactInfo(
+  userId: string
+): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
+  const baseUserInfo = await UserRepo.getUserContactInfoById(userId)
+  if (baseUserInfo) {
+    const roleContext = await UserRolesService.getRoleContext(userId)
+    return {
+      ...baseUserInfo,
+      roleContext,
     }
   }
 }
