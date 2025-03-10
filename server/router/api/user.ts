@@ -274,4 +274,28 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
+
+  router.put('/user/roles/active', async function (req, res) {
+    try {
+      const reqUser = await extractUser(req)
+      const requestedRole = req.body.activeRole
+      const { activeRole, user } = await UserService.switchActiveRoleForUser(
+        reqUser.id,
+        requestedRole
+      )
+      return res.json({ activeRole, user })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/user/roles/volunteer', async function (req, res) {
+    try {
+      const user = await extractUser(req)
+      await UserRolesService.addVolunteerRoleToUser(user.id)
+      return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

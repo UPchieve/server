@@ -23,15 +23,6 @@ export interface HourSummaryStats {
   totalVolunteerHours: number
 }
 
-export interface OnboardedVolunteer {
-  id: Ulid
-  onboarded: boolean
-  volunteerPartnerOrg: string | undefined
-  hasSubjects: boolean
-  hasCompletedUpchieve101: boolean
-  hasAvailability: boolean
-}
-
 export async function getHourSummaryStats(
   volunteerId: Ulid,
   fromDate: Date,

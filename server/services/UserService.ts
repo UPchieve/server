@@ -24,6 +24,7 @@ import {
   updateUserProfileById,
   deleteUserPhoneInfo,
   UserForAdmin,
+  UserRole,
 } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -491,4 +492,18 @@ export async function getUserContactInfo(
       roleContext,
     }
   }
+}
+
+export async function switchActiveRoleForUser(
+  userId: string,
+  role: Exclude<UserRole, 'teacher' | 'admin'>
+): Promise<{ activeRole: Exclude<UserRole, 'teacher' | 'admin'>; user: any }> {
+  const activeRole = await UserRolesService.switchActiveRole(userId, role)
+  const userContactInfo = await getUserContactInfo(userId)
+  if (!userContactInfo)
+    throw new Error(
+      "Failed to switch user's active role: User contact info not found"
+    )
+  const parsedUser = await parseUser(userContactInfo)
+  return { activeRole, user: parsedUser }
 }

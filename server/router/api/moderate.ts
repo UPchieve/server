@@ -12,7 +12,7 @@ export function routeModeration(router: Router): void {
   router.route('/moderate/message').post(async (req, res) => {
     try {
       const user = extractUser(req)
-      const isVolunteer = user.roleContext.legacyRole === 'volunteer'
+      const isVolunteer = user.roleContext.isActiveRole('volunteer')
       const args = req.body?.content
         ? {
             // Support old versions of high-line and midtown
