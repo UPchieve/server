@@ -11,7 +11,7 @@ export interface TwilioError extends Error {
   status: number
 }
 export function routeProductFlags(router: Router) {
-  router.route('/product-flags').get(async function (req, res) {
+  router.route('/product-flags').get(async function(req, res) {
     try {
       const user = extractUser(req)
       const flags = await UserProductFlagsRepo.getPublicUPFByUserId(user.id)
@@ -23,15 +23,14 @@ export function routeProductFlags(router: Router) {
 
   router
     .route('/product-flags/fall-incentive-enrollment/enroll')
-    .post(async function (req, res) {
+    .post(async function(req, res) {
       const user = extractUser(req)
       const proxyEmail = asOptional(asString)(req.body.proxyEmail)
       try {
-        const fallIncentiveEnrollmentAt =
-          await UserProductFlagsService.incentiveProgramEnrollmentEnroll(
-            user.id,
-            proxyEmail
-          )
+        const fallIncentiveEnrollmentAt = await UserProductFlagsService.incentiveProgramEnrollmentEnroll(
+          user.id,
+          proxyEmail
+        )
         res.json({ fallIncentiveEnrollmentAt })
       } catch (err) {
         resError(res, err)
@@ -40,7 +39,7 @@ export function routeProductFlags(router: Router) {
 
   router
     .route('/product-flags/fall-incentive-enrollment/denied')
-    .post(async function (req, res) {
+    .post(async function(req, res) {
       const user = extractUser(req)
       try {
         await IncentiveProgramService.queueIncentiveInvitedToEnrollReminderJob(
@@ -52,15 +51,31 @@ export function routeProductFlags(router: Router) {
       }
     })
 
-  router.route('/product-flags/impact-study').post(async function (req, res) {
+  router.route('/product-flags/impact-study').post(async function(req, res) {
     const user = extractUser(req)
     const surveyId = asNumber(req.body.surveyId)
     try {
-      const impactStudyEnrollmentAt =
-        await UserProductFlagsService.impactStudyEnrollment(user.id, surveyId)
+      const impactStudyEnrollmentAt = await UserProductFlagsService.impactStudyEnrollment(
+        user.id,
+        surveyId
+      )
       res.json({ impactStudyEnrollmentAt })
     } catch (err) {
       resError(res, err)
     }
   })
+
+  router
+    .route('/product-flags/tell-them-college-prep-modal')
+    .post(async function(req, res) {
+      try {
+        const user = extractUser(req)
+        const hasSeenTellThemCollegePrepModal = await UserProductFlagsService.sawTellThemCollegePrepModal(
+          user.id
+        )
+        res.json({ hasSeenTellThemCollegePrepModal })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }
