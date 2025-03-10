@@ -49,6 +49,8 @@ export type AnalyticPersonProperties = {
   totalSessions: number
   banType: string
   isTestUser: boolean
+  hasStudentRole: boolean
+  hasVolunteerRole: boolean
   onboarded?: boolean
   approved?: boolean
   partner?: string | null
@@ -76,6 +78,8 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       totalSessions: user.pastSessions.length,
       banType: user.banType,
       isTestUser: user.isTestUser,
+      hasStudentRole: user.roleContext.hasRole('student'),
+      hasVolunteerRole: user.roleContext.hasRole('volunteer'),
     } as AnalyticPersonProperties
 
     if (user.roleContext.isActiveRole('volunteer')) {
