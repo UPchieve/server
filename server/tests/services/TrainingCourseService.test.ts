@@ -89,7 +89,8 @@ describe('TrainingCourseService', () => {
         courseKey,
         isComplete,
         progress,
-        materialKey
+        materialKey,
+        expect.toBeTransactionClient()
       )
       expect(mockedLogger.warn).not.toHaveBeenCalled()
       expect(result).toEqual({
@@ -125,7 +126,8 @@ describe('TrainingCourseService', () => {
         courseKey,
         isComplete,
         endingProgress,
-        newMaterialKey
+        newMaterialKey,
+        expect.toBeTransactionClient()
       )
       expect(result).toEqual({
         isComplete,
