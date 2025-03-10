@@ -41,7 +41,7 @@ import {
 } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
-import { asString } from '../utils/type-utils'
+import { asFactory, asOptional, asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
@@ -962,29 +962,47 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
   }
 }
 
-// TODO: implement these with cursor pagination
+export const asSessionHistoryFilter = asFactory<SessionHistoryFilter>({
+  studentFirstName: asOptional(asString),
+  volunteerFirstName: asOptional(asString),
+  studentId: asOptional(asString),
+  subjectName: asOptional(asString),
+  volunteerId: asOptional(asString),
+})
+export type SessionHistoryFilter = {
+  studentFirstName?: string
+  volunteerFirstName?: string
+  studentId?: Ulid
+  subjectName?: string
+  volunteerId?: Ulid
+}
 export async function getSessionHistory(
   userId: Ulid,
-  page: string,
-  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
+  pageNum: number,
+  pageLimit: number = 5,
+  filter: SessionHistoryFilter
 ) {
-  const pageNum = parseInt(page)
-  const PER_PAGE = 5
-  const skip = (pageNum - 1) * PER_PAGE
-  const pastSessions = await SessionRepo.getSessionHistory(
-    userId,
-    PER_PAGE,
-    skip,
-    filter
-  )
+  const fetchLimit = pageLimit + 1
+  const offset = (pageNum - 1) * pageLimit
 
-  const isLastPage = pastSessions.length < PER_PAGE
+  const [pastSessions, totalCount] = await Promise.all([
+    SessionRepo.getFilteredSessionHistory(userId, fetchLimit, offset, filter),
+    SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter),
+  ])
 
-  return { pastSessions, page: pageNum, isLastPage }
+  return {
+    pastSessions: pastSessions.slice(0, pageLimit),
+    totalCount,
+    page: pageNum,
+    isLastPage: pastSessions.length < fetchLimit,
+  }
 }
 
-export async function getTotalSessionHistory(userId: Ulid) {
-  return SessionRepo.getTotalSessionHistory(userId)
+export async function getTotalSessionHistory(
+  userId: Ulid,
+  filter: SessionHistoryFilter = {}
+) {
+  return SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter)
 }
 
 export async function getSessionRecap(
@@ -1130,14 +1148,4 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
-}
-
-export async function getPreviousSessionCountForPair(
-  studentId: Ulid,
-  volunteerId: Ulid
-): Promise<number> {
-  return await SessionRepo.getPreviousSessionCountForPair(
-    studentId,
-    volunteerId
-  )
 }
