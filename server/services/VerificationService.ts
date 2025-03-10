@@ -18,7 +18,6 @@ import {
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
-import * as UserRolesService from './UserRolesService'
 import {
   getUserIdByEmail,
   getUserIdByPhone,

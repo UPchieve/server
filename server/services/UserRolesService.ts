@@ -1,5 +1,6 @@
-import { getClient, TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as UserRepo from '../models/User'
+import * as VolunteerRepo from '../models/Volunteer'
 import { UserRole } from '../models/User'
 import * as CacheService from '../cache'
 import config from '../config'
@@ -66,16 +67,19 @@ export async function getRoleContext(
 export async function switchActiveRole(
   userId: string,
   newActiveRole: Exclude<UserRole, 'admin' | 'teacher'>
-): Promise<void> {
+): Promise<Exclude<UserRole, 'admin' | 'teacher'>> {
   const existingRoleContext = await getRoleContext(userId)
   if (!existingRoleContext.hasRole(newActiveRole))
     throw new InputError('User does not have the requested role')
+  if (existingRoleContext.activeRole === newActiveRole)
+    return existingRoleContext.activeRole
   const newRoleContext = new RoleContext(
     existingRoleContext.roles,
     newActiveRole,
     existingRoleContext.legacyRole
   )
   await updateRoleContext(userId, newRoleContext)
+  return newActiveRole
 }
 
 async function updateRoleContext(
@@ -89,4 +93,28 @@ async function updateRoleContext(
 
 function getRoleContextCacheKey(userId: string): string {
   return `${config.cacheKeys.userRoleContextPrefix}${userId}`
+}
+
+export async function addVolunteerRoleToUser(userId: string): Promise<void> {
+  const tc = getClient()
+  const existingRoleContext = await getRoleContext(userId, tc)
+  if (existingRoleContext.roles.includes('volunteer'))
+    throw new InputError('User already has volunteer role')
+
+  await runInTransaction(async (tc) => {
+    await UserRepo.insertUserRoleByUserId(userId, 'volunteer', tc)
+    await VolunteerRepo.createVolunteerProfile(
+      userId,
+      { timezone: null, partnerOrgId: null },
+      tc
+    )
+  }, tc)
+  await updateRoleContext(
+    userId,
+    new RoleContext(
+      [...existingRoleContext.roles, 'volunteer'],
+      existingRoleContext.activeRole,
+      existingRoleContext.legacyRole
+    )
+  )
 }

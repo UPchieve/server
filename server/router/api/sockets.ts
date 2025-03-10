@@ -201,7 +201,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId, joinedFrom } = data
-            const user = extractSocketUser(socket)
+            const user = await extractSocketUser(socket)
 
             try {
               // TODO: have middleware handle the auth
@@ -209,8 +209,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               if (user.roleContext.isActiveRole('volunteer') && !user.approved)
                 throw new Error('Volunteer not approved')
             } catch (error) {
+              logger.error(
+                error,
+                'Failed to join session socket: Invalid user state'
+              )
               socket.emit('redirect')
-              reject(error)
               return
             }
 
@@ -276,7 +279,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId } = data
-            const user = extractSocketUser(socket)
+            const user = await extractSocketUser(socket)
 
             try {
               const session = await SessionRepo.getSessionById(sessionId)
@@ -597,8 +600,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('disconnecting', () => {
-      const user = extractSocketUser(socket)
+    socket.on('disconnecting', async () => {
+      const user = await extractSocketUser(socket)
       for (const room of socket.rooms) {
         if (room.includes('sessions')) {
           socket
@@ -620,7 +623,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (isSocketInRoom) {
               socket.leave(sessionRoom)
               delete socket.data.sessionId
-              const user = extractSocketUser(socket)
+              const user = await extractSocketUser(socket)
               await socket
                 .to(sessionRoom)
                 .except(user.id)
