@@ -15,6 +15,7 @@ import {
   asCamelCaseString,
   asDate,
   asFactory,
+  asNumber,
   asOptional,
   asString,
   asUlid,
@@ -328,23 +329,17 @@ export function routeSession(router: Router) {
   router.get('/sessions/history', async function (req, res) {
     try {
       const user = extractUser(req)
-      const filter = {
-        volunteerId: req.query.volunteerId
-          ? asUlid(req.query.volunteerId)
-          : undefined,
-        studentId: req.query.studentId
-          ? asUlid(req.query.studentId)
-          : undefined,
-      }
+      const filter = SessionService.asSessionHistoryFilter(req.query)
 
-      const { pastSessions, page, isLastPage } =
+      const { pastSessions, page, isLastPage, totalCount } =
         await SessionService.getSessionHistory(
           user.id,
-          asString(req.query.page),
+          asNumber(req.query.page),
+          req.query.limit ? asNumber(req.query.limit) : undefined,
           filter
         )
 
-      res.json({ page, isLastPage, pastSessions })
+      res.json({ page, isLastPage, pastSessions, totalCount })
     } catch (err) {
       resError(res, err)
     }
@@ -352,16 +347,16 @@ export function routeSession(router: Router) {
 
   router.get('/sessions/history/total', async function (req, res) {
     try {
-      if (req.query.studentId && req.query.volunteerId) {
-        const total = await SessionService.getPreviousSessionCountForPair(
-          asUlid(req.query.studentId),
-          asUlid(req.query.volunteerId)
-        )
-        return res.json({ total })
-      }
-
       const user = extractUser(req)
-      const total = await SessionService.getTotalSessionHistory(user.id)
+      const filter = {
+        studentId: req.query.studentId
+          ? asUlid(req.query.studentId)
+          : undefined,
+        volunteerId: req.query.volunteerId
+          ? asUlid(req.query.volunteerId)
+          : undefined,
+      }
+      const total = await SessionService.getTotalSessionHistory(user.id, filter)
 
       res.json({ total })
     } catch (err) {

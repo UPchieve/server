@@ -39,6 +39,7 @@ import {
   getSessionRating,
 } from '../Survey'
 import config from '../../config'
+import type { SessionHistoryFilter } from '../../services/SessionService'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -1247,12 +1248,11 @@ export type SessionForSessionHistory = {
   volunteerId: Ulid
   volunteerFirstName: string
 }
-
-export async function getSessionHistory(
+export async function getFilteredSessionHistory(
   userId: Ulid,
   limit: number,
   offset: number,
-  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
+  filter: SessionHistoryFilter = {}
 ): Promise<SessionForSessionHistory[]> {
   try {
     const params = {
@@ -1260,11 +1260,16 @@ export async function getSessionHistory(
       minSessionLength: config.minSessionLength,
       limit,
       offset,
-      studentId: filter.studentId ?? null,
-      volunteerId: filter.volunteerId ?? null,
+      studentFirstName: filter.studentFirstName || null,
+      volunteerFirstName: filter.volunteerFirstName || null,
+      subjectName: filter.subjectName || null,
+      studentId: filter.studentId || null,
+      volunteerId: filter.volunteerId || null,
     }
-    const result = await pgQueries.getSessionHistory.run(params, getClient())
-
+    const result = await pgQueries.getFilteredSessionHistory.run(
+      params,
+      getClient()
+    )
     if (result.length) return result.map((v) => makeRequired(v))
     return []
   } catch (err) {
@@ -1272,14 +1277,27 @@ export async function getSessionHistory(
   }
 }
 
-export async function getTotalSessionHistory(userId: Ulid): Promise<number> {
+export async function getFilteredSessionHistoryTotalCount(
+  userId: Ulid,
+  filter: SessionHistoryFilter = {}
+): Promise<number> {
   try {
-    const result = await pgQueries.getTotalSessionHistory.run(
-      { userId, minSessionLength: config.minSessionLength },
+    const params = {
+      userId,
+      minSessionLength: config.minSessionLength,
+      studentFirstName: filter.studentFirstName || null,
+      volunteerFirstName: filter.volunteerFirstName || null,
+      subjectName: filter.subjectName || null,
+      studentId: filter.studentId || null,
+      volunteerId: filter.volunteerId || null,
+    }
+    const result = await pgQueries.getFilteredSessionHistoryTotalCount.run(
+      params,
       getClient()
     )
-
-    if (result.length) return makeRequired(result[0]).total
+    if (result.length) {
+      return result[0].count ?? 0
+    }
     return 0
   } catch (err) {
     throw new RepoReadError(err)
@@ -1524,21 +1542,6 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
         role: camelCased.role as USER_ROLES_TYPE,
       }
     })
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getPreviousSessionCountForPair(
-  studentId: Ulid,
-  volunteerId: Ulid
-): Promise<number> {
-  try {
-    const result = await pgQueries.getPreviousSessionCountForPair.run(
-      { studentId, volunteerId },
-      getClient()
-    )
-    return result[0].total ?? 0
   } catch (err) {
     throw new RepoReadError(err)
   }

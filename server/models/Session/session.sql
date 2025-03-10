@@ -1083,51 +1083,76 @@ WHERE
     AND users.test_user = FALSE;
 
 
-/* @name getSessionHistory */
-WITH results AS (
-    SELECT DISTINCT ON (sessions.id)
-        sessions.id,
-        sessions.created_at AS created_at,
-        sessions.time_tutored::int AS time_tutored,
-        subjects.display_name AS subject,
-        topics.name AS topic,
-        topics.icon_link AS topic_icon_link,
-        volunteers.first_name AS volunteer_first_name,
-        volunteers.id AS volunteer_id,
-        students.id AS student_id,
-        students.first_name AS student_first_name,
-        (
-            CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
-                TRUE
-            ELSE
-                FALSE
-            END) AS is_favorited
-    FROM
-        sessions
-        JOIN subjects ON subjects.id = sessions.subject_id
-        JOIN topics ON topics.id = subjects.topic_id
-        LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
-        LEFT JOIN users students ON sessions.student_id = students.id
-        LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
-            AND volunteers.id = favorited.volunteer_id
-    WHERE (students.id = :userId!
-        OR volunteers.id = :userId!)
-    AND sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength!::int
-    AND sessions.volunteer_id IS NOT NULL
-    AND sessions.ended_at IS NOT NULL
-    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
-    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
-ORDER BY
-    sessions.id
-)
+/* @name getFilteredSessionHistory */
 SELECT
-    *
+    sessions.id,
+    sessions.created_at AS created_at,
+    sessions.time_tutored::int AS time_tutored,
+    subjects.display_name AS subject,
+    topics.name AS topic,
+    topics.icon_link AS topic_icon_link,
+    volunteers.first_name AS volunteer_first_name,
+    students.first_name AS student_first_name,
+    sessions.volunteer_id,
+    sessions.student_id,
+    (
+        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
+            TRUE
+        ELSE
+            FALSE
+        END) AS is_favorited
 FROM
-    results
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+    LEFT JOIN users students ON sessions.student_id = students.id
+    LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id
+            AND volunteers.id = favorited.volunteer_id)
+WHERE (students.id = :userId!
+    OR volunteers.id = :userId!)
+AND sessions.time_tutored IS NOT NULL
+AND sessions.time_tutored > :minSessionLength!::int
+AND sessions.volunteer_id IS NOT NULL
+AND sessions.ended_at IS NOT NULL
+AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+AND (:studentFirstName::text IS NULL
+    OR LOWER(students.first_name) = LOWER(:studentFirstName))
+AND (:volunteerFirstName::text IS NULL
+    OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
+AND (:subjectName::text IS NULL
+    OR subjects.name = :subjectName)
 ORDER BY
     created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
+
+
+/* @name getFilteredSessionHistoryTotalCount */
+SELECT
+    COUNT(*)::int
+FROM
+    sessions
+    JOIN subjects ON subjects.id = sessions.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id
+    LEFT JOIN users students ON sessions.student_id = students.id
+    LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id
+            AND volunteers.id = favorited.volunteer_id)
+WHERE (students.id = :userId!
+    OR volunteers.id = :userId!)
+AND sessions.time_tutored IS NOT NULL
+AND sessions.time_tutored > :minSessionLength!::int
+AND sessions.volunteer_id IS NOT NULL
+AND sessions.ended_at IS NOT NULL
+AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+AND (:studentFirstName::text IS NULL
+    OR LOWER(students.first_name) = LOWER(:studentFirstName))
+AND (:volunteerFirstName::text IS NULL
+    OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
+AND (:subjectName::text IS NULL
+    OR subjects.name = :subjectName);
 
 
 /* @name isEligibleForSessionRecap */
@@ -1380,15 +1405,4 @@ WHERE
     svm.session_id = :sessionId!
 ORDER BY
     created_at ASC;
-
-
-/* @name getPreviousSessionCountForPair */
-SELECT
-    COUNT(*)::int AS total
-FROM
-    sessions
-WHERE
-    student_id = :studentId!
-    AND volunteer_id = :volunteerId!
-    AND ended_at IS NOT NULL;
 
