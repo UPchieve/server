@@ -709,6 +709,13 @@ export async function joinSession(
     throw new Error('A volunteer has already joined the session')
   }
 
+  if (isVolunteer && session.studentId === user.id) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error(
+      'You may not join your own session as both student and coach'
+    )
+  }
+
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
     try {
