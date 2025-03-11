@@ -20,7 +20,11 @@ interface EmailTenSessionJobData {
 export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
   const currentJob = job.name
   const volunteerId = asString(job.data.volunteerId)
-  const volunteer = await getVolunteerContactInfoById(volunteerId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId, {
+    deactivated: false,
+    testUser: false,
+    banned: false,
+  })
   // Do not send email if volunteer does not match email recipient spec
   if (!volunteer) return
 

@@ -30,7 +30,11 @@ export default async (
   const { data, name: currentJob } = job
   const { studentId, volunteerId, sessionSubtopic, sessionDate } =
     asVolunteerActionsData(data)
-  const volunteer = await getVolunteerContactInfoById(volunteerId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId, {
+    deactivated: false,
+    testUser: false,
+    banned: false,
+  })
   const student = await getStudentContactInfoById(studentId)
 
   if (student && volunteer) {
