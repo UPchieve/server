@@ -29,4 +29,7 @@ export const client = isValidConfigToken(config.posthogToken)
       shutdown: async () => {
         /* no-op */
       },
+      reloadFeatureFlags: () => {
+        /* nop-op */
+      },
     }

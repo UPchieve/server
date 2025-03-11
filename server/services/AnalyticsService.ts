@@ -36,6 +36,7 @@ export function identify(userId: Ulid, properties: IdentifyProperties) {
     distinctId: userId.toString(),
     properties,
   })
+  client.reloadFeatureFlags()
 }
 
 export type AnalyticCertificationStats = {
