@@ -69,11 +69,7 @@ import { TransactionClient, runInTransaction } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
-import * as UserRolesService from '../services/UserRolesService'
-import {
-  getStudentIdsInTeacherClass,
-  getTeacherClasses,
-} from './TeacherService'
+import * as TeacherService from './TeacherService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1029,13 +1025,8 @@ export async function getSessionRecap(
       )
     }
   } else {
-    const classes = await getTeacherClasses(userId)
-    const studentsInClasses: string[] = []
-    classes.forEach((currentClass) => {
-      currentClass.students.forEach((student) =>
-        studentsInClasses.push(student.id)
-      )
-    })
+    const studentsInClasses =
+      await TeacherService.getAllStudentsForTeacher(userId)
 
     if (!studentsInClasses.includes(session.studentId)) {
       throw new NotAllowedError(

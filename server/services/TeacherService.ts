@@ -277,3 +277,12 @@ export async function updateLastSuccessfulCleverSync(
 ) {
   return TeacherRepo.updateLastSuccessfulCleverSync(teacherId, tc)
 }
+
+export async function getAllStudentsForTeacher(
+  teacherId: Ulid,
+  tc?: TransactionClient
+) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    return TeacherRepo.getAllStudentsForTeacher(teacherId, tc)
+  }, tc)
+}
