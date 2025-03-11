@@ -419,6 +419,7 @@ import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid } from '../../models/pgUtils'
 import { UserRole } from '../../models/User'
+import { PrimaryUserRole } from '../../services/UserRolesService'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/UserRolesService')
@@ -459,8 +460,8 @@ describe('UserService', () => {
       const userId = getDbUlid()
       const mockRoleContext = {
         roles: ['volunteer'] as UserRole[],
-        activeRole: 'volunteer' as UserRole,
-        legacyRole: 'volunteer' as UserRole,
+        activeRole: 'volunteer' as PrimaryUserRole,
+        legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(true),
         isActiveRole: jest.fn(),
         isAdmin: jest.fn(),
@@ -475,8 +476,8 @@ describe('UserService', () => {
       const userId = getDbUlid()
       const mockRoleContext = {
         roles: ['volunteer'] as UserRole[],
-        activeRole: 'volunteer' as UserRole,
-        legacyRole: 'volunteer' as UserRole,
+        activeRole: 'volunteer' as PrimaryUserRole,
+        legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(true),
         isActiveRole: jest.fn(),
         isAdmin: jest.fn(),
@@ -491,8 +492,8 @@ describe('UserService', () => {
       const userId = getDbUlid()
       const mockRoleContext = {
         roles: ['student'] as UserRole[],
-        activeRole: 'student' as UserRole,
-        legacyRole: 'student' as UserRole,
+        activeRole: 'student' as PrimaryUserRole,
+        legacyRole: 'student' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(false),
         isActiveRole: jest.fn(),
         isAdmin: jest.fn(),

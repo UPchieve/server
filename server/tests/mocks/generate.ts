@@ -51,7 +51,7 @@ import { LegacyUserModel } from '../../models/User/legacy-user'
 import { SessionAudio } from '../../models/SessionAudio'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
-import { RoleContext } from '../../services/UserRolesService'
+import { PrimaryUserRole, RoleContext } from '../../services/UserRolesService'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -263,11 +263,7 @@ export function buildLegacyUser(
     lastActivityAt: undefined,
     referredBy: undefined,
     userType: 'student',
-    roleContext: new RoleContext(
-      [overrides?.userType ?? 'student'],
-      overrides?.userType ?? 'student',
-      'student'
-    ),
+    roleContext: new RoleContext(['student'], 'student', 'student'),
     sessionStats: {},
     ...overrides,
   }
