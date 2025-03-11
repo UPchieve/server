@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - deploy
+  - post-deploy
 
 cache:
   # TODO: Try key as package-lock.json to speed up across branches.
@@ -38,7 +39,6 @@ variables:
     AZURE_TENANT_ID: $AZURE_TENANT_ID
   environment:
     action: prepare
-  allow_failure: false
   before_script:
     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az acr login --name $AZURE_CONTAINER_REGISTRY
@@ -47,6 +47,7 @@ variables:
     - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
 
+# Build the application as part of a MR - does not also push to registry.
 build_ci:
   extends: .docker_service
   stage: build
@@ -57,6 +58,7 @@ build_ci:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
+# Build the application and push to staging registry.
 build_staging:
   extends: .build_docker
   environment:
@@ -67,17 +69,17 @@ build_staging:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-# TODO: Uncomment once production environment is set up.
-# build_production:
-#   extends: .build_docker
-#   environment:
-#     name: production
-#   allow_failure: false
-#   variables:
-#     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
-#     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+# Build the application and push to production registry.
+build_production:
+  extends: .build_docker
+  environment:
+    name: production
+  allow_failure: false
+  variables:
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
+    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 .deploy:
   stage: deploy
@@ -91,8 +93,8 @@ build_staging:
     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az extension add --name containerapp --upgrade
   script:
-    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
-    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG
+    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHA
+    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHA
 
 deploy_staging:
   extends: .deploy
@@ -112,26 +114,39 @@ deploy_staging:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-# # TODO: Uncomment once production environment is set up.
-# # deploy_production:
-# #   extends: .deploy
-# #   environment:
-# #     name: production
-# #   resource_group: production
-# #   variables:
-# #     CONTAINER_APP: production-container-app-subway
-# #     CONTAINER_APP_WORKER: production-container-app-worker
-# #     RESOURCE_GROUP: production-resource-group
-# #     AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
-# #     AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
-# #   needs:
-# #     - job: build_production
-# #       artifacts: true
-# #     - job: test_backend
-# #   when: manual
-# #   rules:
-# #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+deploy_production:
+  extends: .deploy
+  environment:
+    name: production
+  resource_group: production
+  variables:
+    CONTAINER_APP: production-container-app-subway
+    CONTAINER_APP_WORKER: production-container-app-worker
+    RESOURCE_GROUP: production-resource-group
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_PRODUCTION
+    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_PRODUCTION
+  needs:
+    - job: build_production
+      artifacts: true
+    - job: test_backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+      when: manual
 
+tag_commit_production:
+  stage: post-deploy
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: deploy_production
+  script:
+    - echo 'Tag commit $CI_COMMIT_SHA'
+  release:
+    tag_name: 'deployed-$(date +%Y-%m-%d_%H-%M-%S)'
+    description: 'Deployed from GitLab CI.'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+# TODO: Clean-up.
 build:
   stage: build
   image: "docker:20.10.6"
