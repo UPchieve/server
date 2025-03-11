@@ -5,3 +5,4 @@ ALTER TABLE upchieve.user_product_flags
 -- migrate:down
 ALTER TABLE upchieve.user_product_flags
     DROP COLUMN IF EXISTS tell_them_college_prep_modal_seen_at;
+
