@@ -56,6 +56,7 @@ import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { RoleContext } from './UserRolesService'
+import { IdentifyProperties } from './AnalyticsService'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
@@ -504,6 +505,9 @@ export async function switchActiveRoleForUser(
     throw new Error(
       "Failed to switch user's active role: User contact info not found"
     )
+  AnalyticsService.identify(userId, {
+    userType: activeRole,
+  } as IdentifyProperties)
   const parsedUser = await parseUser(userContactInfo)
   return { activeRole, user: parsedUser }
 }
