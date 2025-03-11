@@ -62,10 +62,7 @@ export async function getRoleContext(
     }
     const activeRole = roles.filter((r) => r !== 'admin')[0] as PrimaryUserRole
     const roleContext = new RoleContext(roles, activeRole, activeRole)
-    await updateRoleContext(
-      userId,
-      new RoleContext(roles, activeRole, activeRole)
-    )
+    await updateRoleContext(userId, roleContext)
     return roleContext
   }
 }
