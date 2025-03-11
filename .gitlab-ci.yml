@@ -93,8 +93,8 @@ build_production:
     - az login --service-principal --username $AZURE_IDENTITY_CLIENT_ID --tenant $AZURE_TENANT_ID --federated-token $GITLAB_OIDC_TOKEN
     - az extension add --name containerapp --upgrade
   script:
-    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHA
-    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHA
+    - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHORT_SHA
+    - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHORT_SHA
 
 deploy_staging:
   extends: .deploy
