@@ -18,9 +18,7 @@ import {
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
 import * as TwilioService from './TwilioService'
-import * as UserRolesService from './UserRolesService'
 import {
-  getUserContactInfoById,
   getUserIdByEmail,
   getUserIdByPhone,
   updateUserProxyEmail,
@@ -28,11 +26,7 @@ import {
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from '../utils/user-type'
+import * as UserService from './UserService'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -163,13 +157,11 @@ export async function initiateVerification(data: unknown): Promise<void> {
   }
 }
 
-async function sendEmails(userId: Ulid): Promise<void> {
-  const user = await getUserContactInfoById(userId)
+async function sendOnboardingEmails(userId: Ulid): Promise<void> {
+  const user = await UserService.getUserContactInfo(userId)
   if (!user) return
 
-  const userType = UserRolesService.getUserTypeFromRoles(user.roles, user.id)
-
-  if (isVolunteerUserType(userType)) {
+  if (user.roleContext.isActiveRole('volunteer')) {
     if (user.volunteerPartnerOrg) {
       await MailService.sendPartnerVolunteerWelcomeEmail(
         user.email,
@@ -181,13 +173,13 @@ async function sendEmails(userId: Ulid): Promise<void> {
         user.firstName
       )
     }
-  } else if (isStudentUserType(userType)) {
+  } else if (user.roleContext.isActiveRole('student')) {
     await MailService.sendStudentOnboardingWelcomeEmail(
       user.email,
       user.firstName
     )
     await StudentService.queueOnboardingEmails(user.id)
-  } else if (isTeacherUserType(userType)) {
+  } else if (user.roleContext.isActiveRole('teacher')) {
     await MailService.sendTeacherOnboardingWelcomeEmail(
       user.email,
       user.firstName
@@ -249,7 +241,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
       await updateUserProxyEmail(userId, sendTo)
     else await updateUserVerifiedInfoById(userId, sendTo, isPhoneVerification)
     if (shouldSendOnboardingEmails) {
-      await sendEmails(userId)
+      await sendOnboardingEmails(userId)
     }
   }
 

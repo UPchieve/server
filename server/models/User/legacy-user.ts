@@ -20,17 +20,13 @@ import {
 } from '../Volunteer/queries'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
-import {
-  isStudentUserType,
-  isTeacherUserType,
-  isVolunteerUserType,
-} from '../../utils/user-type'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
 import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
+import { RoleContext } from '../../services/UserRolesService'
 
 export type LegacyUserModel = {
   // pg
@@ -45,13 +41,17 @@ export type LegacyUserModel = {
   firstname: string
   phone?: string
   college?: string
+  /** @deprecated */
   isVolunteer: boolean
+  /** @deprecated */
   userType: UserRole
+  /** @deprecated */
   isAdmin: boolean
   //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
+  roleContext: RoleContext
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
@@ -59,7 +59,6 @@ export type LegacyUserModel = {
   lastActivityAt?: Date
   referralCode: string
   referredBy?: Ulid
-  roleId: number
   sessionStats: UserSessionStats
   // volunteer
   isOnboarded?: boolean
@@ -141,12 +140,10 @@ export async function getLegacyUserObject(
     const volunteerUser: any = {}
     const studentUser: any = {}
     const teacherUser: { usesClever?: boolean } = {}
-    const userType = (await UserRolesService.getUserRolesById(userId)).userType
-    const ratings = await SurveyService.getUserPostsessionGoalRatingsMetrics(
-      userId,
-      userType
-    )
-    if (isStudentUserType(userType)) {
+    const roleContext = await UserRolesService.getRoleContext(userId)
+    const ratings =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
+    if (roleContext.isActiveRole('student')) {
       studentUser.latestRequestedSubjects =
         await getUsersLatestSubjectsByUserId(baseUser.id)
       studentUser.usesGoogle =
@@ -157,7 +154,7 @@ export async function getLegacyUserObject(
       studentUser.studentAssignments =
         await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
     }
-    if (isVolunteerUserType(userType)) {
+    if (roleContext.isActiveRole('volunteer')) {
       if (!baseUser.subjects) baseUser.subjects = []
       if (!baseUser.activeSubjects) baseUser.activeSubjects = []
       if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
@@ -198,12 +195,16 @@ export async function getLegacyUserObject(
       ).length
       volunteerUser.totalActiveCertifications = totalActiveCerts
     }
-    if (isTeacherUserType(userType)) {
+    if (roleContext.isActiveRole('teacher')) {
       teacherUser.usesClever =
         baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
     }
     const final = _.merge(
-      { _id: baseUser.id, userType },
+      {
+        _id: baseUser.id,
+        userType: roleContext.activeRole,
+        roles: roleContext.roles,
+      },
       baseUser,
       volunteerUser,
       studentUser,
@@ -212,7 +213,8 @@ export async function getLegacyUserObject(
       {
         sessionStats,
       },
-      { ratings }
+      { ratings },
+      { roleContext }
     )
     return final as LegacyUserModel
   } catch (err) {

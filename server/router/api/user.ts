@@ -17,7 +17,6 @@ import { extractUser } from '../extract-user'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
-import { isVolunteerUserType } from '../../utils/user-type'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -243,15 +242,19 @@ export function routeUser(router: Router): void {
 
     try {
       const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
-      const userRoles = await UserRolesService.getUserRolesById(userId)
+      const roleContext = await UserRolesService.getRoleContext(userId)
 
       let resUser: any = user
-      if (isVolunteerUserType(userRoles.userType) && user.photoIdS3Key) {
+      if (roleContext.hasRole('volunteer') && user.photoIdS3Key) {
         const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
         resUser = Object.assign(resUser, { photoUrl })
       }
 
-      res.json({ ...user, userType: userRoles.userType })
+      res.json({
+        ...user,
+        userType: roleContext.legacyRole,
+        roles: roleContext.roles,
+      })
     } catch (err) {
       resError(res, err)
     }
@@ -267,6 +270,30 @@ export function routeUser(router: Router): void {
         payload as unknown
       )
       res.json({ users, isLastPage })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.put('/user/roles/active', async function (req, res) {
+    try {
+      const reqUser = await extractUser(req)
+      const requestedRole = req.body.activeRole
+      const { activeRole, user } = await UserService.switchActiveRoleForUser(
+        reqUser.id,
+        requestedRole
+      )
+      return res.json({ activeRole, user })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/user/roles/volunteer', async function (req, res) {
+    try {
+      const user = await extractUser(req)
+      await UserRolesService.addVolunteerRoleToUser(user.id)
+      return res.sendStatus(201)
     } catch (err) {
       resError(res, err)
     }

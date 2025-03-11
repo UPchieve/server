@@ -8,7 +8,8 @@ INSERT INTO moderation_infractions (id, user_id, session_id, reason)
         moderation_infractions
     WHERE
         user_id = :userId!
-            AND session_id = :sessionId!;
+            AND session_id = :sessionId!
+            AND active = TRUE;
 
 
 /* @name updateModerationInfractionById */

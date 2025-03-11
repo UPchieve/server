@@ -27,7 +27,7 @@ describe('ModerationInfractions', () => {
   })
 
   describe('insertModerationInfraction', () => {
-    it('Inserts the infraction and returns the count by (user, session)', async () => {
+    it('Inserts the infraction and returns the active infractions count by (user, session)', async () => {
       const count = await ModerationInfractionsRepo.insertModerationInfraction(
         {
           userId,
@@ -37,6 +37,49 @@ describe('ModerationInfractions', () => {
         dbClient
       )
       expect(count).toEqual(1)
+    })
+
+    it('Should return the count of ACTIVE infractions', async () => {
+      const sessionId = getDbUlid()
+      const session = await buildSessionRow({
+        id: sessionId,
+        studentId: userId,
+      })
+      await insertSingleRow('sessions', session, dbClient)
+      const initialCount =
+        await ModerationInfractionsRepo.insertModerationInfraction(
+          {
+            userId,
+            sessionId,
+            reason: infractionReason,
+          },
+          dbClient
+        )
+      expect(initialCount).toEqual(1)
+
+      await dbClient.query(
+        'UPDATE moderation_infractions SET active = FALSE where session_id = $1',
+        [sessionId]
+      )
+      const activeInfractionsForSession = await dbClient.query(
+        'SELECT count(*) FROM moderation_infractions WHERE active = TRUE AND session_id = $1',
+        [sessionId]
+      )
+      const activeInfractionsCount = parseInt(
+        activeInfractionsForSession.rows[0].count,
+        10
+      )
+      expect(activeInfractionsCount).toEqual(0)
+      const updatedCount =
+        await ModerationInfractionsRepo.insertModerationInfraction(
+          {
+            userId,
+            sessionId,
+            reason: infractionReason,
+          },
+          dbClient
+        )
+      expect(updatedCount).toEqual(1)
     })
   })
 

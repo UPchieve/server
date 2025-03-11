@@ -14,17 +14,17 @@ import {
   UserNotFoundError,
   NotAllowedError,
   InputError,
-  DEFAULT_ERROR_MESSAGE,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import { adminUpdateStudent } from '../models/Student'
 import {
   UserContactInfo,
-  getUserContactInfoById,
   getUsersForAdminSearch,
   deleteUser,
   updateUserProfileById,
   deleteUserPhoneInfo,
+  UserForAdmin,
+  UserRole,
 } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -41,11 +41,6 @@ import {
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import {
-  isStudentUserType,
-  isVolunteerUserType,
-  isTeacherUserType,
-} from '../utils/user-type'
-import {
   asBoolean,
   asEnum,
   asFactory,
@@ -60,12 +55,13 @@ import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
+import { RoleContext } from './UserRolesService'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
 
   // Approved volunteer
-  if (isVolunteerUserType(user.userType) && user.isApproved) {
+  if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
@@ -302,19 +298,15 @@ export async function adminUpdateUser(data: unknown) {
     partnerSchool,
     schoolId,
   } = asAdminUpdate(data)
-  const userBeforeUpdate = await getUserContactInfoById(userId)
+  const userBeforeUpdate = await getUserContactInfo(userId)
 
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const userType = UserRolesService.getUserTypeFromRoles(
-    userBeforeUpdate.roles,
-    userId
-  )
-  const isVolunteer = isVolunteerUserType(userType)
-  const isStudent = isStudentUserType(userType)
-  const isTeacher = isTeacherUserType(userType)
+  const isVolunteer = userBeforeUpdate.roleContext.legacyRole === 'volunteer'
+  const isStudent = userBeforeUpdate.roleContext.legacyRole === 'student'
+  const isTeacher = userBeforeUpdate.roleContext.legacyRole === 'teacher'
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
@@ -417,7 +409,9 @@ const asUserQuery = asFactory<UserQuery>({
 })
 
 // getUsersForAdmin with a typed interface for these query params
-export async function getUsers(data: unknown) {
+export async function getUsers(
+  data: unknown
+): Promise<{ users: UserForAdmin[]; isLastPage: boolean }> {
   const { userId, firstName, lastName, email, partnerOrg, school, page } =
     asUserQuery(data)
   const pageNum = page || 1
@@ -438,8 +432,17 @@ export async function getUsers(data: unknown) {
       skip
     )
 
+    const withUserTypes = users.map(async (u) => {
+      const roleContext = await UserRolesService.getRoleContext(u.id)
+      return {
+        ...u,
+        userType: roleContext.legacyRole,
+      }
+    })
+    const usersWithUserType = await Promise.all(withUserTypes)
+
     const isLastPage = users.length < PER_PAGE
-    return { users, isLastPage }
+    return { users: usersWithUserType, isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }
@@ -458,8 +461,8 @@ export async function updateUserProfile(
 }
 
 export async function deletePhoneFromAccount(userId: Ulid) {
-  const user = await UserRolesService.getUserRolesById(userId)
-  if (isVolunteerUserType(user.userType)) {
+  const roleContext = await UserRolesService.getRoleContext(userId)
+  if (roleContext.hasRole('volunteer')) {
     throw new InputError(
       'Phone information is required for UPchieve volunteers'
     )
@@ -470,10 +473,37 @@ export async function deletePhoneFromAccount(userId: Ulid) {
 export async function getUserByReferralCode(referralCode: string) {
   const user = await UserRepo.getUserByReferralCode(referralCode)
   if (user) {
-    const userRoles = await UserRolesService.getUserRolesById(user.id)
+    const roleContext = await UserRolesService.getRoleContext(user.id)
     return {
       ...user,
-      userType: userRoles.userType,
+      userType: roleContext.legacyRole,
     }
   }
+}
+
+export async function getUserContactInfo(
+  userId: string
+): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
+  const baseUserInfo = await UserRepo.getUserContactInfoById(userId)
+  if (baseUserInfo) {
+    const roleContext = await UserRolesService.getRoleContext(userId)
+    return {
+      ...baseUserInfo,
+      roleContext,
+    }
+  }
+}
+
+export async function switchActiveRoleForUser(
+  userId: string,
+  role: Exclude<UserRole, 'teacher' | 'admin'>
+): Promise<{ activeRole: Exclude<UserRole, 'teacher' | 'admin'>; user: any }> {
+  const activeRole = await UserRolesService.switchActiveRole(userId, role)
+  const userContactInfo = await getUserContactInfo(userId)
+  if (!userContactInfo)
+    throw new Error(
+      "Failed to switch user's active role: User contact info not found"
+    )
+  const parsedUser = await parseUser(userContactInfo)
+  return { activeRole, user: parsedUser }
 }

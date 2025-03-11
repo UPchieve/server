@@ -3,7 +3,7 @@ import emailFallIncentiveEnrollmentWelcome, {
   EmailFallIncentiveEnrollmentWelcomeJobData,
 } from '../../../worker/jobs/student-emails/emailFallIncentiveEnrollmentWelcome'
 import * as MailService from '../../../services/MailService'
-import * as UserRepo from '../../../models/User'
+import * as UserService from '../../../services/UserService'
 import { Job } from 'bull'
 import { getDbUlid } from '../../../models/pgUtils'
 import { buildUser } from '../../mocks/generate'
@@ -12,9 +12,9 @@ import { log } from '../../../worker/logger'
 
 jest.mock('../../../services/MailService')
 jest.mock('../../../logger')
-jest.mock('../../../models/User')
+jest.mock('../../../services/UserService')
 
-const mockedUserRepo = mocked(UserRepo)
+const mockedUserService = mocked(UserService)
 const mockedMailService = mocked(MailService)
 
 describe('EmailFallIncentiveEnrollmentWelcome', () => {
@@ -23,7 +23,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
   })
 
   test('Should do nothing if there is no user', async () => {
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(undefined)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(undefined)
     const jobData: Job<EmailFallIncentiveEnrollmentWelcomeJobData> = {
       data: {
         userId: getDbUlid(),
@@ -38,7 +38,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
 
   test('Should send email', async () => {
     const user = buildUser()
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     mockedMailService.sendFallIncentiveEnrollmentWelcomeEmail.mockResolvedValueOnce(
       undefined
     )
@@ -59,7 +59,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
 
   test('Should catch error when sending email', async () => {
     const user = buildUser()
-    mockedUserRepo.getUserContactInfoById.mockResolvedValueOnce(user)
+    mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     const error = 'Failed to send email'
     mockedMailService.sendFallIncentiveEnrollmentWelcomeEmail.mockRejectedValueOnce(
       error

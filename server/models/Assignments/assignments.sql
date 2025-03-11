@@ -118,13 +118,15 @@ SELECT
     a.is_required,
     subjects.name AS subject_name,
     sa.created_at AS assigned_at,
-    sa.submitted_at
+    sa.submitted_at,
+    tc.name AS class_name
 FROM
     assignments a
     LEFT JOIN students_assignments sa ON sa.assignment_id = a.id
     LEFT JOIN sessions_students_assignments ssa ON ssa.assignment_id = sa.assignment_id
         AND ssa.user_id = sa.user_id
     LEFT JOIN subjects ON a.subject_id = subjects.id
+    LEFT JOIN teacher_classes tc ON a.class_id = tc.id
 WHERE
     ssa.session_id = :sessionId;
 

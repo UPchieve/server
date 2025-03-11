@@ -15,11 +15,8 @@ import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import {
-  getUserContactInfoById,
-  UserContactInfo,
-  UserRole,
-} from '../../models/User'
+import { UserContactInfo, UserRole } from '../../models/User'
+import * as UserService from '../../services/UserService'
 import { captureEvent } from '../../services/AnalyticsService'
 import { isChatBotEnabled } from '../../services/FeatureFlagService'
 import QueueService from '../../services/QueueService'
@@ -36,13 +33,12 @@ import {
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
-import { isVolunteerUserType } from '../../utils/user-type'
-import { getUserTypeFromRoles } from '../../services/UserRolesService'
 import { SocketUser } from '../../types/socket-types'
 import {
   moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
+import * as UserRolesService from '../../services/UserRolesService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -65,8 +61,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (isVolunteerUserType(getUserTypeFromRoles(user.roles, user.id)))
-    socket.join('volunteers')
+  if (user.roleContext.isActiveRole('volunteer')) socket.join('volunteers')
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -206,21 +201,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId, joinedFrom } = data
-            const user = extractSocketUser(socket)
+            const user = await extractSocketUser(socket)
 
             try {
               // TODO: have middleware handle the auth
               if (!user) throw new Error('User not authenticated')
-              if (
-                isVolunteerUserType(
-                  getUserTypeFromRoles(user.roles, user.id)
-                ) &&
-                !user.approved
-              )
+              if (user.roleContext.isActiveRole('volunteer') && !user.approved)
                 throw new Error('Volunteer not approved')
             } catch (error) {
+              logger.error(
+                error,
+                'Failed to join session socket: Invalid user state'
+              )
               socket.emit('redirect')
-              reject(error)
               return
             }
 
@@ -286,7 +279,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             const { sessionId } = data
-            const user = extractSocketUser(socket)
+            const user = await extractSocketUser(socket)
 
             try {
               const session = await SessionRepo.getSessionById(sessionId)
@@ -383,7 +376,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
-            const dbUser = await getUserContactInfoById(user.id)
+            const dbUser = await UserService.getUserContactInfo(user.id)
             if (!dbUser) return resolve()
             if (source === 'recap' && !!dbUser.banType) return resolve()
 
@@ -440,7 +433,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (chatbot && !(chatbot === user.id))
               await SessionService.handleMessageActivity(sessionId)
 
-            const userType = getUserTypeFromRoles(dbUser.roles, user.id)
+            const userType = dbUser.roleContext.activeRole
             const messageData: {
               contents: string
               createdAt: Date
@@ -454,7 +447,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             } = {
               contents: sanitizedMessage ?? message,
               createdAt: createdAt,
-              isVolunteer: isVolunteerUserType(userType),
+              isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
               userType: userType,
               user: user.id,
               sessionId,
@@ -478,7 +471,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                 sessionId: sessionId,
                 message,
-                isVolunteer: isVolunteerUserType(userType),
+                isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
                 userType: userType,
               })
             }
@@ -607,8 +600,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('disconnecting', () => {
-      const user = extractSocketUser(socket)
+    socket.on('disconnecting', async () => {
+      const user = await extractSocketUser(socket)
       for (const room of socket.rooms) {
         if (room.includes('sessions')) {
           socket
@@ -630,7 +623,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (isSocketInRoom) {
               socket.leave(sessionRoom)
               delete socket.data.sessionId
-              const user = extractSocketUser(socket)
+              const user = await extractSocketUser(socket)
               await socket
                 .to(sessionRoom)
                 .except(user.id)

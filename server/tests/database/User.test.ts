@@ -9,7 +9,6 @@ import {
   createUser,
   CreateUserPayload,
   deleteUserPhoneInfo,
-  getUserContactInfoById,
   upsertUser,
   UserContactInfo,
 } from '../../models/User'
@@ -27,7 +26,7 @@ import {
   buildUserRole,
 } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
-import { adminUpdateUser } from '../../services/UserService'
+import { adminUpdateUser, getUserContactInfo } from '../../services/UserService'
 import { getDbUlid } from '../../models/pgUtils'
 import { getLegacyUser } from '../../models/User/pg.queries'
 
@@ -474,7 +473,7 @@ describe('ban type users tests', () => {
     const reportMessage = 'User was rude'
     const source = 'recap'
 
-    const upsertedVolunteerContactInfo = (await getUserContactInfoById(
+    const upsertedVolunteerContactInfo = (await getUserContactInfo(
       upsertedVolunteerId
     )) as UserContactInfo
 

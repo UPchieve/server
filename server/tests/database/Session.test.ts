@@ -11,8 +11,8 @@ import {
 import { getClient } from '../../db'
 import {
   getMessagesForFrontend,
-  getSessionHistory,
-  getTotalSessionHistory,
+  getFilteredSessionHistory,
+  getFilteredSessionHistoryTotalCount,
 } from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
@@ -40,11 +40,11 @@ describe('Session repo', () => {
           await insertSingleRow('sessions', sessionRow, dbClient)
         }
 
-        const total = await getTotalSessionHistory(studentId)
+        const total = await getFilteredSessionHistoryTotalCount(studentId)
         expect(total).toEqual(5)
 
-        const firstPage = await getSessionHistory(studentId, 4, 0)
-        const secondPage = await getSessionHistory(studentId, 4, 4)
+        const firstPage = await getFilteredSessionHistory(studentId, 4, 0)
+        const secondPage = await getFilteredSessionHistory(studentId, 4, 4)
         expect(firstPage.length).toEqual(4)
         expect(secondPage.length).toEqual(1)
       })

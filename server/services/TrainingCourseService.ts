@@ -6,6 +6,7 @@ import {
 } from '../models/Volunteer'
 import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
+import { runInTransaction, TransactionClient } from '../db'
 
 // @note: this type was derived from how the return type is used by the frontend
 // TODO: come back and verify this is the return shape we want
@@ -52,55 +53,59 @@ export async function recordProgress(
   courseKey: keyof TrainingCourses,
   materialKey: string
 ): Promise<CourseProgress> {
-  const volunteerTrainingCourses = await getVolunteerTrainingCourses(
-    volunteer.id
-  )
-
-  const volunteerCourse = volunteerTrainingCourses.hasOwnProperty(courseKey)
-    ? volunteerTrainingCourses[courseKey]
-    : {
-        complete: false,
-        completedMaterials: [] as string[],
-        progress: 0,
-      }
-
-  // A course may have several materials to complete.
-  // The user may already have some progress toward the course if
-  // they have completed any of the materials.
-  let materialAlreadyCompleted = false
-  const completedMaterials = [...volunteerCourse.completedMaterials]
-  if (volunteerCourse.completedMaterials.includes(materialKey)) {
-    // This _shouldn't_ happen if the client is making the right calls,
-    // but it appears to happen on occasion.
-    // TODO Remove once we figure out why.
-    materialAlreadyCompleted = true
-    logger.warn(
-      {
-        courseKey,
-        materialKey,
-      },
-      'User has already completed this training material'
-    )
-  } else {
-    completedMaterials.push(materialKey)
-  }
-
-  const progress = await TrainingUtils.getProgress(
-    courseKey,
-    completedMaterials,
-    volunteer.id
-  )
-  const isComplete = progress === 100
-
-  if (!materialAlreadyCompleted) {
-    await updateVolunteerTrainingById(
+  return runInTransaction(async (tc: TransactionClient) => {
+    const volunteerTrainingCourses = await getVolunteerTrainingCourses(
       volunteer.id,
-      courseKey,
-      isComplete,
-      progress,
-      materialKey
+      tc
     )
-  }
 
-  return { progress, isComplete }
+    const volunteerCourse = volunteerTrainingCourses.hasOwnProperty(courseKey)
+      ? volunteerTrainingCourses[courseKey]
+      : {
+          complete: false,
+          completedMaterials: [] as string[],
+          progress: 0,
+        }
+
+    // A course may have several materials to complete.
+    // The user may already have some progress toward the course if
+    // they have completed any of the materials.
+    let materialAlreadyCompleted = false
+    const completedMaterials = [...volunteerCourse.completedMaterials]
+    if (volunteerCourse.completedMaterials.includes(materialKey)) {
+      // This _shouldn't_ happen if the client is making the right calls,
+      // but it appears to happen on occasion.
+      // TODO Remove once we figure out why.
+      materialAlreadyCompleted = true
+      logger.warn(
+        {
+          courseKey,
+          materialKey,
+        },
+        'User has already completed this training material'
+      )
+    } else {
+      completedMaterials.push(materialKey)
+    }
+
+    const progress = await TrainingUtils.getProgress(
+      courseKey,
+      completedMaterials,
+      volunteer.id
+    )
+    const isComplete = progress === 100
+
+    if (!materialAlreadyCompleted) {
+      await updateVolunteerTrainingById(
+        volunteer.id,
+        courseKey,
+        isComplete,
+        progress,
+        materialKey,
+        tc
+      )
+    }
+
+    return { progress, isComplete }
+  })
 }

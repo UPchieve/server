@@ -41,7 +41,7 @@ import {
 } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
-import { asString } from '../utils/type-utils'
+import { asFactory, asOptional, asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
@@ -66,11 +66,10 @@ import {
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
 import { TransactionClient, runInTransaction } from '../db'
-import { isStudentUserType, isVolunteerUserType } from '../utils/user-type'
-import { getUserTypeFromRoles } from './UserRolesService'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
+import * as UserRolesService from '../services/UserRolesService'
 import {
   getStudentIdsInTeacherClass,
   getTeacherClasses,
@@ -146,10 +145,10 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   // Autoban users if a session is reported from the recap page
   const isBanReason =
     reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
-  const isVolunteer = isVolunteerUserType(
-    getUserTypeFromRoles(reportedBy.roles, reportedBy.id)
-  )
-  const reportedUser = isVolunteer ? session.studentId : session.volunteerId
+  const isSessionVolunteer = reportedBy.id === session.volunteerId
+  const reportedUser = isSessionVolunteer
+    ? session.studentId
+    : session.volunteerId
   if (isBanReason) {
     await UserRepo.banUserById(
       reportedUser,
@@ -169,7 +168,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     })
 
     if (source === 'recap') {
-      const sessionFlags = isVolunteer
+      const sessionFlags = isSessionVolunteer
         ? [USER_SESSION_METRICS.coachReportedStudentDm]
         : [USER_SESSION_METRICS.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
@@ -560,7 +559,7 @@ export async function startSession(
       )
 
     const userId = user.id
-    if (isVolunteerUserType(getUserTypeFromRoles(user.roles, userId)))
+    if (user.roleContext.isActiveRole('volunteer'))
       throw new sessionUtils.StartSessionError(
         'Volunteers cannot create new sessions'
       )
@@ -702,9 +701,8 @@ export async function joinSession(
     throw new Error('Session has ended')
   }
 
-  const userType = getUserTypeFromRoles(user.roles, user.id)
-  const isStudent = isStudentUserType(userType)
-  const isVolunteer = isVolunteerUserType(userType)
+  const isStudent = user.roleContext.isActiveRole('student')
+  const isVolunteer = user.roleContext.isActiveRole('volunteer')
   if (isStudent && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error(`A student cannot join another student's session`)
@@ -713,6 +711,13 @@ export async function joinSession(
   if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
     throw new Error('A volunteer has already joined the session')
+  }
+
+  if (isVolunteer && session.studentId === user.id) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error(
+      'You may not join your own session as both student and coach'
+    )
   }
 
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
@@ -890,7 +895,7 @@ export async function generateAndStoreWaitTimeHeatMap(
 export async function getWaitTimeHeatMap(
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
-  if (isStudentUserType(getUserTypeFromRoles(user.roles, user.id)))
+  if (user.roleContext.isActiveRole('student'))
     throw new NotAllowedError('Only volunteers may view the heat map')
   try {
     const heatMap = await cache.get(config.cacheKeys.waitTimeHeatMapAllSubjects)
@@ -961,29 +966,47 @@ export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
   }
 }
 
-// TODO: implement these with cursor pagination
+export const asSessionHistoryFilter = asFactory<SessionHistoryFilter>({
+  studentFirstName: asOptional(asString),
+  volunteerFirstName: asOptional(asString),
+  studentId: asOptional(asString),
+  subjectName: asOptional(asString),
+  volunteerId: asOptional(asString),
+})
+export type SessionHistoryFilter = {
+  studentFirstName?: string
+  volunteerFirstName?: string
+  studentId?: Ulid
+  subjectName?: string
+  volunteerId?: Ulid
+}
 export async function getSessionHistory(
   userId: Ulid,
-  page: string,
-  filter: { studentId?: Ulid; volunteerId?: Ulid } = {}
+  pageNum: number,
+  pageLimit: number = 5,
+  filter: SessionHistoryFilter
 ) {
-  const pageNum = parseInt(page)
-  const PER_PAGE = 5
-  const skip = (pageNum - 1) * PER_PAGE
-  const pastSessions = await SessionRepo.getSessionHistory(
-    userId,
-    PER_PAGE,
-    skip,
-    filter
-  )
+  const fetchLimit = pageLimit + 1
+  const offset = (pageNum - 1) * pageLimit
 
-  const isLastPage = pastSessions.length < PER_PAGE
+  const [pastSessions, totalCount] = await Promise.all([
+    SessionRepo.getFilteredSessionHistory(userId, fetchLimit, offset, filter),
+    SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter),
+  ])
 
-  return { pastSessions, page: pageNum, isLastPage }
+  return {
+    pastSessions: pastSessions.slice(0, pageLimit),
+    totalCount,
+    page: pageNum,
+    isLastPage: pastSessions.length < fetchLimit,
+  }
 }
 
-export async function getTotalSessionHistory(userId: Ulid) {
-  return SessionRepo.getTotalSessionHistory(userId)
+export async function getTotalSessionHistory(
+  userId: Ulid,
+  filter: SessionHistoryFilter = {}
+) {
+  return SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter)
 }
 
 export async function getSessionRecap(
@@ -1149,14 +1172,4 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
-}
-
-export async function getPreviousSessionCountForPair(
-  studentId: Ulid,
-  volunteerId: Ulid
-): Promise<number> {
-  return await SessionRepo.getPreviousSessionCountForPair(
-    studentId,
-    volunteerId
-  )
 }
