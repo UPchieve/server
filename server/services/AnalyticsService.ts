@@ -73,7 +73,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
 
     personProperties = {
       ucId: user.id,
-      userType: user.userType,
+      userType: user.roleContext.activeRole,
       createdAt: user.createdAt.toISOString(),
       totalSessions: user.pastSessions.length,
       banType: user.banType,
