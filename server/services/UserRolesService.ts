@@ -6,13 +6,19 @@ import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
 
+export type PrimaryUserRole = Exclude<UserRole, 'admin'>
+
 export class RoleContext {
   readonly roles: UserRole[]
-  readonly activeRole: UserRole
+  readonly activeRole: PrimaryUserRole
   /** @deprecated */
-  readonly legacyRole: UserRole
+  readonly legacyRole: PrimaryUserRole
 
-  constructor(roles: UserRole[], activeRole: UserRole, legacyRole: UserRole) {
+  constructor(
+    roles: UserRole[],
+    activeRole: PrimaryUserRole,
+    legacyRole: PrimaryUserRole
+  ) {
     this.roles = roles
     this.activeRole = activeRole
     this.legacyRole = legacyRole
@@ -39,9 +45,9 @@ export async function getRoleContext(
   const roleContextStr = await CacheService.getIfExists(key)
   if (roleContextStr) {
     const data: {
-      activeRole: UserRole
+      activeRole: PrimaryUserRole
       roles: UserRole[]
-      legacyRole?: UserRole
+      legacyRole?: PrimaryUserRole
     } = JSON.parse(roleContextStr)
     return new RoleContext(
       data.roles,
@@ -54,12 +60,9 @@ export async function getRoleContext(
     if (!roles.length) {
       throw new Error('User is missing roles')
     }
-    const activeRole = roles.filter((r) => r !== 'admin')[0]
-    const roleContext = new RoleContext(roles, activeRole, roles[0])
-    await updateRoleContext(
-      userId,
-      new RoleContext(roles, activeRole, roles[0])
-    )
+    const activeRole = roles.filter((r) => r !== 'admin')[0] as PrimaryUserRole
+    const roleContext = new RoleContext(roles, activeRole, activeRole)
+    await updateRoleContext(userId, roleContext)
     return roleContext
   }
 }
