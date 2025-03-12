@@ -17,6 +17,7 @@ export interface ICreateUpfByUserIdResult {
   sentInactiveSixtyDayEmail: boolean;
   sentInactiveThirtyDayEmail: boolean;
   sentReadyToCoachEmail: boolean;
+  tellThemCollegePrepModalSeenAt: Date | null;
   updatedAt: Date;
   userId: string;
 }
@@ -27,7 +28,7 @@ export interface ICreateUpfByUserIdQuery {
   result: ICreateUpfByUserIdResult;
 }
 
-const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    created_at,\n    updated_at"};
+const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
@@ -55,6 +56,7 @@ const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"nam
  *     gates_qualified,
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
+ *     tell_them_college_prep_modal_seen_at,
  *     created_at,
  *     updated_at
  * ```
@@ -78,6 +80,7 @@ export interface IGetUpfByUserIdResult {
   sentInactiveSixtyDayEmail: boolean;
   sentInactiveThirtyDayEmail: boolean;
   sentReadyToCoachEmail: boolean;
+  tellThemCollegePrepModalSeenAt: Date | null;
   updatedAt: Date;
   userId: string;
 }
@@ -88,7 +91,7 @@ export interface IGetUpfByUserIdQuery {
   result: IGetUpfByUserIdResult;
 }
 
-const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":359,"b":366}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
+const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":401,"b":408}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -103,6 +106,7 @@ const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":
  *     gates_qualified,
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
+ *     tell_them_college_prep_modal_seen_at,
  *     created_at,
  *     updated_at
  * FROM
@@ -124,6 +128,7 @@ export interface IGetPublicUpfByUserIdResult {
   fallIncentiveEnrollmentAt: Date | null;
   gatesQualified: boolean;
   impactStudyEnrollmentAt: Date | null;
+  tellThemCollegePrepModalSeenAt: Date | null;
   userId: string;
 }
 
@@ -133,7 +138,7 @@ export interface IGetPublicUpfByUserIdQuery {
   result: IGetPublicUpfByUserIdResult;
 }
 
-const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":154,"b":161}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
+const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":203}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -142,7 +147,8 @@ const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"
  *     user_id,
  *     gates_qualified,
  *     fall_incentive_enrollment_at,
- *     impact_study_enrollment_at
+ *     impact_study_enrollment_at,
+ *     tell_them_college_prep_modal_seen_at
  * FROM
  *     user_product_flags
  * WHERE
@@ -328,5 +334,40 @@ const enrollStudentToImpactStudyIR: any = {"usedParamSet":{"userId":true},"param
  * ```
  */
 export const enrollStudentToImpactStudy = new PreparedQuery<IEnrollStudentToImpactStudyParams,IEnrollStudentToImpactStudyResult>(enrollStudentToImpactStudyIR);
+
+
+/** 'TellThemCollegePrepModalSeenAt' parameters type */
+export interface ITellThemCollegePrepModalSeenAtParams {
+  userId: string;
+}
+
+/** 'TellThemCollegePrepModalSeenAt' return type */
+export interface ITellThemCollegePrepModalSeenAtResult {
+  tellThemCollegePrepModalSeenAt: Date | null;
+}
+
+/** 'TellThemCollegePrepModalSeenAt' query type */
+export interface ITellThemCollegePrepModalSeenAtQuery {
+  params: ITellThemCollegePrepModalSeenAtParams;
+  result: ITellThemCollegePrepModalSeenAtResult;
+}
+
+const tellThemCollegePrepModalSeenAtIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":127,"b":134}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    tell_them_college_prep_modal_seen_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    tell_them_college_prep_modal_seen_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     user_product_flags
+ * SET
+ *     tell_them_college_prep_modal_seen_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     tell_them_college_prep_modal_seen_at
+ * ```
+ */
+export const tellThemCollegePrepModalSeenAt = new PreparedQuery<ITellThemCollegePrepModalSeenAtParams,ITellThemCollegePrepModalSeenAtResult>(tellThemCollegePrepModalSeenAtIR);
 
 

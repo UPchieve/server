@@ -11,6 +11,7 @@ import { getLegacyUserObject } from '../models/User/legacy-user'
 import {
   enrollStudentToFallIncentiveProgram,
   enrollStudentToImpactStudy,
+  updateTellThemCollegePrepModalSeenAt,
 } from '../models/UserProductFlags'
 import {
   isUserInIncentiveProgram,
@@ -89,4 +90,8 @@ export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
   }
 
   return impactStudyEnrollmentAt
+}
+
+export async function sawTellThemCollegePrepModal(userId: Ulid) {
+  return await updateTellThemCollegePrepModalSeenAt(userId)
 }
