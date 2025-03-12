@@ -188,7 +188,7 @@ ORDER BY
 
 /* @name getStudentPostsessionSurveyResponse */
 WITH replacement_column_cte AS (
-    SELECT
+    SELECT DISTINCT
         sq.id,
         CASE WHEN sq.replacement_column_1 = 'student_name' THEN
             u_student.first_name
@@ -257,7 +257,7 @@ FROM
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
     LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
-    JOIN replacement_column_cte rcc ON rcc.id = sq.id
+    LEFT JOIN replacement_column_cte rcc ON rcc.id = sq.id
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
@@ -337,7 +337,7 @@ FROM
     LEFT JOIN upchieve.surveys_survey_questions AS ssq ON us.survey_id = ssq.survey_id
         AND uss.survey_question_id = ssq.survey_question_id
     LEFT JOIN upchieve.question_types AS qt ON qt.id = sq.question_type_id
-    JOIN replacement_column_cte rcc ON rcc.id = sq.id
+    LEFT JOIN replacement_column_cte rcc ON rcc.id = sq.id
 WHERE
     us.session_id = :sessionId!
     AND s.id = :sessionId!
