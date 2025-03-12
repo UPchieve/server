@@ -19,6 +19,7 @@ export async function createUPFByUserId(
       return makeSomeOptional(result[0], [
         'fallIncentiveEnrollmentAt',
         'impactStudyEnrollmentAt',
+        'tellThemCollegePrepModalSeenAt',
       ])
     }
     throw new RepoCreateError('Insert did not return new row')
@@ -42,6 +43,7 @@ export async function getUPFByUserId(
       return makeSomeOptional(result[0], [
         'fallIncentiveEnrollmentAt',
         'impactStudyEnrollmentAt',
+        'tellThemCollegePrepModalSeenAt',
       ])
     }
   } catch (err) {
@@ -64,6 +66,7 @@ export async function getPublicUPFByUserId(
       return makeSomeOptional(result[0], [
         'fallIncentiveEnrollmentAt',
         'impactStudyEnrollmentAt',
+        'tellThemCollegePrepModalSeenAt',
       ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -144,6 +147,21 @@ export async function enrollStudentToImpactStudy(userId: Ulid): Promise<Date> {
       getClient()
     )
     if (result.length) return makeRequired(result[0]).impactStudyEnrollmentAt
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateTellThemCollegePrepModalSeenAt(userId: Ulid) {
+  try {
+    const result = await pgQueries.tellThemCollegePrepModalSeenAt.run(
+      { userId },
+      getClient()
+    )
+    if (result.length)
+      return makeRequired(result[0]).tellThemCollegePrepModalSeenAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
