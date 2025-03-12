@@ -188,7 +188,7 @@ ORDER BY
 
 /* @name getStudentPostsessionSurveyResponse */
 WITH replacement_column_cte AS (
-    SELECT DISTINCT
+    SELECT
         sq.id,
         CASE WHEN sq.replacement_column_1 = 'student_name' THEN
             u_student.first_name
