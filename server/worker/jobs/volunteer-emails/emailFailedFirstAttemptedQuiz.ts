@@ -20,8 +20,12 @@ export default async (
   } = job
   const volunteerId = asString(job.data.volunteerId)
   try {
-    const volunteer = await getVolunteerContactInfoById(volunteerId)
-    // Only send email if vounteer is found to be a recipient
+    const volunteer = await getVolunteerContactInfoById(volunteerId, {
+      banned: false,
+      deactivated: false,
+      testUser: false,
+    })
+    // Only send email if volunteer is found to be a recipient
     if (volunteer) {
       await MailService.sendFailedFirstAttemptedQuiz(category, email, firstName)
       log(`Sent ${currentJob} to volunteer ${volunteerId}`)

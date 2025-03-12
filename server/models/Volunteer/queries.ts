@@ -42,11 +42,19 @@ export type VolunteerContactInfo = {
 }
 
 export async function getVolunteerContactInfoById(
-  userId: Ulid
+  userId: Ulid,
+  filters?: {
+    banned?: boolean
+    deactivated?: boolean
+    testUser?: boolean
+  }
 ): Promise<VolunteerContactInfo | undefined> {
   try {
+    const banned = filters?.banned ?? null
+    const deactivated = filters?.deactivated ?? null
+    const testUser = filters?.testUser ?? null
     const result = await pgQueries.getVolunteerContactInfoById.run(
-      { userId },
+      { userId, banned, deactivated, testUser },
       getClient()
     )
     if (!result.length) return
