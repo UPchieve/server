@@ -386,9 +386,11 @@ export function routeSession(router: Router) {
     try {
       const user = extractUser(req)
       const { sessionId } = req.params
+      const isTeacher = user.roleContext.isActiveRole('teacher')
       const session = await SessionService.getSessionRecap(
         asUlid(sessionId),
-        user.id
+        user.id,
+        isTeacher
       )
       const isSessionVolunteer = session.volunteerId === user.id
 

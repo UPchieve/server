@@ -69,7 +69,7 @@ import { TransactionClient, runInTransaction } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
-import * as UserRolesService from '../services/UserRolesService'
+import * as TeacherService from './TeacherService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1007,19 +1007,34 @@ export async function getTotalSessionHistory(
 
 export async function getSessionRecap(
   sessionId: Ulid,
-  userId: Ulid
+  userId: Ulid,
+  isTeacher: boolean
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
-  if (
-    !sessionUtils.isSessionParticipant(
-      session.studentId,
-      session.volunteerId,
-      userId
-    )
-  )
-    throw new NotAllowedError(
-      'Only session participants are allowed to view this session'
-    )
+
+  if (!isTeacher) {
+    if (
+      !sessionUtils.isSessionParticipant(
+        session.studentId,
+        session.volunteerId,
+        userId
+      )
+    ) {
+      throw new NotAllowedError(
+        'Only session participants are allowed to view this session'
+      )
+    }
+  } else {
+    const studentsInClasses =
+      await TeacherService.getAllStudentsForTeacher(userId)
+
+    if (!studentsInClasses.includes(session.studentId)) {
+      throw new NotAllowedError(
+        'Teacher can only view sessions for students in their classes'
+      )
+    }
+  }
+
   return session
 }
 
