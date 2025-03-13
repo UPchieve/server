@@ -2,37 +2,25 @@ import { Job } from 'bull'
 import moment from 'moment'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { Ulid } from '../../../models/pgUtils'
+import { Uuid } from '../../../models/pgUtils'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { Jobs } from '../index'
-import { ISOString } from '../../../constants'
-import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
-import { asFactory, asOptional, asString } from '../../../utils/type-utils'
+import { getSessionById } from '../../../models/Session'
 
-interface StudentSessionActionsJobData {
-  studentId: Ulid
-  volunteerId?: Ulid
-  sessionSubtopic: string
-  sessionDate: ISOString
+type StudentSessionActionsJobData = {
+  sessionId: Uuid
 }
-
-const asStudentActionsData = asFactory<StudentSessionActionsJobData>({
-  studentId: asString,
-  volunteerId: asOptional(asString),
-  sessionSubtopic: asString,
-  sessionDate: asString,
-})
 
 export default async (
   job: Job<StudentSessionActionsJobData>
 ): Promise<void> => {
   const { data, name: currentJob } = job
-  const { studentId, volunteerId, sessionSubtopic, sessionDate } =
-    asStudentActionsData(data)
-  const student = await getStudentContactInfoById(studentId)
+  const session = await getSessionById(data.sessionId)
+  const student = await getStudentContactInfoById(session.studentId)
   let volunteer
-  if (volunteerId) volunteer = await getVolunteerContactInfoById(volunteerId)
+  if (session.volunteerId)
+    volunteer = await getVolunteerContactInfoById(session.volunteerId)
 
   if (student) {
     try {
@@ -44,15 +32,15 @@ export default async (
           studentFirstName,
           email,
           volunteer?.firstName,
-          formatMultiWordSubject(sessionSubtopic),
-          moment(sessionDate).format('MMMM Do')
+          session.subjectDisplayName,
+          moment(session.createdAt).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailStudentUnmatchedApology)
         await MailService.sendStudentUnmatchedApology(
           studentFirstName,
           email,
-          formatMultiWordSubject(sessionSubtopic),
-          moment(sessionDate).format('MMMM Do')
+          session.subjectDisplayName,
+          moment(session.createdAt).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailStudentOnlyLookingForAnswers)
         await MailService.sendOnlyLookingForAnswersWarning(
@@ -60,10 +48,10 @@ export default async (
           email
         )
 
-      log(`Emailed ${currentJob} to student ${studentId}`)
+      log(`Emailed ${currentJob} to student ${session.studentId}`)
     } catch (error) {
       throw new Error(
-        `Failed to email ${currentJob} to student ${studentId}: ${error}`
+        `Failed to email ${currentJob} to student ${session.studentId}: ${error}`
       )
     }
   }

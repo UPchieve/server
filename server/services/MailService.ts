@@ -370,7 +370,7 @@ export async function sendReportedSessionAlert(
   sessionId: Ulid,
   reportedByEmail: string,
   reportReason: string,
-  reportMessage: string
+  reportMessage?: string
 ): Promise<void> {
   const sessionAdminLink = buildAppLink(`admin/sessions/${sessionId}`)
   const overrides = {
