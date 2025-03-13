@@ -156,7 +156,7 @@ SELECT DISTINCT
     (sc.user_id)
 FROM
     student_classes sc
-    LEFT JOIN teacher_classes tc ON sc.class_id = tc.id
+    JOIN teacher_classes tc ON sc.class_id = tc.id
 WHERE
     tc.user_id = :teacherId!;
 

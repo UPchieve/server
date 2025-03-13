@@ -478,7 +478,7 @@ export interface IGetAllStudentsForTeacherQuery {
   result: IGetAllStudentsForTeacherResult;
 }
 
-const getAllStudentsForTeacherIR: any = {"usedParamSet":{"teacherId":true},"params":[{"name":"teacherId","required":true,"transform":{"type":"scalar"},"locs":[{"a":140,"b":150}]}],"statement":"SELECT DISTINCT\n    (sc.user_id)\nFROM\n    student_classes sc\n    LEFT JOIN teacher_classes tc ON sc.class_id = tc.id\nWHERE\n    tc.user_id = :teacherId!"};
+const getAllStudentsForTeacherIR: any = {"usedParamSet":{"teacherId":true},"params":[{"name":"teacherId","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":145}]}],"statement":"SELECT DISTINCT\n    (sc.user_id)\nFROM\n    student_classes sc\n    JOIN teacher_classes tc ON sc.class_id = tc.id\nWHERE\n    tc.user_id = :teacherId!"};
 
 /**
  * Query generated from SQL:
@@ -487,7 +487,7 @@ const getAllStudentsForTeacherIR: any = {"usedParamSet":{"teacherId":true},"para
  *     (sc.user_id)
  * FROM
  *     student_classes sc
- *     LEFT JOIN teacher_classes tc ON sc.class_id = tc.id
+ *     JOIN teacher_classes tc ON sc.class_id = tc.id
  * WHERE
  *     tc.user_id = :teacherId!
  * ```

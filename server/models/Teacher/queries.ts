@@ -204,14 +204,11 @@ export async function updateTeacherSchool(
   }
 }
 
-export async function getAllStudentsForTeacher(
-  teacherId: Ulid,
-  tc: TransactionClient
-) {
+export async function getAllStudentsForTeacher(teacherId: Ulid) {
   try {
     const studentIds = await pgQueries.getAllStudentsForTeacher.run(
       { teacherId },
-      tc
+      getClient()
     )
     return studentIds.map((s) => makeRequired(s).userId)
   } catch (err) {
