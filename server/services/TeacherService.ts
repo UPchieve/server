@@ -277,3 +277,7 @@ export async function updateLastSuccessfulCleverSync(
 ) {
   return TeacherRepo.updateLastSuccessfulCleverSync(teacherId, tc)
 }
+
+export async function getAllStudentsForTeacher(teacherId: Ulid) {
+  return TeacherRepo.getAllStudentsForTeacher(teacherId)
+}
