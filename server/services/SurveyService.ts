@@ -21,7 +21,11 @@ import * as SurveyRepo from '../models/Survey'
 import * as UserService from '../services/UserService'
 import * as UserRolesService from '../services/UserRolesService'
 import { getTotalSessionsByUserId } from '../models/User'
-import { SaveUserSurvey, SaveUserSurveySubmission } from '../models/Survey'
+import {
+  SaveUserSurvey,
+  SaveUserSurveySubmission,
+  PostsessionSurveyResponse,
+} from '../models/Survey'
 import {
   asArray,
   asEnum,
@@ -220,31 +224,83 @@ export function parseUserRole(param: string) {
   return cleanedInput
 }
 
-export async function getPostsessionSurveyDefinition(
-  sessionId: Ulid,
-  userRole: USER_ROLES_TYPE
-): Promise<SurveyQueryResponse | undefined> {
+async function getReplacementColumnOptions(sessionId: Ulid): Promise<{
+  studentName: string
+  coachName: string
+  subjectName: string
+  studentGoal: string
+}> {
   // Get the replacement column options.
   const session = await SessionRepo.getSessionById(sessionId)
   const studentName =
     (await UserService.getUserContactInfo(session.studentId))?.firstName ?? ''
+
   let coachName: string = ''
   if (session.volunteerId) {
     coachName =
       (await UserService.getUserContactInfo(session.volunteerId))?.firstName ??
       ''
   }
+
   const subjectName = session.subjectDisplayName
   const studentGoal =
     (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
+
+  return {
+    studentName,
+    coachName,
+    subjectName,
+    studentGoal,
+  }
+}
+
+function getReplacementText(
+  replacementColumn: string | null | undefined,
+  replacementColumns: {
+    studentName: string
+    coachName: string
+    subjectName: string
+    studentGoal: string
+  }
+): string {
+  if (!replacementColumn) return ''
+
+  switch (replacementColumn) {
+    case 'student_name':
+      return replacementColumns.studentName
+    case 'coach_name':
+      return replacementColumns.coachName
+    case 'subject_name':
+      return replacementColumns.subjectName
+    case 'student_goal':
+      return replacementColumns.studentGoal
+    default:
+      return ''
+  }
+}
+
+function skipQuestion(
+  studentGoal: string,
+  first?: string,
+  second?: string
+): boolean {
+  return (first === 'student_goal' || second === 'student_goal') && !studentGoal
+}
+
+export async function getPostsessionSurveyDefinition(
+  sessionId: Ulid,
+  userRole: USER_ROLES_TYPE
+): Promise<SurveyQueryResponse | undefined> {
+  const replacementColumns = await getReplacementColumnOptions(sessionId)
 
   const postsessionSurveyDefinition =
     (await SurveyRepo.getPostsessionSurveyDefinition(sessionId, userRole)) ?? []
 
   const survey: SurveyQuestionDefinition[] = []
-  for (const question of postsessionSurveyDefinition ?? []) {
+  for (const question of postsessionSurveyDefinition) {
     if (
       skipQuestion(
+        replacementColumns.studentGoal,
         question.firstReplacementColumn,
         question.secondReplacementColumn
       )
@@ -253,8 +309,15 @@ export async function getPostsessionSurveyDefinition(
     }
 
     question.questionText = question.questionText
-      .replace(/%s/, getReplacementText(question.firstReplacementColumn))
-      .replace(/%s/, getReplacementText(question.secondReplacementColumn))
+      .replace(
+        /%s/,
+        getReplacementText(question.firstReplacementColumn, replacementColumns)
+      )
+      .replace(
+        /%s/,
+        getReplacementText(question.secondReplacementColumn, replacementColumns)
+      )
+
     survey.push({
       questionId: question.questionId,
       questionText: question.questionText,
@@ -272,30 +335,6 @@ export async function getPostsessionSurveyDefinition(
       surveyId: postsessionSurveyDefinition[0].surveyId,
       surveyTypeId: postsessionSurveyDefinition[0].surveyTypeId,
       survey,
-    }
-  }
-
-  function skipQuestion(first?: string, second?: string) {
-    // We wouldn't have a student goal if the student didn't fill out a pre-session survey.
-    return (
-      (first === 'student_goal' || second === 'student_goal') && !studentGoal
-    )
-  }
-
-  function getReplacementText(replacementColumn?: string): string {
-    if (!replacementColumn) return ''
-
-    switch (replacementColumn) {
-      case 'student_name':
-        return studentName
-      case 'coach_name':
-        return coachName
-      case 'subject_name':
-        return subjectName
-      case 'student_goal':
-        return studentGoal
-      default:
-        return ''
     }
   }
 }
@@ -399,4 +438,68 @@ export function classifyFeedback(
   }
 
   return classifedFeedback
+}
+
+type PostsessionSurveyResponses = Omit<
+  PostsessionSurveyResponse,
+  'replacementColumnOne' | 'replacementColumnTwo'
+> & {
+  displayLabel: string
+}
+
+export async function getPostsessionSurveyResponse(
+  sessionId: Ulid,
+  userRole: USER_ROLES_TYPE
+): Promise<PostsessionSurveyResponses[]> {
+  const replacementColumns = await getReplacementColumnOptions(sessionId)
+
+  const surveyResponses = await SurveyRepo.getPostsessionSurveyResponse(
+    sessionId,
+    userRole
+  )
+
+  return surveyResponses.map((response) => {
+    let displayLabel = response.questionText
+
+    if (displayLabel.includes('{0}') || displayLabel.includes('{1}')) {
+      const replacement1 = response.replacementColumnOne
+        ? getReplacementText(response.replacementColumnOne, replacementColumns)
+        : null
+      const replacement2 = response.replacementColumnTwo
+        ? getReplacementText(response.replacementColumnTwo, replacementColumns)
+        : null
+
+      if (replacement1) displayLabel = displayLabel.replace('{0}', replacement1)
+      if (replacement2) displayLabel = displayLabel.replace('{1}', replacement2)
+    } else if (displayLabel.includes('%s')) {
+      const replacements = [
+        response.replacementColumnOne
+          ? getReplacementText(
+              response.replacementColumnOne,
+              replacementColumns
+            )
+          : null,
+        response.replacementColumnTwo
+          ? getReplacementText(
+              response.replacementColumnTwo,
+              replacementColumns
+            )
+          : null,
+      ].filter(Boolean)
+
+      let placeholderIndex = 0
+      displayLabel = displayLabel.replace(/%s/g, () => {
+        return replacements[placeholderIndex++] || ''
+      })
+    }
+
+    return {
+      userRole: response.userRole,
+      questionText: response.questionText,
+      displayLabel: displayLabel,
+      response: response.response,
+      score: response.score,
+      displayOrder: response.displayOrder,
+    }
+  })
 }
