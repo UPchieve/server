@@ -439,7 +439,7 @@ ORDER BY
 /* @name getPostsessionSurveyResponsesForSessionsByUserId */
 SELECT
     s.id AS session_id,
-    CASE WHEN s.student_id = :userId! THEN
+    CASE WHEN s.student_id = us.user_id THEN
         'student'
     ELSE
         'volunteer'
