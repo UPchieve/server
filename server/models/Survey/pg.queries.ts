@@ -797,14 +797,14 @@ export interface IGetPostsessionSurveyResponsesForSessionsByUserIdQuery {
   result: IGetPostsessionSurveyResponsesForSessionsByUserIdResult;
 }
 
-const getPostsessionSurveyResponsesForSessionsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":60,"b":67},{"a":677,"b":684},{"a":710,"b":717}]}],"statement":"SELECT\n    s.id AS session_id,\n    CASE WHEN s.student_id = :userId! THEN\n        'student'\n    ELSE\n        'volunteer'\n    END AS role_in_session,\n    us.user_id AS submitter_user_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score,\n    src.choice_text\nFROM\n    sessions s\n    JOIN upchieve.users_surveys us ON us.session_id = s.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND st.name = 'postsession'\nAND sq.question_text IN ('Your goal for this session was to %s. Did UPchieve help you achieve your goal?', '%s''s goal for this session was to %s. Were you able to help them achieve their goal?')\nAND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED', 'Somewhat', 'Mostly', 'A lot')\nORDER BY\n    uss.created_at DESC"};
+const getPostsessionSurveyResponsesForSessionsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":679,"b":686},{"a":712,"b":719}]}],"statement":"SELECT\n    s.id AS session_id,\n    CASE WHEN s.student_id = us.user_id THEN\n        'student'\n    ELSE\n        'volunteer'\n    END AS role_in_session,\n    us.user_id AS submitter_user_id,\n    us.created_at,\n    uss.survey_response_choice_id,\n    src.score,\n    src.choice_text\nFROM\n    sessions s\n    JOIN upchieve.users_surveys us ON us.session_id = s.id\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_questions sq ON uss.survey_question_id = sq.id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\n    JOIN upchieve.survey_types st ON st.id = us.survey_type_id\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND st.name = 'postsession'\nAND sq.question_text IN ('Your goal for this session was to %s. Did UPchieve help you achieve your goal?', '%s''s goal for this session was to %s. Were you able to help them achieve their goal?')\nAND src.choice_text IN ('Not at all', 'Sorta but not really', 'I guess so', 'I''m def closer to my goal', 'GOAL ACHIEVED', 'Somewhat', 'Mostly', 'A lot')\nORDER BY\n    uss.created_at DESC"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     s.id AS session_id,
- *     CASE WHEN s.student_id = :userId! THEN
+ *     CASE WHEN s.student_id = us.user_id THEN
  *         'student'
  *     ELSE
  *         'volunteer'
