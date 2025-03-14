@@ -1496,7 +1496,7 @@ export async function getStudentSessionDetails(
       { studentId },
       tc
     )
-    return sessionDetails.map((s) => makeRequired(s))
+    return sessionDetails.map((s) => makeSomeOptional(s, ['volunteerId']))
   } catch (err) {
     throw new RepoReadError(err)
   }
