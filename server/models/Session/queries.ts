@@ -35,13 +35,13 @@ import {
 } from '../Notification'
 import {
   getPresessionSurveyResponse,
-  getPostsessionSurveyResponse,
   PostsessionSurveyResponse,
   SimpleSurveyResponse,
   getSessionRating,
 } from '../Survey'
 import config from '../../config'
 import type { SessionHistoryFilter } from '../../services/SessionService'
+import * as SurveyService from '../../services/SurveyService'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -576,14 +576,16 @@ export async function getSessionByIdWithStudentAndVolunteer(
     const messages = await getMessagesForFrontend(sessionId, client)
     const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
     const presessionSurvey = await getPresessionSurveyResponse(sessionId)
-    const studentPostsessionSurvey = await getPostsessionSurveyResponse(
-      sessionId,
-      USER_ROLES.STUDENT
-    )
-    const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(
-      sessionId,
-      USER_ROLES.VOLUNTEER
-    )
+    const studentPostsessionSurvey =
+      await SurveyService.getPostsessionSurveyResponse(
+        sessionId,
+        USER_ROLES.STUDENT
+      )
+    const volunteerPostsessionSurvey =
+      await SurveyService.getPostsessionSurveyResponse(
+        sessionId,
+        USER_ROLES.VOLUNTEER
+      )
     const notifications = await getSessionNotificationsWithSessionId(sessionId)
 
     return {

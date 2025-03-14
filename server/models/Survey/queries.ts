@@ -14,6 +14,7 @@ import {
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 import _ from 'lodash'
 import { asNumber } from '../../utils/type-utils'
+import * as SurveyService from '../../services/SurveyService'
 
 export async function saveUserSurveyAndSubmissions(
   userId: Ulid,
@@ -258,10 +259,11 @@ export async function getPresessionSurveyResponse(
 export type PostsessionSurveyResponse = {
   userRole: string
   questionText: string
-  displayLabel: string
   response?: string
   displayOrder: number
   score: number
+  replacementColumnOne?: string
+  replacementColumnTwo?: string
 }
 
 export async function getPostsessionSurveyResponse(
@@ -269,23 +271,18 @@ export async function getPostsessionSurveyResponse(
   userRole: USER_ROLES_TYPE
 ): Promise<PostsessionSurveyResponse[]> {
   try {
-    if (userRole === USER_ROLES.STUDENT) {
-      const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
-        { sessionId },
-        getClient()
-      )
-      if (result.length)
-        return result.map((row) => makeSomeOptional(row, ['response']))
-      return []
-    } else {
-      const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
-        { sessionId },
-        getClient()
-      )
-      if (result.length)
-        return result.map((row) => makeSomeOptional(row, ['response']))
-      return []
-    }
+    const result = await pgQueries.getPostsessionSurveyResponse.run(
+      { sessionId, userRole },
+      getClient()
+    )
+
+    return result.map((row) =>
+      makeSomeOptional(row, [
+        'response',
+        'replacementColumnOne',
+        'replacementColumnTwo',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -295,11 +292,11 @@ export async function getPostsessionSurveyResponsesForSessionMetrics(
   sessionId: string
 ): Promise<PostsessionSurveyResponse[]> {
   try {
-    const studentResponses = await getPostsessionSurveyResponse(
+    const studentResponses = await SurveyService.getPostsessionSurveyResponse(
       sessionId,
       USER_ROLES.STUDENT
     )
-    const volunteerResponses = await getPostsessionSurveyResponse(
+    const volunteerResponses = await SurveyService.getPostsessionSurveyResponse(
       sessionId,
       USER_ROLES.VOLUNTEER
     )
