@@ -1305,6 +1305,7 @@ GROUP BY
 /* @name getStudentSessionDetails */
 SELECT
     sessions.id,
+    sessions.volunteer_id,
     subjects.name,
     sessions.ended_at,
     sessions.created_at,
@@ -1321,6 +1322,7 @@ WHERE
     AND sessions.ended_at IS NOT NULL
 GROUP BY
     sessions.id,
+    sessions.volunteer_id,
     subjects.name,
     sessions.ended_at,
     sessions.created_at,

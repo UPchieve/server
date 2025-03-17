@@ -462,3 +462,36 @@ const updateLastSuccessfulCleverSyncIR: any = {"usedParamSet":{"teacherId":true}
 export const updateLastSuccessfulCleverSync = new PreparedQuery<IUpdateLastSuccessfulCleverSyncParams,IUpdateLastSuccessfulCleverSyncResult>(updateLastSuccessfulCleverSyncIR);
 
 
+/** 'GetAllStudentsForTeacher' parameters type */
+export interface IGetAllStudentsForTeacherParams {
+  teacherId: string;
+}
+
+/** 'GetAllStudentsForTeacher' return type */
+export interface IGetAllStudentsForTeacherResult {
+  userId: string;
+}
+
+/** 'GetAllStudentsForTeacher' query type */
+export interface IGetAllStudentsForTeacherQuery {
+  params: IGetAllStudentsForTeacherParams;
+  result: IGetAllStudentsForTeacherResult;
+}
+
+const getAllStudentsForTeacherIR: any = {"usedParamSet":{"teacherId":true},"params":[{"name":"teacherId","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":145}]}],"statement":"SELECT DISTINCT\n    (sc.user_id)\nFROM\n    student_classes sc\n    JOIN teacher_classes tc ON sc.class_id = tc.id\nWHERE\n    tc.user_id = :teacherId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT DISTINCT
+ *     (sc.user_id)
+ * FROM
+ *     student_classes sc
+ *     JOIN teacher_classes tc ON sc.class_id = tc.id
+ * WHERE
+ *     tc.user_id = :teacherId!
+ * ```
+ */
+export const getAllStudentsForTeacher = new PreparedQuery<IGetAllStudentsForTeacherParams,IGetAllStudentsForTeacherResult>(getAllStudentsForTeacherIR);
+
+

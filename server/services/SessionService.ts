@@ -13,6 +13,7 @@ import {
   SESSION_USER_ACTIONS,
   USER_BAN_REASONS,
   USER_BAN_TYPES,
+  USER_ROLES,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -69,7 +70,8 @@ import { TransactionClient, runInTransaction } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
-import * as UserRolesService from '../services/UserRolesService'
+import * as TeacherService from './TeacherService'
+import { getSessionRating } from '../models/Survey'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1007,19 +1009,34 @@ export async function getTotalSessionHistory(
 
 export async function getSessionRecap(
   sessionId: Ulid,
-  userId: Ulid
+  userId: Ulid,
+  isTeacher: boolean
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
-  if (
-    !sessionUtils.isSessionParticipant(
-      session.studentId,
-      session.volunteerId,
-      userId
-    )
-  )
-    throw new NotAllowedError(
-      'Only session participants are allowed to view this session'
-    )
+
+  if (!isTeacher) {
+    if (
+      !sessionUtils.isSessionParticipant(
+        session.studentId,
+        session.volunteerId,
+        userId
+      )
+    ) {
+      throw new NotAllowedError(
+        'Only session participants are allowed to view this session'
+      )
+    }
+  } else {
+    const studentsInClasses =
+      await TeacherService.getAllStudentsForTeacher(userId)
+
+    if (!studentsInClasses.includes(session.studentId)) {
+      throw new NotAllowedError(
+        'Teacher can only view sessions for students in their classes'
+      )
+    }
+  }
+
   return session
 }
 
@@ -1072,13 +1089,20 @@ export async function isRecapDmsAvailable(
 }
 
 export async function getStudentSessionDetails(studentId: Ulid) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const sessionDetails = await SessionRepo.getStudentSessionDetails(
-      tc,
-      studentId
-    )
-    return sessionDetails
-  })
+  const sessions = await SessionRepo.getStudentSessionDetails(studentId)
+
+  const sessionsWithRatings = []
+
+  for (const session of sessions) {
+    const [studentRating, volunteerRating] = await Promise.all([
+      getSessionRating(session.id, USER_ROLES.STUDENT),
+      getSessionRating(session.id, USER_ROLES.VOLUNTEER),
+    ])
+
+    sessionsWithRatings.push({ ...session, studentRating, volunteerRating })
+  }
+
+  return sessionsWithRatings
 }
 
 function isQualifiedFallIncentiveSession(

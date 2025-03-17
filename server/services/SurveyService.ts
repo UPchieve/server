@@ -136,8 +136,10 @@ export const getUserPostsessionGoalRatingsMetrics = async (
     selfSubmissions,
     (r) => r.roleInSession === 'student'
   )
-  const [partnerRatingsOfStudentUser, partnerRatingsOfVolunteerUser] =
-    partition(partnerSubmissions, (r) => r.roleInSession === 'volunteer')
+  const [partnerRatingAsVolunteer, partnerRatingAsStudent] = partition(
+    partnerSubmissions,
+    (r) => r.roleInSession === 'volunteer'
+  )
 
   const selfReportedStudentRating = {
     total: selfRatingAsStudent.length,
@@ -148,12 +150,12 @@ export const getUserPostsessionGoalRatingsMetrics = async (
     average: getAverage(selfRatingAsVolunteer),
   }
   const partnerReportedStudentRating = {
-    total: partnerRatingsOfStudentUser.length,
-    average: getAverage(partnerRatingsOfStudentUser),
+    total: partnerRatingAsVolunteer.length,
+    average: getAverage(partnerRatingAsVolunteer),
   }
   const partnerReportedVolunteerRating = {
-    total: partnerRatingsOfVolunteerUser.length,
-    average: getAverage(partnerRatingsOfVolunteerUser),
+    total: partnerRatingAsStudent.length,
+    average: getAverage(partnerRatingAsStudent),
   }
 
   return {
