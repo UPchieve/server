@@ -1089,22 +1089,20 @@ export async function isRecapDmsAvailable(
 }
 
 export async function getStudentSessionDetails(studentId: Ulid) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const sessions = await SessionRepo.getStudentSessionDetails(tc, studentId)
+  const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-    const sessionsWithRatings = await Promise.all(
-      sessions.map(async (session) => {
-        const [studentRating, volunteerRating] = await Promise.all([
-          getSessionRating(session.id, USER_ROLES.STUDENT),
-          getSessionRating(session.id, USER_ROLES.VOLUNTEER),
-        ])
+  const sessionsWithRatings = []
 
-        return { ...session, studentRating, volunteerRating }
-      })
-    )
+  for (const session of sessions) {
+    const [studentRating, volunteerRating] = await Promise.all([
+      getSessionRating(session.id, USER_ROLES.STUDENT),
+      getSessionRating(session.id, USER_ROLES.VOLUNTEER),
+    ])
 
-    return sessionsWithRatings
-  })
+    sessionsWithRatings.push({ ...session, studentRating, volunteerRating })
+  }
+
+  return sessionsWithRatings
 }
 
 function isQualifiedFallIncentiveSession(
