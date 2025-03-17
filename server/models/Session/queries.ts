@@ -1487,14 +1487,11 @@ async function getSessionUsers(
   }
 }
 
-export async function getStudentSessionDetails(
-  tc: TransactionClient,
-  studentId: Ulid
-) {
+export async function getStudentSessionDetails(studentId: Ulid) {
   try {
     const sessionDetails = await pgQueries.getStudentSessionDetails.run(
       { studentId },
-      tc
+      getClient()
     )
     return sessionDetails.map((s) => makeSomeOptional(s, ['volunteerId']))
   } catch (err) {
