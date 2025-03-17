@@ -279,6 +279,7 @@ function getReplacementText(
   }
 }
 
+// We wouldn't have a student goal if the student didn't fill out a pre-session survey.
 function skipQuestion(
   studentGoal: string,
   first?: string,
