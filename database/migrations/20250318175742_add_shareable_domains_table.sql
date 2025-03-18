@@ -1,5 +1,5 @@
 -- migrate:up
-CREATE TABLE shareable_domains (
+CREATE TABLE upchieve.shareable_domains (
     id serial PRIMARY KEY,
     domain VARCHAR(255) NOT NULL UNIQUE,
     created_at timestamp with time zone DEFAULT NOW(),
@@ -7,5 +7,5 @@ CREATE TABLE shareable_domains (
 );
 
 -- migrate:down
-DROP TABLE shareable_domains;
+DROP TABLE upchieve.shareable_domains;
 

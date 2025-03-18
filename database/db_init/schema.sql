@@ -238,38 +238,6 @@ CREATE TABLE public.seed_migrations (
 
 
 --
--- Name: shareable_domains; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.shareable_domains (
-    id integer NOT NULL,
-    domain character varying(255) NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
-);
-
-
---
--- Name: shareable_domains_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.shareable_domains_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: shareable_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.shareable_domains_id_seq OWNED BY public.shareable_domains.id;
-
-
---
 -- Name: admin_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1779,6 +1747,38 @@ CREATE TABLE upchieve.sessions_students_assignments (
 
 
 --
+-- Name: shareable_domains; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.shareable_domains (
+    id integer NOT NULL,
+    domain character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.shareable_domains_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.shareable_domains_id_seq OWNED BY upchieve.shareable_domains.id;
+
+
+--
 -- Name: signup_sources; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2859,13 +2859,6 @@ ALTER SEQUENCE upchieve.weekdays_id_seq OWNED BY upchieve.weekdays.id;
 
 
 --
--- Name: shareable_domains id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.shareable_domains ALTER COLUMN id SET DEFAULT nextval('public.shareable_domains_id_seq'::regclass);
-
-
---
 -- Name: ban_reasons id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -2999,6 +2992,13 @@ ALTER TABLE ONLY upchieve.session_flags ALTER COLUMN id SET DEFAULT nextval('upc
 
 
 --
+-- Name: shareable_domains id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains ALTER COLUMN id SET DEFAULT nextval('upchieve.shareable_domains_id_seq'::regclass);
+
+
+--
 -- Name: signup_sources id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3075,22 +3075,6 @@ ALTER TABLE ONLY auth.session
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
--- Name: shareable_domains shareable_domains_domain_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.shareable_domains
-    ADD CONSTRAINT shareable_domains_domain_key UNIQUE (domain);
-
-
---
--- Name: shareable_domains shareable_domains_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.shareable_domains
-    ADD CONSTRAINT shareable_domains_pkey PRIMARY KEY (id);
 
 
 --
@@ -3867,6 +3851,22 @@ ALTER TABLE ONLY upchieve.sessions_session_flags
 
 ALTER TABLE ONLY upchieve.sessions_students_assignments
     ADD CONSTRAINT sessions_students_assignments_pkey PRIMARY KEY (session_id, user_id, assignment_id);
+
+
+--
+-- Name: shareable_domains shareable_domains_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains
+    ADD CONSTRAINT shareable_domains_domain_key UNIQUE (domain);
+
+
+--
+-- Name: shareable_domains shareable_domains_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains
+    ADD CONSTRAINT shareable_domains_pkey PRIMARY KEY (id);
 
 
 --
