@@ -2,6 +2,8 @@ import {
   getIndividualSessionMessageModerationResponse,
   FALLBACK_MODERATION_PROMPT,
   moderateMessage,
+  filterDisallowedDomains,
+  type ModeratedLink,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -410,5 +412,100 @@ describe('ModerationService', () => {
         expect(result).toEqual(isClean)
       }
     )
+  })
+
+  // cases:
+  // mixed upper/lower case
+  // subdomains
+  // http vs https
+  // trailing slashes
+
+  const allowedLinks: ModeratedLink[] = [
+    { reason: 'Link', details: { text: 'khanacademy.org', confidence: 0.9 } },
+    { reason: 'Link', details: { text: 'DeltaMath.com', confidence: 0.9 } },
+    {
+      reason: 'Link',
+      details: { text: 'cdn.assess.prod.mheducation.com', confidence: 0.9 },
+    },
+    {
+      reason: 'Link',
+      details: { text: 'my.hrw.com/assignments/1234567890', confidence: 0.9 },
+    },
+    {
+      reason: 'Link',
+      details: {
+        text: 'https://g.myascendmath.com/Ascend/postAssessment.htm',
+        confidence: 0.9,
+      },
+    },
+    {
+      reason: 'Link',
+      details: {
+        text: 'stem.acceleratelearning.com/mathnation/edgexl/assignment/8cbd10b8-f24b-4e69-8223-7357ffc8eb12/ab3d63bc-e9a4-4918-8412-0ea8c275f1ac',
+        confidence: 0.9,
+      },
+    },
+  ]
+
+  const disallowedLinks: ModeratedLink[] = [
+    {
+      reason: 'Link',
+      details: { text: 'https://www.google.com', confidence: 0.9 },
+    },
+    {
+      reason: 'Link',
+      details: { text: 'facebook.com/user/123', confidence: 0.9 },
+    },
+    { reason: 'Link', details: { text: 'www.instagram.com', confidence: 0.9 } },
+  ]
+
+  const allowedDomains = [
+    'norwalkps.org',
+    'deltamath.com',
+    'mheducation.com',
+    'upchieve.org',
+    'coppellisd.com',
+    'hrw.com',
+    'mathbits.com',
+    'formative.com',
+    'myascendmath.com',
+    'savvasrealize.com',
+    'khanacademy.org',
+    'zearn.org',
+    'acceleratelearning.com',
+    'collegeboard.org',
+    'cnx.org',
+    'schoology.com',
+    'desmos.com',
+    'edpuzzle.com',
+    'greatminds.org',
+    'beyondbenign.org',
+    'geeksforgeeks.org',
+    'stmath.com',
+    'zipgrade.com',
+    'eureka-math.org',
+    'bigideasmath.com',
+    'webassign.net',
+    'sciencenotes.org',
+    'math-aids.Com',
+    'miaprep.com',
+    'brainpop.com',
+    'ixl.com',
+    'molview.org',
+    'chilimath.com',
+  ]
+
+  describe('filterDisallowedDomains', () => {
+    test('Returns a list of disallowed links', async () => {
+      const links = [...allowedLinks, ...disallowedLinks]
+
+      const moderatedLinks = await filterDisallowedDomains({
+        allowedDomains,
+        links,
+      })
+
+      expect(moderatedLinks).toStrictEqual(disallowedLinks)
+      expect(moderatedLinks.length).toStrictEqual(disallowedLinks.length)
+    })
   })
 })

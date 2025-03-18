@@ -290,6 +290,30 @@ function existsInArray(array: any[], item: any) {
   return array.some((i) => i === item)
 }
 
+export type ModeratedLink = {
+  reason: 'Link'
+  details: { text: string; confidence: number }
+}
+
+export function filterDisallowedDomains({
+  allowedDomains,
+  links,
+}: {
+  allowedDomains: string[]
+  links: ModeratedLink[]
+}): ModeratedLink[] {
+  const linksWithDisallowedDomain = (link: ModeratedLink) =>
+    allowedDomains.every(
+      (allowed) => link.details.text.toLowerCase().indexOf(allowed) === -1
+    )
+
+  return links.filter(linksWithDisallowedDomain)
+}
+
+async function getAllowedDomains(): Promise<string[]> {
+  return ['upchieve.org', 'barf.com'].map((domain) => domain.toLowerCase())
+}
+
 async function detectPii(
   text: string,
   sessionId: string,
@@ -303,10 +327,7 @@ async function detectPii(
   )
   const entities = piiEntities.Entities ?? []
 
-  const links: {
-    reason: 'Link'
-    details: { text: string; confidence: number }
-  }[] = []
+  const links: ModeratedLink[] = []
   const emails: {
     reason: 'Email'
     details: { text: string; confidence: number }
@@ -372,8 +393,13 @@ async function detectPii(
       })
     }
   }
-
-  return [...links, ...emails, ...phones, ...addresses]
+  const allowedDomains = await getAllowedDomains()
+  const moderatedLinks = await filterDisallowedDomains({
+    allowedDomains,
+    links,
+  })
+  console.log(JSON.stringify({ moderatedLinks, links }, null, 2))
+  return [...moderatedLinks, ...emails, ...phones, ...addresses]
 }
 
 async function detectTextModerationFailures(
