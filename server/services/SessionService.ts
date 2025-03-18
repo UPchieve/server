@@ -72,6 +72,7 @@ import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
+import { KeyNotFoundError } from '../cache'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -400,7 +401,17 @@ export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
-  const whiteboardDoc = await WhiteboardService.getDoc(sessionId)
+  let whiteboardDoc
+  try {
+    whiteboardDoc = await WhiteboardService.getDoc(sessionId)
+  } catch (error) {
+    if (!(error instanceof KeyNotFoundError)) throw error
+  }
+
+  if (!whiteboardDoc)
+    return logger.info(
+      `No whiteboard doc for session ${sessionId} found when attempting to store it`
+    )
   const hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
     sessionId,
     whiteboardDoc
