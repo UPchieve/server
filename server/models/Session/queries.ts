@@ -1567,7 +1567,7 @@ export async function createSessionMetrics(
 export async function updateSessionMetrics(
   sessionId: Uuid,
   metrics: Partial<SessionMetrics>
-): Promise<void> {
+): Promise<SessionMetrics> {
   try {
     const result = await pgQueries.updateSessionMetrics.run(
       {
@@ -1591,8 +1591,8 @@ export async function updateSessionMetrics(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('updateSessionMetrics query did not return ok')
+    if (result.length) return makeRequired(result[0])
+    throw new RepoUpdateError('updateSessionMetrics query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to update metrics ${metrics} for session ${sessionId}: ${

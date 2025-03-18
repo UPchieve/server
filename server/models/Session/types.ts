@@ -105,5 +105,4 @@ export type SessionMetrics = {
   coachUncomfortable: number
   studentCrisis: number
   createdAt: Date
-  updatedAt: Date
 }

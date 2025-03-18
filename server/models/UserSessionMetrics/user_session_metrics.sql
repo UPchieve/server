@@ -129,6 +129,5 @@ RETURNING
     graded_assignment,
     coach_uncomfortable,
     student_crisis,
-    created_at,
-    updated_at;
+    created_at;
 
