@@ -37,6 +37,7 @@ import {
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
 import { putObject } from './AwsService'
+import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
@@ -290,6 +291,28 @@ function existsInArray(array: any[], item: any) {
   return array.some((i) => i === item)
 }
 
+export type ModeratedLink = {
+  reason: 'Link'
+  details: { text: string; confidence: number }
+}
+
+export function filterDisallowedDomains({
+  allowedDomains,
+  links,
+}: {
+  allowedDomains: string[]
+  links: ModeratedLink[]
+}): ModeratedLink[] {
+  const linksWithDisallowedDomain = (link: ModeratedLink) =>
+    allowedDomains.every(
+      // Check if the link contains any of the allowed domains
+      // if it does, filter it out of this set and do not moderate it
+      (allowed) => link.details.text.toLowerCase().indexOf(allowed) === -1
+    )
+
+  return links.filter(linksWithDisallowedDomain)
+}
+
 async function detectPii(
   text: string,
   sessionId: string,
@@ -303,10 +326,7 @@ async function detectPii(
   )
   const entities = piiEntities.Entities ?? []
 
-  const links: {
-    reason: 'Link'
-    details: { text: string; confidence: number }
-  }[] = []
+  const links: ModeratedLink[] = []
   const emails: {
     reason: 'Email'
     details: { text: string; confidence: number }
@@ -372,8 +392,12 @@ async function detectPii(
       })
     }
   }
-
-  return [...links, ...emails, ...phones, ...addresses]
+  const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
+  const moderatedLinks = await filterDisallowedDomains({
+    allowedDomains,
+    links,
+  })
+  return [...moderatedLinks, ...emails, ...phones, ...addresses]
 }
 
 async function detectTextModerationFailures(
