@@ -135,3 +135,20 @@ export async function updateUserSessionMetricsByUserId(
     )
   }
 }
+
+export async function getUserSessionMetricsByUserId(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<UserSessionMetrics | undefined> {
+  try {
+    const result = await pgQueries.getUserSessionMetricsByUserId.run(
+      {
+        userId,
+      },
+      tc ?? getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
