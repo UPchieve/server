@@ -458,12 +458,11 @@ async function handleVideoFrameModerationFailure({
     userId,
     sessionId,
     {
-      // @TODO Don't write infraction for image uploads.
       failures: failureReasons.reduce(
         (acc, reason) => {
           acc[reason.reason] = {
             ...reason.details,
-            imageUrl: location,
+            imageUrl,
           }
           return acc
         },
@@ -772,6 +771,13 @@ const handleModerationInfraction = async (
       >,
   source: ModerationSource
 ) => {
+  if (source === 'image_upload') {
+    // @TODO write a test for me.
+    // Image uploads are premoderated, so if they fail moderation they are not shown to any user.
+    // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
+    return
+  }
+
   const strikesForUserInSession =
     await ModerationInfractionsRepo.insertModerationInfraction({
       userId,
