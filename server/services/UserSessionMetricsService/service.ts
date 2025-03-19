@@ -61,12 +61,18 @@ export async function computeMetricsForFeedbackSaved(
     commentFromStudent: computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
-        resp.questionText === 'Your thoughts' && resp.userRole === 'student'
+        resp.questionText ===
+          'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' &&
+        resp.userRole === 'student' &&
+        !!resp.response
     ),
     commentFromVolunteer: computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
-        resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer'
+        resp.questionText ===
+          'This can be about the web app, the student you helped, technical issues, etc.' &&
+        resp.userRole === 'volunteer' &&
+        !!resp.response
     ),
     hasHadTechnicalIssues: computeFeedbackMetric(
       surveyResponses,

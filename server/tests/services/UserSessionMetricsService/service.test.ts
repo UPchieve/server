@@ -273,11 +273,15 @@ describe('UserSessionMetricsService', () => {
         }),
         buildSurveyResponse({
           userRole: 'student',
-          questionText: 'Your thoughts',
+          questionText:
+            'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.',
+          response: 'test',
         }),
         buildSurveyResponse({
           userRole: 'volunteer',
-          questionText: 'Your thoughts',
+          questionText:
+            'This can be about the web app, the student you helped, technical issues, etc.',
+          response: 'test',
         }),
         buildSurveyResponse({ response: 'Tech issue' }),
         buildSurveyResponse({
