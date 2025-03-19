@@ -40,6 +40,7 @@ import { putObject } from './AwsService'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
+import { ModerationInfraction } from '../models/ModerationInfractions/types'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -772,19 +773,18 @@ const handleModerationInfraction = async (
   source: ModerationSource
 ) => {
   if (source === 'image_upload') {
-    // @TODO write a test for me.
     // Image uploads are premoderated, so if they fail moderation they are not shown to any user.
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
     return
   }
-
-  const strikesForUserInSession =
+  const allActiveInfractions =
     await ModerationInfractionsRepo.insertModerationInfraction({
       userId,
       sessionId,
       reason: reasons.failures,
     })
-  if (strikesForUserInSession >= config.maxModerationInfractionsPerSession) {
+  const infractionScore = getInfractionScore(allActiveInfractions)
+  if (infractionScore > config.liveMediaBanInfractionScoreThreshold) {
     await UsersRepo.banUserById(
       userId,
       USER_BAN_TYPES.LIVE_MEDIA,
@@ -793,6 +793,72 @@ const handleModerationInfraction = async (
     const socketService = await SocketService.getInstance()
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
   }
+}
+
+export type LiveMediaModerationCategories =
+  | 'profanity'
+  | 'violence'
+  | 'link'
+  | 'address'
+  | 'minor detected in image'
+  | 'email'
+  | 'phone'
+  | 'high toxicity'
+  | 'swimwear or underwear'
+  | 'explicit'
+  | 'non-explicit nudity of intimate parts and kissing'
+  | 'visually disturbing'
+  | 'drugs & tobacco'
+  | 'alcohol'
+  | 'rude gestures'
+  | 'gambling'
+  | 'hate symbols'
+
+export function getScoreForCategory(
+  category: LiveMediaModerationCategories | string
+): number {
+  let categoryScore
+  switch (category) {
+    case 'profanity':
+    case 'high toxicity':
+    case 'minor detected in image':
+    case 'drugs & tobacco':
+    case 'alcohol':
+    case 'rude gestures':
+    case 'gambling':
+      categoryScore = 1
+      break
+    case 'violence':
+    case 'swimwear or underwear':
+    case 'link':
+    case 'email':
+    case 'phone':
+    case 'address':
+    case 'explicit':
+    case 'non-explicit nudity of intimate parts and kissing':
+    case 'hate symbols':
+    case 'visually disturbing':
+      categoryScore = 10
+      break
+  }
+  if (!categoryScore) {
+    logger.error(
+      `Missing score for infraction category ${category}. Defaulting to severe score.`
+    )
+    categoryScore = 10
+  }
+  return categoryScore
+}
+
+export function getInfractionScore(
+  infractions: ModerationInfraction[]
+): number {
+  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+
+  return reasons.reduce((acc, current) => {
+    const categoryScore = getScoreForCategory(current)
+    return acc + categoryScore
+  }, 0)
 }
 
 export type CleanTranscriptModerationResult = {

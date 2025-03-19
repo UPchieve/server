@@ -412,7 +412,8 @@ const config: Static<typeof Config> = {
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 
   // Moderation
-  maxModerationInfractionsPerSession: 6,
+  liveMediaBanInfractionScoreThreshold:
+    Number(process.env.LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
   imageModerationMinConfidence:
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
   contextualModerationConfidenceThreshold:

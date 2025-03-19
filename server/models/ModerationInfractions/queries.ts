@@ -12,13 +12,12 @@ import { camelCaseKeys } from '../../tests/db-utils'
 
 /**
  * Inserts the infraction.
- * @returns the number of infractions (including this one) that have occurred
- * for the given user in the given session
+ * @returns the list of active infractions (including this one) that have occurred
  */
 export async function insertModerationInfraction(
   data: InsertModerationInfractionArgs,
   client = getClient()
-): Promise<number> {
+): Promise<ModerationInfraction[]> {
   try {
     const result = await pgQueries.insertModerationInfraction.run(
       {
@@ -33,8 +32,12 @@ export async function insertModerationInfraction(
       throw new Error(
         `Failed to insert moderation infraction for user ${data.userId}, session ${data.sessionId}`
       )
-
-    return parseInt(makeRequired(result[0]).infractionCount, 10)
+    return result.map((infraction) =>
+      makeRequired({
+        ...infraction,
+        reason: JSON.parse(infraction.reason as string) as InfractionReasons,
+      })
+    )
   } catch (err) {
     throw new RepoCreateError(err)
   }

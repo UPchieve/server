@@ -2,6 +2,9 @@ import {
   getIndividualSessionMessageModerationResponse,
   FALLBACK_MODERATION_PROMPT,
   moderateMessage,
+  getInfractionScore,
+  handleModerationInfraction,
+  ModerationSource,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -9,6 +12,8 @@ import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
 import { timeLimit } from '../../utils/time-limit'
+import { buildModerationInfractionRow } from '../mocks/generate'
+import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
 
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
@@ -25,10 +30,12 @@ jest.mock('../../services/BotsService', () => {
   }
 })
 jest.mock('../../services/LangfuseService')
+jest.mock('../../models/ModerationInfractions')
 
 describe('ModerationService', () => {
   const isVolunteer = true
   const mockLangfuseService = mocked(LangfuseService)
+  const mockModerationInfractionsRepo = mocked(ModerationInfractionsRepo)
   const senderId = '123'
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
@@ -410,5 +417,64 @@ describe('ModerationService', () => {
         expect(result).toEqual(isClean)
       }
     )
+  })
+
+  describe('getInfractionScore', () => {
+    const buildModerationInfractionWithReason = (reason: any) => {
+      return buildModerationInfractionRow('userId', 'sessionId', {
+        reason,
+      })
+    }
+
+    const profanityReason = { profanity: [] }
+    const violenceReason = { violence: [] }
+    const linkReason = { link: [] }
+    const addressReason = { address: [] }
+
+    it.each([
+      ['profanity', 1],
+      ['high toxicity', 1],
+      ['minor detected in image', 1],
+      ['drugs & tobacco', 1],
+      ['alcohol', 1],
+      ['rude gestures', 1],
+      ['gambling', 1],
+      ['violence', 10],
+      ['swimwear or underwear', 10],
+      ['link', 10],
+      ['email', 10],
+      ['phone', 10],
+      ['address', 10],
+      ['explicit', 10],
+      ['non-explicit nudity of intimate parts and kissing', 10],
+      ['hate symbols', 10],
+      ['visually disturbing', 10],
+    ])(
+      'Calculates the correct score for each category of infraction',
+      (category, expectedScore) => {
+        const moderationInfraction = buildModerationInfractionRow(
+          'userId',
+          'sessionId',
+          {
+            reason: {
+              [category]: [],
+            },
+          }
+        )
+        expect(getInfractionScore([moderationInfraction])).toEqual(
+          expectedScore
+        )
+      }
+    )
+
+    it('Correctly calculates score when there are multiple infractions', () => {
+      const infractions = [
+        buildModerationInfractionWithReason(profanityReason),
+        buildModerationInfractionWithReason(profanityReason),
+        buildModerationInfractionWithReason(violenceReason),
+        buildModerationInfractionWithReason(violenceReason),
+      ]
+      expect(getInfractionScore(infractions)).toEqual(22)
+    })
   })
 })

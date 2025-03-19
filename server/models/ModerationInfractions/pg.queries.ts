@@ -13,7 +13,13 @@ export interface IInsertModerationInfractionParams {
 
 /** 'InsertModerationInfraction' return type */
 export interface IInsertModerationInfractionResult {
-  infractionCount: string | null;
+  active: boolean;
+  createdAt: Date;
+  id: string;
+  reason: Json;
+  sessionId: string;
+  updatedAt: Date;
+  userId: string;
 }
 
 /** 'InsertModerationInfraction' query type */
@@ -22,22 +28,21 @@ export interface IInsertModerationInfractionQuery {
   result: IInsertModerationInfractionResult;
 }
 
-const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":116}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126},{"a":273,"b":280}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139},{"a":311,"b":321}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":149}]}],"statement":"WITH insert_infraction AS (\nINSERT INTO moderation_infractions (id, user_id, session_id, reason)\n        VALUES (:id!, :userId!, :sessionId!, :reason!))\n    SELECT\n        1 + count(*) AS infraction_count\n    FROM\n        moderation_infractions\n    WHERE\n        user_id = :userId!\n            AND session_id = :sessionId!\n            AND active = TRUE"};
+const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":121},{"a":267,"b":274}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":134}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":137,"b":144}]}],"statement":"WITH insert_query AS (\nINSERT INTO moderation_infractions (id, user_id, session_id, reason)\n        VALUES (:id!, :userId!, :sessionId!, :reason!))\n    SELECT\n        *\n    FROM\n        moderation_infractions\n    WHERE\n        active = TRUE\n            AND user_id = :userId!"};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH insert_infraction AS (
+ * WITH insert_query AS (
  * INSERT INTO moderation_infractions (id, user_id, session_id, reason)
  *         VALUES (:id!, :userId!, :sessionId!, :reason!))
  *     SELECT
- *         1 + count(*) AS infraction_count
+ *         *
  *     FROM
  *         moderation_infractions
  *     WHERE
- *         user_id = :userId!
- *             AND session_id = :sessionId!
- *             AND active = TRUE
+ *         active = TRUE
+ *             AND user_id = :userId!
  * ```
  */
 export const insertModerationInfraction = new PreparedQuery<IInsertModerationInfractionParams,IInsertModerationInfractionResult>(insertModerationInfractionIR);
