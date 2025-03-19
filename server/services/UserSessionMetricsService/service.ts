@@ -9,7 +9,10 @@ import {
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../../models/Session'
-import { getPostsessionSurveyResponsesForSessionMetrics } from '../../models/Survey'
+import {
+  getPostsessionSurveyResponsesForSessionMetrics,
+  PostsessionSurveyResponse,
+} from '../../models/Survey'
 import {
   getUSMByUserId,
   updateUserSessionMetricsByUserId,
@@ -21,20 +24,12 @@ import { updateSessionMetrics } from '../SessionService'
 import {
   computeAbsentStudentMetric,
   computeAbsentVolunteerMetric,
-  computeCoachUncomfortable,
-  computeCommentFromStudent,
-  computeCommentFromVolunteer,
-  computeGradedAssignment,
+  computeFeedbackMetric,
   computeHasBeenUnmatchedMetric,
-  computeHasHadTechnicalIssues,
   computeLowCoachRatingFromStudent,
   computeLowSessionRatingFromCoach,
   computeLowSessionRatingFromStudent,
-  computeOnlyLookingForAnswers,
-  computePersonalIdentifyingInfo,
   computeReported,
-  computeRudeOrInappropriate,
-  computeStudentCrisis,
 } from './metrics'
 
 export async function computeMetricsForSession(
@@ -48,12 +43,114 @@ export async function computeMetricsForSession(
   }
 }
 
+export async function computeMetricsForFeedbackSaved(
+  session: Session
+): Promise<Partial<SessionMetrics>> {
+  const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
+    session.id
+  )
+  return {
+    lowCoachRatingFromStudent:
+      computeLowCoachRatingFromStudent(surveyResponses),
+    lowSessionRatingFromStudent:
+      computeLowSessionRatingFromStudent(surveyResponses),
+    lowSessionRatingFromCoach:
+      computeLowSessionRatingFromCoach(surveyResponses),
+    rudeOrInappropriate: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.response === 'Student was mean or inappropriate'
+    ),
+    onlyLookingForAnswers: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.response === 'Student was pressuring me to do their work for them'
+    ),
+    commentFromStudent: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.questionText === 'Your thoughts' && resp.userRole === 'student'
+    ),
+    commentFromVolunteer: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer'
+    ),
+    hasHadTechnicalIssues: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) => resp.response === 'Tech issue'
+    ),
+    personalIdentifyingInfo: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.response ===
+        'Student shared their email, last name, or other personally identifiable information'
+    ),
+    gradedAssignment: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.response === 'Student was working on a quiz or exam'
+    ),
+    coachUncomfortable: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.response === 'Student made me feel uncomfortable'
+    ),
+    studentCrisis: computeFeedbackMetric(
+      surveyResponses,
+      (resp: PostsessionSurveyResponse) =>
+        resp.response ===
+        'Student is in severe emotional distress and/or unsafe'
+    ),
+  }
+}
+
+export function computeMetricsForReportedSession(
+  session: Session
+): Partial<SessionMetrics> {
+  return {
+    reported: computeReported(session),
+  }
+}
+
 export function computeSessionFlagsFromMetrics(
   metrics: Partial<SessionMetrics>
 ): USER_SESSION_METRICS[] {
   const flags = []
   if (metrics.absentStudent) flags.push(USER_SESSION_METRICS.absentStudent)
   if (metrics.absentVolunteer) flags.push(USER_SESSION_METRICS.absentVolunteer)
+  return flags
+}
+
+export function computeFeedbackFlagsFromMetrics(metrics: SessionMetrics) {
+  const flags = []
+  if (metrics.lowCoachRatingFromStudent)
+    flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
+  if (metrics.lowSessionRatingFromStudent)
+    flags.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
+  if (metrics.lowSessionRatingFromCoach)
+    flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
+  if (metrics.rudeOrInappropriate)
+    flags.push(USER_SESSION_METRICS.rudeOrInappropriate)
+  if (metrics.onlyLookingForAnswers)
+    flags.push(USER_SESSION_METRICS.onlyLookingForAnswers)
+  if (metrics.commentFromStudent)
+    flags.push(USER_SESSION_METRICS.commentFromStudent)
+  if (metrics.commentFromVolunteer)
+    flags.push(USER_SESSION_METRICS.commentFromVolunteer)
+  if (metrics.personalIdentifyingInfo)
+    flags.push(USER_SESSION_METRICS.personalIdentifyingInfo)
+  if (metrics.gradedAssignment)
+    flags.push(USER_SESSION_METRICS.gradedAssignment)
+  if (metrics.coachUncomfortable)
+    flags.push(USER_SESSION_METRICS.coachUncomfortable)
+  if (metrics.studentCrisis) flags.push(USER_SESSION_METRICS.studentCrisis)
+  return flags
+}
+
+export function computeReportedFlagsFromMetrics(metrics: SessionMetrics) {
+  const flags = []
+  if (metrics.reported) flags.push(USER_SESSION_METRICS.reported)
   return flags
 }
 
@@ -71,6 +168,38 @@ export function computeSessionReviewReasonsFromMetrics(
     voluteerUSM.absentVolunteer >= 2
   )
     reviewReasons.push(USER_SESSION_METRICS.absentVolunteer)
+  return reviewReasons
+}
+
+export function computeFeedbackReviewReasonsFromMetrics(
+  metrics: SessionMetrics,
+  studentUSM: UserSessionMetrics
+) {
+  const reviewReasons = []
+  if (metrics.lowCoachRatingFromStudent)
+    reviewReasons.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
+  if (metrics.lowSessionRatingFromStudent)
+    reviewReasons.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
+  if (metrics.lowSessionRatingFromCoach)
+    reviewReasons.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
+  if (metrics.rudeOrInappropriate && studentUSM.rudeOrInappropriate >= 2)
+    reviewReasons.push(USER_SESSION_METRICS.rudeOrInappropriate)
+  if (metrics.onlyLookingForAnswers && studentUSM.onlyLookingForAnswers >= 2)
+    reviewReasons.push(USER_SESSION_METRICS.onlyLookingForAnswers)
+  if (metrics.personalIdentifyingInfo)
+    reviewReasons.push(USER_SESSION_METRICS.personalIdentifyingInfo)
+  if (metrics.gradedAssignment)
+    reviewReasons.push(USER_SESSION_METRICS.gradedAssignment)
+  if (metrics.coachUncomfortable)
+    reviewReasons.push(USER_SESSION_METRICS.coachUncomfortable)
+  if (metrics.studentCrisis)
+    reviewReasons.push(USER_SESSION_METRICS.studentCrisis)
+  return reviewReasons
+}
+
+export function computeReportedReviewReason(metrics: SessionMetrics) {
+  const reviewReasons = []
+  if (metrics.reported) reviewReasons.push(USER_SESSION_METRICS.reported)
   return reviewReasons
 }
 
@@ -151,83 +280,6 @@ export async function triggerSessionActions(
   }
 }
 
-export async function computeMetricsForFeedbackSaved(
-  session: Session
-): Promise<Partial<SessionMetrics>> {
-  const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
-    session.id
-  )
-  return {
-    lowCoachRatingFromStudent:
-      computeLowCoachRatingFromStudent(surveyResponses),
-    lowSessionRatingFromStudent:
-      computeLowSessionRatingFromStudent(surveyResponses),
-    lowSessionRatingFromCoach:
-      computeLowSessionRatingFromCoach(surveyResponses),
-    rudeOrInappropriate: computeRudeOrInappropriate(surveyResponses),
-    onlyLookingForAnswers: computeOnlyLookingForAnswers(surveyResponses),
-    commentFromStudent: computeCommentFromStudent(surveyResponses),
-    commentFromVolunteer: computeCommentFromVolunteer(surveyResponses),
-    hasHadTechnicalIssues: computeHasHadTechnicalIssues(surveyResponses),
-    personalIdentifyingInfo: computePersonalIdentifyingInfo(surveyResponses),
-    gradedAssignment: computeGradedAssignment(surveyResponses),
-    coachUncomfortable: computeCoachUncomfortable(surveyResponses),
-    studentCrisis: computeStudentCrisis(surveyResponses),
-  }
-}
-
-export function computeFeedbackFlagsFromMetrics(metrics: SessionMetrics) {
-  const flags = []
-  if (metrics.lowCoachRatingFromStudent)
-    flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
-  if (metrics.lowSessionRatingFromStudent)
-    flags.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
-  if (metrics.lowSessionRatingFromCoach)
-    flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
-  if (metrics.rudeOrInappropriate)
-    flags.push(USER_SESSION_METRICS.rudeOrInappropriate)
-  if (metrics.onlyLookingForAnswers)
-    flags.push(USER_SESSION_METRICS.onlyLookingForAnswers)
-  if (metrics.commentFromStudent)
-    flags.push(USER_SESSION_METRICS.commentFromStudent)
-  if (metrics.commentFromVolunteer)
-    flags.push(USER_SESSION_METRICS.commentFromVolunteer)
-  if (metrics.personalIdentifyingInfo)
-    flags.push(USER_SESSION_METRICS.personalIdentifyingInfo)
-  if (metrics.gradedAssignment)
-    flags.push(USER_SESSION_METRICS.gradedAssignment)
-  if (metrics.coachUncomfortable)
-    flags.push(USER_SESSION_METRICS.coachUncomfortable)
-  if (metrics.studentCrisis) flags.push(USER_SESSION_METRICS.studentCrisis)
-  return flags
-}
-
-export function computeFeedbackReviewReasonsFromMetrics(
-  metrics: SessionMetrics,
-  studentUSM: UserSessionMetrics
-) {
-  const reviewReasons = []
-  if (metrics.lowCoachRatingFromStudent)
-    reviewReasons.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
-  if (metrics.lowSessionRatingFromStudent)
-    reviewReasons.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
-  if (metrics.lowSessionRatingFromCoach)
-    reviewReasons.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
-  if (metrics.rudeOrInappropriate && studentUSM.rudeOrInappropriate >= 2)
-    reviewReasons.push(USER_SESSION_METRICS.rudeOrInappropriate)
-  if (metrics.onlyLookingForAnswers && studentUSM.onlyLookingForAnswers >= 2)
-    reviewReasons.push(USER_SESSION_METRICS.onlyLookingForAnswers)
-  if (metrics.personalIdentifyingInfo)
-    reviewReasons.push(USER_SESSION_METRICS.personalIdentifyingInfo)
-  if (metrics.gradedAssignment)
-    reviewReasons.push(USER_SESSION_METRICS.gradedAssignment)
-  if (metrics.coachUncomfortable)
-    reviewReasons.push(USER_SESSION_METRICS.coachUncomfortable)
-  if (metrics.studentCrisis)
-    reviewReasons.push(USER_SESSION_METRICS.studentCrisis)
-  return reviewReasons
-}
-
 // TODO: Refactor queue payloads to only take sessionId (or a reportId?)
 export async function triggerFeedbackActions(
   metrics: SessionMetrics,
@@ -263,26 +315,6 @@ export async function triggerFeedbackActions(
       }
     )
   }
-}
-
-export function computeMetricsForReportedSession(
-  session: Session
-): Partial<SessionMetrics> {
-  return {
-    reported: computeReported(session),
-  }
-}
-
-export function computeReportedFlagsFromMetrics(metrics: SessionMetrics) {
-  const flags = []
-  if (metrics.reported) flags.push(USER_SESSION_METRICS.reported)
-  return flags
-}
-
-export function computeReportedReviewReason(metrics: SessionMetrics) {
-  const reviewReasons = []
-  if (metrics.reported) reviewReasons.push(USER_SESSION_METRICS.reported)
-  return reviewReasons
 }
 
 type UpdatableMetricKey =

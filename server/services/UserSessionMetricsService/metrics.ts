@@ -589,102 +589,13 @@ export function computeLowSessionRatingFromCoach(
   return 0
 }
 
-export function computeRudeOrInappropriate(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const meanOrInappropriate = surveyResponses?.find(
-    (resp) => resp.response === 'Student was mean or inappropriate'
-  )
-  if (meanOrInappropriate) return 1
-  return 0
-}
-
-export function computeOnlyLookingForAnswers(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const onlyLookingForAnswers = surveyResponses?.find(
-    (resp) =>
-      resp.response === 'Student was pressuring me to do their work for them'
-  )
-  if (onlyLookingForAnswers) return 1
-  return 0
-}
-
-export function computeCommentFromStudent(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const studentComment = surveyResponses?.find(
-    (resp) =>
-      resp.questionText === 'Your thoughts' && resp.userRole === 'student'
-  )
-  if (studentComment) return 1
-  return 0
-}
-
-export function computeCommentFromVolunteer(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const volunteerComment = surveyResponses?.find(
-    (resp) =>
-      resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer'
-  )
-  if (volunteerComment) return 1
-  return 0
-}
-
-export function computeHasHadTechnicalIssues(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const techIssues = surveyResponses?.find(
-    (resp) => resp.response === 'Tech issue'
-  )
-  if (techIssues) return 1
-  return 0
-}
-
-export function computePersonalIdentifyingInfo(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const personalInfo = surveyResponses?.find(
-    (resp) =>
-      resp.response ===
-      'Student shared their email, last name, or other personally identifiable information'
-  )
-  if (personalInfo) return 1
-  return 0
-}
-
-export function computeGradedAssignment(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const gradedAssignment = surveyResponses?.find(
-    (resp) => resp.response === 'Student was working on a quiz or exam'
-  )
-  if (gradedAssignment) return 1
-  return 0
-}
-
-export function computeCoachUncomfortable(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const coachUncomfortable = surveyResponses?.find(
-    (resp) => resp.response === 'Student made me feel uncomfortable'
-  )
-  if (coachUncomfortable) return 1
-  return 0
-}
-
-export function computeStudentCrisis(
-  surveyResponses: PostsessionSurveyResponse[]
-) {
-  const studentInCrisis = surveyResponses?.find(
-    (resp) =>
-      resp.response === 'Student is in severe emotional distress and/or unsafe'
-  )
-  if (studentInCrisis) return 1
-  return 0
-}
-
 export function computeReported(session: Session) {
   return session.reported ? 1 : 0
+}
+
+export function computeFeedbackMetric(
+  surveyResponses: PostsessionSurveyResponse[],
+  condition: (resp: PostsessionSurveyResponse) => boolean
+): number {
+  return surveyResponses.some(condition) ? 1 : 0
 }
