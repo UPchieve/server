@@ -37,6 +37,7 @@ import {
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
 import { putObject } from './AwsService'
+import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
@@ -310,10 +311,6 @@ export function filterDisallowedDomains({
   return links.filter(linksWithDisallowedDomain)
 }
 
-async function getAllowedDomains(): Promise<string[]> {
-  return ['upchieve.org', 'barf.com'].map((domain) => domain.toLowerCase())
-}
-
 async function detectPii(
   text: string,
   sessionId: string,
@@ -393,12 +390,11 @@ async function detectPii(
       })
     }
   }
-  const allowedDomains = await getAllowedDomains()
+  const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
   const moderatedLinks = await filterDisallowedDomains({
     allowedDomains,
     links,
   })
-  console.log(JSON.stringify({ moderatedLinks, links }, null, 2))
   return [...moderatedLinks, ...emails, ...phones, ...addresses]
 }
 

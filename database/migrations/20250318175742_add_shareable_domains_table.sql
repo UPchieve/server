@@ -8,3 +8,4 @@ CREATE TABLE upchieve.shareable_domains (
 
 -- migrate:down
 DROP TABLE upchieve.shareable_domains;
+
