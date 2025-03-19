@@ -7,11 +7,7 @@ export async function getAllowedDomains(
 ): Promise<string[]> {
   try {
     const result = await pgQueries.getAllShareableDomains.run(undefined, tc)
-
-    if (result.length) {
-      return result.map(({ domain }: { domain: string }) => domain)
-    }
-    return []
+    return result.map(({ domain }) => domain)
   } catch (err) {
     throw new RepoReadError(err)
   }

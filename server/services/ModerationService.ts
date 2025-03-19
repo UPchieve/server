@@ -305,6 +305,8 @@ export function filterDisallowedDomains({
 }): ModeratedLink[] {
   const linksWithDisallowedDomain = (link: ModeratedLink) =>
     allowedDomains.every(
+      // Check if the link contains any of the allowed domains
+      // if it does, filter it out of this set and do not moderate it
       (allowed) => link.details.text.toLowerCase().indexOf(allowed) === -1
     )
 

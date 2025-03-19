@@ -7,7 +7,6 @@ export type IGetAllShareableDomainsParams = void;
 /** 'GetAllShareableDomains' return type */
 export interface IGetAllShareableDomainsResult {
   domain: string;
-  id: number;
 }
 
 /** 'GetAllShareableDomains' query type */
@@ -16,13 +15,12 @@ export interface IGetAllShareableDomainsQuery {
   result: IGetAllShareableDomainsResult;
 }
 
-const getAllShareableDomainsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    id,\n    DOMAIN\nFROM\n    shareable_domains"};
+const getAllShareableDomainsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    DOMAIN\nFROM\n    shareable_domains"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     id,
  *     DOMAIN
  * FROM
  *     shareable_domains
