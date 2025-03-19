@@ -21,6 +21,7 @@ import {
   UserSurvey,
   UserSurveySubmission,
   PostsessionSurveyGoalResponse,
+  PostsessionSurveyResponse,
 } from '../../models/Survey'
 import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
@@ -28,6 +29,7 @@ import {
   MessageForFrontend,
   Session,
   SessionMessage,
+  SessionMetrics,
   UserSessions,
   VoiceMessage,
 } from '../../models/Session'
@@ -52,6 +54,7 @@ import { SessionAudio } from '../../models/SessionAudio'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
 import { PrimaryUserRole, RoleContext } from '../../services/UserRolesService'
+import { UserSessionMetrics } from '../../models/UserSessionMetrics'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -63,6 +66,7 @@ export function getPhoneNumber(): string {
 export const getFirstName = faker.person.firstName
 export const getLastName = faker.person.lastName
 export const getIpAddress = faker.internet.ip
+export const getSentence = faker.lorem.sentence
 
 export const buildAvailability = (overrides = {}): Availability => {
   const availability = createNewAvailability()
@@ -818,6 +822,70 @@ export const buildSessionVoiceMessage = (
     createdAt: new Date(),
     updatedAt: new Date(),
     transcript: 'test transcript',
+    ...overrides,
+  }
+}
+
+export function buildUserSessionMetrics(
+  overrides: Partial<UserSessionMetrics> & { userId: Uuid }
+): UserSessionMetrics {
+  return {
+    absentStudent: 0,
+    absentVolunteer: 0,
+    lowCoachRatingFromStudent: 0,
+    lowSessionRatingFromStudent: 0,
+    lowSessionRatingFromCoach: 0,
+    reported: 0,
+    onlyLookingForAnswers: 0,
+    rudeOrInappropriate: 0,
+    commentFromStudent: 0,
+    commentFromVolunteer: 0,
+    hasBeenUnmatched: 0,
+    hasHadTechnicalIssues: 0,
+    personalIdentifyingInfo: 0,
+    gradedAssignment: 0,
+    coachUncomfortable: 0,
+    studentCrisis: 0,
+    createdAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildSessionMetrics(
+  overrides: Partial<SessionMetrics> & { sessionId: Uuid }
+): SessionMetrics {
+  return {
+    absentStudent: 0,
+    absentVolunteer: 0,
+    lowCoachRatingFromStudent: 0,
+    lowSessionRatingFromStudent: 0,
+    lowSessionRatingFromCoach: 0,
+    reported: 0,
+    onlyLookingForAnswers: 0,
+    rudeOrInappropriate: 0,
+    commentFromStudent: 0,
+    commentFromVolunteer: 0,
+    hasBeenUnmatched: 0,
+    hasHadTechnicalIssues: 0,
+    personalIdentifyingInfo: 0,
+    gradedAssignment: 0,
+    coachUncomfortable: 0,
+    studentCrisis: 0,
+    createdAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildSurveyResponse(
+  overrides?: Partial<PostsessionSurveyResponse>
+): PostsessionSurveyResponse {
+  return {
+    userRole: '',
+    questionText: '',
+    displayLabel: '',
+    response: '',
+    displayOrder: 1,
+    score: 1,
     ...overrides,
   }
 }
