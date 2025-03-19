@@ -124,11 +124,15 @@ type KeyValidators<T> = {
 export function asFactory<T extends object>(keyValidators: KeyValidators<T>) {
   return function (data: unknown, errMsg = ''): T {
     if (typeof data === 'object' && data !== null) {
+      const validated: Partial<T> = {}
       const maybeT = data as T
       for (const key of Object.keys(keyValidators) as Array<keyof T>) {
-        keyValidators[key](maybeT[key], errMsg + (key as string) + ':')
+        validated[key] = keyValidators[key](
+          maybeT[key],
+          errMsg + (key as string) + ':'
+        )
       }
-      return maybeT
+      return validated as T
     }
     throw new InputError(`${errMsg}: data is not compatible with type`)
   }
