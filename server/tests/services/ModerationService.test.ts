@@ -2,6 +2,8 @@ import {
   getIndividualSessionMessageModerationResponse,
   FALLBACK_MODERATION_PROMPT,
   moderateMessage,
+  filterDisallowedDomains,
+  type ModeratedLink,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -410,5 +412,70 @@ describe('ModerationService', () => {
         expect(result).toEqual(isClean)
       }
     )
+  })
+
+  describe('filterDisallowedDomains', () => {
+    const allowedLinks: ModeratedLink[] = [
+      { reason: 'Link', details: { text: 'khanacademy.org', confidence: 0.9 } },
+      { reason: 'Link', details: { text: 'DeltaMath.com', confidence: 0.9 } },
+      {
+        reason: 'Link',
+        details: { text: 'cdn.assess.prod.mheducation.com', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: { text: 'my.hrw.com/assignments/1234567890', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: {
+          text: 'https://g.myascendmath.com/Ascend/postAssessment.htm',
+          confidence: 0.9,
+        },
+      },
+      {
+        reason: 'Link',
+        details: {
+          text: 'stem.acceleratelearning.com/mathnation/edgexl/assignment/8cbd10b8-f24b-4e69-8223-7357ffc8eb12/ab3d63bc-e9a4-4918-8412-0ea8c275f1ac',
+          confidence: 0.9,
+        },
+      },
+    ]
+
+    const disallowedLinks: ModeratedLink[] = [
+      {
+        reason: 'Link',
+        details: { text: 'https://www.google.com', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: { text: 'facebook.com/user/123', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: { text: 'www.instagram.com', confidence: 0.9 },
+      },
+    ]
+
+    const allowedDomains = [
+      'khanacademy.org',
+      'deltamath.com',
+      'mheducation.com',
+      'hrw.com',
+      'myascendmath.com',
+      'acceleratelearning.com',
+    ]
+
+    test('Returns a list of disallowed links', () => {
+      const links = [...allowedLinks, ...disallowedLinks]
+
+      const moderatedLinks = filterDisallowedDomains({
+        allowedDomains,
+        links,
+      })
+
+      expect(moderatedLinks).toStrictEqual(disallowedLinks)
+      expect(moderatedLinks.length).toStrictEqual(disallowedLinks.length)
+    })
   })
 })
