@@ -98,6 +98,13 @@ const moderationLabelToFailureReason = (
   }
 }
 
+export type ModerationSource =
+  | 'image_upload'
+  | 'screenshare'
+  | 'voice_chat'
+  | 'audio_transcription'
+  | 'text_chat'
+
 /*
   detect harmful content in the image
   we are only looking at the top level categories for now:
@@ -395,43 +402,79 @@ async function detectTextModerationFailures(
   return [...toxicity, ...pii]
 }
 
+async function saveImageToBucket({
+  sessionId,
+  image,
+  source,
+}: {
+  sessionId: string
+  image: Buffer
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{ location: string }> {
+  let bucketName: string
+  switch (source) {
+    case 'screenshare':
+      bucketName = config.awsS3.moderatedScreenshareBucket
+      break
+    case 'image_upload':
+      bucketName = config.awsS3.moderatedSessionImageUploadBucket
+      break
+  }
+  if (!bucketName)
+    throw new Error(
+      `Could not save moderated image to S3: No bucket registered for source ${source}`
+    )
+
+  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+  const result = await putObject(bucketName, s3Key, image)
+  return { location: result.location }
+}
+
 async function handleVideoFrameModerationFailure({
   userId,
   sessionId,
   failureReasons,
   image,
-  bucketName,
+  source,
 }: {
   userId: string
   sessionId: string
   failureReasons: VideoFrameModerationFailureReason[]
   image: Buffer
-  bucketName: string
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
-
-  const { location } = await putObject(bucketName, s3Key, image)
+  const { location: imageUrl } = await saveImageToBucket({
+    sessionId,
+    image,
+    source,
+  })
 
   logger.warn(
-    { sessionId, reasons: failureReasons, imageUrl: location },
+    { sessionId, reasons: failureReasons, imageUrl, source },
     'Image triggered moderation'
   )
 
-  await handleModerationInfraction(userId, sessionId, {
-    failures: failureReasons.reduce(
-      (acc, reason) => {
-        acc[reason.reason] = {
-          ...reason.details,
-          imageUrl: location,
-        }
-        return acc
-      },
-      {} as Record<
-        VideoFrameModerationFailureReason['reason'],
-        VideoFrameModerationFailureReason['details']
-      >
-    ),
-  })
+  await handleModerationInfraction(
+    userId,
+    sessionId,
+    {
+      // @TODO Don't write infraction for image uploads.
+      failures: failureReasons.reduce(
+        (acc, reason) => {
+          acc[reason.reason] = {
+            ...reason.details,
+            imageUrl: location,
+          }
+          return acc
+        },
+        {} as Record<
+          VideoFrameModerationFailureReason['reason'],
+          VideoFrameModerationFailureReason['details']
+        >
+      ),
+    },
+    source
+  )
 }
 
 export const moderateVideoFrame = async (
@@ -440,7 +483,7 @@ export const moderateVideoFrame = async (
   sessionId: string,
   userId: string,
   isVolunteer: boolean,
-  bucketName: string
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
@@ -466,7 +509,7 @@ export const moderateVideoFrame = async (
       sessionId,
       failureReasons,
       image: frame,
-      bucketName,
+      source,
     })
   }
 
@@ -726,7 +769,8 @@ const handleModerationInfraction = async (
     | Record<
         VideoFrameModerationFailureReason['reason'],
         VideoFrameModerationFailureReason['details']
-      >
+      >,
+  source: ModerationSource
 ) => {
   const strikesForUserInSession =
     await ModerationInfractionsRepo.insertModerationInfraction({
@@ -758,11 +802,13 @@ export const moderateIndividualTranscription = async ({
   sessionId,
   userId,
   saidAt,
+  source,
 }: {
   transcript: string
   sessionId: string
   userId: string
   saidAt: Date
+  source: ModerationSource
 }): Promise<
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
@@ -771,7 +817,7 @@ export const moderateIndividualTranscription = async ({
   // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
-  await handleModerationInfraction(userId, sessionId, failures)
+  await handleModerationInfraction(userId, sessionId, failures, source)
   await createCensoredMessage({
     message: transcript,
     senderId: userId,
@@ -801,7 +847,7 @@ export const moderateImage = async (
     sessionId,
     userId,
     isVolunteer,
-    config.awsS3.moderatedSessionImageUploadBucket
+    'image_upload'
   )
   if (isEmpty(result.failureReasons)) return { isClean: true }
 

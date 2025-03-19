@@ -412,6 +412,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 sessionId,
                 userId: user.id,
                 saidAt: saidAt!,
+                source: 'audio_transcription',
               })
               if (!result.isClean) {
                 messageIsUnclean = true
