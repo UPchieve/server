@@ -2808,6 +2808,14 @@ COPY upchieve.sessions_students_assignments (session_id, user_id, assignment_id,
 
 
 --
+-- Data for Name: shareable_domains; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.shareable_domains (id, domain, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: sponsor_orgs_upchieve_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -4152,6 +4160,13 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 --
 
 SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 18, true);
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, false);
 
 
 --
