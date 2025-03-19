@@ -2507,6 +2507,76 @@ CREATE TABLE upchieve.user_session_metrics (
 
 
 --
+-- Name: user_session_metrics_view; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.user_session_metrics_view AS
+ WITH metrics_by_role AS (
+         SELECT sessions.student_id AS user_id,
+            session_metrics.absent_student,
+            session_metrics.absent_volunteer,
+            session_metrics.low_session_rating_from_coach,
+            session_metrics.low_session_rating_from_student,
+            session_metrics.low_coach_rating_from_student,
+            session_metrics.reported,
+            session_metrics.only_looking_for_answers,
+            session_metrics.rude_or_inappropriate,
+            session_metrics.comment_from_student,
+            session_metrics.comment_from_volunteer,
+            session_metrics.has_been_unmatched,
+            session_metrics.has_had_technical_issues,
+            session_metrics.personal_identifying_info,
+            session_metrics.graded_assignment,
+            session_metrics.coach_uncomfortable,
+            session_metrics.student_crisis,
+            session_metrics.created_at
+           FROM (upchieve.sessions
+             JOIN upchieve.session_metrics ON ((sessions.id = session_metrics.session_id)))
+        UNION ALL
+         SELECT sessions.volunteer_id AS user_id,
+            session_metrics.absent_student,
+            session_metrics.absent_volunteer,
+            session_metrics.low_session_rating_from_coach,
+            session_metrics.low_session_rating_from_student,
+            session_metrics.low_coach_rating_from_student,
+            session_metrics.reported,
+            session_metrics.only_looking_for_answers,
+            session_metrics.rude_or_inappropriate,
+            session_metrics.comment_from_student,
+            session_metrics.comment_from_volunteer,
+            session_metrics.has_been_unmatched,
+            session_metrics.has_had_technical_issues,
+            session_metrics.personal_identifying_info,
+            session_metrics.graded_assignment,
+            session_metrics.coach_uncomfortable,
+            session_metrics.student_crisis,
+            session_metrics.created_at
+           FROM (upchieve.sessions
+             JOIN upchieve.session_metrics ON ((sessions.id = session_metrics.session_id)))
+        )
+ SELECT metrics_by_role.user_id,
+    (COALESCE(sum(metrics_by_role.absent_student), (0)::bigint))::integer AS absent_student,
+    (COALESCE(sum(metrics_by_role.absent_volunteer), (0)::bigint))::integer AS absent_volunteer,
+    (COALESCE(sum(metrics_by_role.low_session_rating_from_coach), (0)::bigint))::integer AS low_session_rating_from_coach,
+    (COALESCE(sum(metrics_by_role.low_session_rating_from_student), (0)::bigint))::integer AS low_session_rating_from_student,
+    (COALESCE(sum(metrics_by_role.low_coach_rating_from_student), (0)::bigint))::integer AS low_coach_rating_from_student,
+    (COALESCE(sum(metrics_by_role.reported), (0)::bigint))::integer AS reported,
+    (COALESCE(sum(metrics_by_role.only_looking_for_answers), (0)::bigint))::integer AS only_looking_for_answers,
+    (COALESCE(sum(metrics_by_role.rude_or_inappropriate), (0)::bigint))::integer AS rude_or_inappropriate,
+    (COALESCE(sum(metrics_by_role.comment_from_student), (0)::bigint))::integer AS comment_from_student,
+    (COALESCE(sum(metrics_by_role.comment_from_volunteer), (0)::bigint))::integer AS comment_from_volunteer,
+    (COALESCE(sum(metrics_by_role.has_been_unmatched), (0)::bigint))::integer AS has_been_unmatched,
+    (COALESCE(sum(metrics_by_role.has_had_technical_issues), (0)::bigint))::integer AS has_had_technical_issues,
+    (COALESCE(sum(metrics_by_role.personal_identifying_info), (0)::bigint))::integer AS personal_identifying_info,
+    (COALESCE(sum(metrics_by_role.graded_assignment), (0)::bigint))::integer AS graded_assignment,
+    (COALESCE(sum(metrics_by_role.coach_uncomfortable), (0)::bigint))::integer AS coach_uncomfortable,
+    (COALESCE(sum(metrics_by_role.student_crisis), (0)::bigint))::integer AS student_crisis,
+    min(metrics_by_role.created_at) AS created_at
+   FROM metrics_by_role
+  GROUP BY metrics_by_role.user_id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -6337,4 +6407,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241217040206'),
     ('20250121173556'),
     ('20250310173039'),
-    ('20250312220532');
+    ('20250312220532'),
+    ('20250319054059');
