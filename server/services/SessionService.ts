@@ -333,7 +333,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
     await QueueService.add(
       Jobs.EmailStudentFirstSessionCongrats,
       {
-        sessionId: session._id,
+        sessionId: session.id,
       },
       { delay, removeOnComplete: true, removeOnFail: true }
     )
@@ -341,7 +341,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
     await QueueService.add(
       Jobs.EmailVolunteerFirstSessionCongrats,
       {
-        sessionId: session._id,
+        sessionId: session.id,
       },
       { delay, removeOnComplete: true, removeOnFail: true }
     )

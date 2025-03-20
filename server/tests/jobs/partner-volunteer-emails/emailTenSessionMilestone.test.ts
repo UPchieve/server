@@ -1,318 +1,160 @@
-test.todo('postgres migration')
-/*import { mocked } from 'jest-mock';
-import mongoose from 'mongoose'
-import {
-  resetDb,
-  insertVolunteer,
-  insertSessionMany,
-  insertFeedback,
-  insertFeedbackMany,
-} from '../../db-utils'
-import emailTenSessionMilestone from '../../../worker/jobs/partner-volunteer-emails/emailTenSessionMilestone'
-import { log } from '../../../worker/logger'
-import { Jobs } from '../../../worker/jobs'
+import { Job } from 'bull'
+import { mocked } from 'jest-mock'
+import { buildSession, buildVolunteer } from '../../mocks/generate'
+import config from '../../../config'
+import { getUuid, Uuid } from '../../../models/pgUtils'
+import { getSessionsVolunteerRating } from '../../../models/Session'
+import { getVolunteerContactInfoById } from '../../../models/Volunteer'
 import * as MailService from '../../../services/MailService'
-import { buildFeedback, buildSession, buildStudent } from '../../generate'
-import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
-import { FeedbackVersionTwo } from '../../../models/Feedback'
+import {
+  createEmailNotification,
+  hasUserBeenSentEmail,
+} from '../../../services/NotificationService'
+import { log } from '../../../worker/logger'
+import emailVolunteerTenSessionMilestone from '../../../worker/jobs/volunteer-emails/emailTenSessionMilestone'
+import { asString } from '../../../utils/type-utils'
+import { Jobs } from '../../../worker/jobs'
 
+jest.mock('../../../models/Session')
+jest.mock('../../../models/Volunteer')
+jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
+jest.mock('../../../worker/logger')
 
-// TODO: refactor test to mock out DB calls
+const mockedGetVolunteerContactInfoById = mocked(getVolunteerContactInfoById)
+const mockedGetSessionsVolunteerRating = mocked(getSessionsVolunteerRating)
+const mockedHasUserBeenSentEmail = mocked(hasUserBeenSentEmail)
+const mockedCreateEmailNotification = mocked(createEmailNotification)
+const mockedSendVolunteerTenSessionMilestone = mocked(
+  MailService.sendVolunteerTenSessionMilestone
+)
 
-const mockedMailService = mocked(MailService, true)
-
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
-
-beforeEach(async () => {
-  await resetDb()
-})
-
-describe('Partner volunteer ten session milestone email', () => {
-  beforeEach(async () => {
-    jest.resetAllMocks()
+describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
   })
 
-  test('Should send email to partner volunteer', async () => {
-    const volunteer = await insertVolunteer()
-    const twentyMinutes = 1000 * 60 * 20
-    const thirtyMinutes = 1000 * 60 * 30
-    const sessions = [
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-    ]
-    await insertSessionMany(sessions)
-    await insertFeedback({
-      sessionId: sessions[2]._id,
-      volunteerId: volunteer._id,
-      volunteerFeedback: {
-        'session-enjoyable': 4,
-      },
-      versionNumber: FEEDBACK_VERSIONS.TWO,
-      studentId: buildStudent()._id,
-    })
+  test('Should early exit if volunteer not found', async () => {
+    const volunteerId = getUuid()
+    mockedGetVolunteerContactInfoById.mockResolvedValueOnce(undefined)
 
-    // @todo: figure out how to properly type
+    const job = {
+      data: { volunteerId },
+      name: Jobs.EmailVolunteerTenSessionMilestone,
+    } as Job<{ volunteerId: Uuid }>
+    await emailVolunteerTenSessionMilestone(job)
 
-    const job: any = {
-      name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-      data: {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    }
-
-    await emailTenSessionMilestone(job)
-    expect(
-      MailService.sendPartnerVolunteerTenSessionMilestone
-    ).toHaveBeenCalledTimes(1)
+    expect(mockedGetVolunteerContactInfoById).toHaveBeenCalledWith(
+      asString(volunteerId),
+      {
+        deactivated: false,
+        testUser: false,
+        banned: false,
+      }
+    )
     expect(log).toHaveBeenCalledWith(
-      `Sent ${job.name} to volunteer ${volunteer._id}`
+      `No volunteer found with id ${volunteerId}`
+    )
+    expect(mockedSendVolunteerTenSessionMilestone).not.toHaveBeenCalled()
+    expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
+  })
+
+  test('Should exit if volunteer has already received email', async () => {
+    const volunteer = buildVolunteer()
+    mockedGetVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(true)
+
+    const job = {
+      data: { volunteerId: volunteer.id },
+      name: Jobs.EmailVolunteerTenSessionMilestone,
+    } as Job<{ volunteerId: Uuid }>
+    await emailVolunteerTenSessionMilestone(job)
+
+    expect(mockedHasUserBeenSentEmail).toHaveBeenCalledWith({
+      userId: volunteer.id,
+      emailTemplateId: config.sendgrid.volunteerTenSessionMilestoneTemplate,
+    })
+    expect(log).toHaveBeenCalledWith(
+      `Volunteer ${volunteer.id} has already received ${Jobs.EmailVolunteerTenSessionMilestone}`
+    )
+    expect(mockedSendVolunteerTenSessionMilestone).not.toHaveBeenCalled()
+    expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
+  })
+
+  test('Should do nothing if session count is not 10', async () => {
+    const volunteer = buildVolunteer()
+    const volunteerId = volunteer.id
+    mockedGetVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedGetSessionsVolunteerRating.mockResolvedValueOnce(
+      Array(9).fill(buildSession({ studentId: getUuid() }))
+    )
+
+    const job = {
+      data: { volunteerId },
+      name: Jobs.EmailVolunteerTenSessionMilestone,
+    } as Job<{ volunteerId: Uuid }>
+    await emailVolunteerTenSessionMilestone(job)
+
+    expect(mockedGetSessionsVolunteerRating).toHaveBeenCalledWith(
+      asString(volunteerId)
+    )
+    expect(mockedSendVolunteerTenSessionMilestone).not.toHaveBeenCalled()
+    expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
+  })
+
+  test('Should send email if session count is exactly 10', async () => {
+    const volunteer = buildVolunteer()
+    const volunteerId = volunteer.id
+    mockedGetVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedGetSessionsVolunteerRating.mockResolvedValueOnce(
+      Array(10).fill(buildSession({ studentId: getUuid() }))
+    )
+    mockedSendVolunteerTenSessionMilestone.mockResolvedValueOnce(undefined)
+    mockedCreateEmailNotification.mockResolvedValueOnce(undefined)
+
+    const job = {
+      data: { volunteerId },
+      name: Jobs.EmailVolunteerTenSessionMilestone,
+    } as Job<{ volunteerId: Uuid }>
+    await emailVolunteerTenSessionMilestone(job)
+
+    expect(mockedGetSessionsVolunteerRating).toHaveBeenCalledWith(
+      asString(volunteerId)
+    )
+    expect(mockedSendVolunteerTenSessionMilestone).toHaveBeenCalledWith(
+      volunteer.email,
+      volunteer.firstName
+    )
+    expect(mockedCreateEmailNotification).toHaveBeenCalledWith({
+      userId: volunteer.id,
+      emailTemplateId: config.sendgrid.volunteerTenSessionMilestoneTemplate,
+    })
+    expect(log).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailVolunteerTenSessionMilestone} to volunteer ${asString(volunteerId)}`
     )
   })
 
-  test('Should not send email to partner volunteer who has left more than 2 low session ratings', async () => {
-    const volunteer = await insertVolunteer({
-      isOnboarded: true,
-      volunteerPartnerOrg: 'example',
-    })
-    const twentyMinutes = 1000 * 60 * 20
-    const thirtyMinutes = 1000 * 60 * 30
-    const sessions = [
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-    ]
-    await insertSessionMany(sessions)
-    await insertFeedback(buildFeedback({} as FeedbackVersionTwo))
-    const feedback = [
-      buildFeedback({
-        sessionId: sessions[1]._id,
-        volunteerId: volunteer._id,
-        volunteerFeedback: {
-          'session-enjoyable': 1,
-        },
-        versionNumber: FEEDBACK_VERSIONS.TWO as FEEDBACK_VERSIONS,
-      }),
-      buildFeedback({
-        sessionId: sessions[2]._id,
-        volunteerId: volunteer._id,
-        volunteerFeedback: {
-          'session-enjoyable': 2,
-        },
-        versionNumber: FEEDBACK_VERSIONS.TWO,
-      }),
-      buildFeedback({
-        sessionId: sessions[6]._id,
-        volunteerId: volunteer._id,
-        volunteerFeedback: {
-          'session-enjoyable': 1,
-        },
-        versionNumber: FEEDBACK_VERSIONS.TWO,
-      }),
-    ]
-    await insertFeedbackMany(feedback)
-
-    // @todo: figure out how to properly type
-
-    const job: any = {
-      name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-      data: {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    }
-
-    await emailTenSessionMilestone(job)
-    expect(
-      MailService.sendPartnerVolunteerTenSessionMilestone
-    ).not.toHaveBeenCalled()
-    expect(log).not.toHaveBeenCalled()
-  })
-
-  test(`Should not send email to partner volunteer who has sessions flags with ${USER_SESSION_METRICS.absentStudent}`, async () => {
-    const volunteer = await insertVolunteer({
-      isOnboarded: true,
-      volunteerPartnerOrg: 'example',
-    })
-    const twentyMinutes = 1000 * 60 * 20
-    const thirtyMinutes = 1000 * 60 * 30
-    const sessions = [
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({
-        volunteer: volunteer._id,
-        timeTutored: twentyMinutes,
-        flags: [USER_SESSION_METRICS.absentStudent],
-      }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-    ]
-    await insertSessionMany(sessions)
-    const feedback = [
-      buildFeedback({
-        sessionId: sessions[1]._id,
-        volunteerId: volunteer._id,
-        volunteerFeedback: {
-          'session-enjoyable': 1,
-        },
-        versionNumber: FEEDBACK_VERSIONS.TWO,
-      }),
-      buildFeedback({
-        sessionId: sessions[2]._id,
-        volunteerId: volunteer._id,
-        volunteerFeedback: {
-          'session-enjoyable': 2,
-        },
-        versionNumber: FEEDBACK_VERSIONS.TWO,
-      }),
-      buildFeedback({
-        sessionId: sessions[6]._id,
-        volunteerId: volunteer._id,
-        volunteerFeedback: {
-          'session-enjoyable': 1,
-        },
-        versionNumber: FEEDBACK_VERSIONS.TWO,
-      }),
-    ]
-    await insertFeedbackMany(feedback)
-
-    // @todo: figure out how to properly type
-
-    const job: any = {
-      name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-      data: {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    }
-
-    await emailTenSessionMilestone(job)
-    expect(
-      MailService.sendPartnerVolunteerTenSessionMilestone
-    ).not.toHaveBeenCalled()
-    expect(log).not.toHaveBeenCalled()
-  })
-
-  test('Should not send email to partner volunteer who has 5 sessions with one of a duration less than 15 minutes', async () => {
-    const volunteer = await insertVolunteer({
-      isOnboarded: true,
-      volunteerPartnerOrg: 'example',
-    })
-    const tenMinutes = 1000 * 60 * 10
-    const twentyMinutes = 1000 * 60 * 20
-    const thirtyMinutes = 1000 * 60 * 30
-    const sessions = [
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: tenMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-    ]
-    await insertSessionMany(sessions)
-
-    // @todo: figure out how to properly type
-
-    const job: any = {
-      name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-      data: {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    }
-
-    await emailTenSessionMilestone(job)
-    expect(
-      MailService.sendPartnerVolunteerTenSessionMilestone
-    ).not.toHaveBeenCalled()
-    expect(log).not.toHaveBeenCalled()
-  })
-
-  test('Should throw error when sending email fails', async () => {
-    const volunteer = await insertVolunteer({
-      isOnboarded: true,
-      volunteerPartnerOrg: 'example',
-    })
-    const twentyMinutes = 1000 * 60 * 20
-    const thirtyMinutes = 1000 * 60 * 30
-    const sessions = [
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: thirtyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-      buildSession({ volunteer: volunteer._id, timeTutored: twentyMinutes }),
-    ]
-    await insertSessionMany(sessions)
-    await insertFeedback({
-      sessionId: sessions[2]._id,
-      studentId: buildStudent()._id,
-      volunteerId: volunteer._id,
-      volunteerFeedback: {
-        'session-enjoyable': 4,
-      },
-      versionNumber: FEEDBACK_VERSIONS.TWO,
-    } as FeedbackVersionTwo)
-    const errorMessage = 'Unable to send'
-    mockedMailService.sendPartnerVolunteerTenSessionMilestone.mockRejectedValueOnce(
-      errorMessage
+  test('Should throw error if email sending fails', async () => {
+    const volunteer = buildVolunteer()
+    const volunteerId = volunteer.id
+    mockedGetVolunteerContactInfoById.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedGetSessionsVolunteerRating.mockResolvedValueOnce(
+      Array(10).fill(buildSession({ studentId: getUuid() }))
     )
-    // @todo: figure out how to properly type
+    const errorMessage = 'Email sending failed'
+    mockedSendVolunteerTenSessionMilestone.mockRejectedValueOnce(
+      new Error(errorMessage)
+    )
 
-    const job: any = {
-      name: Jobs.EmailPartnerVolunteerTenSessionMilestone,
-      data: {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-        partnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    }
-
-    await expect(emailTenSessionMilestone(job)).rejects.toEqual(
-      Error(
-        `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
-      )
+    const job = {
+      data: { volunteerId },
+      name: Jobs.EmailVolunteerTenSessionMilestone,
+    } as Job<{ volunteerId: Uuid }>
+    await expect(emailVolunteerTenSessionMilestone(job)).rejects.toThrow(
+      `Failed to send ${Jobs.EmailVolunteerTenSessionMilestone} to volunteer ${asString(volunteerId)}: Error: ${errorMessage}`
     )
   })
 })
-*/

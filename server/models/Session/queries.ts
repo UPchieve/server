@@ -6,11 +6,11 @@ import {
   Ulid,
   getDbUlid,
   makeSomeRequired,
+  Uuid,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import {
-  FallIncentiveSession,
   Session,
   UserSessionStats,
   UserSessionsFilter,
@@ -490,7 +490,8 @@ export type SessionByIdWithStudentAndVolunteer = {
   type: string
   subTopic: string
   quillDoc?: string
-  _id: Ulid
+  _id: Uuid
+  id: Uuid
   reviewReasons?: string[]
   reportReason?: string
   reportMessage?: string
