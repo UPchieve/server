@@ -820,7 +820,7 @@ export const handleModerationInfraction = async (
       client
     )
   const infractionScore = getInfractionScore(allActiveInfractions)
-  if (infractionScore > config.liveMediaBanInfractionScoreThreshold) {
+  if (infractionScore >= config.liveMediaBanInfractionScoreThreshold) {
     await UsersRepo.banUserById(
       userId,
       USER_BAN_TYPES.LIVE_MEDIA,
