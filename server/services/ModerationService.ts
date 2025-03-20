@@ -38,6 +38,7 @@ import {
 import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
+import { invokeModel } from './AwsBedrockService'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
@@ -330,7 +331,7 @@ async function checkForFullAddresses({
   reason: 'Address'
   details: { text: string; confidence: number; explanation: string }
 } | null> {
-  const model = 'gpt-4o'
+  const modelId = config.awsBedrockModelId
 
   const promptData = await getPromptData(
     LangfusePromptNameEnum.GET_ADDRESS_DETECTION_MODERATION_DECISION,
@@ -344,33 +345,28 @@ async function checkForFullAddresses({
 
   const gen = t.generation({
     name: LangfuseGenerationName.GET_ADDRESS_DETECTION_MODERATION_DECISION,
-    model,
+    model: modelId,
     input: { text },
     // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
   try {
-    const completion = await openai.chat.completions.create({
-      model,
-      messages: [
-        { role: 'system', content: promptData.prompt },
-        { role: 'user', content: `<text>${text}</text>` },
-      ],
-      response_format: { type: 'json_object' },
+    const completion = await invokeModel({
+      modelId,
+      text,
+      prompt: promptData.prompt,
     })
 
     gen.end({
       output: completion,
     })
-    const content = completion.choices[0].message.content ?? null
-    if (content) {
-      const result = JSON.parse(content)
+    if (completion) {
       return {
         reason: 'Address',
         details: {
           text,
-          confidence: result.confidence,
-          explanation: result.explanation,
+          confidence: completion.confidence,
+          explanation: completion.explanation,
         },
       }
     } else {
@@ -465,7 +461,7 @@ async function detectPii(
 
     if (
       moderatedAddress &&
-      moderatedAddress?.details?.confidence >
+      moderatedAddress?.details?.confidence >=
         config.minimumModerationAddressConfidence
     ) {
       moderatedPII.push(moderatedAddress)
@@ -1061,6 +1057,6 @@ Provide your response in this JSON format: "{ confidence: number, explanation: s
 const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `
 You are a Trust & Safety expert. Your job is to review the text extracted from an image that was shared between a student and volunteer tutor and decide if it contains an address.
 You will find the extracted text in <text> tags.
-Given the text, provide a confidence rating from 0 to 1 that the text contains an address, where 1 means maximally confident that the text contains an address of the student, tutor, or a place they might meet in person.
+Given the text, provide a confidence rating from 0 to 1 (to 3 decimal places) that the text contains an address, where 1 means maximally confident that the text contains an address of the student, tutor, or a place they might meet in person.
 Provide your response in this JSON format: "{ confidence: number, explanation: string }"
 `
