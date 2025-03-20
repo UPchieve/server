@@ -15,7 +15,6 @@ import {
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
-  SessionMetrics,
 } from './types'
 import 'moment-timezone'
 import {
