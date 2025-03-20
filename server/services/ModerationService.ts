@@ -38,6 +38,7 @@ import {
 import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
+import { invokeModel } from './AwsBedrockService'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
@@ -65,6 +66,7 @@ enum LangfuseTraceName {
 enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
   SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
+  GET_ADDRESS_DETECTION_MODERATION_DECISION = 'getAddressDetectionModerationDecision',
 }
 
 // Image moderation
@@ -272,21 +274,6 @@ async function isLikelyToBeAPhoneNumber({
   return aiModerationResult?.isPhoneNumber ?? true
 }
 
-function isLikelyToBeAnAdderess({
-  entityConfidence,
-  entityText,
-}: {
-  entityConfidence: number
-  entityText: string
-}) {
-  // The PII api flags any part of an address as an ADDRESS.
-  // That means things like "Virginia" are flagged as an address.
-  // This attempts to filter out these false positives by checking if the text contains a space
-  // since actual addresses contain spaces
-  // and that the confidence is high
-  return entityConfidence > 0.9 && /\s/g.test(entityText)
-}
-
 function existsInArray(array: any[], item: any) {
   return array.some((i) => i === item)
 }
@@ -295,6 +282,27 @@ export type ModeratedLink = {
   reason: 'Link'
   details: { text: string; confidence: number }
 }
+
+type ModeratedAddress = {
+  reason: 'Address'
+  details: { text: string; confidence: number; explanation?: string }
+}
+
+export type ModeratedEmail = {
+  reason: 'Email'
+  details: { text: string; confidence: number }
+}
+
+export type ModeratedPhone = {
+  reason: 'Phone'
+  details: { text: string; confidence: number }
+}
+
+export type ModeratedPII =
+  | ModeratedLink
+  | ModeratedEmail
+  | ModeratedPhone
+  | ModeratedAddress
 
 export function filterDisallowedDomains({
   allowedDomains,
@@ -313,6 +321,63 @@ export function filterDisallowedDomains({
   return links.filter(linksWithDisallowedDomain)
 }
 
+async function checkForFullAddresses({
+  text,
+  sessionId,
+}: {
+  text: string
+  sessionId: string
+}): Promise<{
+  reason: 'Address'
+  details: { text: string; confidence: number; explanation: string }
+} | null> {
+  const modelId = config.awsBedrockModelId
+
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.GET_ADDRESS_DETECTION_MODERATION_DECISION,
+    ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT
+  )
+
+  const t = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
+    sessionId,
+  })
+
+  const gen = t.generation({
+    name: LangfuseGenerationName.GET_ADDRESS_DETECTION_MODERATION_DECISION,
+    model: modelId,
+    input: { text },
+    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
+    ...(promptData.promptObject && { prompt: promptData.promptObject }),
+  })
+  try {
+    const completion = await invokeModel({
+      modelId,
+      text,
+      prompt: promptData.prompt,
+    })
+
+    gen.end({
+      output: completion,
+    })
+    if (completion) {
+      return {
+        reason: 'Address',
+        details: {
+          text,
+          confidence: completion.confidence,
+          explanation: completion.explanation,
+        },
+      }
+    } else {
+      return null
+    }
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to detect addresses')
+    return null
+  }
+}
+
 async function detectPii(
   text: string,
   sessionId: string,
@@ -327,18 +392,9 @@ async function detectPii(
   const entities = piiEntities.Entities ?? []
 
   const links: ModeratedLink[] = []
-  const emails: {
-    reason: 'Email'
-    details: { text: string; confidence: number }
-  }[] = []
-  const phones: {
-    reason: 'Phone'
-    details: { text: string; confidence: number }
-  }[] = []
-  const addresses: {
-    reason: 'Address'
-    details: { text: string; confidence: number }
-  }[] = []
+  const emails: ModeratedEmail[] = []
+  const phones: ModeratedPhone[] = []
+  const addresses: ModeratedAddress[] = []
   for (const entity of entities) {
     const entityStart = entity.BeginOffset
     const entityEnd = entity.EndOffset
@@ -380,7 +436,6 @@ async function detectPii(
       })
     } else if (
       entity.Type === 'ADDRESS' &&
-      isLikelyToBeAnAdderess({ entityConfidence, entityText }) &&
       !existsInArray(addresses, entityText)
     ) {
       addresses.push({
@@ -392,12 +447,28 @@ async function detectPii(
       })
     }
   }
+
   const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
   const moderatedLinks = await filterDisallowedDomains({
     allowedDomains,
     links,
   })
-  return [...moderatedLinks, ...emails, ...phones, ...addresses]
+
+  const moderatedPII: ModeratedPII[] = [...moderatedLinks, ...emails, ...phones]
+
+  if (addresses.length > 0) {
+    const moderatedAddress = await checkForFullAddresses({ text, sessionId })
+
+    if (
+      moderatedAddress &&
+      moderatedAddress?.details?.confidence >=
+        config.minimumModerationAddressConfidence
+    ) {
+      moderatedPII.push(moderatedAddress)
+    }
+  }
+
+  return moderatedPII
 }
 
 async function detectTextModerationFailures(
@@ -980,5 +1051,12 @@ Given a chunk of the conversation, provide a confidence rating from 0 to 100 to 
 <policy>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.</policy>
 <policy>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.</policy>
 <policy>The nature of the conversation must be appropriate in a tutoring context</policy>
+Provide your response in this JSON format: "{ confidence: number, explanation: string }"
+`
+
+const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `
+You are a Trust & Safety expert. Your job is to review the text extracted from an image that was shared between a student and volunteer tutor and decide if it contains an address.
+You will find the extracted text in <text> tags.
+Given the text, provide a confidence rating from 0 to 1 (to 3 decimal places) that the text contains an address, where 1 means maximally confident that the text contains an address of the student, tutor, or a place they might meet in person.
 Provide your response in this JSON format: "{ confidence: number, explanation: string }"
 `
