@@ -29,10 +29,10 @@ import {
   MessageForFrontend,
   Session,
   SessionMessage,
-  SessionMetrics,
   UserSessions,
   VoiceMessage,
 } from '../../models/Session'
+import { SessionMetrics } from '../../models/SessionMetrics'
 import {
   ProgressReport,
   ProgressReportDetail,
