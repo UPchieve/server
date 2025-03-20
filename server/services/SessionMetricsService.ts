@@ -418,93 +418,6 @@ export async function triggerFeedbackActions(
   }
 }
 
-type UpdatableMetricKey =
-  | 'absentStudent'
-  | 'absentVolunteer'
-  | 'lowSessionRatingFromCoach'
-  | 'lowSessionRatingFromStudent'
-  | 'lowCoachRatingFromStudent'
-  | 'reported'
-  | 'onlyLookingForAnswers'
-  | 'rudeOrInappropriate'
-  | 'commentFromStudent'
-  | 'commentFromVolunteer'
-  | 'hasBeenUnmatched'
-  | 'hasHadTechnicalIssues'
-  | 'personalIdentifyingInfo'
-  | 'gradedAssignment'
-  | 'coachUncomfortable'
-  | 'studentCrisis'
-
-const metricKeys: UpdatableMetricKey[] = [
-  'absentStudent',
-  'absentVolunteer',
-  'lowSessionRatingFromCoach',
-  'lowSessionRatingFromStudent',
-  'lowCoachRatingFromStudent',
-  'reported',
-  'onlyLookingForAnswers',
-  'rudeOrInappropriate',
-  'commentFromStudent',
-  'commentFromVolunteer',
-  'hasBeenUnmatched',
-  'hasHadTechnicalIssues',
-  'personalIdentifyingInfo',
-  'gradedAssignment',
-  'coachUncomfortable',
-  'studentCrisis',
-]
-
-// TODO: Remove once we're using the user session metrics view
-function updateUSMValues(
-  usm: UserSessionMetrics,
-  metrics: Partial<SessionMetricsRepo.SessionMetrics>
-): UserSessionMetrics {
-  return metricKeys.reduce(
-    (updated, key) => {
-      const sessionValue = metrics[key] ?? 0
-      const currentValue = updated[key] ?? 0
-      return { ...updated, [key]: currentValue + sessionValue }
-    },
-    { ...usm }
-  )
-}
-
-// TODO: Will only need to get the session once we move over to the view
-export async function getSessionAndUSMs(sessionId: Uuid) {
-  const session = await getSessionById(sessionId)
-  const studentUSM = await getUSMByUserId(session.studentId)
-  if (!studentUSM)
-    throw new Error(`Could not find USM for student ${session.studentId}`)
-  let volunteerUSM: UserSessionMetrics | undefined
-  if (session.volunteerId) {
-    volunteerUSM = await getUSMByUserId(session.volunteerId)
-    if (!volunteerUSM)
-      throw new Error(`Could not find USM for volunteer ${session.volunteerId}`)
-  }
-  return { session, studentUSM, volunteerUSM }
-}
-
-async function updateUserMetrics(
-  session: Session,
-  metrics: SessionMetricsRepo.SessionMetrics,
-  studentUSM: UserSessionMetrics,
-  volunteerUSM?: UserSessionMetrics
-) {
-  const updatedStudentUSM = await updateUserSessionMetricsByUserId(
-    session.studentId,
-    updateUSMValues(studentUSM, metrics)
-  )
-  let updatedVolunteerUSM
-  if (session.volunteerId && volunteerUSM) {
-    updatedVolunteerUSM = await updateUserSessionMetricsByUserId(
-      session.volunteerId,
-      updateUSMValues(volunteerUSM, metrics)
-    )
-  }
-  return { updatedStudentUSM, updatedVolunteerUSM }
-}
-
 export async function processMetrics(
   sessionId: Uuid,
   callbacks: {
@@ -528,8 +441,7 @@ export async function processMetrics(
     ) => Promise<void>
   }
 ) {
-  const { session, studentUSM, volunteerUSM } =
-    await getSessionAndUSMs(sessionId)
+  const session = await getSessionById(sessionId)
   const {
     computeSessionMetrics,
     computeSessionFlags,
@@ -542,26 +454,33 @@ export async function processMetrics(
     sessionMetrics
   )
 
-  // TODO: Query for participant's user session metrics view instead of updating
-  const { updatedStudentUSM, updatedVolunteerUSM } = await updateUserMetrics(
-    session,
-    updatedMetrics,
-    studentUSM,
-    volunteerUSM
-  )
-
   const flags = computeSessionFlags(updatedMetrics)
   await updateSessionFlagsById(session.id, flags)
 
+  const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
+    session.studentId
+  )
+  if (!studentUserSessionMetrics)
+    throw new Error(
+      `No user session metrics found for student ${session.studentId}`
+    )
+  const volunteerUserSessionMetrics = session.volunteerId
+    ? await getUserSessionMetricsByUserId(session.volunteerId)
+    : undefined
+
   const reviewReasons = computeReviewReasons(
     updatedMetrics,
-    updatedStudentUSM,
-    updatedVolunteerUSM
+    studentUserSessionMetrics,
+    volunteerUserSessionMetrics
   )
   await updateSessionReviewReasonsById(session.id, reviewReasons)
 
   if (triggerActions)
-    await triggerActions(updatedMetrics, updatedStudentUSM, updatedVolunteerUSM)
+    await triggerActions(
+      updatedMetrics,
+      studentUserSessionMetrics,
+      volunteerUserSessionMetrics
+    )
 }
 
 export async function processSessionMetrics(sessionId: Uuid) {
