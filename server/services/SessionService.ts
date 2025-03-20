@@ -401,13 +401,7 @@ export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
-  let whiteboardDoc
-  try {
-    whiteboardDoc = await WhiteboardService.getDoc(sessionId)
-  } catch (error) {
-    if (!(error instanceof KeyNotFoundError)) throw error
-  }
-
+  const whiteboardDoc = await WhiteboardService.getDocIfExist(sessionId)
   if (!whiteboardDoc)
     return logger.info(
       `No whiteboard doc for session ${sessionId} found when attempting to store it`
