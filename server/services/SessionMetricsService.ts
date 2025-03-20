@@ -597,3 +597,28 @@ export async function createSessionMetrics(
 ) {
   return SessionMetricsRepo.createSessionMetrics(sessionId, tc)
 }
+
+/**
+ *
+ * Temporary functions for migration:
+ * These functions are used as part of the migration from the old metricProcessorFactory
+ * to a new processing format defined in service.ts. They ensure that data in session_metrics
+ * gets populated correctly while preserving the current behavior for updating USM,
+ * session flags, and review reasons.
+ *
+ */
+export async function updateSessionMetricsSessionEnd(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const sessionMetrics = await computeMetricsForSession(session)
+  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
+}
+export async function updateSessionMetricsFeedbackSaved(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const sessionMetrics = await computeMetricsForFeedbackSaved(session)
+  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
+}
+export async function updateSessionMetricsSessionReported(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const sessionMetrics = computeMetricsForReportedSession(session)
+  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
+}
