@@ -275,6 +275,7 @@ export const Config = Record({
   contextualModerationConfidenceThreshold: Number,
   moderateMessageTimeLimitMs: Number,
   contextualModerationBatchSize: Number,
+  minimumModerationAddressConfidence: Number,
 
   tremendousApiKey: String,
   tremendousRewardDomain: String,

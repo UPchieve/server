@@ -421,6 +421,8 @@ const config: Static<typeof Config> = {
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
     Number(process.env.CONTEXTUAL_MODERATION_BATCH_SIZE) || 50,
+  minimumModerationAddressConfidence:
+    Number(process.env.MINIMUM_MODERATION_ADDRESS_CONFIDENCE) || 0.8,
 
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:

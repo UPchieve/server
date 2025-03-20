@@ -463,7 +463,11 @@ async function detectPii(
   if (addresses.length > 0) {
     const moderatedAddress = await checkForFullAddresses({ text, sessionId })
 
-    if (moderatedAddress && moderatedAddress?.details?.confidence > 0.9) {
+    if (
+      moderatedAddress &&
+      moderatedAddress?.details?.confidence >
+        config.minimumModerationAddressConfidence
+    ) {
       moderatedPII.push(moderatedAddress)
     }
   }
