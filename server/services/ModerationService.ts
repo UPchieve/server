@@ -65,6 +65,7 @@ enum LangfuseTraceName {
 enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
   SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
+  GET_ADDRESS_DETECTION_MODERATION_DECISION = 'getAddressDetectionModerationDecision',
 }
 
 // Image moderation
