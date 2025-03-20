@@ -1,7 +1,7 @@
 import config from '../config'
 import logger from '../logger'
 import { getBlob, uploadBlobString } from './AzureService'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import * as cache from '../cache'
 import { KeyNotFoundError } from '../cache'
 
@@ -18,7 +18,7 @@ export const getDoc = (sessionId: Ulid): Promise<string> => {
 }
 
 export const getDocIfExist = async (
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<string | undefined> => {
   try {
     return await cache.get(sessionIdToKey(sessionId))
