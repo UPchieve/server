@@ -23,21 +23,6 @@ export function listeners() {
     USMService.prepareReportProcessors,
     'prepareReportProcessors'
   )
-  register(
-    SESSION_EVENTS.SESSION_ENDED,
-    USMService.updateSessionMetricsSessionEnd,
-    'updateSessionMetricsSessionEnd'
-  )
-  register(
-    FEEDBACK_EVENTS.FEEDBACK_SAVED,
-    USMService.updateSessionMetricsFeedbackSaved,
-    'updateSessionMetricsFeedbackSaved'
-  )
-  register(
-    SESSION_EVENTS.SESSION_REPORTED,
-    USMService.updateSessionMetricsSessionReported,
-    'updateSessionMetricsSessionReported'
-  )
 
   // process post-session metrics
   register(

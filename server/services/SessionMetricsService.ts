@@ -1,27 +1,26 @@
-import { SESSION_REPORT_REASON, USER_SESSION_METRICS } from '../../constants'
-import { Uuid } from '../../models/pgUtils'
-// TODO: Have imports only from the other services, not their respective repo
+import { SESSION_REPORT_REASON, USER_SESSION_METRICS } from '../constants'
+import { Uuid } from '../models/pgUtils'
 import {
   getMessagesForFrontend,
   getSessionById,
   MessageForFrontend,
   Session,
-  SessionMetrics,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
-} from '../../models/Session'
+} from '../models/Session'
 import {
   getPostsessionSurveyResponsesForSessionMetrics,
   PostsessionSurveyResponse,
-} from '../../models/Survey'
+} from '../models/Survey'
 import {
   getUserSessionMetricsByUserId,
   UserSessionMetrics,
-} from '../../models/UserSessionMetrics'
-import { Jobs } from '../../worker/jobs'
-import QueueService from '../QueueService'
-import { updateSessionMetrics } from '../SessionService'
+} from '../models/UserSessionMetrics'
+import { Jobs } from '../worker/jobs'
+import QueueService from './QueueService'
 import moment from 'moment'
+import * as SessionMetricsRepo from '../models/SessionMetrics'
+import { TransactionClient } from '../db'
 
 export function computeAbsentStudentMetric(
   session: Session,
@@ -124,7 +123,7 @@ export function computeFeedbackMetric(
 
 export async function computeMetricsForSession(
   session: Session
-): Promise<Partial<SessionMetrics>> {
+): Promise<Partial<SessionMetricsRepo.SessionMetrics>> {
   const messages = await getMessagesForFrontend(session.id)
   return {
     absentStudent: computeAbsentStudentMetric(session, messages),
@@ -135,7 +134,7 @@ export async function computeMetricsForSession(
 
 export async function computeMetricsForFeedbackSaved(
   session: Session
-): Promise<Partial<SessionMetrics>> {
+): Promise<Partial<SessionMetricsRepo.SessionMetrics>> {
   const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
     session.id
   )
@@ -203,14 +202,14 @@ export async function computeMetricsForFeedbackSaved(
 
 export function computeMetricsForReportedSession(
   session: Session
-): Partial<SessionMetrics> {
+): Partial<SessionMetricsRepo.SessionMetrics> {
   return {
     reported: computeReported(session),
   }
 }
 
 export function computeSessionFlagsFromMetrics(
-  metrics: Partial<SessionMetrics>
+  metrics: Partial<SessionMetricsRepo.SessionMetrics>
 ): USER_SESSION_METRICS[] {
   const flags = []
   if (metrics.absentStudent) flags.push(USER_SESSION_METRICS.absentStudent)
@@ -218,7 +217,9 @@ export function computeSessionFlagsFromMetrics(
   return flags
 }
 
-export function computeFeedbackFlagsFromMetrics(metrics: SessionMetrics) {
+export function computeFeedbackFlagsFromMetrics(
+  metrics: SessionMetricsRepo.SessionMetrics
+) {
   const flags = []
   if (metrics.lowCoachRatingFromStudent)
     flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
@@ -244,14 +245,16 @@ export function computeFeedbackFlagsFromMetrics(metrics: SessionMetrics) {
   return flags
 }
 
-export function computeReportedFlagsFromMetrics(metrics: SessionMetrics) {
+export function computeReportedFlagsFromMetrics(
+  metrics: SessionMetricsRepo.SessionMetrics
+) {
   const flags = []
   if (metrics.reported) flags.push(USER_SESSION_METRICS.reported)
   return flags
 }
 
 export function computeSessionReviewReasonsFromMetrics(
-  metrics: SessionMetrics,
+  metrics: SessionMetricsRepo.SessionMetrics,
   studentUSM: UserSessionMetrics,
   voluteerUSM?: UserSessionMetrics
 ) {
@@ -268,7 +271,7 @@ export function computeSessionReviewReasonsFromMetrics(
 }
 
 export function computeFeedbackReviewReasonsFromMetrics(
-  metrics: SessionMetrics,
+  metrics: SessionMetricsRepo.SessionMetrics,
   studentUSM: UserSessionMetrics
 ) {
   const reviewReasons = []
@@ -293,14 +296,16 @@ export function computeFeedbackReviewReasonsFromMetrics(
   return reviewReasons
 }
 
-export function computeReportedReviewReason(metrics: SessionMetrics) {
+export function computeReportedReviewReason(
+  metrics: SessionMetricsRepo.SessionMetrics
+) {
   const reviewReasons = []
   if (metrics.reported) reviewReasons.push(USER_SESSION_METRICS.reported)
   return reviewReasons
 }
 
 export async function triggerSessionActions(
-  metrics: SessionMetrics,
+  metrics: SessionMetricsRepo.SessionMetrics,
   studentUSM: UserSessionMetrics,
   voluteerUSM?: UserSessionMetrics
 ) {
@@ -378,7 +383,7 @@ export async function triggerSessionActions(
 
 // TODO: Refactor queue payloads to only take sessionId (or a reportId?)
 export async function triggerFeedbackActions(
-  metrics: SessionMetrics,
+  metrics: SessionMetricsRepo.SessionMetrics,
   studentUSM: UserSessionMetrics
 ) {
   const sessionId = metrics.sessionId
@@ -413,26 +418,118 @@ export async function triggerFeedbackActions(
   }
 }
 
+type UpdatableMetricKey =
+  | 'absentStudent'
+  | 'absentVolunteer'
+  | 'lowSessionRatingFromCoach'
+  | 'lowSessionRatingFromStudent'
+  | 'lowCoachRatingFromStudent'
+  | 'reported'
+  | 'onlyLookingForAnswers'
+  | 'rudeOrInappropriate'
+  | 'commentFromStudent'
+  | 'commentFromVolunteer'
+  | 'hasBeenUnmatched'
+  | 'hasHadTechnicalIssues'
+  | 'personalIdentifyingInfo'
+  | 'gradedAssignment'
+  | 'coachUncomfortable'
+  | 'studentCrisis'
+
+const metricKeys: UpdatableMetricKey[] = [
+  'absentStudent',
+  'absentVolunteer',
+  'lowSessionRatingFromCoach',
+  'lowSessionRatingFromStudent',
+  'lowCoachRatingFromStudent',
+  'reported',
+  'onlyLookingForAnswers',
+  'rudeOrInappropriate',
+  'commentFromStudent',
+  'commentFromVolunteer',
+  'hasBeenUnmatched',
+  'hasHadTechnicalIssues',
+  'personalIdentifyingInfo',
+  'gradedAssignment',
+  'coachUncomfortable',
+  'studentCrisis',
+]
+
+// TODO: Remove once we're using the user session metrics view
+function updateUSMValues(
+  usm: UserSessionMetrics,
+  metrics: Partial<SessionMetricsRepo.SessionMetrics>
+): UserSessionMetrics {
+  return metricKeys.reduce(
+    (updated, key) => {
+      const sessionValue = metrics[key] ?? 0
+      const currentValue = updated[key] ?? 0
+      return { ...updated, [key]: currentValue + sessionValue }
+    },
+    { ...usm }
+  )
+}
+
+// TODO: Will only need to get the session once we move over to the view
+export async function getSessionAndUSMs(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const studentUSM = await getUSMByUserId(session.studentId)
+  if (!studentUSM)
+    throw new Error(`Could not find USM for student ${session.studentId}`)
+  let volunteerUSM: UserSessionMetrics | undefined
+  if (session.volunteerId) {
+    volunteerUSM = await getUSMByUserId(session.volunteerId)
+    if (!volunteerUSM)
+      throw new Error(`Could not find USM for volunteer ${session.volunteerId}`)
+  }
+  return { session, studentUSM, volunteerUSM }
+}
+
+async function updateUserMetrics(
+  session: Session,
+  metrics: SessionMetricsRepo.SessionMetrics,
+  studentUSM: UserSessionMetrics,
+  volunteerUSM?: UserSessionMetrics
+) {
+  const updatedStudentUSM = await updateUserSessionMetricsByUserId(
+    session.studentId,
+    updateUSMValues(studentUSM, metrics)
+  )
+  let updatedVolunteerUSM
+  if (session.volunteerId && volunteerUSM) {
+    updatedVolunteerUSM = await updateUserSessionMetricsByUserId(
+      session.volunteerId,
+      updateUSMValues(volunteerUSM, metrics)
+    )
+  }
+  return { updatedStudentUSM, updatedVolunteerUSM }
+}
+
 export async function processMetrics(
   sessionId: Uuid,
   callbacks: {
     computeSessionMetrics: (
       session: Session
-    ) => Promise<Partial<SessionMetrics>> | Partial<SessionMetrics>
-    computeSessionFlags: (metrics: SessionMetrics) => USER_SESSION_METRICS[]
+    ) =>
+      | Promise<Partial<SessionMetricsRepo.SessionMetrics>>
+      | Partial<SessionMetricsRepo.SessionMetrics>
+    computeSessionFlags: (
+      metrics: SessionMetricsRepo.SessionMetrics
+    ) => USER_SESSION_METRICS[]
     computeReviewReasons: (
-      metrics: SessionMetrics,
+      metrics: SessionMetricsRepo.SessionMetrics,
       studentUSM: UserSessionMetrics,
       volunteerUSM?: UserSessionMetrics
     ) => any[]
     triggerActions?: (
-      metrics: SessionMetrics,
+      metrics: SessionMetricsRepo.SessionMetrics,
       studentUSM: UserSessionMetrics,
       volunteerUSM?: UserSessionMetrics
     ) => Promise<void>
   }
 ) {
-  const session = await getSessionById(sessionId)
+  const { session, studentUSM, volunteerUSM } =
+    await getSessionAndUSMs(sessionId)
   const {
     computeSessionMetrics,
     computeSessionFlags,
@@ -440,35 +537,31 @@ export async function processMetrics(
     triggerActions,
   } = callbacks
   const sessionMetrics = await computeSessionMetrics(session)
-  const updatedMetrics = await updateSessionMetrics(sessionId, sessionMetrics)
+  const updatedMetrics = await SessionMetricsRepo.updateSessionMetrics(
+    sessionId,
+    sessionMetrics
+  )
+
+  // TODO: Query for participant's user session metrics view instead of updating
+  const { updatedStudentUSM, updatedVolunteerUSM } = await updateUserMetrics(
+    session,
+    updatedMetrics,
+    studentUSM,
+    volunteerUSM
+  )
 
   const flags = computeSessionFlags(updatedMetrics)
   await updateSessionFlagsById(session.id, flags)
 
-  const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
-    session.studentId
-  )
-  if (!studentUserSessionMetrics)
-    throw new Error(
-      `No user session metrics found for student ${session.studentId}`
-    )
-  const volunteerUserSessionMetrics = session.volunteerId
-    ? await getUserSessionMetricsByUserId(session.volunteerId)
-    : undefined
-
   const reviewReasons = computeReviewReasons(
     updatedMetrics,
-    studentUserSessionMetrics,
-    volunteerUserSessionMetrics
+    updatedStudentUSM,
+    updatedVolunteerUSM
   )
   await updateSessionReviewReasonsById(session.id, reviewReasons)
 
   if (triggerActions)
-    await triggerActions(
-      updatedMetrics,
-      studentUserSessionMetrics,
-      volunteerUserSessionMetrics
-    )
+    await triggerActions(updatedMetrics, updatedStudentUSM, updatedVolunteerUSM)
 }
 
 export async function processSessionMetrics(sessionId: Uuid) {
@@ -495,4 +588,36 @@ export async function processReportMetrics(sessionId: Uuid) {
     computeSessionFlags: computeReportedFlagsFromMetrics,
     computeReviewReasons: computeReportedReviewReason,
   })
+}
+
+export async function createSessionMetrics(
+  sessionId: Uuid,
+  tc?: TransactionClient
+) {
+  return SessionMetricsRepo.createSessionMetrics(sessionId, tc)
+}
+
+/**
+ *
+ * Temporary functions for migration:
+ * These functions are used as part of the migration from the old metricProcessorFactory
+ * to a new processing format defined in service.ts. They ensure that data in session_metrics
+ * gets populated correctly while preserving the current behavior for updating USM,
+ * session flags, and review reasons.
+ *
+ */
+export async function updateSessionMetricsSessionEnd(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const sessionMetrics = await computeMetricsForSession(session)
+  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
+}
+export async function updateSessionMetricsFeedbackSaved(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const sessionMetrics = await computeMetricsForFeedbackSaved(session)
+  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
+}
+export async function updateSessionMetricsSessionReported(sessionId: Uuid) {
+  const session = await getSessionById(sessionId)
+  const sessionMetrics = computeMetricsForReportedSession(session)
+  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
 }
