@@ -73,13 +73,7 @@ import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
 import { KeyNotFoundError } from '../cache'
-import {
-  computeMetricsForFeedbackSaved,
-  computeMetricsForReportedSession,
-  computeMetricsForSession,
-  createSessionMetrics,
-} from './SessionMetricsService'
-import { updateSessionMetrics } from '../models/SessionMetrics'
+import { createSessionMetrics } from './SessionMetricsService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
