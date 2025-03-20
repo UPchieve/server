@@ -368,7 +368,7 @@ async function checkForFullAddresses({
       return {
         reason: 'Address',
         details: {
-          text: result.text,
+          text,
           confidence: result.confidence,
           explanation: result.explanation,
         },
