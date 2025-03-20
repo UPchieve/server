@@ -1,363 +1,181 @@
 test.todo('postgres migration')
-/*import mongoose from 'mongoose'
-import { merge } from 'lodash'
-import {
-  UserSessionMetricsModel,
-  UserSessionMetrics,
-} from '../../models/UserSessionMetrics'
-import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics/queries'
-import UserModel, { User } from '../../models/User'
-import {
-  RepoCreateError,
-  RepoReadError,
-  RepoUpdateError,
-} from '../../models/Errors'
-import { insertStudent, insertVolunteer, resetDb } from '../db-utils'
-import { mockMongooseFindQuery } from '../utils'
-import { getEnumKeyByEnumValue } from '../../utils/enum-utils'
-import { USER_SESSION_METRICS } from '../../constants'
+/*import { CounterMetricProcessor } from '../../../services/UserSessionMetricsService/types'
+import * as USMService from '../../../services/UserSessionMetricsService'
 
-async function resetUSM(): Promise<void> {
-  await UserSessionMetricsModel.deleteMany({})
+import { Session } from '../../../models/Session'
+import { FeedbackVersionTwo } from '../../../models/Feedback'
+import {
+  buildVolunteer,
+  buildStudent,
+  buildFeedback,
+  buildUSM,
+  startSession,
+  joinSession,
+} from '../../generate'
+import { FEEDBACK_VERSIONS, USER_SESSION_METRICS } from '../../../constants'
+import logger from '../../../logger'
+
+// Test data
+const student = buildStudent()
+const studentUSM = buildUSM(student._id)
+const volunteer = buildVolunteer()
+const volunteerUSM = buildUSM(volunteer._id)
+
+const feedback = buildFeedback({
+  versionNumber: FEEDBACK_VERSIONS.TWO,
+}) as FeedbackVersionTwo
+
+const counterError = new Error('test')
+class ErrorCounter extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.absentVolunteer
+  public requiresFeedback = false
+
+  public computeUpdateValue = () => {
+    throw counterError
+  }
+  public computeReviewReason = () => [] as USER_SESSION_METRICS[]
+  public computeFlag = () => {
+    throw counterError
+  }
+  public triggerActions = () => {
+    return [] as Promise<void>[]
+  }
 }
+const errorProcessor = new ErrorCounter()
 
-let student: User
-let volunteer: User
+const updateValue = 5
+class TestCounter extends CounterMetricProcessor {
+  public key = USER_SESSION_METRICS.absentStudent
+  public requiresFeedback = false
 
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-  student = await insertStudent()
-  volunteer = await insertVolunteer()
-})
+  public computeUpdateValue = () => updateValue
+  public computeReviewReason = () => [] as USER_SESSION_METRICS[]
+  public computeFlag = () => [USER_SESSION_METRICS.absentStudent]
+  public triggerActions = () => {
+    return [] as Promise<void>[]
+  }
+}
+const testProcessor = new TestCounter()
+const testMetrics = [testProcessor, errorProcessor]
 
-beforeEach(() => {
-  // restore spys between tests
-  jest.restoreAllMocks()
-})
-
-afterAll(async () => {
-  await resetDb()
-  await resetUSM()
-  await mongoose.connection.close()
-})
-
-describe('Test create UserSessionModel objects', () => {
-  beforeAll(async () => {
-    await resetUSM()
-  })
-
-  beforeEach(async () => {
+describe('Prepare metrics', () => {
+  beforeEach(() => {
     jest.resetAllMocks()
-    await resetUSM()
   })
 
-  test('Create succeeds for student', async () => {
-    const createdUSM = await UserSessionMetricsRepo.createUSMByUserId(
-      student._id
-    )
+  test('Logs errors from failed metric constructors', async () => {
+    const session = startSession(student)
 
-    const foundUSM = await UserSessionMetricsModel.findById(createdUSM._id)
-      .lean()
-      .exec()
-    expect(foundUSM!.user).toEqual(student._id)
-  })
-
-  test('Create succeeds for volunteer', async () => {
-    const createdUSM = await UserSessionMetricsRepo.createUSMByUserId(
-      volunteer._id
-    )
-
-    const foundUSM = await UserSessionMetricsModel.findById(createdUSM._id)
-      .lean()
-      .exec()
-    expect(foundUSM!.user).toEqual(volunteer._id)
-  })
-
-  test('Create errors with re-used user', async () => {
-    await UserSessionMetricsRepo.createUSMByUserId(student._id)
-
-    let error: RepoCreateError
-    try {
-      await UserSessionMetricsRepo.createUSMByUserId(student._id)
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toContain(
-      `UserSessionMetrics document for user ${student._id} already exists`
-    )
-  })
-
-  test('Create errors with non-existent user', async () => {
-    const user = new mongoose.Types.ObjectId()
-
-    let error: RepoCreateError
-    try {
-      await UserSessionMetricsRepo.createUSMByUserId(user)
-    } catch (err) {
-      error = err as Error
-    }
-    expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toContain(
-      `User ${user} does not exist`
-    )
-  })
-
-  test('Create errors with no data returned from db', async () => {
-    const mockedUserSessionModelCreate = jest.spyOn(
-      UserSessionMetricsModel,
-      'create'
-    )
-    // MongooseModel.create has multiple overloads which return type 'void'
-    // jest interprets this as never leading to this weird typecast
-    mockedUserSessionModelCreate.mockResolvedValueOnce(undefined as never)
-
-    let error: RepoCreateError
-    try {
-      await UserSessionMetricsRepo.createUSMByUserId(student._id)
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toBe(
-      'Create query did not return created object'
-    )
-  })
-
-  test('Create bubbles up errors from database find', async () => {
-    const mockedUserModelFind = jest.spyOn(UserModel, 'findOne')
-    const testError = new Error('Test error')
-    mockedUserModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockMongooseFindQuery(() => {
-        throw testError
-      })
-    )
-
+    const expected = {
+      studentUSM,
+      session,
+      outputs: {
+        TestCounter: updateValue,
+      },
+    } as USMService.MetricProcessorPayload
     await expect(
-      UserSessionMetricsRepo.createUSMByUserId(student._id)
-    ).rejects.toThrow(testError)
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
+    ).resolves.toEqual(expected)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
+    )
   })
 
-  test('Create wraps errors from database creation', async () => {
-    const mockedUserSessionModelCreate = jest.spyOn(
-      UserSessionMetricsModel,
-      'create'
+  test('Builds ProcessorPayload for a matched session without feedback', async () => {
+    const session = startSession(student)
+    joinSession(session, volunteer)
+
+    const expected = {
+      studentUSM,
+      volunteerUSM,
+      session,
+      outputs: {
+        TestCounter: updateValue,
+      },
+    } as USMService.MetricProcessorPayload
+    await expect(
+      USMService.prepareMetrics(
+        testMetrics,
+        session,
+        studentUSM,
+        feedback,
+        volunteerUSM
+      )
+    ).resolves.toEqual(expected)
+  })
+
+  test('Builds ProcessorData for a unmatched session without feedback', async () => {
+    const session = startSession(student)
+
+    const expected = {
+      studentUSM,
+      session,
+      outputs: {
+        TestCounter: updateValue,
+      },
+    } as USMService.MetricProcessorPayload
+    await expect(
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
+    ).resolves.toEqual(expected)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
     )
-    const testError = new Error('Test error')
-    // MongooseModel.create has multiple overloads which return type 'void'
-    // jest interprets this as never leading to this weird typecast
-    mockedUserSessionModelCreate.mockRejectedValueOnce(testError as never)
+  })
 
-    let error: RepoCreateError
-    try {
-      await UserSessionMetricsRepo.createUSMByUserId(student._id)
-    } catch (err) {
-      error = err as Error
-    }
+  test('Builds UpdateValueData for a session with feedback', async () => {
+    const session = startSession(student)
 
-    expect(error!).toBeInstanceOf(RepoCreateError)
-    expect((error! as RepoCreateError).message).toContain(testError.message)
+    const expected = {
+      studentUSM,
+      session,
+      outputs: {
+        TestCounter: updateValue,
+      },
+    } as USMService.MetricProcessorPayload
+    await expect(
+      USMService.prepareMetrics(testMetrics, session, studentUSM, feedback)
+    ).resolves.toEqual(expected)
+    expect(logger.error).toHaveBeenCalledWith(
+      `Metrics processor ${errorProcessor.constructor.name} failed to compute update value`
+    )
   })
 })
 
-describe('Test read UserSessionModel objects', () => {
-  let createdUSM: UserSessionMetrics
-
-  beforeAll(async () => {
-    await resetUSM()
-    const newUSM = await UserSessionMetricsModel.create({
-      user: student._id,
-    })
-    createdUSM = newUSM.toObject() as UserSessionMetrics
-  })
+describe('Metric processor factory', () => {
+  const testProcessorFunction = USMService.metricProcessorFactory(
+    {
+      [TestCounter.name]: testProcessor,
+      [ErrorCounter.name]: errorProcessor,
+    },
+    'computeFlag',
+    (acc: USER_SESSION_METRICS[]): USER_SESSION_METRICS[] => acc.flat(),
+    async (flags: USER_SESSION_METRICS[], session: Session): Promise<void> => {
+      logger.info(flags)
+      logger.info(session)
+    }
+  )
+  const session = startSession(student)
+  const payload = {
+    session,
+    studentUSM,
+    outputs: {
+      [TestCounter.name]: updateValue,
+      [ErrorCounter.name]: 0,
+    },
+  } as USMService.MetricProcessorPayload
 
   beforeEach(() => {
     jest.resetAllMocks()
   })
 
-  test('GetById succeeds', async () => {
-    const foundUSM = await UserSessionMetricsRepo.getUSMById(createdUSM._id)
+  test('Successfully computes factory function output', async () => {
+    const errMsg = `errors processing computeFlag:\nErrorCounter.computeFlag(): ${counterError.message}`
+    await expect(testProcessorFunction(payload)).rejects.toThrowError(errMsg)
 
-    expect(foundUSM!._id).toEqual(createdUSM._id)
-    expect(foundUSM!.user).toEqual(student._id)
-  })
-
-  test('GetById wraps errors from database find', async () => {
-    const mockedUserSessionMetricsModelFind = jest.spyOn(
-      UserSessionMetricsModel,
-      'findOne'
-    )
-    const testError = new Error('Test error')
-    mockedUserSessionMetricsModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockMongooseFindQuery(() => {
-        throw testError
-      })
-    )
-
-    let error: RepoReadError
-    try {
-      await UserSessionMetricsRepo.getUSMById(createdUSM._id)
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoReadError)
-    expect((error! as RepoReadError).message).toContain(testError.message)
-  })
-
-  test('GetAll bubbles up errors from database find', async () => {
-    const mockedUserSessionMetricsModelFind = jest.spyOn(
-      UserSessionMetricsModel,
-      'find'
-    )
-    const testError = new Error('Test error')
-    mockedUserSessionMetricsModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockMongooseFindQuery(() => {
-        throw testError
-      })
-    )
-
-    let error: RepoReadError
-    try {
-      await UserSessionMetricsRepo.getAllUSM()
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoReadError)
-    expect((error! as RepoReadError).message).toContain(testError.message)
-  })
-
-  test('GetByUserId succeeds', async () => {
-    const foundUSM = await UserSessionMetricsRepo.getUSMByUserId(student._id)
-
-    expect(foundUSM!._id).toEqual(createdUSM._id)
-    expect(foundUSM!.user).toEqual(student._id)
-  })
-
-  test('GetByUserId bubbles up errors from database find', async () => {
-    const mockedUserSessionMetricsModelFind = jest.spyOn(
-      UserSessionMetricsModel,
-      'findOne'
-    )
-    const testError = new Error('Test error')
-    mockedUserSessionMetricsModelFind.mockImplementationOnce(
-      // @ts-expect-error
-      mockMongooseFindQuery(() => {
-        throw testError
-      })
-    )
-
-    let error: RepoReadError
-    try {
-      await UserSessionMetricsRepo.getUSMByUserId(student._id)
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoReadError)
-    expect((error! as RepoReadError).message).toContain(testError.message)
-  })
-})
-
-describe('Test update UserSessionModel objects', () => {
-  let createdUSM: UserSessionMetrics
-
-  beforeAll(async () => {
-    await resetUSM()
-  })
-
-  beforeEach(async () => {
-    jest.resetAllMocks()
-    await resetUSM()
-    const newUSM = await UserSessionMetricsModel.create({
-      user: student._id,
-    })
-    createdUSM = newUSM.toObject() as UserSessionMetrics
-  })
-
-  test('executeUpdatesByUserId succeeds for valid queries', async () => {
-    const queries = [
-      {
-        [`counters.${getEnumKeyByEnumValue(
-          USER_SESSION_METRICS,
-          USER_SESSION_METRICS.absentStudent
-        )}`]: 2,
-      },
-      {
-        [`counters.${getEnumKeyByEnumValue(
-          USER_SESSION_METRICS,
-          USER_SESSION_METRICS.hasHadTechnicalIssues
-        )}`]: 5,
-      },
-    ]
-    await UserSessionMetricsRepo.executeUSMUpdatesByUserId(student._id, queries)
-    const foundUSM = await UserSessionMetricsRepo.getUSMById(createdUSM._id)
-
-    for (const query of queries) {
-      for (const key in query) {
-        const [type, path]: string[] = key.split('.')
-        expect(((foundUSM! as any)[type]! as any)[path]! as string).toEqual(
-          query[key]
-        )
-      }
-    }
-  })
-
-  test('executeUpdatesByUserId fails for invalid queries', async () => {
-    const queries = [
-      { yipee: 2 },
-      {
-        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5,
-      },
-    ]
-    const update = merge(queries[0], queries[1])
-    const user = student._id
-    let error: RepoUpdateError
-    try {
-      await UserSessionMetricsRepo.executeUSMUpdatesByUserId(user, queries)
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoUpdateError)
-    expect((error! as RepoUpdateError).message).toContain(
-      `Failed to execute merged update ${update} for user ${user}:`
-    )
-  })
-
-  test('executeUpdatesByUserId wraps errors from database update', async () => {
-    const mockedUserSessionMetricsModelUpdate = jest.spyOn(
-      UserSessionMetricsModel,
-      'updateOne'
-    )
-    const testError = new Error('Test error')
-    mockedUserSessionMetricsModelUpdate.mockRejectedValueOnce(testError)
-
-    const queries = [
-      { [`counters.${USER_SESSION_METRICS.absentStudent}`]: 2 },
-      {
-        [`counters.${USER_SESSION_METRICS.hasHadTechnicalIssues}`]: 5,
-      },
-    ]
-    const update = merge(queries[0], queries[1])
-    const user = student._id
-    let error: RepoUpdateError
-    try {
-      await UserSessionMetricsRepo.executeUSMUpdatesByUserId(user, queries)
-    } catch (err) {
-      error = err as Error
-    }
-
-    expect(error!).toBeInstanceOf(RepoUpdateError)
-    expect((error! as RepoUpdateError).message).toContain(
-      `Failed to execute merged update ${update} for user ${user}: ${testError.message}`
-    )
+    expect(logger.info).toHaveBeenNthCalledWith(1, [
+      USER_SESSION_METRICS.absentStudent,
+    ])
+    expect(logger.info).toHaveBeenNthCalledWith(2, session)
   })
 })
 */
