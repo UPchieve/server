@@ -26,7 +26,6 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
-  createSessionMetrics,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -74,6 +73,7 @@ import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
 import { KeyNotFoundError } from '../cache'
+import { createSessionMetrics } from './SessionMetricsService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1185,10 +1185,4 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
-}
-export async function updateSessionMetrics(
-  sessionId: Uuid,
-  metrics: Partial<SessionRepo.SessionMetrics>
-): Promise<SessionRepo.SessionMetrics> {
-  return SessionRepo.updateSessionMetrics(sessionId, metrics)
 }
