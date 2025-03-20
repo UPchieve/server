@@ -73,7 +73,13 @@ import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
 import { KeyNotFoundError } from '../cache'
-import { createSessionMetrics } from './SessionMetricsService'
+import {
+  computeMetricsForFeedbackSaved,
+  computeMetricsForReportedSession,
+  computeMetricsForSession,
+  createSessionMetrics,
+} from './SessionMetricsService'
+import { updateSessionMetrics } from '../models/SessionMetrics'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1185,4 +1191,29 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
+}
+
+/**
+ *
+ * Temporary functions for migration:
+ * These functions are used as part of the migration from the old metricProcessorFactory
+ * to a new processing format defined in service.ts. They ensure that data in session_metrics
+ * gets populated correctly while preserving the current behavior for updating USM,
+ * session flags, and review reasons.
+ *
+ */
+export async function updateSessionMetricsSessionEnd(sessionId: Uuid) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const sessionMetrics = await computeMetricsForSession(session)
+  await updateSessionMetrics(sessionId, sessionMetrics)
+}
+export async function updateSessionMetricsFeedbackSaved(sessionId: Uuid) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const sessionMetrics = await computeMetricsForFeedbackSaved(session)
+  await updateSessionMetrics(sessionId, sessionMetrics)
+}
+export async function updateSessionMetricsSessionReported(sessionId: Uuid) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const sessionMetrics = computeMetricsForReportedSession(session)
+  await updateSessionMetrics(sessionId, sessionMetrics)
 }

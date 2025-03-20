@@ -9,8 +9,6 @@ import {
   NO_ACTIONS,
 } from './types'
 import moment from 'moment'
-import { MessageForFrontend, Session } from '../../models/Session'
-import { PostsessionSurveyResponse } from '../../models/Survey'
 
 class AbsentStudent extends CounterMetricProcessor {
   public key = USER_SESSION_METRICS.absentStudent
