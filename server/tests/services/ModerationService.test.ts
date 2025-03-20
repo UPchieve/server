@@ -419,62 +419,115 @@ describe('ModerationService', () => {
     )
   })
 
-  describe('getInfractionScore', () => {
+  describe('Moderation infractions', () => {
+    const profanityReason = { failures: { profanity: [] } }
+    const violenceReason = { failures: { violence: [] } }
+
     const buildModerationInfractionWithReason = (reason: any) => {
       return buildModerationInfractionRow('userId', 'sessionId', {
-        reason,
+        reason: reason.failures,
       })
     }
+    describe('getInfractionScore', () => {
+      it.each([
+        ['profanity', 1],
+        ['high toxicity', 1],
+        ['minor detected in image', 1],
+        ['drugs & tobacco', 1],
+        ['alcohol', 1],
+        ['rude gestures', 1],
+        ['gambling', 1],
+        ['violence', 10],
+        ['swimwear or underwear', 10],
+        ['link', 10],
+        ['email', 10],
+        ['phone', 10],
+        ['address', 10],
+        ['explicit', 10],
+        ['non-explicit nudity of intimate parts and kissing', 10],
+        ['hate symbols', 10],
+        ['visually disturbing', 10],
+      ])(
+        'Calculates the correct score for each category of infraction',
+        (category, expectedScore) => {
+          const moderationInfraction = buildModerationInfractionRow(
+            'userId',
+            'sessionId',
+            {
+              reason: {
+                [category]: [],
+              },
+            }
+          )
+          expect(getInfractionScore([moderationInfraction])).toEqual(
+            expectedScore
+          )
+        }
+      )
 
-    const profanityReason = { profanity: [] }
-    const violenceReason = { violence: [] }
-    const linkReason = { link: [] }
-    const addressReason = { address: [] }
+      it('Correctly calculates score when there are multiple infractions', () => {
+        const infractions = [
+          buildModerationInfractionWithReason(profanityReason),
+          buildModerationInfractionWithReason(profanityReason),
+          buildModerationInfractionWithReason(violenceReason),
+          buildModerationInfractionWithReason(violenceReason),
+        ]
+        expect(getInfractionScore(infractions)).toEqual(22)
+      })
+    })
 
-    it.each([
-      ['profanity', 1],
-      ['high toxicity', 1],
-      ['minor detected in image', 1],
-      ['drugs & tobacco', 1],
-      ['alcohol', 1],
-      ['rude gestures', 1],
-      ['gambling', 1],
-      ['violence', 10],
-      ['swimwear or underwear', 10],
-      ['link', 10],
-      ['email', 10],
-      ['phone', 10],
-      ['address', 10],
-      ['explicit', 10],
-      ['non-explicit nudity of intimate parts and kissing', 10],
-      ['hate symbols', 10],
-      ['visually disturbing', 10],
-    ])(
-      'Calculates the correct score for each category of infraction',
-      (category, expectedScore) => {
-        const moderationInfraction = buildModerationInfractionRow(
-          'userId',
-          'sessionId',
+    describe('handleModerationInfraction', () => {
+      const userId = 'user-123'
+      const sessionId = 'session-456'
+
+      it('Writes an infraction if the source is screenshare', async () => {
+        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
+          []
+        )
+        await handleModerationInfraction(
+          userId,
+          sessionId,
+          profanityReason,
+          'screenshare'
+        )
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).toHaveBeenCalledTimes(1)
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).toHaveBeenCalledWith(
           {
-            reason: {
-              [category]: [],
-            },
-          }
+            userId,
+            sessionId,
+            reason: profanityReason.failures,
+          },
+          expect.anything()
         )
-        expect(getInfractionScore([moderationInfraction])).toEqual(
-          expectedScore
+        expect(
+          mockModerationInfractionsRepo.getModerationInfractionsByUser
+        ).toHaveBeenCalledWith(
+          userId,
+          {
+            active: true,
+          },
+          expect.anything()
         )
-      }
-    )
+      })
 
-    it('Correctly calculates score when there are multiple infractions', () => {
-      const infractions = [
-        buildModerationInfractionWithReason(profanityReason),
-        buildModerationInfractionWithReason(profanityReason),
-        buildModerationInfractionWithReason(violenceReason),
-        buildModerationInfractionWithReason(violenceReason),
-      ]
-      expect(getInfractionScore(infractions)).toEqual(22)
+      it('Does not write an infraction if the source is image_upload', async () => {
+        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
+          []
+        )
+        await handleModerationInfraction(
+          userId,
+          sessionId,
+          profanityReason,
+          'image_upload'
+        )
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).not.toHaveBeenCalled()
+      })
     })
   })
 })

@@ -5,9 +5,9 @@ import {
   UpdateModerationInfractionArgs,
 } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
+import { getDbUlid } from '../pgUtils'
 import { camelCaseKeys } from '../../tests/db-utils'
 
 /**
@@ -17,7 +17,7 @@ import { camelCaseKeys } from '../../tests/db-utils'
 export async function insertModerationInfraction(
   data: InsertModerationInfractionArgs,
   client = getClient()
-): Promise<ModerationInfraction[]> {
+): Promise<void> {
   try {
     const result = await pgQueries.insertModerationInfraction.run(
       {
@@ -32,12 +32,6 @@ export async function insertModerationInfraction(
       throw new Error(
         `Failed to insert moderation infraction for user ${data.userId}, session ${data.sessionId}`
       )
-    return result.map((infraction) =>
-      makeRequired({
-        ...infraction,
-        reason: JSON.parse(infraction.reason as string) as InfractionReasons,
-      })
-    )
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -61,30 +55,29 @@ export async function updateModerationInfractionById(
   }
 }
 
-export async function getModerationInfractionsByUserAndSession(
+export async function getModerationInfractionsByUser(
   userId: string,
-  sessionId: string,
-  client = getClient()
+  args?: {
+    sessionId?: string
+    active?: boolean
+  },
+  client?: TransactionClient
 ): Promise<ModerationInfraction[]> {
   try {
-    const result = await pgQueries.getModerationInfractionsByUserAndSession.run(
+    const result = await pgQueries.getModerationInfractionsByUser.run(
       {
         userId,
-        sessionId,
+        sessionId: args?.sessionId,
+        active: args?.active,
       },
-      client
+      client ?? getClient()
     )
     if (!result.length) return []
     return result.map((r) => {
       const camelCase = camelCaseKeys(r)
       return {
-        id: camelCase.id,
-        userId: camelCase.userId,
-        sessionId: camelCase.sessionId,
+        ...camelCase,
         reason: camelCase.reason as InfractionReasons,
-        active: camelCase.active,
-        createdAt: camelCase.createdAt,
-        updatedAt: camelCase.updatedAt,
       }
     })
   } catch (err) {

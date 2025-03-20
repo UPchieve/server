@@ -19,7 +19,7 @@ import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
 import config from '../config'
-import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
+import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
 import {
@@ -41,6 +41,7 @@ import { putObject } from './AwsService'
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
+import { getClient } from '../db'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -761,7 +762,7 @@ export async function moderateMessage({
   return result
 }
 
-const handleModerationInfraction = async (
+export const handleModerationInfraction = async (
   userId: string,
   sessionId: string,
   reasons:
@@ -770,19 +771,30 @@ const handleModerationInfraction = async (
         VideoFrameModerationFailureReason['reason'],
         VideoFrameModerationFailureReason['details']
       >,
-  source: ModerationSource
+  source: ModerationSource,
+  client = getClient()
 ) => {
   if (source === 'image_upload') {
     // Image uploads are premoderated, so if they fail moderation they are not shown to any user.
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
     return
   }
-  const allActiveInfractions =
-    await ModerationInfractionsRepo.insertModerationInfraction({
+  await ModerationInfractionsRepo.insertModerationInfraction(
+    {
       userId,
       sessionId,
       reason: reasons.failures,
-    })
+    },
+    client
+  )
+  const allActiveInfractions =
+    await ModerationInfractionsRepo.getModerationInfractionsByUser(
+      userId,
+      {
+        active: true,
+      },
+      client
+    )
   const infractionScore = getInfractionScore(allActiveInfractions)
   if (infractionScore > config.liveMediaBanInfractionScoreThreshold) {
     await UsersRepo.banUserById(
