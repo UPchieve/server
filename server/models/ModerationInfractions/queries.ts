@@ -10,10 +10,6 @@ import * as pgQueries from './pg.queries'
 import { getDbUlid } from '../pgUtils'
 import { camelCaseKeys } from '../../tests/db-utils'
 
-/**
- * Inserts the infraction.
- * @returns the list of active infractions (including this one) that have occurred
- */
 export async function insertModerationInfraction(
   data: InsertModerationInfractionArgs,
   client = getClient()

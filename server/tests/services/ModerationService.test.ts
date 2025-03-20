@@ -5,6 +5,8 @@ import {
   getInfractionScore,
   handleModerationInfraction,
   ModerationSource,
+  getScoreForCategory,
+  LiveMediaModerationCategories,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -528,6 +530,25 @@ describe('ModerationService', () => {
           mockModerationInfractionsRepo.insertModerationInfraction
         ).not.toHaveBeenCalled()
       })
+    })
+
+    describe('getScoreForCategory', () => {
+      it.each([
+        ['profanity', 1],
+        ['alcohol', 1],
+        ['violence', 10],
+        ['hate symbols', 10],
+        ['some unknown thing that isnt in there', 10],
+      ])(
+        'Returns the correct score for each category',
+        (
+          category: string | LiveMediaModerationCategories,
+          expectedScore: number
+        ) => {
+          const actualScore = getScoreForCategory(category)
+          expect(actualScore).toEqual(expectedScore)
+        }
+      )
     })
   })
 })
