@@ -51,10 +51,7 @@ class AbsentStudent extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentAbsentWarning,
           {
-            sessionSubtopic: pd.session.subjectDisplayName,
-            sessionDate: pd.session.createdAt,
-            studentId: pd.session.studentId,
-            volunteerId: pd.session.volunteerId,
+            sessionId: pd.session.id,
           },
           {
             removeOnComplete: true,
@@ -72,10 +69,7 @@ class AbsentStudent extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailVolunteerAbsentStudentApology,
           {
-            sessionSubtopic: pd.session.subjectDisplayName,
-            sessionDate: pd.session.createdAt,
-            studentId: pd.session.studentId,
-            volunteerId: pd.session.volunteerId,
+            sessionId: pd.session.id,
           },
           {
             removeOnComplete: true,
@@ -133,10 +127,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailVolunteerAbsentWarning,
           {
-            sessionSubtopic: pd.session.subjectDisplayName,
-            sessionDate: pd.session.createdAt,
-            studentId: pd.session.studentId,
-            volunteerId: pd.session.volunteerId,
+            sessionId: pd.session.id,
           },
           {
             removeOnComplete: true,
@@ -151,10 +142,7 @@ class AbsentVolunteer extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentAbsentVolunteerApology,
           {
-            sessionSubtopic: pd.session.subjectDisplayName,
-            sessionDate: pd.session.createdAt,
-            studentId: pd.session.studentId,
-            volunteerId: pd.session.volunteerId,
+            sessionId: pd.session.id,
           },
           {
             removeOnComplete: true,
@@ -285,10 +273,7 @@ class OnlyLookingForAnswers extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentOnlyLookingForAnswers,
           {
-            sessionSubtopic: pd.session.subjectDisplayName,
-            sessionDate: pd.session.createdAt,
-            studentId: pd.session.studentId,
-            volunteerId: pd.session.volunteerId,
+            sessionId: pd.session.id,
           },
           {
             removeOnComplete: true,
@@ -355,10 +340,7 @@ class HasBeenUnmatched extends CounterMetricProcessor {
         QueueService.add(
           Jobs.EmailStudentUnmatchedApology,
           {
-            sessionSubtopic: pd.session.subjectDisplayName,
-            sessionDate: pd.session.createdAt,
-            studentId: pd.session.studentId,
-            volunteerId: pd.session.volunteerId,
+            sessionId: pd.session.id,
           },
           {
             removeOnComplete: true,
@@ -470,13 +452,14 @@ class StudentCrisis extends CounterMetricProcessor {
     const actions: Promise<any>[] = []
     if (!pd.value) return actions
 
-    // If session was not reported, follow report workflow for emotiona distress
+    // If session was not reported, follow report workflow for emotional distress
     if (!pd.session.reported) {
       actions.push(
         QueueService.add(
           Jobs.EmailSessionReported,
           {
-            studentId: pd.session.studentId,
+            userId: pd.session.studentId,
+            reportedBy: pd.session.volunteerId,
             reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
             isBanReason: false,
             sessionId: pd.session.id,

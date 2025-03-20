@@ -5,37 +5,25 @@ import * as MailService from '../../../services/MailService'
 import { Jobs } from '../index'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
-import { ISOString } from '../../../constants'
-import formatMultiWordSubject from '../../../utils/format-multi-word-subject'
-import { asFactory, asString } from '../../../utils/type-utils'
-import { Ulid } from '../../../models/pgUtils'
+import { Uuid } from '../../../models/pgUtils'
+import { getSessionById } from '../../../models/Session'
 
 interface VolunteerSessionActionsJobData {
-  volunteerId: Ulid
-  studentId: Ulid
-  sessionSubtopic: string
-  sessionDate: ISOString
+  sessionId: Uuid
 }
-
-const asVolunteerActionsData = asFactory<VolunteerSessionActionsJobData>({
-  studentId: asString,
-  volunteerId: asString,
-  sessionSubtopic: asString,
-  sessionDate: asString,
-})
 
 export default async (
   job: Job<VolunteerSessionActionsJobData>
 ): Promise<void> => {
   const { data, name: currentJob } = job
-  const { studentId, volunteerId, sessionSubtopic, sessionDate } =
-    asVolunteerActionsData(data)
-  const volunteer = await getVolunteerContactInfoById(volunteerId, {
+  const session = await getSessionById(data.sessionId)
+  if (!session.volunteerId) return
+  const volunteer = await getVolunteerContactInfoById(session.volunteerId, {
     deactivated: false,
     testUser: false,
     banned: false,
   })
-  const student = await getStudentContactInfoById(studentId)
+  const student = await getStudentContactInfoById(session.studentId)
 
   if (student && volunteer) {
     try {
@@ -45,22 +33,22 @@ export default async (
           firstName,
           email,
           student.firstName,
-          formatMultiWordSubject(sessionSubtopic),
-          moment(sessionDate).format('MMMM Do')
+          session.subjectDisplayName,
+          moment(session.createdAt).format('MMMM Do')
         )
       if (currentJob === Jobs.EmailVolunteerAbsentStudentApology)
         await MailService.sendVolunteerAbsentStudentApology(
           firstName,
           email,
           student.firstName,
-          formatMultiWordSubject(sessionSubtopic),
-          moment(sessionDate).format('MMMM Do')
+          session.subjectDisplayName,
+          moment(session.createdAt).format('MMMM Do')
         )
 
-      log(`Emailed ${currentJob} to volunteer ${volunteerId}`)
+      log(`Emailed ${currentJob} to volunteer ${volunteer.id}`)
     } catch (error) {
       throw new Error(
-        `Failed to email ${currentJob} to volunteer ${volunteerId}: ${error}`
+        `Failed to email ${currentJob} to volunteer ${volunteer.id}: ${error}`
       )
     }
   }
