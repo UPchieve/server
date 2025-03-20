@@ -275,6 +275,7 @@ export const Config = Record({
   contextualModerationConfidenceThreshold: Number,
   moderateMessageTimeLimitMs: Number,
   contextualModerationBatchSize: Number,
+  minimumModerationAddressConfidence: Number,
 
   tremendousApiKey: String,
   tremendousRewardDomain: String,
@@ -286,4 +287,10 @@ export const Config = Record({
   awsChimeAccessKey: String,
   awsChimeSecretAccessKey: String,
   awsChimeRegion: String,
+
+  // AWS Bedrock
+  awsBedrockAccessKey: String,
+  awsBedrockSecretAccessKey: String,
+  awsBedrockRegion: String,
+  awsBedrockModelId: String,
 })
