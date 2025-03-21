@@ -6,6 +6,7 @@
     "build": "./bin/build_backend.sh",
     "build:tsc": "tsc --p tsconfig.server.json",
     "deploy:dev": "./bin/deploy.sh dev",
+    "dev:revision": "az containerapp revision list --name development-container-app-subway --resource-group development-resource-group | jq -r '.[0] | \"\\(.name) - \\(.properties.runningState)\"'",
     "deploy:local": "./bin/deploy.sh",
     "start": "node -r newrelic build/main",
     "start:worker": "node build/worker",
