@@ -168,3 +168,10 @@ export async function getTutorBotSubjectModelsPayload(
 export async function isTremendousEmbeddedRewardsEnabled(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
 }
+
+export async function isUpdatedSessionEndedProcessingEnabled(userId: Ulid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.UPDATED_SESSION_ENDED_PROCESSING,
+    userId
+  )
+}

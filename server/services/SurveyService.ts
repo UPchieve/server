@@ -32,6 +32,8 @@ import {
 import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
 import { emitter } from './EventsService'
 import { partition } from 'lodash'
+import { isUpdatedSessionEndedProcessingEnabled } from './FeatureFlagService'
+import { processFeedbackMetrics } from './SessionMetricsService'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -85,8 +87,11 @@ export async function saveUserSurvey(
     (resp) => resp.responseChoiceId !== null
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
-  if (userSurvey.sessionId)
-    emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
+  if (userSurvey.sessionId) {
+    if (await isUpdatedSessionEndedProcessingEnabled(userId))
+      await processFeedbackMetrics(userSurvey.sessionId)
+    else emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
+  }
 }
 
 export type PostsessionSurveyRatingsMetric = {

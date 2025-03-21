@@ -57,6 +57,9 @@ import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
+import processSessionEnded from './processSessionEnded'
+import backfillSessionMetrics from '../../scripts/backfill-session-metrics'
+
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
@@ -110,6 +113,7 @@ export enum Jobs {
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
   EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
   EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
+  ProcessSessionEnded = 'ProcessSessionEnded',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -123,6 +127,7 @@ export enum Jobs {
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
+  BackfillSessionMetrics = 'BackfillSessionMetrics',
 
   // Delete scripts
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
@@ -337,6 +342,10 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.EmailFallIncentiveSessionQualification,
     processor: emailFallIncentiveSessionQualification,
   },
+  {
+    name: Jobs.ProcessSessionEnded,
+    processor: processSessionEnded,
+  },
   // TODO: remove the following deprecated job names
   {
     name: Jobs.EmailStudentUseCases,
@@ -383,6 +392,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.DeleteSelfFavoritedVolunteers,
     processor: deleteSelfFavoritedVolunteers,
+  },
+  {
+    name: Jobs.BackfillSessionMetrics,
+    processor: backfillSessionMetrics,
   },
   // TODO: uncomment this processor when ready to migrate
   //{
