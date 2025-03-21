@@ -13,7 +13,13 @@ export interface IInsertModerationInfractionParams {
 
 /** 'InsertModerationInfraction' return type */
 export interface IInsertModerationInfractionResult {
-  infractionCount: string | null;
+  active: boolean;
+  createdAt: Date;
+  id: string;
+  reason: Json;
+  sessionId: string;
+  updatedAt: Date;
+  userId: string;
 }
 
 /** 'InsertModerationInfraction' query type */
@@ -22,22 +28,15 @@ export interface IInsertModerationInfractionQuery {
   result: IInsertModerationInfractionResult;
 }
 
-const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":116}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126},{"a":273,"b":280}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139},{"a":311,"b":321}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":149}]}],"statement":"WITH insert_infraction AS (\nINSERT INTO moderation_infractions (id, user_id, session_id, reason)\n        VALUES (:id!, :userId!, :sessionId!, :reason!))\n    SELECT\n        1 + count(*) AS infraction_count\n    FROM\n        moderation_infractions\n    WHERE\n        user_id = :userId!\n            AND session_id = :sessionId!\n            AND active = TRUE"};
+const insertModerationInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":89,"b":92}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":102}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":115}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":118,"b":125}]}],"statement":"INSERT INTO moderation_infractions (id, user_id, session_id, reason, active)\n    VALUES (:id!, :userId!, :sessionId!, :reason!, TRUE)\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH insert_infraction AS (
- * INSERT INTO moderation_infractions (id, user_id, session_id, reason)
- *         VALUES (:id!, :userId!, :sessionId!, :reason!))
- *     SELECT
- *         1 + count(*) AS infraction_count
- *     FROM
- *         moderation_infractions
- *     WHERE
- *         user_id = :userId!
- *             AND session_id = :sessionId!
- *             AND active = TRUE
+ * INSERT INTO moderation_infractions (id, user_id, session_id, reason, active)
+ *     VALUES (:id!, :userId!, :sessionId!, :reason!, TRUE)
+ * RETURNING
+ *     *
  * ```
  */
 export const insertModerationInfraction = new PreparedQuery<IInsertModerationInfractionParams,IInsertModerationInfractionResult>(insertModerationInfractionIR);
@@ -74,14 +73,15 @@ const updateModerationInfractionByIdIR: any = {"usedParamSet":{"active":true,"id
 export const updateModerationInfractionById = new PreparedQuery<IUpdateModerationInfractionByIdParams,IUpdateModerationInfractionByIdResult>(updateModerationInfractionByIdIR);
 
 
-/** 'GetModerationInfractionsByUserAndSession' parameters type */
-export interface IGetModerationInfractionsByUserAndSessionParams {
-  sessionId: string;
+/** 'GetModerationInfractionsByUser' parameters type */
+export interface IGetModerationInfractionsByUserParams {
+  active?: boolean | null | void;
+  sessionId?: string | null | void;
   userId: string;
 }
 
-/** 'GetModerationInfractionsByUserAndSession' return type */
-export interface IGetModerationInfractionsByUserAndSessionResult {
+/** 'GetModerationInfractionsByUser' return type */
+export interface IGetModerationInfractionsByUserResult {
   active: boolean;
   createdAt: Date;
   id: string;
@@ -91,13 +91,13 @@ export interface IGetModerationInfractionsByUserAndSessionResult {
   userId: string;
 }
 
-/** 'GetModerationInfractionsByUserAndSession' query type */
-export interface IGetModerationInfractionsByUserAndSessionQuery {
-  params: IGetModerationInfractionsByUserAndSessionParams;
-  result: IGetModerationInfractionsByUserAndSessionResult;
+/** 'GetModerationInfractionsByUser' query type */
+export interface IGetModerationInfractionsByUserQuery {
+  params: IGetModerationInfractionsByUserParams;
+  result: IGetModerationInfractionsByUserResult;
 }
 
-const getModerationInfractionsByUserAndSessionIR: any = {"usedParamSet":{"userId":true,"sessionId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":72}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":105}]}],"statement":"SELECT\n    *\nFROM\n    moderation_infractions\nWHERE\n    user_id = :userId!\n    AND session_id = :sessionId!"};
+const getModerationInfractionsByUserIR: any = {"usedParamSet":{"userId":true,"sessionId":true,"active":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":72}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":83,"b":92},{"a":132,"b":141}]},{"name":"active","required":false,"transform":{"type":"scalar"},"locs":[{"a":153,"b":159},{"a":198,"b":204}]}],"statement":"SELECT\n    *\nFROM\n    moderation_infractions\nWHERE\n    user_id = :userId!\n    AND (:sessionId::uuid IS NULL\n        OR session_id = :sessionId)\n    AND (:active::boolean IS NULL\n        OR active = :active)"};
 
 /**
  * Query generated from SQL:
@@ -108,9 +108,12 @@ const getModerationInfractionsByUserAndSessionIR: any = {"usedParamSet":{"userId
  *     moderation_infractions
  * WHERE
  *     user_id = :userId!
- *     AND session_id = :sessionId!
+ *     AND (:sessionId::uuid IS NULL
+ *         OR session_id = :sessionId)
+ *     AND (:active::boolean IS NULL
+ *         OR active = :active)
  * ```
  */
-export const getModerationInfractionsByUserAndSession = new PreparedQuery<IGetModerationInfractionsByUserAndSessionParams,IGetModerationInfractionsByUserAndSessionResult>(getModerationInfractionsByUserAndSessionIR);
+export const getModerationInfractionsByUser = new PreparedQuery<IGetModerationInfractionsByUserParams,IGetModerationInfractionsByUserResult>(getModerationInfractionsByUserIR);
 
 

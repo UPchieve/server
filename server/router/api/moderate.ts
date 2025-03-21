@@ -4,7 +4,6 @@ import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import multer from 'multer'
-import config from '../../config'
 
 export function routeModeration(router: Router): void {
   const upload = multer()
@@ -73,7 +72,7 @@ export function routeModeration(router: Router): void {
           sessionId,
           user.id,
           user.isVolunteer,
-          config.awsS3.moderatedScreenshareBucket
+          'screenshare'
         )
         res.status(200).json(moderationResult)
       } catch (err) {
