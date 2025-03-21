@@ -1,6 +1,6 @@
 import { IpAddress } from './types'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   Ulid,
@@ -65,7 +65,8 @@ export async function updateIpUserById(
 
 export async function updateIpStatusByUserId(
   userId: Ulid,
-  status: IP_ADDRESS_STATUS = IP_ADDRESS_STATUS.OK
+  status: IP_ADDRESS_STATUS = IP_ADDRESS_STATUS.OK,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
     const result = await pgQueries.updateIpStatusByUserId.run(
@@ -73,7 +74,7 @@ export async function updateIpStatusByUserId(
         userId,
         status,
       },
-      getClient()
+      tc ?? getClient()
     )
     // We're ok not unbanning an IP if none are recorded for the user
     if (!result.length) return

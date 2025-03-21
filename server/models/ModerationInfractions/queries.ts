@@ -51,6 +51,20 @@ export async function updateModerationInfractionById(
   }
 }
 
+export async function deactivateModerationInfractionByUserId(
+  userId: string,
+  client: TransactionClient = getClient()
+): Promise<void> {
+  try {
+    await pgQueries.deactivateModerationInfractionByUserId.run(
+      { userId },
+      client
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 export async function getModerationInfractionsByUser(
   userId: string,
   args?: {
