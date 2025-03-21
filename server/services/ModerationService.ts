@@ -909,6 +909,7 @@ export const handleModerationInfraction = async (
     isBanned: doLiveMediaBan,
     infraction: failures,
     source,
+    occurredAt: new Date(),
   })
 }
 

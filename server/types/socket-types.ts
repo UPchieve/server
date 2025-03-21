@@ -65,6 +65,7 @@ export type ServerToClientEvents = {
     isBanned: boolean
     infraction: string[]
     source: string
+    occurredAt: Date
   }) => void
 }
 
