@@ -4,12 +4,74 @@ import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
 import { Uuid } from '../../../models/pgUtils'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
-import { getVolunteerContactInfoById } from '../../../models/Volunteer/queries'
+import {
+  getVolunteerContactInfoById,
+  VolunteerContactInfo,
+} from '../../../models/Volunteer/queries'
 import { Jobs } from '../index'
-import { getSessionById } from '../../../models/Session'
+import { getSessionById, Session } from '../../../models/Session'
+import {
+  createEmailNotification,
+  hasUserBeenSentEmail,
+} from '../../../services/NotificationService'
+import config from '../../../config'
+import { StudentContactInfo } from '../../../models/Student'
 
 type StudentSessionActionsJobData = {
   sessionId: Uuid
+}
+
+function getSendGridTemplate(currentJob: Jobs): string | undefined {
+  const sendGridTemplates: Partial<Record<Jobs, string>> = {
+    [Jobs.EmailStudentAbsentWarning]:
+      config.sendgrid.studentAbsentWarningTemplate,
+    [Jobs.EmailStudentAbsentVolunteerApology]:
+      config.sendgrid.studentAbsentVolunteerApologyTemplate,
+    [Jobs.EmailStudentUnmatchedApology]:
+      config.sendgrid.studentUnmatchedApologyTemplate,
+    [Jobs.EmailStudentOnlyLookingForAnswers]:
+      config.sendgrid.studentOnlyLookingForAnswersTemplate,
+  }
+
+  return sendGridTemplates[currentJob]
+}
+
+function getEmailForJob(
+  jobName: Jobs,
+  session: Session,
+  student: StudentContactInfo,
+  volunteer?: VolunteerContactInfo
+): (() => Promise<void>) | undefined {
+  const emailMapForJob: Partial<Record<Jobs, () => Promise<void>>> = {
+    [Jobs.EmailStudentAbsentWarning]: () =>
+      MailService.sendStudentAbsentWarning(student.email, student.firstName),
+
+    [Jobs.EmailStudentAbsentVolunteerApology]: async () =>
+      volunteer
+        ? MailService.sendStudentAbsentVolunteerApology(
+            student.firstName,
+            student.email,
+            volunteer.firstName,
+            session.subjectDisplayName,
+            moment(session.createdAt).format('MMMM Do')
+          )
+        : undefined,
+
+    [Jobs.EmailStudentUnmatchedApology]: () =>
+      MailService.sendStudentUnmatchedApology(
+        student.firstName,
+        student.email,
+        session.subjectDisplayName,
+        moment(session.createdAt).format('MMMM Do')
+      ),
+
+    [Jobs.EmailStudentOnlyLookingForAnswers]: () =>
+      MailService.sendOnlyLookingForAnswersWarning(
+        student.firstName,
+        student.email
+      ),
+  }
+  return emailMapForJob[jobName]
 }
 
 export default async (
@@ -18,41 +80,43 @@ export default async (
   const { data, name: currentJob } = job
   const session = await getSessionById(data.sessionId)
   const student = await getStudentContactInfoById(session.studentId)
-  let volunteer
-  if (session.volunteerId)
-    volunteer = await getVolunteerContactInfoById(session.volunteerId)
+  if (!student) return log(`No student found with id ${session.studentId}`)
 
-  if (student) {
-    try {
-      const { firstName: studentFirstName, email } = student
-      if (currentJob === Jobs.EmailStudentAbsentWarning)
-        await MailService.sendStudentAbsentWarning(email, studentFirstName)
-      if (currentJob === Jobs.EmailStudentAbsentVolunteerApology && volunteer)
-        await MailService.sendStudentAbsentVolunteerApology(
-          studentFirstName,
-          email,
-          volunteer?.firstName,
-          session.subjectDisplayName,
-          moment(session.createdAt).format('MMMM Do')
-        )
-      if (currentJob === Jobs.EmailStudentUnmatchedApology)
-        await MailService.sendStudentUnmatchedApology(
-          studentFirstName,
-          email,
-          session.subjectDisplayName,
-          moment(session.createdAt).format('MMMM Do')
-        )
-      if (currentJob === Jobs.EmailStudentOnlyLookingForAnswers)
-        await MailService.sendOnlyLookingForAnswersWarning(
-          studentFirstName,
-          email
-        )
+  const emailTemplateId = getSendGridTemplate(currentJob as Jobs)
+  if (!emailTemplateId)
+    return log(`No email template id found for ${currentJob}`)
 
-      log(`Emailed ${currentJob} to student ${session.studentId}`)
-    } catch (error) {
-      throw new Error(
-        `Failed to email ${currentJob} to student ${session.studentId}: ${error}`
-      )
-    }
+  const hasReceivedEmailForJob = await hasUserBeenSentEmail({
+    userId: student.id,
+    emailTemplateId,
+  })
+  if (hasReceivedEmailForJob)
+    return log(
+      `Student ${student.id} has already received ${currentJob} for session ${session.id}`
+    )
+
+  const volunteer = session.volunteerId
+    ? await getVolunteerContactInfoById(session.volunteerId)
+    : undefined
+  try {
+    const emailForJob = getEmailForJob(
+      currentJob as Jobs,
+      session,
+      student,
+      volunteer
+    )
+    if (!emailForJob) return
+    await emailForJob()
+    await createEmailNotification({
+      userId: student.id,
+      sessionId: session.id,
+      emailTemplateId,
+    })
+
+    log(`Emailed ${currentJob} to student ${session.studentId}`)
+  } catch (error) {
+    throw new Error(
+      `Failed to email ${currentJob} to student ${session.studentId}: ${error}`
+    )
   }
 }
