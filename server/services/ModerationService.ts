@@ -98,7 +98,7 @@ const moderationLabelToFailureReason = (
   label: ModerationLabel
 ): VideoFrameModerationFailureReason => {
   return {
-    reason: label.Name ?? 'Unknown - no label name from AWS',
+    reason: label.Name ?? 'Unknown',
     details: { confidence: label.Confidence },
   }
 }
@@ -1020,6 +1020,7 @@ export const moderateImage = async (
   isVolunteer: boolean
 ): Promise<{
   isClean: boolean
+  failures: string[]
 }> => {
   const result = await moderateVideoFrame(
     imageFile.buffer,
@@ -1028,10 +1029,15 @@ export const moderateImage = async (
     isVolunteer,
     'image_upload'
   )
-  if (isEmpty(result.failureReasons)) return { isClean: true }
+  if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
 
+  // Duplicate moderation failures may be present if different objects in the image trigger it
+  const failures: string[] = [
+    ...new Set<string>(result.failureReasons.map((failure) => failure.reason)),
+  ]
   return {
     isClean: false,
+    failures: failures,
   }
 }
 
