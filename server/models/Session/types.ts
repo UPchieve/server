@@ -88,21 +88,21 @@ export type SessionTranscript = {
 
 export type SessionMetrics = {
   sessionId: Uuid
-  absentStudent: number
-  absentVolunteer: number
-  lowSessionRatingFromCoach: number
-  lowSessionRatingFromStudent: number
-  lowCoachRatingFromStudent: number
-  reported: number
-  onlyLookingForAnswers: number
-  rudeOrInappropriate: number
-  commentFromStudent: number
-  commentFromVolunteer: number
-  hasBeenUnmatched: number
-  hasHadTechnicalIssues: number
-  personalIdentifyingInfo: number
-  gradedAssignment: number
-  coachUncomfortable: number
-  studentCrisis: number
+  absentStudent: boolean
+  absentVolunteer: boolean
+  lowSessionRatingFromCoach: boolean
+  lowSessionRatingFromStudent: boolean
+  lowCoachRatingFromStudent: boolean
+  reported: boolean
+  onlyLookingForAnswers: boolean
+  rudeOrInappropriate: boolean
+  commentFromStudent: boolean
+  commentFromVolunteer: boolean
+  hasBeenUnmatched: boolean
+  hasHadTechnicalIssues: boolean
+  personalIdentifyingInfo: boolean
+  gradedAssignment: boolean
+  coachUncomfortable: boolean
+  studentCrisis: boolean
   createdAt: Date
 }
