@@ -908,6 +908,7 @@ export const handleModerationInfraction = async (
   await socketService.emitModerationInfractionEvent(userId, {
     isBanned: doLiveMediaBan,
     infraction: failures,
+    source,
   })
 }
 

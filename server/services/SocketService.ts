@@ -112,6 +112,7 @@ class SocketService {
     data: {
       isBanned: boolean
       infraction: string[]
+      source: string
     }
   ): Promise<void> {
     this.io.to(userId).emit('moderation-infraction', data)

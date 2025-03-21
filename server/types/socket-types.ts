@@ -64,6 +64,7 @@ export type ServerToClientEvents = {
   'moderation-infraction': (data: {
     isBanned: boolean
     infraction: string[]
+    source: string
   }) => void
 }
 
