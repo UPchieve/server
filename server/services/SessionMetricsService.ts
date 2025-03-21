@@ -107,10 +107,6 @@ export function computeLowSessionRatingFromCoach(
   return !!(sessionRatingFromCoach && sessionRatingFromCoach <= 2)
 }
 
-export function computeReported(session: Session): boolean {
-  return !!session.reported
-}
-
 export function computeFeedbackMetric(
   surveyResponses: PostsessionSurveyResponse[],
   condition: (resp: PostsessionSurveyResponse) => boolean
@@ -201,7 +197,7 @@ export function computeMetricsForReportedSession(
   session: Session
 ): Partial<SessionMetricsRepo.SessionMetrics> {
   return {
-    reported: computeReported(session),
+    reported: !!session.reported,
   }
 }
 
