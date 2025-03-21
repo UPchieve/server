@@ -1648,22 +1648,22 @@ CREATE TABLE upchieve.session_messages (
 
 CREATE TABLE upchieve.session_metrics (
     session_id uuid NOT NULL,
-    absent_student integer DEFAULT 0 NOT NULL,
-    absent_volunteer integer DEFAULT 0 NOT NULL,
-    low_session_rating_from_coach integer DEFAULT 0 NOT NULL,
-    low_session_rating_from_student integer DEFAULT 0 NOT NULL,
-    low_coach_rating_from_student integer DEFAULT 0 NOT NULL,
-    reported integer DEFAULT 0 NOT NULL,
-    only_looking_for_answers integer DEFAULT 0 NOT NULL,
-    rude_or_inappropriate integer DEFAULT 0 NOT NULL,
-    comment_from_student integer DEFAULT 0 NOT NULL,
-    comment_from_volunteer integer DEFAULT 0 NOT NULL,
-    has_been_unmatched integer DEFAULT 0 NOT NULL,
-    has_had_technical_issues integer DEFAULT 0 NOT NULL,
-    personal_identifying_info integer DEFAULT 0 NOT NULL,
-    graded_assignment integer DEFAULT 0 NOT NULL,
-    coach_uncomfortable integer DEFAULT 0 NOT NULL,
-    student_crisis integer DEFAULT 0 NOT NULL,
+    absent_student boolean DEFAULT false NOT NULL,
+    absent_volunteer boolean DEFAULT false NOT NULL,
+    low_session_rating_from_coach boolean DEFAULT false NOT NULL,
+    low_session_rating_from_student boolean DEFAULT false NOT NULL,
+    low_coach_rating_from_student boolean DEFAULT false NOT NULL,
+    reported boolean DEFAULT false NOT NULL,
+    only_looking_for_answers boolean DEFAULT false NOT NULL,
+    rude_or_inappropriate boolean DEFAULT false NOT NULL,
+    comment_from_student boolean DEFAULT false NOT NULL,
+    comment_from_volunteer boolean DEFAULT false NOT NULL,
+    has_been_unmatched boolean DEFAULT false NOT NULL,
+    has_had_technical_issues boolean DEFAULT false NOT NULL,
+    personal_identifying_info boolean DEFAULT false NOT NULL,
+    graded_assignment boolean DEFAULT false NOT NULL,
+    coach_uncomfortable boolean DEFAULT false NOT NULL,
+    student_crisis boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -1771,6 +1771,38 @@ CREATE TABLE upchieve.sessions_students_assignments (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: shareable_domains; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.shareable_domains (
+    id integer NOT NULL,
+    domain character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.shareable_domains_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.shareable_domains_id_seq OWNED BY upchieve.shareable_domains.id;
 
 
 --
@@ -2987,6 +3019,13 @@ ALTER TABLE ONLY upchieve.session_flags ALTER COLUMN id SET DEFAULT nextval('upc
 
 
 --
+-- Name: shareable_domains id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains ALTER COLUMN id SET DEFAULT nextval('upchieve.shareable_domains_id_seq'::regclass);
+
+
+--
 -- Name: signup_sources id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3847,6 +3886,22 @@ ALTER TABLE ONLY upchieve.sessions_session_flags
 
 ALTER TABLE ONLY upchieve.sessions_students_assignments
     ADD CONSTRAINT sessions_students_assignments_pkey PRIMARY KEY (session_id, user_id, assignment_id);
+
+
+--
+-- Name: shareable_domains shareable_domains_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains
+    ADD CONSTRAINT shareable_domains_domain_key UNIQUE (domain);
+
+
+--
+-- Name: shareable_domains shareable_domains_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains
+    ADD CONSTRAINT shareable_domains_pkey PRIMARY KEY (id);
 
 
 --
@@ -6337,4 +6392,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241217040206'),
     ('20250121173556'),
     ('20250310173039'),
-    ('20250312220532');
+    ('20250312220532'),
+    ('20250318175742');
