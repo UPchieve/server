@@ -79,7 +79,7 @@ describe('SessionMetricsService', () => {
     })
 
     describe('computeAbsentStudentMetric', () => {
-      test('absentStudent should be 0 if no volunteer joined', async () => {
+      test('absentStudent should be false if no volunteer joined', async () => {
         const studentId = getUuid()
         const session = buildSession({
           studentId,
@@ -88,10 +88,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentStudent).toEqual(0)
+        expect(result.absentStudent).toEqual(false)
       })
 
-      test('absentStudent should be 0 if volunteer doesnt wait long enough to give student chance to respond', async () => {
+      test('absentStudent should be false if volunteer doesnt wait long enough to give student chance to respond', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const session = buildSession({
@@ -104,10 +104,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentStudent).toEqual(0)
+        expect(result.absentStudent).toEqual(false)
       })
 
-      test('absentStudent should be 0 if student sent messages after volunteer joined', async () => {
+      test('absentStudent should be false if student sent messages after volunteer joined', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const session = buildSession({
@@ -126,10 +126,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentStudent).toEqual(0)
+        expect(result.absentStudent).toEqual(false)
       })
 
-      test('absentStudent should be 1 if student did not send messages after volunteer joined', async () => {
+      test('absentStudent should be true if student did not send messages after volunteer joined', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const volunteerJoinedAt = new Date('2025-01-01 00:00:00.000000+00')
@@ -143,12 +143,12 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentStudent).toEqual(1)
+        expect(result.absentStudent).toEqual(true)
       })
     })
 
     describe('computeAbsentVolunteerMetric', () => {
-      test('absentVolunteer should be 0 if no volunteer joined', async () => {
+      test('absentVolunteer should be false if no volunteer joined', async () => {
         const studentId = getUuid()
         const session = buildSession({
           studentId,
@@ -157,10 +157,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentVolunteer).toEqual(0)
+        expect(result.absentVolunteer).toEqual(false)
       })
 
-      test('absentVolunteer should be 0 if student doesnt wait long enough to give volunteer chance to respond', async () => {
+      test('absentVolunteer should be false if student doesnt wait long enough to give volunteer chance to respond', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const session = buildSession({
@@ -173,10 +173,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentVolunteer).toEqual(0)
+        expect(result.absentVolunteer).toEqual(false)
       })
 
-      test('absentVolunteer should be 0 if volunteer sent messages after volunteer joined', async () => {
+      test('absentVolunteer should be false if volunteer sent messages after volunteer joined', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const session = buildSession({
@@ -195,10 +195,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentVolunteer).toEqual(0)
+        expect(result.absentVolunteer).toEqual(false)
       })
 
-      test('absentVolunteer should be 1 if volunteer did not send messages after joining session', async () => {
+      test('absentVolunteer should be true if volunteer did not send messages after joining session', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const session = buildSession({
@@ -211,12 +211,12 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.absentVolunteer).toEqual(1)
+        expect(result.absentVolunteer).toEqual(true)
       })
     })
 
     describe('computeHasBeenUnmatchedMetric', () => {
-      test('hasBeenUnmatched should be 0 if no volunteer joined the session', async () => {
+      test('hasBeenUnmatched should be false if no volunteer joined the session', async () => {
         const studentId = getUuid()
         const volunteerId = getUuid()
         const session = buildSession({
@@ -227,10 +227,10 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.hasBeenUnmatched).toEqual(0)
+        expect(result.hasBeenUnmatched).toEqual(false)
       })
 
-      test('hasBeenUnmatched should be 1 if no volunteer joined the session', async () => {
+      test('hasBeenUnmatched should be true if no volunteer joined the session', async () => {
         const studentId = getUuid()
         const session = buildSession({
           studentId,
@@ -239,7 +239,7 @@ describe('SessionMetricsService', () => {
         mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
         const result = await computeMetricsForSession(session)
-        expect(result.hasBeenUnmatched).toEqual(1)
+        expect(result.hasBeenUnmatched).toEqual(true)
       })
     })
   })
@@ -301,23 +301,23 @@ describe('SessionMetricsService', () => {
         mockedGetPostsessionSurveyResponsesForSessionMetrics
       ).toHaveBeenCalledWith(session.id)
       expect(result).toEqual({
-        lowCoachRatingFromStudent: 1,
-        lowSessionRatingFromStudent: 1,
-        lowSessionRatingFromCoach: 1,
-        rudeOrInappropriate: 1,
-        onlyLookingForAnswers: 1,
-        commentFromStudent: 1,
-        commentFromVolunteer: 1,
-        hasHadTechnicalIssues: 1,
-        personalIdentifyingInfo: 1,
-        gradedAssignment: 1,
-        coachUncomfortable: 1,
-        studentCrisis: 1,
+        lowCoachRatingFromStudent: true,
+        lowSessionRatingFromStudent: true,
+        lowSessionRatingFromCoach: true,
+        rudeOrInappropriate: true,
+        onlyLookingForAnswers: true,
+        commentFromStudent: true,
+        commentFromVolunteer: true,
+        hasHadTechnicalIssues: true,
+        personalIdentifyingInfo: true,
+        gradedAssignment: true,
+        coachUncomfortable: true,
+        studentCrisis: true,
       })
     })
 
     describe('computeLowCoachRatingFromStudent', () => {
-      test('Should return 0 if question not found', () => {
+      test('Should return false if question not found', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Test question',
@@ -325,10 +325,10 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowCoachRatingFromStudent(surveyResponses)
-        expect(result).toBe(0)
+        expect(result).toEqual(false)
       })
 
-      test('Should return 0 if coach rating from student is larger than 2', () => {
+      test('Should return false if coach rating from student is larger than 2', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Overall, how supportive was your coach today?',
@@ -336,10 +336,10 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowCoachRatingFromStudent(surveyResponses)
-        expect(result).toBe(0)
+        expect(result).toEqual(false)
       })
 
-      test('Should return 0 if coach rating from student is 2 or smaller', () => {
+      test('Should return true if coach rating from student is 2 or smaller', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Overall, how supportive was your coach today?',
@@ -347,12 +347,12 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowCoachRatingFromStudent(surveyResponses)
-        expect(result).toBe(1)
+        expect(result).toEqual(true)
       })
     })
 
     describe('computeLowSessionRatingFromStudent', () => {
-      test('Should return 0 if question not found', () => {
+      test('Should return false if question not found', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Test question',
@@ -360,10 +360,10 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowSessionRatingFromStudent(surveyResponses)
-        expect(result).toBe(0)
+        expect(result).toEqual(false)
       })
 
-      test('Should return 0 if session rating from student is larger than 2', () => {
+      test('Should return false if session rating from student is larger than 2', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Did UPchieve help you achieve your goal?',
@@ -371,10 +371,10 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowSessionRatingFromStudent(surveyResponses)
-        expect(result).toBe(0)
+        expect(result).toEqual(false)
       })
 
-      test('Should return 0 if session rating from student is 2 or smaller', () => {
+      test('Should return true if session rating from student is 2 or smaller', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Did UPchieve help you achieve your goal?',
@@ -382,12 +382,12 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowSessionRatingFromStudent(surveyResponses)
-        expect(result).toBe(1)
+        expect(result).toEqual(true)
       })
     })
 
     describe('computeLowSessionRatingFromCoach', () => {
-      test('Should return 0 if question not found', () => {
+      test('Should return false if question not found', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Test question',
@@ -395,10 +395,10 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowSessionRatingFromCoach(surveyResponses)
-        expect(result).toBe(0)
+        expect(result).toEqual(false)
       })
 
-      test('Should return 0 if session rating from coach is larger than 2', () => {
+      test('Should return false if session rating from coach is larger than 2', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Were you able to help them achieve their goal?',
@@ -406,10 +406,10 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowSessionRatingFromCoach(surveyResponses)
-        expect(result).toBe(0)
+        expect(result).toEqual(false)
       })
 
-      test('Should return 0 if session rating from coach is 2 or smaller', () => {
+      test('Should return true if session rating from coach is 2 or smaller', () => {
         const surveyResponses: PostsessionSurveyResponse[] = [
           buildSurveyResponse({
             questionText: 'Were you able to help them achieve their goal?',
@@ -417,32 +417,32 @@ describe('SessionMetricsService', () => {
           }),
         ]
         const result = computeLowSessionRatingFromCoach(surveyResponses)
-        expect(result).toBe(1)
+        expect(result).toEqual(true)
       })
     })
   })
 
   describe('computeMetricsForReportedSession', () => {
-    test('should return reported metric of 0 if session is not reported', () => {
+    test('Should return reported metric false if session is not reported', () => {
       const studentId = getUuid()
       const session = buildSession({ studentId, reported: false })
       const result = computeMetricsForReportedSession(session)
-      expect(result.reported).toBe(0)
+      expect(result.reported).toEqual(false)
     })
 
-    test('Should return reported metric of 1 when session is reported', () => {
+    test('Should return reported metric true when session is reported', () => {
       const studentId = getUuid()
       const session = buildSession({ studentId, reported: true })
       const result = computeMetricsForReportedSession(session)
-      expect(result.reported).toBe(1)
+      expect(result.reported).toEqual(true)
     })
   })
 
   describe('computeSessionFlagsFromMetrics', () => {
     test('should return correct flags', () => {
       const metrics: Partial<SessionMetricsRepo.SessionMetrics> = {
-        absentStudent: 1,
-        absentVolunteer: 1,
+        absentStudent: true,
+        absentVolunteer: true,
       }
       const flags = computeSessionFlagsFromMetrics(metrics)
       expect(flags).toEqual([
@@ -451,8 +451,8 @@ describe('SessionMetricsService', () => {
       ])
 
       const metricsTwo: Partial<SessionMetricsRepo.SessionMetrics> = {
-        absentStudent: 0,
-        absentVolunteer: 0,
+        absentStudent: false,
+        absentVolunteer: false,
       }
       const flagsTwo = computeSessionFlagsFromMetrics(metricsTwo)
       expect(flagsTwo).toEqual([])
@@ -462,17 +462,17 @@ describe('SessionMetricsService', () => {
   describe('computeFeedbackFlagsFromMetrics', () => {
     test('computeFeedbackFlagsFromMetrics returns correct flags', () => {
       const metrics = {
-        lowCoachRatingFromStudent: 1,
-        lowSessionRatingFromStudent: 1,
-        lowSessionRatingFromCoach: 1,
-        rudeOrInappropriate: 1,
-        onlyLookingForAnswers: 1,
-        commentFromStudent: 1,
-        commentFromVolunteer: 1,
-        personalIdentifyingInfo: 1,
-        gradedAssignment: 1,
-        coachUncomfortable: 1,
-        studentCrisis: 1,
+        lowCoachRatingFromStudent: true,
+        lowSessionRatingFromStudent: true,
+        lowSessionRatingFromCoach: true,
+        rudeOrInappropriate: true,
+        onlyLookingForAnswers: true,
+        commentFromStudent: true,
+        commentFromVolunteer: true,
+        personalIdentifyingInfo: true,
+        gradedAssignment: true,
+        coachUncomfortable: true,
+        studentCrisis: true,
       } as SessionMetricsRepo.SessionMetrics
       const flags = computeFeedbackFlagsFromMetrics(metrics)
       expect(flags).toEqual([
@@ -490,17 +490,17 @@ describe('SessionMetricsService', () => {
       ])
 
       const metricsTwo = {
-        lowCoachRatingFromStudent: 0,
-        lowSessionRatingFromStudent: 1,
-        lowSessionRatingFromCoach: 1,
-        rudeOrInappropriate: 0,
-        onlyLookingForAnswers: 0,
-        commentFromStudent: 0,
-        commentFromVolunteer: 0,
-        personalIdentifyingInfo: 0,
-        gradedAssignment: 0,
-        coachUncomfortable: 0,
-        studentCrisis: 0,
+        lowCoachRatingFromStudent: false,
+        lowSessionRatingFromStudent: true,
+        lowSessionRatingFromCoach: true,
+        rudeOrInappropriate: false,
+        onlyLookingForAnswers: false,
+        commentFromStudent: false,
+        commentFromVolunteer: false,
+        personalIdentifyingInfo: false,
+        gradedAssignment: false,
+        coachUncomfortable: false,
+        studentCrisis: false,
       } as SessionMetricsRepo.SessionMetrics
       const flagsTwo = computeFeedbackFlagsFromMetrics(metricsTwo)
       expect(flagsTwo).toEqual([
@@ -513,13 +513,13 @@ describe('SessionMetricsService', () => {
   describe('computeReportedFlagsFromMetrics', () => {
     test('computeReportedFlagsFromMetrics returns correct flags', () => {
       const metrics = {
-        reported: 1,
+        reported: true,
       } as SessionMetricsRepo.SessionMetrics
       const flags = computeReportedFlagsFromMetrics(metrics)
       expect(flags).toEqual([USER_SESSION_METRICS.reported])
 
       const metricsTwo = {
-        reported: 0,
+        reported: false,
       } as SessionMetricsRepo.SessionMetrics
       const flagsTwo = computeReportedFlagsFromMetrics(metricsTwo)
       expect(flagsTwo).toEqual([])
@@ -529,7 +529,7 @@ describe('SessionMetricsService', () => {
   describe('computeSessionReviewReasonsFromMetrics', () => {
     test('absentStudent should not be a review reason if student has not been absent 4 or more times', () => {
       const metrics = {
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentId = getUuid()
       const studentUSM = buildUserSessionMetrics({
@@ -545,7 +545,7 @@ describe('SessionMetricsService', () => {
 
     test('absentStudent review reason if student has been absent 4 or more times', () => {
       const metrics = {
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentId = getUuid()
       let studentUSM = buildUserSessionMetrics({
@@ -571,7 +571,7 @@ describe('SessionMetricsService', () => {
 
     test('absentVolunteer should not be a review reason if volunteer has not been absent 2 or more times', () => {
       const metrics = {
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentId = getUuid()
       const studentUSM = buildUserSessionMetrics({
@@ -591,7 +591,7 @@ describe('SessionMetricsService', () => {
 
     test('absentVolunteer review reason if volunteer has been absent 2 or more times', () => {
       const metrics = {
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentId = getUuid()
       const studentUSM = buildUserSessionMetrics({
@@ -624,15 +624,15 @@ describe('SessionMetricsService', () => {
   describe('computeFeedbackReviewReasonsFromMetrics', () => {
     test('Should have proper review flags set', () => {
       const metrics = {
-        lowCoachRatingFromStudent: 1,
-        lowSessionRatingFromStudent: 1,
-        lowSessionRatingFromCoach: 1,
-        rudeOrInappropriate: 1,
-        onlyLookingForAnswers: 1,
-        personalIdentifyingInfo: 1,
-        gradedAssignment: 1,
-        coachUncomfortable: 1,
-        studentCrisis: 1,
+        lowCoachRatingFromStudent: true,
+        lowSessionRatingFromStudent: true,
+        lowSessionRatingFromCoach: true,
+        rudeOrInappropriate: true,
+        onlyLookingForAnswers: true,
+        personalIdentifyingInfo: true,
+        gradedAssignment: true,
+        coachUncomfortable: true,
+        studentCrisis: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentId = getUuid()
       let studentUSM = buildUserSessionMetrics({
@@ -680,13 +680,13 @@ describe('SessionMetricsService', () => {
   describe('computeReportedReviewReason', () => {
     test('Should have proper review flags set', () => {
       let metrics = {
-        reported: 1,
+        reported: true,
       } as SessionMetricsRepo.SessionMetrics
       let reviewReasons = computeReportedReviewReason(metrics)
       expect(reviewReasons).toEqual([USER_SESSION_METRICS.reported])
 
       metrics = {
-        reported: 0,
+        reported: false,
       } as SessionMetricsRepo.SessionMetrics
       reviewReasons = computeReportedReviewReason(metrics)
       expect(reviewReasons).toEqual([])
@@ -714,7 +714,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -732,7 +732,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -766,7 +766,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -783,7 +783,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -804,7 +804,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentStudent: 1,
+        absentStudent: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -841,7 +841,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -858,7 +858,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -879,7 +879,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -917,7 +917,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -938,7 +938,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        absentVolunteer: 1,
+        absentVolunteer: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -975,7 +975,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        hasBeenUnmatched: 1,
+        hasBeenUnmatched: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -993,7 +993,7 @@ describe('SessionMetricsService', () => {
       const sessionId = getUuid()
       const metrics = {
         sessionId,
-        hasBeenUnmatched: 1,
+        hasBeenUnmatched: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -1030,7 +1030,7 @@ describe('SessionMetricsService', () => {
 
       metrics = {
         sessionId,
-        onlyLookingForAnswers: 1,
+        onlyLookingForAnswers: true,
       } as SessionMetricsRepo.SessionMetrics
       studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
@@ -1052,7 +1052,7 @@ describe('SessionMetricsService', () => {
 
       const metrics = {
         sessionId,
-        onlyLookingForAnswers: 1,
+        onlyLookingForAnswers: true,
       } as SessionMetricsRepo.SessionMetrics
       const studentUSM = buildUserSessionMetrics({
         userId: getUuid(),
