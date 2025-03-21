@@ -13,10 +13,70 @@ import {
   asFactory,
 } from '../../utils/type-utils'
 
+describe('asFactory', () => {
+  test('Should coerce strings to numbers and throw if not a number', () => {
+    const asTestData = asFactory<{ num: number; negNum: number }>({
+      num: asNumber,
+      negNum: asNumber,
+    })
+    const coerced = asTestData({ num: '1', negNum: '-982' })
+    expect(coerced.num).toEqual(1)
+    expect(coerced.negNum).toEqual(-982)
+    expect(() => asTestData({ num: true, negNum: 'false' })).toThrow()
+  })
+
+  test('Should coerce strings to booleans and throw if not a boolean', () => {
+    const asTestData = asFactory<{ boolTrue: boolean; boolFalse: boolean }>({
+      boolTrue: asBoolean,
+      boolFalse: asBoolean,
+    })
+    const coerced = asTestData({ boolTrue: 'true', boolFalse: 'false' })
+    expect(coerced.boolTrue).toEqual(true)
+    expect(coerced.boolFalse).toEqual(false)
+    expect(() => asTestData({ boolTrue: '1', boolFalse: '0' })).toThrow()
+  })
+
+  test('Should coerce strings to their enum values and throw if not a value in the enum', () => {
+    enum TestEnum {
+      KEY = 'VALUE',
+    }
+    const asTestData = asFactory<{ enumValue: TestEnum }>({
+      enumValue: asEnum(TestEnum),
+    })
+    expect(() => asTestData({ enumValue: 'VALUE' })).not.toThrow()
+    expect(() => asTestData({ enumValue: 'MEOW' })).toThrow()
+  })
+
+  test('Should coerce strings to dates and throw if not a date', () => {
+    const asTestData = asFactory<{ date: Date }>({
+      date: asDate,
+    })
+    let coerced = asTestData({ date: '2025-01-02T00:09:45' })
+    expect(typeof coerced.date.getMonth).toBe('function')
+    coerced = asTestData({ date: '2025-10-14' })
+    expect(typeof coerced.date.getMonth).toBe('function')
+    expect(() => asTestData({ date: '2025-13-32' })).toThrow()
+    expect(() => asTestData({ date: 'meow' })).toThrow()
+    expect(() => asTestData({ date: 123 })).toThrow()
+    expect(() => asTestData({ date: true })).toThrow()
+    expect(() => asTestData({ date: 1741652866308 })).toThrow()
+  })
+})
+
 describe('asNumber', () => {
+  // This is not a Date, what was this test trying to do?
   test('Should pass if given a type Date', () => {
     const id = 5 as unknown
     expect(() => asNumber(id)).not.toThrow()
+  })
+
+  test('Should pass if given an int or float', () => {
+    expect(() => asNumber(999999)).not.toThrow()
+    expect(() => asNumber(345.1231543534)).not.toThrow()
+    expect(() => asNumber(-45)).not.toThrow()
+    expect(() => asNumber(-9874.235912)).not.toThrow()
+    expect(() => asNumber(-0)).not.toThrow()
+    expect(() => asNumber(0)).not.toThrow()
   })
 
   test('Should pass if given a string coercible to a number', () => {
@@ -31,6 +91,8 @@ describe('asNumber', () => {
     expect(() => asNumber(null as unknown)).toThrow()
     expect(() => asNumber(undefined as unknown)).toThrow()
     expect(() => asNumber([] as unknown)).toThrow()
+    expect(() => asNumber('e')).toThrow()
+    expect(() => asNumber('pi')).toThrow()
   })
 })
 

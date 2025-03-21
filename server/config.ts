@@ -421,6 +421,8 @@ const config: Static<typeof Config> = {
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
     Number(process.env.CONTEXTUAL_MODERATION_BATCH_SIZE) || 50,
+  minimumModerationAddressConfidence:
+    Number(process.env.MINIMUM_MODERATION_ADDRESS_CONFIDENCE) || 0.8,
 
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
@@ -441,6 +443,13 @@ const config: Static<typeof Config> = {
   awsChimeSecretAccessKey:
     process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
   awsChimeRegion: process.env.SUBWAY_AWS_CHIME_REGION || 'us-east-1',
+
+  // AWS Bedrock
+  awsBedrockAccessKey: process.env.SUBWAY_AWS_BEDROCK_ACCESS_KEY || 'bogus',
+  awsBedrockSecretAccessKey:
+    process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
+  awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
+  awsBedrockModelId: process.env.SUBWAY_AWS_BEDROCK_MODEL_ID || 'bogus',
 }
 
 module.exports = config
