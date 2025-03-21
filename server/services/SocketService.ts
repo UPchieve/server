@@ -106,6 +106,16 @@ class SocketService {
       .emit('sessions:partner-banned-from-live-media')
     this.io.to(userId).emit('sessions:banned-from-live-media')
   }
+
+  async emitModerationInfractionEvent(
+    userId: string,
+    data: {
+      isBanned: boolean
+      infraction: string[]
+    }
+  ): Promise<void> {
+    this.io.to(userId).emit('moderation-infraction', data)
+  }
 }
 
 export default SocketService

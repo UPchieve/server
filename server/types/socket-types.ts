@@ -61,6 +61,10 @@ export type ServerToClientEvents = {
   }) => void
   resetWhiteboard: () => void
   'session-change': (data: CurrentSession | undefined) => void
+  'moderation-infraction': (data: {
+    isBanned: boolean
+    infraction: string[]
+  }) => void
 }
 
 export type InterServerEvents = {}

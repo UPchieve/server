@@ -44,6 +44,7 @@ const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient } from '../db'
+import socketService from './SocketService'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -891,15 +892,23 @@ export const handleModerationInfraction = async (
       client
     )
   const infractionScore = getInfractionScore(allActiveInfractions)
-  if (infractionScore >= config.liveMediaBanInfractionScoreThreshold) {
+  const doLiveMediaBan =
+    infractionScore >= config.liveMediaBanInfractionScoreThreshold
+  const socketService = await SocketService.getInstance()
+  if (doLiveMediaBan) {
     await UsersRepo.banUserById(
       userId,
       USER_BAN_TYPES.LIVE_MEDIA,
       USER_BAN_REASONS.AUTOMATED_MODERATION
     )
-    const socketService = await SocketService.getInstance()
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
   }
+
+  const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
+  await socketService.emitModerationInfractionEvent(userId, {
+    isBanned: doLiveMediaBan,
+    infraction: failures,
+  })
 }
 
 export type LiveMediaModerationCategories =
