@@ -209,45 +209,36 @@ export function computeMetricsForReportedSession(
 export function computeSessionFlagsFromMetrics(
   metrics: Partial<SessionMetricsRepo.SessionMetrics>
 ): USER_SESSION_METRICS[] {
-  const flags = []
-  if (metrics.absentStudent) flags.push(USER_SESSION_METRICS.absentStudent)
-  if (metrics.absentVolunteer) flags.push(USER_SESSION_METRICS.absentVolunteer)
-  return flags
-}
+  const metricToSessionFlag: Partial<
+    Record<keyof SessionMetricsRepo.SessionMetrics, USER_SESSION_METRICS>
+  > = {
+    absentStudent: USER_SESSION_METRICS.absentStudent,
+    absentVolunteer: USER_SESSION_METRICS.absentVolunteer,
+    lowCoachRatingFromStudent: USER_SESSION_METRICS.lowCoachRatingFromStudent,
+    lowSessionRatingFromStudent:
+      USER_SESSION_METRICS.lowSessionRatingFromStudent,
+    lowSessionRatingFromCoach: USER_SESSION_METRICS.lowSessionRatingFromCoach,
+    rudeOrInappropriate: USER_SESSION_METRICS.rudeOrInappropriate,
+    onlyLookingForAnswers: USER_SESSION_METRICS.onlyLookingForAnswers,
+    commentFromStudent: USER_SESSION_METRICS.commentFromStudent,
+    commentFromVolunteer: USER_SESSION_METRICS.commentFromVolunteer,
+    personalIdentifyingInfo: USER_SESSION_METRICS.personalIdentifyingInfo,
+    gradedAssignment: USER_SESSION_METRICS.gradedAssignment,
+    coachUncomfortable: USER_SESSION_METRICS.coachUncomfortable,
+    studentCrisis: USER_SESSION_METRICS.studentCrisis,
+    reported: USER_SESSION_METRICS.reported,
+  }
 
-export function computeFeedbackFlagsFromMetrics(
-  metrics: SessionMetricsRepo.SessionMetrics
-) {
-  const flags = []
-  if (metrics.lowCoachRatingFromStudent)
-    flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
-  if (metrics.lowSessionRatingFromStudent)
-    flags.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
-  if (metrics.lowSessionRatingFromCoach)
-    flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
-  if (metrics.rudeOrInappropriate)
-    flags.push(USER_SESSION_METRICS.rudeOrInappropriate)
-  if (metrics.onlyLookingForAnswers)
-    flags.push(USER_SESSION_METRICS.onlyLookingForAnswers)
-  if (metrics.commentFromStudent)
-    flags.push(USER_SESSION_METRICS.commentFromStudent)
-  if (metrics.commentFromVolunteer)
-    flags.push(USER_SESSION_METRICS.commentFromVolunteer)
-  if (metrics.personalIdentifyingInfo)
-    flags.push(USER_SESSION_METRICS.personalIdentifyingInfo)
-  if (metrics.gradedAssignment)
-    flags.push(USER_SESSION_METRICS.gradedAssignment)
-  if (metrics.coachUncomfortable)
-    flags.push(USER_SESSION_METRICS.coachUncomfortable)
-  if (metrics.studentCrisis) flags.push(USER_SESSION_METRICS.studentCrisis)
-  return flags
-}
+  const flags: USER_SESSION_METRICS[] = []
+  for (const key of Object.keys(
+    metrics
+  ) as (keyof SessionMetricsRepo.SessionMetrics)[]) {
+    if (metrics[key]) {
+      const flag = metricToSessionFlag[key]
+      if (flag) flags.push(flag)
+    }
+  }
 
-export function computeReportedFlagsFromMetrics(
-  metrics: SessionMetricsRepo.SessionMetrics
-) {
-  const flags = []
-  if (metrics.reported) flags.push(USER_SESSION_METRICS.reported)
   return flags
 }
 
@@ -508,9 +499,6 @@ export async function processMetrics(
     ) =>
       | Promise<Partial<SessionMetricsRepo.SessionMetrics>>
       | Partial<SessionMetricsRepo.SessionMetrics>
-    computeSessionFlags: (
-      metrics: SessionMetricsRepo.SessionMetrics
-    ) => USER_SESSION_METRICS[]
     computeReviewReasons: (
       metrics: SessionMetricsRepo.SessionMetrics,
       studentUSM: UserSessionMetrics,
@@ -525,12 +513,8 @@ export async function processMetrics(
 ) {
   const { session, studentUSM, volunteerUSM } =
     await getSessionAndUSMs(sessionId)
-  const {
-    computeSessionMetrics,
-    computeSessionFlags,
-    computeReviewReasons,
-    triggerActions,
-  } = callbacks
+  const { computeSessionMetrics, computeReviewReasons, triggerActions } =
+    callbacks
   const sessionMetrics = await computeSessionMetrics(session)
   const updatedMetrics = await SessionMetricsRepo.updateSessionMetrics(
     sessionId,
@@ -545,7 +529,7 @@ export async function processMetrics(
     volunteerUSM
   )
 
-  const flags = computeSessionFlags(updatedMetrics)
+  const flags = computeSessionFlagsFromMetrics(updatedMetrics)
   await updateSessionFlagsById(session.id, flags)
 
   const reviewReasons = computeReviewReasons(
@@ -562,7 +546,6 @@ export async function processMetrics(
 export async function processSessionMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
     computeSessionMetrics: computeMetricsForSession,
-    computeSessionFlags: computeSessionFlagsFromMetrics,
     computeReviewReasons: computeSessionReviewReasonsFromMetrics,
     triggerActions: triggerSessionActions,
   })
@@ -571,7 +554,6 @@ export async function processSessionMetrics(sessionId: Uuid) {
 export async function processFeedbackMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
     computeSessionMetrics: computeMetricsForFeedbackSaved,
-    computeSessionFlags: computeFeedbackFlagsFromMetrics,
     computeReviewReasons: computeFeedbackReviewReasonsFromMetrics,
     triggerActions: triggerFeedbackActions,
   })
@@ -580,7 +562,6 @@ export async function processFeedbackMetrics(sessionId: Uuid) {
 export async function processReportMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
     computeSessionMetrics: computeMetricsForReportedSession,
-    computeSessionFlags: computeReportedFlagsFromMetrics,
     computeReviewReasons: computeReportedReviewReason,
   })
 }

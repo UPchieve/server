@@ -21,8 +21,6 @@ import {
   computeMetricsForFeedbackSaved,
   computeMetricsForReportedSession,
   computeSessionFlagsFromMetrics,
-  computeFeedbackFlagsFromMetrics,
-  computeReportedFlagsFromMetrics,
   computeSessionReviewReasonsFromMetrics,
   computeFeedbackReviewReasonsFromMetrics,
   computeReportedReviewReason,
@@ -439,7 +437,7 @@ describe('SessionMetricsService', () => {
   })
 
   describe('computeSessionFlagsFromMetrics', () => {
-    test('should return correct flags', () => {
+    test('Should return correct flags for session metric related flags', () => {
       const metrics: Partial<SessionMetricsRepo.SessionMetrics> = {
         absentStudent: true,
         absentVolunteer: true,
@@ -457,10 +455,8 @@ describe('SessionMetricsService', () => {
       const flagsTwo = computeSessionFlagsFromMetrics(metricsTwo)
       expect(flagsTwo).toEqual([])
     })
-  })
 
-  describe('computeFeedbackFlagsFromMetrics', () => {
-    test('computeFeedbackFlagsFromMetrics returns correct flags', () => {
+    test('Should return correct flags for feedback related flags', () => {
       const metrics = {
         lowCoachRatingFromStudent: true,
         lowSessionRatingFromStudent: true,
@@ -474,7 +470,7 @@ describe('SessionMetricsService', () => {
         coachUncomfortable: true,
         studentCrisis: true,
       } as SessionMetricsRepo.SessionMetrics
-      const flags = computeFeedbackFlagsFromMetrics(metrics)
+      const flags = computeSessionFlagsFromMetrics(metrics)
       expect(flags).toEqual([
         USER_SESSION_METRICS.lowCoachRatingFromStudent,
         USER_SESSION_METRICS.lowSessionRatingFromStudent,
@@ -502,26 +498,24 @@ describe('SessionMetricsService', () => {
         coachUncomfortable: false,
         studentCrisis: false,
       } as SessionMetricsRepo.SessionMetrics
-      const flagsTwo = computeFeedbackFlagsFromMetrics(metricsTwo)
+      const flagsTwo = computeSessionFlagsFromMetrics(metricsTwo)
       expect(flagsTwo).toEqual([
         USER_SESSION_METRICS.lowSessionRatingFromStudent,
         USER_SESSION_METRICS.lowSessionRatingFromCoach,
       ])
     })
-  })
 
-  describe('computeReportedFlagsFromMetrics', () => {
-    test('computeReportedFlagsFromMetrics returns correct flags', () => {
+    test('Should return correct flags for reported related flags', () => {
       const metrics = {
         reported: true,
       } as SessionMetricsRepo.SessionMetrics
-      const flags = computeReportedFlagsFromMetrics(metrics)
+      const flags = computeSessionFlagsFromMetrics(metrics)
       expect(flags).toEqual([USER_SESSION_METRICS.reported])
 
       const metricsTwo = {
         reported: false,
       } as SessionMetricsRepo.SessionMetrics
-      const flagsTwo = computeReportedFlagsFromMetrics(metricsTwo)
+      const flagsTwo = computeSessionFlagsFromMetrics(metricsTwo)
       expect(flagsTwo).toEqual([])
     })
   })
