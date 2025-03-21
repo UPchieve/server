@@ -1,9 +1,7 @@
-import { Ulid } from '../pgUtils'
+import { Uuid } from '../pgUtils'
 
-// TODO: Make this type essentially extend SessionMetrics
-//       just with added userId and sessionId omitted
 export type UserSessionMetrics = {
-  userId: Ulid
+  userId: Uuid
   absentStudent: number
   absentVolunteer: number
   lowSessionRatingFromCoach: number
