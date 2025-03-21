@@ -19,7 +19,7 @@ import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
 import config from '../config'
-import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
+import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
 import {
@@ -42,6 +42,8 @@ import { invokeModel } from './AwsBedrockService'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
+import { ModerationInfraction } from '../models/ModerationInfractions/types'
+import { getClient } from '../db'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -100,6 +102,13 @@ const moderationLabelToFailureReason = (
     details: { confidence: label.Confidence },
   }
 }
+
+export type ModerationSource =
+  | 'image_upload'
+  | 'screenshare'
+  | 'voice_chat'
+  | 'audio_transcription'
+  | 'text_chat'
 
 /*
   detect harmful content in the image
@@ -490,43 +499,78 @@ async function detectTextModerationFailures(
   return [...toxicity, ...pii]
 }
 
+async function saveImageToBucket({
+  sessionId,
+  image,
+  source,
+}: {
+  sessionId: string
+  image: Buffer
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{ location: string }> {
+  let bucketName: string
+  switch (source) {
+    case 'screenshare':
+      bucketName = config.awsS3.moderatedScreenshareBucket
+      break
+    case 'image_upload':
+      bucketName = config.awsS3.moderatedSessionImageUploadBucket
+      break
+  }
+  if (!bucketName)
+    throw new Error(
+      `Could not save moderated image to S3: No bucket registered for source ${source}`
+    )
+
+  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+  const result = await putObject(bucketName, s3Key, image)
+  return { location: result.location }
+}
+
 async function handleVideoFrameModerationFailure({
   userId,
   sessionId,
   failureReasons,
   image,
-  bucketName,
+  source,
 }: {
   userId: string
   sessionId: string
   failureReasons: VideoFrameModerationFailureReason[]
   image: Buffer
-  bucketName: string
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
-
-  const { location } = await putObject(bucketName, s3Key, image)
+  const { location: imageUrl } = await saveImageToBucket({
+    sessionId,
+    image,
+    source,
+  })
 
   logger.warn(
-    { sessionId, reasons: failureReasons, imageUrl: location },
+    { sessionId, reasons: failureReasons, imageUrl, source },
     'Image triggered moderation'
   )
 
-  await handleModerationInfraction(userId, sessionId, {
-    failures: failureReasons.reduce(
-      (acc, reason) => {
-        acc[reason.reason] = {
-          ...reason.details,
-          imageUrl: location,
-        }
-        return acc
-      },
-      {} as Record<
-        VideoFrameModerationFailureReason['reason'],
-        VideoFrameModerationFailureReason['details']
-      >
-    ),
-  })
+  await handleModerationInfraction(
+    userId,
+    sessionId,
+    {
+      failures: failureReasons.reduce(
+        (acc, reason) => {
+          acc[reason.reason] = {
+            ...reason.details,
+            imageUrl,
+          }
+          return acc
+        },
+        {} as Record<
+          VideoFrameModerationFailureReason['reason'],
+          VideoFrameModerationFailureReason['details']
+        >
+      ),
+    },
+    source
+  )
 }
 
 export const moderateVideoFrame = async (
@@ -535,7 +579,7 @@ export const moderateVideoFrame = async (
   sessionId: string,
   userId: string,
   isVolunteer: boolean,
-  bucketName: string
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 ): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
@@ -561,7 +605,7 @@ export const moderateVideoFrame = async (
       sessionId,
       failureReasons,
       image: frame,
-      bucketName,
+      source,
     })
   }
 
@@ -813,7 +857,7 @@ export async function moderateMessage({
   return result
 }
 
-const handleModerationInfraction = async (
+export const handleModerationInfraction = async (
   userId: string,
   sessionId: string,
   reasons:
@@ -821,15 +865,33 @@ const handleModerationInfraction = async (
     | Record<
         VideoFrameModerationFailureReason['reason'],
         VideoFrameModerationFailureReason['details']
-      >
+      >,
+  source: ModerationSource,
+  client = getClient()
 ) => {
-  const strikesForUserInSession =
-    await ModerationInfractionsRepo.insertModerationInfraction({
+  if (source === 'image_upload') {
+    // Image uploads are premoderated, so if they fail moderation they are not shown to any user.
+    // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
+    return
+  }
+  await ModerationInfractionsRepo.insertModerationInfraction(
+    {
       userId,
       sessionId,
       reason: reasons.failures,
-    })
-  if (strikesForUserInSession >= config.maxModerationInfractionsPerSession) {
+    },
+    client
+  )
+  const allActiveInfractions =
+    await ModerationInfractionsRepo.getModerationInfractionsByUser(
+      userId,
+      {
+        active: true,
+      },
+      client
+    )
+  const infractionScore = getInfractionScore(allActiveInfractions)
+  if (infractionScore >= config.liveMediaBanInfractionScoreThreshold) {
     await UsersRepo.banUserById(
       userId,
       USER_BAN_TYPES.LIVE_MEDIA,
@@ -838,6 +900,72 @@ const handleModerationInfraction = async (
     const socketService = await SocketService.getInstance()
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
   }
+}
+
+export type LiveMediaModerationCategories =
+  | 'profanity'
+  | 'violence'
+  | 'link'
+  | 'address'
+  | 'minor detected in image'
+  | 'email'
+  | 'phone'
+  | 'high toxicity'
+  | 'swimwear or underwear'
+  | 'explicit'
+  | 'non-explicit nudity of intimate parts and kissing'
+  | 'visually disturbing'
+  | 'drugs & tobacco'
+  | 'alcohol'
+  | 'rude gestures'
+  | 'gambling'
+  | 'hate symbols'
+
+export function getScoreForCategory(
+  category: LiveMediaModerationCategories | string
+): number {
+  let categoryScore
+  switch (category) {
+    case 'profanity':
+    case 'high toxicity':
+    case 'minor detected in image':
+    case 'drugs & tobacco':
+    case 'alcohol':
+    case 'rude gestures':
+    case 'gambling':
+      categoryScore = 1
+      break
+    case 'violence':
+    case 'swimwear or underwear':
+    case 'link':
+    case 'email':
+    case 'phone':
+    case 'address':
+    case 'explicit':
+    case 'non-explicit nudity of intimate parts and kissing':
+    case 'hate symbols':
+    case 'visually disturbing':
+      categoryScore = 10
+      break
+  }
+  if (!categoryScore) {
+    logger.error(
+      `Missing score for infraction category ${category}. Defaulting to severe score.`
+    )
+    categoryScore = 10
+  }
+  return categoryScore
+}
+
+export function getInfractionScore(
+  infractions: ModerationInfraction[]
+): number {
+  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+
+  return reasons.reduce((acc, current) => {
+    const categoryScore = getScoreForCategory(current)
+    return acc + categoryScore
+  }, 0)
 }
 
 export type CleanTranscriptModerationResult = {
@@ -853,11 +981,13 @@ export const moderateIndividualTranscription = async ({
   sessionId,
   userId,
   saidAt,
+  source,
 }: {
   transcript: string
   sessionId: string
   userId: string
   saidAt: Date
+  source: ModerationSource
 }): Promise<
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
@@ -866,7 +996,7 @@ export const moderateIndividualTranscription = async ({
   // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
-  await handleModerationInfraction(userId, sessionId, failures)
+  await handleModerationInfraction(userId, sessionId, failures, source)
   await createCensoredMessage({
     message: transcript,
     senderId: userId,
@@ -896,7 +1026,7 @@ export const moderateImage = async (
     sessionId,
     userId,
     isVolunteer,
-    config.awsS3.moderatedSessionImageUploadBucket
+    'image_upload'
   )
   if (isEmpty(result.failureReasons)) return { isClean: true }
 
