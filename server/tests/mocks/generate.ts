@@ -126,7 +126,7 @@ export function buildUserContactInfo(
 //       Noticing this behavior with other build functions when calling `insertSingleRow`
 export function buildUserRow(overrides: Partial<User> = {}): User {
   return {
-    id: getDbUlid(),
+    id: getUuid(),
     verified: true,
     emailVerified: true,
     phoneVerified: false,
@@ -206,7 +206,7 @@ export function buildStudent(overrides: Partial<AppStudent> = {}): AppStudent {
   const student = {
     ...buildUser({ isVolunteer: false }),
     zipCode: '11201',
-    schoolId: getDbUlid(),
+    schoolId: getUuid(),
     currentGrade: GRADES.EIGHTH,
     gradeLevel: GRADES.EIGHTH,
     signupSourceId: 1,
@@ -355,10 +355,10 @@ export async function buildSessionRow(
 }
 
 export function buildSession(
-  overrides: Partial<Session> & { studentId: Ulid }
+  overrides: Partial<Session> & { studentId: Uuid }
 ): Session {
   return {
-    id: getDbUlid(),
+    id: getUuid(),
     hasWhiteboardDoc: true,
     reviewed: false,
     toReview: false,
