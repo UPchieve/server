@@ -33,45 +33,45 @@ export const createSessionMetrics = new PreparedQuery<ICreateSessionMetricsParam
 
 /** 'UpdateSessionMetrics' parameters type */
 export interface IUpdateSessionMetricsParams {
-  absentStudent?: number | null | void;
-  absentVolunteer?: number | null | void;
-  coachUncomfortable?: number | null | void;
-  commentFromStudent?: number | null | void;
-  commentFromVolunteer?: number | null | void;
-  gradedAssignment?: number | null | void;
-  hasBeenUnmatched?: number | null | void;
-  hasHadTechnicalIssues?: number | null | void;
-  lowCoachRatingFromStudent?: number | null | void;
-  lowSessionRatingFromCoach?: number | null | void;
-  lowSessionRatingFromStudent?: number | null | void;
-  onlyLookingForAnswers?: number | null | void;
-  personalIdentifyingInfo?: number | null | void;
-  reported?: number | null | void;
-  rudeOrInappropriate?: number | null | void;
+  absentStudent?: boolean | null | void;
+  absentVolunteer?: boolean | null | void;
+  coachUncomfortable?: boolean | null | void;
+  commentFromStudent?: boolean | null | void;
+  commentFromVolunteer?: boolean | null | void;
+  gradedAssignment?: boolean | null | void;
+  hasBeenUnmatched?: boolean | null | void;
+  hasHadTechnicalIssues?: boolean | null | void;
+  lowCoachRatingFromStudent?: boolean | null | void;
+  lowSessionRatingFromCoach?: boolean | null | void;
+  lowSessionRatingFromStudent?: boolean | null | void;
+  onlyLookingForAnswers?: boolean | null | void;
+  personalIdentifyingInfo?: boolean | null | void;
+  reported?: boolean | null | void;
+  rudeOrInappropriate?: boolean | null | void;
   sessionId: string;
-  studentCrisis?: number | null | void;
+  studentCrisis?: boolean | null | void;
 }
 
 /** 'UpdateSessionMetrics' return type */
 export interface IUpdateSessionMetricsResult {
-  absentStudent: number;
-  absentVolunteer: number;
-  coachUncomfortable: number;
-  commentFromStudent: number;
-  commentFromVolunteer: number;
+  absentStudent: boolean;
+  absentVolunteer: boolean;
+  coachUncomfortable: boolean;
+  commentFromStudent: boolean;
+  commentFromVolunteer: boolean;
   createdAt: Date;
-  gradedAssignment: number;
-  hasBeenUnmatched: number;
-  hasHadTechnicalIssues: number;
-  lowCoachRatingFromStudent: number;
-  lowSessionRatingFromCoach: number;
-  lowSessionRatingFromStudent: number;
-  onlyLookingForAnswers: number;
-  personalIdentifyingInfo: number;
-  reported: number;
-  rudeOrInappropriate: number;
+  gradedAssignment: boolean;
+  hasBeenUnmatched: boolean;
+  hasHadTechnicalIssues: boolean;
+  lowCoachRatingFromStudent: boolean;
+  lowSessionRatingFromCoach: boolean;
+  lowSessionRatingFromStudent: boolean;
+  onlyLookingForAnswers: boolean;
+  personalIdentifyingInfo: boolean;
+  reported: boolean;
+  rudeOrInappropriate: boolean;
   sessionId: string;
-  studentCrisis: number;
+  studentCrisis: boolean;
 }
 
 /** 'UpdateSessionMetrics' query type */

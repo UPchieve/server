@@ -1,4 +1,7 @@
+import moment from 'moment'
+import QueueService from './QueueService'
 import { SESSION_REPORT_REASON, USER_SESSION_METRICS } from '../constants'
+import { TransactionClient } from '../db'
 import { Uuid } from '../models/pgUtils'
 import {
   getMessagesForFrontend,
@@ -8,6 +11,7 @@ import {
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
+import * as SessionMetricsRepo from '../models/SessionMetrics'
 import {
   getPostsessionSurveyResponsesForSessionMetrics,
   PostsessionSurveyResponse,
@@ -18,15 +22,11 @@ import {
   UserSessionMetrics,
 } from '../models/UserSessionMetrics'
 import { Jobs } from '../worker/jobs'
-import QueueService from './QueueService'
-import moment from 'moment'
-import * as SessionMetricsRepo from '../models/SessionMetrics'
-import { TransactionClient } from '../db'
 
 export function computeAbsentStudentMetric(
   session: Session,
   messages: MessageForFrontend[]
-): number {
+): boolean {
   const VOLUNTEER_WAITING_PERIOD_MIN = 10
   if (session.volunteerJoinedAt) {
     const volunteerMaxWait = moment(session.volunteerJoinedAt).add(
@@ -35,7 +35,7 @@ export function computeAbsentStudentMetric(
     )
 
     // if volunteer waits for less than 10 minutes, do not flag student bc student did not get a chance to respond within wait period
-    if (moment(session.endedAt).isSameOrBefore(volunteerMaxWait)) return 0
+    if (moment(session.endedAt).isSameOrBefore(volunteerMaxWait)) return false
 
     for (const msg of messages) {
       if (
@@ -43,17 +43,17 @@ export function computeAbsentStudentMetric(
         // if student sends message after volunteer joined, then don't flag student
         moment(msg.createdAt).isAfter(session.volunteerJoinedAt)
       )
-        return 0
+        return false
     }
-    return 1
+    return true
   }
-  return 0
+  return false
 }
 
 export function computeAbsentVolunteerMetric(
   session: Session,
   messages: MessageForFrontend[]
-): number {
+): boolean {
   const STUDENT_WAITING_PERIOD_MIN = 5
   if (session.volunteerJoinedAt) {
     const studentMaxWait = moment(session.volunteerJoinedAt).add(
@@ -62,64 +62,61 @@ export function computeAbsentVolunteerMetric(
     )
 
     //if student waits for less than 5 minutes, then not flag volunteer
-    if (moment(session.endedAt).isSameOrBefore(studentMaxWait)) return 0
+    if (moment(session.endedAt).isSameOrBefore(studentMaxWait)) return false
 
     for (const msg of messages) {
       if (
         // if volunteer sends message, then don't flag volunteer
         msg.user === session.volunteerId
       )
-        return 0
+        return false
     }
-    return 1
+    return true
   }
-  return 0
+  return false
 }
 
-export function computeHasBeenUnmatchedMetric(session: Session): number {
-  return session.volunteerId ? 0 : 1
+export function computeHasBeenUnmatchedMetric(session: Session): boolean {
+  return !session.volunteerId
 }
 
 export function computeLowCoachRatingFromStudent(
   surveyResponses: PostsessionSurveyResponse[]
-) {
+): boolean {
   const coachRatingFromStudent = surveyResponses?.find(
     (resp) =>
       resp.questionText === 'Overall, how supportive was your coach today?'
   )?.score
-  if (coachRatingFromStudent && coachRatingFromStudent <= 2) return 1
-  return 0
+  return !!(coachRatingFromStudent && coachRatingFromStudent <= 2)
 }
 
 export function computeLowSessionRatingFromStudent(
   surveyResponses: PostsessionSurveyResponse[]
-) {
+): boolean {
   const sessionRatingFromStudent = surveyResponses?.find((resp) =>
     resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
   )?.score
-  if (sessionRatingFromStudent && sessionRatingFromStudent <= 2) return 1
-  return 0
+  return !!(sessionRatingFromStudent && sessionRatingFromStudent <= 2)
 }
 
 export function computeLowSessionRatingFromCoach(
   surveyResponses: PostsessionSurveyResponse[]
-) {
+): boolean {
   const sessionRatingFromCoach = surveyResponses?.find((resp) =>
     resp.questionText.endsWith('Were you able to help them achieve their goal?')
   )?.score
-  if (sessionRatingFromCoach && sessionRatingFromCoach <= 2) return 1
-  return 0
+  return !!(sessionRatingFromCoach && sessionRatingFromCoach <= 2)
 }
 
-export function computeReported(session: Session) {
-  return session.reported ? 1 : 0
+export function computeReported(session: Session): boolean {
+  return !!session.reported
 }
 
 export function computeFeedbackMetric(
   surveyResponses: PostsessionSurveyResponse[],
   condition: (resp: PostsessionSurveyResponse) => boolean
-): number {
-  return surveyResponses.some(condition) ? 1 : 0
+): boolean {
+  return surveyResponses.some(condition)
 }
 
 export async function computeMetricsForSession(
@@ -212,45 +209,36 @@ export function computeMetricsForReportedSession(
 export function computeSessionFlagsFromMetrics(
   metrics: Partial<SessionMetricsRepo.SessionMetrics>
 ): USER_SESSION_METRICS[] {
-  const flags = []
-  if (metrics.absentStudent) flags.push(USER_SESSION_METRICS.absentStudent)
-  if (metrics.absentVolunteer) flags.push(USER_SESSION_METRICS.absentVolunteer)
-  return flags
-}
+  const metricToSessionFlag: Partial<
+    Record<keyof SessionMetricsRepo.SessionMetrics, USER_SESSION_METRICS>
+  > = {
+    absentStudent: USER_SESSION_METRICS.absentStudent,
+    absentVolunteer: USER_SESSION_METRICS.absentVolunteer,
+    lowCoachRatingFromStudent: USER_SESSION_METRICS.lowCoachRatingFromStudent,
+    lowSessionRatingFromStudent:
+      USER_SESSION_METRICS.lowSessionRatingFromStudent,
+    lowSessionRatingFromCoach: USER_SESSION_METRICS.lowSessionRatingFromCoach,
+    rudeOrInappropriate: USER_SESSION_METRICS.rudeOrInappropriate,
+    onlyLookingForAnswers: USER_SESSION_METRICS.onlyLookingForAnswers,
+    commentFromStudent: USER_SESSION_METRICS.commentFromStudent,
+    commentFromVolunteer: USER_SESSION_METRICS.commentFromVolunteer,
+    personalIdentifyingInfo: USER_SESSION_METRICS.personalIdentifyingInfo,
+    gradedAssignment: USER_SESSION_METRICS.gradedAssignment,
+    coachUncomfortable: USER_SESSION_METRICS.coachUncomfortable,
+    studentCrisis: USER_SESSION_METRICS.studentCrisis,
+    reported: USER_SESSION_METRICS.reported,
+  }
 
-export function computeFeedbackFlagsFromMetrics(
-  metrics: SessionMetricsRepo.SessionMetrics
-) {
-  const flags = []
-  if (metrics.lowCoachRatingFromStudent)
-    flags.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
-  if (metrics.lowSessionRatingFromStudent)
-    flags.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
-  if (metrics.lowSessionRatingFromCoach)
-    flags.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
-  if (metrics.rudeOrInappropriate)
-    flags.push(USER_SESSION_METRICS.rudeOrInappropriate)
-  if (metrics.onlyLookingForAnswers)
-    flags.push(USER_SESSION_METRICS.onlyLookingForAnswers)
-  if (metrics.commentFromStudent)
-    flags.push(USER_SESSION_METRICS.commentFromStudent)
-  if (metrics.commentFromVolunteer)
-    flags.push(USER_SESSION_METRICS.commentFromVolunteer)
-  if (metrics.personalIdentifyingInfo)
-    flags.push(USER_SESSION_METRICS.personalIdentifyingInfo)
-  if (metrics.gradedAssignment)
-    flags.push(USER_SESSION_METRICS.gradedAssignment)
-  if (metrics.coachUncomfortable)
-    flags.push(USER_SESSION_METRICS.coachUncomfortable)
-  if (metrics.studentCrisis) flags.push(USER_SESSION_METRICS.studentCrisis)
-  return flags
-}
+  const flags: USER_SESSION_METRICS[] = []
+  for (const key of Object.keys(
+    metrics
+  ) as (keyof SessionMetricsRepo.SessionMetrics)[]) {
+    if (metrics[key]) {
+      const flag = metricToSessionFlag[key]
+      if (flag) flags.push(flag)
+    }
+  }
 
-export function computeReportedFlagsFromMetrics(
-  metrics: SessionMetricsRepo.SessionMetrics
-) {
-  const flags = []
-  if (metrics.reported) flags.push(USER_SESSION_METRICS.reported)
   return flags
 }
 
@@ -461,14 +449,11 @@ function updateUSMValues(
   usm: UserSessionMetrics,
   metrics: Partial<SessionMetricsRepo.SessionMetrics>
 ): UserSessionMetrics {
-  return metricKeys.reduce(
-    (updated, key) => {
-      const sessionValue = metrics[key] ?? 0
-      const currentValue = updated[key] ?? 0
-      return { ...updated, [key]: currentValue + sessionValue }
-    },
-    { ...usm }
-  )
+  const updated = { ...usm }
+  for (const key of metricKeys) {
+    updated[key] += metrics[key] ? 1 : 0
+  }
+  return updated
 }
 
 // TODO: Will only need to get the session once we move over to the view
@@ -514,9 +499,6 @@ export async function processMetrics(
     ) =>
       | Promise<Partial<SessionMetricsRepo.SessionMetrics>>
       | Partial<SessionMetricsRepo.SessionMetrics>
-    computeSessionFlags: (
-      metrics: SessionMetricsRepo.SessionMetrics
-    ) => USER_SESSION_METRICS[]
     computeReviewReasons: (
       metrics: SessionMetricsRepo.SessionMetrics,
       studentUSM: UserSessionMetrics,
@@ -531,12 +513,8 @@ export async function processMetrics(
 ) {
   const { session, studentUSM, volunteerUSM } =
     await getSessionAndUSMs(sessionId)
-  const {
-    computeSessionMetrics,
-    computeSessionFlags,
-    computeReviewReasons,
-    triggerActions,
-  } = callbacks
+  const { computeSessionMetrics, computeReviewReasons, triggerActions } =
+    callbacks
   const sessionMetrics = await computeSessionMetrics(session)
   const updatedMetrics = await SessionMetricsRepo.updateSessionMetrics(
     sessionId,
@@ -551,7 +529,7 @@ export async function processMetrics(
     volunteerUSM
   )
 
-  const flags = computeSessionFlags(updatedMetrics)
+  const flags = computeSessionFlagsFromMetrics(updatedMetrics)
   await updateSessionFlagsById(session.id, flags)
 
   const reviewReasons = computeReviewReasons(
@@ -568,7 +546,6 @@ export async function processMetrics(
 export async function processSessionMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
     computeSessionMetrics: computeMetricsForSession,
-    computeSessionFlags: computeSessionFlagsFromMetrics,
     computeReviewReasons: computeSessionReviewReasonsFromMetrics,
     triggerActions: triggerSessionActions,
   })
@@ -577,7 +554,6 @@ export async function processSessionMetrics(sessionId: Uuid) {
 export async function processFeedbackMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
     computeSessionMetrics: computeMetricsForFeedbackSaved,
-    computeSessionFlags: computeFeedbackFlagsFromMetrics,
     computeReviewReasons: computeFeedbackReviewReasonsFromMetrics,
     triggerActions: triggerFeedbackActions,
   })
@@ -586,7 +562,6 @@ export async function processFeedbackMetrics(sessionId: Uuid) {
 export async function processReportMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
     computeSessionMetrics: computeMetricsForReportedSession,
-    computeSessionFlags: computeReportedFlagsFromMetrics,
     computeReviewReasons: computeReportedReviewReason,
   })
 }
