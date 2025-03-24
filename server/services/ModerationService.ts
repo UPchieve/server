@@ -44,7 +44,6 @@ const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient } from '../db'
-import socketService from './SocketService'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com

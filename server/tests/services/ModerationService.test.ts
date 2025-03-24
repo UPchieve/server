@@ -6,7 +6,6 @@ import {
   type ModeratedLink,
   getInfractionScore,
   handleModerationInfraction,
-  ModerationSource,
   getScoreForCategory,
   LiveMediaModerationCategories,
 } from '../../services/ModerationService'
@@ -18,6 +17,7 @@ import * as LangfuseService from '../../services/LangfuseService'
 import { timeLimit } from '../../utils/time-limit'
 import { buildModerationInfractionRow } from '../mocks/generate'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
+import SocketService from '../../services/SocketService'
 
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
@@ -35,6 +35,14 @@ jest.mock('../../services/BotsService', () => {
 })
 jest.mock('../../services/LangfuseService')
 jest.mock('../../models/ModerationInfractions')
+
+jest.mock('../../services/SocketService', () => {
+  return {
+    getInstance: jest.fn(() => {
+      emitModerationInfractionEvent: jest.fn()
+    }),
+  }
+})
 
 describe('ModerationService', () => {
   const isVolunteer = true
@@ -485,6 +493,14 @@ describe('ModerationService', () => {
       const sessionId = 'session-456'
 
       it('Writes an infraction if the source is screenshare', async () => {
+        const mockSocketServiceInstance =
+          SocketService.getInstance as jest.Mock<SocketService>
+        mockSocketServiceInstance.mockImplementation(() => {
+          return {
+            getInstance: jest.fn(),
+            emitModerationInfractionEvent: jest.fn(),
+          } as unknown as SocketService
+        })
         mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
           []
         )
