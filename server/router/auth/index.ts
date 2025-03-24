@@ -74,8 +74,11 @@ export function routes(app: Express) {
   router.route('/sso').get((req, res) => {
     const provider = req.query.provider as string
     const isLogin = req.query.isLogin === 'true' ?? true
+    const errorRedirect = req.query.errorRedirect as string
     if (!provider || !isSupportedSsoProvider(provider)) {
-      res.redirect(AuthRedirect.failureRedirect(isLogin, provider ?? ''))
+      res.redirect(
+        AuthRedirect.failureRedirect(isLogin, provider ?? '', errorRedirect)
+      )
       return
     }
 
@@ -89,6 +92,7 @@ export function routes(app: Express) {
       provider,
       isLogin,
       redirect: req.query.redirect as string,
+      errorRedirect,
     }
 
     const strategy = provider
@@ -100,6 +104,7 @@ export function routes(app: Express) {
       provider = req.headers.referer?.includes('clever') ? 'clever' : '',
       isLogin = true,
       redirect = '',
+      errorRedirect = '',
       userData = {},
     } = (req.session as SessionWithSsoData).sso ?? {}
     if (!provider || !isSupportedSsoProvider(provider)) {
@@ -107,6 +112,7 @@ export function routes(app: Express) {
         AuthRedirect.failureRedirect(
           isLogin,
           provider,
+          errorRedirect,
           userData,
           `Unknown provider: ${provider}`
         )
@@ -138,11 +144,11 @@ export function routes(app: Express) {
         await req.asyncLogin(user)
         return res.redirect(AuthRedirect.successRedirect(redirect))
       } else {
-        req.logout()
         return res.redirect(
           AuthRedirect.failureRedirect(
             isLogin,
             provider,
+            errorRedirect,
             userData,
             data?.errorMessage
           )
