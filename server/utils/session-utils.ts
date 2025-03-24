@@ -55,16 +55,11 @@ export function getMessagesAfterDate(
 export function isSessionParticipant(
   studentId: Ulid,
   volunteerId?: Ulid,
-  userId?: Ulid | null,
-  chatbotId?: Ulid | null
+  userId?: Ulid | null
 ): boolean {
   if (!userId) return false
 
-  return (
-    userId === studentId ||
-    (userId === volunteerId && !!volunteerId) ||
-    userId === (chatbotId ? chatbotId : '')
-  )
+  return userId === studentId || (userId === volunteerId && !!volunteerId)
 }
 
 export type SessionForTimeTutored = Pick<

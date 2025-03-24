@@ -1625,58 +1625,6 @@ const updateSessionVolunteerByIdIR: any = {"usedParamSet":{"volunteerId":true,"s
 export const updateSessionVolunteerById = new PreparedQuery<IUpdateSessionVolunteerByIdParams,IUpdateSessionVolunteerByIdResult>(updateSessionVolunteerByIdIR);
 
 
-/** 'GetSessionForChatbot' parameters type */
-export interface IGetSessionForChatbotParams {
-  sessionId: string;
-}
-
-/** 'GetSessionForChatbot' return type */
-export interface IGetSessionForChatbotResult {
-  createdAt: Date;
-  endedAt: Date | null;
-  id: string;
-  student: string;
-  studentFirstName: string;
-  subject: string;
-  toolType: string;
-  topic: string;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetSessionForChatbot' query type */
-export interface IGetSessionForChatbotQuery {
-  params: IGetSessionForChatbotParams;
-  result: IGetSessionForChatbotResult;
-}
-
-const getSessionForChatbotIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":541,"b":551}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS subject,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    sessions.student_id AS student,\n    users.first_name AS student_first_name,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     sessions.id,
- *     subjects.name AS subject,
- *     topics.name AS topic,
- *     sessions.created_at,
- *     sessions.ended_at,
- *     sessions.volunteer_joined_at,
- *     sessions.student_id AS student,
- *     users.first_name AS student_first_name,
- *     tool_types.name AS tool_type
- * FROM
- *     sessions
- *     JOIN users ON sessions.student_id = users.id
- *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
- *     LEFT JOIN topics ON subjects.topic_id = topics.id
- *     JOIN tool_types ON subjects.tool_type_id = tool_types.id
- * WHERE
- *     sessions.id = :sessionId!
- * ```
- */
-export const getSessionForChatbot = new PreparedQuery<IGetSessionForChatbotParams,IGetSessionForChatbotResult>(getSessionForChatbotIR);
-
-
 /** 'InsertNewMessage' parameters type */
 export interface IInsertNewMessageParams {
   contents: string;
