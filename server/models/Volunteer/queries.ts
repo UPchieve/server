@@ -1452,7 +1452,6 @@ export async function updateVolunteerForAdmin(
   update: AdminUpdateVolunteer,
   tc?: TransactionClient
 ): Promise<void> {
-  const c = tc ?? (await getClient().connect())
   return runInTransaction(async (client) => {
     try {
       const partnerOrgId = update.volunteerPartnerOrg
@@ -1500,7 +1499,7 @@ export async function updateVolunteerForAdmin(
     } catch (err) {
       throw new RepoUpdateError(err)
     }
-  }, c)
+  }, tc ?? getClient())
 }
 
 export type VolunteerToReview = {

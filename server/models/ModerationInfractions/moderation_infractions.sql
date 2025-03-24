@@ -22,6 +22,7 @@ SET
 WHERE
     user_id = :userId!;
 
+
 /* @name getModerationInfractionsByUser */
 SELECT
     *
@@ -33,3 +34,4 @@ WHERE
         OR session_id = :sessionId)
     AND (:active::boolean IS NULL
         OR active = :active);
+
