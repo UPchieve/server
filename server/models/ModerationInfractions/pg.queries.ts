@@ -73,6 +73,36 @@ const updateModerationInfractionByIdIR: any = {"usedParamSet":{"active":true,"id
 export const updateModerationInfractionById = new PreparedQuery<IUpdateModerationInfractionByIdParams,IUpdateModerationInfractionByIdResult>(updateModerationInfractionByIdIR);
 
 
+/** 'DeactivateModerationInfractionByUserId' parameters type */
+export interface IDeactivateModerationInfractionByUserIdParams {
+  userId: string;
+}
+
+/** 'DeactivateModerationInfractionByUserId' return type */
+export type IDeactivateModerationInfractionByUserIdResult = void;
+
+/** 'DeactivateModerationInfractionByUserId' query type */
+export interface IDeactivateModerationInfractionByUserIdQuery {
+  params: IDeactivateModerationInfractionByUserIdParams;
+  result: IDeactivateModerationInfractionByUserIdResult;
+}
+
+const deactivateModerationInfractionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":77,"b":84}]}],"statement":"UPDATE\n    moderation_infractions\nSET\n    active = FALSE\nWHERE\n    user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     moderation_infractions
+ * SET
+ *     active = FALSE
+ * WHERE
+ *     user_id = :userId!
+ * ```
+ */
+export const deactivateModerationInfractionByUserId = new PreparedQuery<IDeactivateModerationInfractionByUserIdParams,IDeactivateModerationInfractionByUserIdResult>(deactivateModerationInfractionByUserIdIR);
+
+
 /** 'GetModerationInfractionsByUser' parameters type */
 export interface IGetModerationInfractionsByUserParams {
   active?: boolean | null | void;

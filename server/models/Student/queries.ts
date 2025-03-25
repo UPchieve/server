@@ -1,5 +1,10 @@
 import { PoolClient } from 'pg'
-import { getAnalyticsClient, getClient, TransactionClient } from '../../db'
+import {
+  getAnalyticsClient,
+  getClient,
+  runInTransaction,
+  TransactionClient,
+} from '../../db'
 import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
@@ -275,7 +280,7 @@ export type StudentPartnerOrgByKey = {
 export async function getPartnerOrgByKey(
   partnerKey: string | undefined,
   partnerSite: string | undefined,
-  client: PoolClient
+  client: TransactionClient
 ): Promise<StudentPartnerOrgByKey | undefined> {
   try {
     const result = await pgQueries.getPartnerOrgByKey.run(
@@ -322,7 +327,7 @@ async function adminUpdateStudentPartnerOrgInstance(
   newPartnerOrgKey: string | undefined,
   newPartnerSite: string | undefined,
   schoolPartnerKey: string | undefined,
-  client: PoolClient
+  client: TransactionClient
 ) {
   try {
     const newPartnerOrg = await getPartnerOrgByKey(
@@ -482,56 +487,52 @@ async function adminUpdateStudentPartnerOrgInstance(
 
 export async function adminUpdateStudent(
   studentId: Ulid,
-  update: AdminUpdateStudent
+  update: AdminUpdateStudent,
+  tc?: TransactionClient
 ) {
-  const transactionClient = await getClient().connect()
-  try {
-    await transactionClient.query('BEGIN')
-
-    const updateStudentResult = await pgQueries.adminUpdateStudent.run(
-      {
-        userId: studentId,
-        firstName: update.firstName,
-        lastName: update.lastName,
-        email: update.email.toLowerCase(),
-        verified: update.isVerified,
-        banType: update.banType,
-        deactivated: update.isDeactivated,
-      },
-      transactionClient
-    )
-
-    const updateProductFlagsResult =
-      await pgQueries.updateStudentInGatesStudy.run(
-        { userId: studentId, inGatesStudy: update.inGatesStudy },
+  return runInTransaction(async (transactionClient) => {
+    try {
+      const updateStudentResult = await pgQueries.adminUpdateStudent.run(
+        {
+          userId: studentId,
+          firstName: update.firstName,
+          lastName: update.lastName,
+          email: update.email.toLowerCase(),
+          verified: update.isVerified,
+          banType: update.banType,
+          deactivated: update.isDeactivated,
+        },
         transactionClient
       )
 
-    await adminUpdateStudentPartnerOrgInstance(
-      studentId,
-      update.studentPartnerOrg,
-      update.partnerSite,
-      update.partnerSchool,
-      transactionClient
-    )
+      const updateProductFlagsResult =
+        await pgQueries.updateStudentInGatesStudy.run(
+          { userId: studentId, inGatesStudy: update.inGatesStudy },
+          transactionClient
+        )
 
-    if (
-      !(
-        updateStudentResult.length &&
-        updateProductFlagsResult.length &&
-        makeRequired(updateStudentResult[0]).ok &&
-        makeRequired(updateProductFlagsResult[0]).ok
+      await adminUpdateStudentPartnerOrgInstance(
+        studentId,
+        update.studentPartnerOrg,
+        update.partnerSite,
+        update.partnerSchool,
+        transactionClient
       )
-    )
-      throw new RepoUpdateError('Update query did not update the student')
-    await transactionClient.query('COMMIT')
-  } catch (err) {
-    await transactionClient.query('ROLLBACK')
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoTransactionError(err)
-  } finally {
-    transactionClient.release()
-  }
+
+      if (
+        !(
+          updateStudentResult.length &&
+          updateProductFlagsResult.length &&
+          makeRequired(updateStudentResult[0]).ok &&
+          makeRequired(updateProductFlagsResult[0]).ok
+        )
+      )
+        throw new RepoUpdateError('Update query did not update the student')
+    } catch (err) {
+      if (err instanceof RepoUpdateError) throw err
+      throw new RepoTransactionError(err)
+    }
+  }, tc ?? getClient())
 }
 
 export async function createStudentProfile(
