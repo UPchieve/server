@@ -513,12 +513,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       })
     })
 
-    socket.on('resetWhiteboard', async ({ sessionId }) => {
-      newrelic.startWebTransaction('/socket-io/resetWhiteboard', () => {
-        socket.to(getSessionRoom(sessionId)).emit('resetWhiteboard')
-      })
-    })
-
     socket.on('disconnecting', async () => {
       const user = await extractSocketUser(socket)
       for (const room of socket.rooms) {

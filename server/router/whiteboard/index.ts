@@ -334,20 +334,5 @@ export function routes(app: Express): void {
     }
   })
 
-  router.route('/reset').post(async function (req, res, next) {
-    const {
-      body: { sessionId },
-    } = req
-
-    try {
-      await WhiteboardService.deleteDoc(sessionId)
-      res.sendStatus(200)
-    } catch (err) {
-      Sentry.captureException(err)
-      logError(err as Error)
-      next(err)
-    }
-  })
-
   app.use('/whiteboard', router)
 }
