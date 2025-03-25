@@ -14,6 +14,15 @@ WHERE
     id = :id!;
 
 
+/* @name deactivateModerationInfractionByUserId */
+UPDATE
+    moderation_infractions
+SET
+    active = FALSE
+WHERE
+    user_id = :userId!;
+
+
 /* @name getModerationInfractionsByUser */
 SELECT
     *

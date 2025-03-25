@@ -25,7 +25,7 @@ class DbTestEnvironment extends NodeEnvironment {
         host: DbTestEnvironment.POSTGRES_HOST,
       })
 
-      this.testPool.on('connect', async client => {
+      this.testPool.on('connect', async (client) => {
         await client.query('SET search_path TO upchieve;')
       })
       this.global.__TEST_DB_CLIENT__ = this.testPool
