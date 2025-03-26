@@ -184,6 +184,7 @@ async function detectMinorFailures(image: Buffer) {
       Image: {
         Bytes: image,
       },
+      MinConfidence: config.imageModerationMinConfidence,
       Settings: {
         GeneralLabels: {
           LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
@@ -238,7 +239,11 @@ const detectToxicContent = async (textSegments: string[]) => {
   }
 
   const highToxicity = toxicContent
-    .filter(({ result }) => result.Toxicity && result.Toxicity > 0.5)
+    .filter(
+      ({ result }) =>
+        result.Toxicity &&
+        result.Toxicity >= config.toxicityModerationMinConfidence
+    )
     .map(({ result, text }) => ({
       reason: 'High Toxicity',
       details: {
@@ -264,9 +269,11 @@ async function isLikelyToBeAPhoneNumber({
 }) {
   // Since many users will be sharing numbers that look like phone numbers,
   // we want to moderate them in similar way we moderate phone numbers in messages.
-  // PII is very permisive with what's a phone number, so let's run it throough our regex
+  // PII is very permisive with what's a phone number, so let's run it through our regex
   // and then through the false positive fallback
-  const isMaybePhone = entityConfidence > 0.9 && PHONE_REGEX.test(entityText)
+  const isMaybePhone =
+    entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
+    PHONE_REGEX.test(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -573,14 +580,110 @@ async function handleVideoFrameModerationFailure({
   )
 }
 
-export const moderateVideoFrame = async (
-  // @TODO Combine into one method with moderateImage.
-  frame: Buffer,
-  sessionId: string,
-  userId: string,
-  isVolunteer: boolean,
+async function moderateImageFailures({
+  image,
+  userId,
+  sessionId,
+  source,
+}: {
+  image: Buffer
+  userId: string
+  sessionId: string
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-): Promise<{
+}) {
+  const failures = await detectImageModerationFailures(image)
+  if (failures.length > 0) {
+    await handleVideoFrameModerationFailure({
+      userId,
+      sessionId,
+      failureReasons: failures,
+      image,
+      source,
+    })
+  }
+}
+
+async function moderateMinorFailures({
+  image,
+  userId,
+  sessionId,
+  source,
+}: {
+  image: Buffer
+  userId: string
+  sessionId: string
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}) {
+  const failures = await detectMinorFailures(image)
+  if (failures.length > 0) {
+    await handleVideoFrameModerationFailure({
+      userId,
+      sessionId,
+      failureReasons: failures,
+      image,
+      source,
+    })
+  }
+}
+
+async function moderateTextModerationFailures({
+  image,
+  userId,
+  sessionId,
+  isVolunteer,
+  source,
+}: {
+  image: Buffer
+  userId: string
+  sessionId: string
+  isVolunteer: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}) {
+  const failures = await detectTextModerationFailures(
+    image,
+    sessionId,
+    isVolunteer
+  )
+  if (failures.length > 0) {
+    await handleVideoFrameModerationFailure({
+      userId,
+      sessionId,
+      failureReasons: failures,
+      image,
+      source,
+    })
+  }
+}
+/*
+  This funciton is designed to ban a user from live media as fast as possible.
+  TODO finish comment
+*/
+export const moderateImageInBackground = (options: {
+  image: Buffer
+  sessionId: string
+  userId: string
+  isVolunteer: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}) => {
+  // kick off version of each moderation check that handles its own failures
+  moderateImageFailures(options)
+  moderateMinorFailures(options)
+  moderateTextModerationFailures(options)
+}
+
+export const moderateImageBatchFailures = async ({
+  image,
+  sessionId,
+  userId,
+  isVolunteer,
+  source,
+}: {
+  image: Buffer
+  sessionId: string
+  userId: string
+  isVolunteer: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
 }> => {
   const [
@@ -588,9 +691,9 @@ export const moderateVideoFrame = async (
     minorFailures,
     textModerationFailureReasons,
   ] = await Promise.all([
-    detectImageModerationFailures(frame),
-    detectMinorFailures(frame),
-    detectTextModerationFailures(frame, sessionId, isVolunteer),
+    detectImageModerationFailures(image),
+    detectMinorFailures(image),
+    detectTextModerationFailures(image, sessionId, isVolunteer),
   ])
 
   const failureReasons = [
@@ -604,7 +707,7 @@ export const moderateVideoFrame = async (
       userId,
       sessionId,
       failureReasons,
-      image: frame,
+      image,
       source,
     })
   }
@@ -1032,13 +1135,13 @@ export const moderateImage = async (
   isClean: boolean
   failures: string[]
 }> => {
-  const result = await moderateVideoFrame(
-    imageFile.buffer,
+  const result = await moderateImageBatchFailures({
+    image: imageFile.buffer,
     sessionId,
     userId,
     isVolunteer,
-    'image_upload'
-  )
+    source: 'image_upload',
+  })
   if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
 
   // Duplicate moderation failures may be present if different objects in the image trigger it
