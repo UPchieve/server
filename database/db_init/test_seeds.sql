@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
 -- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
@@ -2732,6 +2732,12 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
 17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
 18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 \.
 
 
@@ -4159,7 +4165,7 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 18, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 30, true);
 
 
 --
