@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "./bin/build_backend.sh",
     "build:tsc": "tsc --p tsconfig.server.json",
     "deploy:dev": "./bin/deploy.sh dev",
     "dev:revision": "az containerapp revision list --name development-container-app-subway --resource-group development-resource-group | jq -r '.[0] | \"\\(.name) - \\(.properties.runningState)\"'",
@@ -37,8 +36,6 @@
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
     "pgtyped:check": "./bin/pgtyped_check.sh",
-    "telepresence:intercept": "./bin/telepresence_intercept.sh",
-    "telepresence:leave": "./bin/telepresence_leave.sh",
     "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts",
     "db:reset": "./bin/reset_db.sh",
     "db:schema": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/schema.sql\" &> /dev/null",
