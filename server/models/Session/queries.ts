@@ -131,7 +131,7 @@ export async function getSessionById(
   }
 }
 
-export async function updateSessionFlagsById(
+export async function updateSessionFlagsById( // @TODO Wrap in runInTransaction at the service layer
   sessionId: Ulid,
   flags: USER_SESSION_METRICS[]
 ): Promise<void> {
@@ -140,6 +140,7 @@ export async function updateSessionFlagsById(
     await client.query('BEGIN')
     const errors: string[] = []
     for (const flag of flags) {
+      // @TODO Make a single trip to the db
       const result = await pgQueries.insertSessionFlagById.run(
         { sessionId, flag },
         client
@@ -1108,7 +1109,7 @@ export async function getSessionsForAdminFilter(
   }
 }
 
-export async function updateSessionReviewReasonsById(
+export async function updateSessionReviewReasonsById( // @TODO Wrap in runInTransaction at the service layer
   sessionId: Ulid,
   reviewReasons: USER_SESSION_METRICS[],
   // Use this property to override the reviewed status of a session
@@ -1118,6 +1119,7 @@ export async function updateSessionReviewReasonsById(
   try {
     await client.query('BEGIN')
     for (const flag of reviewReasons) {
+      // @TODO Make a single trip to the db
       const result = await pgQueries.insertSessionReviewReason.run(
         { sessionId, flag },
         client

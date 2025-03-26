@@ -17,6 +17,12 @@ export enum USER_SESSION_METRICS {
   studentCrisis = 'Student in distress',
   coachReportedStudentDm = 'Coach reported student DM',
   studentReportedCoachDm = 'Student reported coach DM',
+  hateSpeech = 'Hate speech',
+  platformCircumvention = 'Platform circumvention',
+  inappropriateConversation = 'Inappropriate conversation',
+  pii = 'Personally identifiable information',
+  safetyConcern = 'Safety concern',
+  generalModerationIssue = 'General moderation concern',
 }
 
 // amount of volunteers to text notifications to per session

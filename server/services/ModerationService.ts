@@ -1095,9 +1095,17 @@ const getSessionTranscriptModerationResult = async (
   return JSON.parse(result.choices[0].message.content || '')
 }
 
+export type ModerationSessionReviewFlagReason =
+  | 'PII'
+  | 'HATE_SPEECH'
+  | 'PLATFORM_CIRCUMVENTION'
+  | 'INAPPROPRIATE_CONTENT'
+  | 'SAFETY'
+  | 'N/A'
 export type TranscriptChunkModerationResult = {
   confidence: number // higher = more likely to be inappropriate
   explanation: string
+  reasons: ModerationSessionReviewFlagReason[]
 }
 export const moderateTranscript = async (
   transcript: SessionTranscript
@@ -1203,7 +1211,8 @@ Given a chunk of the conversation, provide a confidence rating from 0 to 100 to 
 <exception>Grade level and first names are already known to both participants.</exception>
 <exception>If the tutoring session is focused on college applications and college essays, it is appropriate to share information about the college or minor personal information if it is relevant to the student's applications. NO contact information should be shared, nor the student's school.</exception>
 </policy>
-Provide your response in this JSON format: "{ confidence: number, explanation: string, reason: string }". If you have a confidence of 0, your explanation should be an empty string and the reason should be "N/A".
+<policy><name>SAFETY</name>Threats of harm to oneself or others and dangerous situations should be flagged.</policy>
+Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons should be an empty array.
 `
 
 const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `
