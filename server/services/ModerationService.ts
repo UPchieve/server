@@ -1159,9 +1159,17 @@ const getSessionTranscriptModerationResult = async (
   return JSON.parse(result.choices[0].message.content || '')
 }
 
+export type ModerationSessionReviewFlagReason =
+  | 'PII'
+  | 'HATE_SPEECH'
+  | 'PLATFORM_CIRCUMVENTION'
+  | 'INAPPROPRIATE_CONTENT'
+  | 'SAFETY'
+  | 'N/A'
 export type TranscriptChunkModerationResult = {
   confidence: number // higher = more likely to be inappropriate
   explanation: string
+  reasons: ModerationSessionReviewFlagReason[]
 }
 export const moderateTranscript = async (
   transcript: SessionTranscript
@@ -1253,15 +1261,22 @@ Acceptable values for the elements of the 'reasons' array are:
 </exceptions>`
 
 const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
-You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor and decide if it violates any policies.
-You will find the chat message in <message> tags and the role of the user who sent the message in the <role> tags. Policies are described in the <policy> tags.
+You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor on a platform called UPchieve and decide if it violates any policies. The platform has built-in support for written chat messages, voice chat, and collaborative document editor and whiteboard.
+You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages or transcriptions of voice chat, both of which are built into the platform. Policies are described in the <policy> tags, and each has a name to be returned in your JSON response in the <name> tag. Exceptions to the policies are in <exception> tags.
 Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
-<policy>No hate speech</policy>
-<policy>No sexual or flirtatious content</policy>
-<policy>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.</policy>
-<policy>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.</policy>
-<policy>The nature of the conversation must be appropriate in a tutoring context</policy>
-Provide your response in this JSON format: "{ confidence: number, explanation: string }"
+<policy><name>HATE_SPEECH</name>No hate speech</policy>
+<policy><name>INAPPROPRIATE_CONTENT</name>No sexual or flirtatious content</policy>
+<policy><name>PLATFORM_CIRCUMVENTION</name>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.
+<exception>Links to external collaborative editors (e.g. whiteboards and document editors) are OK as long as they are shared with the intent of facilitating tutoring AND used in a read-only capacity; all work must be done on the platform.</exception>
+<exception>The platform has its own direct messaging feature that is an appropriate mode of communication as long as the intended use is still to facilitate tutoring.</exception>
+<exception>It is acceptable to agree on a time to meet to do another tutoring session as long as it is on the platform.</exception>
+</policy>
+<policy><name>PII</name>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.
+<exception>Grade level and first names are already known to both participants.</exception>
+<exception>If the tutoring session is focused on college applications and college essays, it is appropriate to share information about the college or minor personal information if it is relevant to the student's applications. NO contact information should be shared, nor the student's school.</exception>
+</policy>
+<policy><name>SAFETY</name>Threats of harm to oneself or others and dangerous situations should be flagged.</policy>
+Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons should be an empty array.
 `
 
 const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `
