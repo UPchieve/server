@@ -21,6 +21,7 @@ import {
   USER_BAN_TYPES,
   USER_ROLES,
   USER_ROLES_TYPE,
+  UserSessionFlags,
   USER_SESSION_METRICS,
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
@@ -131,15 +132,16 @@ export async function getSessionById(
   }
 }
 
-export async function updateSessionFlagsById(
+export async function updateSessionFlagsById( // @TODO Wrap in runInTransaction at the service layer
   sessionId: Ulid,
-  flags: USER_SESSION_METRICS[]
+  flags: (USER_SESSION_METRICS | UserSessionFlags)[]
 ): Promise<void> {
   const client = await getClient().connect()
   try {
     await client.query('BEGIN')
     const errors: string[] = []
     for (const flag of flags) {
+      // @TODO Make a single trip to the db
       const result = await pgQueries.insertSessionFlagById.run(
         { sessionId, flag },
         client
@@ -1108,9 +1110,9 @@ export async function getSessionsForAdminFilter(
   }
 }
 
-export async function updateSessionReviewReasonsById(
+export async function updateSessionReviewReasonsById( // @TODO Wrap in runInTransaction at the service layer
   sessionId: Ulid,
-  reviewReasons: USER_SESSION_METRICS[],
+  reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
   // Use this property to override the reviewed status of a session
   reviewed?: boolean
 ): Promise<void> {
@@ -1118,6 +1120,7 @@ export async function updateSessionReviewReasonsById(
   try {
     await client.query('BEGIN')
     for (const flag of reviewReasons) {
+      // @TODO Make a single trip to the db
       const result = await pgQueries.insertSessionReviewReason.run(
         { sessionId, flag },
         client
