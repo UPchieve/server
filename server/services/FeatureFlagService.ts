@@ -53,12 +53,6 @@ export async function getAllFlagsForId(
   })
 }
 
-export function isChatBotEnabled() {
-  // TODO: Either put this feature flag into PH, or remove
-  // references from code.
-  return false
-}
-
 export async function getStandardizedCertsFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
 }

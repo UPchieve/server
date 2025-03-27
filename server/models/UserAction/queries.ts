@@ -223,7 +223,8 @@ export async function createAccountAction(
 
 export async function createAdminAction(
   action: ACCOUNT_USER_ACTIONS,
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ) {
   try {
     const result = await pgQueries.createAdminAction.run(
@@ -232,7 +233,7 @@ export async function createAdminAction(
         actionType: USER_ACTION_TYPES.ADMIN,
         userId: userId,
       },
-      getClient()
+      tc ?? getClient()
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new Error('insertion of admin user action did not return ok')
