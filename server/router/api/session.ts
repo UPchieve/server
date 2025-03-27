@@ -441,13 +441,12 @@ export function routeSession(router: Router) {
     try {
       const sessionId = req.params.sessionId
       const userId = extractUser(req).id
-      const { meeting, attendee, partnerAttendee, transcriptionStarted } =
+      const { meeting, attendee, partnerAttendee } =
         await SessionMeetingService.getOrCreateSessionMeeting(sessionId, userId)
       return res.json({
         meeting,
         attendee,
         partnerAttendee,
-        transcriptionStarted,
       })
     } catch (err) {
       resError(res, err)
