@@ -15,6 +15,9 @@ export enum USER_SESSION_METRICS {
   gradedAssignment = 'Graded assignment',
   coachUncomfortable = 'Coach uncomfortable',
   studentCrisis = 'Student in distress',
+}
+
+export enum USER_SESSION_FLAGS {
   coachReportedStudentDm = 'Coach reported student DM',
   studentReportedCoachDm = 'Student reported coach DM',
   hateSpeech = 'Hate speech',
@@ -24,9 +27,6 @@ export enum USER_SESSION_METRICS {
   safetyConcern = 'Safety concern',
   generalModerationIssue = 'General moderation concern',
 }
-
-// amount of volunteers to text notifications to per session
-export const TOTAL_VOLUNTEERS_TO_TEXT_FOR_HELP = 15
 
 export const SESSION_REPORT_REASON = {
   STUDENT_RUDE: '[Immediate ban] Student extremely rude/inappropriate',

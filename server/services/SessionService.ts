@@ -14,6 +14,7 @@ import {
   USER_BAN_REASONS,
   USER_BAN_TYPES,
   USER_ROLES,
+  USER_SESSION_FLAGS,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -119,7 +120,7 @@ export async function getTimeTutoredForDateRange(
 
 export async function handleDmReporting(
   sessionId: Ulid,
-  sessionFlags: USER_SESSION_METRICS[]
+  sessionFlags: USER_SESSION_FLAGS[]
 ): Promise<void> {
   await updateSessionFlagsById(sessionId, sessionFlags)
   await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
@@ -167,8 +168,8 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 
     if (source === 'recap') {
       const sessionFlags = isSessionVolunteer
-        ? [USER_SESSION_METRICS.coachReportedStudentDm]
-        : [USER_SESSION_METRICS.studentReportedCoachDm]
+        ? [USER_SESSION_FLAGS.coachReportedStudentDm]
+        : [USER_SESSION_FLAGS.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
     }
   }
