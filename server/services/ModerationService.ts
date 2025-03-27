@@ -534,7 +534,7 @@ async function saveImageToBucket({
   return { location: result.location }
 }
 
-async function handleVideoFrameModerationFailure({
+async function handleImageModerationFailure({
   userId,
   sessionId,
   failureReasons,
@@ -580,112 +580,66 @@ async function handleVideoFrameModerationFailure({
   )
 }
 
-async function moderateImageFailures({
-  image,
-  userId,
-  sessionId,
-  source,
-}: {
-  image: Buffer
+function maybeHandleImageModerationFailure(options: {
   userId: string
   sessionId: string
+  image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  const failures = await detectImageModerationFailures(image)
-  if (failures.length > 0) {
-    await handleVideoFrameModerationFailure({
-      userId,
-      sessionId,
-      failureReasons: failures,
-      image,
-      source,
-    })
+  return function (failures: VideoFrameModerationFailureReason[]) {
+    if (failures.length > 0) {
+      handleImageModerationFailure({
+        userId: options.userId,
+        sessionId: options.sessionId,
+        failureReasons: failures,
+        image: options.image,
+        source: options.source,
+      })
+    }
   }
 }
 
-async function moderateMinorFailures({
-  image,
-  userId,
-  sessionId,
-  source,
-}: {
-  image: Buffer
-  userId: string
-  sessionId: string
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-}) {
-  const failures = await detectMinorFailures(image)
-  if (failures.length > 0) {
-    await handleVideoFrameModerationFailure({
-      userId,
-      sessionId,
-      failureReasons: failures,
-      image,
-      source,
-    })
-  }
-}
-
-async function moderateTextModerationFailures({
-  image,
-  userId,
-  sessionId,
-  isVolunteer,
-  source,
-}: {
-  image: Buffer
-  userId: string
-  sessionId: string
-  isVolunteer: boolean
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-}) {
-  const failures = await detectTextModerationFailures(
-    image,
-    sessionId,
-    isVolunteer
-  )
-  if (failures.length > 0) {
-    await handleVideoFrameModerationFailure({
-      userId,
-      sessionId,
-      failureReasons: failures,
-      image,
-      source,
-    })
-  }
-}
 /*
   This funciton is designed to ban a user from live media as fast as possible.
-  TODO finish comment
+  To do that, we run each moderation check in parallel and issue moderation infractions
+  as they happen. By not waiting for all checks to complete, we can ensure that we
+  turn the screen share off as soon as possible.
 */
-export const moderateImageInBackground = (options: {
+export function moderateImageInBackground(options: {
   image: Buffer
   sessionId: string
   userId: string
   isVolunteer: boolean
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-}) => {
-  // kick off version of each moderation check that handles its own failures
-  moderateImageFailures(options)
-  moderateMinorFailures(options)
-  moderateTextModerationFailures(options)
+}): void {
+  detectTextModerationFailures(
+    options.image,
+    options.sessionId,
+    options.isVolunteer
+  ).then(maybeHandleImageModerationFailure(options))
+
+  detectMinorFailures(options.image).then(
+    maybeHandleImageModerationFailure(options)
+  )
+
+  detectTextModerationFailures(
+    options.image,
+    options.sessionId,
+    options.isVolunteer
+  ).then(maybeHandleImageModerationFailure(options))
 }
 
-export const moderateImageBatchFailures = async ({
+async function getAllImageModerationFailures({
   image,
   sessionId,
-  userId,
   isVolunteer,
-  source,
 }: {
   image: Buffer
   sessionId: string
-  userId: string
   isVolunteer: boolean
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }): Promise<{
   failureReasons: VideoFrameModerationFailureReason[]
-}> => {
+}> {
   const [
     moderationFailureReasons,
     minorFailures,
@@ -696,24 +650,12 @@ export const moderateImageBatchFailures = async ({
     detectTextModerationFailures(image, sessionId, isVolunteer),
   ])
 
-  const failureReasons = [
-    ...moderationFailureReasons,
-    ...minorFailures,
-    ...textModerationFailureReasons,
-  ]
-
-  if (failureReasons.length > 0) {
-    await handleVideoFrameModerationFailure({
-      userId,
-      sessionId,
-      failureReasons,
-      image,
-      source,
-    })
-  }
-
   return {
-    failureReasons,
+    failureReasons: [
+      ...moderationFailureReasons,
+      ...minorFailures,
+      ...textModerationFailureReasons,
+    ],
   }
 }
 
@@ -1126,31 +1068,52 @@ export const moderateIndividualTranscription = async ({
   } as SanitizedTranscriptModerationResult
 }
 
-export const moderateImage = async (
-  imageFile: Express.Multer.File,
-  sessionId: string,
-  userId: string,
+export const moderateImage = async ({
+  image,
+  sessionId,
+  userId,
+  isVolunteer,
+  source,
+  aggregateInfractions,
+}: {
+  image: Buffer
+  sessionId: string
+  userId: string
   isVolunteer: boolean
-): Promise<{
+  aggregateInfractions: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{
   isClean: boolean
   failures: string[]
-}> => {
-  const result = await moderateImageBatchFailures({
-    image: imageFile.buffer,
-    sessionId,
-    userId,
-    isVolunteer,
-    source: 'image_upload',
-  })
-  if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
+} | void> => {
+  if (aggregateInfractions) {
+    const result = await getAllImageModerationFailures({
+      image,
+      sessionId,
+      isVolunteer,
+    })
 
-  // Duplicate moderation failures may be present if different objects in the image trigger it
-  const failures: string[] = [
-    ...new Set<string>(result.failureReasons.map((failure) => failure.reason)),
-  ]
-  return {
-    isClean: false,
-    failures: failures,
+    if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
+
+    await handleImageModerationFailure({
+      userId,
+      sessionId,
+      failureReasons: result.failureReasons,
+      image,
+      source,
+    })
+
+    // Duplicate moderation failures may be present
+    // if different objects in the image trigger it
+    const failures: string[] = [
+      ...new Set<string>(
+        result.failureReasons.map((failure) => failure.reason)
+      ),
+    ]
+
+    return { isClean: false, failures }
+  } else {
+    moderateImageInBackground({ image, sessionId, userId, isVolunteer, source })
   }
 }
 

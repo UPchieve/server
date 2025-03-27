@@ -43,12 +43,14 @@ export function routeModeration(router: Router): void {
       }
 
       try {
-        const moderationResult = await ModerationService.moderateImage(
-          imageToModerate,
+        const moderationResult = await ModerationService.moderateImage({
+          image: imageToModerate.buffer,
           sessionId,
-          user.id,
-          user.isVolunteer
-        )
+          userId: user.id,
+          isVolunteer: user.isVolunteer,
+          source: 'image_upload',
+          batchInfractions: true,
+        })
         res.status(200).json(moderationResult)
       } catch (err) {
         resError(res, err)
@@ -67,12 +69,13 @@ export function routeModeration(router: Router): void {
       }
 
       try {
-        ModerationService.moderateImageInBackground({
+        ModerationService.moderateImage({
           image: frameToModerate.buffer,
           sessionId,
           userId: user.id,
           isVolunteer: user.isVolunteer,
           source: 'screenshare',
+          batchInfractions: false,
         })
 
         res.status(201).send()
