@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.12 (Debian 14.12-1.pgdg120+1)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
 -- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
@@ -2732,6 +2732,12 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
 17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
 18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 \.
 
 
@@ -2748,6 +2754,14 @@ COPY upchieve.session_meetings (id, external_id, provider, session_id, created_a
 --
 
 COPY upchieve.session_messages (id, sender_id, contents, session_id, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_metrics; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_metrics (session_id, absent_student, absent_volunteer, low_session_rating_from_coach, low_session_rating_from_student, low_coach_rating_from_student, reported, only_looking_for_answers, rude_or_inappropriate, comment_from_student, comment_from_volunteer, has_been_unmatched, has_had_technical_issues, personal_identifying_info, graded_assignment, coach_uncomfortable, student_crisis, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -2804,6 +2818,14 @@ COPY upchieve.students_assignments (user_id, assignment_id, submitted_at, create
 --
 
 COPY upchieve.sessions_students_assignments (session_id, user_id, assignment_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: shareable_domains; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.shareable_domains (id, domain, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -3745,16 +3767,16 @@ COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_add
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at, impact_study_enrollment_at) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N	\N
-01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N	\N
-01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N	\N
-01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N	\N
-01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N	\N
-01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N	\N
-01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N	\N
-01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N	\N
-01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N
+COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at, impact_study_enrollment_at, tell_them_college_prep_modal_seen_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N	\N	\N
+01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N	\N	\N
+01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N	\N	\N
+01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N	\N
 \.
 
 
@@ -4151,7 +4173,14 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 18, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 30, true);
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, false);
 
 
 --

@@ -753,27 +753,6 @@ RETURNING
     id AS ok;
 
 
-/* @name getSessionForChatbot */
-SELECT
-    sessions.id,
-    subjects.name AS subject,
-    topics.name AS topic,
-    sessions.created_at,
-    sessions.ended_at,
-    sessions.volunteer_joined_at,
-    sessions.student_id AS student,
-    users.first_name AS student_first_name,
-    tool_types.name AS tool_type
-FROM
-    sessions
-    JOIN users ON sessions.student_id = users.id
-    LEFT JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN topics ON subjects.topic_id = topics.id
-    JOIN tool_types ON subjects.tool_type_id = tool_types.id
-WHERE
-    sessions.id = :sessionId!;
-
-
 /* @name insertNewMessage */
 INSERT INTO session_messages (id, sender_id, contents, session_id, created_at, updated_at)
     VALUES (:id!, :senderId!, :contents!, :sessionId!, NOW(), NOW())
@@ -1305,6 +1284,7 @@ GROUP BY
 /* @name getStudentSessionDetails */
 SELECT
     sessions.id,
+    sessions.volunteer_id,
     subjects.name,
     sessions.ended_at,
     sessions.created_at,
@@ -1321,6 +1301,7 @@ WHERE
     AND sessions.ended_at IS NOT NULL
 GROUP BY
     sessions.id,
+    sessions.volunteer_id,
     subjects.name,
     sessions.ended_at,
     sessions.created_at,

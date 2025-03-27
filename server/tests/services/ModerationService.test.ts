@@ -2,6 +2,12 @@ import {
   getIndividualSessionMessageModerationResponse,
   FALLBACK_MODERATION_PROMPT,
   moderateMessage,
+  filterDisallowedDomains,
+  type ModeratedLink,
+  getInfractionScore,
+  handleModerationInfraction,
+  getScoreForCategory,
+  LiveMediaModerationCategories,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -9,6 +15,9 @@ import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
 import { timeLimit } from '../../utils/time-limit'
+import { buildModerationInfractionRow } from '../mocks/generate'
+import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
+import SocketService from '../../services/SocketService'
 
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
@@ -25,10 +34,20 @@ jest.mock('../../services/BotsService', () => {
   }
 })
 jest.mock('../../services/LangfuseService')
+jest.mock('../../models/ModerationInfractions')
+
+jest.mock('../../services/SocketService', () => {
+  return {
+    getInstance: jest.fn(() => {
+      emitModerationInfractionEvent: jest.fn()
+    }),
+  }
+})
 
 describe('ModerationService', () => {
   const isVolunteer = true
   const mockLangfuseService = mocked(LangfuseService)
+  const mockModerationInfractionsRepo = mocked(ModerationInfractionsRepo)
   const senderId = '123'
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
@@ -410,5 +429,209 @@ describe('ModerationService', () => {
         expect(result).toEqual(isClean)
       }
     )
+  })
+
+  describe('Moderation infractions', () => {
+    const profanityReason = { failures: { profanity: [] } }
+    const violenceReason = { failures: { violence: [] } }
+
+    const buildModerationInfractionWithReason = (reason: any) => {
+      return buildModerationInfractionRow('userId', 'sessionId', {
+        reason: reason.failures,
+      })
+    }
+    describe('getInfractionScore', () => {
+      it.each([
+        ['profanity', 1],
+        ['high toxicity', 1],
+        ['minor detected in image', 1],
+        ['drugs & tobacco', 1],
+        ['alcohol', 1],
+        ['rude gestures', 1],
+        ['gambling', 1],
+        ['violence', 10],
+        ['swimwear or underwear', 10],
+        ['link', 10],
+        ['email', 10],
+        ['phone', 10],
+        ['address', 10],
+        ['explicit', 10],
+        ['non-explicit nudity of intimate parts and kissing', 10],
+        ['hate symbols', 10],
+        ['visually disturbing', 10],
+      ])(
+        'Calculates the correct score for each category of infraction',
+        (category, expectedScore) => {
+          const moderationInfraction = buildModerationInfractionRow(
+            'userId',
+            'sessionId',
+            {
+              reason: {
+                [category]: [],
+              },
+            }
+          )
+          expect(getInfractionScore([moderationInfraction])).toEqual(
+            expectedScore
+          )
+        }
+      )
+
+      it('Correctly calculates score when there are multiple infractions', () => {
+        const infractions = [
+          buildModerationInfractionWithReason(profanityReason),
+          buildModerationInfractionWithReason(profanityReason),
+          buildModerationInfractionWithReason(violenceReason),
+          buildModerationInfractionWithReason(violenceReason),
+        ]
+        expect(getInfractionScore(infractions)).toEqual(22)
+      })
+    })
+
+    describe('handleModerationInfraction', () => {
+      const userId = 'user-123'
+      const sessionId = 'session-456'
+
+      it('Writes an infraction if the source is screenshare', async () => {
+        const mockSocketServiceInstance =
+          SocketService.getInstance as jest.Mock<SocketService>
+        mockSocketServiceInstance.mockImplementation(() => {
+          return {
+            getInstance: jest.fn(),
+            emitModerationInfractionEvent: jest.fn(),
+          } as unknown as SocketService
+        })
+        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
+          []
+        )
+        await handleModerationInfraction(
+          userId,
+          sessionId,
+          profanityReason,
+          'screenshare'
+        )
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).toHaveBeenCalledTimes(1)
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).toHaveBeenCalledWith(
+          {
+            userId,
+            sessionId,
+            reason: profanityReason.failures,
+          },
+          expect.anything()
+        )
+        expect(
+          mockModerationInfractionsRepo.getModerationInfractionsByUser
+        ).toHaveBeenCalledWith(
+          userId,
+          {
+            active: true,
+          },
+          expect.anything()
+        )
+      })
+
+      it('Does not write an infraction if the source is image_upload', async () => {
+        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
+          []
+        )
+        await handleModerationInfraction(
+          userId,
+          sessionId,
+          profanityReason,
+          'image_upload'
+        )
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('getScoreForCategory', () => {
+      it.each([
+        ['profanity', 1],
+        ['alcohol', 1],
+        ['violence', 10],
+        ['hate symbols', 10],
+        ['some unknown thing that isnt in there', 10],
+      ])(
+        'Returns the correct score for each category',
+        (
+          category: string | LiveMediaModerationCategories,
+          expectedScore: number
+        ) => {
+          const actualScore = getScoreForCategory(category)
+          expect(actualScore).toEqual(expectedScore)
+        }
+      )
+    })
+  })
+
+  describe('filterDisallowedDomains', () => {
+    const allowedLinks: ModeratedLink[] = [
+      { reason: 'Link', details: { text: 'khanacademy.org', confidence: 0.9 } },
+      { reason: 'Link', details: { text: 'DeltaMath.com', confidence: 0.9 } },
+      {
+        reason: 'Link',
+        details: { text: 'cdn.assess.prod.mheducation.com', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: { text: 'my.hrw.com/assignments/1234567890', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: {
+          text: 'https://g.myascendmath.com/Ascend/postAssessment.htm',
+          confidence: 0.9,
+        },
+      },
+      {
+        reason: 'Link',
+        details: {
+          text: 'stem.acceleratelearning.com/mathnation/edgexl/assignment/8cbd10b8-f24b-4e69-8223-7357ffc8eb12/ab3d63bc-e9a4-4918-8412-0ea8c275f1ac',
+          confidence: 0.9,
+        },
+      },
+    ]
+
+    const disallowedLinks: ModeratedLink[] = [
+      {
+        reason: 'Link',
+        details: { text: 'https://www.google.com', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: { text: 'facebook.com/user/123', confidence: 0.9 },
+      },
+      {
+        reason: 'Link',
+        details: { text: 'www.instagram.com', confidence: 0.9 },
+      },
+    ]
+
+    const allowedDomains = [
+      'khanacademy.org',
+      'deltamath.com',
+      'mheducation.com',
+      'hrw.com',
+      'myascendmath.com',
+      'acceleratelearning.com',
+    ]
+
+    test('Returns a list of disallowed links', () => {
+      const links = [...allowedLinks, ...disallowedLinks]
+
+      const moderatedLinks = filterDisallowedDomains({
+        allowedDomains,
+        links,
+      })
+
+      expect(moderatedLinks).toStrictEqual(disallowedLinks)
+      expect(moderatedLinks.length).toStrictEqual(disallowedLinks.length)
+    })
   })
 })

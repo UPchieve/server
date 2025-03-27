@@ -63,4 +63,17 @@ export function routeProductFlags(router: Router) {
       resError(res, err)
     }
   })
+
+  router
+    .route('/product-flags/tell-them-college-prep-modal')
+    .post(async function (req, res) {
+      try {
+        const user = extractUser(req)
+        const hasSeenTellThemCollegePrepModal =
+          await UserProductFlagsService.sawTellThemCollegePrepModal(user.id)
+        res.json({ hasSeenTellThemCollegePrepModal })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }

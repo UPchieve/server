@@ -2,6 +2,7 @@ import {
   getAnalyticsClient,
   getClient,
   getRoClient,
+  runInTransaction,
   TransactionClient,
 } from '../../db'
 import * as pgQueries from './pg.queries'
@@ -42,11 +43,19 @@ export type VolunteerContactInfo = {
 }
 
 export async function getVolunteerContactInfoById(
-  userId: Ulid
+  userId: Ulid,
+  filters?: {
+    banned?: boolean
+    deactivated?: boolean
+    testUser?: boolean
+  }
 ): Promise<VolunteerContactInfo | undefined> {
   try {
+    const banned = filters?.banned ?? null
+    const deactivated = filters?.deactivated ?? null
+    const testUser = filters?.testUser ?? null
     const result = await pgQueries.getVolunteerContactInfoById.run(
-      { userId },
+      { userId, banned, deactivated, testUser },
       getClient()
     )
     if (!result.length) return
@@ -1330,7 +1339,7 @@ export type VolunteerPartnerOrgByKey = {
 
 export async function getPartnerOrgByKey(
   partnerKey: string | undefined,
-  client: PoolClient
+  client: TransactionClient
 ): Promise<VolunteerPartnerOrgByKey | undefined> {
   if (!partnerKey) return
   try {
@@ -1362,7 +1371,7 @@ export type AdminUpdateVolunteer = {
 async function adminUpdateVolunteerPartnerOrgInstance(
   volunteerId: Ulid,
   newPartnerOrgKey: string | undefined,
-  client: PoolClient
+  client: TransactionClient
 ) {
   try {
     const newPartnerOrg = await getPartnerOrgByKey(newPartnerOrgKey, client)
@@ -1440,57 +1449,57 @@ async function adminUpdateVolunteerPartnerOrgInstance(
 
 export async function updateVolunteerForAdmin(
   userId: Ulid,
-  update: AdminUpdateVolunteer
+  update: AdminUpdateVolunteer,
+  tc?: TransactionClient
 ): Promise<void> {
-  const client = await getClient().connect()
-  try {
-    const partnerOrgId = update.volunteerPartnerOrg
-      ? await getVolunteerPartnerOrgIdByKey(update.volunteerPartnerOrg, client)
-      : undefined
-    await client.query('BEGIN')
-    const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
-      {
-        userId,
-        firstName: update.firstName,
-        lastName: update.lastName,
-        email: update.email.toLowerCase(),
-        isVerified: update.isVerified,
-        banType: update.banType,
-        isDeactivated: update.isDeactivated,
-      },
-      client
-    )
-    const profileResult = await pgQueries.updateVolunteerProfilesForAdmin.run(
-      {
-        userId,
-        approved: update.isApproved,
-        partnerOrgId,
-      },
-      client
-    )
-
-    await adminUpdateVolunteerPartnerOrgInstance(
-      userId,
-      update.volunteerPartnerOrg,
-      client
-    )
-
-    if (
-      !(
-        userResult.length &&
-        profileResult.length &&
-        makeRequired(userResult[0]).ok &&
-        makeRequired(profileResult[0]).ok
+  return runInTransaction(async (client) => {
+    try {
+      const partnerOrgId = update.volunteerPartnerOrg
+        ? await getVolunteerPartnerOrgIdByKey(
+            update.volunteerPartnerOrg,
+            client
+          )
+        : undefined
+      const userResult = await pgQueries.updateVolunteerUserForAdmin.run(
+        {
+          userId,
+          firstName: update.firstName,
+          lastName: update.lastName,
+          email: update.email.toLowerCase(),
+          isVerified: update.isVerified,
+          banType: update.banType,
+          isDeactivated: update.isDeactivated,
+        },
+        client
       )
-    )
-      throw new RepoUpdateError('update query did not return ok')
-    await client.query('COMMIT')
-  } catch (err) {
-    await client.query('ROLLBACK')
-    throw new RepoUpdateError(err)
-  } finally {
-    client.release()
-  }
+      const profileResult = await pgQueries.updateVolunteerProfilesForAdmin.run(
+        {
+          userId,
+          approved: update.isApproved,
+          partnerOrgId,
+        },
+        client
+      )
+
+      await adminUpdateVolunteerPartnerOrgInstance(
+        userId,
+        update.volunteerPartnerOrg,
+        client
+      )
+
+      if (
+        !(
+          userResult.length &&
+          profileResult.length &&
+          makeRequired(userResult[0]).ok &&
+          makeRequired(profileResult[0]).ok
+        )
+      )
+        throw new RepoUpdateError('update query did not return ok')
+    } catch (err) {
+      throw new RepoUpdateError(err)
+    }
+  }, tc ?? getClient())
 }
 
 export type VolunteerToReview = {

@@ -13,6 +13,7 @@ export function buildClient(): Pool {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
+    max: 20,
   })
 }
 

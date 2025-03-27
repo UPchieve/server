@@ -52,6 +52,7 @@ export type AnalyticPersonProperties = {
   isTestUser: boolean
   hasStudentRole: boolean
   hasVolunteerRole: boolean
+  hasTeacherRole: boolean
   onboarded?: boolean
   approved?: boolean
   partner?: string | null
@@ -74,13 +75,14 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
 
     personProperties = {
       ucId: user.id,
-      userType: user.userType,
+      userType: user.roleContext.activeRole,
       createdAt: user.createdAt.toISOString(),
       totalSessions: user.pastSessions.length,
       banType: user.banType,
       isTestUser: user.isTestUser,
       hasStudentRole: user.roleContext.hasRole('student'),
       hasVolunteerRole: user.roleContext.hasRole('volunteer'),
+      hasTeacherRole: user.roleContext.hasRole('teacher'),
     } as AnalyticPersonProperties
 
     if (user.roleContext.isActiveRole('volunteer')) {

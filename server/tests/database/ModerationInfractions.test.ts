@@ -3,83 +3,139 @@
  */
 
 import { getClient } from '../../db'
-import * as ModerationInfractionsRepo from '../../models/ModerationInfractions/queries'
-import {
-  buildModerationInfractionRow,
-  buildSessionRow,
-} from '../mocks/generate'
+import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
+import { buildSessionRow } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
-import { insertSingleRow } from '../db-utils'
+import { camelCaseKeys, insertSingleRow } from '../db-utils'
 
 describe('ModerationInfractions', () => {
   const dbClient = getClient()
   const userId = '01919662-885c-d39a-1749-5aaf18cf5d3b'
-  let sessionId = getDbUlid()
   let session: any
   const infractionReason = { profanity: ['blah'] }
 
   beforeAll(async () => {
-    session = await buildSessionRow({
-      id: sessionId,
-      studentId: userId,
-    })
-    await insertSingleRow('sessions', session, dbClient)
+    session = await insertSingleRow(
+      'sessions',
+      await buildSessionRow({
+        id: getDbUlid(),
+        studentId: userId,
+      }),
+      dbClient
+    )
+  })
+
+  afterEach(async () => {
+    await dbClient.query(
+      'DELETE FROM moderation_infractions WHERE user_id = $1',
+      [userId]
+    )
   })
 
   describe('insertModerationInfraction', () => {
-    it('Inserts the infraction and returns the active infractions count by (user, session)', async () => {
-      const count = await ModerationInfractionsRepo.insertModerationInfraction(
+    it('Inserts the infraction', async () => {
+      await ModerationInfractionsRepo.insertModerationInfraction(
         {
           userId,
-          sessionId,
+          sessionId: session.id,
           reason: infractionReason,
         },
         dbClient
       )
-      expect(count).toEqual(1)
-    })
 
-    it('Should return the count of ACTIVE infractions', async () => {
-      const sessionId = getDbUlid()
-      const session = await buildSessionRow({
-        id: sessionId,
+      const infractions = await dbClient.query(
+        'SELECT * FROM moderation_infractions WHERE user_id = $1',
+        [userId]
+      )
+      expect(infractions.rows.length).toEqual(1)
+      expect(camelCaseKeys(infractions.rows[0])).toEqual(
+        expect.objectContaining({
+          userId,
+          sessionId: session.id,
+          reason: infractionReason,
+        })
+      )
+    })
+  })
+
+  describe('getModerationInfractionsByUserId', () => {
+    it('Gets the infractions matching the filters', async () => {
+      const secondSession = await buildSessionRow({
+        id: getDbUlid(),
         studentId: userId,
       })
-      await insertSingleRow('sessions', session, dbClient)
-      const initialCount =
-        await ModerationInfractionsRepo.insertModerationInfraction(
-          {
-            userId,
-            sessionId,
-            reason: infractionReason,
-          },
-          dbClient
-        )
-      expect(initialCount).toEqual(1)
+      const dbSession = await insertSingleRow(
+        'sessions',
+        secondSession,
+        dbClient
+      )
+      const insertQuery =
+        'INSERT INTO moderation_infractions (id, user_id, session_id, reason, active) VALUES ($1, $2, $3, $4, $5)'
+      await dbClient.query(insertQuery, [
+        getDbUlid(),
+        userId,
+        session.id,
+        infractionReason,
+        true,
+      ]) // active
+      await dbClient.query(insertQuery, [
+        getDbUlid(),
+        userId,
+        session.id,
+        infractionReason,
+        false,
+      ]) // inactive, first session
+      await dbClient.query(insertQuery, [
+        getDbUlid(),
+        userId,
+        dbSession.id,
+        infractionReason,
+        true,
+      ]) // active, 2nd session
 
-      await dbClient.query(
-        'UPDATE moderation_infractions SET active = FALSE where session_id = $1',
-        [sessionId]
+      const noFilters =
+        await ModerationInfractionsRepo.getModerationInfractionsByUser(userId)
+      const activeOnly =
+        await ModerationInfractionsRepo.getModerationInfractionsByUser(userId, {
+          active: true,
+        })
+      const inactiveOnly =
+        await ModerationInfractionsRepo.getModerationInfractionsByUser(userId, {
+          active: false,
+        })
+      const sessionOneOnly =
+        await ModerationInfractionsRepo.getModerationInfractionsByUser(userId, {
+          sessionId: session.id,
+        })
+      const sessionOneActiveOnly =
+        await ModerationInfractionsRepo.getModerationInfractionsByUser(userId, {
+          sessionId: session.id,
+          active: true,
+        })
+
+      // No filters
+      expect(noFilters.length).toEqual(3)
+      // Active filter
+      expect(activeOnly.length).toEqual(2)
+      expect(activeOnly.map((r) => r.active)).toEqual([true, true])
+      // Inactive filter
+      expect(inactiveOnly.length).toEqual(1)
+      expect(inactiveOnly[0].active).toBeFalsy()
+      // Session one filter
+      console.log('Session One Only', sessionOneOnly)
+      expect(sessionOneOnly.length).toEqual(2)
+      expect(sessionOneOnly.map((r) => r.sessionId)).toEqual([
+        session.id,
+        session.id,
+      ])
+      // Session one and active filter
+      expect(sessionOneActiveOnly.length).toEqual(1)
+      expect(sessionOneActiveOnly[0]).toEqual(
+        expect.objectContaining({
+          sessionId: session.id,
+          active: true,
+        })
       )
-      const activeInfractionsForSession = await dbClient.query(
-        'SELECT count(*) FROM moderation_infractions WHERE active = TRUE AND session_id = $1',
-        [sessionId]
-      )
-      const activeInfractionsCount = parseInt(
-        activeInfractionsForSession.rows[0].count,
-        10
-      )
-      expect(activeInfractionsCount).toEqual(0)
-      const updatedCount =
-        await ModerationInfractionsRepo.insertModerationInfraction(
-          {
-            userId,
-            sessionId,
-            reason: infractionReason,
-          },
-          dbClient
-        )
-      expect(updatedCount).toEqual(1)
     })
   })
 
@@ -88,7 +144,7 @@ describe('ModerationInfractions', () => {
       const id = getDbUlid()
       const result = await dbClient.query(
         'INSERT INTO moderation_infractions (id, user_id, session_id, reason) VALUES ($1, $2, $3, $4) RETURNING id',
-        [id, userId, sessionId, infractionReason]
+        [id, userId, session.id, infractionReason]
       )
       expect(result.rows.length).toEqual(1)
       const infractionId = result.rows[0].id
@@ -112,49 +168,6 @@ describe('ModerationInfractions', () => {
       )
       expect(updated.rows.length).toEqual(1)
       expect(updated.rows[0].active).toEqual(false)
-    })
-  })
-
-  describe('getModerationInfractionsByUserAndSession', () => {
-    it('Returns the infractions', async () => {
-      const infractionReason1 = {
-        profanity: ['la', 'di', 'da'],
-      }
-      const infractionReason2 = {
-        ...infractionReason1,
-        phone: ['8608281234'],
-      }
-      const sessionId = getDbUlid()
-      const session = await buildSessionRow(
-        {
-          id: sessionId,
-          studentId: userId,
-        },
-        dbClient
-      )
-      await insertSingleRow('sessions', session, dbClient)
-
-      const infractions = [
-        buildModerationInfractionRow(userId, sessionId, {
-          reason: infractionReason1,
-        }),
-        buildModerationInfractionRow(userId, sessionId, {
-          reason: infractionReason2,
-        }),
-      ]
-      await insertSingleRow('moderation_infractions', infractions[0], dbClient)
-      await insertSingleRow('moderation_infractions', infractions[1], dbClient)
-      const result =
-        await ModerationInfractionsRepo.getModerationInfractionsByUserAndSession(
-          userId,
-          sessionId,
-          dbClient
-        )
-      expect(result.length).toEqual(2)
-      expect(result.map((infraction) => infraction.reason)).toEqual([
-        infractionReason1,
-        infractionReason2,
-      ])
     })
   })
 })

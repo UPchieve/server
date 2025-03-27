@@ -13,6 +13,8 @@ import {
   SESSION_USER_ACTIONS,
   USER_BAN_REASONS,
   USER_BAN_TYPES,
+  USER_ROLES,
+  UserSessionFlags,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -61,7 +63,6 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
-  isChatBotEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
@@ -69,7 +70,9 @@ import { TransactionClient, runInTransaction } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
-import * as UserRolesService from '../services/UserRolesService'
+import * as TeacherService from './TeacherService'
+import { getSessionRating } from '../models/Survey'
+import { KeyNotFoundError } from '../cache'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -117,7 +120,7 @@ export async function getTimeTutoredForDateRange(
 
 export async function handleDmReporting(
   sessionId: Ulid,
-  sessionFlags: USER_SESSION_METRICS[]
+  sessionFlags: UserSessionFlags[]
 ): Promise<void> {
   await updateSessionFlagsById(sessionId, sessionFlags)
   await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
@@ -165,8 +168,8 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 
     if (source === 'recap') {
       const sessionFlags = isSessionVolunteer
-        ? [USER_SESSION_METRICS.coachReportedStudentDm]
-        : [USER_SESSION_METRICS.studentReportedCoachDm]
+        ? [UserSessionFlags.coachReportedStudentDm]
+        : [UserSessionFlags.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
     }
   }
@@ -331,7 +334,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
     await QueueService.add(
       Jobs.EmailStudentFirstSessionCongrats,
       {
-        sessionId: session._id,
+        sessionId: session.id,
       },
       { delay, removeOnComplete: true, removeOnFail: true }
     )
@@ -339,7 +342,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
     await QueueService.add(
       Jobs.EmailVolunteerFirstSessionCongrats,
       {
-        sessionId: session._id,
+        sessionId: session.id,
       },
       { delay, removeOnComplete: true, removeOnFail: true }
     )
@@ -398,7 +401,11 @@ export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
 }
 
 export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
-  const whiteboardDoc = await WhiteboardService.getDoc(sessionId)
+  const whiteboardDoc = await WhiteboardService.getDocIfExist(sessionId)
+  if (!whiteboardDoc)
+    return logger.info(
+      `No whiteboard doc for session ${sessionId} found when attempting to store it`
+    )
   const hasWhiteboardDoc = await WhiteboardService.uploadedToStorage(
     sessionId,
     whiteboardDoc
@@ -610,14 +617,6 @@ export async function startSession(
       { delay, removeOnComplete: true, removeOnFail: true }
     )
 
-    // Begin chat bot messages immediately.
-    if (isChatBotEnabled())
-      await QueueService.add(
-        Jobs.Chatbot,
-        { sessionId: newSessionId },
-        { removeOnComplete: true, removeOnFail: true }
-      )
-
     await createSessionAction(
       {
         userId: user.id,
@@ -827,8 +826,7 @@ export async function saveMessage(
     message: string
     type?: SessionMessageType
     saidAt?: Date // @TODO Improve typing to handle different types of messages
-  },
-  chatbot: Ulid | undefined
+  }
 ): Promise<string> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
@@ -836,8 +834,7 @@ export async function saveMessage(
     !sessionUtils.isSessionParticipant(
       session.studentId,
       session.volunteerId,
-      asString(user._id),
-      chatbot || null
+      asString(user._id)
     )
   )
     throw new Error('Only session participants are allowed to send messages')
@@ -943,25 +940,6 @@ export async function volunteersAvailableForSession(
   return volunteers.length > 0
 }
 
-export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
-  try {
-    const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
-    if (Boolean(state)) {
-      await QueueService.add(
-        Jobs.Chatbot,
-        { sessionId },
-        { removeOnComplete: true, removeOnFail: true }
-      )
-      await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
-    }
-  } catch (err) {
-    // TODO: cancel chatbot jobs here
-    logger.error(
-      `Could not process message acitvity state, cancelling chatbot ${err}`
-    )
-  }
-}
-
 export const asSessionHistoryFilter = asFactory<SessionHistoryFilter>({
   studentFirstName: asOptional(asString),
   volunteerFirstName: asOptional(asString),
@@ -1007,19 +985,34 @@ export async function getTotalSessionHistory(
 
 export async function getSessionRecap(
   sessionId: Ulid,
-  userId: Ulid
+  userId: Ulid,
+  isTeacher: boolean
 ): Promise<SessionRepo.SessionForSessionRecap> {
   const session = await SessionRepo.getSessionRecap(sessionId)
-  if (
-    !sessionUtils.isSessionParticipant(
-      session.studentId,
-      session.volunteerId,
-      userId
-    )
-  )
-    throw new NotAllowedError(
-      'Only session participants are allowed to view this session'
-    )
+
+  if (!isTeacher) {
+    if (
+      !sessionUtils.isSessionParticipant(
+        session.studentId,
+        session.volunteerId,
+        userId
+      )
+    ) {
+      throw new NotAllowedError(
+        'Only session participants are allowed to view this session'
+      )
+    }
+  } else {
+    const studentsInClasses =
+      await TeacherService.getAllStudentsForTeacher(userId)
+
+    if (!studentsInClasses.includes(session.studentId)) {
+      throw new NotAllowedError(
+        'Teacher can only view sessions for students in their classes'
+      )
+    }
+  }
+
   return session
 }
 
@@ -1072,13 +1065,20 @@ export async function isRecapDmsAvailable(
 }
 
 export async function getStudentSessionDetails(studentId: Ulid) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const sessionDetails = await SessionRepo.getStudentSessionDetails(
-      tc,
-      studentId
-    )
-    return sessionDetails
-  })
+  const sessions = await SessionRepo.getStudentSessionDetails(studentId)
+
+  const sessionsWithRatings = []
+
+  for (const session of sessions) {
+    const [studentRating, volunteerRating] = await Promise.all([
+      getSessionRating(session.id, USER_ROLES.STUDENT),
+      getSessionRating(session.id, USER_ROLES.VOLUNTEER),
+    ])
+
+    sessionsWithRatings.push({ ...session, studentRating, volunteerRating })
+  }
+
+  return sessionsWithRatings
 }
 
 function isQualifiedFallIncentiveSession(

@@ -22,6 +22,7 @@ RETURNING
     gates_qualified,
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
+    tell_them_college_prep_modal_seen_at,
     created_at,
     updated_at;
 
@@ -37,6 +38,7 @@ SELECT
     gates_qualified,
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
+    tell_them_college_prep_modal_seen_at,
     created_at,
     updated_at
 FROM
@@ -50,7 +52,8 @@ SELECT
     user_id,
     gates_qualified,
     fall_incentive_enrollment_at,
-    impact_study_enrollment_at
+    impact_study_enrollment_at,
+    tell_them_college_prep_modal_seen_at
 FROM
     user_product_flags
 WHERE
@@ -115,4 +118,16 @@ WHERE
     user_id = :userId!
 RETURNING
     impact_study_enrollment_at;
+
+
+/* @name tellThemCollegePrepModalSeenAt */
+UPDATE
+    user_product_flags
+SET
+    tell_them_college_prep_modal_seen_at = NOW(),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    tell_them_college_prep_modal_seen_at;
 

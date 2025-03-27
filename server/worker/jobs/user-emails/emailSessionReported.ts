@@ -5,14 +5,15 @@ import * as MailService from '../../../services/MailService'
 import { getSessionById } from '../../../models/Session'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
+import { Uuid } from '../../../models/pgUtils'
 
 export interface EmailSessionReportedJobData {
-  userId: string
-  reportedBy: string
+  userId: Uuid
+  reportedBy: Uuid
   reportReason: string
-  reportMessage: string
+  reportMessage?: string
   isBanReason: boolean
-  sessionId: string
+  sessionId: Uuid
 }
 
 async function emailReportedSession(

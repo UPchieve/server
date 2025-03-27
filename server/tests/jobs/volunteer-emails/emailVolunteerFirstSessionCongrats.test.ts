@@ -1,97 +1,119 @@
-test.todo('postgres migration')
-/*import { mocked } from 'jest-mock';
-import mongoose from 'mongoose'
-import { resetDb, insertSessionWithVolunteer } from '../../db-utils'
-import emailVolunteerFirstSessionCongrats from '../../../worker/jobs/volunteer-emails/emailVolunteerFirstSessionCongrats'
-import { log as logger } from '../../../worker/logger'
-import { Jobs } from '../../../worker/jobs'
+import { Job } from 'bull'
+import { mocked } from 'jest-mock'
+import { buildVolunteer } from '../../mocks/generate'
+import config from '../../../config'
+import { getUuid, Uuid } from '../../../models/pgUtils'
+import { getVolunteerForEmailFirstSession } from '../../../models/Session'
 import * as MailService from '../../../services/MailService'
-import { USER_SESSION_METRICS } from '../../../constants'
+import { createEmailNotification } from '../../../services/NotificationService'
+import { hasUserBeenSentEmail } from '../../../services/NotificationService'
+import { log } from '../../../worker/logger'
+import emailVolunteerFirstSessionCongrats from '../../../worker/jobs/volunteer-emails/emailVolunteerFirstSessionCongrats'
+import { asString } from '../../../utils/type-utils'
+import { Jobs } from '../../../worker/jobs'
 
+jest.mock('../../../models/Session')
+jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
-jest.setTimeout(1000 * 15)
+jest.mock('../../../worker/logger')
 
-const mockedMailService = mocked(MailService, true)
+const mockedGetVolunteerForEmailFirstSession = mocked(
+  getVolunteerForEmailFirstSession
+)
+const mockedHasUserBeenSentEmail = mocked(hasUserBeenSentEmail)
+const mockedCreateEmailNotification = mocked(createEmailNotification)
+const mockedSendVolunteerFirstSessionCongrats = mocked(
+  MailService.sendVolunteerFirstSessionCongrats
+)
 
-// TODO: refactor test to mock out DB calls
-
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
-
-beforeEach(async () => {
-  await resetDb()
-})
-
-describe('Volunteer first session congrats email', () => {
-  beforeEach(async () => {
-    jest.resetAllMocks()
+describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
   })
 
-  test('Should send email', async () => {
-    const { session, volunteer } = await insertSessionWithVolunteer()
-    // @todo: figure out how to properly type
+  test('Should exit early if no volunteer is found', async () => {
+    const sessionId = getUuid()
+    mockedGetVolunteerForEmailFirstSession.mockResolvedValueOnce(undefined)
 
-    const job: any = {
+    const job = {
+      data: { sessionId },
       name: Jobs.EmailVolunteerFirstSessionCongrats,
-      data: {
-        sessionId: session._id,
-      },
-    }
-
+    } as Job<{ sessionId: string }>
     await emailVolunteerFirstSessionCongrats(job)
-    expect(MailService.sendVolunteerFirstSessionCongrats).toHaveBeenCalledTimes(
-      1
+
+    expect(mockedGetVolunteerForEmailFirstSession).toHaveBeenCalledWith(
+      asString(sessionId)
     )
-    expect(logger).toHaveBeenCalledWith(
-      `Sent ${job.name} to volunteer ${volunteer._id}`
-    )
+    expect(mockedSendVolunteerFirstSessionCongrats).not.toHaveBeenCalled()
+    expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
   })
 
-  test(`Should not send email if session flags: ${USER_SESSION_METRICS.absentStudent}, ${USER_SESSION_METRICS.absentVolunteer}, or ${USER_SESSION_METRICS.lowSessionRatingFromCoach} is present on the session`, async () => {
-    const { session } = await insertSessionWithVolunteer({
-      flags: [USER_SESSION_METRICS.absentStudent],
+  test('Should exit if volunteer has already received email', async () => {
+    const volunteer = buildVolunteer()
+    const sessionId = getUuid()
+    mockedGetVolunteerForEmailFirstSession.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(true)
+
+    const job = {
+      data: { sessionId },
+      name: Jobs.EmailVolunteerFirstSessionCongrats,
+    } as Job<{ sessionId: string }>
+    await emailVolunteerFirstSessionCongrats(job)
+
+    expect(mockedHasUserBeenSentEmail).toHaveBeenCalledWith({
+      userId: volunteer.id,
+      emailTemplateId: config.sendgrid.volunteerFirstSessionCongratsTemplate,
     })
-    // @todo: figure out how to properly type
+    expect(log).toHaveBeenCalledWith(
+      `Volunteer ${volunteer.id} has already received ${Jobs.EmailVolunteerFirstSessionCongrats}`
+    )
+    expect(mockedSendVolunteerFirstSessionCongrats).not.toHaveBeenCalled()
+    expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
+  })
 
-    const job: any = {
+  test(`Should send ${Jobs.EmailVolunteerFirstSessionCongrats}`, async () => {
+    const volunteer = buildVolunteer()
+    const sessionId = getUuid()
+    mockedGetVolunteerForEmailFirstSession.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(false)
+    mockedSendVolunteerFirstSessionCongrats.mockResolvedValueOnce(undefined)
+    mockedCreateEmailNotification.mockResolvedValueOnce(undefined)
+
+    const job = {
+      data: { sessionId },
       name: Jobs.EmailVolunteerFirstSessionCongrats,
-      data: {
-        sessionId: session._id,
-      },
-    }
-
+    } as Job<{ sessionId: string }>
     await emailVolunteerFirstSessionCongrats(job)
-    expect(MailService.sendVolunteerFirstSessionCongrats).toHaveBeenCalledTimes(
-      0
+
+    expect(mockedSendVolunteerFirstSessionCongrats).toHaveBeenCalledWith(
+      volunteer.email,
+      volunteer.firstName
+    )
+    expect(mockedCreateEmailNotification).toHaveBeenCalledWith({
+      userId: volunteer.id,
+      emailTemplateId: config.sendgrid.volunteerFirstSessionCongratsTemplate,
+    })
+    expect(log).toHaveBeenCalledWith(
+      `Sent ${Jobs.EmailVolunteerFirstSessionCongrats} to volunteer ${volunteer.id}`
     )
   })
 
-  test('Should throw error when sending email saild', async () => {
-    const { session, volunteer } = await insertSessionWithVolunteer()
-    const errorMessage = 'Unable to send'
-    mockedMailService.sendVolunteerFirstSessionCongrats.mockRejectedValueOnce(
-      errorMessage
+  test('Should throw error if email sending fails', async () => {
+    const volunteer = buildVolunteer()
+    const sessionId = getUuid()
+    mockedGetVolunteerForEmailFirstSession.mockResolvedValueOnce(volunteer)
+    mockedHasUserBeenSentEmail.mockResolvedValueOnce(false)
+    const errorMessage = 'Send failed'
+    mockedSendVolunteerFirstSessionCongrats.mockRejectedValueOnce(
+      new Error(errorMessage)
     )
-    // @todo: figure out how to properly type
 
-    const job: any = {
+    const job = {
+      data: { sessionId },
       name: Jobs.EmailVolunteerFirstSessionCongrats,
-      data: {
-        sessionId: session._id,
-      },
-    }
-
-    await expect(emailVolunteerFirstSessionCongrats(job)).rejects.toEqual(
-      Error(
-        `Failed to send ${job.name} to volunteer ${volunteer._id}: ${errorMessage}`
-      )
+    } as Job<{ sessionId: string }>
+    await expect(emailVolunteerFirstSessionCongrats(job)).rejects.toThrow(
+      `Failed to send ${Jobs.EmailVolunteerFirstSessionCongrats} to volunteer ${volunteer.id}: Error: ${errorMessage}`
     )
   })
 })
-*/

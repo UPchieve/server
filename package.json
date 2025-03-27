@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "./bin/build_backend.sh",
     "build:tsc": "tsc --p tsconfig.server.json",
     "deploy:dev": "./bin/deploy.sh dev",
+    "dev:revision": "az containerapp revision list --name development-container-app-subway --resource-group development-resource-group | jq -r '.[0] | \"\\(.name) - \\(.properties.runningState)\"'",
     "deploy:local": "./bin/deploy.sh",
     "start": "node -r newrelic build/main",
     "start:worker": "node build/worker",
@@ -36,8 +36,6 @@
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
     "pgtyped:check": "./bin/pgtyped_check.sh",
-    "telepresence:intercept": "./bin/telepresence_intercept.sh",
-    "telepresence:leave": "./bin/telepresence_leave.sh",
     "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts",
     "db:reset": "./bin/reset_db.sh",
     "db:schema": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/schema.sql\" &> /dev/null",
@@ -65,6 +63,7 @@
     "lint:sql:check"
   ],
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.758.0",
     "@aws-sdk/client-chime-sdk-meetings": "^3.731.1",
     "@aws-sdk/client-comprehend": "^3.726.1",
     "@aws-sdk/client-rekognition": "^3.726.0",

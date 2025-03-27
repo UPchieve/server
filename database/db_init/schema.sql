@@ -1643,6 +1643,33 @@ CREATE TABLE upchieve.session_messages (
 
 
 --
+-- Name: session_metrics; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_metrics (
+    session_id uuid NOT NULL,
+    absent_student boolean DEFAULT false NOT NULL,
+    absent_volunteer boolean DEFAULT false NOT NULL,
+    low_session_rating_from_coach boolean DEFAULT false NOT NULL,
+    low_session_rating_from_student boolean DEFAULT false NOT NULL,
+    low_coach_rating_from_student boolean DEFAULT false NOT NULL,
+    reported boolean DEFAULT false NOT NULL,
+    only_looking_for_answers boolean DEFAULT false NOT NULL,
+    rude_or_inappropriate boolean DEFAULT false NOT NULL,
+    comment_from_student boolean DEFAULT false NOT NULL,
+    comment_from_volunteer boolean DEFAULT false NOT NULL,
+    has_been_unmatched boolean DEFAULT false NOT NULL,
+    has_had_technical_issues boolean DEFAULT false NOT NULL,
+    personal_identifying_info boolean DEFAULT false NOT NULL,
+    graded_assignment boolean DEFAULT false NOT NULL,
+    coach_uncomfortable boolean DEFAULT false NOT NULL,
+    student_crisis boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: session_photos; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1744,6 +1771,38 @@ CREATE TABLE upchieve.sessions_students_assignments (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: shareable_domains; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.shareable_domains (
+    id integer NOT NULL,
+    domain character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.shareable_domains_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.shareable_domains_id_seq OWNED BY upchieve.shareable_domains.id;
 
 
 --
@@ -2415,7 +2474,8 @@ CREATE TABLE upchieve.user_product_flags (
     fall_incentive_program boolean DEFAULT false NOT NULL,
     paid_tutors_pilot_group public.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
-    impact_study_enrollment_at timestamp with time zone
+    impact_study_enrollment_at timestamp with time zone,
+    tell_them_college_prep_modal_seen_at timestamp with time zone
 );
 
 
@@ -2956,6 +3016,13 @@ ALTER TABLE ONLY upchieve.report_reasons ALTER COLUMN id SET DEFAULT nextval('up
 --
 
 ALTER TABLE ONLY upchieve.session_flags ALTER COLUMN id SET DEFAULT nextval('upchieve.session_flags_id_seq'::regclass);
+
+
+--
+-- Name: shareable_domains id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains ALTER COLUMN id SET DEFAULT nextval('upchieve.shareable_domains_id_seq'::regclass);
 
 
 --
@@ -3758,6 +3825,14 @@ ALTER TABLE ONLY upchieve.session_messages
 
 
 --
+-- Name: session_metrics session_metrics_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_metrics
+    ADD CONSTRAINT session_metrics_pkey PRIMARY KEY (session_id);
+
+
+--
 -- Name: session_reports session_reports_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3811,6 +3886,22 @@ ALTER TABLE ONLY upchieve.sessions_session_flags
 
 ALTER TABLE ONLY upchieve.sessions_students_assignments
     ADD CONSTRAINT sessions_students_assignments_pkey PRIMARY KEY (session_id, user_id, assignment_id);
+
+
+--
+-- Name: shareable_domains shareable_domains_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains
+    ADD CONSTRAINT shareable_domains_domain_key UNIQUE (domain);
+
+
+--
+-- Name: shareable_domains shareable_domains_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.shareable_domains
+    ADD CONSTRAINT shareable_domains_pkey PRIMARY KEY (id);
 
 
 --
@@ -5310,6 +5401,14 @@ ALTER TABLE ONLY upchieve.session_messages
 
 
 --
+-- Name: session_metrics session_metrics_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_metrics
+    ADD CONSTRAINT session_metrics_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
 -- Name: session_photos session_photos_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6291,4 +6390,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241216172507'),
     ('20241216193347'),
     ('20241217040206'),
-    ('20250121173556');
+    ('20250121173556'),
+    ('20250310173039'),
+    ('20250318175742'),
+    ('20250326221322'),
+    ('20250327202139');

@@ -412,15 +412,24 @@ const config: Static<typeof Config> = {
   zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
 
   // Moderation
-  maxModerationInfractionsPerSession: 6,
+  liveMediaBanInfractionScoreThreshold:
+    Number(process.env.LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
   imageModerationMinConfidence:
-    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 70,
+  minorDetectedEntityConfidenceThreshold:
+    Number(process.env.MINOR_DETECTED_ENTITY_CONFIDENCE_THRESHOLD) || 70,
+  toxicityModerationMinConfidence:
+    Number(process.env.TOXICITY_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
+  phoneNumberModerationConfidenceThreshold:
+    Number(process.env.PHONE_NUMBER_MODERATION_CONFIDENCE_THRESHOLD) || 0.9,
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
   moderateMessageTimeLimitMs:
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
     Number(process.env.CONTEXTUAL_MODERATION_BATCH_SIZE) || 50,
+  minimumModerationAddressConfidence:
+    Number(process.env.MINIMUM_MODERATION_ADDRESS_CONFIDENCE) || 0.8,
 
   tremendousApiKey: process.env.SUBWAY_TREMENDOUS_API_KEY || 'bogus',
   tremendousRewardDomain:
@@ -441,6 +450,13 @@ const config: Static<typeof Config> = {
   awsChimeSecretAccessKey:
     process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
   awsChimeRegion: process.env.SUBWAY_AWS_CHIME_REGION || 'us-east-1',
+
+  // AWS Bedrock
+  awsBedrockAccessKey: process.env.SUBWAY_AWS_BEDROCK_ACCESS_KEY || 'bogus',
+  awsBedrockSecretAccessKey:
+    process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
+  awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
+  awsBedrockModelId: process.env.SUBWAY_AWS_BEDROCK_MODEL_ID || 'bogus',
 }
 
 module.exports = config

@@ -19,7 +19,7 @@ import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
 import config from '../config'
-import * as ModerationInfractionsRepo from '../models/ModerationInfractions/queries'
+import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
 import {
@@ -37,9 +37,13 @@ import {
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
 import { putObject } from './AwsService'
+import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
+import { invokeModel } from './AwsBedrockService'
 
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
+import { ModerationInfraction } from '../models/ModerationInfractions/types'
+import { getClient } from '../db'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -64,6 +68,7 @@ enum LangfuseTraceName {
 enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
   SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
+  GET_ADDRESS_DETECTION_MODERATION_DECISION = 'getAddressDetectionModerationDecision',
 }
 
 // Image moderation
@@ -77,7 +82,7 @@ const AWS_CONFIG = {
 const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
 const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
-type VideoFrameModerationFailureReason = {
+type ImageModerationFailureReason = {
   reason: string
   /*
     Moderation labels from AWS Rekognition,
@@ -91,12 +96,19 @@ const topLevelCategoryFilter = (label: ModerationLabel) =>
 
 const moderationLabelToFailureReason = (
   label: ModerationLabel
-): VideoFrameModerationFailureReason => {
+): ImageModerationFailureReason => {
   return {
-    reason: label.Name ?? 'Unknown - no label name from AWS',
+    reason: label.Name ?? 'Unknown',
     details: { confidence: label.Confidence },
   }
 }
+
+export type ModerationSource =
+  | 'image_upload'
+  | 'screenshare'
+  | 'voice_chat'
+  | 'audio_transcription'
+  | 'text_chat'
 
 /*
   detect harmful content in the image
@@ -172,6 +184,7 @@ async function detectMinorFailures(image: Buffer) {
       Image: {
         Bytes: image,
       },
+      MinConfidence: config.imageModerationMinConfidence,
       Settings: {
         GeneralLabels: {
           LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
@@ -226,7 +239,11 @@ const detectToxicContent = async (textSegments: string[]) => {
   }
 
   const highToxicity = toxicContent
-    .filter(({ result }) => result.Toxicity && result.Toxicity > 0.5)
+    .filter(
+      ({ result }) =>
+        result.Toxicity &&
+        result.Toxicity >= config.toxicityModerationMinConfidence
+    )
     .map(({ result, text }) => ({
       reason: 'High Toxicity',
       details: {
@@ -252,9 +269,11 @@ async function isLikelyToBeAPhoneNumber({
 }) {
   // Since many users will be sharing numbers that look like phone numbers,
   // we want to moderate them in similar way we moderate phone numbers in messages.
-  // PII is very permisive with what's a phone number, so let's run it throough our regex
+  // PII is very permisive with what's a phone number, so let's run it through our regex
   // and then through the false positive fallback
-  const isMaybePhone = entityConfidence > 0.9 && PHONE_REGEX.test(entityText)
+  const isMaybePhone =
+    entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
+    PHONE_REGEX.test(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -271,23 +290,108 @@ async function isLikelyToBeAPhoneNumber({
   return aiModerationResult?.isPhoneNumber ?? true
 }
 
-function isLikelyToBeAnAdderess({
-  entityConfidence,
-  entityText,
-}: {
-  entityConfidence: number
-  entityText: string
-}) {
-  // The PII api flags any part of an address as an ADDRESS.
-  // That means things like "Virginia" are flagged as an address.
-  // This attempts to filter out these false positives by checking if the text contains a space
-  // since actual addresses contain spaces
-  // and that the confidence is high
-  return entityConfidence > 0.9 && /\s/g.test(entityText)
-}
-
 function existsInArray(array: any[], item: any) {
   return array.some((i) => i === item)
+}
+
+export type ModeratedLink = {
+  reason: 'Link'
+  details: { text: string; confidence: number }
+}
+
+type ModeratedAddress = {
+  reason: 'Address'
+  details: { text: string; confidence: number; explanation?: string }
+}
+
+export type ModeratedEmail = {
+  reason: 'Email'
+  details: { text: string; confidence: number }
+}
+
+export type ModeratedPhone = {
+  reason: 'Phone'
+  details: { text: string; confidence: number }
+}
+
+export type ModeratedPII =
+  | ModeratedLink
+  | ModeratedEmail
+  | ModeratedPhone
+  | ModeratedAddress
+
+export function filterDisallowedDomains({
+  allowedDomains,
+  links,
+}: {
+  allowedDomains: string[]
+  links: ModeratedLink[]
+}): ModeratedLink[] {
+  const linksWithDisallowedDomain = (link: ModeratedLink) =>
+    allowedDomains.every(
+      // Check if the link contains any of the allowed domains
+      // if it does, filter it out of this set and do not moderate it
+      (allowed) => link.details.text.toLowerCase().indexOf(allowed) === -1
+    )
+
+  return links.filter(linksWithDisallowedDomain)
+}
+
+async function checkForFullAddresses({
+  text,
+  sessionId,
+}: {
+  text: string
+  sessionId: string
+}): Promise<{
+  reason: 'Address'
+  details: { text: string; confidence: number; explanation: string }
+} | null> {
+  const modelId = config.awsBedrockModelId
+
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.GET_ADDRESS_DETECTION_MODERATION_DECISION,
+    ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT
+  )
+
+  const t = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
+    sessionId,
+  })
+
+  const gen = t.generation({
+    name: LangfuseGenerationName.GET_ADDRESS_DETECTION_MODERATION_DECISION,
+    model: modelId,
+    input: { text },
+    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
+    ...(promptData.promptObject && { prompt: promptData.promptObject }),
+  })
+  try {
+    const completion = await invokeModel({
+      modelId,
+      text,
+      prompt: promptData.prompt,
+    })
+
+    gen.end({
+      output: completion,
+    })
+    if (completion) {
+      return {
+        reason: 'Address',
+        details: {
+          text,
+          confidence: completion.confidence,
+          explanation: completion.explanation,
+        },
+      }
+    } else {
+      return null
+    }
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to detect addresses')
+    return null
+  }
 }
 
 async function detectPii(
@@ -303,22 +407,10 @@ async function detectPii(
   )
   const entities = piiEntities.Entities ?? []
 
-  const links: {
-    reason: 'Link'
-    details: { text: string; confidence: number }
-  }[] = []
-  const emails: {
-    reason: 'Email'
-    details: { text: string; confidence: number }
-  }[] = []
-  const phones: {
-    reason: 'Phone'
-    details: { text: string; confidence: number }
-  }[] = []
-  const addresses: {
-    reason: 'Address'
-    details: { text: string; confidence: number }
-  }[] = []
+  const links: ModeratedLink[] = []
+  const emails: ModeratedEmail[] = []
+  const phones: ModeratedPhone[] = []
+  const addresses: ModeratedAddress[] = []
   for (const entity of entities) {
     const entityStart = entity.BeginOffset
     const entityEnd = entity.EndOffset
@@ -360,7 +452,6 @@ async function detectPii(
       })
     } else if (
       entity.Type === 'ADDRESS' &&
-      isLikelyToBeAnAdderess({ entityConfidence, entityText }) &&
       !existsInArray(addresses, entityText)
     ) {
       addresses.push({
@@ -373,7 +464,27 @@ async function detectPii(
     }
   }
 
-  return [...links, ...emails, ...phones, ...addresses]
+  const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
+  const moderatedLinks = await filterDisallowedDomains({
+    allowedDomains,
+    links,
+  })
+
+  const moderatedPII: ModeratedPII[] = [...moderatedLinks, ...emails, ...phones]
+
+  if (addresses.length > 0) {
+    const moderatedAddress = await checkForFullAddresses({ text, sessionId })
+
+    if (
+      moderatedAddress &&
+      moderatedAddress?.details?.confidence >=
+        config.minimumModerationAddressConfidence
+    ) {
+      moderatedPII.push(moderatedAddress)
+    }
+  }
+
+  return moderatedPII
 }
 
 async function detectTextModerationFailures(
@@ -395,83 +506,154 @@ async function detectTextModerationFailures(
   return [...toxicity, ...pii]
 }
 
-async function handleVideoFrameModerationFailure({
+async function saveImageToBucket({
+  sessionId,
+  image,
+  source,
+}: {
+  sessionId: string
+  image: Buffer
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{ location: string }> {
+  let bucketName: string
+  switch (source) {
+    case 'screenshare':
+      bucketName = config.awsS3.moderatedScreenshareBucket
+      break
+    case 'image_upload':
+      bucketName = config.awsS3.moderatedSessionImageUploadBucket
+      break
+  }
+  if (!bucketName)
+    throw new Error(
+      `Could not save moderated image to S3: No bucket registered for source ${source}`
+    )
+
+  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+  const result = await putObject(bucketName, s3Key, image)
+  return { location: result.location }
+}
+
+async function handleImageModerationFailure({
   userId,
   sessionId,
   failureReasons,
   image,
-  bucketName,
+  source,
 }: {
   userId: string
   sessionId: string
-  failureReasons: VideoFrameModerationFailureReason[]
+  failureReasons: ImageModerationFailureReason[]
   image: Buffer
-  bucketName: string
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
-
-  const { location } = await putObject(bucketName, s3Key, image)
+  const { location: imageUrl } = await saveImageToBucket({
+    sessionId,
+    image,
+    source,
+  })
 
   logger.warn(
-    { sessionId, reasons: failureReasons, imageUrl: location },
+    { sessionId, reasons: failureReasons, imageUrl, source },
     'Image triggered moderation'
   )
 
-  await handleModerationInfraction(userId, sessionId, {
-    failures: failureReasons.reduce(
-      (acc, reason) => {
-        acc[reason.reason] = {
-          ...reason.details,
-          imageUrl: location,
-        }
-        return acc
-      },
-      {} as Record<
-        VideoFrameModerationFailureReason['reason'],
-        VideoFrameModerationFailureReason['details']
-      >
-    ),
-  })
+  await handleModerationInfraction(
+    userId,
+    sessionId,
+    {
+      failures: failureReasons.reduce(
+        (acc, reason) => {
+          acc[reason.reason] = {
+            ...reason.details,
+            imageUrl,
+          }
+          return acc
+        },
+        {} as Record<
+          ImageModerationFailureReason['reason'],
+          ImageModerationFailureReason['details']
+        >
+      ),
+    },
+    source
+  )
 }
 
-export const moderateVideoFrame = async (
-  // @TODO Combine into one method with moderateImage.
-  frame: Buffer,
-  sessionId: string,
-  userId: string,
-  isVolunteer: boolean,
-  bucketName: string
-): Promise<{
-  failureReasons: VideoFrameModerationFailureReason[]
-}> => {
+function maybeHandleImageModerationFailure(options: {
+  userId: string
+  sessionId: string
+  image: Buffer
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}) {
+  return function (failures: ImageModerationFailureReason[]) {
+    if (failures.length > 0) {
+      handleImageModerationFailure({
+        userId: options.userId,
+        sessionId: options.sessionId,
+        failureReasons: failures,
+        image: options.image,
+        source: options.source,
+      })
+    }
+  }
+}
+
+/*
+  This funciton is designed to ban a user from live media as fast as possible.
+  To do that, we run each moderation check in parallel and issue moderation infractions
+  as they happen. By not waiting for all checks to complete, we can ensure that we
+  turn the screen share off as soon as possible.
+*/
+export function moderateImageInBackground(options: {
+  image: Buffer
+  sessionId: string
+  userId: string
+  isVolunteer: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): void {
+  detectImageModerationFailures(options.image, options.sessionId).then(
+    maybeHandleImageModerationFailure(options)
+  )
+
+  detectMinorFailures(options.image).then(
+    maybeHandleImageModerationFailure(options)
+  )
+
+  detectTextModerationFailures(
+    options.image,
+    options.sessionId,
+    options.isVolunteer
+  ).then(maybeHandleImageModerationFailure(options))
+}
+
+async function getAllImageModerationFailures({
+  image,
+  sessionId,
+  isVolunteer,
+}: {
+  image: Buffer
+  sessionId: string
+  isVolunteer: boolean
+}): Promise<{
+  failureReasons: ImageModerationFailureReason[]
+}> {
   const [
     moderationFailureReasons,
     minorFailures,
     textModerationFailureReasons,
   ] = await Promise.all([
-    detectImageModerationFailures(frame),
-    detectMinorFailures(frame),
-    detectTextModerationFailures(frame, sessionId, isVolunteer),
+    detectImageModerationFailures(image),
+    detectMinorFailures(image),
+    detectTextModerationFailures(image, sessionId, isVolunteer),
   ])
 
-  const failureReasons = [
-    ...moderationFailureReasons,
-    ...minorFailures,
-    ...textModerationFailureReasons,
-  ]
-
-  if (failureReasons.length > 0) {
-    await handleVideoFrameModerationFailure({
-      userId,
-      sessionId,
-      failureReasons,
-      image: frame,
-      bucketName,
-    })
-  }
-
   return {
-    failureReasons,
+    failureReasons: [
+      ...moderationFailureReasons,
+      ...minorFailures,
+      ...textModerationFailureReasons,
+    ],
   }
 }
 
@@ -718,31 +900,125 @@ export async function moderateMessage({
   return result
 }
 
-const handleModerationInfraction = async (
+export const handleModerationInfraction = async (
   userId: string,
   sessionId: string,
   reasons:
     | ModerationFailureReasons
     | Record<
-        VideoFrameModerationFailureReason['reason'],
-        VideoFrameModerationFailureReason['details']
-      >
+        ImageModerationFailureReason['reason'],
+        ImageModerationFailureReason['details']
+      >,
+  source: ModerationSource,
+  client = getClient()
 ) => {
-  const strikesForUserInSession =
-    await ModerationInfractionsRepo.insertModerationInfraction({
+  if (source === 'image_upload') {
+    // Image uploads are premoderated, so if they fail moderation they are not shown to any user.
+    // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
+    return
+  }
+  await ModerationInfractionsRepo.insertModerationInfraction(
+    {
       userId,
       sessionId,
       reason: reasons.failures,
-    })
-  if (strikesForUserInSession >= config.maxModerationInfractionsPerSession) {
+    },
+    client
+  )
+  const allActiveInfractions =
+    await ModerationInfractionsRepo.getModerationInfractionsByUser(
+      userId,
+      {
+        active: true,
+      },
+      client
+    )
+  const infractionScore = getInfractionScore(allActiveInfractions)
+  const doLiveMediaBan =
+    infractionScore >= config.liveMediaBanInfractionScoreThreshold
+  const socketService = await SocketService.getInstance()
+  if (doLiveMediaBan) {
     await UsersRepo.banUserById(
       userId,
       USER_BAN_TYPES.LIVE_MEDIA,
       USER_BAN_REASONS.AUTOMATED_MODERATION
     )
-    const socketService = await SocketService.getInstance()
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
   }
+
+  const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
+  await socketService.emitModerationInfractionEvent(userId, {
+    isBanned: doLiveMediaBan,
+    infraction: failures,
+    source,
+    occurredAt: new Date(),
+  })
+}
+
+export type LiveMediaModerationCategories =
+  | 'profanity'
+  | 'violence'
+  | 'link'
+  | 'address'
+  | 'minor detected in image'
+  | 'email'
+  | 'phone'
+  | 'high toxicity'
+  | 'swimwear or underwear'
+  | 'explicit'
+  | 'non-explicit nudity of intimate parts and kissing'
+  | 'visually disturbing'
+  | 'drugs & tobacco'
+  | 'alcohol'
+  | 'rude gestures'
+  | 'gambling'
+  | 'hate symbols'
+
+export function getScoreForCategory(
+  category: LiveMediaModerationCategories | string
+): number {
+  let categoryScore
+  switch (category) {
+    case 'profanity':
+    case 'high toxicity':
+    case 'minor detected in image':
+    case 'drugs & tobacco':
+    case 'alcohol':
+    case 'rude gestures':
+    case 'gambling':
+      categoryScore = 1
+      break
+    case 'violence':
+    case 'swimwear or underwear':
+    case 'link':
+    case 'email':
+    case 'phone':
+    case 'address':
+    case 'explicit':
+    case 'non-explicit nudity of intimate parts and kissing':
+    case 'hate symbols':
+    case 'visually disturbing':
+      categoryScore = 10
+      break
+  }
+  if (!categoryScore) {
+    logger.error(
+      `Missing score for infraction category ${category}. Defaulting to severe score.`
+    )
+    categoryScore = 10
+  }
+  return categoryScore
+}
+
+export function getInfractionScore(
+  infractions: ModerationInfraction[]
+): number {
+  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+
+  return reasons.reduce((acc, current) => {
+    const categoryScore = getScoreForCategory(current)
+    return acc + categoryScore
+  }, 0)
 }
 
 export type CleanTranscriptModerationResult = {
@@ -758,11 +1034,13 @@ export const moderateIndividualTranscription = async ({
   sessionId,
   userId,
   saidAt,
+  source,
 }: {
   transcript: string
   sessionId: string
   userId: string
   saidAt: Date
+  source: ModerationSource
 }): Promise<
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
@@ -771,7 +1049,7 @@ export const moderateIndividualTranscription = async ({
   // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
-  await handleModerationInfraction(userId, sessionId, failures)
+  await handleModerationInfraction(userId, sessionId, failures, source)
   await createCensoredMessage({
     message: transcript,
     senderId: userId,
@@ -788,25 +1066,52 @@ export const moderateIndividualTranscription = async ({
   } as SanitizedTranscriptModerationResult
 }
 
-export const moderateImage = async (
-  imageFile: Express.Multer.File,
-  sessionId: string,
-  userId: string,
+export const moderateImage = async ({
+  image,
+  sessionId,
+  userId,
+  isVolunteer,
+  source,
+  aggregateInfractions,
+}: {
+  image: Buffer
+  sessionId: string
+  userId: string
   isVolunteer: boolean
-): Promise<{
+  aggregateInfractions: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{
   isClean: boolean
-}> => {
-  const result = await moderateVideoFrame(
-    imageFile.buffer,
-    sessionId,
-    userId,
-    isVolunteer,
-    config.awsS3.moderatedSessionImageUploadBucket
-  )
-  if (isEmpty(result.failureReasons)) return { isClean: true }
+  failures: string[]
+} | void> => {
+  if (aggregateInfractions) {
+    const result = await getAllImageModerationFailures({
+      image,
+      sessionId,
+      isVolunteer,
+    })
 
-  return {
-    isClean: false,
+    if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
+
+    await handleImageModerationFailure({
+      userId,
+      sessionId,
+      failureReasons: result.failureReasons,
+      image,
+      source,
+    })
+
+    // Duplicate moderation failures may be present
+    // if different objects in the image trigger it
+    const failures: string[] = [
+      ...new Set<string>(
+        result.failureReasons.map((failure) => failure.reason)
+      ),
+    ]
+
+    return { isClean: false, failures }
+  } else {
+    moderateImageInBackground({ image, sessionId, userId, isVolunteer, source })
   }
 }
 
@@ -854,9 +1159,17 @@ const getSessionTranscriptModerationResult = async (
   return JSON.parse(result.choices[0].message.content || '')
 }
 
+export type ModerationSessionReviewFlagReason =
+  | 'PII'
+  | 'HATE_SPEECH'
+  | 'PLATFORM_CIRCUMVENTION'
+  | 'INAPPROPRIATE_CONTENT'
+  | 'SAFETY'
+  | 'N/A'
 export type TranscriptChunkModerationResult = {
   confidence: number // higher = more likely to be inappropriate
   explanation: string
+  reasons: ModerationSessionReviewFlagReason[]
 }
 export const moderateTranscript = async (
   transcript: SessionTranscript
@@ -948,13 +1261,27 @@ Acceptable values for the elements of the 'reasons' array are:
 </exceptions>`
 
 const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
-You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor and decide if it violates any policies.
-You will find the chat message in <message> tags and the role of the user who sent the message in the <role> tags. Policies are described in the <policy> tags.
+You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor on a platform called UPchieve and decide if it violates any policies. The platform has built-in support for written chat messages, voice chat, and collaborative document editor and whiteboard.
+You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages or transcriptions of voice chat, both of which are built into the platform. Policies are described in the <policy> tags, and each has a name to be returned in your JSON response in the <name> tag. Exceptions to the policies are in <exception> tags.
 Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
-<policy>No hate speech</policy>
-<policy>No sexual or flirtatious content</policy>
-<policy>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.</policy>
-<policy>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.</policy>
-<policy>The nature of the conversation must be appropriate in a tutoring context</policy>
+<policy><name>HATE_SPEECH</name>No hate speech</policy>
+<policy><name>INAPPROPRIATE_CONTENT</name>No sexual or flirtatious content</policy>
+<policy><name>PLATFORM_CIRCUMVENTION</name>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.
+<exception>Links to external collaborative editors (e.g. whiteboards and document editors) are OK as long as they are shared with the intent of facilitating tutoring AND used in a read-only capacity; all work must be done on the platform.</exception>
+<exception>The platform has its own direct messaging feature that is an appropriate mode of communication as long as the intended use is still to facilitate tutoring.</exception>
+<exception>It is acceptable to agree on a time to meet to do another tutoring session as long as it is on the platform.</exception>
+</policy>
+<policy><name>PII</name>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.
+<exception>Grade level and first names are already known to both participants.</exception>
+<exception>If the tutoring session is focused on college applications and college essays, it is appropriate to share information about the college or minor personal information if it is relevant to the student's applications. NO contact information should be shared, nor the student's school.</exception>
+</policy>
+<policy><name>SAFETY</name>Threats of harm to oneself or others and dangerous situations should be flagged.</policy>
+Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons should be an empty array.
+`
+
+const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `
+You are a Trust & Safety expert. Your job is to review the text extracted from an image that was shared between a student and volunteer tutor and decide if it contains an address.
+You will find the extracted text in <text> tags.
+Given the text, provide a confidence rating from 0 to 1 (to 3 decimal places) that the text contains an address, where 1 means maximally confident that the text contains an address of the student, tutor, or a place they might meet in person.
 Provide your response in this JSON format: "{ confidence: number, explanation: string }"
 `

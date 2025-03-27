@@ -22,7 +22,11 @@ export default async (job: Job<SendFollowupTextData>): Promise<void> => {
     return log(
       `Cancel ${Jobs.SendFollowupText} for ${sessionId} to ${volunteerId}: fulfilled`
     )
-  const volunteer = await getVolunteerContactInfoById(volunteerId)
+  const volunteer = await getVolunteerContactInfoById(volunteerId, {
+    banned: false,
+    deactivated: false,
+    testUser: false,
+  })
   if (!volunteer) return
 
   try {

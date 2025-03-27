@@ -202,7 +202,7 @@ export function routeUser(router: Router): void {
         await VolunteerService.addBackgroundInfo(user.id, update, ip)
         res.sendStatus(200)
       } catch (error) {
-        res.sendStatus(500)
+        resError(res, error)
       }
     }
   )

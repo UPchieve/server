@@ -14,6 +14,7 @@ import {
   createVolunteer,
   CreateVolunteerPayload,
   getNextVolunteerToNotify,
+  getVolunteerContactInfoById,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
 } from '../../models/Volunteer'
@@ -375,6 +376,57 @@ describe('VolunteerRepo', () => {
         const res2 = await runQuery()
         expect(res2?.id).toEqual(volWithAllCerts.id)
       })
+    })
+  })
+
+  describe('getVolunteerContactInfoById', () => {
+    it('Filters out volunteers based on testUser', async () => {
+      const volunteer = await loadVolunteer()
+      const queryForVolunteer = async () => {
+        return getVolunteerContactInfoById(volunteer.id, {
+          testUser: false,
+        })
+      }
+      let volunteerResult = await queryForVolunteer()
+      expect(volunteerResult).toBeDefined()
+      await client.query('UPDATE users SET test_user = TRUE where id = $1', [
+        volunteer.id,
+      ])
+      volunteerResult = await queryForVolunteer()
+      expect(volunteerResult).toBeUndefined()
+    })
+
+    it('Filters out volunteers based on banned filter if volunteer is complete-banned', async () => {
+      const volunteer = await loadVolunteer()
+      const queryForVolunteer = async () => {
+        return getVolunteerContactInfoById(volunteer.id, {
+          banned: false,
+        })
+      }
+      let volunteerResult = await queryForVolunteer()
+      expect(volunteerResult).toBeDefined()
+      await client.query(
+        "UPDATE users SET ban_type = 'complete' where id = $1",
+        [volunteer.id]
+      )
+      volunteerResult = await queryForVolunteer()
+      expect(volunteerResult).toBeUndefined()
+    })
+
+    it('Filters out volunteers based on deactivated', async () => {
+      const volunteer = await loadVolunteer()
+      const queryForVolunteer = async () => {
+        return getVolunteerContactInfoById(volunteer.id, {
+          deactivated: false,
+        })
+      }
+      let volunteerResult = await queryForVolunteer()
+      expect(volunteerResult).toBeDefined()
+      await client.query('UPDATE users SET deactivated = TRUE where id = $1', [
+        volunteer.id,
+      ])
+      volunteerResult = await queryForVolunteer()
+      expect(volunteerResult).toBeUndefined()
     })
   })
 })

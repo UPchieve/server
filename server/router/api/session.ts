@@ -27,6 +27,7 @@ import {
   UpdateSessionAudioPayload,
 } from '../../models/SessionAudio'
 import * as SessionMeetingService from '../../services/SessionMeetingService'
+import * as AwsChimeService from '../../services/AwsChimeService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -386,9 +387,11 @@ export function routeSession(router: Router) {
     try {
       const user = extractUser(req)
       const { sessionId } = req.params
+      const isTeacher = user.roleContext.isActiveRole('teacher')
       const session = await SessionService.getSessionRecap(
         asUlid(sessionId),
-        user.id
+        user.id,
+        isTeacher
       )
       const isSessionVolunteer = session.volunteerId === user.id
 
@@ -438,13 +441,12 @@ export function routeSession(router: Router) {
     try {
       const sessionId = req.params.sessionId
       const userId = extractUser(req).id
-      const { meeting, attendee, partnerAttendee, transcriptionStarted } =
+      const { meeting, attendee, partnerAttendee } =
         await SessionMeetingService.getOrCreateSessionMeeting(sessionId, userId)
       return res.json({
         meeting,
         attendee,
         partnerAttendee,
-        transcriptionStarted,
       })
     } catch (err) {
       resError(res, err)
@@ -460,6 +462,20 @@ export function routeSession(router: Router) {
       resError(res, err)
     }
   })
+
+  router.post(
+    '/sessions/:sessionId/meeting/start-transcription',
+    async function (req, res) {
+      try {
+        const sessionId = req.params.sessionId
+        const transcriptionStarted =
+          await SessionMeetingService.startTranscription(sessionId)
+        return res.json({ transcriptionStarted })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 
   const updateSessionAudioRequestValidator =
     asFactory<UpdateSessionAudioPayload>({

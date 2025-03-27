@@ -203,3 +203,15 @@ export async function updateTeacherSchool(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function getAllStudentsForTeacher(teacherId: Ulid) {
+  try {
+    const studentIds = await pgQueries.getAllStudentsForTeacher.run(
+      { teacherId },
+      getClient()
+    )
+    return studentIds.map((s) => makeRequired(s).userId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

@@ -12,10 +12,15 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
 WHERE
     users.id = :userId!
-    AND users.banned IS FALSE
-    AND users.ban_type IS DISTINCT FROM 'complete'
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE;
+    AND (:banned::boolean IS NULL
+        OR (:banned::boolean IS TRUE
+            AND users.ban_type = 'complete')
+        OR (:banned::boolean IS FALSE
+            AND users.ban_type IS DISTINCT FROM 'complete'))
+    AND (:deactivated::boolean IS NULL
+        OR users.deactivated = :deactivated::boolean)
+    AND (:testUser::boolean IS NULL
+        OR users.test_user = :testUser::boolean);
 
 
 /* @name getVolunteerContactInfoByIds */
