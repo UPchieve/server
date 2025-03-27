@@ -49,7 +49,7 @@ export function routeModeration(router: Router): void {
           userId: user.id,
           isVolunteer: user.isVolunteer,
           source: 'image_upload',
-          batchInfractions: true,
+          aggregateInfractions: true,
         })
         res.status(200).json(moderationResult)
       } catch (err) {
@@ -75,7 +75,7 @@ export function routeModeration(router: Router): void {
           userId: user.id,
           isVolunteer: user.isVolunteer,
           source: 'screenshare',
-          batchInfractions: false,
+          aggregateInfractions: false,
         })
 
         res.status(201).send()

@@ -82,7 +82,7 @@ const AWS_CONFIG = {
 const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
 const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
-type VideoFrameModerationFailureReason = {
+type ImageModerationFailureReason = {
   reason: string
   /*
     Moderation labels from AWS Rekognition,
@@ -96,7 +96,7 @@ const topLevelCategoryFilter = (label: ModerationLabel) =>
 
 const moderationLabelToFailureReason = (
   label: ModerationLabel
-): VideoFrameModerationFailureReason => {
+): ImageModerationFailureReason => {
   return {
     reason: label.Name ?? 'Unknown',
     details: { confidence: label.Confidence },
@@ -543,7 +543,7 @@ async function handleImageModerationFailure({
 }: {
   userId: string
   sessionId: string
-  failureReasons: VideoFrameModerationFailureReason[]
+  failureReasons: ImageModerationFailureReason[]
   image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
@@ -571,8 +571,8 @@ async function handleImageModerationFailure({
           return acc
         },
         {} as Record<
-          VideoFrameModerationFailureReason['reason'],
-          VideoFrameModerationFailureReason['details']
+          ImageModerationFailureReason['reason'],
+          ImageModerationFailureReason['details']
         >
       ),
     },
@@ -586,7 +586,7 @@ function maybeHandleImageModerationFailure(options: {
   image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  return function (failures: VideoFrameModerationFailureReason[]) {
+  return function (failures: ImageModerationFailureReason[]) {
     if (failures.length > 0) {
       handleImageModerationFailure({
         userId: options.userId,
@@ -612,11 +612,9 @@ export function moderateImageInBackground(options: {
   isVolunteer: boolean
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }): void {
-  detectTextModerationFailures(
-    options.image,
-    options.sessionId,
-    options.isVolunteer
-  ).then(maybeHandleImageModerationFailure(options))
+  detectImageModerationFailures(options.image, options.sessionId).then(
+    maybeHandleImageModerationFailure(options)
+  )
 
   detectMinorFailures(options.image).then(
     maybeHandleImageModerationFailure(options)
@@ -638,7 +636,7 @@ async function getAllImageModerationFailures({
   sessionId: string
   isVolunteer: boolean
 }): Promise<{
-  failureReasons: VideoFrameModerationFailureReason[]
+  failureReasons: ImageModerationFailureReason[]
 }> {
   const [
     moderationFailureReasons,
@@ -908,8 +906,8 @@ export const handleModerationInfraction = async (
   reasons:
     | ModerationFailureReasons
     | Record<
-        VideoFrameModerationFailureReason['reason'],
-        VideoFrameModerationFailureReason['details']
+        ImageModerationFailureReason['reason'],
+        ImageModerationFailureReason['details']
       >,
   source: ModerationSource,
   client = getClient()
