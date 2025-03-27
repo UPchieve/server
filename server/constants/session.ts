@@ -17,7 +17,7 @@ export enum USER_SESSION_METRICS {
   studentCrisis = 'Student in distress',
 }
 
-export enum USER_SESSION_FLAGS {
+export enum UserSessionFlags {
   coachReportedStudentDm = 'Coach reported student DM',
   studentReportedCoachDm = 'Student reported coach DM',
   hateSpeech = 'Hate speech',

@@ -9,7 +9,7 @@ import {
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
-import { USER_SESSION_FLAGS } from '../constants'
+import { UserSessionFlags } from '../constants'
 
 export interface ModerateSessionTranscriptJobData {
   sessionId: Ulid
@@ -51,23 +51,23 @@ export default async function moderateSessionTranscript(
 
 const getSessionFlag = (
   reason: ModerationSessionReviewFlagReason | string
-): USER_SESSION_FLAGS => {
-  let flag = USER_SESSION_FLAGS.generalModerationIssue
+): UserSessionFlags => {
+  let flag = UserSessionFlags.generalModerationIssue
   switch (reason) {
     case 'PII':
-      flag = USER_SESSION_FLAGS.pii
+      flag = UserSessionFlags.pii
       break
     case 'INAPPROPRIATE_CONTENT':
-      flag = USER_SESSION_FLAGS.inappropriateConversation
+      flag = UserSessionFlags.inappropriateConversation
       break
     case 'PLATFORM_CIRCUMVENTION':
-      flag = USER_SESSION_FLAGS.platformCircumvention
+      flag = UserSessionFlags.platformCircumvention
       break
     case 'HATE_SPEECH':
-      flag = USER_SESSION_FLAGS.hateSpeech
+      flag = UserSessionFlags.hateSpeech
       break
     case 'SAFETY':
-      flag = USER_SESSION_FLAGS.safetyConcern
+      flag = UserSessionFlags.safetyConcern
       break
   }
   return flag
