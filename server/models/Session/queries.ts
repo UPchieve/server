@@ -132,7 +132,7 @@ export async function getSessionById(
   }
 }
 
-export async function updateSessionFlagsById( // @TODO Wrap in runInTransaction at the service layer
+export async function updateSessionFlagsById(
   sessionId: Ulid,
   flags: (USER_SESSION_METRICS | UserSessionFlags)[]
 ): Promise<void> {
@@ -1108,7 +1108,7 @@ export async function getSessionsForAdminFilter(
   }
 }
 
-export async function updateSessionReviewReasonsById( // @TODO Wrap in runInTransaction at the service layer
+export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
   reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
   // Use this property to override the reviewed status of a session
@@ -1117,21 +1117,28 @@ export async function updateSessionReviewReasonsById( // @TODO Wrap in runInTran
   const client = await getClient().connect()
   try {
     await client.query('BEGIN')
-    for (const flag of reviewReasons) {
-      // @TODO Make a single trip to the db
-      const result = await pgQueries.insertSessionReviewReason.run(
-        { sessionId, flag },
+    const insertReviewReasonsResult =
+      await pgQueries.insertSessionReviewReasons.run(
+        { sessionId, flags: reviewReasons },
         client
       )
-      if (!result.length && makeRequired(result[0]).ok)
-        throw new Error('Insert did not return ok')
+    if (
+      !insertReviewReasonsResult.length &&
+      makeRequired(insertReviewReasonsResult[0]).ok
+    ) {
+      throw new Error('Inserting session review reasons did not return "ok"')
     }
-    const result = await pgQueries.updateSessionToReview.run(
+
+    const updateSessionReviewResult = await pgQueries.updateSessionToReview.run(
       { sessionId, reviewed },
       client
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new Error('Updating to_review did not return ok')
+    if (
+      !updateSessionReviewResult.length &&
+      makeRequired(updateSessionReviewResult[0]).ok
+    ) {
+      throw new Error('Updating to_review did not return "ok"')
+    }
     await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')

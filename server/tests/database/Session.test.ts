@@ -14,11 +14,12 @@ import {
   getFilteredSessionHistoryTotalCount,
   getMessagesForFrontend,
   updateSessionFlagsById,
+  updateSessionReviewReasonsById,
 } from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
-import { UserSessionFlags } from '../../constants'
+import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -223,6 +224,79 @@ describe('Session repo', () => {
         getSessionFlagNameById(row.session_flag_id)
       )
       expect(new Set(insertedFlagNames)).toEqual(new Set(nextFlagsToInsert))
+    })
+  })
+
+  describe('updateSessionReviewReasonsById', () => {
+    let session: any
+
+    beforeEach(async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      session = await insertSingleRow('sessions', sessionObj, dbClient)
+    })
+
+    it('Inserts a single review reason', async () => {
+      const reviewReason = USER_SESSION_METRICS.absentVolunteer
+      const reviewReasonId = 2
+      await updateSessionReviewReasonsById(session.id, [reviewReason])
+      const actualReviewReasons = await dbClient.query(
+        'SELECT * FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+      expect(actualReviewReasons.rows.length).toEqual(1)
+      expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
+        reviewReasonId
+      )
+    })
+
+    it('Inserts multiple review reasons', async () => {
+      const reviewReasons = [
+        USER_SESSION_METRICS.absentVolunteer,
+        UserSessionFlags.pii,
+      ]
+      const reviewReasonIds = [2, 28]
+      await updateSessionReviewReasonsById(session.id, reviewReasons)
+      const actualReviewReasons = await dbClient.query(
+        'SELECT * FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+      expect(actualReviewReasons.rows.length).toEqual(2)
+      const flagIds = actualReviewReasons.rows.map((row) => row.session_flag_id)
+      expect(new Set(flagIds)).toEqual(new Set(reviewReasonIds))
+    })
+
+    it('If the review reason already exists, does not insert a new one', async () => {
+      const initialFlag = UserSessionFlags.hateSpeech
+      const initialFlagId = 25
+      const nextFlagsToInsert = [
+        UserSessionFlags.pii,
+        USER_SESSION_METRICS.absentStudent,
+      ]
+      const nextFlagsToInsertIds = [1, 28]
+
+      // Insert one flag
+      await updateSessionReviewReasonsById(session.id, [initialFlag])
+      const initialResult = await dbClient.query(
+        'SELECT * FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+      expect(initialResult.rows.length).toEqual(1)
+      expect(initialResult.rows[0].session_flag_id).toEqual(initialFlagId)
+
+      // Insert multiple flags including the existing
+      await updateSessionReviewReasonsById(session.id, [
+        ...nextFlagsToInsert,
+        initialFlag,
+      ])
+      const nextResult = await dbClient.query(
+        'SELECT * FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+      expect(nextResult.rows.length).toEqual(3)
+      const finalFlagIds = nextResult.rows.map((row) => row.session_flag_id)
+      expect(new Set(finalFlagIds)).toEqual(
+        new Set([initialFlagId, ...nextFlagsToInsertIds])
+      )
     })
   })
 })
