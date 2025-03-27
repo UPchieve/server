@@ -19,5 +19,4 @@ export type UserSessionMetrics = {
   coachUncomfortable: number
   studentCrisis: number
   createdAt: Date
-  updatedAt: Date
 }

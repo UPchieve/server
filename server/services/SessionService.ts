@@ -2,7 +2,7 @@ import * as SessionmeetingsService from '../services/SessionMeetingService'
 import crypto from 'crypto'
 import moment from 'moment'
 import * as cache from '../cache'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import config from '../config'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -27,6 +27,7 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
+  createSessionMetrics,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -589,6 +590,7 @@ export async function startSession(
       user.banType === USER_BAN_TYPES.SHADOW,
       tc
     )
+    await createSessionMetrics(newSessionId, tc)
 
     if (assignmentId) {
       await AssignmentsService.linkSessionToAssignment(
@@ -1148,4 +1150,10 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
+}
+export async function updateSessionMetrics(
+  sessionId: Uuid,
+  metrics: Partial<SessionRepo.SessionMetrics>
+): Promise<SessionRepo.SessionMetrics> {
+  return SessionRepo.updateSessionMetrics(sessionId, metrics)
 }
