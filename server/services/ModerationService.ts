@@ -82,7 +82,7 @@ const AWS_CONFIG = {
 const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
 const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
-type VideoFrameModerationFailureReason = {
+type ImageModerationFailureReason = {
   reason: string
   /*
     Moderation labels from AWS Rekognition,
@@ -96,7 +96,7 @@ const topLevelCategoryFilter = (label: ModerationLabel) =>
 
 const moderationLabelToFailureReason = (
   label: ModerationLabel
-): VideoFrameModerationFailureReason => {
+): ImageModerationFailureReason => {
   return {
     reason: label.Name ?? 'Unknown',
     details: { confidence: label.Confidence },
@@ -184,6 +184,7 @@ async function detectMinorFailures(image: Buffer) {
       Image: {
         Bytes: image,
       },
+      MinConfidence: config.imageModerationMinConfidence,
       Settings: {
         GeneralLabels: {
           LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
@@ -238,7 +239,11 @@ const detectToxicContent = async (textSegments: string[]) => {
   }
 
   const highToxicity = toxicContent
-    .filter(({ result }) => result.Toxicity && result.Toxicity > 0.5)
+    .filter(
+      ({ result }) =>
+        result.Toxicity &&
+        result.Toxicity >= config.toxicityModerationMinConfidence
+    )
     .map(({ result, text }) => ({
       reason: 'High Toxicity',
       details: {
@@ -264,9 +269,11 @@ async function isLikelyToBeAPhoneNumber({
 }) {
   // Since many users will be sharing numbers that look like phone numbers,
   // we want to moderate them in similar way we moderate phone numbers in messages.
-  // PII is very permisive with what's a phone number, so let's run it throough our regex
+  // PII is very permisive with what's a phone number, so let's run it through our regex
   // and then through the false positive fallback
-  const isMaybePhone = entityConfidence > 0.9 && PHONE_REGEX.test(entityText)
+  const isMaybePhone =
+    entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
+    PHONE_REGEX.test(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -527,7 +534,7 @@ async function saveImageToBucket({
   return { location: result.location }
 }
 
-async function handleVideoFrameModerationFailure({
+async function handleImageModerationFailure({
   userId,
   sessionId,
   failureReasons,
@@ -536,7 +543,7 @@ async function handleVideoFrameModerationFailure({
 }: {
   userId: string
   sessionId: string
-  failureReasons: VideoFrameModerationFailureReason[]
+  failureReasons: ImageModerationFailureReason[]
   image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
@@ -564,8 +571,8 @@ async function handleVideoFrameModerationFailure({
           return acc
         },
         {} as Record<
-          VideoFrameModerationFailureReason['reason'],
-          VideoFrameModerationFailureReason['details']
+          ImageModerationFailureReason['reason'],
+          ImageModerationFailureReason['details']
         >
       ),
     },
@@ -573,44 +580,80 @@ async function handleVideoFrameModerationFailure({
   )
 }
 
-export const moderateVideoFrame = async (
-  // @TODO Combine into one method with moderateImage.
-  frame: Buffer,
-  sessionId: string,
-  userId: string,
-  isVolunteer: boolean,
+function maybeHandleImageModerationFailure(options: {
+  userId: string
+  sessionId: string
+  image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-): Promise<{
-  failureReasons: VideoFrameModerationFailureReason[]
-}> => {
+}) {
+  return function (failures: ImageModerationFailureReason[]) {
+    if (failures.length > 0) {
+      handleImageModerationFailure({
+        userId: options.userId,
+        sessionId: options.sessionId,
+        failureReasons: failures,
+        image: options.image,
+        source: options.source,
+      })
+    }
+  }
+}
+
+/*
+  This funciton is designed to ban a user from live media as fast as possible.
+  To do that, we run each moderation check in parallel and issue moderation infractions
+  as they happen. By not waiting for all checks to complete, we can ensure that we
+  turn the screen share off as soon as possible.
+*/
+export function moderateImageInBackground(options: {
+  image: Buffer
+  sessionId: string
+  userId: string
+  isVolunteer: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): void {
+  detectImageModerationFailures(options.image, options.sessionId).then(
+    maybeHandleImageModerationFailure(options)
+  )
+
+  detectMinorFailures(options.image).then(
+    maybeHandleImageModerationFailure(options)
+  )
+
+  detectTextModerationFailures(
+    options.image,
+    options.sessionId,
+    options.isVolunteer
+  ).then(maybeHandleImageModerationFailure(options))
+}
+
+async function getAllImageModerationFailures({
+  image,
+  sessionId,
+  isVolunteer,
+}: {
+  image: Buffer
+  sessionId: string
+  isVolunteer: boolean
+}): Promise<{
+  failureReasons: ImageModerationFailureReason[]
+}> {
   const [
     moderationFailureReasons,
     minorFailures,
     textModerationFailureReasons,
   ] = await Promise.all([
-    detectImageModerationFailures(frame),
-    detectMinorFailures(frame),
-    detectTextModerationFailures(frame, sessionId, isVolunteer),
+    detectImageModerationFailures(image),
+    detectMinorFailures(image),
+    detectTextModerationFailures(image, sessionId, isVolunteer),
   ])
 
-  const failureReasons = [
-    ...moderationFailureReasons,
-    ...minorFailures,
-    ...textModerationFailureReasons,
-  ]
-
-  if (failureReasons.length > 0) {
-    await handleVideoFrameModerationFailure({
-      userId,
-      sessionId,
-      failureReasons,
-      image: frame,
-      source,
-    })
-  }
-
   return {
-    failureReasons,
+    failureReasons: [
+      ...moderationFailureReasons,
+      ...minorFailures,
+      ...textModerationFailureReasons,
+    ],
   }
 }
 
@@ -863,8 +906,8 @@ export const handleModerationInfraction = async (
   reasons:
     | ModerationFailureReasons
     | Record<
-        VideoFrameModerationFailureReason['reason'],
-        VideoFrameModerationFailureReason['details']
+        ImageModerationFailureReason['reason'],
+        ImageModerationFailureReason['details']
       >,
   source: ModerationSource,
   client = getClient()
@@ -1023,31 +1066,52 @@ export const moderateIndividualTranscription = async ({
   } as SanitizedTranscriptModerationResult
 }
 
-export const moderateImage = async (
-  imageFile: Express.Multer.File,
-  sessionId: string,
-  userId: string,
+export const moderateImage = async ({
+  image,
+  sessionId,
+  userId,
+  isVolunteer,
+  source,
+  aggregateInfractions,
+}: {
+  image: Buffer
+  sessionId: string
+  userId: string
   isVolunteer: boolean
-): Promise<{
+  aggregateInfractions: boolean
+  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+}): Promise<{
   isClean: boolean
   failures: string[]
-}> => {
-  const result = await moderateVideoFrame(
-    imageFile.buffer,
-    sessionId,
-    userId,
-    isVolunteer,
-    'image_upload'
-  )
-  if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
+} | void> => {
+  if (aggregateInfractions) {
+    const result = await getAllImageModerationFailures({
+      image,
+      sessionId,
+      isVolunteer,
+    })
 
-  // Duplicate moderation failures may be present if different objects in the image trigger it
-  const failures: string[] = [
-    ...new Set<string>(result.failureReasons.map((failure) => failure.reason)),
-  ]
-  return {
-    isClean: false,
-    failures: failures,
+    if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
+
+    await handleImageModerationFailure({
+      userId,
+      sessionId,
+      failureReasons: result.failureReasons,
+      image,
+      source,
+    })
+
+    // Duplicate moderation failures may be present
+    // if different objects in the image trigger it
+    const failures: string[] = [
+      ...new Set<string>(
+        result.failureReasons.map((failure) => failure.reason)
+      ),
+    ]
+
+    return { isClean: false, failures }
+  } else {
+    moderateImageInBackground({ image, sessionId, userId, isVolunteer, source })
   }
 }
 
