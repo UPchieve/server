@@ -10,13 +10,15 @@ import {
 } from '../mocks/generate'
 import { getClient } from '../../db'
 import {
-  getMessagesForFrontend,
   getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
+  getMessagesForFrontend,
+  updateSessionFlagsById,
 } from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
+import { UserSessionFlags } from '../../constants'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -120,6 +122,107 @@ describe('Session repo', () => {
         '3',
         voiceMessageId, // for voice messages, the id is returned as the message
       ])
+    })
+  })
+
+  describe('updateSessionFlagsById', () => {
+    let session: any
+
+    beforeEach(async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      session = await insertSingleRow('sessions', sessionObj, dbClient)
+    })
+
+    const getSessionFlagNameById = (id: number): UserSessionFlags => {
+      let flag: UserSessionFlags | null = null
+      switch (id) {
+        case 17:
+          flag = UserSessionFlags.coachReportedStudentDm
+          break
+        case 18:
+          flag = UserSessionFlags.studentReportedCoachDm
+          break
+        case 25:
+          flag = UserSessionFlags.hateSpeech
+          break
+        case 26:
+          flag = UserSessionFlags.inappropriateConversation
+          break
+        case 27:
+          flag = UserSessionFlags.platformCircumvention
+          break
+        case 28:
+          flag = UserSessionFlags.pii
+          break
+        case 29:
+          flag = UserSessionFlags.safetyConcern
+          break
+        case 30:
+          flag = UserSessionFlags.generalModerationIssue
+          break
+      }
+      if (!flag) throw new Error(`Unknown flag with id ${id}`)
+      return flag
+    }
+
+    it('Inserts a single flag', async () => {
+      const flagsToInsert = [UserSessionFlags.pii]
+      await updateSessionFlagsById(session.id, flagsToInsert)
+      const actualFlags = await dbClient.query(
+        'SELECT * FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+      expect(actualFlags.rows.length).toEqual(1)
+      expect(
+        getSessionFlagNameById(actualFlags.rows[0].session_flag_id)
+      ).toEqual(flagsToInsert[0])
+    })
+
+    it('Inserts multiple flags', async () => {
+      const flagsToInsert = [
+        UserSessionFlags.pii,
+        UserSessionFlags.safetyConcern,
+        UserSessionFlags.coachReportedStudentDm,
+      ]
+      await updateSessionFlagsById(session.id, flagsToInsert)
+      const actualFlags = await dbClient.query(
+        'SELECT * FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+      expect(actualFlags.rows.length).toEqual(3)
+      const actualFlagNames = actualFlags.rows.map((flagRow) =>
+        getSessionFlagNameById(flagRow.session_flag_id)
+      )
+      expect(new Set(actualFlagNames)).toEqual(new Set(flagsToInsert))
+    })
+
+    it('If the flag already exists, does not insert a new one', async () => {
+      const flag = UserSessionFlags.pii
+      await updateSessionFlagsById(session.id, [flag])
+      const firstResult = await dbClient.query(
+        'SELECT * FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+      expect(firstResult.rows.length).toEqual(1)
+      expect(
+        getSessionFlagNameById(firstResult.rows[0].session_flag_id)
+      ).toEqual(flag)
+
+      const nextFlagsToInsert = [
+        UserSessionFlags.safetyConcern,
+        UserSessionFlags.pii,
+        UserSessionFlags.generalModerationIssue,
+      ]
+      await updateSessionFlagsById(session.id, nextFlagsToInsert)
+      const secondResult = await dbClient.query(
+        'SELECT * FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+      expect(secondResult.rows.length).toEqual(3)
+      const insertedFlagNames = secondResult.rows.map((row) =>
+        getSessionFlagNameById(row.session_flag_id)
+      )
+      expect(new Set(insertedFlagNames)).toEqual(new Set(nextFlagsToInsert))
     })
   })
 })

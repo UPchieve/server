@@ -139,17 +139,15 @@ export async function updateSessionFlagsById( // @TODO Wrap in runInTransaction 
   const client = await getClient().connect()
   try {
     await client.query('BEGIN')
-    const errors: string[] = []
-    for (const flag of flags) {
-      // @TODO Make a single trip to the db
-      const result = await pgQueries.insertSessionFlagById.run(
-        { sessionId, flag },
-        client
+    const result = await pgQueries.insertSessionFlagsById.run(
+      { sessionId, flags },
+      client
+    )
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new Error(
+        `Did not insert any session flags for session ${sessionId}`
       )
-      if (!result.length && makeRequired(result[0]).ok)
-        errors.push(`Update query for flag ${flag} did not return ok`)
-    }
-    if (errors.length) throw new RepoReadError(errors.join('\n'))
+
     await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')

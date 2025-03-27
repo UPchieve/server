@@ -107,7 +107,7 @@ WHERE
     sessions.id = :sessionId!;
 
 
-/* @name insertSessionFlagById */
+/* @name insertSessionFlagsById */
 INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)
 SELECT
     :sessionId!,
@@ -117,7 +117,7 @@ SELECT
 FROM
     session_flags
 WHERE
-    name = :flag!
+    name = ANY (:flags!::text[])
 ON CONFLICT (session_id,
     session_flag_id)
     DO UPDATE SET
