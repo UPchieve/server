@@ -1,5 +1,4 @@
 export enum FEATURE_FLAGS {
-  CHATBOT = 'chatbot',
   STANDARDIZED_CERTS = 'standardized-certs',
   USING_OUR_PLATFORM = 'using-our-platform',
   SESSION_RECAP_DMS = 'session-recap-dms',

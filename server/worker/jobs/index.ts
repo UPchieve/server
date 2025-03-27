@@ -15,7 +15,6 @@ import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
 import upsertSchools from '../../scripts/upsert-schools'
-import chatbot from './chatbot'
 import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailReadyToCoach from './emailReadyToCoach'
 import emailReferenceFollowup from './emailReferenceFollowup'
@@ -99,7 +98,6 @@ export enum Jobs {
   EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
   EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
   SendFollowupText = 'SendFollowupText',
-  Chatbot = 'Chatbot',
   UpdateGradeLevel = 'UpdateGradeLevel',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   GenerateProgressReport = 'GenerateProgressReport',
@@ -300,10 +298,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailSessionReported,
     processor: emailSessionReported,
-  },
-  {
-    name: Jobs.Chatbot,
-    processor: chatbot,
   },
   {
     name: Jobs.SendFollowupText,
