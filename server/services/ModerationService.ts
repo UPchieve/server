@@ -9,12 +9,14 @@ import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { openai } from './BotsService'
 import * as UsersRepo from '../models/User/queries'
+import * as SessionRepo from '../models/Session'
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
+import * as SessionService from './SessionService'
 import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
@@ -118,6 +120,9 @@ export type ModerationSource =
   | 'voice_chat'
   | 'audio_transcription'
   | 'text_chat'
+
+const DIRECT_MESSAGE_TAG = 'direct_message'
+const MESSAGE_TAG = 'session_chat'
 
 /*
   detect harmful content in the image
@@ -865,7 +870,7 @@ export async function moderateMessage({
   isVolunteer: boolean
   sessionId?: string
 }): Promise<oldClientModerationResult | ModerationFailureReasons> {
-  const { isClean, failures, sanitizedMessage } = regexModerate(message)
+  const { isClean, failures } = regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
@@ -904,9 +909,35 @@ export async function moderateMessage({
       { censoredSessionMessage, reasons: result },
       'Session message was censored'
     )
+    return result
   }
 
-  return result
+  const session = await SessionRepo.getSessionById(sessionId)
+  const isDm = !!session.endedAt
+  if (!isDm) return isClean
+  // For DMs, we'll moderate the context of the entire transcript to make sure the
+  // conversation remains appropriate.
+  const transcript = await SessionService.getSessionTranscript(sessionId)
+  transcript.messages.push({
+    messageId: 'in-flight',
+    createdAt: new Date(),
+    messageType: 'direct_message',
+    userId: senderId,
+    message,
+  } as SessionTranscriptItem)
+  const transcriptModerationResults = await moderateTranscript(transcript)
+  const uncleanDms = transcriptModerationResults.flaggedMessages.filter(
+    (message) => message.includes(DIRECT_MESSAGE_TAG)
+  )
+  if (uncleanDms.length) {
+    const failures = {}
+    transcriptModerationResults.reasons.forEach((reason) => {
+      failures[reason.toLowerCase().replace('_', ' ')] = []
+    })
+    return { failures }
+  } else {
+    return isClean
+  }
 }
 
 export const handleModerationInfraction = async (
@@ -1190,9 +1221,7 @@ export const moderateTranscript = async (
   const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
     return chunk.reduce((acc: string, item) => {
       const messageTag =
-        item.messageType === 'direct_message'
-          ? 'direct_message'
-          : 'session_chat'
+        item.messageType === 'direct_message' ? DIRECT_MESSAGE_TAG : MESSAGE_TAG
       return (
         acc +
         `<${messageTag}><role>${item.role}</role>${item.message}</${messageTag}>\n`
@@ -1250,7 +1279,7 @@ export const moderateTranscript = async (
   }
 }
 
-export function getSessionFlag(
+export function getSessionFlagByModerationReason(
   reason: ModerationSessionReviewFlagReason | string
 ): UserSessionFlags {
   let flag = UserSessionFlags.generalModerationIssue

@@ -17,7 +17,7 @@ export default async function moderateSessionTranscript(
     const moderationResults =
       await ModerationService.moderateTranscript(transcript)
     const sessionFlags = Array.from(moderationResults.reasons).map((r) =>
-      ModerationService.getSessionFlag(r)
+      ModerationService.getSessionFlagByModerationReason(r)
     )
     if (moderationResults.reasons.length) {
       await ModerationService.markSessionForReview(
