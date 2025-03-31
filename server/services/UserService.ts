@@ -353,6 +353,18 @@ export async function adminUpdateUser(data: unknown) {
       await createAdminAction(ACCOUNT_USER_ACTIONS.UNSHADOW_BANNED, userId, tc)
     }
 
+    //track live_media bans
+    if (
+      userBeforeUpdate.banType !== USER_BAN_TYPES.LIVE_MEDIA &&
+      banType === USER_BAN_TYPES.LIVE_MEDIA
+    ) {
+      await createAdminAction(
+        ACCOUNT_USER_ACTIONS.LIVE_MEDIA_BANNED,
+        userId,
+        tc
+      )
+    }
+
     //track reversing live_media bans
     if (userBeforeUpdate.banType === USER_BAN_TYPES.LIVE_MEDIA && !banType) {
       await createAdminAction(
