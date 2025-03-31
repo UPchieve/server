@@ -27,7 +27,6 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
-  createSessionMetrics,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -73,7 +72,6 @@ import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
-import { KeyNotFoundError } from '../cache'
 import { createSessionMetrics } from './SessionMetricsService'
 
 export async function reviewSession(data: unknown) {
