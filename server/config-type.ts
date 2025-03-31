@@ -290,6 +290,7 @@ export const Config = Record({
   awsChimeAccessKey: String,
   awsChimeSecretAccessKey: String,
   awsChimeRegion: String,
+  awsChimeMeetingRecordingBucket: String,
 
   // AWS Bedrock
   awsBedrockAccessKey: String,

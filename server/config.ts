@@ -450,6 +450,8 @@ const config: Static<typeof Config> = {
   awsChimeSecretAccessKey:
     process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
   awsChimeRegion: process.env.SUBWAY_AWS_CHIME_REGION || 'us-east-1',
+  awsChimeMeetingRecordingBucket:
+    process.env.SUBWAY_AWS_CHIME_MEETING_RECORDING_BUCKET || 'bogus',
 
   // AWS Bedrock
   awsBedrockAccessKey: process.env.SUBWAY_AWS_BEDROCK_ACCESS_KEY || 'bogus',

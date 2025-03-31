@@ -240,6 +240,9 @@ async function createMeetingWithAttendee({
     })
   )
 
+  console.log('created', created)
+  await AwsChimeService.startRecording(created.Meeting?.MeetingId!)
+
   if (!created.Meeting || !created.Attendees?.length)
     throw new Error(
       `Failed to create meeting for session ${sessionId} and attendee for user ${userId}`

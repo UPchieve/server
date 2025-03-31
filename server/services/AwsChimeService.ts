@@ -24,6 +24,16 @@ const createClient = (): ChimeSDKMeetingsClient => {
 
 let client: ChimeSDKMeetingsClient = createClient()
 
+export async function startRecording(meetingId: string) {
+  try {
+  } catch (error) {
+    logger.error(`Error starting recording for meetingID: ${meetingId}:`, {
+      error,
+      meetingId,
+    })
+  }
+}
+
 export async function startTranscription(meetingId: string) {
   try {
     const transcribeResponse = await getClient().send(
