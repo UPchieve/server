@@ -13,6 +13,7 @@ import {
   getMessagesForFrontend,
   getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
+  getSessionTranscriptItems,
 } from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
@@ -120,6 +121,135 @@ describe('Session repo', () => {
         '3',
         voiceMessageId, // for voice messages, the id is returned as the message
       ])
+    })
+  })
+
+  describe('getSessionTranscript', () => {
+    it('Returns the correct message type for each type of message', async () => {
+      const endedAt = moment().add(5, 'hours')
+      const sessionObject = await buildSessionRow({
+        studentId,
+        volunteerId,
+        endedAt: endedAt.toDate(),
+      })
+      const session = await insertSingleRow('sessions', sessionObject, dbClient)
+      // Student text message
+      const studentTextMessage = 'Hi, can you help me with homework?'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(studentId, session.id, {
+          senderId: studentId,
+          contents: studentTextMessage,
+          createdAt: moment().subtract(6, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Volunteer text message
+      const volunteerTextMessage = 'Sure, what are you working on?'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(volunteerId, session.id, {
+          senderId: volunteerId,
+          contents: volunteerTextMessage,
+          createdAt: moment().subtract(5, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Volunteer voice transcription
+      const volunteerVoiceTranscription = 'Can you hear me on the mic?'
+      await insertSingleRow(
+        'session_audio_transcript_messages',
+        buildSessionAudioTranscriptMessageRow(volunteerId, session.id, {
+          message: volunteerVoiceTranscription,
+          saidAt: moment().subtract(4, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Student voice transcription
+      const studentVoiceTranscription = 'Yup'
+      await insertSingleRow(
+        'session_audio_transcript_messages',
+        buildSessionAudioTranscriptMessageRow(studentId, session.id, {
+          message: studentVoiceTranscription,
+          saidAt: moment().subtract(3, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Volunteer DM
+      const volunteerDm = 'Do you still need help with this?'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(volunteerId, session.id, {
+          contents: volunteerDm,
+          createdAt: endedAt.add(1, 'minute').toDate(),
+        }),
+        dbClient
+      )
+
+      // Student DM
+      const studentDm = 'No thanks'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(studentId, session.id, {
+          contents: studentDm,
+          createdAt: endedAt.add(2, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      const actualTranscript = await getSessionTranscriptItems(session.id) // DMs happen after the session is over
+      const expectedTranscript = [
+        {
+          messageType: 'session_message',
+          message: studentTextMessage,
+          userId: studentId,
+          role: 'student',
+        },
+        {
+          messageType: 'session_message',
+          message: volunteerTextMessage,
+          userId: volunteerId,
+          role: 'volunteer',
+        },
+        {
+          messageType: 'transcription',
+          message: volunteerVoiceTranscription,
+          userId: volunteerId,
+          role: 'volunteer',
+        },
+        {
+          messageType: 'transcription',
+          message: studentVoiceTranscription,
+          userId: studentId,
+          role: 'student',
+        },
+        {
+          messageType: 'direct_message',
+          message: volunteerDm,
+          userId: volunteerId,
+          role: 'volunteer',
+        },
+        {
+          messageType: 'direct_message',
+          message: studentDm,
+          userId: studentId,
+          role: 'student',
+        },
+      ]
+
+      expect(actualTranscript.length).toEqual(6)
+      expect(
+        actualTranscript.map((item) => ({
+          messageType: item.messageType,
+          message: item.message,
+          userId: item.userId,
+          role: item.role,
+        }))
+      ).toEqual(expectedTranscript)
     })
   })
 })

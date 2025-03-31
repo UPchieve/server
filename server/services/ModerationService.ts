@@ -55,6 +55,7 @@ const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
+import { PrimaryUserRole } from './UserRolesService'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -862,12 +863,12 @@ export type oldClientModerationResult = boolean
 export async function moderateMessage({
   message,
   senderId,
-  isVolunteer,
+  userType,
   sessionId,
 }: {
   message: string
   senderId: string
-  isVolunteer: boolean
+  userType: PrimaryUserRole
   sessionId?: string
 }): Promise<oldClientModerationResult | ModerationFailureReasons> {
   const { isClean, failures } = regexModerate(message)
@@ -893,7 +894,7 @@ export async function moderateMessage({
     if (userTargetStatus === AI_MODERATION_STATE.targeted) {
       const response = await getAiModerationResult(
         censoredSessionMessage,
-        isVolunteer
+        userType === 'volunteer'
       )
       // Override the regex moderation decision with the AI one if it's available
       result.failures =
@@ -901,7 +902,7 @@ export async function moderateMessage({
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
       await createIndividualSessionMessageModerationJob({
         censoredSessionMessage,
-        isVolunteer,
+        isVolunteer: userType === 'volunteer',
       })
     }
 
@@ -914,7 +915,7 @@ export async function moderateMessage({
 
   const session = await SessionRepo.getSessionById(sessionId)
   const isDm = !!session.endedAt
-  if (!isDm) return isClean
+  if (!isDm) return { failures: {} }
   // For DMs, we'll moderate the context of the entire transcript to make sure the
   // conversation remains appropriate.
   const transcript = await SessionService.getSessionTranscript(sessionId)
@@ -930,13 +931,13 @@ export async function moderateMessage({
     (message) => message.includes(DIRECT_MESSAGE_TAG)
   )
   if (uncleanDms.length) {
-    const failures = {}
+    const failures = {} as Record<string, string[]>
     transcriptModerationResults.reasons.forEach((reason) => {
       failures[reason.toLowerCase().replace('_', ' ')] = []
     })
     return { failures }
   } else {
-    return isClean
+    return { failures: {} }
   }
 }
 
