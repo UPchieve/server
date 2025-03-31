@@ -71,7 +71,11 @@ export type VoiceMessage = {
   transcript: string
 }
 
-export type MessageType = 'chat' | 'voice_message' | 'transcription'
+export type MessageType =
+  | 'session_chat'
+  | 'voice_message'
+  | 'transcription'
+  | 'direct_message'
 export type SessionTranscriptItem = {
   messageId: string
   userId: string

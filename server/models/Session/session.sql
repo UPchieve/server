@@ -1333,8 +1333,10 @@ SELECT
     sender_id AS user_id,
     contents AS message,
     sm.created_at,
-    CASE WHEN TRUE THEN
-        'chat'
+    CASE WHEN sm.created_at > s.ended_at THEN
+        'direct_message'
+    ELSE
+        'session_message'
     END AS message_type,
     CASE WHEN s.volunteer_id = sm.sender_id THEN
         'volunteer'
