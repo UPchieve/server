@@ -146,41 +146,6 @@ tag_commit_production:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-# TODO: Clean-up.
-build:
-  stage: build
-  image: "docker:20.10.6"
-  cache: {}
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  services:
-    - docker:20.10.6-dind
-  script:
-    - |
-      if [[ -z "$CI_COMMIT_TAG" ]]; then
-        export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG}
-        export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_SHA}
-      else
-        export CI_APPLICATION_REPOSITORY=${CI_APPLICATION_REPOSITORY:-$CI_REGISTRY_IMAGE}
-        export CI_APPLICATION_TAG=${CI_APPLICATION_TAG:-$CI_COMMIT_TAG}
-      fi
-    - export image_tagged="$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-    - export image_cache="$CI_REGISTRY_IMAGE/cache-image:latest"
-    - export image_latest="$CI_APPLICATION_REPOSITORY:latest"
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - apk add --update curl tar
-    - (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.26.0/pack-v0.26.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
-    - |
-      pack build "$image_tagged" \
-        --creation-time now \
-        --builder heroku/buildpacks:20 \
-        --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
-        --buildpack heroku/nodejs@2.6.2 \
-        --buildpack heroku/procfile@0.6.2 \
-        --publish
-  rules:
-    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
 test_backend:
   stage: test
   image: node:20.10.0-bullseye
@@ -207,7 +172,7 @@ test_database:
       command: [ "postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "pg_stat_statements.track=all" ]
   variables:
     POSTGRES_USER: admin
-    POSTGRES_PASSWORD: Password123
+    POSTGRES_PASSWORD: Password123 # pragma: allowlist secret
     POSTGRES_DB: upchieve
     CI: "true"
     DB_PORT: 5432

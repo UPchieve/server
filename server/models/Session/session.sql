@@ -753,27 +753,6 @@ RETURNING
     id AS ok;
 
 
-/* @name getSessionForChatbot */
-SELECT
-    sessions.id,
-    subjects.name AS subject,
-    topics.name AS topic,
-    sessions.created_at,
-    sessions.ended_at,
-    sessions.volunteer_joined_at,
-    sessions.student_id AS student,
-    users.first_name AS student_first_name,
-    tool_types.name AS tool_type
-FROM
-    sessions
-    JOIN users ON sessions.student_id = users.id
-    LEFT JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN topics ON subjects.topic_id = topics.id
-    JOIN tool_types ON subjects.tool_type_id = tool_types.id
-WHERE
-    sessions.id = :sessionId!;
-
-
 /* @name insertNewMessage */
 INSERT INTO session_messages (id, sender_id, contents, session_id, created_at, updated_at)
     VALUES (:id!, :senderId!, :contents!, :sessionId!, NOW(), NOW())
@@ -1407,4 +1386,55 @@ WHERE
     svm.session_id = :sessionId!
 ORDER BY
     created_at ASC;
+
+
+/* @name createSessionMetrics */
+INSERT INTO session_metrics (session_id)
+    VALUES (:sessionId!)
+RETURNING
+    session_id AS ok;
+
+
+/* @name updateSessionMetrics */
+UPDATE
+    session_metrics
+SET
+    absent_student = COALESCE(:absentStudent, absent_student),
+    absent_volunteer = COALESCE(:absentVolunteer, absent_volunteer),
+    low_session_rating_from_coach = COALESCE(:lowSessionRatingFromCoach, low_session_rating_from_coach),
+    low_session_rating_from_student = COALESCE(:lowSessionRatingFromStudent, low_session_rating_from_student),
+    low_coach_rating_from_student = COALESCE(:lowCoachRatingFromStudent, low_coach_rating_from_student),
+    only_looking_for_answers = COALESCE(:onlyLookingForAnswers, only_looking_for_answers),
+    rude_or_inappropriate = COALESCE(:rudeOrInappropriate, rude_or_inappropriate),
+    comment_from_student = COALESCE(:commentFromStudent, comment_from_student),
+    comment_from_volunteer = COALESCE(:commentFromVolunteer, comment_from_volunteer),
+    has_been_unmatched = COALESCE(:hasBeenUnmatched, has_been_unmatched),
+    has_had_technical_issues = COALESCE(:hasHadTechnicalIssues, has_had_technical_issues),
+    personal_identifying_info = COALESCE(:personalIdentifyingInfo, personal_identifying_info),
+    graded_assignment = COALESCE(:gradedAssignment, graded_assignment),
+    coach_uncomfortable = COALESCE(:coachUncomfortable, coach_uncomfortable),
+    student_crisis = COALESCE(:studentCrisis, student_crisis),
+    reported = COALESCE(:reported, reported),
+    updated_at = NOW()
+WHERE
+    session_id = :sessionId!
+RETURNING
+    session_id,
+    absent_student,
+    absent_volunteer,
+    low_session_rating_from_coach,
+    low_session_rating_from_student,
+    low_coach_rating_from_student,
+    only_looking_for_answers,
+    rude_or_inappropriate,
+    comment_from_student,
+    comment_from_volunteer,
+    has_been_unmatched,
+    has_had_technical_issues,
+    reported,
+    personal_identifying_info,
+    graded_assignment,
+    coach_uncomfortable,
+    student_crisis,
+    created_at;
 
