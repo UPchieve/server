@@ -35,7 +35,6 @@ export type ClientToServerEvents = {
     sessionId: Ulid
     range: { index: number; length: number }
   }) => void
-  resetWhiteboard: (data: { sessionId: Ulid }) => void
   'sessions:leave': (data: { sessionId: Ulid }) => void
   'sessions/recap:leave': (data: { sessionId: Ulid }) => void
 }
@@ -59,8 +58,13 @@ export type ServerToClientEvents = {
   quillPartnerSelection: (data: {
     range: { index: number; length: number }
   }) => void
-  resetWhiteboard: () => void
   'session-change': (data: CurrentSession | undefined) => void
+  'moderation-infraction': (data: {
+    isBanned: boolean
+    infraction: string[]
+    source: string
+    occurredAt: Date
+  }) => void
 }
 
 export type InterServerEvents = {}

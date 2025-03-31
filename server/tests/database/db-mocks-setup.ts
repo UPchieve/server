@@ -8,3 +8,8 @@ const mockedClient = mocked(PgClient)
 mockedClient.getClient.mockReturnValue(global.__TEST_DB_CLIENT__)
 // @ts-ignore
 mockedClient.getRoClient.mockReturnValue(global.__TEST_DB_CLIENT__)
+
+mockedClient.runInTransaction.mockImplementation(async (cb) => {
+  // @ts-ignore
+  return cb(global.__TEST_DB_CLIENT__)
+})
