@@ -14,6 +14,7 @@ import {
   USER_BAN_REASONS,
   USER_BAN_TYPES,
   USER_ROLES,
+  UserSessionFlags,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
@@ -62,7 +63,6 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
-  isChatBotEnabled,
   isUpdatedSessionEndedProcessingEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
@@ -73,7 +73,6 @@ import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
-import { KeyNotFoundError } from '../cache'
 import {
   createSessionMetrics,
   processReportMetrics,
@@ -125,7 +124,7 @@ export async function getTimeTutoredForDateRange(
 
 export async function handleDmReporting(
   sessionId: Ulid,
-  sessionFlags: USER_SESSION_METRICS[]
+  sessionFlags: UserSessionFlags[]
 ): Promise<void> {
   await updateSessionFlagsById(sessionId, sessionFlags)
   await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
@@ -173,8 +172,8 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 
     if (source === 'recap') {
       const sessionFlags = isSessionVolunteer
-        ? [USER_SESSION_METRICS.coachReportedStudentDm]
-        : [USER_SESSION_METRICS.studentReportedCoachDm]
+        ? [UserSessionFlags.coachReportedStudentDm]
+        : [UserSessionFlags.studentReportedCoachDm]
       handleDmReporting(sessionId, sessionFlags)
     }
   }
@@ -637,14 +636,6 @@ export async function startSession(
       { delay, removeOnComplete: true, removeOnFail: true }
     )
 
-    // Begin chat bot messages immediately.
-    if (isChatBotEnabled())
-      await QueueService.add(
-        Jobs.Chatbot,
-        { sessionId: newSessionId },
-        { removeOnComplete: true, removeOnFail: true }
-      )
-
     await createSessionAction(
       {
         userId: user.id,
@@ -854,8 +845,7 @@ export async function saveMessage(
     message: string
     type?: SessionMessageType
     saidAt?: Date // @TODO Improve typing to handle different types of messages
-  },
-  chatbot: Ulid | undefined
+  }
 ): Promise<string> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
@@ -863,8 +853,7 @@ export async function saveMessage(
     !sessionUtils.isSessionParticipant(
       session.studentId,
       session.volunteerId,
-      asString(user._id),
-      chatbot || null
+      asString(user._id)
     )
   )
     throw new Error('Only session participants are allowed to send messages')
@@ -968,25 +957,6 @@ export async function volunteersAvailableForSession(
   )
 
   return volunteers.length > 0
-}
-
-export async function handleMessageActivity(sessionId: Ulid): Promise<void> {
-  try {
-    const state = await cache.get(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
-    if (Boolean(state)) {
-      await QueueService.add(
-        Jobs.Chatbot,
-        { sessionId },
-        { removeOnComplete: true, removeOnFail: true }
-      )
-      await cache.remove(`${SESSION_ACTIVITY_KEY}-${sessionId}`)
-    }
-  } catch (err) {
-    // TODO: cancel chatbot jobs here
-    logger.error(
-      `Could not process message acitvity state, cancelling chatbot ${err}`
-    )
-  }
 }
 
 export const asSessionHistoryFilter = asFactory<SessionHistoryFilter>({
@@ -1197,4 +1167,10 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
+}
+export async function updateSessionMetrics(
+  sessionId: Uuid,
+  metrics: Partial<SessionRepo.SessionMetrics>
+): Promise<SessionRepo.SessionMetrics> {
+  return SessionRepo.updateSessionMetrics(sessionId, metrics)
 }

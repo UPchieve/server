@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { runInTransaction, TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import { InputError } from '../models/Errors'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsService from './AssignmentsService'
@@ -225,7 +225,8 @@ export async function adminUpdateTeacher(
     banType?: USER_BAN_TYPES
     banReason?: USER_BAN_REASONS
     schoolId?: string
-  }
+  },
+  tc?: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
     await UserRepo.adminUpdateUser(teacherId, updateData, tc)
@@ -268,7 +269,7 @@ export async function adminUpdateTeacher(
         })
       )
     }
-  })
+  }, tc ?? getClient())
 }
 
 export async function updateLastSuccessfulCleverSync(

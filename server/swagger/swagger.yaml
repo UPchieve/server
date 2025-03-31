@@ -121,8 +121,8 @@ paths:
       responses:
         '200':
           description: >
-            Authenticates the user with a session if credentials are correct and returns a user object. 
-            The session ID is returned in a cookie named `connect.sid` which should be provided in subsequent requests that use cookie authentication. 
+            Authenticates the user with a session if credentials are correct and returns a user object.
+            The session ID is returned in a cookie named `connect.sid` which should be provided in subsequent requests that use cookie authentication.
         '401':
           description: Unsuccessful authentication of user credentials
   /auth/logout:
@@ -1230,7 +1230,7 @@ paths:
       description: gets a paginated list of sessions for session history
       security:
         - cookieAuth: []
-      parameters: 
+      parameters:
         - $ref: '#/components/parameters/Page'
       responses:
         '200':
@@ -1293,7 +1293,7 @@ paths:
         '200':
           description: Boolean returned to indicate if the student has the volunteer favorited or not
     post:
-      tags: 
+      tags:
         - students
       summary: Updates the volunteer's favorited status
       description: |
@@ -1303,7 +1303,7 @@ paths:
       security:
         - cookieAuth: []
         - csrfTokenAuth: []
-      parameters: 
+      parameters:
         - name: volunteerId
           in: path
           required: true
@@ -1322,20 +1322,20 @@ paths:
                   $ref: '#/components/schemas/IsFavorite'
                 sessionId:
                   $ref: '#/components/schemas/SessionId'
-      responses: 
-        '200': 
+      responses:
+        '200':
           description: |
             - Successfully updated the volunteer's favorited status
             - Returns a boolean indicating if the volunteer is now favorited or not for this student
-          content: 
-            applicaton/json: 
+          content:
+            applicaton/json:
               schema:
                 type: object
                 items:
                   $ref: '#/components/schemas/IsFavorite'
               example:
                 isFavorite: true
-        '400': 
+        '400':
           description: |
             - Favorite volunteer limit reached
             - Student cannot favorite any more volunteers
@@ -2164,7 +2164,7 @@ paths:
       security:
         - cookieAuth: []
         - csrfTokenAuth: []
-      parameters: 
+      parameters:
         - name: id
           in: path
           required: true
@@ -2586,27 +2586,6 @@ paths:
       responses:
         '200':
           description: Returns an object of user details
-  /whiteboard/reset:
-    post:
-      tags:
-        - whiteboard
-      summary:  Resets whiteboard
-      security:
-        - cookieAuth: []
-        - csrfTokenAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                sessionId:
-                  $ref: '#/components/schemas/SessionId'
-                  example: 0185accc-81f4-96ed-eb3e-f9e3067b4328
-      responses:
-        '200':
-          description: OK
   /edu:
     get:
       tags:
@@ -2770,15 +2749,15 @@ paths:
                 category: algebraOne
                 subcategory: factoring
                 correctAnswer: d
-                questionText: Do you enjoy factoring polynomials? 
+                questionText: Do you enjoy factoring polynomials?
                 possibleAnswers:
-                  - txt: Yes. 
+                  - txt: Yes.
                     val: a
-                  - txt: No. 
+                  - txt: No.
                     val: b
-                  - txt: Sometimes. 
+                  - txt: Sometimes.
                     val: c
-                  - txt: It's what drives me. 
+                  - txt: It's what drives me.
                     val: d
       responses:
         '200':
@@ -2948,7 +2927,7 @@ paths:
     get:
       tags:
         - progress-reports
-      summary: Gets progress report overview subject stats 
+      summary: Gets progress report overview subject stats
       security:
         - cookieAuth: []
       responses:
@@ -3009,7 +2988,7 @@ components:
     IsVolunteer:
       type: boolean
       example: false
-    IsFavorite: 
+    IsFavorite:
       type: boolean
       example: true
     Password:
@@ -3129,7 +3108,7 @@ components:
         - firstName
         - lastName
         - phone
-        - terms 
+        - terms
   requestBodies:
     EmailPassword:
       description: |
@@ -3139,7 +3118,7 @@ components:
           schema:
             type: object
             properties:
-              email: 
+              email:
                 $ref: '#/components/schemas/Email'
               password:
                 $ref: '#/components/schemas/Password'

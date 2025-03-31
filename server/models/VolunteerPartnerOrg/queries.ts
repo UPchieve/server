@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -43,7 +43,7 @@ export async function getFullVolunteerPartnerOrgByKey(
 
 export async function getVolunteerPartnerOrgIdByKey(
   volunteerPartnerOrg: string,
-  poolClient?: PoolClient
+  poolClient?: TransactionClient
 ): Promise<Ulid | undefined> {
   const client = poolClient ? poolClient : getClient()
   try {
