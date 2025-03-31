@@ -20,8 +20,17 @@ import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
 import config from '../config'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
-import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
-import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
+import {
+  USER_BAN_REASONS,
+  USER_BAN_TYPES,
+  UserSessionFlags,
+} from '../constants'
+import {
+  SessionTranscript,
+  SessionTranscriptItem,
+  updateSessionFlagsById,
+  updateSessionReviewReasonsById,
+} from '../models/Session'
 import {
   RekognitionClient,
   DetectModerationLabelsCommand,
@@ -43,7 +52,7 @@ import { invokeModel } from './AwsBedrockService'
 const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
-import { getClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -1174,7 +1183,10 @@ export type TranscriptChunkModerationResult = {
 }
 export const moderateTranscript = async (
   transcript: SessionTranscript
-): Promise<TranscriptChunkModerationResult[]> => {
+): Promise<{
+  reasons: ModerationSessionReviewFlagReason[]
+  flaggedMessages: string[]
+}> => {
   const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
     return chunk.reduce((acc: string, item) => {
       const messageTag =
@@ -1224,7 +1236,53 @@ export const moderateTranscript = async (
   ) {
     t.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
   }
-  return results
+
+  const confidenceThreshold = config.contextualModerationConfidenceThreshold
+  const flaggedChunks = results.filter(
+    (chunk) => chunk.confidence >= confidenceThreshold
+  )
+  const flagReasons = new Set<ModerationSessionReviewFlagReason>(
+    flaggedChunks.flatMap((chunk) => chunk.reasons)
+  )
+  return {
+    reasons: Array.from(flagReasons),
+    flaggedMessages: flaggedChunks.flatMap((chunk) => chunk.flaggedMessages),
+  }
+}
+
+export function getSessionFlag(
+  reason: ModerationSessionReviewFlagReason | string
+): UserSessionFlags {
+  let flag = UserSessionFlags.generalModerationIssue
+  switch (reason) {
+    case 'PII':
+      flag = UserSessionFlags.pii
+      break
+    case 'INAPPROPRIATE_CONTENT':
+      flag = UserSessionFlags.inappropriateConversation
+      break
+    case 'PLATFORM_CIRCUMVENTION':
+      flag = UserSessionFlags.platformCircumvention
+      break
+    case 'HATE_SPEECH':
+      flag = UserSessionFlags.hateSpeech
+      break
+    case 'SAFETY':
+      flag = UserSessionFlags.safetyConcern
+      break
+  }
+  return flag
+}
+
+export async function markSessionForReview(
+  sessionId: string,
+  sessionFlags: UserSessionFlags[],
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  await runInTransaction(async (tc: TransactionClient) => {
+    await updateSessionFlagsById(sessionId, sessionFlags)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
+  })
 }
 
 export const FALLBACK_MODERATION_PROMPT = `
