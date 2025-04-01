@@ -21,6 +21,7 @@ import {
 } from '../models/Assignments'
 import * as AzureService from './AzureService'
 import config from '../config'
+import * as cache from '../cache'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -141,7 +142,7 @@ export async function getAssignmentsByClassId(
 
 export async function getAssignmentById(
   assignmentId: Ulid
-): Promise<AssignmentsRepo.CreateAssignmentInput | undefined> {
+): Promise<AssignmentsRepo.Assignment | undefined> {
   return AssignmentsRepo.getAssignmentById(assignmentId)
 }
 
@@ -373,4 +374,11 @@ export async function getAssignmentDocuments(assignmentId: Ulid) {
     config.assignmentsStorageContainer,
     `${assignmentId}`
   )
+}
+
+export async function isGettingStartedAssignment(
+  assignmentId: Uuid
+): Promise<boolean> {
+  const members = await cache.smembers('getting-started-assignments')
+  return members.includes(assignmentId)
 }
