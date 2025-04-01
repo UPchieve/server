@@ -1,6 +1,6 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import * as AnalyticsService from './AnalyticsService'
 import { TUTOR_BOT_MODELS } from './TutorBotService'
@@ -161,4 +161,8 @@ export async function getTutorBotSubjectModelsPayload(
 
 export async function isTremendousEmbeddedRewardsEnabled(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
+}
+
+export async function isTeacherGettingStartedEnabled(userId: Uuid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.TEACHER_GETTING_STARTED, userId)
 }
