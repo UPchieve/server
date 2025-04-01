@@ -71,12 +71,16 @@ async function handleNoExistingMeeting(
   const attendee = created.attendee
 
   try {
-    await SessionMeetingsRepo.insertSessionMeeting(
+    const { id } = await SessionMeetingsRepo.insertSessionMeeting(
       sessionId,
       meeting.MeetingId!,
       'chime',
       tc
     )
+    const recordingId = await AwsChimeService.startRecording(meeting.MeetingId!)
+
+    console.log('recordingId!!!!!!!!!!!!', recordingId)
+
     return { meeting, attendee, partnerAttendee: null }
   } catch (err) {
     if (err instanceof RepoCreateError) {
@@ -216,7 +220,10 @@ async function createMeetingWithAttendee({
 }: {
   sessionId: string
   userId: string
-}): Promise<{ meeting: Meeting; attendee: Attendee }> {
+}): Promise<{
+  meeting: Meeting
+  attendee: Attendee
+}> {
   const client = AwsChimeService.getClient()
   const createMeetingReq = {
     MediaRegion: 'us-east-1',
@@ -239,8 +246,6 @@ async function createMeetingWithAttendee({
       ...createAttendeeReq,
     })
   )
-
-  await AwsChimeService.startRecording(created.Meeting?.MeetingId!)
 
   if (!created.Meeting || !created.Attendees?.length)
     throw new Error(

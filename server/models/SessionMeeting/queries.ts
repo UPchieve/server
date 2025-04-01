@@ -26,6 +26,25 @@ export async function insertSessionMeeting(
   }
 }
 
+export async function addRecordingIdToSessionMeeting(
+  id: string,
+  recordingId: string,
+  client?: TransactionClient
+): Promise<SessionMeeting> {
+  try {
+    const result = await pgQueries.addRecordingIdToSessionMeeting.run(
+      {
+        id,
+        recordingId,
+      },
+      client ?? getClient()
+    )
+    return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
 export async function getSessionMeetingBySessionId(
   sessionId: string,
   client?: TransactionClient
