@@ -240,7 +240,6 @@ async function createMeetingWithAttendee({
     })
   )
 
-  console.log('created', created)
   await AwsChimeService.startRecording(created.Meeting?.MeetingId!)
 
   if (!created.Meeting || !created.Attendees?.length)

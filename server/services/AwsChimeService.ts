@@ -3,6 +3,12 @@ import {
   StartMeetingTranscriptionCommand,
   StopMeetingTranscriptionCommand,
 } from '@aws-sdk/client-chime-sdk-meetings'
+import {
+  ChimeSDKMediaPipelinesClient,
+  CreateMediaCapturePipelineCommand,
+  CreateMediaCapturePipelineCommandInput,
+  CreateMediaCapturePipelineCommandOutput,
+} from '@aws-sdk/client-chime-sdk-media-pipelines'
 import logger from '../logger'
 
 import config from '../config'
@@ -24,13 +30,60 @@ const createClient = (): ChimeSDKMeetingsClient => {
 
 let client: ChimeSDKMeetingsClient = createClient()
 
+export function getMediaPipelinesClient() {
+  if (!mediaPipelinesClient) mediaPipelinesClient = createMediaPipelinesClient()
+  return mediaPipelinesClient
+}
+
+const createMediaPipelinesClient = (): ChimeSDKMediaPipelinesClient => {
+  return new ChimeSDKMediaPipelinesClient({
+    region: config.awsChimeRegion,
+    credentials: {
+      accessKeyId: config.awsChimeAccessKey,
+      secretAccessKey: config.awsChimeSecretAccessKey,
+    },
+  })
+}
+
+let mediaPipelinesClient: ChimeSDKMediaPipelinesClient =
+  createMediaPipelinesClient()
+
 export async function startRecording(meetingId: string) {
+  const createPipelineParams: CreateMediaCapturePipelineCommandInput = {
+    ChimeSdkMeetingConfiguration: {
+      ArtifactsConfiguration: {
+        Audio: { MuxType: 'AudioOnly' },
+        CompositedVideo: {
+          GridViewConfiguration: {
+            ContentShareLayout: 'PresenterOnly',
+          },
+          Layout: 'GridView',
+          Resolution: 'FHD',
+        },
+        Content: { State: 'Disabled' },
+        Video: { State: 'Disabled' },
+      },
+    },
+    SinkArn: config.awsChimeMeetingRecordingBucketArn,
+    SinkType: 'S3Bucket',
+    SourceArn: `arn:aws:chime::${config.awsAccountId}:meeting:${meetingId}`,
+    SourceType: 'ChimeSdkMeeting',
+    Tags: [{ Key: 'transcription-for-comprehend', Value: 'true' }],
+  }
   try {
+    const createMediaCapturePipelineResponse: CreateMediaCapturePipelineCommandOutput =
+      await getMediaPipelinesClient().send(
+        new CreateMediaCapturePipelineCommand(createPipelineParams)
+      )
+    return createMediaCapturePipelineResponse.MediaCapturePipeline
+      ?.MediaPipelineArn
   } catch (error) {
+    logger.error(error)
     logger.error(`Error starting recording for meetingID: ${meetingId}:`, {
       error,
       meetingId,
     })
+    return false
   }
 }
 
