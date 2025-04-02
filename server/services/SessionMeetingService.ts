@@ -78,8 +78,14 @@ async function handleNoExistingMeeting(
       tc
     )
     const recordingId = await AwsChimeService.startRecording(meeting.MeetingId!)
-
-    console.log('recordingId!!!!!!!!!!!!', recordingId)
+    if (!recordingId) {
+      throw new Error(`Failed to start recording for session ${sessionId}`)
+    }
+    await SessionMeetingsRepo.addRecordingIdToSessionMeeting(
+      id,
+      recordingId,
+      tc
+    )
 
     return { meeting, attendee, partnerAttendee: null }
   } catch (err) {

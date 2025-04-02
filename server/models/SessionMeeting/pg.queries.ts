@@ -78,22 +78,40 @@ const insertSessionMeetingIR: any = {"usedParamSet":{"id":true,"externalId":true
 export const insertSessionMeeting = new PreparedQuery<IInsertSessionMeetingParams,IInsertSessionMeetingResult>(insertSessionMeetingIR);
 
 
-/** Query 'AddRecordingIdToSessionMeeting' is invalid, so its result is assigned type 'never'.
- *  */
-export type IAddRecordingIdToSessionMeetingResult = never;
+/** 'AddRecordingIdToSessionMeeting' parameters type */
+export interface IAddRecordingIdToSessionMeetingParams {
+  id: string;
+  recordingId: string;
+}
 
-/** Query 'AddRecordingIdToSessionMeeting' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IAddRecordingIdToSessionMeetingParams = never;
+/** 'AddRecordingIdToSessionMeeting' return type */
+export interface IAddRecordingIdToSessionMeetingResult {
+  createdAt: Date;
+  externalId: string;
+  id: string;
+  provider: string;
+  recordingId: string | null;
+  sessionId: string;
+  updatedAt: Date;
+}
 
-const addRecordingIdToSessionMeetingIR: any = {"usedParamSet":{"recordingId":true,"id":true},"params":[{"name":"recordingId","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":55}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]}],"statement":"UPDATE session_meetings\nSET recording_id = :recordingId!\nWHERE id = :id!\nRETURNING\n    *"};
+/** 'AddRecordingIdToSessionMeeting' query type */
+export interface IAddRecordingIdToSessionMeetingQuery {
+  params: IAddRecordingIdToSessionMeetingParams;
+  result: IAddRecordingIdToSessionMeetingResult;
+}
+
+const addRecordingIdToSessionMeetingIR: any = {"usedParamSet":{"recordingId":true,"id":true},"params":[{"name":"recordingId","required":true,"transform":{"type":"scalar"},"locs":[{"a":51,"b":63}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":80,"b":83}]}],"statement":"UPDATE\n    session_meetings\nSET\n    recording_id = :recordingId!\nWHERE\n    id = :id!\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
  * ```
- * UPDATE session_meetings
- * SET recording_id = :recordingId!
- * WHERE id = :id!
+ * UPDATE
+ *     session_meetings
+ * SET
+ *     recording_id = :recordingId!
+ * WHERE
+ *     id = :id!
  * RETURNING
  *     *
  * ```

@@ -15,8 +15,12 @@ RETURNING
 
 
 /* @name addRecordingIdToSessionMeeting */
-UPDATE session_meetings
-SET recording_id = :recordingId!
-WHERE id = :id!
+UPDATE
+    session_meetings
+SET
+    recording_id = :recordingId!
+WHERE
+    id = :id!
 RETURNING
     *;
+
