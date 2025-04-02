@@ -4,6 +4,7 @@ import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import multer from 'multer'
+import logger from '../../logger'
 
 export function routeModeration(router: Router): void {
   const upload = multer()
@@ -68,6 +69,7 @@ export function routeModeration(router: Router): void {
         return res.status(400).json({ err: 'No file was attached' })
       }
 
+      logger.info(`Moderating video frame for session ${sessionId}`)
       try {
         ModerationService.moderateImage({
           image: frameToModerate.buffer,
