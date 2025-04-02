@@ -1,7 +1,7 @@
-import { Ulid } from '../models/pgUtils'
+import { Ulid } from '../../models/pgUtils'
 import { Job } from 'bull'
-import * as SessionService from '../services/SessionService'
-import * as ModerationService from '../services/ModerationService'
+import * as SessionService from '../../services/SessionService'
+import * as ModerationService from '../../services/ModerationService'
 
 export interface ModerateSessionTranscriptJobData {
   sessionId: Ulid
@@ -16,10 +16,10 @@ export default async function moderateSessionTranscript(
     )
     const moderationResults =
       await ModerationService.moderateTranscript(transcript)
-    const sessionFlags = Array.from(moderationResults.reasons).map((r) =>
-      ModerationService.getSessionFlagByModerationReason(r)
-    )
     if (moderationResults.reasons.length) {
+      const sessionFlags = moderationResults.reasons.map((r) =>
+        ModerationService.getSessionFlagByModerationReason(r)
+      )
       await ModerationService.markSessionForReview(
         job.data.sessionId,
         sessionFlags

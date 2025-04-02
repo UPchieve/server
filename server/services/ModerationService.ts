@@ -1,8 +1,8 @@
 import logger from '../logger'
 import { chunk, isEmpty } from 'lodash'
 import {
-  CensoredSessionMessage,
   CENSORED_BY,
+  CensoredSessionMessage,
   createCensoredMessage,
 } from '../models/CensoredSessionMessage'
 import QueueService from './QueueService'
@@ -11,14 +11,20 @@ import { openai } from './BotsService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
 import {
+  SessionTranscript,
+  SessionTranscriptItem,
+  updateSessionFlagsById,
+  updateSessionReviewReasonsById,
+} from '../models/Session'
+import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
+import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import * as SessionService from './SessionService'
 import { TextPromptClient } from 'langfuse-core'
-import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
 import SocketService from './SocketService'
 import config from '../config'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
@@ -28,18 +34,12 @@ import {
   UserSessionFlags,
 } from '../constants'
 import {
-  SessionTranscript,
-  SessionTranscriptItem,
-  updateSessionFlagsById,
-  updateSessionReviewReasonsById,
-} from '../models/Session'
-import {
-  RekognitionClient,
-  DetectModerationLabelsCommand,
-  ModerationLabel,
-  DetectLabelsCommand,
   DetectFacesCommand,
+  DetectLabelsCommand,
+  DetectModerationLabelsCommand,
   DetectTextCommand,
+  ModerationLabel,
+  RekognitionClient,
 } from '@aws-sdk/client-rekognition'
 import {
   ComprehendClient,
@@ -50,12 +50,12 @@ import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
 import { invokeModel } from './AwsBedrockService'
-
-const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
+
+const MINOR_AGE_THRESHOLD = 18
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -1283,25 +1283,20 @@ export const moderateTranscript = async (
 export function getSessionFlagByModerationReason(
   reason: ModerationSessionReviewFlagReason | string
 ): UserSessionFlags {
-  let flag = UserSessionFlags.generalModerationIssue
   switch (reason) {
     case 'PII':
-      flag = UserSessionFlags.pii
-      break
+      return UserSessionFlags.pii
     case 'INAPPROPRIATE_CONTENT':
-      flag = UserSessionFlags.inappropriateConversation
-      break
+      return UserSessionFlags.inappropriateConversation
     case 'PLATFORM_CIRCUMVENTION':
-      flag = UserSessionFlags.platformCircumvention
-      break
+      return UserSessionFlags.platformCircumvention
     case 'HATE_SPEECH':
-      flag = UserSessionFlags.hateSpeech
-      break
+      return UserSessionFlags.hateSpeech
     case 'SAFETY':
-      flag = UserSessionFlags.safetyConcern
-      break
+      return UserSessionFlags.safetyConcern
+    default:
+      return UserSessionFlags.generalModerationIssue
   }
-  return flag
 }
 
 export async function markSessionForReview(

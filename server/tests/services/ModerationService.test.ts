@@ -8,6 +8,7 @@ import {
   handleModerationInfraction,
   getScoreForCategory,
   LiveMediaModerationCategories,
+  getSessionFlagByModerationReason,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -20,6 +21,7 @@ import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
 import * as SessionRepo from '../../models/Session'
 import SocketService from '../../services/SocketService'
+import { UserSessionFlags } from '../../constants'
 
 jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
@@ -648,6 +650,20 @@ describe('ModerationService', () => {
 
       expect(moderatedLinks).toStrictEqual(disallowedLinks)
       expect(moderatedLinks.length).toStrictEqual(disallowedLinks.length)
+    })
+  })
+
+  describe('getSessionFlagByModerationReason', () => {
+    it.each([
+      [UserSessionFlags.pii, 'PII'],
+      [UserSessionFlags.inappropriateConversation, 'INAPPROPRIATE_CONTENT'],
+      [UserSessionFlags.platformCircumvention, 'PLATFORM_CIRCUMVENTION'],
+      [UserSessionFlags.hateSpeech, 'HATE_SPEECH'],
+      [UserSessionFlags.safetyConcern, 'SAFETY'],
+      [UserSessionFlags.generalModerationIssue, 'anything else'],
+      [UserSessionFlags.generalModerationIssue, ''],
+    ])('Returns flag %s for reason %s', (expected, reason) => {
+      expect(getSessionFlagByModerationReason(reason)).toEqual(expected)
     })
   })
 })
