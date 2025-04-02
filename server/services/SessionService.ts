@@ -8,19 +8,17 @@ import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
   HOURS_UTC,
-  SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
   USER_BAN_REASONS,
   USER_BAN_TYPES,
-  USER_ROLES,
   UserSessionFlags,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
 import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
-import { DAYS } from '../constants'
+import { DAYS, USER_ROLES } from '../constants'
 import { LookupError, NotAllowedError } from '../models/Errors'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
@@ -71,8 +69,11 @@ import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
+import { getFeedbackBySessionId } from '../models/Feedback/queries'
+import { getPresessionSurveyResponse } from '../models/Survey'
+import { getSessionNotificationsWithSessionId } from '../models/Notification'
+import { getPostsessionSurveyResponse } from './SurveyService'
 import { getSessionRating } from '../models/Survey'
-import { KeyNotFoundError } from '../cache'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -313,8 +314,7 @@ export async function processCalculateMetrics(sessionId: Ulid) {
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
-  const session =
-    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  const session = await getSessionByIdWithStudentAndVolunteer(sessionId)
   const fifteenMinutes = 1000 * 60 * 15
   const isLongSession = session.timeTutored
     ? session.timeTutored >= fifteenMinutes
@@ -524,8 +524,7 @@ export async function adminFilteredSessions(data: unknown) {
 
 export async function adminSessionView(data: unknown) {
   const sessionId = asString(data)
-  const session =
-    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  const session = await getSessionByIdWithStudentAndVolunteer(sessionId)
 
   if (
     sessionUtils.isSubjectUsingDocumentEditor(session.toolType) &&
@@ -1150,5 +1149,46 @@ export async function getSessionTranscript(
   return {
     sessionId,
     messages,
+  }
+}
+
+export async function getSessionByIdWithStudentAndVolunteer(
+  sessionId: Ulid
+): Promise<SessionRepo.SessionByIdWithStudentAndVolunteer> {
+  const session = await SessionRepo.getSessionForAdminView(sessionId)
+  const userAgent = await SessionRepo.getSessionUserAgent(sessionId)
+
+  const { student, volunteer } = await SessionRepo.getSessionUsers(
+    session.id,
+    session.studentId,
+    session.volunteerId
+  )
+  const messages = await SessionRepo.getMessagesForFrontend(sessionId)
+  const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
+  const presessionSurvey = await getPresessionSurveyResponse(sessionId)
+  const studentPostsessionSurvey = await getPostsessionSurveyResponse(
+    sessionId,
+    USER_ROLES.STUDENT
+  )
+  const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(
+    sessionId,
+    USER_ROLES.VOLUNTEER
+  )
+  const notifications = await getSessionNotificationsWithSessionId(sessionId)
+
+  return {
+    ...session,
+    student,
+    volunteer,
+    messages,
+    feedbacks,
+    surveyResponses: {
+      presessionSurvey,
+      studentPostsessionSurvey,
+      volunteerPostsessionSurvey,
+    },
+    _id: session.id,
+    userAgent,
+    notifications,
   }
 }

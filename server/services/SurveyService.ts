@@ -186,70 +186,6 @@ export function parseUserRole(param: string) {
   return cleanedInput
 }
 
-async function getReplacementColumnOptions(sessionId: Ulid): Promise<{
-  studentName: string
-  coachName: string
-  subjectName: string
-  studentGoal: string
-}> {
-  // Get the replacement column options.
-  const session = await SessionRepo.getSessionById(sessionId)
-  const studentName =
-    (await UserService.getUserContactInfo(session.studentId))?.firstName ?? ''
-
-  let coachName: string = ''
-  if (session.volunteerId) {
-    coachName =
-      (await UserService.getUserContactInfo(session.volunteerId))?.firstName ??
-      ''
-  }
-
-  const subjectName = session.subjectDisplayName
-  const studentGoal =
-    (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
-
-  return {
-    studentName,
-    coachName,
-    subjectName,
-    studentGoal,
-  }
-}
-
-function getReplacementText(
-  replacementColumn: string | null | undefined,
-  replacementColumns: {
-    studentName: string
-    coachName: string
-    subjectName: string
-    studentGoal: string
-  }
-): string {
-  if (!replacementColumn) return ''
-
-  switch (replacementColumn) {
-    case 'student_name':
-      return replacementColumns.studentName
-    case 'coach_name':
-      return replacementColumns.coachName
-    case 'subject_name':
-      return replacementColumns.subjectName
-    case 'student_goal':
-      return replacementColumns.studentGoal
-    default:
-      return ''
-  }
-}
-
-// We wouldn't have a student goal if the student didn't fill out a pre-session survey.
-function skipQuestion(
-  studentGoal: string,
-  first?: string,
-  second?: string
-): boolean {
-  return (first === 'student_goal' || second === 'student_goal') && !studentGoal
-}
-
 export async function getPostsessionSurveyDefinition(
   sessionId: Ulid,
   userRole: USER_ROLES_TYPE
@@ -351,7 +287,7 @@ export async function getLatestUserSubmissionsForSurveyId(
 
 type PostsessionSurveyResponses = Omit<
   PostsessionSurveyResponse,
-  'replacementColumnOne' | 'replacementColumnTwo'
+  'replacementColumnOne' | 'replacementColumnTwo' | 'questionText'
 > & {
   displayLabel: string
 }
@@ -367,20 +303,22 @@ export async function getPostsessionSurveyResponse(
     userRole
   )
 
-  return surveyResponses.map((response) => {
-    let displayLabel = response.questionText
+  const responses: PostsessionSurveyResponses[] = []
 
-    if (displayLabel.includes('{0}') || displayLabel.includes('{1}')) {
-      const replacement1 = response.replacementColumnOne
-        ? getReplacementText(response.replacementColumnOne, replacementColumns)
-        : null
-      const replacement2 = response.replacementColumnTwo
-        ? getReplacementText(response.replacementColumnTwo, replacementColumns)
-        : null
+  for (const response of surveyResponses) {
+    let displayLabel = response.questionText || ''
 
-      if (replacement1) displayLabel = displayLabel.replace('{0}', replacement1)
-      if (replacement2) displayLabel = displayLabel.replace('{1}', replacement2)
-    } else if (displayLabel.includes('%s')) {
+    if (
+      skipQuestion(
+        replacementColumns.studentGoal,
+        response.replacementColumnOne,
+        response.replacementColumnTwo
+      )
+    ) {
+      continue
+    }
+
+    if (displayLabel.includes('%s')) {
       const replacements = [
         response.replacementColumnOne
           ? getReplacementText(
@@ -396,19 +334,85 @@ export async function getPostsessionSurveyResponse(
           : null,
       ].filter(Boolean)
 
-      let placeholderIndex = 0
-      displayLabel = displayLabel.replace(/%s/g, () => {
-        return replacements[placeholderIndex++] || ''
+      replacements.forEach((replacement) => {
+        displayLabel = displayLabel.replace('%s', replacement || '')
       })
     }
 
-    return {
+    const surveyResponse = {
       userRole: response.userRole,
-      questionText: response.questionText,
       displayLabel: displayLabel,
       response: response.response,
       score: response.score,
       displayOrder: response.displayOrder,
     }
-  })
+
+    responses.push(surveyResponse)
+  }
+
+  return responses
+}
+
+function getReplacementText(
+  replacementColumn: string | null | undefined,
+  replacementColumnValues: {
+    studentName: string
+    coachName: string
+    subjectName: string
+    studentGoal: string
+  }
+): string {
+  if (!replacementColumn) return ''
+
+  switch (replacementColumn) {
+    case 'student_name':
+      return replacementColumnValues.studentName
+    case 'coach_name':
+      return replacementColumnValues.coachName
+    case 'subject_name':
+      return replacementColumnValues.subjectName
+    case 'student_goal':
+      return replacementColumnValues.studentGoal
+    default:
+      return ''
+  }
+}
+
+// We wouldn't have a student goal if the student didn't fill out a pre-session survey.
+function skipQuestion(
+  studentGoal: string,
+  first?: string,
+  second?: string
+): boolean {
+  return (first === 'student_goal' || second === 'student_goal') && !studentGoal
+}
+
+async function getReplacementColumnOptions(sessionId: Ulid): Promise<{
+  studentName: string
+  coachName: string
+  subjectName: string
+  studentGoal: string
+}> {
+  // Get the replacement column options.
+  const session = await SessionRepo.getSessionById(sessionId)
+  const studentName =
+    (await UserService.getUserContactInfo(session.studentId))?.firstName ?? ''
+
+  let coachName: string = ''
+  if (session.volunteerId) {
+    coachName =
+      (await UserService.getUserContactInfo(session.volunteerId))?.firstName ??
+      ''
+  }
+
+  const subjectName = session.subjectDisplayName
+  const studentGoal =
+    (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
+
+  return {
+    studentName,
+    coachName,
+    subjectName,
+    studentGoal,
+  }
 }

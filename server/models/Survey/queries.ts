@@ -258,7 +258,7 @@ export async function getPresessionSurveyResponse(
 
 export type PostsessionSurveyResponse = {
   userRole: string
-  questionText: string
+  questionText?: string
   response?: string
   displayOrder: number
   score: number
@@ -281,6 +281,7 @@ export async function getPostsessionSurveyResponse(
         'response',
         'replacementColumnOne',
         'replacementColumnTwo',
+        'questionText',
       ])
     )
   } catch (err) {
@@ -292,11 +293,11 @@ export async function getPostsessionSurveyResponsesForSessionMetrics(
   sessionId: string
 ): Promise<PostsessionSurveyResponse[]> {
   try {
-    const studentResponses = await SurveyService.getPostsessionSurveyResponse(
+    const studentResponses = await getPostsessionSurveyResponse(
       sessionId,
       USER_ROLES.STUDENT
     )
-    const volunteerResponses = await SurveyService.getPostsessionSurveyResponse(
+    const volunteerResponses = await getPostsessionSurveyResponse(
       sessionId,
       USER_ROLES.VOLUNTEER
     )
