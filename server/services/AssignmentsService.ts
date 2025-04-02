@@ -406,7 +406,7 @@ Good luck, and have fun!
 `
   let subjectId
   if (topicId) {
-    const subjects = await getSubjectsForTopicByTopicId(topicId)
+    const subjects = await getSubjectsForTopicByTopicId(topicId, tc)
     if (subjects.length) subjectId = subjects[0].id
   }
   const assignment = await createAssignment(
