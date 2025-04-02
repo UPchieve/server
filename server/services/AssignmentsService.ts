@@ -397,8 +397,8 @@ export async function createGettingStartedAssignment(
 This assignment is your chance to try out UPchieve, a free tutoring platform you can use anytime to get help with homework, essay help, or college prep!
 
 Your Assignment:
-• Click the “Start a Session” button on this page to request tutoring
-• You'll be matched with a real tutor - try asking a question if you have one, or just say hello to your Tutor and let them know you're trying out UPchieve!
+  • Click the “Start a Session” button on this page to request tutoring
+  • You'll be matched with a real tutor - try asking a question if you have one, or just say hello to your Tutor and let them know you're trying out UPchieve!
 
 You don't need to complete a full session today - we just want you to try it out and see how it works!
 
