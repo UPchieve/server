@@ -136,7 +136,6 @@ export async function startRecording(meetingId: string): Promise<string> {
       throw 'No media pipeline ARN returned from createMediaCapturePipeline'
     }
   } catch (error) {
-    logger.error(error)
     logger.error(`Error starting recording for meetingID: ${meetingId}:`, {
       error,
       meetingId,
