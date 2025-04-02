@@ -1623,7 +1623,8 @@ CREATE TABLE upchieve.session_meetings (
     provider text NOT NULL,
     session_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    recording_id text
 );
 
 
@@ -6392,6 +6393,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241217040206'),
     ('20250121173556'),
     ('20250310173039'),
+    ('20250312220532'),
     ('20250318175742'),
     ('20250326221322'),
-    ('20250327202139');
+    ('20250327202139'),
+    ('20250401193833');

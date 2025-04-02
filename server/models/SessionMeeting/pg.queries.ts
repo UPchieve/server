@@ -12,6 +12,7 @@ export interface IGetSessionMeetingBySessionIdResult {
   externalId: string;
   id: string;
   provider: string;
+  recordingId: string | null;
   sessionId: string;
   updatedAt: Date;
 }
@@ -52,6 +53,7 @@ export interface IInsertSessionMeetingResult {
   externalId: string;
   id: string;
   provider: string;
+  recordingId: string | null;
   sessionId: string;
   updatedAt: Date;
 }
