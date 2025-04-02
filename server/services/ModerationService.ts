@@ -584,18 +584,21 @@ function maybeHandleImageModerationFailure(options: {
   image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  return function (failures: ImageModerationFailureReason[]) {
+  return async function (failures: ImageModerationFailureReason[]) {
     logger.info(
       `TEST: maybeHandleImageModerationFailure for session ${options.sessionId}: ${JSON.stringify({ failures }, null, 2)}`
     )
     if (failures.length > 0) {
-      handleImageModerationFailure({
+      await handleImageModerationFailure({
         userId: options.userId,
         sessionId: options.sessionId,
         failureReasons: failures,
         image: options.image,
         source: options.source,
       })
+      return failures
+    } else {
+      return []
     }
   }
 }
@@ -606,26 +609,50 @@ function maybeHandleImageModerationFailure(options: {
   as they happen. By not waiting for all checks to complete, we can ensure that we
   turn the screen share off as soon as possible.
 */
-export function moderateImageInBackground(options: {
+export async function moderateImageInBackground(options: {
   image: Buffer
   sessionId: string
   userId: string
   isVolunteer: boolean
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-}): void {
-  detectImageModerationFailures(options.image, options.sessionId).then(
-    maybeHandleImageModerationFailure(options)
-  )
-
-  detectMinorFailures(options.image).then(
-    maybeHandleImageModerationFailure(options)
-  )
-
-  detectTextModerationFailures(
-    options.image,
-    options.sessionId,
-    options.isVolunteer
-  ).then(maybeHandleImageModerationFailure(options))
+}) {
+  const failures = await Promise.allSettled([
+    new Promise(async (resolve, reject) => {
+      try {
+        const r = await detectImageModerationFailures(
+          options.image,
+          options.sessionId
+        )
+        resolve(await maybeHandleImageModerationFailure(options)(r))
+      } catch (err) {
+        logger.error(err, 'Error detecting image moderation failures')
+        reject(err)
+      }
+    }),
+    new Promise(async (resolve, reject) => {
+      try {
+        const r = await detectMinorFailures(options.image)
+        resolve(await maybeHandleImageModerationFailure(options)(r))
+      } catch (err) {
+        logger.error(err, 'Error detecting minor failures')
+        reject(err)
+      }
+    }),
+    new Promise(async (resolve, reject) => {
+      try {
+        const r = await detectTextModerationFailures(
+          options.image,
+          options.sessionId,
+          options.isVolunteer
+        )
+        resolve(await maybeHandleImageModerationFailure(options)(r))
+      } catch (err) {
+        logger.error(err, 'Error detecting text moderation failures')
+        reject(err)
+      }
+    }),
+  ])
+  return failures.flatMap((f) => (f.status === 'fulfilled' ? f.value : []))
 }
 
 async function getAllImageModerationFailures({
@@ -1087,10 +1114,13 @@ export const moderateImage = async ({
   isVolunteer: boolean
   aggregateInfractions: boolean
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
-}): Promise<{
-  isClean: boolean
-  failures: string[]
-} | void> => {
+}): Promise<
+  | {
+      isClean: boolean
+      failures: string[]
+    }
+  | Promise<void>
+> => {
   if (aggregateInfractions) {
     logger.info(`TEST: image upload moderation for session ${sessionId}`)
     const result = await getAllImageModerationFailures({
@@ -1120,7 +1150,13 @@ export const moderateImage = async ({
     return { isClean: false, failures }
   } else {
     logger.info(`TEST: screenshare moderation for session ${sessionId}`)
-    moderateImageInBackground({ image, sessionId, userId, isVolunteer, source })
+    return moderateImageInBackground({
+      image,
+      sessionId,
+      userId,
+      isVolunteer,
+      source,
+    })
   }
 }
 

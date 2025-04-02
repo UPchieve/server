@@ -60,7 +60,7 @@ export function routeModeration(router: Router): void {
 
   router
     .route('/moderate/video-frame')
-    .post(upload.single('frame'), (req, res) => {
+    .post(upload.single('frame'), async (req, res) => {
       const frameToModerate = req.file
       const sessionId = req.body.sessionId
       const user = extractUser(req)
@@ -71,7 +71,7 @@ export function routeModeration(router: Router): void {
 
       logger.info(`Moderating video frame for session ${sessionId}`)
       try {
-        ModerationService.moderateImage({
+        const failures = await ModerationService.moderateImage({
           image: frameToModerate.buffer,
           sessionId,
           userId: user.id,
@@ -80,7 +80,7 @@ export function routeModeration(router: Router): void {
           aggregateInfractions: false,
         })
 
-        res.status(201).send()
+        res.status(201).send({ failures })
       } catch (err) {
         resError(res, err)
       }
