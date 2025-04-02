@@ -35,10 +35,6 @@ import {
 } from '../models/ParentGuardian'
 import { InputError } from '../models/Errors'
 import { createTeacher } from '../models/Teacher'
-import moment from 'moment'
-import * as cache from '../cache'
-import { isTeacherGettingStartedEnabled } from './FeatureFlagService'
-import { createAssignment } from './AssignmentsService'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -430,40 +426,6 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
 
     return user
   })
-
-  if (await isTeacherGettingStartedEnabled(newTeacher.id)) {
-    const gettingStartedClass = await TeacherService.createTeacherClass(
-      newTeacher.id,
-      'Getting Started'
-    )
-    const assignment = await createAssignment({
-      classId: gettingStartedClass.id,
-      // TODO: Update with actual instructions
-      description: `Read an excerpt from chapter 59 from Life of Pi.
-
-Start at: "I returned to the business of survival."
-
-Stop at: "The wind blew with a faint, warm breeze and the sea moved about kindly, the water peaking and troughing like people dancing in a circle who come together and raise their hands and move apart and come together again, over and over."
-
-During the reading, annotate the text for patterns in sentence structure. Also, note the verbs that Pi uses to describe his actions in this chapter.
-
-Add Tutoring Session feedback and notes to your daily notes (Day ____) 
-`,
-      // TODO: Is this due date okay?
-      dueDate: moment().add(1, 'week').toDate(),
-      isRequired: false,
-      minDurationInMinutes: 10,
-      numberOfSessions: 1,
-      startDate: new Date(),
-      // TODO: Alternative way to get subjectId?
-      subjectId: 1,
-      title: 'Getting Started on UPchieve',
-      studentIds: [],
-    })
-
-    // TODO: Remove if we decide to add teacher_notes for assignments in the DB
-    cache.sadd('getting-started-assignments', assignment.id)
-  }
 
   return {
     ...newTeacher,
