@@ -2,7 +2,7 @@ import { SessionMeeting } from './types'
 import * as pgQueries from './pg.queries'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
-import { getDbUlid, makeRequired } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
 
 export async function insertSessionMeeting(
   sessionId: string,
@@ -62,7 +62,7 @@ export async function getSessionMeetingBySessionId(
           `Found multiple session meetings for session ${sessionId} when max 1 is expected`
         )
       }
-      return makeRequired(result[0])
+      return makeSomeOptional(result[0], ['recordingId'])
     }
   } catch (err) {
     throw new RepoReadError(err)

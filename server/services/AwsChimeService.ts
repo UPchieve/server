@@ -50,7 +50,9 @@ const createMediaPipelinesClient = (): ChimeSDKMediaPipelinesClient => {
 let mediaPipelinesClient: ChimeSDKMediaPipelinesClient =
   createMediaPipelinesClient()
 
-async function startMediaConcatenation(mediaCapturePipelineArn: string) {
+async function startMediaConcatenation(
+  mediaCapturePipelineArn: string
+): Promise<string | false> {
   const createConcatPipelineParams: CreateMediaConcatenationPipelineCommandInput =
     {
       Sinks: [
@@ -85,14 +87,14 @@ async function startMediaConcatenation(mediaCapturePipelineArn: string) {
     const location = await getMediaPipelinesClient().send(
       new CreateMediaConcatenationPipelineCommand(createConcatPipelineParams)
     )
-    return location.MediaConcatenationPipeline?.MediaPipelineId
+    return location.MediaConcatenationPipeline?.MediaPipelineId ?? false
   } catch (error) {
     logger.error(error)
     return false
   }
 }
 
-export async function startRecording(meetingId: string) {
+export async function startRecording(meetingId: string): Promise<string> {
   const createPipelineParams: CreateMediaCapturePipelineCommandInput = {
     ChimeSdkMeetingConfiguration: {
       ArtifactsConfiguration: {
@@ -124,6 +126,8 @@ export async function startRecording(meetingId: string) {
 
     if (mediaPipelineArn) {
       const recordingId = await startMediaConcatenation(mediaPipelineArn)
+      if (!recordingId) throw new Error('Failed to start media concatenation')
+
       return recordingId
     } else {
       logger.error(
@@ -137,7 +141,7 @@ export async function startRecording(meetingId: string) {
       error,
       meetingId,
     })
-    return false
+    throw error
   }
 }
 

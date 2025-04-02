@@ -77,15 +77,6 @@ async function handleNoExistingMeeting(
       'chime',
       tc
     )
-    const recordingId = await AwsChimeService.startRecording(meeting.MeetingId!)
-    if (!recordingId) {
-      throw new Error(`Failed to start recording for session ${sessionId}`)
-    }
-    await SessionMeetingsRepo.addRecordingIdToSessionMeeting(
-      id,
-      recordingId,
-      tc
-    )
 
     return { meeting, attendee, partnerAttendee: null }
   } catch (err) {
@@ -271,6 +262,32 @@ export async function startTranscription(sessionId: string) {
     throw new Error(`Meeting for session ${sessionId} not found`)
 
   return await AwsChimeService.startTranscription(existingMeeting.externalId)
+}
+
+export async function startRecording(
+  sessionId: string,
+  transactionClient?: TransactionClient
+) {
+  const client = transactionClient ?? getClient()
+  const existingMeeting =
+    await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId, client)
+
+  if (!existingMeeting)
+    throw new Error(`Meeting for session ${sessionId} not found`)
+
+  if (existingMeeting?.recordingId) {
+    return existingMeeting.recordingId
+  }
+
+  const recordingId = await AwsChimeService.startRecording(
+    existingMeeting.externalId
+  )
+  await SessionMeetingsRepo.addRecordingIdToSessionMeeting(
+    existingMeeting.id,
+    recordingId,
+    client
+  )
+  return recordingId
 }
 
 export async function endMeeting(sessionId: string) {
