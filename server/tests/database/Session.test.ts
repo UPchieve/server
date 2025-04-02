@@ -10,14 +10,17 @@ import {
 } from '../mocks/generate'
 import { getClient } from '../../db'
 import {
-  getMessagesForFrontend,
   getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
+  getMessagesForFrontend,
   getSessionTranscriptItems,
+  updateSessionFlagsById,
+  updateSessionReviewReasonsById,
 } from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
+import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -250,6 +253,182 @@ describe('Session repo', () => {
           role: item.role,
         }))
       ).toEqual(expectedTranscript)
+    })
+  })
+
+  const getFlagId = (flag: UserSessionFlags | USER_SESSION_METRICS) => {
+    switch (flag) {
+      case UserSessionFlags.safetyConcern:
+        return 30
+      case UserSessionFlags.generalModerationIssue:
+        return 29
+      case UserSessionFlags.coachReportedStudentDm:
+        return 17
+      default:
+        throw new Error(
+          'getFlagId has no entry for this session flag - add one!'
+        )
+    }
+  }
+
+  describe('updateSessionFlagsById', () => {
+    let session: any
+
+    beforeAll(async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      session = await insertSingleRow('sessions', sessionObj, dbClient)
+    })
+
+    beforeEach(async () => {
+      await dbClient.query(
+        'DELETE FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+      await dbClient.query(
+        'DELETE FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+    })
+
+    const getFlagsForSession = async () => {
+      return dbClient.query(
+        'SELECT * FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+    }
+
+    it('Inserts the flags for session', async () => {
+      const initialFlags = await getFlagsForSession()
+      expect(initialFlags.rows.length).toEqual(0)
+      const flags = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionFlagsById(session.id, flags, dbClient)
+      const updatedFlags = await getFlagsForSession()
+      expect(updatedFlags.rows.length).toEqual(2)
+      expect(updatedFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
+      expect(updatedFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
+    })
+
+    it('Does not insert a flag if it already exists for the session', async () => {
+      const flags = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionFlagsById(session.id, flags, dbClient)
+      const initialFlags = await getFlagsForSession()
+      expect(initialFlags.rows.length).toEqual(2)
+      expect(initialFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
+      expect(initialFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
+
+      // Now insert 2 more flags, 1 of them being a repeat
+      const nextFlags = [
+        UserSessionFlags.coachReportedStudentDm,
+        UserSessionFlags.generalModerationIssue,
+      ]
+      await updateSessionFlagsById(session.id, nextFlags, dbClient)
+      const updatedFlags = await getFlagsForSession()
+      expect(updatedFlags.rows.length).toEqual(3)
+      // existing flags
+      expect(updatedFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
+      expect(updatedFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
+      // new flag
+      expect(updatedFlags.rows[2].session_flag_id).toEqual(
+        getFlagId(nextFlags[0])
+      )
+    })
+  })
+
+  describe('updateSessionReviewReasonsById', () => {
+    let session: any
+
+    beforeAll(async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      session = await insertSingleRow('sessions', sessionObj, dbClient)
+    })
+
+    beforeEach(async () => {
+      await dbClient.query(
+        'DELETE FROM sessions_session_flags WHERE session_id = $1',
+        [session.id]
+      )
+      await dbClient.query(
+        'DELETE FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+    })
+
+    const getReviewReasonsForSession = async () => {
+      return dbClient.query(
+        'SELECT * FROM session_review_reasons WHERE session_id = $1',
+        [session.id]
+      )
+    }
+
+    it('Inserts review reasons based on the flags', async () => {
+      const reviewReasons = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionReviewReasonsById(
+        session.id,
+        reviewReasons,
+        false,
+        dbClient
+      )
+      const actualReviewReasons = await getReviewReasonsForSession()
+      expect(actualReviewReasons.rows.length).toEqual(2)
+      expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
+        getFlagId(reviewReasons[0])
+      )
+      expect(actualReviewReasons.rows[1].session_flag_id).toEqual(
+        getFlagId(reviewReasons[1])
+      )
+    })
+
+    it('Does not insert duplicate review reason', async () => {
+      const reviewReasons = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionReviewReasonsById(
+        session.id,
+        reviewReasons,
+        false,
+        dbClient
+      )
+      const actualReviewReasons = await getReviewReasonsForSession()
+      expect(actualReviewReasons.rows.length).toEqual(2)
+      expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
+        getFlagId(reviewReasons[0])
+      )
+      expect(actualReviewReasons.rows[1].session_flag_id).toEqual(
+        getFlagId(reviewReasons[1])
+      )
+
+      // Now insert 2 more review reasons, 1 of them being a duplicate
+      const nextReviewReasons = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.coachReportedStudentDm,
+      ]
+      await updateSessionReviewReasonsById(
+        session.id,
+        nextReviewReasons,
+        false,
+        dbClient
+      )
+      const secondActualReviewReasons = await getReviewReasonsForSession()
+      expect(secondActualReviewReasons.rows.length).toEqual(3)
+      expect(secondActualReviewReasons.rows[0].session_flag_id).toEqual(
+        getFlagId(reviewReasons[0])
+      )
+      expect(secondActualReviewReasons.rows[1].session_flag_id).toEqual(
+        getFlagId(reviewReasons[1])
+      )
+      expect(secondActualReviewReasons.rows[2].session_flag_id).toEqual(
+        getFlagId(nextReviewReasons[1])
+      )
     })
   })
 })

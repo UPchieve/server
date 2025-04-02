@@ -222,24 +222,24 @@ const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"nam
 export const getSessionById = new PreparedQuery<IGetSessionByIdParams,IGetSessionByIdResult>(getSessionByIdIR);
 
 
-/** 'InsertSessionFlagById' parameters type */
-export interface IInsertSessionFlagByIdParams {
-  flag: string;
+/** 'InsertSessionFlagsById' parameters type */
+export interface IInsertSessionFlagsByIdParams {
+  flags: stringArray;
   sessionId: string;
 }
 
-/** 'InsertSessionFlagById' return type */
-export interface IInsertSessionFlagByIdResult {
+/** 'InsertSessionFlagsById' return type */
+export interface IInsertSessionFlagsByIdResult {
   ok: string;
 }
 
-/** 'InsertSessionFlagById' query type */
-export interface IInsertSessionFlagByIdQuery {
-  params: IInsertSessionFlagByIdParams;
-  result: IInsertSessionFlagByIdResult;
+/** 'InsertSessionFlagsById' query type */
+export interface IInsertSessionFlagsByIdQuery {
+  params: IInsertSessionFlagsByIdParams;
+  result: IInsertSessionFlagsByIdResult;
 }
 
-const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"flag","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":201}]}],"statement":"INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    name = :flag!\nON CONFLICT (session_id,\n    session_flag_id)\n    DO UPDATE SET\n        updated_at = NOW()\n    RETURNING\n        session_id AS ok"};
+const insertSessionFlagsByIdIR: any = {"usedParamSet":{"sessionId":true,"flags":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"flags","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":207}]}],"statement":"INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    name = ANY (:flags!)\nON CONFLICT (session_id,\n    session_flag_id)\n    DO UPDATE SET\n        updated_at = NOW()\n    RETURNING\n        session_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -253,7 +253,7 @@ const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":tr
  * FROM
  *     session_flags
  * WHERE
- *     name = :flag!
+ *     name = ANY (:flags!)
  * ON CONFLICT (session_id,
  *     session_flag_id)
  *     DO UPDATE SET
@@ -262,7 +262,7 @@ const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":tr
  *         session_id AS ok
  * ```
  */
-export const insertSessionFlagById = new PreparedQuery<IInsertSessionFlagByIdParams,IInsertSessionFlagByIdResult>(insertSessionFlagByIdIR);
+export const insertSessionFlagsById = new PreparedQuery<IInsertSessionFlagsByIdParams,IInsertSessionFlagsByIdResult>(insertSessionFlagsByIdIR);
 
 
 /** 'UpdateSessionToReview' parameters type */
@@ -2097,59 +2097,45 @@ const getSessionsForAdminFilterIR: any = {"usedParamSet":{"start":true,"end":tru
 export const getSessionsForAdminFilter = new PreparedQuery<IGetSessionsForAdminFilterParams,IGetSessionsForAdminFilterResult>(getSessionsForAdminFilterIR);
 
 
-/** 'InsertSessionReviewReason' parameters type */
-export interface IInsertSessionReviewReasonParams {
-  flag: string;
+/** 'InsertSessionReviewReasons' parameters type */
+export interface IInsertSessionReviewReasonsParams {
+  reviewReasons: stringArray;
   sessionId: string;
 }
 
-/** 'InsertSessionReviewReason' return type */
-export interface IInsertSessionReviewReasonResult {
-  ok: string | null;
+/** 'InsertSessionReviewReasons' return type */
+export interface IInsertSessionReviewReasonsResult {
+  ok: string;
 }
 
-/** 'InsertSessionReviewReason' query type */
-export interface IInsertSessionReviewReasonQuery {
-  params: IInsertSessionReviewReasonParams;
-  result: IInsertSessionReviewReasonResult;
+/** 'InsertSessionReviewReasons' query type */
+export interface IInsertSessionReviewReasonsQuery {
+  params: IInsertSessionReviewReasonsParams;
+  result: IInsertSessionReviewReasonsResult;
 }
 
-const insertSessionReviewReasonIR: any = {"usedParamSet":{"sessionId":true,"flag":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":132}]},{"name":"flag","required":true,"transform":{"type":"scalar"},"locs":[{"a":260,"b":265},{"a":549,"b":554}]}],"statement":"WITH ins AS (\nINSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)\n    SELECT\n        :sessionId!,\n        session_flags.id,\n        NOW(),\n        NOW()\n    FROM\n        session_flags\n    WHERE\n        session_flags.name = :flag!\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        session_id AS ok\n)\nSELECT\n    *\nFROM\n    ins\nUNION\nSELECT\n    session_id\nFROM\n    session_review_reasons\n    LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\nWHERE\n    session_flags.name = :flag!"};
+const insertSessionReviewReasonsIR: any = {"usedParamSet":{"sessionId":true,"reviewReasons":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"reviewReasons","required":true,"transform":{"type":"scalar"},"locs":[{"a":215,"b":229}]}],"statement":"INSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    session_flags.name = ANY (:reviewReasons!)\nON CONFLICT\n    DO NOTHING\nRETURNING\n    session_id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH ins AS (
  * INSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)
- *     SELECT
- *         :sessionId!,
- *         session_flags.id,
- *         NOW(),
- *         NOW()
- *     FROM
- *         session_flags
- *     WHERE
- *         session_flags.name = :flag!
- *     ON CONFLICT
- *         DO NOTHING
- *     RETURNING
- *         session_id AS ok
- * )
  * SELECT
- *     *
+ *     :sessionId!,
+ *     session_flags.id,
+ *     NOW(),
+ *     NOW()
  * FROM
- *     ins
- * UNION
- * SELECT
- *     session_id
- * FROM
- *     session_review_reasons
- *     LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id
+ *     session_flags
  * WHERE
- *     session_flags.name = :flag!
+ *     session_flags.name = ANY (:reviewReasons!)
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     session_id AS ok
  * ```
  */
-export const insertSessionReviewReason = new PreparedQuery<IInsertSessionReviewReasonParams,IInsertSessionReviewReasonResult>(insertSessionReviewReasonIR);
+export const insertSessionReviewReasons = new PreparedQuery<IInsertSessionReviewReasonsParams,IInsertSessionReviewReasonsResult>(insertSessionReviewReasonsIR);
 
 
 /** 'InsertSessionFailedJoin' parameters type */

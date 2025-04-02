@@ -1305,9 +1305,9 @@ export async function markSessionForReview(
   tc: TransactionClient = getClient()
 ): Promise<void> {
   await runInTransaction(async (tc: TransactionClient) => {
-    await updateSessionFlagsById(sessionId, sessionFlags)
-    await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
-  })
+    await updateSessionFlagsById(sessionId, sessionFlags, tc)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+  }, tc)
 }
 
 export const FALLBACK_MODERATION_PROMPT = `
