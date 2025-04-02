@@ -12,7 +12,6 @@ import {
   SESSION_USER_ACTIONS,
   USER_BAN_REASONS,
   USER_BAN_TYPES,
-  USER_ROLES,
   UserSessionFlags,
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
@@ -371,8 +370,7 @@ export async function processCalculateMetrics(sessionId: Ulid) {
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
-  const session =
-    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  const session = await getSessionByIdWithStudentAndVolunteer(sessionId)
   const fifteenMinutes = 1000 * 60 * 15
   const isLongSession = session.timeTutored
     ? session.timeTutored >= fifteenMinutes
@@ -581,8 +579,7 @@ export async function adminFilteredSessions(data: unknown) {
 
 export async function adminSessionView(data: unknown) {
   const sessionId = asString(data)
-  const session =
-    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  const session = await getSessionByIdWithStudentAndVolunteer(sessionId)
 
   if (
     sessionUtils.isSubjectUsingDocumentEditor(session.toolType) &&

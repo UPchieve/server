@@ -549,17 +549,40 @@ export async function getMessagesForFrontend(
   }
 }
 
-export async function getSessionByIdWithStudentAndVolunteer(
+export type SessionResult = {
+  id: Ulid
+  subTopic: string
+  type: string
+  createdAt: Date
+  endedAt?: Date
+  volunteerJoinedAt?: Date
+  quillDoc?: string
+  timeTutored: number
+  endedBy?: Ulid
+  reportMessage?: string
+  reportReason?: string
+  reviewReasons?: string[]
+  photos?: string[]
+  toReview: boolean
+  studentId: Ulid
+  volunteerId?: Ulid
+  toolType: string
+}
+
+export async function getSessionForAdminView(
   sessionId: Ulid
-): Promise<SessionByIdWithStudentAndVolunteer> {
+): Promise<SessionResult> {
   const client = await getClient().connect()
+
   try {
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },
       client
     )
+
     if (!sessionResult.length) throw new Error('Session not found')
-    const session = makeSomeOptional(sessionResult[0], [
+
+    return makeSomeOptional(sessionResult[0], [
       'volunteerId',
       'volunteerJoinedAt',
       'photos',
@@ -1408,7 +1431,7 @@ export async function getUserSessionStats(
   }
 }
 
-async function getSessionUsers(
+export async function getSessionUsers(
   sessionId: Ulid,
   sessionStudentId: Ulid,
   sessionVolunteerId: Ulid = '',
