@@ -2745,7 +2745,7 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: session_meetings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_meetings (id, external_id, provider, session_id, created_at, updated_at) FROM stdin;
+COPY upchieve.session_meetings (id, external_id, provider, session_id, created_at, updated_at, recording_id) FROM stdin;
 \.
 
 
