@@ -15,7 +15,7 @@ export function routeAssignments(router: Router): void {
       if (assignment)
         isGettingStartedAssignment =
           await AssignmentsService.isGettingStartedAssignment(assignment.id)
-      res.json({ ...assignment, isGettingStartedAssignment })
+      res.json({ assignment: { ...assignment, isGettingStartedAssignment } })
     } catch (err) {
       resError(res, err)
     }
