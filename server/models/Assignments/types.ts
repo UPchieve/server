@@ -13,6 +13,8 @@ export type Assignment = {
   title?: string
   createdAt: Date
   updatedAt: Date
+  // TODO: Remove after experiment is done
+  isGettingStartedAssignment?: boolean
 }
 
 export type CreateAssignmentInput = Pick<

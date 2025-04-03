@@ -17,6 +17,7 @@ import {
   TrainingPerTopic,
   TrainingCourses,
   GetTopicsResult,
+  SubjectWithTopic,
 } from './types'
 import _ from 'lodash'
 import { asBoolean, asNumber, asString } from '../../utils/type-utils'
@@ -355,6 +356,25 @@ export async function getTopicIdFromName(
   try {
     const result = await pgQueries.getTopicIdFromName.run({ topicName }, tc)
     if (result.length) return result[0].id
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSubjectsForTopicByTopicId(
+  topicId: number,
+  tc?: TransactionClient
+): Promise<SubjectWithTopic[]> {
+  try {
+    const result = await pgQueries.getSubjectsForTopicByTopicId.run(
+      { topicId },
+      tc ?? getClient()
+    )
+    if (result.length)
+      return result.map((row) =>
+        makeSomeOptional(row, ['topicIconLink', 'topicColor'])
+      )
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }
