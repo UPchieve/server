@@ -21,6 +21,8 @@ import {
 } from '../models/Assignments'
 import * as AzureService from './AzureService'
 import config from '../config'
+import * as cache from '../cache'
+import { getSubjectsForTopicByTopicId } from './SubjectsService'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -73,7 +75,10 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
   studentsToAdd: asOptional(asArray(asString)),
 })
 
-export async function createAssignment(data: CreateAssignmentPayload) {
+export async function createAssignment(
+  data: CreateAssignmentPayload,
+  tc?: TransactionClient
+) {
   return runInTransaction(async (tc: TransactionClient) => {
     validateAssignmentData(data)
 
@@ -99,7 +104,7 @@ export async function createAssignment(data: CreateAssignmentPayload) {
     }
 
     return assignment
-  })
+  }, tc)
 }
 
 export async function editAssignment(data: EditAssignmentPayload) {
@@ -141,7 +146,7 @@ export async function getAssignmentsByClassId(
 
 export async function getAssignmentById(
   assignmentId: Ulid
-): Promise<AssignmentsRepo.CreateAssignmentInput | undefined> {
+): Promise<AssignmentsRepo.Assignment | undefined> {
   return AssignmentsRepo.getAssignmentById(assignmentId)
 }
 
@@ -373,4 +378,52 @@ export async function getAssignmentDocuments(assignmentId: Ulid) {
     config.assignmentsStorageContainer,
     `${assignmentId}`
   )
+}
+
+export async function isGettingStartedAssignment(
+  assignmentId: Uuid
+): Promise<boolean> {
+  const members = await cache.smembers('getting-started-assignments')
+  return members.includes(assignmentId)
+}
+
+export async function createGettingStartedAssignment(
+  classId: Uuid,
+  topicId?: number,
+  tc?: TransactionClient
+) {
+  const studentInstructions = `Welcome to UPchieve!
+
+This assignment is your chance to try out UPchieve, a free tutoring platform you can use anytime to get help with homework, essay help, or college prep!
+
+Your Assignment:
+  • Click the “Start a Session” button on this page to request tutoring
+  • You'll be matched with a real tutor - try asking a question if you have one, or just say hello to your Tutor and let them know you're trying out UPchieve!
+
+You don't need to complete a full session today - we just want you to try it out and see how it works!
+
+Good luck, and have fun!
+`
+  let subjectId
+  if (topicId) {
+    const subjects = await getSubjectsForTopicByTopicId(topicId, tc)
+    if (subjects.length) subjectId = subjects[0].id
+  }
+  const assignment = await createAssignment(
+    {
+      classId,
+      description: studentInstructions,
+      dueDate: moment().add(1, 'week').endOf('day').toDate(),
+      isRequired: false,
+      minDurationInMinutes: 10,
+      numberOfSessions: 1,
+      startDate: moment().startOf('day').toDate(),
+      studentIds: [],
+      subjectId,
+      title: 'Getting Started on UPchieve',
+    },
+    tc
+  )
+  // TODO: Remove if we decide to add teacher_notes for assignments in the DB
+  cache.sadd('getting-started-assignments', assignment.id)
 }

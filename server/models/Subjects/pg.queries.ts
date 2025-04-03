@@ -415,3 +415,59 @@ const getTopicIdFromNameIR: any = {"usedParamSet":{"topicName":true},"params":[{
 export const getTopicIdFromName = new PreparedQuery<IGetTopicIdFromNameParams,IGetTopicIdFromNameResult>(getTopicIdFromNameIR);
 
 
+/** 'GetSubjectsForTopicByTopicId' parameters type */
+export interface IGetSubjectsForTopicByTopicIdParams {
+  topicId: number;
+}
+
+/** 'GetSubjectsForTopicByTopicId' return type */
+export interface IGetSubjectsForTopicByTopicIdResult {
+  active: boolean;
+  displayName: string;
+  displayOrder: number;
+  id: number;
+  name: string;
+  topicColor: string | null;
+  topicDashboardOrder: number;
+  topicDisplayName: string;
+  topicIconLink: string | null;
+  topicId: number;
+  topicName: string;
+  topicTrainingOrder: number;
+}
+
+/** 'GetSubjectsForTopicByTopicId' query type */
+export interface IGetSubjectsForTopicByTopicIdQuery {
+  params: IGetSubjectsForTopicByTopicIdParams;
+  result: IGetSubjectsForTopicByTopicIdResult;
+}
+
+const getSubjectsForTopicByTopicIdIR: any = {"usedParamSet":{"topicId":true},"params":[{"name":"topicId","required":true,"transform":{"type":"scalar"},"locs":[{"a":547,"b":555}]}],"statement":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color\nFROM\n    topics\n    JOIN subjects ON subjects.topic_id = topics.id\nWHERE\n    topics.id = :topicId!\n    AND subjects.active IS TRUE"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.id AS id,
+ *     subjects.name AS name,
+ *     subjects.display_name AS display_name,
+ *     subjects.display_order AS display_order,
+ *     subjects.active AS active,
+ *     topics.name AS topic_name,
+ *     topics.display_name AS topic_display_name,
+ *     topics.dashboard_order AS topic_dashboard_order,
+ *     topics.training_order AS topic_training_order,
+ *     topics.id AS topic_id,
+ *     topics.icon_link AS topic_icon_link,
+ *     topics.color AS topic_color
+ * FROM
+ *     topics
+ *     JOIN subjects ON subjects.topic_id = topics.id
+ * WHERE
+ *     topics.id = :topicId!
+ *     AND subjects.active IS TRUE
+ * ```
+ */
+export const getSubjectsForTopicByTopicId = new PreparedQuery<IGetSubjectsForTopicByTopicIdParams,IGetSubjectsForTopicByTopicIdResult>(getSubjectsForTopicByTopicIdIR);
+
+
