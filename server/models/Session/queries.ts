@@ -138,6 +138,7 @@ export async function updateSessionFlagsById(
   flags: (USER_SESSION_METRICS | UserSessionFlags)[],
   client: TransactionClient = getClient()
 ): Promise<void> {
+  if (!flags.length) return
   try {
     const result = await pgQueries.insertSessionFlagsById.run(
       { sessionId, flags },
@@ -1112,15 +1113,17 @@ export async function updateSessionReviewReasonsById(
 ): Promise<void> {
   try {
     const dbClient = client ?? getClient()
-    const insertReviewReasonsResult =
-      await pgQueries.insertSessionReviewReasons.run(
-        { sessionId, reviewReasons },
-        dbClient
-      )
-    if (!insertReviewReasonsResult.length)
-      throw new Error(
-        'Query to insert session review reasons did not return any results'
-      )
+    if (reviewReasons.length) {
+      const insertReviewReasonsResult =
+        await pgQueries.insertSessionReviewReasons.run(
+          { sessionId, reviewReasons },
+          dbClient
+        )
+      if (!insertReviewReasonsResult.length)
+        throw new Error(
+          'Query to insert session review reasons did not return any results'
+        )
+    }
 
     const updateSessionResult = await pgQueries.updateSessionToReview.run(
       { sessionId, reviewed },
