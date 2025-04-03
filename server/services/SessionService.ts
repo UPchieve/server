@@ -67,7 +67,7 @@ import {
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
-import { TransactionClient, runInTransaction } from '../db'
+import { TransactionClient, runInTransaction, getClient } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
@@ -121,10 +121,13 @@ export async function getTimeTutoredForDateRange(
 
 export async function handleDmReporting(
   sessionId: Ulid,
-  sessionFlags: UserSessionFlags[]
+  sessionFlags: UserSessionFlags[],
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  await updateSessionFlagsById(sessionId, sessionFlags)
-  await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
+  await runInTransaction(async (tc: TransactionClient) => {
+    await updateSessionFlagsById(sessionId, sessionFlags, tc)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+  }, client)
 }
 
 export async function reportSession(user: UserContactInfo, data: unknown) {
