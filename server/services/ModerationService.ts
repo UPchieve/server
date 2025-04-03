@@ -31,6 +31,7 @@ import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
 import {
   USER_BAN_REASONS,
   USER_BAN_TYPES,
+  USER_ROLES_TYPE,
   UserSessionFlags,
 } from '../constants'
 import {
@@ -925,6 +926,7 @@ export async function moderateMessage({
     messageType: 'direct_message',
     userId: senderId,
     message,
+    role: userType,
   } as SessionTranscriptItem)
   const transcriptModerationResults = await moderateTranscript(transcript)
   const uncleanDms = transcriptModerationResults.flaggedMessages.filter(

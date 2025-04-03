@@ -272,52 +272,38 @@ describe('Session repo', () => {
   }
 
   describe('updateSessionFlagsById', () => {
-    let session: any
-
-    beforeAll(async () => {
-      const sessionObj = await buildSessionRow({ studentId }, dbClient)
-      session = await insertSingleRow('sessions', sessionObj, dbClient)
-    })
-
-    beforeEach(async () => {
-      await dbClient.query(
-        'DELETE FROM sessions_session_flags WHERE session_id = $1',
-        [session.id]
-      )
-      await dbClient.query(
-        'DELETE FROM session_review_reasons WHERE session_id = $1',
-        [session.id]
-      )
-    })
-
-    const getFlagsForSession = async () => {
+    const getFlagsForSession = async (sessionId: string) => {
       return dbClient.query(
         'SELECT * FROM sessions_session_flags WHERE session_id = $1',
-        [session.id]
+        [sessionId]
       )
     }
 
     it('Inserts the flags for session', async () => {
-      const initialFlags = await getFlagsForSession()
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
+      const initialFlags = await getFlagsForSession(session.id)
       expect(initialFlags.rows.length).toEqual(0)
       const flags = [
         UserSessionFlags.generalModerationIssue,
         UserSessionFlags.safetyConcern,
       ]
       await updateSessionFlagsById(session.id, flags, dbClient)
-      const updatedFlags = await getFlagsForSession()
+      const updatedFlags = await getFlagsForSession(session.id)
       expect(updatedFlags.rows.length).toEqual(2)
       expect(updatedFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
       expect(updatedFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
     })
 
     it('Does not insert a flag if it already exists for the session', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
       const flags = [
         UserSessionFlags.generalModerationIssue,
         UserSessionFlags.safetyConcern,
       ]
       await updateSessionFlagsById(session.id, flags, dbClient)
-      const initialFlags = await getFlagsForSession()
+      const initialFlags = await getFlagsForSession(session.id)
       expect(initialFlags.rows.length).toEqual(2)
       expect(initialFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
       expect(initialFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
@@ -328,7 +314,7 @@ describe('Session repo', () => {
         UserSessionFlags.generalModerationIssue,
       ]
       await updateSessionFlagsById(session.id, nextFlags, dbClient)
-      const updatedFlags = await getFlagsForSession()
+      const updatedFlags = await getFlagsForSession(session.id)
       expect(updatedFlags.rows.length).toEqual(3)
       // existing flags
       expect(updatedFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
@@ -341,32 +327,16 @@ describe('Session repo', () => {
   })
 
   describe('updateSessionReviewReasonsById', () => {
-    let session: any
-
-    beforeAll(async () => {
-      const sessionObj = await buildSessionRow({ studentId }, dbClient)
-      session = await insertSingleRow('sessions', sessionObj, dbClient)
-    })
-
-    beforeEach(async () => {
-      await dbClient.query(
-        'DELETE FROM sessions_session_flags WHERE session_id = $1',
-        [session.id]
-      )
-      await dbClient.query(
-        'DELETE FROM session_review_reasons WHERE session_id = $1',
-        [session.id]
-      )
-    })
-
-    const getReviewReasonsForSession = async () => {
+    const getReviewReasonsForSession = async (sessionId: string) => {
       return dbClient.query(
         'SELECT * FROM session_review_reasons WHERE session_id = $1',
-        [session.id]
+        [sessionId]
       )
     }
 
     it('Inserts review reasons based on the flags', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
       const reviewReasons = [
         UserSessionFlags.generalModerationIssue,
         UserSessionFlags.safetyConcern,
@@ -377,7 +347,7 @@ describe('Session repo', () => {
         false,
         dbClient
       )
-      const actualReviewReasons = await getReviewReasonsForSession()
+      const actualReviewReasons = await getReviewReasonsForSession(session.id)
       expect(actualReviewReasons.rows.length).toEqual(2)
       expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
         getFlagId(reviewReasons[0])
@@ -388,6 +358,8 @@ describe('Session repo', () => {
     })
 
     it('Does not insert duplicate review reason', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
       const reviewReasons = [
         UserSessionFlags.generalModerationIssue,
         UserSessionFlags.safetyConcern,
@@ -398,7 +370,7 @@ describe('Session repo', () => {
         false,
         dbClient
       )
-      const actualReviewReasons = await getReviewReasonsForSession()
+      const actualReviewReasons = await getReviewReasonsForSession(session.id)
       expect(actualReviewReasons.rows.length).toEqual(2)
       expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
         getFlagId(reviewReasons[0])
@@ -418,7 +390,9 @@ describe('Session repo', () => {
         false,
         dbClient
       )
-      const secondActualReviewReasons = await getReviewReasonsForSession()
+      const secondActualReviewReasons = await getReviewReasonsForSession(
+        session.id
+      )
       expect(secondActualReviewReasons.rows.length).toEqual(3)
       expect(secondActualReviewReasons.rows[0].session_flag_id).toEqual(
         getFlagId(reviewReasons[0])
