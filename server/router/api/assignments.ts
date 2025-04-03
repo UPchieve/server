@@ -10,12 +10,10 @@ export function routeAssignments(router: Router): void {
       const assignmentId = req.params.assignmentId as string
       const assignment =
         await AssignmentsService.getAssignmentById(assignmentId)
-
-      let isGettingStartedAssignment = false
       if (assignment)
-        isGettingStartedAssignment =
+        assignment.isGettingStartedAssignment =
           await AssignmentsService.isGettingStartedAssignment(assignment.id)
-      res.json({ assignment: { ...assignment, isGettingStartedAssignment } })
+      res.json({ assignment })
     } catch (err) {
       resError(res, err)
     }
