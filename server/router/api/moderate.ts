@@ -12,19 +12,19 @@ export function routeModeration(router: Router): void {
   router.route('/moderate/message').post(async (req, res) => {
     try {
       const user = extractUser(req)
-      const isVolunteer = user.roleContext.isActiveRole('volunteer')
+      const userType = user.roleContext.activeRole
       const args = req.body?.content
         ? {
             // Support old versions of high-line and midtown
             message: asString(req.body.content),
             senderId: asString(req.user?.id),
-            isVolunteer,
+            userType,
           }
         : {
             message: asString(req.body.message),
             senderId: asString(req.user?.id),
             sessionId: req.body.sessionId,
-            isVolunteer,
+            userType,
           }
       const isClean = await ModerationService.moderateMessage(args)
       res.json({ isClean })
