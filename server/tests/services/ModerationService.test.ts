@@ -8,17 +8,22 @@ import {
   handleModerationInfraction,
   getScoreForCategory,
   LiveMediaModerationCategories,
+  getSessionFlagByModerationReason,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
+import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { openai } from '../../services/BotsService'
 import * as LangfuseService from '../../services/LangfuseService'
 import { timeLimit } from '../../utils/time-limit'
-import { buildModerationInfractionRow } from '../mocks/generate'
+import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
+import * as SessionRepo from '../../models/Session'
 import SocketService from '../../services/SocketService'
+import { UserSessionFlags } from '../../constants'
 
+jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
@@ -43,11 +48,13 @@ jest.mock('../../services/SocketService', () => {
     }),
   }
 })
+jest.mock('../../services/SessionService')
 
 describe('ModerationService', () => {
   const isVolunteer = true
   const mockLangfuseService = mocked(LangfuseService)
   const mockModerationInfractionsRepo = mocked(ModerationInfractionsRepo)
+  const mockSessionRepo = mocked(SessionRepo)
   const senderId = '123'
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
@@ -70,11 +77,13 @@ describe('ModerationService', () => {
     mockLangfuseService.getClient.mockReturnValue(mockLangfuseClient as any)
   })
 
+  const userType = 'volunteer'
+
   describe('Regex moderation', () => {
     test('Check incorrect email succeeds', async () => {
       const email = 'j.@serve1.proseware.com'
       expect(
-        await moderateMessage({ message: email, senderId, isVolunteer })
+        await moderateMessage({ message: email, senderId, userType })
       ).toBeTruthy()
     })
 
@@ -85,7 +94,7 @@ describe('ModerationService', () => {
         await moderateMessage({
           message: phoneNumber,
           senderId,
-          isVolunteer,
+          userType,
         })
       ).toBeTruthy()
     })
@@ -93,21 +102,21 @@ describe('ModerationService', () => {
     test('Check correct email fails', async () => {
       const email = 'student1@upchieve.com'
       expect(
-        await moderateMessage({ message: email, senderId, isVolunteer })
+        await moderateMessage({ message: email, senderId, userType })
       ).toBeFalsy()
     })
 
     test('Check vulgar word fails', async () => {
       const word = '5hit'
       expect(
-        await moderateMessage({ message: word, senderId, isVolunteer })
+        await moderateMessage({ message: word, senderId, userType })
       ).toBeFalsy()
     })
 
     test('Check non-vulgar word succeeds', async () => {
       const word = 'hello'
       expect(
-        await moderateMessage({ message: word, senderId, isVolunteer })
+        await moderateMessage({ message: word, senderId, userType })
       ).toBeTruthy()
     })
 
@@ -116,7 +125,7 @@ describe('ModerationService', () => {
         await moderateMessage({
           message: badMessage,
           senderId,
-          isVolunteer,
+          userType,
         })
       ).toBeFalsy()
     })
@@ -124,6 +133,7 @@ describe('ModerationService', () => {
 
   describe('AI moderation', () => {
     const mockedFeatureFlagService = mocked(FeatureFlagsService)
+    const mockSessionService = mocked(SessionService)
     const mockedCensoredSessionMessage = mocked(CensoredSessionMessage)
     let censoredSessionMessage: any
 
@@ -177,7 +187,7 @@ describe('ModerationService', () => {
         await moderateMessage({
           message,
           senderId,
-          isVolunteer,
+          userType,
           sessionId,
         })
       ).toStrictEqual({
@@ -227,7 +237,7 @@ describe('ModerationService', () => {
         await moderateMessage({
           message: badMessage,
           senderId,
-          isVolunteer,
+          userType,
           sessionId,
         })
       ).toStrictEqual({
@@ -263,11 +273,19 @@ describe('ModerationService', () => {
         ],
       })
 
+      mockSessionService.getSessionTranscript.mockResolvedValue({
+        sessionId,
+        messages: [],
+      })
+      mockSessionRepo.getSessionById.mockResolvedValue(
+        await buildSession({ studentId: senderId })
+      )
+
       expect(
         await moderateMessage({
           message,
           senderId,
-          isVolunteer,
+          userType,
           sessionId,
         })
       ).toStrictEqual({ failures: {} })
@@ -402,7 +420,7 @@ describe('ModerationService', () => {
       const result = await moderateMessage({
         message,
         senderId,
-        isVolunteer,
+        userType,
         sessionId,
       })
 
@@ -424,7 +442,7 @@ describe('ModerationService', () => {
         const result = await moderateMessage({
           message,
           senderId: 'sender-123',
-          isVolunteer: false,
+          userType,
         })
         expect(result).toEqual(isClean)
       }
@@ -632,6 +650,20 @@ describe('ModerationService', () => {
 
       expect(moderatedLinks).toStrictEqual(disallowedLinks)
       expect(moderatedLinks.length).toStrictEqual(disallowedLinks.length)
+    })
+  })
+
+  describe('getSessionFlagByModerationReason', () => {
+    it.each([
+      [UserSessionFlags.pii, 'PII'],
+      [UserSessionFlags.inappropriateConversation, 'INAPPROPRIATE_CONTENT'],
+      [UserSessionFlags.platformCircumvention, 'PLATFORM_CIRCUMVENTION'],
+      [UserSessionFlags.hateSpeech, 'HATE_SPEECH'],
+      [UserSessionFlags.safetyConcern, 'SAFETY'],
+      [UserSessionFlags.generalModerationIssue, 'anything else'],
+      [UserSessionFlags.generalModerationIssue, ''],
+    ])('Returns flag %s for reason %s', (expected, reason) => {
+      expect(getSessionFlagByModerationReason(reason)).toEqual(expected)
     })
   })
 })

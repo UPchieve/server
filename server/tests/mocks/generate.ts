@@ -11,7 +11,7 @@ import {
   StudentPartnerOrgUpchieveInstance,
 } from '../../models/StudentPartnerOrg'
 import { School } from '../../models/School'
-import { DAYS, GRADES, HOURS } from '../../constants'
+import { DAYS, GRADES, HOURS, USER_ROLES_TYPE } from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
 import {
   LegacySurvey,
@@ -26,8 +26,10 @@ import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
 import {
   MessageForFrontend,
+  MessageType,
   Session,
   SessionMessage,
+  SessionTranscriptItem,
   UserSessions,
   VoiceMessage,
 } from '../../models/Session'
@@ -802,6 +804,21 @@ export const buildSessionAudioTranscriptMessageRow = (
     sessionId,
     message: 'Test message',
     saidAt: new Date(),
+    ...overrides,
+  }
+}
+
+export const buildSessionTranscriptItem = (
+  userId: string,
+  overrides = {}
+): SessionTranscriptItem => {
+  return {
+    messageId: getDbUlid(),
+    userId,
+    createdAt: new Date(),
+    message: 'Test message',
+    messageType: 'session_chat',
+    role: 'student',
     ...overrides,
   }
 }

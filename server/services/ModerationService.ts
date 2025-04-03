@@ -1,34 +1,46 @@
 import logger from '../logger'
 import { chunk, isEmpty } from 'lodash'
 import {
-  CensoredSessionMessage,
   CENSORED_BY,
+  CensoredSessionMessage,
   createCensoredMessage,
 } from '../models/CensoredSessionMessage'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { openai } from './BotsService'
 import * as UsersRepo from '../models/User/queries'
+import * as SessionRepo from '../models/Session'
+import {
+  SessionTranscript,
+  SessionTranscriptItem,
+  updateSessionFlagsById,
+  updateSessionReviewReasonsById,
+} from '../models/Session'
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
 } from './FeatureFlagService'
 import { timeLimit } from '../utils/time-limit'
 import * as LangfuseService from './LangfuseService'
-import { TextPromptClient } from 'langfuse-core'
 import { LangfusePromptNameEnum, LangfuseTraceTagEnum } from './LangfuseService'
+import * as SessionService from './SessionService'
+import { TextPromptClient } from 'langfuse-core'
 import SocketService from './SocketService'
 import config from '../config'
 import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
-import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
-import { SessionTranscript, SessionTranscriptItem } from '../models/Session'
 import {
-  RekognitionClient,
-  DetectModerationLabelsCommand,
-  ModerationLabel,
-  DetectLabelsCommand,
+  USER_BAN_REASONS,
+  USER_BAN_TYPES,
+  USER_ROLES_TYPE,
+  UserSessionFlags,
+} from '../constants'
+import {
   DetectFacesCommand,
+  DetectLabelsCommand,
+  DetectModerationLabelsCommand,
   DetectTextCommand,
+  ModerationLabel,
+  RekognitionClient,
 } from '@aws-sdk/client-rekognition'
 import {
   ComprehendClient,
@@ -39,11 +51,12 @@ import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
 import { invokeModel } from './AwsBedrockService'
-
-const MINOR_AGE_THRESHOLD = 18
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
-import { getClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
+import { PrimaryUserRole } from './UserRolesService'
+
+const MINOR_AGE_THRESHOLD = 18
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -109,6 +122,9 @@ export type ModerationSource =
   | 'voice_chat'
   | 'audio_transcription'
   | 'text_chat'
+
+const DIRECT_MESSAGE_TAG = 'direct_message'
+const MESSAGE_TAG = 'session_chat'
 
 /*
   detect harmful content in the image
@@ -849,15 +865,15 @@ export type oldClientModerationResult = boolean
 export async function moderateMessage({
   message,
   senderId,
-  isVolunteer,
+  userType,
   sessionId,
 }: {
   message: string
   senderId: string
-  isVolunteer: boolean
+  userType: PrimaryUserRole
   sessionId?: string
 }): Promise<oldClientModerationResult | ModerationFailureReasons> {
-  const { isClean, failures, sanitizedMessage } = regexModerate(message)
+  const { isClean, failures } = regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
@@ -880,7 +896,7 @@ export async function moderateMessage({
     if (userTargetStatus === AI_MODERATION_STATE.targeted) {
       const response = await getAiModerationResult(
         censoredSessionMessage,
-        isVolunteer
+        userType === 'volunteer'
       )
       // Override the regex moderation decision with the AI one if it's available
       result.failures =
@@ -888,7 +904,7 @@ export async function moderateMessage({
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
       await createIndividualSessionMessageModerationJob({
         censoredSessionMessage,
-        isVolunteer,
+        isVolunteer: userType === 'volunteer',
       })
     }
 
@@ -896,9 +912,36 @@ export async function moderateMessage({
       { censoredSessionMessage, reasons: result },
       'Session message was censored'
     )
+    return result
   }
 
-  return result
+  const session = await SessionRepo.getSessionById(sessionId)
+  const isDm = !!session.endedAt
+  if (!isDm) return { failures: {} }
+  // For DMs, we'll moderate the context of the entire transcript to make sure the
+  // conversation remains appropriate.
+  const transcript = await SessionService.getSessionTranscript(sessionId)
+  transcript.messages.push({
+    messageId: 'in-flight',
+    createdAt: new Date(),
+    messageType: 'direct_message',
+    userId: senderId,
+    message,
+    role: userType,
+  } as SessionTranscriptItem)
+  const transcriptModerationResults = await moderateTranscript(transcript)
+  const uncleanDms = transcriptModerationResults.flaggedMessages.filter(
+    (message) => message.includes(DIRECT_MESSAGE_TAG)
+  )
+  if (uncleanDms.length) {
+    const failures = {} as Record<string, string[]>
+    transcriptModerationResults.reasons.forEach((reason) => {
+      failures[reason.toLowerCase().replace('_', ' ')] = []
+    })
+    return { failures }
+  } else {
+    return { failures: {} }
+  }
 }
 
 export const handleModerationInfraction = async (
@@ -1179,14 +1222,21 @@ export type TranscriptChunkModerationResult = {
   confidence: number // higher = more likely to be inappropriate
   explanation: string
   reasons: ModerationSessionReviewFlagReason[]
+  flaggedMessages: string[]
 }
 export const moderateTranscript = async (
   transcript: SessionTranscript
-): Promise<TranscriptChunkModerationResult[]> => {
+): Promise<{
+  reasons: ModerationSessionReviewFlagReason[]
+  flaggedMessages: string[]
+}> => {
   const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
     return chunk.reduce((acc: string, item) => {
+      const messageTag =
+        item.messageType === 'direct_message' ? DIRECT_MESSAGE_TAG : MESSAGE_TAG
       return (
-        acc + `<message><role>${item.role}</role>${item.message}</message>\n`
+        acc +
+        `<${messageTag}><role>${item.role}</role>${item.message}</${messageTag}>\n`
       )
     }, '')
   }
@@ -1227,7 +1277,48 @@ export const moderateTranscript = async (
   ) {
     t.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
   }
-  return results
+
+  const confidenceThreshold = config.contextualModerationConfidenceThreshold
+  const flaggedChunks = results.filter(
+    (chunk) => chunk.confidence >= confidenceThreshold
+  )
+  const flagReasons = new Set<ModerationSessionReviewFlagReason>(
+    flaggedChunks.flatMap((chunk) => chunk.reasons)
+  )
+  return {
+    reasons: Array.from(flagReasons),
+    flaggedMessages: flaggedChunks.flatMap((chunk) => chunk.flaggedMessages),
+  }
+}
+
+export function getSessionFlagByModerationReason(
+  reason: ModerationSessionReviewFlagReason | string
+): UserSessionFlags {
+  switch (reason) {
+    case 'PII':
+      return UserSessionFlags.pii
+    case 'INAPPROPRIATE_CONTENT':
+      return UserSessionFlags.inappropriateConversation
+    case 'PLATFORM_CIRCUMVENTION':
+      return UserSessionFlags.platformCircumvention
+    case 'HATE_SPEECH':
+      return UserSessionFlags.hateSpeech
+    case 'SAFETY':
+      return UserSessionFlags.safetyConcern
+    default:
+      return UserSessionFlags.generalModerationIssue
+  }
+}
+
+export async function markSessionForReview(
+  sessionId: string,
+  sessionFlags: UserSessionFlags[],
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  await runInTransaction(async (tc: TransactionClient) => {
+    await updateSessionFlagsById(sessionId, sessionFlags, tc)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+  }, tc)
 }
 
 export const FALLBACK_MODERATION_PROMPT = `
@@ -1271,7 +1362,8 @@ Acceptable values for the elements of the 'reasons' array are:
 
 const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
 You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor on a platform called UPchieve and decide if it violates any policies. The platform has built-in support for written chat messages, voice chat, and collaborative document editor and whiteboard.
-You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages or transcriptions of voice chat, both of which are built into the platform. Policies are described in the <policy> tags, and each has a name to be returned in your JSON response in the <name> tag. Exceptions to the policies are in <exception> tags.
+You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages or transcriptions of voice chat, both of which are built into the platform. Users may message each other after the end of the tutoring session for continuous asynchronous tutoring help. These messages are in <direct_message> tags.
+Policies are described in the <policy> tags, and each has a name to be returned in your JSON response in the <name> tag. Exceptions to the policies are in <exception> tags.
 Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
 <policy><name>HATE_SPEECH</name>No hate speech</policy>
 <policy><name>INAPPROPRIATE_CONTENT</name>No sexual or flirtatious content</policy>
@@ -1285,7 +1377,7 @@ Given a chunk of the conversation, provide a confidence rating from 0 to 100 to 
 <exception>If the tutoring session is focused on college applications and college essays, it is appropriate to share information about the college or minor personal information if it is relevant to the student's applications. NO contact information should be shared, nor the student's school.</exception>
 </policy>
 <policy><name>SAFETY</name>Threats of harm to oneself or others and dangerous situations should be flagged.</policy>
-Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons should be an empty array.
+Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[], flaggedMessages: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons and flaggedMessages properties should be empty arrays. Otherwise, reasons should be the names of all violated policies and flaggedMessages should be the exact messages that violate the policies (including their original tags).
 `
 
 const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `

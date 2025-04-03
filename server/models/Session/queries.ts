@@ -133,30 +133,22 @@ export async function getSessionById(
   }
 }
 
-export async function updateSessionFlagsById( // @TODO Wrap in runInTransaction at the service layer
+export async function updateSessionFlagsById(
   sessionId: Ulid,
-  flags: (USER_SESSION_METRICS | UserSessionFlags)[]
+  flags: (USER_SESSION_METRICS | UserSessionFlags)[],
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-    const errors: string[] = []
-    for (const flag of flags) {
-      // @TODO Make a single trip to the db
-      const result = await pgQueries.insertSessionFlagById.run(
-        { sessionId, flag },
-        client
+    const result = await pgQueries.insertSessionFlagsById.run(
+      { sessionId, flags },
+      client
+    )
+    if (!result.length)
+      throw new RepoUpdateError(
+        'Insert session flags query did not return any results'
       )
-      if (!result.length && makeRequired(result[0]).ok)
-        errors.push(`Update query for flag ${flag} did not return ok`)
-    }
-    if (errors.length) throw new RepoReadError(errors.join('\n'))
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -1111,36 +1103,33 @@ export async function getSessionsForAdminFilter(
   }
 }
 
-export async function updateSessionReviewReasonsById( // @TODO Wrap in runInTransaction at the service layer
+export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
   reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
   // Use this property to override the reviewed status of a session
-  reviewed?: boolean
+  reviewed?: boolean,
+  client?: TransactionClient
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-    for (const flag of reviewReasons) {
-      // @TODO Make a single trip to the db
-      const result = await pgQueries.insertSessionReviewReason.run(
-        { sessionId, flag },
-        client
+    const dbClient = client ?? getClient()
+    const insertReviewReasonsResult =
+      await pgQueries.insertSessionReviewReasons.run(
+        { sessionId, reviewReasons },
+        dbClient
       )
-      if (!result.length && makeRequired(result[0]).ok)
-        throw new Error('Insert did not return ok')
-    }
-    const result = await pgQueries.updateSessionToReview.run(
+    if (!insertReviewReasonsResult.length)
+      throw new Error(
+        'Query to insert session review reasons did not return any results'
+      )
+
+    const updateSessionResult = await pgQueries.updateSessionToReview.run(
       { sessionId, reviewed },
-      client
+      dbClient
     )
-    if (!result.length && makeRequired(result[0]).ok)
+    if (!updateSessionResult.length && makeRequired(updateSessionResult[0]).ok)
       throw new Error('Updating to_review did not return ok')
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
