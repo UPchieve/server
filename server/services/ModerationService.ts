@@ -1028,7 +1028,7 @@ export function getScoreForCategory(
   category: LiveMediaModerationCategories | string
 ): number {
   let categoryScore
-  switch (category) {
+  switch (category.toLowerCase()) {
     case 'profanity':
     case 'high toxicity':
     case 'minor detected in image':
