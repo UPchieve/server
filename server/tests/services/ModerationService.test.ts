@@ -571,6 +571,8 @@ describe('ModerationService', () => {
     describe('getScoreForCategory', () => {
       it.each([
         ['profanity', 1],
+        ['PROfanity', 1],
+        ['PROFANITY', 1],
         ['alcohol', 1],
         ['violence', 10],
         ['hate symbols', 10],
