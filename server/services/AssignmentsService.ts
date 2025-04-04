@@ -23,6 +23,7 @@ import * as AzureService from './AzureService'
 import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsForTopicByTopicId } from './SubjectsService'
+import logger from '../logger'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -141,7 +142,17 @@ export async function editAssignment(data: EditAssignmentPayload) {
 export async function getAssignmentsByClassId(
   classId: Ulid
 ): Promise<AssignmentsRepo.Assignment[]> {
-  return AssignmentsRepo.getAssignmentsByClassId(classId)
+  const assignments = await AssignmentsRepo.getAssignmentsByClassId(classId)
+  const updatedAssignments = []
+  for (const assignment of assignments) {
+    updatedAssignments.push({
+      ...assignment,
+      isGettingStartedAssignment: await isGettingStartedAssignment(
+        assignment.id
+      ),
+    })
+  }
+  return updatedAssignments
 }
 
 export async function getAssignmentById(
@@ -383,8 +394,15 @@ export async function getAssignmentDocuments(assignmentId: Ulid) {
 export async function isGettingStartedAssignment(
   assignmentId: Uuid
 ): Promise<boolean> {
-  const members = await cache.smembers('getting-started-assignments')
-  return members.includes(assignmentId)
+  try {
+    const members = await cache.smembers('getting-started-assignments')
+    return members.includes(assignmentId)
+  } catch (error) {
+    logger.error(
+      `Failed checking if assignment ${assignmentId} is a getting started assignment. Failed to retrieve members from cache key 'getting-started-assignments'. Error: ${error}`
+    )
+    return false
+  }
 }
 
 export async function createGettingStartedAssignment(
