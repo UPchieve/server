@@ -28,15 +28,12 @@ import {
   USER_SESSION_METRICS,
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
-import { getFeedbackBySessionId } from '../Feedback/queries'
 import { Feedback } from '../Feedback'
 import { isPgId } from '../../utils/type-utils'
 import {
-  getSessionNotificationsWithSessionId,
   SessionNotification,
 } from '../Notification'
 import {
-  getPresessionSurveyResponse,
   PostsessionSurveyResponse,
   SimpleSurveyResponse,
   getSessionRating,
