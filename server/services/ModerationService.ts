@@ -563,14 +563,12 @@ async function handleImageModerationFailure({
   image: Buffer
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
-  logger.info(`TEST: handleImageModerationFailure for session ${sessionId}`)
   const { location: imageUrl } = await saveImageToBucket({
     sessionId,
     image,
     source,
   })
 
-  logger.info(`TEST: handleImageModerationFailure bucket url ${imageUrl}`)
   logger.warn(
     { sessionId, reasons: failureReasons, imageUrl, source },
     'Image triggered moderation'
@@ -588,9 +586,6 @@ async function handleImageModerationFailure({
       ImageModerationFailureReason['details']
     >
   )
-  logger.info(
-    `TEST:  handleImageModerationFailure failures ${JSON.stringify(failures, null, 2)}`
-  )
   await handleModerationInfraction(userId, sessionId, { failures }, source)
 }
 
@@ -601,9 +596,6 @@ function maybeHandleImageModerationFailure(options: {
   source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
 }) {
   return function (failures: ImageModerationFailureReason[]) {
-    logger.info(
-      `TEST: maybeHandleImageModerationFailure for session ${options.sessionId}: ${JSON.stringify({ failures }, null, 2)}`
-    )
     if (failures.length > 0) {
       handleImageModerationFailure({
         userId: options.userId,
@@ -956,9 +948,6 @@ export const handleModerationInfraction = async (
   source: ModerationSource,
   client = getClient()
 ) => {
-  logger.info(
-    `TEST: handleModerationInfraction for session ${sessionId}: source:${source}`
-  )
   if (source === 'image_upload') {
     // Image uploads are premoderated, so if they fail moderation they are not shown to any user.
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
@@ -971,9 +960,6 @@ export const handleModerationInfraction = async (
       reason: reasons.failures,
     },
     client
-  )
-  logger.info(
-    `TEST: handleModerationInfraction for session ${sessionId}: source:${source}`
   )
   const allActiveInfractions =
     await ModerationInfractionsRepo.getModerationInfractionsByUser(
@@ -1135,7 +1121,6 @@ export const moderateImage = async ({
   failures: string[]
 } | void> => {
   if (aggregateInfractions) {
-    logger.info(`TEST: image upload moderation for session ${sessionId}`)
     const result = await getAllImageModerationFailures({
       image,
       sessionId,
@@ -1162,7 +1147,6 @@ export const moderateImage = async ({
 
     return { isClean: false, failures }
   } else {
-    logger.info(`TEST: screenshare moderation for session ${sessionId}`)
     moderateImageInBackground({ image, sessionId, userId, isVolunteer, source })
   }
 }
