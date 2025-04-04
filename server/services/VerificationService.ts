@@ -25,7 +25,10 @@ import {
   updateUserVerifiedInfoById,
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
-import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
+import {
+  getSmsVerificationFeatureFlag,
+  getTeacherVerificationBypassFlag,
+} from './FeatureFlagService'
 import * as UserService from './UserService'
 
 export interface InitiateVerificationData {
@@ -221,10 +224,9 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
 
   let isVerified: boolean = false
   try {
-    isVerified = await TwilioService.confirmVerification(
-      sendTo,
-      verificationCode
-    )
+    isVerified =
+      (await TwilioService.confirmVerification(sendTo, verificationCode)) ||
+      !!(await getTeacherVerificationBypassFlag(userId))
   } catch (err) {
     const error = err as {
       message: string

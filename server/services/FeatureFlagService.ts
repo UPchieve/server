@@ -169,3 +169,10 @@ export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
     userId
   )
 }
+
+export async function getTeacherVerificationBypassFlag(userId: Uuid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.TEACHER_VERIFICATION_BYPASS,
+    userId
+  )
+}
