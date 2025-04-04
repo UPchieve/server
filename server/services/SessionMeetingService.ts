@@ -71,7 +71,7 @@ async function handleNoExistingMeeting(
   const attendee = created.attendee
 
   try {
-    const { id } = await SessionMeetingsRepo.insertSessionMeeting(
+    await SessionMeetingsRepo.insertSessionMeeting(
       sessionId,
       meeting.MeetingId!,
       'chime',
