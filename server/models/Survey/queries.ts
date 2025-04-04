@@ -14,7 +14,6 @@ import {
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 import _ from 'lodash'
 import { asNumber } from '../../utils/type-utils'
-import * as SurveyService from '../../services/SurveyService'
 
 export async function saveUserSurveyAndSubmissions(
   userId: Ulid,
