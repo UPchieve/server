@@ -12,6 +12,7 @@ export interface IGetSessionMeetingBySessionIdResult {
   externalId: string;
   id: string;
   provider: string;
+  recordingId: string | null;
   sessionId: string;
   updatedAt: Date;
 }
@@ -52,6 +53,7 @@ export interface IInsertSessionMeetingResult {
   externalId: string;
   id: string;
   provider: string;
+  recordingId: string | null;
   sessionId: string;
   updatedAt: Date;
 }
@@ -74,5 +76,46 @@ const insertSessionMeetingIR: any = {"usedParamSet":{"id":true,"externalId":true
  * ```
  */
 export const insertSessionMeeting = new PreparedQuery<IInsertSessionMeetingParams,IInsertSessionMeetingResult>(insertSessionMeetingIR);
+
+
+/** 'AddRecordingIdToSessionMeeting' parameters type */
+export interface IAddRecordingIdToSessionMeetingParams {
+  id: string;
+  recordingId: string;
+}
+
+/** 'AddRecordingIdToSessionMeeting' return type */
+export interface IAddRecordingIdToSessionMeetingResult {
+  createdAt: Date;
+  externalId: string;
+  id: string;
+  provider: string;
+  recordingId: string | null;
+  sessionId: string;
+  updatedAt: Date;
+}
+
+/** 'AddRecordingIdToSessionMeeting' query type */
+export interface IAddRecordingIdToSessionMeetingQuery {
+  params: IAddRecordingIdToSessionMeetingParams;
+  result: IAddRecordingIdToSessionMeetingResult;
+}
+
+const addRecordingIdToSessionMeetingIR: any = {"usedParamSet":{"recordingId":true,"id":true},"params":[{"name":"recordingId","required":true,"transform":{"type":"scalar"},"locs":[{"a":51,"b":63}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":80,"b":83}]}],"statement":"UPDATE\n    session_meetings\nSET\n    recording_id = :recordingId!\nWHERE\n    id = :id!\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     session_meetings
+ * SET
+ *     recording_id = :recordingId!
+ * WHERE
+ *     id = :id!
+ * RETURNING
+ *     *
+ * ```
+ */
+export const addRecordingIdToSessionMeeting = new PreparedQuery<IAddRecordingIdToSessionMeetingParams,IAddRecordingIdToSessionMeetingResult>(addRecordingIdToSessionMeetingIR);
 
 
