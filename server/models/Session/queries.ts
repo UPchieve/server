@@ -28,9 +28,7 @@ import {
 import { UserActionAgent } from '../UserAction'
 import { Feedback } from '../Feedback'
 import { isPgId } from '../../utils/type-utils'
-import {
-  SessionNotification,
-} from '../Notification'
+import { SessionNotification } from '../Notification'
 import {
   PostsessionSurveyResponse,
   SimpleSurveyResponse,
