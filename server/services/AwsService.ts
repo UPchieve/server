@@ -133,6 +133,5 @@ export async function putObject(bucket: string, s3Key: string, body: Buffer) {
   const command = new PutObjectCommand(signedUrlParams)
   const response = await s3.send(command)
   const location = `https://${bucket}.s3.amazonaws.com/${s3Key}`
-  logger.info(`TEST: putObject response ${JSON.stringify(response, null, 2)}`)
   return { response, location }
 }
