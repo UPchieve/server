@@ -1,4 +1,4 @@
-import { TransactionClient, getClient } from '../../db'
+import { TransactionClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -1228,7 +1228,7 @@ export async function getFilteredSessionHistory(
     }
     const result = await pgQueries.getFilteredSessionHistory.run(
       params,
-      getClient()
+      getRoClient()
     )
     if (result.length) return result.map((v) => makeRequired(v))
     return []
@@ -1253,7 +1253,7 @@ export async function getFilteredSessionHistoryTotalCount(
     }
     const result = await pgQueries.getFilteredSessionHistoryTotalCount.run(
       params,
-      getClient()
+      getRoClient()
     )
     if (result.length) {
       return result[0].count ?? 0
@@ -1286,7 +1286,7 @@ export type SessionForSessionRecap = {
 export async function getSessionRecap(
   sessionId: Ulid
 ): Promise<SessionForSessionRecap> {
-  const client = await getClient().connect()
+  const client = await getRoClient().connect()
   try {
     const sessionResult = await pgQueries.getSessionRecap.run(
       { sessionId },
