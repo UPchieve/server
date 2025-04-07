@@ -14,6 +14,7 @@ import {
   verifyPassword,
 } from '../../utils/auth-utils'
 import config from '../../config'
+import logger from '../../logger'
 
 async function passportLoginUser(
   profileId: string,
@@ -161,118 +162,127 @@ export function addPassportAuthMiddleware() {
       profile: TCleverPassportProfile,
       done: Function
     ) {
-      const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-      // Check if the user has already used Clever SSO.
-      const existingFedCred = await FedCredService.getFedCredForUser(
-        profile.id,
-        profile.issuer
-      )
-      if (existingFedCred) {
-        if (userData && CleverAPIService.isStudent(profile.userType)) {
-          const data = {
-            schoolId: userData.schoolId,
-            studentPartnerOrgKey: (userData as RegisterStudentPayload)
-              .studentPartnerOrgKey,
-            studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-              .studentPartnerOrgSiteName,
-            userId: existingFedCred.userId,
-          }
-          // Always upsert the student if there is data.
-          await UserCreationService.upsertStudent(data)
-        } else if (
-          CleverAPIService.isTeacher(profile.userType) &&
-          profile.teacher
-        ) {
-          // Always update the teacher's classes whenever they sign in.
-          await CleverRosterService.rosterTeacherClasses(
-            existingFedCred.userId,
-            profile.teacher.classes,
-            profile.teacher.students
-          )
-        }
-        return done(null, { id: existingFedCred.userId })
-      }
-
-      const firstName = profile.name?.givenName
-      const lastName = profile.name?.familyName
-      if (!firstName || !lastName) {
-        return done(null, false, {
-          errorMessage: 'Missing required field in passport.Profile',
-        })
-      }
-
-      const email = profile.emails?.[0]?.value ?? userData?.email
-      if (!email) {
-        // Redirect to get the email from the user so we can link
-        // their account if an account already exists, or create an
-        // account.
-        return done(null, false, {
-          profileId: profile.id,
-          issuer: profile.issuer,
-          firstName,
-          lastName,
-        })
-      }
-
-      // Check if the user already exists, but just hadn't used
-      // Clever SSO before.
-      const existingUser = await getUserVerificationByEmails(
-        email,
-        userData?.email
-      )
-      if (existingUser) {
-        if (userData && CleverAPIService.isStudent(profile.userType)) {
-          const data = {
-            schoolId: userData.schoolId,
-            studentPartnerOrgKey: (userData as RegisterStudentPayload)
-              .studentPartnerOrgKey,
-            studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-              .studentPartnerOrgSiteName,
-            userId: existingUser.id,
-          }
-          await UserCreationService.upsertStudent(data)
-        } else if (
-          CleverAPIService.isTeacher(profile.userType) &&
-          profile.teacher
-        ) {
-          await CleverRosterService.rosterTeacherClasses(
-            existingUser.id,
-            profile.teacher.classes,
-            profile.teacher.students
-          )
-        }
-        await FedCredService.linkAccount(
+      try {
+        const { userData } = (req.session as SessionWithSsoData).sso ?? {}
+        // Check if the user has already used Clever SSO.
+        const existingFedCred = await FedCredService.getFedCredForUser(
           profile.id,
-          profile.issuer,
-          existingUser.id
+          profile.issuer
         )
-        return done(null, { id: existingUser.id })
-      }
+        if (existingFedCred) {
+          if (userData && CleverAPIService.isStudent(profile.userType)) {
+            const data = {
+              schoolId: userData.schoolId,
+              studentPartnerOrgKey: (userData as RegisterStudentPayload)
+                .studentPartnerOrgKey,
+              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
+                .studentPartnerOrgSiteName,
+              userId: existingFedCred.userId,
+            }
+            // Always upsert the student if there is data.
+            await UserCreationService.upsertStudent(data)
+          } else if (
+            CleverAPIService.isTeacher(profile.userType) &&
+            profile.teacher
+          ) {
+            // Always update the teacher's classes whenever they sign in.
+            await CleverRosterService.rosterTeacherClasses(
+              existingFedCred.userId,
+              profile.teacher.classes,
+              profile.teacher.students
+            )
+          }
+          return done(null, { id: existingFedCred.userId })
+        }
 
-      // If the user doesn't exist, register them.
-      const data = {
-        ...userData,
-        email,
-        firstName,
-        issuer: profile.issuer,
-        lastName,
-        profileId: profile.id,
-        schoolId: profile.schoolId,
-      }
-      if (CleverAPIService.isStudent(profile.userType)) {
-        const student = await UserCreationService.registerStudent(data)
-        return done(null, student)
-      } else if (
-        CleverAPIService.isTeacher(profile.userType) &&
-        profile.teacher
-      ) {
-        const teacher = await UserCreationService.registerTeacher(data)
-        await CleverRosterService.rosterTeacherClasses(
-          teacher.id,
-          profile.teacher.classes,
-          profile.teacher.students
+        const firstName = profile.name?.givenName
+        const lastName = profile.name?.familyName
+        if (!firstName || !lastName) {
+          return done(null, false, {
+            errorMessage: 'Missing required field in passport.Profile',
+          })
+        }
+
+        const email = profile.emails?.[0]?.value ?? userData?.email
+        if (!email) {
+          // Redirect to get the email from the user so we can link
+          // their account if an account already exists, or create an
+          // account.
+          return done(null, false, {
+            profileId: profile.id,
+            issuer: profile.issuer,
+            firstName,
+            lastName,
+          })
+        }
+
+        // Check if the user already exists, but just hadn't used
+        // Clever SSO before.
+        const existingUser = await getUserVerificationByEmails(
+          email,
+          userData?.email
         )
-        return done(null, teacher)
+        if (existingUser) {
+          if (userData && CleverAPIService.isStudent(profile.userType)) {
+            const data = {
+              schoolId: userData.schoolId,
+              studentPartnerOrgKey: (userData as RegisterStudentPayload)
+                .studentPartnerOrgKey,
+              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
+                .studentPartnerOrgSiteName,
+              userId: existingUser.id,
+            }
+            await UserCreationService.upsertStudent(data)
+          } else if (
+            CleverAPIService.isTeacher(profile.userType) &&
+            profile.teacher
+          ) {
+            await CleverRosterService.rosterTeacherClasses(
+              existingUser.id,
+              profile.teacher.classes,
+              profile.teacher.students
+            )
+          }
+          await FedCredService.linkAccount(
+            profile.id,
+            profile.issuer,
+            existingUser.id
+          )
+          return done(null, { id: existingUser.id })
+        }
+
+        // If the user doesn't exist, register them.
+        const data = {
+          ...userData,
+          email,
+          firstName,
+          issuer: profile.issuer,
+          lastName,
+          profileId: profile.id,
+          schoolId: profile.schoolId,
+        }
+        if (CleverAPIService.isStudent(profile.userType)) {
+          const student = await UserCreationService.registerStudent(data)
+          return done(null, student)
+        } else if (
+          CleverAPIService.isTeacher(profile.userType) &&
+          profile.teacher
+        ) {
+          const teacher = await UserCreationService.registerTeacher(data)
+          await CleverRosterService.rosterTeacherClasses(
+            teacher.id,
+            profile.teacher.classes,
+            profile.teacher.students
+          )
+          return done(null, teacher)
+        }
+      } catch (err) {
+        logger.error(err, 'Failed Clever SSO.')
+        return done(null, false, {
+          userType: profile.userType,
+          errorMessage:
+            'Failed Clever SSO. Please try again or contact support.',
+        })
       }
     })
   )

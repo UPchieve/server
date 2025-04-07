@@ -2745,7 +2745,7 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: session_meetings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_meetings (id, external_id, provider, session_id, created_at, updated_at) FROM stdin;
+COPY upchieve.session_meetings (id, external_id, provider, session_id, created_at, updated_at, recording_id) FROM stdin;
 \.
 
 
@@ -2754,14 +2754,6 @@ COPY upchieve.session_meetings (id, external_id, provider, session_id, created_a
 --
 
 COPY upchieve.session_messages (id, sender_id, contents, session_id, created_at, updated_at, mongo_id) FROM stdin;
-\.
-
-
---
--- Data for Name: session_metrics; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.session_metrics (session_id, absent_student, absent_volunteer, low_session_rating_from_coach, low_session_rating_from_student, low_coach_rating_from_student, reported, only_looking_for_answers, rude_or_inappropriate, comment_from_student, comment_from_volunteer, has_been_unmatched, has_had_technical_issues, personal_identifying_info, graded_assignment, coach_uncomfortable, student_crisis, created_at, updated_at) FROM stdin;
 \.
 
 

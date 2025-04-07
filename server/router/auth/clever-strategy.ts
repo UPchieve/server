@@ -81,7 +81,7 @@ export default class CleverStrategy extends OAuth2Strategy {
             }
           : undefined,
         schoolId: upchieveSchoolId,
-        userType: this.getUserType(user.roles),
+        userType,
       }
 
       return done(null, profile)

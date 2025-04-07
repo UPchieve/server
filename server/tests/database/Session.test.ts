@@ -10,13 +10,17 @@ import {
 } from '../mocks/generate'
 import { getClient } from '../../db'
 import {
-  getMessagesForFrontend,
   getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
+  getMessagesForFrontend,
+  getSessionTranscriptItems,
+  updateSessionFlagsById,
+  updateSessionReviewReasonsById,
 } from '../../models/Session'
 import { insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
+import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -120,6 +124,285 @@ describe('Session repo', () => {
         '3',
         voiceMessageId, // for voice messages, the id is returned as the message
       ])
+    })
+  })
+
+  describe('getSessionTranscript', () => {
+    it('Returns the correct message type for each type of message', async () => {
+      const endedAt = moment().add(5, 'hours')
+      const sessionObject = await buildSessionRow({
+        studentId,
+        volunteerId,
+        endedAt: endedAt.toDate(),
+      })
+      const session = await insertSingleRow('sessions', sessionObject, dbClient)
+      // Student text message
+      const studentTextMessage = 'Hi, can you help me with homework?'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(studentId, session.id, {
+          senderId: studentId,
+          contents: studentTextMessage,
+          createdAt: moment().subtract(6, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Volunteer text message
+      const volunteerTextMessage = 'Sure, what are you working on?'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(volunteerId, session.id, {
+          senderId: volunteerId,
+          contents: volunteerTextMessage,
+          createdAt: moment().subtract(5, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Volunteer voice transcription
+      const volunteerVoiceTranscription = 'Can you hear me on the mic?'
+      await insertSingleRow(
+        'session_audio_transcript_messages',
+        buildSessionAudioTranscriptMessageRow(volunteerId, session.id, {
+          message: volunteerVoiceTranscription,
+          saidAt: moment().subtract(4, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Student voice transcription
+      const studentVoiceTranscription = 'Yup'
+      await insertSingleRow(
+        'session_audio_transcript_messages',
+        buildSessionAudioTranscriptMessageRow(studentId, session.id, {
+          message: studentVoiceTranscription,
+          saidAt: moment().subtract(3, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      // Volunteer DM
+      const volunteerDm = 'Do you still need help with this?'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(volunteerId, session.id, {
+          contents: volunteerDm,
+          createdAt: endedAt.add(1, 'minute').toDate(),
+        }),
+        dbClient
+      )
+
+      // Student DM
+      const studentDm = 'No thanks'
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(studentId, session.id, {
+          contents: studentDm,
+          createdAt: endedAt.add(2, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      const actualTranscript = await getSessionTranscriptItems(session.id) // DMs happen after the session is over
+      const expectedTranscript = [
+        {
+          messageType: 'session_message',
+          message: studentTextMessage,
+          userId: studentId,
+          role: 'student',
+        },
+        {
+          messageType: 'session_message',
+          message: volunteerTextMessage,
+          userId: volunteerId,
+          role: 'volunteer',
+        },
+        {
+          messageType: 'transcription',
+          message: volunteerVoiceTranscription,
+          userId: volunteerId,
+          role: 'volunteer',
+        },
+        {
+          messageType: 'transcription',
+          message: studentVoiceTranscription,
+          userId: studentId,
+          role: 'student',
+        },
+        {
+          messageType: 'direct_message',
+          message: volunteerDm,
+          userId: volunteerId,
+          role: 'volunteer',
+        },
+        {
+          messageType: 'direct_message',
+          message: studentDm,
+          userId: studentId,
+          role: 'student',
+        },
+      ]
+
+      expect(actualTranscript.length).toEqual(6)
+      expect(
+        actualTranscript.map((item) => ({
+          messageType: item.messageType,
+          message: item.message,
+          userId: item.userId,
+          role: item.role,
+        }))
+      ).toEqual(expectedTranscript)
+    })
+  })
+
+  const getFlagId = (flag: UserSessionFlags | USER_SESSION_METRICS) => {
+    switch (flag) {
+      case UserSessionFlags.safetyConcern:
+        return 30
+      case UserSessionFlags.generalModerationIssue:
+        return 29
+      case UserSessionFlags.coachReportedStudentDm:
+        return 17
+      default:
+        throw new Error(
+          'getFlagId has no entry for this session flag - add one!'
+        )
+    }
+  }
+
+  describe('updateSessionFlagsById', () => {
+    const getFlagsForSession = async (sessionId: string) => {
+      return dbClient.query(
+        'SELECT * FROM sessions_session_flags WHERE session_id = $1',
+        [sessionId]
+      )
+    }
+
+    it('Inserts the flags for session', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
+      const initialFlags = await getFlagsForSession(session.id)
+      expect(initialFlags.rows.length).toEqual(0)
+      const flags = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionFlagsById(session.id, flags, dbClient)
+      const updatedFlags = await getFlagsForSession(session.id)
+      expect(updatedFlags.rows.length).toEqual(2)
+      expect(updatedFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
+      expect(updatedFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
+    })
+
+    it('Does not insert a flag if it already exists for the session', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
+      const flags = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionFlagsById(session.id, flags, dbClient)
+      const initialFlags = await getFlagsForSession(session.id)
+      expect(initialFlags.rows.length).toEqual(2)
+      expect(initialFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
+      expect(initialFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
+
+      // Now insert 2 more flags, 1 of them being a repeat
+      const nextFlags = [
+        UserSessionFlags.coachReportedStudentDm,
+        UserSessionFlags.generalModerationIssue,
+      ]
+      await updateSessionFlagsById(session.id, nextFlags, dbClient)
+      const updatedFlags = await getFlagsForSession(session.id)
+      expect(updatedFlags.rows.length).toEqual(3)
+      // existing flags
+      expect(updatedFlags.rows[0].session_flag_id).toEqual(getFlagId(flags[0]))
+      expect(updatedFlags.rows[1].session_flag_id).toEqual(getFlagId(flags[1]))
+      // new flag
+      expect(updatedFlags.rows[2].session_flag_id).toEqual(
+        getFlagId(nextFlags[0])
+      )
+    })
+  })
+
+  describe('updateSessionReviewReasonsById', () => {
+    const getReviewReasonsForSession = async (sessionId: string) => {
+      return dbClient.query(
+        'SELECT * FROM session_review_reasons WHERE session_id = $1',
+        [sessionId]
+      )
+    }
+
+    it('Inserts review reasons based on the flags', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
+      const reviewReasons = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionReviewReasonsById(
+        session.id,
+        reviewReasons,
+        false,
+        dbClient
+      )
+      const actualReviewReasons = await getReviewReasonsForSession(session.id)
+      expect(actualReviewReasons.rows.length).toEqual(2)
+      expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
+        getFlagId(reviewReasons[0])
+      )
+      expect(actualReviewReasons.rows[1].session_flag_id).toEqual(
+        getFlagId(reviewReasons[1])
+      )
+    })
+
+    it('Does not insert duplicate review reason', async () => {
+      const sessionObj = await buildSessionRow({ studentId }, dbClient)
+      const session = await insertSingleRow('sessions', sessionObj, dbClient)
+      const reviewReasons = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.safetyConcern,
+      ]
+      await updateSessionReviewReasonsById(
+        session.id,
+        reviewReasons,
+        false,
+        dbClient
+      )
+      const actualReviewReasons = await getReviewReasonsForSession(session.id)
+      expect(actualReviewReasons.rows.length).toEqual(2)
+      expect(actualReviewReasons.rows[0].session_flag_id).toEqual(
+        getFlagId(reviewReasons[0])
+      )
+      expect(actualReviewReasons.rows[1].session_flag_id).toEqual(
+        getFlagId(reviewReasons[1])
+      )
+
+      // Now insert 2 more review reasons, 1 of them being a duplicate
+      const nextReviewReasons = [
+        UserSessionFlags.generalModerationIssue,
+        UserSessionFlags.coachReportedStudentDm,
+      ]
+      await updateSessionReviewReasonsById(
+        session.id,
+        nextReviewReasons,
+        false,
+        dbClient
+      )
+      const secondActualReviewReasons = await getReviewReasonsForSession(
+        session.id
+      )
+      expect(secondActualReviewReasons.rows.length).toEqual(3)
+      expect(secondActualReviewReasons.rows[0].session_flag_id).toEqual(
+        getFlagId(reviewReasons[0])
+      )
+      expect(secondActualReviewReasons.rows[1].session_flag_id).toEqual(
+        getFlagId(reviewReasons[1])
+      )
+      expect(secondActualReviewReasons.rows[2].session_flag_id).toEqual(
+        getFlagId(nextReviewReasons[1])
+      )
     })
   })
 })

@@ -64,6 +64,7 @@
   ],
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.758.0",
+    "@aws-sdk/client-chime-sdk-media-pipelines": "^3.777.0",
     "@aws-sdk/client-chime-sdk-meetings": "^3.731.1",
     "@aws-sdk/client-comprehend": "^3.726.1",
     "@aws-sdk/client-rekognition": "^3.726.0",

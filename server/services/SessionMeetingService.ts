@@ -77,6 +77,7 @@ async function handleNoExistingMeeting(
       'chime',
       tc
     )
+
     return { meeting, attendee, partnerAttendee: null }
   } catch (err) {
     if (err instanceof RepoCreateError) {
@@ -216,7 +217,10 @@ async function createMeetingWithAttendee({
 }: {
   sessionId: string
   userId: string
-}): Promise<{ meeting: Meeting; attendee: Attendee }> {
+}): Promise<{
+  meeting: Meeting
+  attendee: Attendee
+}> {
   const client = AwsChimeService.getClient()
   const createMeetingReq = {
     MediaRegion: 'us-east-1',
@@ -258,6 +262,32 @@ export async function startTranscription(sessionId: string) {
     throw new Error(`Meeting for session ${sessionId} not found`)
 
   return await AwsChimeService.startTranscription(existingMeeting.externalId)
+}
+
+export async function startRecording(
+  sessionId: string,
+  transactionClient?: TransactionClient
+) {
+  const client = transactionClient ?? getClient()
+  const existingMeeting =
+    await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId, client)
+
+  if (!existingMeeting)
+    throw new Error(`Meeting for session ${sessionId} not found`)
+
+  if (existingMeeting?.recordingId) {
+    return existingMeeting.recordingId
+  }
+
+  const recordingId = await AwsChimeService.startRecording(
+    existingMeeting.externalId
+  )
+  await SessionMeetingsRepo.addRecordingIdToSessionMeeting(
+    existingMeeting.id,
+    recordingId,
+    client
+  )
+  return recordingId
 }
 
 export async function endMeeting(sessionId: string) {

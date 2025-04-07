@@ -35,3 +35,10 @@ export async function getTopicIdFromName(
   if (!topicName) return
   return SubjectsRepo.getTopicIdFromName(topicName, tc)
 }
+
+export async function getSubjectsForTopicByTopicId(
+  topicId: number,
+  tc?: TransactionClient
+) {
+  return SubjectsRepo.getSubjectsForTopicByTopicId(topicId, tc)
+}

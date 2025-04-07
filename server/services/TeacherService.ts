@@ -13,6 +13,7 @@ import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { StudentUserProfile } from '../models/Student'
 import { TeacherClassWithStudents } from '../models/Teacher'
+import { getTeacherGettingStartedAssignmentFlag } from './FeatureFlagService'
 
 export async function getTeacherById(userId: Ulid, tc?: TransactionClient) {
   return runInTransaction(async (tc: TransactionClient) => {
@@ -40,6 +41,13 @@ export async function createTeacherClass(
       tc
     )
     const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : []
+    if (await getTeacherGettingStartedAssignmentFlag(userId))
+      await AssignmentsService.createGettingStartedAssignment(
+        newClass.id,
+        topicId,
+        tc
+      )
+
     return { ...newClass, topic: topic[0] }
   }, tc)
 }
