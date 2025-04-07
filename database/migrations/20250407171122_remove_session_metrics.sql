@@ -1,8 +1,8 @@
 -- migrate:up
-DROP TABLE IF EXISTS upchieve.session_metrics;
+DROP TABLE upchieve.session_metrics;
 
 -- migrate:down
-CREATE TABLE IF NOT EXISTS upchieve.session_metrics (
+CREATE TABLE upchieve.session_metrics (
     session_id uuid PRIMARY KEY REFERENCES upchieve.sessions (id),
     absent_student boolean NOT NULL DEFAULT FALSE,
     absent_volunteer boolean NOT NULL DEFAULT FALSE,
