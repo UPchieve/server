@@ -25,13 +25,15 @@ export default function (server: http.Server) {
   >(server, {
     pingTimeout: 30000,
     cors: {
-      origin: new RegExp(`^(${config.protocol}://${config.host})$`),
+      origin: new RegExp(`^(${config.host})$`),
       credentials: true,
     },
     cookie: {
       name: 'subway-io',
       httpOnly: false,
     },
+    // Still necessary for backwards compatibility with mobile,
+    // which is still on v2.x.
     allowEIO3: true,
     connectionStateRecovery: {
       // the backup duration of the sessions and the packets
