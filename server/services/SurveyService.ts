@@ -33,7 +33,7 @@ import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
 import { emitter } from './EventsService'
 import { partition } from 'lodash'
 import { isUpdatedSessionEndedProcessingEnabled } from './FeatureFlagService'
-import { processFeedbackMetrics } from './SessionMetricsService'
+import { processFeedbackMetrics } from './SessionFlagsService'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,

@@ -3,7 +3,7 @@ import { Jobs } from '.'
 import { Uuid } from '../../models/pgUtils'
 import { queueGenerateProgressReportForUser } from '../../services/ProgressReportsService'
 import { queueFallIncentiveSessionQualificationJob } from '../../services/IncentiveProgramService'
-import { processSessionMetrics } from '../../services/SessionMetricsService'
+import { processSessionMetrics } from '../../services/SessionFlagsService'
 import {
   processCalculateMetrics,
   processEmailVolunteer,
