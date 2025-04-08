@@ -27,7 +27,6 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
-  createSessionMetrics,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -593,7 +592,6 @@ export async function startSession(
       user.banType === USER_BAN_TYPES.SHADOW,
       tc
     )
-    await createSessionMetrics(newSessionId, tc)
 
     if (assignmentId) {
       await AssignmentsService.linkSessionToAssignment(
@@ -1153,10 +1151,4 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
-}
-export async function updateSessionMetrics(
-  sessionId: Uuid,
-  metrics: Partial<SessionRepo.SessionMetrics>
-): Promise<SessionRepo.SessionMetrics> {
-  return SessionRepo.updateSessionMetrics(sessionId, metrics)
 }
