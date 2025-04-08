@@ -14,6 +14,7 @@ import {
   SurveryUserResponseDefinition,
   getSurveyIdForLatestImpactStudySurveySubmission,
   getSimpleSurveyDefinitionBySurveyId,
+  getSurveyTypeFromSurveyTypeId,
 } from '../models/Survey'
 import * as SessionRepo from '../models/Session'
 import * as SurveyRepo from '../models/Survey'
@@ -88,7 +89,14 @@ export async function saveUserSurvey(
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
   if (userSurvey.sessionId) {
-    if (await isUpdatedSessionEndedProcessingEnabled(userId))
+    const surveyType = await getSurveyTypeFromSurveyTypeId(
+      userSurvey.surveyTypeId
+    )
+    // Only process feedback metrics for post-session surveys
+    if (
+      surveyType === 'postsession' &&
+      (await isUpdatedSessionEndedProcessingEnabled(userId))
+    )
       await processFeedbackMetrics(userSurvey.sessionId)
     else emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
   }

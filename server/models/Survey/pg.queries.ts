@@ -943,3 +943,35 @@ const getSurveyIdForLatestImpactStudySurveySubmissionIR: any = {"usedParamSet":{
 export const getSurveyIdForLatestImpactStudySurveySubmission = new PreparedQuery<IGetSurveyIdForLatestImpactStudySurveySubmissionParams,IGetSurveyIdForLatestImpactStudySurveySubmissionResult>(getSurveyIdForLatestImpactStudySurveySubmissionIR);
 
 
+/** 'GetSurveyTypeFromSurveyTypeId' parameters type */
+export interface IGetSurveyTypeFromSurveyTypeIdParams {
+  surveyTypeId: number;
+}
+
+/** 'GetSurveyTypeFromSurveyTypeId' return type */
+export interface IGetSurveyTypeFromSurveyTypeIdResult {
+  surveyType: string;
+}
+
+/** 'GetSurveyTypeFromSurveyTypeId' query type */
+export interface IGetSurveyTypeFromSurveyTypeIdQuery {
+  params: IGetSurveyTypeFromSurveyTypeIdParams;
+  result: IGetSurveyTypeFromSurveyTypeIdResult;
+}
+
+const getSurveyTypeFromSurveyTypeIdIR: any = {"usedParamSet":{"surveyTypeId":true},"params":[{"name":"surveyTypeId","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":81}]}],"statement":"SELECT\n    name AS survey_type\nFROM\n    survey_types\nWHERE\n    id = :surveyTypeId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     name AS survey_type
+ * FROM
+ *     survey_types
+ * WHERE
+ *     id = :surveyTypeId!
+ * ```
+ */
+export const getSurveyTypeFromSurveyTypeId = new PreparedQuery<IGetSurveyTypeFromSurveyTypeIdParams,IGetSurveyTypeFromSurveyTypeIdResult>(getSurveyTypeFromSurveyTypeIdIR);
+
+
