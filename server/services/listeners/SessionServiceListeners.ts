@@ -1,6 +1,5 @@
-import { FEEDBACK_EVENTS, SESSION_EVENTS } from '../../constants/events'
+import { SESSION_EVENTS } from '../../constants/events'
 import * as SessionService from '../SessionService'
-import * as SessionMetricsService from '../SessionMetricsService'
 import register from './register'
 
 export function listeners() {

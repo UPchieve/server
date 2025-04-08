@@ -33,7 +33,7 @@ import {
   computeLowSessionRatingFromCoach,
   VOLUNTEER_WAITING_PERIOD_MIN,
   STUDENT_WAITING_PERIOD_MIN,
-} from '../../services/SessionMetricsService'
+} from '../../services/SessionFlagsService'
 import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/Session')
@@ -47,7 +47,7 @@ const mockedGetPostsessionSurveyResponsesForSessionMetrics = mocked(
 )
 const volunteerJoinedAt = new Date('2025-01-01 00:00:00.000000+00')
 
-describe('SessionMetricsService', () => {
+describe('SessionFlagsService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
