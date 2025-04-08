@@ -72,7 +72,6 @@ import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
-import { createSessionMetrics } from './SessionMetricsService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
