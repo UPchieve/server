@@ -10,8 +10,7 @@ import {
   StudentPartnerOrg,
   StudentPartnerOrgUpchieveInstance,
 } from '../../models/StudentPartnerOrg'
-import { School } from '../../models/School'
-import { DAYS, GRADES, HOURS, USER_ROLES_TYPE } from '../../constants'
+import { DAYS, GRADES, HOURS } from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
 import {
   LegacySurvey,
@@ -27,14 +26,12 @@ import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
 import {
   MessageForFrontend,
-  MessageType,
   Session,
   SessionMessage,
   SessionTranscriptItem,
   UserSessions,
   VoiceMessage,
 } from '../../models/Session'
-import { SessionMetrics } from '../../models/SessionMetrics'
 import {
   ProgressReport,
   ProgressReportDetail,
@@ -55,7 +52,7 @@ import { LegacyUserModel } from '../../models/User/legacy-user'
 import { SessionAudio } from '../../models/SessionAudio'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
-import { PrimaryUserRole, RoleContext } from '../../services/UserRolesService'
+import { RoleContext } from '../../services/UserRolesService'
 import { UserSessionMetrics } from '../../models/UserSessionMetrics'
 
 export function getEmail(): string {
@@ -863,31 +860,6 @@ export function buildUserSessionMetrics(
     gradedAssignment: 0,
     coachUncomfortable: 0,
     studentCrisis: 0,
-    createdAt: new Date(),
-    ...overrides,
-  }
-}
-
-export function buildSessionMetrics(
-  overrides: Partial<SessionMetrics> & { sessionId: Uuid }
-): SessionMetrics {
-  return {
-    absentStudent: false,
-    absentVolunteer: false,
-    lowCoachRatingFromStudent: false,
-    lowSessionRatingFromStudent: false,
-    lowSessionRatingFromCoach: false,
-    reported: false,
-    onlyLookingForAnswers: false,
-    rudeOrInappropriate: false,
-    commentFromStudent: false,
-    commentFromVolunteer: false,
-    hasBeenUnmatched: false,
-    hasHadTechnicalIssues: false,
-    personalIdentifyingInfo: false,
-    gradedAssignment: false,
-    coachUncomfortable: false,
-    studentCrisis: false,
     createdAt: new Date(),
     ...overrides,
   }

@@ -1,7 +1,10 @@
 import moment from 'moment'
 import QueueService from './QueueService'
-import { SESSION_REPORT_REASON, USER_SESSION_METRICS } from '../constants'
-import { TransactionClient } from '../db'
+import {
+  SESSION_REPORT_REASON,
+  USER_SESSION_METRICS,
+  UserSessionFlags,
+} from '../constants'
 import { Uuid } from '../models/pgUtils'
 import {
   getMessagesForFrontend,
@@ -11,23 +14,23 @@ import {
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
-import * as SessionMetricsRepo from '../models/SessionMetrics'
 import {
   getPostsessionSurveyResponsesForSessionMetrics,
   PostsessionSurveyResponse,
 } from '../models/Survey'
 import {
-  getUSMByUserId,
-  updateUserSessionMetricsByUserId,
+  getUserSessionMetricsByUserId,
   UserSessionMetrics,
 } from '../models/UserSessionMetrics'
 import { Jobs } from '../worker/jobs'
+
+export const VOLUNTEER_WAITING_PERIOD_MIN = 10
+export const STUDENT_WAITING_PERIOD_MIN = 5
 
 export function computeAbsentStudentMetric(
   session: Session,
   messages: MessageForFrontend[]
 ): boolean {
-  const VOLUNTEER_WAITING_PERIOD_MIN = 10
   if (session.volunteerJoinedAt) {
     const volunteerMaxWait = moment(session.volunteerJoinedAt).add(
       VOLUNTEER_WAITING_PERIOD_MIN,
@@ -54,7 +57,6 @@ export function computeAbsentVolunteerMetric(
   session: Session,
   messages: MessageForFrontend[]
 ): boolean {
-  const STUDENT_WAITING_PERIOD_MIN = 5
   if (session.volunteerJoinedAt) {
     const studentMaxWait = moment(session.volunteerJoinedAt).add(
       STUDENT_WAITING_PERIOD_MIN,
@@ -115,139 +117,142 @@ export function computeFeedbackMetric(
   return surveyResponses.some(condition)
 }
 
-export async function computeMetricsForSession(
+export async function computeSessionFlags(
   session: Session
-): Promise<Partial<SessionMetricsRepo.SessionMetrics>> {
+): Promise<UserSessionFlags[]> {
   const messages = await getMessagesForFrontend(session.id)
-  return {
-    absentStudent: computeAbsentStudentMetric(session, messages),
-    absentVolunteer: computeAbsentVolunteerMetric(session, messages),
-    hasBeenUnmatched: computeHasBeenUnmatchedMetric(session),
-  }
+  const flags = []
+  if (computeAbsentStudentMetric(session, messages))
+    flags.push(UserSessionFlags.absentStudent)
+  if (computeAbsentVolunteerMetric(session, messages))
+    flags.push(UserSessionFlags.absentVolunteer)
+  if (computeHasBeenUnmatchedMetric(session))
+    flags.push(UserSessionFlags.hasBeenUnmatched)
+  return flags
 }
 
-export async function computeMetricsForFeedbackSaved(
+export async function computeFeedbackFlags(
   session: Session
-): Promise<Partial<SessionMetricsRepo.SessionMetrics>> {
+): Promise<UserSessionFlags[]> {
   const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
     session.id
   )
-  return {
-    lowCoachRatingFromStudent:
-      computeLowCoachRatingFromStudent(surveyResponses),
-    lowSessionRatingFromStudent:
-      computeLowSessionRatingFromStudent(surveyResponses),
-    lowSessionRatingFromCoach:
-      computeLowSessionRatingFromCoach(surveyResponses),
-    rudeOrInappropriate: computeFeedbackMetric(
+  const flags = []
+  if (computeLowCoachRatingFromStudent(surveyResponses))
+    flags.push(UserSessionFlags.lowCoachRatingFromStudent)
+  if (computeLowSessionRatingFromStudent(surveyResponses))
+    flags.push(UserSessionFlags.lowSessionRatingFromStudent)
+  if (computeLowSessionRatingFromCoach(surveyResponses))
+    flags.push(UserSessionFlags.lowSessionRatingFromCoach)
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.response === 'Student was mean or inappropriate'
-    ),
-    onlyLookingForAnswers: computeFeedbackMetric(
+    )
+  )
+    flags.push(UserSessionFlags.rudeOrInappropriate)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.response === 'Student was pressuring me to do their work for them'
-    ),
-    commentFromStudent: computeFeedbackMetric(
+    )
+  )
+    flags.push(UserSessionFlags.onlyLookingForAnswers)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.questionText ===
           'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' &&
         resp.userRole === 'student' &&
-        !!resp.response
-    ),
-    commentFromVolunteer: computeFeedbackMetric(
+        !!resp.response?.trim()
+    )
+  )
+    flags.push(UserSessionFlags.commentFromStudent)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.questionText ===
           'This can be about the web app, the student you helped, technical issues, etc.' &&
         resp.userRole === 'volunteer' &&
-        !!resp.response
-    ),
-    hasHadTechnicalIssues: computeFeedbackMetric(
+        !!resp.response?.trim()
+    )
+  )
+    flags.push(UserSessionFlags.commentFromVolunteer)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) => resp.response === 'Tech issue'
-    ),
-    personalIdentifyingInfo: computeFeedbackMetric(
+    )
+  )
+    flags.push(UserSessionFlags.hasHadTechnicalIssues)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.response ===
         'Student shared their email, last name, or other personally identifiable information'
-    ),
-    gradedAssignment: computeFeedbackMetric(
+    )
+  )
+    flags.push(UserSessionFlags.personalIdentifyingInfo)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.response === 'Student was working on a quiz or exam'
-    ),
-    coachUncomfortable: computeFeedbackMetric(
+    )
+  )
+    flags.push(UserSessionFlags.gradedAssignment)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.response === 'Student made me feel uncomfortable'
-    ),
-    studentCrisis: computeFeedbackMetric(
+    )
+  )
+    flags.push(UserSessionFlags.coachUncomfortable)
+
+  if (
+    computeFeedbackMetric(
       surveyResponses,
       (resp: PostsessionSurveyResponse) =>
         resp.response ===
         'Student is in severe emotional distress and/or unsafe'
-    ),
-  }
-}
-
-export function computeMetricsForReportedSession(
-  session: Session
-): Partial<SessionMetricsRepo.SessionMetrics> {
-  return {
-    reported: !!session.reported,
-  }
-}
-
-export function computeSessionFlagsFromMetrics(
-  metrics: Partial<SessionMetricsRepo.SessionMetrics>
-): USER_SESSION_METRICS[] {
-  const metricToSessionFlag: Partial<
-    Record<keyof SessionMetricsRepo.SessionMetrics, USER_SESSION_METRICS>
-  > = {
-    absentStudent: USER_SESSION_METRICS.absentStudent,
-    absentVolunteer: USER_SESSION_METRICS.absentVolunteer,
-    lowCoachRatingFromStudent: USER_SESSION_METRICS.lowCoachRatingFromStudent,
-    lowSessionRatingFromStudent:
-      USER_SESSION_METRICS.lowSessionRatingFromStudent,
-    lowSessionRatingFromCoach: USER_SESSION_METRICS.lowSessionRatingFromCoach,
-    rudeOrInappropriate: USER_SESSION_METRICS.rudeOrInappropriate,
-    onlyLookingForAnswers: USER_SESSION_METRICS.onlyLookingForAnswers,
-    commentFromStudent: USER_SESSION_METRICS.commentFromStudent,
-    commentFromVolunteer: USER_SESSION_METRICS.commentFromVolunteer,
-    personalIdentifyingInfo: USER_SESSION_METRICS.personalIdentifyingInfo,
-    gradedAssignment: USER_SESSION_METRICS.gradedAssignment,
-    coachUncomfortable: USER_SESSION_METRICS.coachUncomfortable,
-    studentCrisis: USER_SESSION_METRICS.studentCrisis,
-    reported: USER_SESSION_METRICS.reported,
-  }
-
-  const flags: USER_SESSION_METRICS[] = []
-  for (const key of Object.keys(
-    metrics
-  ) as (keyof SessionMetricsRepo.SessionMetrics)[]) {
-    if (metrics[key]) {
-      const flag = metricToSessionFlag[key]
-      if (flag) flags.push(flag)
-    }
-  }
-
+    )
+  )
+    flags.push(UserSessionFlags.studentCrisis)
   return flags
 }
 
-export function computeSessionReviewReasonsFromMetrics(
-  metrics: SessionMetricsRepo.SessionMetrics,
+export function computeReportedFlags(session: Session): UserSessionFlags[] {
+  const flags = []
+  if (session.reported) flags.push(UserSessionFlags.reported)
+  return flags
+}
+
+export function computeSessionReviewReasonsFromFlags(
+  flags: UserSessionFlags[],
   studentUSM: UserSessionMetrics,
   voluteerUSM?: UserSessionMetrics
 ) {
   const reviewReasons = []
-  if (metrics.absentStudent && studentUSM.absentStudent >= 4)
+  if (
+    flags.includes(UserSessionFlags.absentStudent) &&
+    studentUSM.absentStudent >= 4
+  )
     reviewReasons.push(USER_SESSION_METRICS.absentStudent)
   if (
-    metrics.absentVolunteer &&
+    flags.includes(UserSessionFlags.absentVolunteer) &&
     voluteerUSM &&
     voluteerUSM.absentVolunteer >= 2
   )
@@ -255,47 +260,52 @@ export function computeSessionReviewReasonsFromMetrics(
   return reviewReasons
 }
 
-export function computeFeedbackReviewReasonsFromMetrics(
-  metrics: SessionMetricsRepo.SessionMetrics,
+export function computeFeedbackReviewReasonsFromFlags(
+  flags: UserSessionFlags[],
   studentUSM: UserSessionMetrics
 ) {
   const reviewReasons = []
-  if (metrics.lowCoachRatingFromStudent)
+  if (flags.includes(UserSessionFlags.lowCoachRatingFromStudent))
     reviewReasons.push(USER_SESSION_METRICS.lowCoachRatingFromStudent)
-  if (metrics.lowSessionRatingFromStudent)
+  if (flags.includes(UserSessionFlags.lowSessionRatingFromStudent))
     reviewReasons.push(USER_SESSION_METRICS.lowSessionRatingFromStudent)
-  if (metrics.lowSessionRatingFromCoach)
+  if (flags.includes(UserSessionFlags.lowSessionRatingFromCoach))
     reviewReasons.push(USER_SESSION_METRICS.lowSessionRatingFromCoach)
-  if (metrics.rudeOrInappropriate && studentUSM.rudeOrInappropriate >= 2)
+  if (
+    flags.includes(UserSessionFlags.rudeOrInappropriate) &&
+    studentUSM.rudeOrInappropriate >= 2
+  )
     reviewReasons.push(USER_SESSION_METRICS.rudeOrInappropriate)
-  if (metrics.onlyLookingForAnswers && studentUSM.onlyLookingForAnswers >= 2)
+  if (
+    flags.includes(UserSessionFlags.onlyLookingForAnswers) &&
+    studentUSM.onlyLookingForAnswers >= 2
+  )
     reviewReasons.push(USER_SESSION_METRICS.onlyLookingForAnswers)
-  if (metrics.personalIdentifyingInfo)
+  if (flags.includes(UserSessionFlags.personalIdentifyingInfo))
     reviewReasons.push(USER_SESSION_METRICS.personalIdentifyingInfo)
-  if (metrics.gradedAssignment)
+  if (flags.includes(UserSessionFlags.gradedAssignment))
     reviewReasons.push(USER_SESSION_METRICS.gradedAssignment)
-  if (metrics.coachUncomfortable)
+  if (flags.includes(UserSessionFlags.coachUncomfortable))
     reviewReasons.push(USER_SESSION_METRICS.coachUncomfortable)
-  if (metrics.studentCrisis)
+  if (flags.includes(UserSessionFlags.studentCrisis))
     reviewReasons.push(USER_SESSION_METRICS.studentCrisis)
   return reviewReasons
 }
 
-export function computeReportedReviewReason(
-  metrics: SessionMetricsRepo.SessionMetrics
-) {
+export function computeReportedReviewReason(flags: UserSessionFlags[]) {
   const reviewReasons = []
-  if (metrics.reported) reviewReasons.push(USER_SESSION_METRICS.reported)
+  if (flags.includes(UserSessionFlags.reported))
+    reviewReasons.push(USER_SESSION_METRICS.reported)
   return reviewReasons
 }
 
 export async function triggerSessionActions(
-  metrics: SessionMetricsRepo.SessionMetrics,
+  sessionId: Uuid,
+  flags: UserSessionFlags[],
   studentUSM: UserSessionMetrics,
   voluteerUSM?: UserSessionMetrics
 ) {
-  const sessionId = metrics.sessionId
-  if (metrics.absentStudent) {
+  if (flags.includes(UserSessionFlags.absentStudent)) {
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (studentUSM.absentStudent === 1)
       await QueueService.add(
@@ -323,7 +333,7 @@ export async function triggerSessionActions(
       )
   }
 
-  if (metrics.absentVolunteer) {
+  if (flags.includes(UserSessionFlags.absentVolunteer)) {
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
     if (voluteerUSM?.absentVolunteer === 1)
       await QueueService.add(
@@ -350,7 +360,7 @@ export async function triggerSessionActions(
       )
   }
 
-  if (metrics.hasBeenUnmatched) {
+  if (flags.includes(UserSessionFlags.hasBeenUnmatched)) {
     // Send an apology email to the student the first time their session is unmatched
     if (studentUSM.hasBeenUnmatched === 1)
       await QueueService.add(
@@ -366,14 +376,17 @@ export async function triggerSessionActions(
   }
 }
 
-// TODO: Refactor queue payloads to only take sessionId (or a reportId?)
+// TODO: Refactor queue payloads to only take sessionId
 export async function triggerFeedbackActions(
-  metrics: SessionMetricsRepo.SessionMetrics,
+  sessionId: Uuid,
+  flags: UserSessionFlags[],
   studentUSM: UserSessionMetrics
 ) {
-  const sessionId = metrics.sessionId
   const session = await getSessionById(sessionId)
-  if (metrics.onlyLookingForAnswers && studentUSM.onlyLookingForAnswers === 1)
+  if (
+    flags.includes(UserSessionFlags.onlyLookingForAnswers) &&
+    studentUSM.onlyLookingForAnswers === 1
+  )
     await QueueService.add(
       Jobs.EmailStudentOnlyLookingForAnswers,
       {
@@ -385,7 +398,8 @@ export async function triggerFeedbackActions(
       }
     )
 
-  if (!session.reported) {
+  // If session was not reported, follow report workflow for emotional distress
+  if (flags.includes(UserSessionFlags.studentCrisis) && !session.reported) {
     QueueService.add(
       Jobs.EmailSessionReported,
       {
@@ -403,193 +417,75 @@ export async function triggerFeedbackActions(
   }
 }
 
-type UpdatableMetricKey =
-  | 'absentStudent'
-  | 'absentVolunteer'
-  | 'lowSessionRatingFromCoach'
-  | 'lowSessionRatingFromStudent'
-  | 'lowCoachRatingFromStudent'
-  | 'reported'
-  | 'onlyLookingForAnswers'
-  | 'rudeOrInappropriate'
-  | 'commentFromStudent'
-  | 'commentFromVolunteer'
-  | 'hasBeenUnmatched'
-  | 'hasHadTechnicalIssues'
-  | 'personalIdentifyingInfo'
-  | 'gradedAssignment'
-  | 'coachUncomfortable'
-  | 'studentCrisis'
-
-const metricKeys: UpdatableMetricKey[] = [
-  'absentStudent',
-  'absentVolunteer',
-  'lowSessionRatingFromCoach',
-  'lowSessionRatingFromStudent',
-  'lowCoachRatingFromStudent',
-  'reported',
-  'onlyLookingForAnswers',
-  'rudeOrInappropriate',
-  'commentFromStudent',
-  'commentFromVolunteer',
-  'hasBeenUnmatched',
-  'hasHadTechnicalIssues',
-  'personalIdentifyingInfo',
-  'gradedAssignment',
-  'coachUncomfortable',
-  'studentCrisis',
-]
-
-// TODO: Remove once we're using the user session metrics view
-function updateUSMValues(
-  usm: UserSessionMetrics,
-  metrics: Partial<SessionMetricsRepo.SessionMetrics>
-): UserSessionMetrics {
-  const updated = { ...usm }
-  for (const key of metricKeys) {
-    updated[key] += metrics[key] ? 1 : 0
-  }
-  return updated
-}
-
-// TODO: Will only need to get the session once we move over to the view
-export async function getSessionAndUSMs(sessionId: Uuid) {
-  const session = await getSessionById(sessionId)
-  const studentUSM = await getUSMByUserId(session.studentId)
-  if (!studentUSM)
-    throw new Error(`Could not find USM for student ${session.studentId}`)
-  let volunteerUSM: UserSessionMetrics | undefined
-  if (session.volunteerId) {
-    volunteerUSM = await getUSMByUserId(session.volunteerId)
-    if (!volunteerUSM)
-      throw new Error(`Could not find USM for volunteer ${session.volunteerId}`)
-  }
-  return { session, studentUSM, volunteerUSM }
-}
-
-async function updateUserMetrics(
-  session: Session,
-  metrics: SessionMetricsRepo.SessionMetrics,
-  studentUSM: UserSessionMetrics,
-  volunteerUSM?: UserSessionMetrics
-) {
-  const updatedStudentUSM = await updateUserSessionMetricsByUserId(
-    session.studentId,
-    updateUSMValues(studentUSM, metrics)
-  )
-  let updatedVolunteerUSM
-  if (session.volunteerId && volunteerUSM) {
-    updatedVolunteerUSM = await updateUserSessionMetricsByUserId(
-      session.volunteerId,
-      updateUSMValues(volunteerUSM, metrics)
-    )
-  }
-  return { updatedStudentUSM, updatedVolunteerUSM }
-}
-
 export async function processMetrics(
   sessionId: Uuid,
   callbacks: {
-    computeSessionMetrics: (
+    computeSessionFlags: (
       session: Session
-    ) =>
-      | Promise<Partial<SessionMetricsRepo.SessionMetrics>>
-      | Partial<SessionMetricsRepo.SessionMetrics>
+    ) => Promise<UserSessionFlags[]> | UserSessionFlags[]
     computeReviewReasons: (
-      metrics: SessionMetricsRepo.SessionMetrics,
+      flags: UserSessionFlags[],
       studentUSM: UserSessionMetrics,
       volunteerUSM?: UserSessionMetrics
     ) => any[]
     triggerActions?: (
-      metrics: SessionMetricsRepo.SessionMetrics,
+      sessionId: Uuid,
+      flags: UserSessionFlags[],
       studentUSM: UserSessionMetrics,
       volunteerUSM?: UserSessionMetrics
     ) => Promise<void>
   }
 ) {
-  const { session, studentUSM, volunteerUSM } =
-    await getSessionAndUSMs(sessionId)
-  const { computeSessionMetrics, computeReviewReasons, triggerActions } =
-    callbacks
-  const sessionMetrics = await computeSessionMetrics(session)
-  const updatedMetrics = await SessionMetricsRepo.updateSessionMetrics(
-    sessionId,
-    sessionMetrics
-  )
-
-  // TODO: Query for participant's user session metrics view instead of updating
-  const { updatedStudentUSM, updatedVolunteerUSM } = await updateUserMetrics(
-    session,
-    updatedMetrics,
-    studentUSM,
-    volunteerUSM
-  )
-
-  const flags = computeSessionFlagsFromMetrics(updatedMetrics)
+  const session = await getSessionById(sessionId)
+  const flags = await callbacks.computeSessionFlags(session)
   await updateSessionFlagsById(session.id, flags)
 
-  const reviewReasons = computeReviewReasons(
-    updatedMetrics,
-    updatedStudentUSM,
-    updatedVolunteerUSM
+  const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
+    session.studentId
+  )
+  if (!studentUserSessionMetrics)
+    throw new Error(
+      `No user session metrics found for student ${session.studentId}`
+    )
+  const volunteerUserSessionMetrics = session.volunteerId
+    ? await getUserSessionMetricsByUserId(session.volunteerId)
+    : undefined
+
+  const reviewReasons = callbacks.computeReviewReasons(
+    flags,
+    studentUserSessionMetrics,
+    volunteerUserSessionMetrics
   )
   await updateSessionReviewReasonsById(session.id, reviewReasons)
 
-  if (triggerActions)
-    await triggerActions(updatedMetrics, updatedStudentUSM, updatedVolunteerUSM)
+  if (callbacks.triggerActions)
+    await callbacks.triggerActions(
+      session.id,
+      flags,
+      studentUserSessionMetrics,
+      volunteerUserSessionMetrics
+    )
 }
 
 export async function processSessionMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
-    computeSessionMetrics: computeMetricsForSession,
-    computeReviewReasons: computeSessionReviewReasonsFromMetrics,
+    computeSessionFlags: computeSessionFlags,
+    computeReviewReasons: computeSessionReviewReasonsFromFlags,
     triggerActions: triggerSessionActions,
   })
 }
 
 export async function processFeedbackMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
-    computeSessionMetrics: computeMetricsForFeedbackSaved,
-    computeReviewReasons: computeFeedbackReviewReasonsFromMetrics,
+    computeSessionFlags: computeFeedbackFlags,
+    computeReviewReasons: computeFeedbackReviewReasonsFromFlags,
     triggerActions: triggerFeedbackActions,
   })
 }
 
 export async function processReportMetrics(sessionId: Uuid) {
   await processMetrics(sessionId, {
-    computeSessionMetrics: computeMetricsForReportedSession,
+    computeSessionFlags: computeReportedFlags,
     computeReviewReasons: computeReportedReviewReason,
   })
-}
-
-export async function createSessionMetrics(
-  sessionId: Uuid,
-  tc?: TransactionClient
-) {
-  return SessionMetricsRepo.createSessionMetrics(sessionId, tc)
-}
-
-/**
- *
- * Temporary functions for migration:
- * These functions are used as part of the migration from the old metricProcessorFactory
- * to a new processing format defined in service.ts. They ensure that data in session_metrics
- * gets populated correctly while preserving the current behavior for updating USM,
- * session flags, and review reasons.
- *
- */
-export async function updateSessionMetricsSessionEnd(sessionId: Uuid) {
-  const session = await getSessionById(sessionId)
-  const sessionMetrics = await computeMetricsForSession(session)
-  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
-}
-export async function updateSessionMetricsFeedbackSaved(sessionId: Uuid) {
-  const session = await getSessionById(sessionId)
-  const sessionMetrics = await computeMetricsForFeedbackSaved(session)
-  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
-}
-export async function updateSessionMetricsSessionReported(sessionId: Uuid) {
-  const session = await getSessionById(sessionId)
-  const sessionMetrics = computeMetricsForReportedSession(session)
-  await SessionMetricsRepo.updateSessionMetrics(sessionId, sessionMetrics)
 }
