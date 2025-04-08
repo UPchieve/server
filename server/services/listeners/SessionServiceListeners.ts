@@ -19,23 +19,6 @@ export function listeners() {
     SessionService.processSessionTranscript,
     'processSessionTranscript'
   )
-  // The next three listeners are temporary to allow
-  // a graceful migration for storing records in session-metrics
-  register(
-    SESSION_EVENTS.SESSION_ENDED,
-    SessionMetricsService.updateSessionMetricsSessionEnd,
-    'updateSessionMetricsSessionEnd'
-  )
-  register(
-    FEEDBACK_EVENTS.FEEDBACK_SAVED,
-    SessionMetricsService.updateSessionMetricsFeedbackSaved,
-    'updateSessionMetricsFeedbackSaved'
-  )
-  register(
-    SESSION_EVENTS.SESSION_REPORTED,
-    SessionMetricsService.updateSessionMetricsSessionReported,
-    'updateSessionMetricsSessionReported'
-  )
   register(
     SESSION_EVENTS.SESSION_FLAGS_SET,
     SessionService.processCalculateMetrics,
