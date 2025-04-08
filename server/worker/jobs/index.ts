@@ -57,7 +57,6 @@ import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncen
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
 import processSessionEnded from './processSessionEnded'
-import backfillSessionMetrics from '../../scripts/backfill-session-metrics'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -386,10 +385,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.DeleteSelfFavoritedVolunteers,
     processor: deleteSelfFavoritedVolunteers,
-  },
-  {
-    name: Jobs.BackfillSessionMetrics,
-    processor: backfillSessionMetrics,
   },
   // TODO: uncomment this processor when ready to migrate
   //{
