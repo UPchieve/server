@@ -1623,7 +1623,8 @@ CREATE TABLE upchieve.session_meetings (
     provider text NOT NULL,
     session_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    recording_id text
 );
 
 
@@ -1639,33 +1640,6 @@ CREATE TABLE upchieve.session_messages (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
-);
-
-
---
--- Name: session_metrics; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.session_metrics (
-    session_id uuid NOT NULL,
-    absent_student boolean DEFAULT false NOT NULL,
-    absent_volunteer boolean DEFAULT false NOT NULL,
-    low_session_rating_from_coach boolean DEFAULT false NOT NULL,
-    low_session_rating_from_student boolean DEFAULT false NOT NULL,
-    low_coach_rating_from_student boolean DEFAULT false NOT NULL,
-    reported boolean DEFAULT false NOT NULL,
-    only_looking_for_answers boolean DEFAULT false NOT NULL,
-    rude_or_inappropriate boolean DEFAULT false NOT NULL,
-    comment_from_student boolean DEFAULT false NOT NULL,
-    comment_from_volunteer boolean DEFAULT false NOT NULL,
-    has_been_unmatched boolean DEFAULT false NOT NULL,
-    has_had_technical_issues boolean DEFAULT false NOT NULL,
-    personal_identifying_info boolean DEFAULT false NOT NULL,
-    graded_assignment boolean DEFAULT false NOT NULL,
-    coach_uncomfortable boolean DEFAULT false NOT NULL,
-    student_crisis boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -2543,69 +2517,72 @@ CREATE TABLE upchieve.user_session_metrics (
 --
 
 CREATE VIEW upchieve.user_session_metrics_view AS
- WITH metrics_by_role AS (
-         SELECT sessions.student_id AS user_id,
-            (session_metrics.absent_student)::integer AS absent_student,
-            (session_metrics.absent_volunteer)::integer AS absent_volunteer,
-            (session_metrics.low_session_rating_from_coach)::integer AS low_session_rating_from_coach,
-            (session_metrics.low_session_rating_from_student)::integer AS low_session_rating_from_student,
-            (session_metrics.low_coach_rating_from_student)::integer AS low_coach_rating_from_student,
-            (session_metrics.reported)::integer AS reported,
-            (session_metrics.only_looking_for_answers)::integer AS only_looking_for_answers,
-            (session_metrics.rude_or_inappropriate)::integer AS rude_or_inappropriate,
-            (session_metrics.comment_from_student)::integer AS comment_from_student,
-            (session_metrics.comment_from_volunteer)::integer AS comment_from_volunteer,
-            (session_metrics.has_been_unmatched)::integer AS has_been_unmatched,
-            (session_metrics.has_had_technical_issues)::integer AS has_had_technical_issues,
-            (session_metrics.personal_identifying_info)::integer AS personal_identifying_info,
-            (session_metrics.graded_assignment)::integer AS graded_assignment,
-            (session_metrics.coach_uncomfortable)::integer AS coach_uncomfortable,
-            (session_metrics.student_crisis)::integer AS student_crisis,
-            session_metrics.created_at
-           FROM (upchieve.sessions
-             JOIN upchieve.session_metrics ON ((sessions.id = session_metrics.session_id)))
+ WITH flags_with_users AS (
+         SELECT sessions_session_flags.session_id,
+            session_flags.name AS flag_name,
+            sessions.student_id,
+            sessions.volunteer_id,
+            sessions_session_flags.created_at
+           FROM ((upchieve.sessions_session_flags
+             JOIN upchieve.session_flags ON ((sessions_session_flags.session_flag_id = session_flags.id)))
+             JOIN upchieve.sessions ON ((sessions.id = sessions_session_flags.session_id)))
+        ), flag_rows_by_user AS (
+         SELECT flags_with_users.student_id AS user_id,
+            'student'::text AS role,
+            flags_with_users.flag_name,
+            flags_with_users.created_at
+           FROM flags_with_users
+          WHERE (flags_with_users.student_id IS NOT NULL)
         UNION ALL
-         SELECT sessions.volunteer_id AS user_id,
-            (session_metrics.absent_student)::integer AS absent_student,
-            (session_metrics.absent_volunteer)::integer AS absent_volunteer,
-            (session_metrics.low_session_rating_from_coach)::integer AS low_session_rating_from_coach,
-            (session_metrics.low_session_rating_from_student)::integer AS low_session_rating_from_student,
-            (session_metrics.low_coach_rating_from_student)::integer AS low_coach_rating_from_student,
-            (session_metrics.reported)::integer AS reported,
-            (session_metrics.only_looking_for_answers)::integer AS only_looking_for_answers,
-            (session_metrics.rude_or_inappropriate)::integer AS rude_or_inappropriate,
-            (session_metrics.comment_from_student)::integer AS comment_from_student,
-            (session_metrics.comment_from_volunteer)::integer AS comment_from_volunteer,
-            (session_metrics.has_been_unmatched)::integer AS has_been_unmatched,
-            (session_metrics.has_had_technical_issues)::integer AS has_had_technical_issues,
-            (session_metrics.personal_identifying_info)::integer AS personal_identifying_info,
-            (session_metrics.graded_assignment)::integer AS graded_assignment,
-            (session_metrics.coach_uncomfortable)::integer AS coach_uncomfortable,
-            (session_metrics.student_crisis)::integer AS student_crisis,
-            session_metrics.created_at
-           FROM (upchieve.sessions
-             JOIN upchieve.session_metrics ON ((sessions.id = session_metrics.session_id)))
+         SELECT flags_with_users.volunteer_id AS user_id,
+            'volunteer'::text AS role,
+            flags_with_users.flag_name,
+            flags_with_users.created_at
+           FROM flags_with_users
+          WHERE (flags_with_users.volunteer_id IS NOT NULL)
+        ), aggregated_flags AS (
+         SELECT flag_rows_by_user.user_id,
+            flag_rows_by_user.role,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Absent student'::text)) AS absent_student,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Absent volunteer'::text)) AS absent_volunteer,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low session rating from coach'::text)) AS low_session_rating_from_coach,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low session rating from student'::text)) AS low_session_rating_from_student,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low coach rating from student'::text)) AS low_coach_rating_from_student,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Reported'::text)) AS reported,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Pressuring coach'::text)) AS only_looking_for_answers,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Mean or inappropriate'::text)) AS rude_or_inappropriate,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Comment from student'::text)) AS comment_from_student,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Comment from volunteer'::text)) AS comment_from_volunteer,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Has been unmatched'::text)) AS has_been_unmatched,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Has had technical issues'::text)) AS has_had_technical_issues,
+            count(*) FILTER (WHERE ((flag_rows_by_user.flag_name = 'Personally identifiable information'::text) OR (flag_rows_by_user.flag_name = 'PII'::text))) AS personal_identifying_info,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Graded assignment'::text)) AS graded_assignment,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Coach uncomfortable'::text)) AS coach_uncomfortable,
+            count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Student in distress'::text)) AS student_crisis,
+            min(flag_rows_by_user.created_at) AS created_at
+           FROM flag_rows_by_user
+          GROUP BY flag_rows_by_user.user_id, flag_rows_by_user.role
         )
- SELECT metrics_by_role.user_id,
-    sum(metrics_by_role.absent_student) AS absent_student,
-    sum(metrics_by_role.absent_volunteer) AS absent_volunteer,
-    sum(metrics_by_role.low_session_rating_from_coach) AS low_session_rating_from_coach,
-    sum(metrics_by_role.low_session_rating_from_student) AS low_session_rating_from_student,
-    sum(metrics_by_role.low_coach_rating_from_student) AS low_coach_rating_from_student,
-    sum(metrics_by_role.reported) AS reported,
-    sum(metrics_by_role.only_looking_for_answers) AS only_looking_for_answers,
-    sum(metrics_by_role.rude_or_inappropriate) AS rude_or_inappropriate,
-    sum(metrics_by_role.comment_from_student) AS comment_from_student,
-    sum(metrics_by_role.comment_from_volunteer) AS comment_from_volunteer,
-    sum(metrics_by_role.has_been_unmatched) AS has_been_unmatched,
-    sum(metrics_by_role.has_had_technical_issues) AS has_had_technical_issues,
-    sum(metrics_by_role.personal_identifying_info) AS personal_identifying_info,
-    sum(metrics_by_role.graded_assignment) AS graded_assignment,
-    sum(metrics_by_role.coach_uncomfortable) AS coach_uncomfortable,
-    sum(metrics_by_role.student_crisis) AS student_crisis,
-    min(metrics_by_role.created_at) AS created_at
-   FROM metrics_by_role
-  GROUP BY metrics_by_role.user_id;
+ SELECT aggregated_flags.user_id,
+    aggregated_flags.role,
+    aggregated_flags.absent_student,
+    aggregated_flags.absent_volunteer,
+    aggregated_flags.low_session_rating_from_coach,
+    aggregated_flags.low_session_rating_from_student,
+    aggregated_flags.low_coach_rating_from_student,
+    aggregated_flags.reported,
+    aggregated_flags.only_looking_for_answers,
+    aggregated_flags.rude_or_inappropriate,
+    aggregated_flags.comment_from_student,
+    aggregated_flags.comment_from_volunteer,
+    aggregated_flags.has_been_unmatched,
+    aggregated_flags.has_had_technical_issues,
+    aggregated_flags.personal_identifying_info,
+    aggregated_flags.graded_assignment,
+    aggregated_flags.coach_uncomfortable,
+    aggregated_flags.student_crisis,
+    aggregated_flags.created_at
+   FROM aggregated_flags;
 
 
 --
@@ -3892,14 +3869,6 @@ ALTER TABLE ONLY upchieve.session_messages
 
 ALTER TABLE ONLY upchieve.session_messages
     ADD CONSTRAINT session_messages_pkey PRIMARY KEY (id);
-
-
---
--- Name: session_metrics session_metrics_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.session_metrics
-    ADD CONSTRAINT session_metrics_pkey PRIMARY KEY (session_id);
 
 
 --
@@ -5471,14 +5440,6 @@ ALTER TABLE ONLY upchieve.session_messages
 
 
 --
--- Name: session_metrics session_metrics_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.session_metrics
-    ADD CONSTRAINT session_metrics_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
-
-
---
 -- Name: session_photos session_photos_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6462,7 +6423,10 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20241217040206'),
     ('20250121173556'),
     ('20250310173039'),
+    ('20250312220532'),
     ('20250318175742'),
     ('20250326221322'),
     ('20250327202139'),
-    ('20250331201438');
+    ('20250401193833'),
+    ('20250407171122'),
+    ('20250407182416');

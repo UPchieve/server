@@ -477,6 +477,20 @@ export function routeSession(router: Router) {
     }
   )
 
+  router.post(
+    '/sessions/:sessionId/meeting/start-recording',
+    async function (req, res) {
+      try {
+        const sessionId = req.params.sessionId
+        const recordingId =
+          await SessionMeetingService.startRecording(sessionId)
+        return res.json({ recordingId })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
   const updateSessionAudioRequestValidator =
     asFactory<UpdateSessionAudioPayload>({
       volunteerJoinedAt: asOptional(asDate),

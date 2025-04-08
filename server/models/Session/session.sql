@@ -107,7 +107,7 @@ WHERE
     sessions.id = :sessionId!;
 
 
-/* @name insertSessionFlagById */
+/* @name insertSessionFlagsById */
 INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)
 SELECT
     :sessionId!,
@@ -117,7 +117,7 @@ SELECT
 FROM
     session_flags
 WHERE
-    name = :flag!
+    name = ANY (:flags!)
 ON CONFLICT (session_id,
     session_flag_id)
     DO UPDATE SET
@@ -995,35 +995,21 @@ ORDER BY
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
-/* @name insertSessionReviewReason */
-WITH ins AS (
+/* @name insertSessionReviewReasons */
 INSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)
-    SELECT
-        :sessionId!,
-        session_flags.id,
-        NOW(),
-        NOW()
-    FROM
-        session_flags
-    WHERE
-        session_flags.name = :flag!
-    ON CONFLICT
-        DO NOTHING
-    RETURNING
-        session_id AS ok
-)
 SELECT
-    *
+    :sessionId!,
+    session_flags.id,
+    NOW(),
+    NOW()
 FROM
-    ins
-UNION
-SELECT
-    session_id
-FROM
-    session_review_reasons
-    LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id
+    session_flags
 WHERE
-    session_flags.name = :flag!;
+    session_flags.name = ANY (:reviewReasons!)
+ON CONFLICT
+    DO NOTHING
+RETURNING
+    session_id AS ok;
 
 
 /* @name insertSessionFailedJoin */
@@ -1333,8 +1319,10 @@ SELECT
     sender_id AS user_id,
     contents AS message,
     sm.created_at,
-    CASE WHEN TRUE THEN
-        'chat'
+    CASE WHEN sm.created_at > s.ended_at THEN
+        'direct_message'
+    ELSE
+        'session_message'
     END AS message_type,
     CASE WHEN s.volunteer_id = sm.sender_id THEN
         'volunteer'
@@ -1386,55 +1374,4 @@ WHERE
     svm.session_id = :sessionId!
 ORDER BY
     created_at ASC;
-
-
-/* @name createSessionMetrics */
-INSERT INTO session_metrics (session_id)
-    VALUES (:sessionId!)
-RETURNING
-    session_id AS ok;
-
-
-/* @name updateSessionMetrics */
-UPDATE
-    session_metrics
-SET
-    absent_student = COALESCE(:absentStudent, absent_student),
-    absent_volunteer = COALESCE(:absentVolunteer, absent_volunteer),
-    low_session_rating_from_coach = COALESCE(:lowSessionRatingFromCoach, low_session_rating_from_coach),
-    low_session_rating_from_student = COALESCE(:lowSessionRatingFromStudent, low_session_rating_from_student),
-    low_coach_rating_from_student = COALESCE(:lowCoachRatingFromStudent, low_coach_rating_from_student),
-    only_looking_for_answers = COALESCE(:onlyLookingForAnswers, only_looking_for_answers),
-    rude_or_inappropriate = COALESCE(:rudeOrInappropriate, rude_or_inappropriate),
-    comment_from_student = COALESCE(:commentFromStudent, comment_from_student),
-    comment_from_volunteer = COALESCE(:commentFromVolunteer, comment_from_volunteer),
-    has_been_unmatched = COALESCE(:hasBeenUnmatched, has_been_unmatched),
-    has_had_technical_issues = COALESCE(:hasHadTechnicalIssues, has_had_technical_issues),
-    personal_identifying_info = COALESCE(:personalIdentifyingInfo, personal_identifying_info),
-    graded_assignment = COALESCE(:gradedAssignment, graded_assignment),
-    coach_uncomfortable = COALESCE(:coachUncomfortable, coach_uncomfortable),
-    student_crisis = COALESCE(:studentCrisis, student_crisis),
-    reported = COALESCE(:reported, reported),
-    updated_at = NOW()
-WHERE
-    session_id = :sessionId!
-RETURNING
-    session_id,
-    absent_student,
-    absent_volunteer,
-    low_session_rating_from_coach,
-    low_session_rating_from_student,
-    low_coach_rating_from_student,
-    only_looking_for_answers,
-    rude_or_inappropriate,
-    comment_from_student,
-    comment_from_volunteer,
-    has_been_unmatched,
-    has_had_technical_issues,
-    reported,
-    personal_identifying_info,
-    graded_assignment,
-    coach_uncomfortable,
-    student_crisis,
-    created_at;
 

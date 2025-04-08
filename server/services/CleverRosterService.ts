@@ -172,7 +172,7 @@ export async function rosterTeacherClasses(
   cleverTeacherStudents: CleverAPIService.TCleverStudentData[]
 ) {
   await runInTransaction(async (tc: TransactionClient) => {
-    const teacher = await TeacherService.getTeacherById(teacherId)
+    const teacher = await TeacherService.getTeacherById(teacherId, tc)
     if (!teacher) {
       return
     }
@@ -287,6 +287,10 @@ export async function findOrCreateUpchieveStudent(
   let student = await StudentService.getStudentByCleverId(cleverStudent.id, tc)
   if (student) {
     return student
+  }
+
+  if (!cleverStudent.email) {
+    return
   }
 
   student = await StudentService.getStudentByEmail(cleverStudent.email, tc)

@@ -1,4 +1,4 @@
-import { TransactionClient, getClient } from '../../db'
+import { TransactionClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -133,30 +133,23 @@ export async function getSessionById(
   }
 }
 
-export async function updateSessionFlagsById( // @TODO Wrap in runInTransaction at the service layer
+export async function updateSessionFlagsById(
   sessionId: Ulid,
-  flags: (USER_SESSION_METRICS | UserSessionFlags)[]
+  flags: (USER_SESSION_METRICS | UserSessionFlags)[],
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  const client = await getClient().connect()
+  if (!flags.length) return
   try {
-    await client.query('BEGIN')
-    const errors: string[] = []
-    for (const flag of flags) {
-      // @TODO Make a single trip to the db
-      const result = await pgQueries.insertSessionFlagById.run(
-        { sessionId, flag },
-        client
+    const result = await pgQueries.insertSessionFlagsById.run(
+      { sessionId, flags },
+      client
+    )
+    if (!result.length)
+      throw new RepoUpdateError(
+        'Insert session flags query did not return any results'
       )
-      if (!result.length && makeRequired(result[0]).ok)
-        errors.push(`Update query for flag ${flag} did not return ok`)
-    }
-    if (errors.length) throw new RepoReadError(errors.join('\n'))
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -1111,36 +1104,35 @@ export async function getSessionsForAdminFilter(
   }
 }
 
-export async function updateSessionReviewReasonsById( // @TODO Wrap in runInTransaction at the service layer
+export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
   reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
   // Use this property to override the reviewed status of a session
-  reviewed?: boolean
+  reviewed?: boolean,
+  client?: TransactionClient
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-    for (const flag of reviewReasons) {
-      // @TODO Make a single trip to the db
-      const result = await pgQueries.insertSessionReviewReason.run(
-        { sessionId, flag },
-        client
-      )
-      if (!result.length && makeRequired(result[0]).ok)
-        throw new Error('Insert did not return ok')
+    const dbClient = client ?? getClient()
+    if (reviewReasons.length) {
+      const insertReviewReasonsResult =
+        await pgQueries.insertSessionReviewReasons.run(
+          { sessionId, reviewReasons },
+          dbClient
+        )
+      if (!insertReviewReasonsResult.length)
+        throw new Error(
+          'Query to insert session review reasons did not return any results'
+        )
     }
-    const result = await pgQueries.updateSessionToReview.run(
+
+    const updateSessionResult = await pgQueries.updateSessionToReview.run(
       { sessionId, reviewed },
-      client
+      dbClient
     )
-    if (!result.length && makeRequired(result[0]).ok)
+    if (!updateSessionResult.length && makeRequired(updateSessionResult[0]).ok)
       throw new Error('Updating to_review did not return ok')
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -1236,7 +1228,7 @@ export async function getFilteredSessionHistory(
     }
     const result = await pgQueries.getFilteredSessionHistory.run(
       params,
-      getClient()
+      getRoClient()
     )
     if (result.length) return result.map((v) => makeRequired(v))
     return []
@@ -1261,7 +1253,7 @@ export async function getFilteredSessionHistoryTotalCount(
     }
     const result = await pgQueries.getFilteredSessionHistoryTotalCount.run(
       params,
-      getClient()
+      getRoClient()
     )
     if (result.length) {
       return result[0].count ?? 0
@@ -1294,7 +1286,7 @@ export type SessionForSessionRecap = {
 export async function getSessionRecap(
   sessionId: Ulid
 ): Promise<SessionForSessionRecap> {
-  const client = await getClient().connect()
+  const client = await getRoClient().connect()
   try {
     const sessionResult = await pgQueries.getSessionRecap.run(
       { sessionId },
@@ -1509,61 +1501,5 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
     })
   } catch (err) {
     throw new RepoReadError(err)
-  }
-}
-
-export async function createSessionMetrics(
-  sessionId: Uuid,
-  tc?: TransactionClient
-) {
-  try {
-    const result = await pgQueries.createSessionMetrics.run(
-      {
-        sessionId,
-      },
-      tc ?? getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoCreateError('Insert session metrics did not return ok')
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-export async function updateSessionMetrics(
-  sessionId: Uuid,
-  metrics: Partial<SessionMetrics>
-): Promise<SessionMetrics> {
-  try {
-    const result = await pgQueries.updateSessionMetrics.run(
-      {
-        sessionId,
-        absentStudent: metrics.absentStudent,
-        absentVolunteer: metrics.absentVolunteer,
-        lowSessionRatingFromCoach: metrics.lowSessionRatingFromCoach,
-        lowSessionRatingFromStudent: metrics.lowSessionRatingFromStudent,
-        lowCoachRatingFromStudent: metrics.lowCoachRatingFromStudent,
-        reported: metrics.reported,
-        onlyLookingForAnswers: metrics.onlyLookingForAnswers,
-        rudeOrInappropriate: metrics.rudeOrInappropriate,
-        commentFromStudent: metrics.commentFromStudent,
-        commentFromVolunteer: metrics.commentFromVolunteer,
-        hasBeenUnmatched: metrics.hasBeenUnmatched,
-        hasHadTechnicalIssues: metrics.hasHadTechnicalIssues,
-        personalIdentifyingInfo: metrics.personalIdentifyingInfo,
-        gradedAssignment: metrics.gradedAssignment,
-        coachUncomfortable: metrics.coachUncomfortable,
-        studentCrisis: metrics.studentCrisis,
-      },
-      getClient()
-    )
-    if (result.length) return makeRequired(result[0])
-    throw new RepoUpdateError('updateSessionMetrics query did not return ok')
-  } catch (err) {
-    throw new RepoUpdateError(
-      `Failed to update metrics ${metrics} for session ${sessionId}: ${
-        (err as Error).message
-      }`
-    )
   }
 }

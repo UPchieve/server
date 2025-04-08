@@ -67,16 +67,13 @@ import {
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
-import { TransactionClient, runInTransaction } from '../db'
+import { TransactionClient, runInTransaction, getClient } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionRating } from '../models/Survey'
-import {
-  createSessionMetrics,
-  processReportMetrics,
-} from './SessionMetricsService'
+import { processReportMetrics } from './SessionFlagsService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -124,10 +121,13 @@ export async function getTimeTutoredForDateRange(
 
 export async function handleDmReporting(
   sessionId: Ulid,
-  sessionFlags: UserSessionFlags[]
+  sessionFlags: UserSessionFlags[],
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  await updateSessionFlagsById(sessionId, sessionFlags)
-  await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
+  await runInTransaction(async (tc: TransactionClient) => {
+    await updateSessionFlagsById(sessionId, sessionFlags, tc)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+  }, client)
 }
 
 export async function reportSession(user: UserContactInfo, data: unknown) {
@@ -607,7 +607,6 @@ export async function startSession(
       user.banType === USER_BAN_TYPES.SHADOW,
       tc
     )
-    await createSessionMetrics(newSessionId, tc)
 
     if (assignmentId) {
       await AssignmentsService.linkSessionToAssignment(
@@ -1167,10 +1166,4 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
-}
-export async function updateSessionMetrics(
-  sessionId: Uuid,
-  metrics: Partial<SessionRepo.SessionMetrics>
-): Promise<SessionRepo.SessionMetrics> {
-  return SessionRepo.updateSessionMetrics(sessionId, metrics)
 }

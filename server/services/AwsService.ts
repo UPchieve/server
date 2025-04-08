@@ -7,7 +7,7 @@ import {
 } from '@aws-sdk/client-s3'
 import * as Sentry from '@sentry/node'
 import config from '../config'
-import { logError } from '../logger'
+import logger, { logError } from '../logger'
 
 const s3 = new S3({
   credentials: {

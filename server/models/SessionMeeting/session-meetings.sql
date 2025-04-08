@@ -13,3 +13,14 @@ INSERT INTO session_meetings (id, external_id, provider, session_id, created_at,
 RETURNING
     *;
 
+
+/* @name addRecordingIdToSessionMeeting */
+UPDATE
+    session_meetings
+SET
+    recording_id = :recordingId!
+WHERE
+    id = :id!
+RETURNING
+    *;
+

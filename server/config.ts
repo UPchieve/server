@@ -445,11 +445,16 @@ const config: Static<typeof Config> = {
     Number(process.env.SUBWAY_TREMENDOUS_CAMPAIGNS_CACHE_EXPIRATION_SECONDS) ||
     86400,
 
+  // AWS Account ID
+  awsAccountId: process.env.SUBWAY_AWS_ACCOUNT_ID || 'bogus',
+
   // AWS Chime
   awsChimeAccessKey: process.env.SUBWAY_AWS_CHIME_ACCESS_KEY || 'bogus',
   awsChimeSecretAccessKey:
     process.env.SUBWAY_AWS_CHIME_SECRET_ACCESS_KEY || 'bogus',
   awsChimeRegion: process.env.SUBWAY_AWS_CHIME_REGION || 'us-east-1',
+  awsChimeMeetingRecordingBucketArn:
+    process.env.SUBWAY_AWS_CHIME_RECORDINGS_BUCKET_ARN || 'bogus',
 
   // AWS Bedrock
   awsBedrockAccessKey: process.env.SUBWAY_AWS_BEDROCK_ACCESS_KEY || 'bogus',

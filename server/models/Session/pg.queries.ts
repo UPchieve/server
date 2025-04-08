@@ -222,24 +222,24 @@ const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"nam
 export const getSessionById = new PreparedQuery<IGetSessionByIdParams,IGetSessionByIdResult>(getSessionByIdIR);
 
 
-/** 'InsertSessionFlagById' parameters type */
-export interface IInsertSessionFlagByIdParams {
-  flag: string;
+/** 'InsertSessionFlagsById' parameters type */
+export interface IInsertSessionFlagsByIdParams {
+  flags: stringArray;
   sessionId: string;
 }
 
-/** 'InsertSessionFlagById' return type */
-export interface IInsertSessionFlagByIdResult {
+/** 'InsertSessionFlagsById' return type */
+export interface IInsertSessionFlagsByIdResult {
   ok: string;
 }
 
-/** 'InsertSessionFlagById' query type */
-export interface IInsertSessionFlagByIdQuery {
-  params: IInsertSessionFlagByIdParams;
-  result: IInsertSessionFlagByIdResult;
+/** 'InsertSessionFlagsById' query type */
+export interface IInsertSessionFlagsByIdQuery {
+  params: IInsertSessionFlagsByIdParams;
+  result: IInsertSessionFlagsByIdResult;
 }
 
-const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"flag","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":201}]}],"statement":"INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    name = :flag!\nON CONFLICT (session_id,\n    session_flag_id)\n    DO UPDATE SET\n        updated_at = NOW()\n    RETURNING\n        session_id AS ok"};
+const insertSessionFlagsByIdIR: any = {"usedParamSet":{"sessionId":true,"flags":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"flags","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":207}]}],"statement":"INSERT INTO sessions_session_flags (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    name = ANY (:flags!)\nON CONFLICT (session_id,\n    session_flag_id)\n    DO UPDATE SET\n        updated_at = NOW()\n    RETURNING\n        session_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -253,7 +253,7 @@ const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":tr
  * FROM
  *     session_flags
  * WHERE
- *     name = :flag!
+ *     name = ANY (:flags!)
  * ON CONFLICT (session_id,
  *     session_flag_id)
  *     DO UPDATE SET
@@ -262,7 +262,7 @@ const insertSessionFlagByIdIR: any = {"usedParamSet":{"sessionId":true,"flag":tr
  *         session_id AS ok
  * ```
  */
-export const insertSessionFlagById = new PreparedQuery<IInsertSessionFlagByIdParams,IInsertSessionFlagByIdResult>(insertSessionFlagByIdIR);
+export const insertSessionFlagsById = new PreparedQuery<IInsertSessionFlagsByIdParams,IInsertSessionFlagsByIdResult>(insertSessionFlagsByIdIR);
 
 
 /** 'UpdateSessionToReview' parameters type */
@@ -2097,59 +2097,45 @@ const getSessionsForAdminFilterIR: any = {"usedParamSet":{"start":true,"end":tru
 export const getSessionsForAdminFilter = new PreparedQuery<IGetSessionsForAdminFilterParams,IGetSessionsForAdminFilterResult>(getSessionsForAdminFilterIR);
 
 
-/** 'InsertSessionReviewReason' parameters type */
-export interface IInsertSessionReviewReasonParams {
-  flag: string;
+/** 'InsertSessionReviewReasons' parameters type */
+export interface IInsertSessionReviewReasonsParams {
+  reviewReasons: stringArray;
   sessionId: string;
 }
 
-/** 'InsertSessionReviewReason' return type */
-export interface IInsertSessionReviewReasonResult {
-  ok: string | null;
+/** 'InsertSessionReviewReasons' return type */
+export interface IInsertSessionReviewReasonsResult {
+  ok: string;
 }
 
-/** 'InsertSessionReviewReason' query type */
-export interface IInsertSessionReviewReasonQuery {
-  params: IInsertSessionReviewReasonParams;
-  result: IInsertSessionReviewReasonResult;
+/** 'InsertSessionReviewReasons' query type */
+export interface IInsertSessionReviewReasonsQuery {
+  params: IInsertSessionReviewReasonsParams;
+  result: IInsertSessionReviewReasonsResult;
 }
 
-const insertSessionReviewReasonIR: any = {"usedParamSet":{"sessionId":true,"flag":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":132}]},{"name":"flag","required":true,"transform":{"type":"scalar"},"locs":[{"a":260,"b":265},{"a":549,"b":554}]}],"statement":"WITH ins AS (\nINSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)\n    SELECT\n        :sessionId!,\n        session_flags.id,\n        NOW(),\n        NOW()\n    FROM\n        session_flags\n    WHERE\n        session_flags.name = :flag!\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        session_id AS ok\n)\nSELECT\n    *\nFROM\n    ins\nUNION\nSELECT\n    session_id\nFROM\n    session_review_reasons\n    LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\nWHERE\n    session_flags.name = :flag!"};
+const insertSessionReviewReasonsIR: any = {"usedParamSet":{"sessionId":true,"reviewReasons":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":110}]},{"name":"reviewReasons","required":true,"transform":{"type":"scalar"},"locs":[{"a":215,"b":229}]}],"statement":"INSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)\nSELECT\n    :sessionId!,\n    session_flags.id,\n    NOW(),\n    NOW()\nFROM\n    session_flags\nWHERE\n    session_flags.name = ANY (:reviewReasons!)\nON CONFLICT\n    DO NOTHING\nRETURNING\n    session_id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH ins AS (
  * INSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)
- *     SELECT
- *         :sessionId!,
- *         session_flags.id,
- *         NOW(),
- *         NOW()
- *     FROM
- *         session_flags
- *     WHERE
- *         session_flags.name = :flag!
- *     ON CONFLICT
- *         DO NOTHING
- *     RETURNING
- *         session_id AS ok
- * )
  * SELECT
- *     *
+ *     :sessionId!,
+ *     session_flags.id,
+ *     NOW(),
+ *     NOW()
  * FROM
- *     ins
- * UNION
- * SELECT
- *     session_id
- * FROM
- *     session_review_reasons
- *     LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id
+ *     session_flags
  * WHERE
- *     session_flags.name = :flag!
+ *     session_flags.name = ANY (:reviewReasons!)
+ * ON CONFLICT
+ *     DO NOTHING
+ * RETURNING
+ *     session_id AS ok
  * ```
  */
-export const insertSessionReviewReason = new PreparedQuery<IInsertSessionReviewReasonParams,IInsertSessionReviewReasonResult>(insertSessionReviewReasonIR);
+export const insertSessionReviewReasons = new PreparedQuery<IInsertSessionReviewReasonsParams,IInsertSessionReviewReasonsResult>(insertSessionReviewReasonsIR);
 
 
 /** 'InsertSessionFailedJoin' parameters type */
@@ -2902,7 +2888,7 @@ export interface IGetSessionTranscriptQuery {
   result: IGetSessionTranscriptResult;
 }
 
-const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":377,"b":387},{"a":804,"b":814},{"a":1230,"b":1240}]}],"statement":"SELECT\n    sm.id AS message_id,\n    sender_id AS user_id,\n    contents AS message,\n    sm.created_at,\n    CASE WHEN TRUE THEN\n        'chat'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = sm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_messages sm\n    JOIN sessions s ON sm.session_id = s.id\nWHERE\n    sm.session_id = :sessionId!\nUNION\nSELECT\n    satm.id AS message_id,\n    satm.user_id,\n    satm.message,\n    satm.said_at AS created_at,\n    CASE WHEN TRUE THEN\n        'transcription'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = satm.user_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_audio_transcript_messages satm\n    JOIN sessions s ON satm.session_id = s.id\nWHERE\n    satm.session_id = :sessionId!\nUNION\nSELECT\n    svm.id AS message_id,\n    svm.sender_id AS user_id,\n    svm.transcript AS message,\n    svm.created_at,\n    CASE WHEN TRUE THEN\n        'voice_message'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = svm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_voice_messages svm\n    JOIN sessions s ON svm.session_id = s.id\nWHERE\n    svm.session_id = :sessionId!\nORDER BY\n    created_at ASC"};
+const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":444,"b":454},{"a":871,"b":881},{"a":1297,"b":1307}]}],"statement":"SELECT\n    sm.id AS message_id,\n    sender_id AS user_id,\n    contents AS message,\n    sm.created_at,\n    CASE WHEN sm.created_at > s.ended_at THEN\n        'direct_message'\n    ELSE\n        'session_message'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = sm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_messages sm\n    JOIN sessions s ON sm.session_id = s.id\nWHERE\n    sm.session_id = :sessionId!\nUNION\nSELECT\n    satm.id AS message_id,\n    satm.user_id,\n    satm.message,\n    satm.said_at AS created_at,\n    CASE WHEN TRUE THEN\n        'transcription'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = satm.user_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_audio_transcript_messages satm\n    JOIN sessions s ON satm.session_id = s.id\nWHERE\n    satm.session_id = :sessionId!\nUNION\nSELECT\n    svm.id AS message_id,\n    svm.sender_id AS user_id,\n    svm.transcript AS message,\n    svm.created_at,\n    CASE WHEN TRUE THEN\n        'voice_message'\n    END AS message_type,\n    CASE WHEN s.volunteer_id = svm.sender_id THEN\n        'volunteer'\n    ELSE\n        'student'\n    END AS ROLE\nFROM\n    session_voice_messages svm\n    JOIN sessions s ON svm.session_id = s.id\nWHERE\n    svm.session_id = :sessionId!\nORDER BY\n    created_at ASC"};
 
 /**
  * Query generated from SQL:
@@ -2912,8 +2898,10 @@ const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":
  *     sender_id AS user_id,
  *     contents AS message,
  *     sm.created_at,
- *     CASE WHEN TRUE THEN
- *         'chat'
+ *     CASE WHEN sm.created_at > s.ended_at THEN
+ *         'direct_message'
+ *     ELSE
+ *         'session_message'
  *     END AS message_type,
  *     CASE WHEN s.volunteer_id = sm.sender_id THEN
  *         'volunteer'
@@ -2968,135 +2956,5 @@ const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":
  * ```
  */
 export const getSessionTranscript = new PreparedQuery<IGetSessionTranscriptParams,IGetSessionTranscriptResult>(getSessionTranscriptIR);
-
-
-/** 'CreateSessionMetrics' parameters type */
-export interface ICreateSessionMetricsParams {
-  sessionId: string;
-}
-
-/** 'CreateSessionMetrics' return type */
-export interface ICreateSessionMetricsResult {
-  ok: string;
-}
-
-/** 'CreateSessionMetrics' query type */
-export interface ICreateSessionMetricsQuery {
-  params: ICreateSessionMetricsParams;
-  result: ICreateSessionMetricsResult;
-}
-
-const createSessionMetricsIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":63}]}],"statement":"INSERT INTO session_metrics (session_id)\n    VALUES (:sessionId!)\nRETURNING\n    session_id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO session_metrics (session_id)
- *     VALUES (:sessionId!)
- * RETURNING
- *     session_id AS ok
- * ```
- */
-export const createSessionMetrics = new PreparedQuery<ICreateSessionMetricsParams,ICreateSessionMetricsResult>(createSessionMetricsIR);
-
-
-/** 'UpdateSessionMetrics' parameters type */
-export interface IUpdateSessionMetricsParams {
-  absentStudent?: boolean | null | void;
-  absentVolunteer?: boolean | null | void;
-  coachUncomfortable?: boolean | null | void;
-  commentFromStudent?: boolean | null | void;
-  commentFromVolunteer?: boolean | null | void;
-  gradedAssignment?: boolean | null | void;
-  hasBeenUnmatched?: boolean | null | void;
-  hasHadTechnicalIssues?: boolean | null | void;
-  lowCoachRatingFromStudent?: boolean | null | void;
-  lowSessionRatingFromCoach?: boolean | null | void;
-  lowSessionRatingFromStudent?: boolean | null | void;
-  onlyLookingForAnswers?: boolean | null | void;
-  personalIdentifyingInfo?: boolean | null | void;
-  reported?: boolean | null | void;
-  rudeOrInappropriate?: boolean | null | void;
-  sessionId: string;
-  studentCrisis?: boolean | null | void;
-}
-
-/** 'UpdateSessionMetrics' return type */
-export interface IUpdateSessionMetricsResult {
-  absentStudent: boolean;
-  absentVolunteer: boolean;
-  coachUncomfortable: boolean;
-  commentFromStudent: boolean;
-  commentFromVolunteer: boolean;
-  createdAt: Date;
-  gradedAssignment: boolean;
-  hasBeenUnmatched: boolean;
-  hasHadTechnicalIssues: boolean;
-  lowCoachRatingFromStudent: boolean;
-  lowSessionRatingFromCoach: boolean;
-  lowSessionRatingFromStudent: boolean;
-  onlyLookingForAnswers: boolean;
-  personalIdentifyingInfo: boolean;
-  reported: boolean;
-  rudeOrInappropriate: boolean;
-  sessionId: string;
-  studentCrisis: boolean;
-}
-
-/** 'UpdateSessionMetrics' query type */
-export interface IUpdateSessionMetricsQuery {
-  params: IUpdateSessionMetricsParams;
-  result: IUpdateSessionMetricsResult;
-}
-
-const updateSessionMetricsIR: any = {"usedParamSet":{"absentStudent":true,"absentVolunteer":true,"lowSessionRatingFromCoach":true,"lowSessionRatingFromStudent":true,"lowCoachRatingFromStudent":true,"onlyLookingForAnswers":true,"rudeOrInappropriate":true,"commentFromStudent":true,"commentFromVolunteer":true,"hasBeenUnmatched":true,"hasHadTechnicalIssues":true,"personalIdentifyingInfo":true,"gradedAssignment":true,"coachUncomfortable":true,"studentCrisis":true,"reported":true,"sessionId":true},"params":[{"name":"absentStudent","required":false,"transform":{"type":"scalar"},"locs":[{"a":61,"b":74}]},{"name":"absentVolunteer","required":false,"transform":{"type":"scalar"},"locs":[{"a":126,"b":141}]},{"name":"lowSessionRatingFromCoach","required":false,"transform":{"type":"scalar"},"locs":[{"a":208,"b":233}]},{"name":"lowSessionRatingFromStudent","required":false,"transform":{"type":"scalar"},"locs":[{"a":315,"b":342}]},{"name":"lowCoachRatingFromStudent","required":false,"transform":{"type":"scalar"},"locs":[{"a":424,"b":449}]},{"name":"onlyLookingForAnswers","required":false,"transform":{"type":"scalar"},"locs":[{"a":524,"b":545}]},{"name":"rudeOrInappropriate","required":false,"transform":{"type":"scalar"},"locs":[{"a":612,"b":631}]},{"name":"commentFromStudent","required":false,"transform":{"type":"scalar"},"locs":[{"a":694,"b":712}]},{"name":"commentFromVolunteer","required":false,"transform":{"type":"scalar"},"locs":[{"a":776,"b":796}]},{"name":"hasBeenUnmatched","required":false,"transform":{"type":"scalar"},"locs":[{"a":858,"b":874}]},{"name":"hasHadTechnicalIssues","required":false,"transform":{"type":"scalar"},"locs":[{"a":938,"b":959}]},{"name":"personalIdentifyingInfo","required":false,"transform":{"type":"scalar"},"locs":[{"a":1030,"b":1053}]},{"name":"gradedAssignment","required":false,"transform":{"type":"scalar"},"locs":[{"a":1117,"b":1133}]},{"name":"coachUncomfortable","required":false,"transform":{"type":"scalar"},"locs":[{"a":1191,"b":1209}]},{"name":"studentCrisis","required":false,"transform":{"type":"scalar"},"locs":[{"a":1264,"b":1277}]},{"name":"reported","required":false,"transform":{"type":"scalar"},"locs":[{"a":1321,"b":1329}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1389,"b":1399}]}],"statement":"UPDATE\n    session_metrics\nSET\n    absent_student = COALESCE(:absentStudent, absent_student),\n    absent_volunteer = COALESCE(:absentVolunteer, absent_volunteer),\n    low_session_rating_from_coach = COALESCE(:lowSessionRatingFromCoach, low_session_rating_from_coach),\n    low_session_rating_from_student = COALESCE(:lowSessionRatingFromStudent, low_session_rating_from_student),\n    low_coach_rating_from_student = COALESCE(:lowCoachRatingFromStudent, low_coach_rating_from_student),\n    only_looking_for_answers = COALESCE(:onlyLookingForAnswers, only_looking_for_answers),\n    rude_or_inappropriate = COALESCE(:rudeOrInappropriate, rude_or_inappropriate),\n    comment_from_student = COALESCE(:commentFromStudent, comment_from_student),\n    comment_from_volunteer = COALESCE(:commentFromVolunteer, comment_from_volunteer),\n    has_been_unmatched = COALESCE(:hasBeenUnmatched, has_been_unmatched),\n    has_had_technical_issues = COALESCE(:hasHadTechnicalIssues, has_had_technical_issues),\n    personal_identifying_info = COALESCE(:personalIdentifyingInfo, personal_identifying_info),\n    graded_assignment = COALESCE(:gradedAssignment, graded_assignment),\n    coach_uncomfortable = COALESCE(:coachUncomfortable, coach_uncomfortable),\n    student_crisis = COALESCE(:studentCrisis, student_crisis),\n    reported = COALESCE(:reported, reported),\n    updated_at = NOW()\nWHERE\n    session_id = :sessionId!\nRETURNING\n    session_id,\n    absent_student,\n    absent_volunteer,\n    low_session_rating_from_coach,\n    low_session_rating_from_student,\n    low_coach_rating_from_student,\n    only_looking_for_answers,\n    rude_or_inappropriate,\n    comment_from_student,\n    comment_from_volunteer,\n    has_been_unmatched,\n    has_had_technical_issues,\n    reported,\n    personal_identifying_info,\n    graded_assignment,\n    coach_uncomfortable,\n    student_crisis,\n    created_at"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     session_metrics
- * SET
- *     absent_student = COALESCE(:absentStudent, absent_student),
- *     absent_volunteer = COALESCE(:absentVolunteer, absent_volunteer),
- *     low_session_rating_from_coach = COALESCE(:lowSessionRatingFromCoach, low_session_rating_from_coach),
- *     low_session_rating_from_student = COALESCE(:lowSessionRatingFromStudent, low_session_rating_from_student),
- *     low_coach_rating_from_student = COALESCE(:lowCoachRatingFromStudent, low_coach_rating_from_student),
- *     only_looking_for_answers = COALESCE(:onlyLookingForAnswers, only_looking_for_answers),
- *     rude_or_inappropriate = COALESCE(:rudeOrInappropriate, rude_or_inappropriate),
- *     comment_from_student = COALESCE(:commentFromStudent, comment_from_student),
- *     comment_from_volunteer = COALESCE(:commentFromVolunteer, comment_from_volunteer),
- *     has_been_unmatched = COALESCE(:hasBeenUnmatched, has_been_unmatched),
- *     has_had_technical_issues = COALESCE(:hasHadTechnicalIssues, has_had_technical_issues),
- *     personal_identifying_info = COALESCE(:personalIdentifyingInfo, personal_identifying_info),
- *     graded_assignment = COALESCE(:gradedAssignment, graded_assignment),
- *     coach_uncomfortable = COALESCE(:coachUncomfortable, coach_uncomfortable),
- *     student_crisis = COALESCE(:studentCrisis, student_crisis),
- *     reported = COALESCE(:reported, reported),
- *     updated_at = NOW()
- * WHERE
- *     session_id = :sessionId!
- * RETURNING
- *     session_id,
- *     absent_student,
- *     absent_volunteer,
- *     low_session_rating_from_coach,
- *     low_session_rating_from_student,
- *     low_coach_rating_from_student,
- *     only_looking_for_answers,
- *     rude_or_inappropriate,
- *     comment_from_student,
- *     comment_from_volunteer,
- *     has_been_unmatched,
- *     has_had_technical_issues,
- *     reported,
- *     personal_identifying_info,
- *     graded_assignment,
- *     coach_uncomfortable,
- *     student_crisis,
- *     created_at
- * ```
- */
-export const updateSessionMetrics = new PreparedQuery<IUpdateSessionMetricsParams,IUpdateSessionMetricsResult>(updateSessionMetricsIR);
 
 
