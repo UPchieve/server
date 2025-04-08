@@ -59,12 +59,12 @@ export function computeAbsentVolunteer(
       'minutes'
     )
 
-    //if student waits for less than 5 minutes, then not flag volunteer
+    // If student waits for less than 5 minutes, then don't flag volunteer
     if (moment(session.endedAt).isSameOrBefore(studentMaxWait)) return false
 
     for (const msg of messages) {
       if (
-        // if volunteer sends message, then don't flag volunteer
+        // If volunteer sends message, then don't flag volunteer
         msg.user === session.volunteerId
       )
         return false
