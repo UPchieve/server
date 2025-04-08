@@ -124,7 +124,6 @@ export enum Jobs {
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillSessionMetrics = 'BackfillSessionMetrics',
 
   // Delete scripts
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',

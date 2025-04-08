@@ -170,7 +170,7 @@ export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
   )
 }
 
-export async function isUpdatedSessionEndedProcessingEnabled(userId: Ulid) {
+export async function isUpdatedSessionEndedProcessingEnabled(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.UPDATED_SESSION_ENDED_PROCESSING,
     userId
