@@ -1644,33 +1644,6 @@ CREATE TABLE upchieve.session_messages (
 
 
 --
--- Name: session_metrics; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.session_metrics (
-    session_id uuid NOT NULL,
-    absent_student boolean DEFAULT false NOT NULL,
-    absent_volunteer boolean DEFAULT false NOT NULL,
-    low_session_rating_from_coach boolean DEFAULT false NOT NULL,
-    low_session_rating_from_student boolean DEFAULT false NOT NULL,
-    low_coach_rating_from_student boolean DEFAULT false NOT NULL,
-    reported boolean DEFAULT false NOT NULL,
-    only_looking_for_answers boolean DEFAULT false NOT NULL,
-    rude_or_inappropriate boolean DEFAULT false NOT NULL,
-    comment_from_student boolean DEFAULT false NOT NULL,
-    comment_from_volunteer boolean DEFAULT false NOT NULL,
-    has_been_unmatched boolean DEFAULT false NOT NULL,
-    has_had_technical_issues boolean DEFAULT false NOT NULL,
-    personal_identifying_info boolean DEFAULT false NOT NULL,
-    graded_assignment boolean DEFAULT false NOT NULL,
-    coach_uncomfortable boolean DEFAULT false NOT NULL,
-    student_crisis boolean DEFAULT false NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
 -- Name: session_photos; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3826,14 +3799,6 @@ ALTER TABLE ONLY upchieve.session_messages
 
 
 --
--- Name: session_metrics session_metrics_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.session_metrics
-    ADD CONSTRAINT session_metrics_pkey PRIMARY KEY (session_id);
-
-
---
 -- Name: session_reports session_reports_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5402,14 +5367,6 @@ ALTER TABLE ONLY upchieve.session_messages
 
 
 --
--- Name: session_metrics session_metrics_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.session_metrics
-    ADD CONSTRAINT session_metrics_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
-
-
---
 -- Name: session_photos session_photos_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6397,4 +6354,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250318175742'),
     ('20250326221322'),
     ('20250327202139'),
-    ('20250401193833');
+    ('20250401193833'),
+    ('20250407171122');
