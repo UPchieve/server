@@ -2287,11 +2287,26 @@ export interface IGetFilteredSessionHistoryQuery {
   result: IGetFilteredSessionHistoryResult;
 }
 
-const getFilteredSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"studentId":true,"volunteerId":true,"studentFirstName":true,"volunteerFirstName":true,"subjectName":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":947,"b":954},{"a":979,"b":986}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1055,"b":1072}]},{"name":"studentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1186,"b":1195}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1262,"b":1273}]},{"name":"studentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1310,"b":1326},{"a":1384,"b":1400}]},{"name":"volunteerFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1409,"b":1427},{"a":1487,"b":1505}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1514,"b":1525},{"a":1564,"b":1575}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1614,"b":1620}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1636,"b":1643}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link,\n    volunteers.first_name AS volunteer_first_name,\n    students.first_name AS student_first_name,\n    sessions.volunteer_id,\n    sessions.student_id,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id)\nWHERE (students.id = :userId!\n    OR volunteers.id = :userId!)\nAND sessions.time_tutored IS NOT NULL\nAND sessions.time_tutored > :minSessionLength!::int\nAND sessions.volunteer_id IS NOT NULL\nAND sessions.ended_at IS NOT NULL\nAND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)\nAND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)\nAND (:studentFirstName::text IS NULL\n    OR LOWER(students.first_name) = LOWER(:studentFirstName))\nAND (:volunteerFirstName::text IS NULL\n    OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))\nAND (:subjectName::text IS NULL\n    OR subjects.name = :subjectName)\nORDER BY\n    created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getFilteredSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"studentId":true,"volunteerId":true,"studentFirstName":true,"volunteerFirstName":true,"subjectName":true,"limit":true,"offset":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":227},{"a":255,"b":262}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1268,"b":1285}]},{"name":"studentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1411,"b":1420}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1491,"b":1502}]},{"name":"studentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1543,"b":1559},{"a":1621,"b":1637}]},{"name":"volunteerFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1650,"b":1668},{"a":1732,"b":1750}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1763,"b":1774},{"a":1817,"b":1828}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":1867,"b":1873}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":1889,"b":1896}]}],"statement":"WITH sessions AS (\n    SELECT\n        id,\n        time_tutored,\n        volunteer_id,\n        student_id,\n        subject_id,\n        ended_at,\n        created_at\n    FROM\n        sessions\n    WHERE\n        student_id = :userId!\n        OR volunteer_id = :userId!\n)\nSELECT\n    sessions.id,\n    sessions.created_at AS created_at,\n    sessions.time_tutored::int AS time_tutored,\n    subjects.display_name AS subject,\n    topics.name AS topic,\n    topics.icon_link AS topic_icon_link,\n    volunteers.first_name AS volunteer_first_name,\n    students.first_name AS student_first_name,\n    sessions.volunteer_id,\n    sessions.student_id,\n    (\n        CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_favorited\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id)\nWHERE\n    sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)\n    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)\n    AND (:studentFirstName::text IS NULL\n        OR LOWER(students.first_name) = LOWER(:studentFirstName))\n    AND (:volunteerFirstName::text IS NULL\n        OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))\n    AND (:subjectName::text IS NULL\n        OR subjects.name = :subjectName)\nORDER BY\n    created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH sessions AS (
+ *     SELECT
+ *         id,
+ *         time_tutored,
+ *         volunteer_id,
+ *         student_id,
+ *         subject_id,
+ *         ended_at,
+ *         created_at
+ *     FROM
+ *         sessions
+ *     WHERE
+ *         student_id = :userId!
+ *         OR volunteer_id = :userId!
+ * )
  * SELECT
  *     sessions.id,
  *     sessions.created_at AS created_at,
@@ -2317,20 +2332,19 @@ const getFilteredSessionHistoryIR: any = {"usedParamSet":{"userId":true,"minSess
  *     LEFT JOIN users students ON sessions.student_id = students.id
  *     LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id
  *             AND volunteers.id = favorited.volunteer_id)
- * WHERE (students.id = :userId!
- *     OR volunteers.id = :userId!)
- * AND sessions.time_tutored IS NOT NULL
- * AND sessions.time_tutored > :minSessionLength!::int
- * AND sessions.volunteer_id IS NOT NULL
- * AND sessions.ended_at IS NOT NULL
- * AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
- * AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
- * AND (:studentFirstName::text IS NULL
- *     OR LOWER(students.first_name) = LOWER(:studentFirstName))
- * AND (:volunteerFirstName::text IS NULL
- *     OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
- * AND (:subjectName::text IS NULL
- *     OR subjects.name = :subjectName)
+ * WHERE
+ *     sessions.time_tutored IS NOT NULL
+ *     AND sessions.time_tutored > :minSessionLength!::int
+ *     AND sessions.volunteer_id IS NOT NULL
+ *     AND sessions.ended_at IS NOT NULL
+ *     AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+ *     AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+ *     AND (:studentFirstName::text IS NULL
+ *         OR LOWER(students.first_name) = LOWER(:studentFirstName))
+ *     AND (:volunteerFirstName::text IS NULL
+ *         OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
+ *     AND (:subjectName::text IS NULL
+ *         OR subjects.name = :subjectName)
  * ORDER BY
  *     created_at DESC
  * LIMIT (:limit!)::int OFFSET (:offset!)::int
@@ -2361,11 +2375,26 @@ export interface IGetFilteredSessionHistoryTotalCountQuery {
   result: IGetFilteredSessionHistoryTotalCountResult;
 }
 
-const getFilteredSessionHistoryTotalCountIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"studentId":true,"volunteerId":true,"studentFirstName":true,"volunteerFirstName":true,"subjectName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":453,"b":460},{"a":485,"b":492}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":561,"b":578}]},{"name":"studentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":692,"b":701}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":768,"b":779}]},{"name":"studentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":816,"b":832},{"a":890,"b":906}]},{"name":"volunteerFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":915,"b":933},{"a":993,"b":1011}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1020,"b":1031},{"a":1070,"b":1081}]}],"statement":"SELECT\n    COUNT(*)::int\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id)\nWHERE (students.id = :userId!\n    OR volunteers.id = :userId!)\nAND sessions.time_tutored IS NOT NULL\nAND sessions.time_tutored > :minSessionLength!::int\nAND sessions.volunteer_id IS NOT NULL\nAND sessions.ended_at IS NOT NULL\nAND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)\nAND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)\nAND (:studentFirstName::text IS NULL\n    OR LOWER(students.first_name) = LOWER(:studentFirstName))\nAND (:volunteerFirstName::text IS NULL\n    OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))\nAND (:subjectName::text IS NULL\n    OR subjects.name = :subjectName)"};
+const getFilteredSessionHistoryTotalCountIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true,"studentId":true,"volunteerId":true,"studentFirstName":true,"volunteerFirstName":true,"subjectName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":227},{"a":255,"b":262}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":774,"b":791}]},{"name":"studentId","required":false,"transform":{"type":"scalar"},"locs":[{"a":917,"b":926}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":997,"b":1008}]},{"name":"studentFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1049,"b":1065},{"a":1127,"b":1143}]},{"name":"volunteerFirstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1156,"b":1174},{"a":1238,"b":1256}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":1269,"b":1280},{"a":1323,"b":1334}]}],"statement":"WITH sessions AS (\n    SELECT\n        id,\n        time_tutored,\n        volunteer_id,\n        student_id,\n        subject_id,\n        ended_at,\n        created_at\n    FROM\n        sessions\n    WHERE\n        student_id = :userId!\n        OR volunteer_id = :userId!\n)\nSELECT\n    COUNT(*)::int\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN users volunteers ON sessions.volunteer_id = volunteers.id\n    LEFT JOIN users students ON sessions.student_id = students.id\n    LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id\n            AND volunteers.id = favorited.volunteer_id)\nWHERE\n    sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)\n    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)\n    AND (:studentFirstName::text IS NULL\n        OR LOWER(students.first_name) = LOWER(:studentFirstName))\n    AND (:volunteerFirstName::text IS NULL\n        OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))\n    AND (:subjectName::text IS NULL\n        OR subjects.name = :subjectName)"};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH sessions AS (
+ *     SELECT
+ *         id,
+ *         time_tutored,
+ *         volunteer_id,
+ *         student_id,
+ *         subject_id,
+ *         ended_at,
+ *         created_at
+ *     FROM
+ *         sessions
+ *     WHERE
+ *         student_id = :userId!
+ *         OR volunteer_id = :userId!
+ * )
  * SELECT
  *     COUNT(*)::int
  * FROM
@@ -2376,20 +2405,19 @@ const getFilteredSessionHistoryTotalCountIR: any = {"usedParamSet":{"userId":tru
  *     LEFT JOIN users students ON sessions.student_id = students.id
  *     LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id
  *             AND volunteers.id = favorited.volunteer_id)
- * WHERE (students.id = :userId!
- *     OR volunteers.id = :userId!)
- * AND sessions.time_tutored IS NOT NULL
- * AND sessions.time_tutored > :minSessionLength!::int
- * AND sessions.volunteer_id IS NOT NULL
- * AND sessions.ended_at IS NOT NULL
- * AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
- * AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
- * AND (:studentFirstName::text IS NULL
- *     OR LOWER(students.first_name) = LOWER(:studentFirstName))
- * AND (:volunteerFirstName::text IS NULL
- *     OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
- * AND (:subjectName::text IS NULL
- *     OR subjects.name = :subjectName)
+ * WHERE
+ *     sessions.time_tutored IS NOT NULL
+ *     AND sessions.time_tutored > :minSessionLength!::int
+ *     AND sessions.volunteer_id IS NOT NULL
+ *     AND sessions.ended_at IS NOT NULL
+ *     AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+ *     AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+ *     AND (:studentFirstName::text IS NULL
+ *         OR LOWER(students.first_name) = LOWER(:studentFirstName))
+ *     AND (:volunteerFirstName::text IS NULL
+ *         OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
+ *     AND (:subjectName::text IS NULL
+ *         OR subjects.name = :subjectName)
  * ```
  */
 export const getFilteredSessionHistoryTotalCount = new PreparedQuery<IGetFilteredSessionHistoryTotalCountParams,IGetFilteredSessionHistoryTotalCountResult>(getFilteredSessionHistoryTotalCountIR);
