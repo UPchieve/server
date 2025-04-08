@@ -215,7 +215,7 @@ export async function endSession(
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
 ) {
-  await runInTransaction(async (tc: TransactionClient) => {
+  const endedSession = await runInTransaction(async (tc: TransactionClient) => {
     const reqIdentifiers = identifiers
       ? sessionUtils.asRequestIdentifiers(identifiers)
       : undefined
@@ -262,11 +262,13 @@ export async function endSession(
         },
         tc
       )
+
+    return session
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  if (endedBy && (await isUpdatedSessionEndedProcessingEnabled(endedBy)))
+  if (await isUpdatedSessionEndedProcessingEnabled(endedSession.student.id))
     QueueService.add(
       Jobs.ProcessSessionEnded,
       {
