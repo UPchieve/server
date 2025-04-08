@@ -19,6 +19,7 @@ import {
   UserSessionMetrics,
 } from '../models/UserSessionMetrics'
 import { Jobs } from '../worker/jobs'
+import logger from '../logger'
 
 export const VOLUNTEER_WAITING_PERIOD_MIN = 10
 export const STUDENT_WAITING_PERIOD_MIN = 5
@@ -439,10 +440,16 @@ export async function processMetrics(
   const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
     session.studentId
   )
-  if (!studentUserSessionMetrics)
-    throw new Error(
+  // There will not be a user session metrics record if the student has not
+  // had any sessions that have been flagged. This may be okay behavior for now, but
+  // we may consider having a default record instead of undefined
+  if (!studentUserSessionMetrics) {
+    logger.error(
       `No user session metrics found for student ${session.studentId}`
     )
+    return
+  }
+
   const volunteerUserSessionMetrics = session.volunteerId
     ? await getUserSessionMetricsByUserId(session.volunteerId)
     : undefined
