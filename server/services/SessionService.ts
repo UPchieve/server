@@ -73,7 +73,6 @@ import { getFeedbackBySessionId } from '../models/Feedback/queries'
 import { getPresessionSurveyResponse } from '../models/Survey'
 import { getSessionNotificationsWithSessionId } from '../models/Notification'
 import { getPostsessionSurveyResponse } from './SurveyService'
-
 import { getSessionRating } from '../models/Survey'
 
 export async function reviewSession(data: unknown) {

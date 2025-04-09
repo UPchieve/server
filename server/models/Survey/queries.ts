@@ -280,7 +280,6 @@ export async function getPostsessionSurveyResponse(
         'response',
         'replacementColumnOne',
         'replacementColumnTwo',
-        'questionText',
       ])
     )
   } catch (err) {
