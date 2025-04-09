@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped by pg_dump version 14.12 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3711,14 +3711,6 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 19	33	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
 20	\N	4	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
 21	\N	5	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
-\.
-
-
---
--- Data for Name: teacher_session_summaries; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.teacher_session_summaries (id, session_id, created_at, updated_at) FROM stdin;
 \.
 
 

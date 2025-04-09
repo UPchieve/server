@@ -2231,18 +2231,6 @@ CREATE TABLE upchieve.teacher_profiles (
 
 
 --
--- Name: teacher_session_summaries; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.teacher_session_summaries (
-    id uuid NOT NULL,
-    session_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -4175,14 +4163,6 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
--- Name: teacher_session_summaries teacher_session_summaries_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.teacher_session_summaries
-    ADD CONSTRAINT teacher_session_summaries_pkey PRIMARY KEY (id);
-
-
---
 -- Name: tool_types tool_types_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5887,14 +5867,6 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
--- Name: teacher_session_summaries teacher_session_summaries_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.teacher_session_summaries
-    ADD CONSTRAINT teacher_session_summaries_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
-
-
---
 -- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6436,5 +6408,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250327202139'),
     ('20250401193833'),
     ('20250407171122'),
-    ('20250407182416'),
-    ('20250409174759');
+    ('20250407182416');
