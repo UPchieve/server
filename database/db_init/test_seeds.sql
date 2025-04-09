@@ -665,6 +665,14 @@ COPY upchieve.session_review_reasons (session_id, session_flag_id, created_at, u
 
 
 --
+-- Data for Name: session_summaries; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_summaries (id, session_id, summary, user_type, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_voice_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
