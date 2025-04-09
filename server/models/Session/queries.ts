@@ -26,16 +26,10 @@ import {
   USER_SESSION_METRICS,
 } from '../../constants'
 import { UserActionAgent } from '../UserAction'
-import { getFeedbackBySessionId } from '../Feedback/queries'
 import { Feedback } from '../Feedback'
 import { isPgId } from '../../utils/type-utils'
+import { SessionNotification } from '../Notification'
 import {
-  getSessionNotificationsWithSessionId,
-  SessionNotification,
-} from '../Notification'
-import {
-  getPresessionSurveyResponse,
-  getPostsessionSurveyResponse,
   PostsessionSurveyResponse,
   SimpleSurveyResponse,
   getSessionRating,
@@ -539,17 +533,40 @@ export async function getMessagesForFrontend(
   }
 }
 
-export async function getSessionByIdWithStudentAndVolunteer(
+export type SessionResult = {
+  id: Ulid
+  subTopic: string
+  type: string
+  createdAt: Date
+  endedAt?: Date
+  volunteerJoinedAt?: Date
+  quillDoc?: string
+  timeTutored: number
+  endedBy?: Ulid
+  reportMessage?: string
+  reportReason?: string
+  reviewReasons?: string[]
+  photos?: string[]
+  toReview: boolean
+  studentId: Ulid
+  volunteerId?: Ulid
+  toolType: string
+}
+
+export async function getSessionForAdminView(
   sessionId: Ulid
-): Promise<SessionByIdWithStudentAndVolunteer> {
+): Promise<SessionResult> {
   const client = await getClient().connect()
+
   try {
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },
       client
     )
+
     if (!sessionResult.length) throw new Error('Session not found')
-    const session = makeSomeOptional(sessionResult[0], [
+
+    return makeSomeOptional(sessionResult[0], [
       'volunteerId',
       'volunteerJoinedAt',
       'photos',
@@ -560,52 +577,25 @@ export async function getSessionByIdWithStudentAndVolunteer(
       'reportReason',
       'reviewReasons',
     ])
-    const userAgentResult = await pgQueries.getSessionUserAgent.run(
-      { sessionId },
-      client
-    )
-    const userAgent = userAgentResult.length
-      ? makeSomeRequired(userAgentResult[0], [])
-      : undefined
-    const { student, volunteer } = await getSessionUsers(
-      session.id,
-      session.studentId,
-      session.volunteerId,
-      client
-    )
-    const messages = await getMessagesForFrontend(sessionId, client)
-    const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
-    const presessionSurvey = await getPresessionSurveyResponse(sessionId)
-    const studentPostsessionSurvey = await getPostsessionSurveyResponse(
-      sessionId,
-      USER_ROLES.STUDENT
-    )
-    const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(
-      sessionId,
-      USER_ROLES.VOLUNTEER
-    )
-    const notifications = await getSessionNotificationsWithSessionId(sessionId)
-
-    return {
-      ...session,
-      student,
-      volunteer,
-      messages,
-      feedbacks,
-      surveyResponses: {
-        presessionSurvey,
-        studentPostsessionSurvey,
-        volunteerPostsessionSurvey,
-      },
-      _id: session.id,
-      userAgent,
-      notifications,
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  } finally {
-    client.release()
+  } catch (error) {
+    throw new RepoReadError(error)
   }
+}
+
+export async function getSessionUserAgent(
+  sessionId: Ulid
+): Promise<Partial<UserActionAgent> | undefined> {
+  const client = await getClient().connect()
+
+  const userAgentResult = await pgQueries.getSessionUserAgent.run(
+    { sessionId },
+    client
+  )
+  const userAgent = userAgentResult.length
+    ? makeSomeRequired(userAgentResult[0], [])
+    : undefined
+
+  return userAgent
 }
 
 export async function createSession(
@@ -1425,7 +1415,7 @@ export async function getUserSessionStats(
   }
 }
 
-async function getSessionUsers(
+export async function getSessionUsers(
   sessionId: Ulid,
   sessionStudentId: Ulid,
   sessionVolunteerId: Ulid = '',

@@ -257,11 +257,12 @@ export async function getPresessionSurveyResponse(
 
 export type PostsessionSurveyResponse = {
   userRole: string
-  questionText: string
-  displayLabel: string
+  questionText?: string
   response?: string
   displayOrder: number
   score: number
+  replacementColumnOne?: string
+  replacementColumnTwo?: string
 }
 
 export async function getPostsessionSurveyResponse(
@@ -269,23 +270,18 @@ export async function getPostsessionSurveyResponse(
   userRole: USER_ROLES_TYPE
 ): Promise<PostsessionSurveyResponse[]> {
   try {
-    if (userRole === USER_ROLES.STUDENT) {
-      const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
-        { sessionId },
-        getClient()
-      )
-      if (result.length)
-        return result.map((row) => makeSomeOptional(row, ['response']))
-      return []
-    } else {
-      const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
-        { sessionId },
-        getClient()
-      )
-      if (result.length)
-        return result.map((row) => makeSomeOptional(row, ['response']))
-      return []
-    }
+    const result = await pgQueries.getPostsessionSurveyResponse.run(
+      { sessionId, userRole },
+      getClient()
+    )
+
+    return result.map((row) =>
+      makeSomeOptional(row, [
+        'response',
+        'replacementColumnOne',
+        'replacementColumnTwo',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
