@@ -13,7 +13,7 @@ type GenerateSessionSummary = {
 export default async (job: Job<GenerateSessionSummary>): Promise<void> => {
   const sessionId = asString(job.data.sessionId)
   const session = await getSessionById(sessionId)
-  if (await getSessionSummaryFeatureFlag(session.studentId)) return
+  if (!(await getSessionSummaryFeatureFlag(session.studentId))) return
 
   try {
     await generateSessionSummaryByUserType(session.id)
