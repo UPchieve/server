@@ -8,11 +8,40 @@ import { openai } from './BotsService'
 import logger from '../logger'
 import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 
-export async function generateSessionSummaryByUserType(
-  sessionId: Ulid,
-  userType: USER_ROLES_TYPE,
-  systemPrompt: string
-) {
+const responseInstructions =
+  'Respond in exactly one sentence that can be stored in a Postgres text column.'
+
+const SYSTEM_PROMPTS_FOR_USER_TYPES = [
+  {
+    userType: USER_ROLES.TEACHER,
+    // TODO: Test this and maybe rewrite
+    systemPrompt: `You are an assistant helping summarize high school tutoring sessions for teachers.
+    
+    Based on the session transcript and collaborative editor content below, 
+    generate a single sentence summary that would be useful for the student's 
+    teacher to understand what happened in the session.
+
+    The format of the transcripts is:
+
+    Session:
+    [hh:mm:ss] Tutor: {message}
+    [hh:mm:ss] Student: {message}
+
+    Editor:
+    {editorContent}
+
+    The editor content is a JSON representation of a Quill Editor document in Quill's Delta format. 
+    The Delta format is a series of operations applied to the document. 
+    Both the student and the tutor can commit operations. You will not know the author of an operation, 
+    although you can assume that students insert the early original content into the document; 
+    tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; 
+    and students may make additional edits to respond to the tutor's feedback. 
+
+    ${responseInstructions}`,
+  },
+]
+
+export async function generateSessionSummaryByUserType(sessionId: Ulid) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (!session.volunteerId) return
   const subjectData = await getSubjectAndTopic(session.subject)
@@ -35,20 +64,22 @@ export async function generateSessionSummaryByUserType(
     subjectData.toolType as TOOL_TYPES
   )
 
-  const summary = await generateSessionSummary(
-    session.studentId,
-    systemPrompt,
-    botPrompt
-  )
+  for (const { userType, systemPrompt } of SYSTEM_PROMPTS_FOR_USER_TYPES) {
+    const summary = await generateSessionSummary(
+      session.studentId,
+      systemPrompt,
+      botPrompt
+    )
 
-  if (!summary) return
+    if (!summary) continue
 
-  const savedSummary = await SessionSummariesRepo.addSessionSummary(
-    session.id,
-    summary,
-    userType
-  )
-  return savedSummary
+    const savedSummary = await SessionSummariesRepo.addSessionSummary(
+      session.id,
+      summary,
+      userType
+    )
+    return savedSummary
+  }
 }
 
 export async function getSessionSummaryByUserType(
