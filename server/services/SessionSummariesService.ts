@@ -110,7 +110,6 @@ export async function generateSessionSummary(
   })
   const completion = await openai.chat.completions.create({
     model: MODEL,
-    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
@@ -128,7 +127,7 @@ export async function generateSessionSummary(
   logger.info(
     `User: ${userId} received session summary completion ${completion} with response ${response}`
   )
-  return response ? JSON.parse(response) : ''
+  return response ?? ''
 }
 
 export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
