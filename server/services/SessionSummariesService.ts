@@ -131,7 +131,6 @@ export async function generateSessionSummary(
 }
 
 // TODO: Check if student has a teacher before queuing
-//       Queue from listener for now?
 export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
   try {
     await QueueService.add(
