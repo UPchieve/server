@@ -9,6 +9,7 @@ import logger from '../logger'
 import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import { getActiveClassesForStudent } from './StudentService'
 
 const responseInstructions =
   'Respond in exactly one sentence that can be stored in a Postgres text column.'
@@ -130,17 +131,20 @@ export async function generateSessionSummary(
   return response ? JSON.parse(response) : ''
 }
 
-// TODO: Check if student has a teacher before queuing
 export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
-  try {
-    await QueueService.add(
-      Jobs.GenerateSessionSummary,
-      { sessionId },
-      { removeOnComplete: true, removeOnFail: true }
-    )
-  } catch (error) {
-    logger.error(
-      `Failed to queue ${Jobs.GenerateSessionSummary} for session ${sessionId}`
-    )
+  const session = await SessionRepo.getSessionById(sessionId)
+  const classes = await getActiveClassesForStudent(session.studentId)
+  if (classes.length) {
+    try {
+      await QueueService.add(
+        Jobs.GenerateSessionSummary,
+        { sessionId },
+        { removeOnComplete: true, removeOnFail: true }
+      )
+    } catch (error) {
+      logger.error(
+        `Failed to queue ${Jobs.GenerateSessionSummary} for session ${sessionId}`
+      )
+    }
   }
 }
