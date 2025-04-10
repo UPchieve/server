@@ -169,3 +169,7 @@ export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
     userId
   )
 }
+
+export async function getSessionSummaryFeatureFlag(userId: Uuid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.SESSION_SUMMARY, userId)
+}
