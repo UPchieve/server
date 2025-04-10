@@ -2,7 +2,7 @@
 CREATE TABLE upchieve.session_summaries (
     id uuid NOT NULL,
     session_id uuid NOT NULL,
-    summary text,
+    summary text NOT NULL,
     user_type int,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
