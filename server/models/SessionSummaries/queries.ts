@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getDbUlid, makeSomeOptional, Ulid } from '../pgUtils'
+import { getDbUlid, makeSomeOptional, makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { USER_ROLES_TYPE } from '../../constants'
 import moment from 'moment'
@@ -19,28 +19,25 @@ export async function addSessionSummary(
     )
     if (!result.length)
       throw new RepoCreateError('Insert summary did not return ok')
-    return makeSomeOptional(result[0], ['summary'])
+    return result[0]
   } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
 
-export async function getLatestSessionSummary(
+export async function getSessionSummaryByUserType(
   sessionId: Ulid,
+  userType: USER_ROLES_TYPE,
   tc?: TransactionClient
 ): Promise<SessionSummary> {
   try {
     const summaries = await pgQueries.getSessionSummariesBySessionId.run(
-      { sessionId },
+      { sessionId, userType },
       tc ?? getClient()
     )
     if (!summaries.length) throw new RepoReadError('No summaries found')
 
-    summaries.sort(
-      (a, b) => moment(b.createdAt).valueOf() - moment(a.createdAt).valueOf()
-    )
-
-    return makeSomeOptional(summaries[0], ['summary'])
+    return summaries[0]
   } catch (err) {
     throw new RepoReadError(err)
   }

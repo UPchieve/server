@@ -5,7 +5,7 @@ import { PreparedQuery } from '@pgtyped/runtime';
 export interface IAddSessionSummaryParams {
   id: string;
   sessionId: string;
-  summary?: string | null | void;
+  summary: string;
   userType: string;
 }
 
@@ -14,8 +14,8 @@ export interface IAddSessionSummaryResult {
   createdAt: Date;
   id: string;
   sessionId: string;
-  summary: string | null;
-  userType: number | null;
+  summary: string;
+  userType: string | null;
 }
 
 /** 'AddSessionSummary' query type */
@@ -24,13 +24,13 @@ export interface IAddSessionSummaryQuery {
   result: IAddSessionSummaryResult;
 }
 
-const addSessionSummaryIR: any = {"usedParamSet":{"id":true,"sessionId":true,"summary":true,"userType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":106}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"summary","required":false,"transform":{"type":"scalar"},"locs":[{"a":122,"b":129}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":257,"b":266}]}],"statement":"INSERT INTO session_summaries (id, session_id, summary, user_type, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :summary, (\n            SELECT\n                id\n            FROM\n                user_roles\n            WHERE\n                name = :userType!), NOW(), NOW())\nRETURNING\n    id,\n    session_id,\n    summary,\n    user_type,\n    created_at"};
+const addSessionSummaryIR: any = {"usedParamSet":{"id":true,"sessionId":true,"summary":true,"userType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":106}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"summary","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":130}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":258,"b":267}]}],"statement":"INSERT INTO session_summaries (id, session_id, summary, user_type, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :summary!, (\n            SELECT\n                id\n            FROM\n                user_roles\n            WHERE\n                name = :userType!), NOW(), NOW())\nRETURNING\n    id,\n    session_id,\n    summary,\n   (SELECT name FROM user_roles WHERE id = session_summaries.user_type) AS user_type,\n    created_at"};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO session_summaries (id, session_id, summary, user_type, created_at, updated_at)
- *     VALUES (:id!, :sessionId!, :summary, (
+ *     VALUES (:id!, :sessionId!, :summary!, (
  *             SELECT
  *                 id
  *             FROM
@@ -41,7 +41,7 @@ const addSessionSummaryIR: any = {"usedParamSet":{"id":true,"sessionId":true,"su
  *     id,
  *     session_id,
  *     summary,
- *     user_type,
+ *    (SELECT name FROM user_roles WHERE id = session_summaries.user_type) AS user_type,
  *     created_at
  * ```
  */
@@ -51,6 +51,7 @@ export const addSessionSummary = new PreparedQuery<IAddSessionSummaryParams,IAdd
 /** 'GetSessionSummariesBySessionId' parameters type */
 export interface IGetSessionSummariesBySessionIdParams {
   sessionId: string;
+  userType: string;
 }
 
 /** 'GetSessionSummariesBySessionId' return type */
@@ -58,8 +59,8 @@ export interface IGetSessionSummariesBySessionIdResult {
   createdAt: Date;
   id: string;
   sessionId: string;
-  summary: string | null;
-  userType: number | null;
+  summary: string;
+  userType: string;
 }
 
 /** 'GetSessionSummariesBySessionId' query type */
@@ -68,21 +69,27 @@ export interface IGetSessionSummariesBySessionIdQuery {
   result: IGetSessionSummariesBySessionIdResult;
 }
 
-const getSessionSummariesBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":134}]}],"statement":"SELECT\n    id,\n    session_id,\n    summary,\n    user_type,\n    created_at\nFROM\n    session_summaries\nWHERE\n    session_id = :sessionId!"};
+const getSessionSummariesBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"userType":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":200,"b":210}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":230,"b":239}]}],"statement":"SELECT\n    ss.id,\n    ss.session_id,\n    ss.summary,\n    ur.name AS user_type,\n    ss.created_at\nFROM\n    session_summaries ss\nJOIN\n    user_roles ur ON ss.user_type = ur.id\nWHERE\n    ss.session_id = :sessionId!\n    AND ur.name = :userType!\nORDER BY\n    ss.created_at DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     id,
- *     session_id,
- *     summary,
- *     user_type,
- *     created_at
+ *     ss.id,
+ *     ss.session_id,
+ *     ss.summary,
+ *     ur.name AS user_type,
+ *     ss.created_at
  * FROM
- *     session_summaries
+ *     session_summaries ss
+ * JOIN
+ *     user_roles ur ON ss.user_type = ur.id
  * WHERE
- *     session_id = :sessionId!
+ *     ss.session_id = :sessionId!
+ *     AND ur.name = :userType!
+ * ORDER BY
+ *     ss.created_at DESC
+ * LIMIT 1
  * ```
  */
 export const getSessionSummariesBySessionId = new PreparedQuery<IGetSessionSummariesBySessionIdParams,IGetSessionSummariesBySessionIdResult>(getSessionSummariesBySessionIdIR);

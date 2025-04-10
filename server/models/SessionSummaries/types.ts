@@ -1,9 +1,9 @@
-import { Ulid, Uuid } from '../pgUtils'
+import { Uuid } from '../pgUtils'
 
 export type SessionSummary = {
-  id: Ulid
-  sessionId: Ulid
-  summary?: string
-  userType: number
+  id: Uuid
+  sessionId: Uuid
+  summary: string
+  userType: string | null
   createdAt: Date
 }
