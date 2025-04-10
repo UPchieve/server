@@ -2,13 +2,17 @@ import { Ulid } from '../models/pgUtils'
 import * as SessionRepo from '../models/Session/queries'
 import * as ProgressReportsService from './ProgressReportsService'
 import { getSubjectAndTopic } from '../models/Subjects'
-import { TOOL_TYPES, USER_ROLES } from '../constants'
+import { TOOL_TYPES, USER_ROLES, USER_ROLES_TYPE } from '../constants'
 import * as LangfuseService from './LangfuseService'
 import { openai } from './BotsService'
 import logger from '../logger'
 import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 
-export async function generateTeacherSessionSummary(sessionId: Ulid) {
+export async function generateSessionSummaryByUserType(
+  sessionId: Ulid,
+  userType: USER_ROLES_TYPE,
+  systemPrompt: string
+) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (!session.volunteerId) return
   const subjectData = await getSubjectAndTopic(session.subject)
@@ -31,25 +35,30 @@ export async function generateTeacherSessionSummary(sessionId: Ulid) {
     subjectData.toolType as TOOL_TYPES
   )
 
-  const systemPrompt = `You are generating a one sentence summary of an online tutoring session between a student and a tutor for the student's teacher to view.`
-
   const summary = await generateSessionSummary(
     session.studentId,
     systemPrompt,
     botPrompt
   )
 
+  if (!summary) return
+
   const savedSummary = await SessionSummariesRepo.addSessionSummary(
     session.id,
     summary,
-    USER_ROLES.TEACHER
+    userType
   )
   return savedSummary
 }
 
-export async function getLatestSessionSummary(sessionId: Ulid) {
-  const sessionSummary =
-    await SessionSummariesRepo.getLatestSessionSummary(sessionId)
+export async function getSessionSummaryByUserType(
+  sessionId: Ulid,
+  userType: USER_ROLES_TYPE
+) {
+  const sessionSummary = await SessionSummariesRepo.getSessionSummaryByUserType(
+    sessionId,
+    userType
+  )
   return sessionSummary
 }
 
