@@ -74,13 +74,7 @@ export async function generateSessionSummaryByUserType(sessionId: Ulid) {
     )
 
     if (!summary) continue
-
-    const savedSummary = await SessionSummariesRepo.addSessionSummary(
-      session.id,
-      summary,
-      userType
-    )
-    return savedSummary
+    await SessionSummariesRepo.addSessionSummary(session.id, summary, userType)
   }
 }
 
