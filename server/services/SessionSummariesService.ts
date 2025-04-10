@@ -17,7 +17,6 @@ const responseInstructions =
 const SYSTEM_PROMPTS_FOR_USER_TYPES = [
   {
     userType: USER_ROLES.TEACHER,
-    // TODO: Test this and maybe rewrite
     systemPrompt: `You are an assistant helping summarize high school tutoring sessions for teachers.
     
     Based on the session transcript and collaborative editor content below, 
