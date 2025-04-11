@@ -1691,7 +1691,7 @@ CREATE TABLE upchieve.session_summaries (
     id uuid NOT NULL,
     session_id uuid NOT NULL,
     summary text NOT NULL,
-    user_type integer NOT NULL,
+    user_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -5505,11 +5505,11 @@ ALTER TABLE ONLY upchieve.session_summaries
 
 
 --
--- Name: session_summaries session_summaries_user_type_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: session_summaries session_summaries_user_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.session_summaries
-    ADD CONSTRAINT session_summaries_user_type_fkey FOREIGN KEY (user_type) REFERENCES upchieve.user_roles(id);
+    ADD CONSTRAINT session_summaries_user_type_id_fkey FOREIGN KEY (user_type_id) REFERENCES upchieve.user_roles(id);
 
 
 --
