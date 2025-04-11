@@ -18,7 +18,7 @@ export async function generateSessionSummaryByUserType(
   const subjectData = await getSubjectAndTopic(session.subject)
   if (!subjectData)
     throw new Error(
-      `generateSessionSummaryByUserType: No subject named ${session.subject} found`
+      `generateSessionSummaryForSession: No subject named ${session.subject} found`
     )
 
   const messages = await SessionRepo.getMessagesForFrontend(session.id)
