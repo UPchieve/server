@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.12 (Homebrew)
+-- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2778,6 +2778,14 @@ COPY upchieve.session_reports (id, report_reason_id, report_message, reporting_u
 --
 
 COPY upchieve.session_review_reasons (session_id, session_flag_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_summaries; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_summaries (id, session_id, summary, user_type_id, created_at, updated_at) FROM stdin;
 \.
 
 
