@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { log } from '../logger'
 import { Uuid } from '../../models/pgUtils'
 import { getSessionById } from '../../models/Session'
-import { getSessionSummaryFeatureFlag } from '../../services/FeatureFlagService'
+import { getGenerateSessionSummaryFeatureFlag } from '../../services/FeatureFlagService'
 import { generateSessionSummaryForSession } from '../../services/SessionSummariesService'
 import { asString } from '../../utils/type-utils'
 
@@ -13,7 +13,7 @@ type GenerateSessionSummary = {
 export default async (job: Job<GenerateSessionSummary>): Promise<void> => {
   const sessionId = asString(job.data.sessionId)
   const session = await getSessionById(sessionId)
-  if (!(await getSessionSummaryFeatureFlag(session.studentId))) return
+  if (!(await getGenerateSessionSummaryFeatureFlag(session.studentId))) return
 
   try {
     await generateSessionSummaryForSession(session.id)
