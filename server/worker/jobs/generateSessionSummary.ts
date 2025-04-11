@@ -3,7 +3,7 @@ import { log } from '../logger'
 import { Uuid } from '../../models/pgUtils'
 import { getSessionById } from '../../models/Session'
 import { getSessionSummaryFeatureFlag } from '../../services/FeatureFlagService'
-import { generateSessionSummaryByUserType } from '../../services/SessionSummariesService'
+import { generateSessionSummaryForSession } from '../../services/SessionSummariesService'
 import { asString } from '../../utils/type-utils'
 
 type GenerateSessionSummary = {
@@ -16,7 +16,7 @@ export default async (job: Job<GenerateSessionSummary>): Promise<void> => {
   if (!(await getSessionSummaryFeatureFlag(session.studentId))) return
 
   try {
-    await generateSessionSummaryByUserType(session.id)
+    await generateSessionSummaryForSession(session.id)
     log(`Successfully generated summaries for session ${session.id}`)
   } catch (error) {
     throw new Error(

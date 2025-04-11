@@ -1,4 +1,4 @@
-import { Ulid, Uuid } from '../models/pgUtils'
+import { Uuid } from '../models/pgUtils'
 import * as SessionRepo from '../models/Session/queries'
 import * as ProgressReportsService from './ProgressReportsService'
 import { getSubjectAndTopic } from '../models/Subjects'
@@ -43,7 +43,7 @@ const SYSTEM_PROMPTS_FOR_USER_TYPES = [
   },
 ]
 
-export async function generateSessionSummaryByUserType(sessionId: Ulid) {
+export async function generateSessionSummaryForSession(sessionId: Uuid) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (!session.volunteerId) return
   const subjectData = await getSubjectAndTopic(session.subject)
@@ -79,7 +79,7 @@ export async function generateSessionSummaryByUserType(sessionId: Ulid) {
 }
 
 export async function getSessionSummaryByUserType(
-  sessionId: Ulid,
+  sessionId: Uuid,
   userType: USER_ROLES_TYPE
 ) {
   const sessionSummary = await SessionSummariesRepo.getSessionSummaryByUserType(
@@ -93,7 +93,7 @@ const LF_TRACE_NAME = 'teacherSessionSummary'
 const LF_GENERATION_NAME = 'getTeacherSessionSummary'
 const MODEL = 'gpt-4o'
 export async function generateSessionSummary(
-  userId: Ulid,
+  userId: Uuid,
   systemPrompt: string,
   botPrompt: string
 ): Promise<string> {
