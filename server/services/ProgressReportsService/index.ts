@@ -213,7 +213,7 @@ export async function hasActiveSubjectPrompt(
   }
 }
 
-async function formatSessionsForBotPrompt(
+export async function formatSessionsForBotPrompt(
   sessions: UserSessionsWithMessages[],
   toolType: TOOL_TYPES
 ): Promise<string> {
