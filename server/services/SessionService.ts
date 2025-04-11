@@ -61,6 +61,7 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
+  getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
@@ -73,7 +74,7 @@ import { getFeedbackBySessionId } from '../models/Feedback/queries'
 import { getPresessionSurveyResponse } from '../models/Survey'
 import { getSessionNotificationsWithSessionId } from '../models/Notification'
 import { getPostsessionSurveyResponse } from './SurveyService'
-import { getSessionRating } from '../models/Survey'
+import { getSessionSummaryByUserType } from './SessionSummariesService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1069,18 +1070,21 @@ export async function isRecapDmsAvailable(
 export async function getStudentSessionDetails(studentId: Ulid) {
   const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-  const sessionsWithRatings = []
+  if (!(await getSessionSummaryFeatureFlag(studentId))) {
+    return sessions
+  } else {
+    const sessionsWithSummaries = []
 
-  for (const session of sessions) {
-    const [studentRating, volunteerRating] = await Promise.all([
-      getSessionRating(session.id, USER_ROLES.STUDENT),
-      getSessionRating(session.id, USER_ROLES.VOLUNTEER),
-    ])
+    for (const session of sessions) {
+      const sessionSummary = await getSessionSummaryByUserType(
+        session.id,
+        USER_ROLES.TEACHER
+      )
+      sessionsWithSummaries.push({ ...session, summary: sessionSummary })
+    }
 
-    sessionsWithRatings.push({ ...session, studentRating, volunteerRating })
+    return sessionsWithSummaries
   }
-
-  return sessionsWithRatings
 }
 
 function isQualifiedFallIncentiveSession(
