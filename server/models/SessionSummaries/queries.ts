@@ -19,7 +19,13 @@ export async function addSessionSummary(
     )
     if (!result.length)
       throw new RepoCreateError('Insert summary did not return ok')
-    return result[0]
+    return makeSomeRequired(result[0], [
+      'id',
+      'sessionId',
+      'summary',
+      'userType',
+      'createdAt',
+    ])
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -29,15 +35,21 @@ export async function getSessionSummaryByUserType(
   sessionId: Ulid,
   userType: USER_ROLES_TYPE,
   tc?: TransactionClient
-): Promise<SessionSummary> {
+): Promise<SessionSummary | undefined> {
   try {
-    const summaries = await pgQueries.getSessionSummariesBySessionId.run(
+    const summaries = await pgQueries.getSessionSummaryBySessionId.run(
       { sessionId, userType },
       tc ?? getClient()
     )
-    if (!summaries.length) throw new RepoReadError('No summaries found')
+    if (!summaries.length) return undefined
 
-    return summaries[0]
+    return makeSomeRequired(summaries[0], [
+      'id',
+      'sessionId',
+      'summary',
+      'userType',
+      'createdAt',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }

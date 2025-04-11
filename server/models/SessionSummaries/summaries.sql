@@ -21,7 +21,7 @@ RETURNING
     created_at;
 
 
-/* @name getSessionSummariesBySessionId */
+/* @name getSessionSummaryBySessionId */
 SELECT
     ss.id,
     ss.session_id,
