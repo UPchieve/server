@@ -139,6 +139,8 @@ Notes:
 - If the database/schema end up in an irrecoverable state, you can drop everything with `npm run db:reset-seeds` to get the database to a fresh state (alternatively destroy and rebuild the container)
 - After verifying the migrations are good dump the schema and data for the next developer with `npm run db:dump`
 - Everything in `db_init` is programmatically generated and can be ignored in diff examinations
+- `dbmate` keeps track of migrations that have been run in the `schema_migrations` table. This ensures that migrations are only ever run once.
+- When writing migrations do not use `IF EXISTS` and `IF NOT EXISTS` checks, we want incorrect migrations explicitly fail. For example: running a migration that tries to create another `users` table should fail. With `IF EXISTS` it instead will run but silently do nothing.
 
 ## Test Users
 
