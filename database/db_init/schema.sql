@@ -1691,7 +1691,7 @@ CREATE TABLE upchieve.session_summaries (
     id uuid NOT NULL,
     session_id uuid NOT NULL,
     summary text NOT NULL,
-    user_type integer,
+    user_type integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
