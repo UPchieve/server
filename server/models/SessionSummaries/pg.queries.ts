@@ -24,12 +24,12 @@ export interface IAddSessionSummaryQuery {
   result: IAddSessionSummaryResult;
 }
 
-const addSessionSummaryIR: any = {"usedParamSet":{"id":true,"sessionId":true,"summary":true,"userType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":106}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"summary","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":130}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":258,"b":267}]}],"statement":"INSERT INTO session_summaries (id, session_id, summary, user_type, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :summary!, (\n            SELECT\n                id\n            FROM\n                user_roles\n            WHERE\n                name = :userType!), NOW(), NOW())\nRETURNING\n    id,\n    session_id,\n    summary,\n    (\n        SELECT\n            name\n        FROM\n            user_roles\n        WHERE\n            id = session_summaries.user_type) AS user_type,\n    created_at"};
+const addSessionSummaryIR: any = {"usedParamSet":{"id":true,"sessionId":true,"summary":true,"userType":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":109}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":122}]},{"name":"summary","required":true,"transform":{"type":"scalar"},"locs":[{"a":125,"b":133}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":261,"b":270}]}],"statement":"INSERT INTO session_summaries (id, session_id, summary, user_type_id, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :summary!, (\n            SELECT\n                id\n            FROM\n                user_roles\n            WHERE\n                name = :userType!), NOW(), NOW())\nRETURNING\n    id,\n    session_id,\n    summary,\n    (\n        SELECT\n            name\n        FROM\n            user_roles\n        WHERE\n            id = session_summaries.user_type_id) AS user_type,\n    created_at"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO session_summaries (id, session_id, summary, user_type, created_at, updated_at)
+ * INSERT INTO session_summaries (id, session_id, summary, user_type_id, created_at, updated_at)
  *     VALUES (:id!, :sessionId!, :summary!, (
  *             SELECT
  *                 id
@@ -47,7 +47,7 @@ const addSessionSummaryIR: any = {"usedParamSet":{"id":true,"sessionId":true,"su
  *         FROM
  *             user_roles
  *         WHERE
- *             id = session_summaries.user_type) AS user_type,
+ *             id = session_summaries.user_type_id) AS user_type,
  *     created_at
  * ```
  */
@@ -75,7 +75,7 @@ export interface IGetSessionSummaryBySessionIdQuery {
   result: IGetSessionSummaryBySessionIdResult;
 }
 
-const getSessionSummaryBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"userType":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":200,"b":210}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":230,"b":239}]}],"statement":"SELECT\n    ss.id,\n    ss.session_id,\n    ss.summary,\n    ur.name AS user_type,\n    ss.created_at\nFROM\n    session_summaries ss\n    JOIN user_roles ur ON ss.user_type = ur.id\nWHERE\n    ss.session_id = :sessionId!\n    AND ur.name = :userType!\nORDER BY\n    ss.created_at DESC\nLIMIT 1"};
+const getSessionSummaryBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"userType":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":213}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":242}]}],"statement":"SELECT\n    ss.id,\n    ss.session_id,\n    ss.summary,\n    ur.name AS user_type,\n    ss.created_at\nFROM\n    session_summaries ss\n    JOIN user_roles ur ON ss.user_type_id = ur.id\nWHERE\n    ss.session_id = :sessionId!\n    AND ur.name = :userType!\nORDER BY\n    ss.created_at DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -88,7 +88,7 @@ const getSessionSummaryBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"u
  *     ss.created_at
  * FROM
  *     session_summaries ss
- *     JOIN user_roles ur ON ss.user_type = ur.id
+ *     JOIN user_roles ur ON ss.user_type_id = ur.id
  * WHERE
  *     ss.session_id = :sessionId!
  *     AND ur.name = :userType!

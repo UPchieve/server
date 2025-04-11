@@ -1,5 +1,5 @@
 /* @name addSessionSummary */
-INSERT INTO session_summaries (id, session_id, summary, user_type, created_at, updated_at)
+INSERT INTO session_summaries (id, session_id, summary, user_type_id, created_at, updated_at)
     VALUES (:id!, :sessionId!, :summary!, (
             SELECT
                 id
@@ -17,7 +17,7 @@ RETURNING
         FROM
             user_roles
         WHERE
-            id = session_summaries.user_type) AS user_type,
+            id = session_summaries.user_type_id) AS user_type,
     created_at;
 
 
@@ -30,7 +30,7 @@ SELECT
     ss.created_at
 FROM
     session_summaries ss
-    JOIN user_roles ur ON ss.user_type = ur.id
+    JOIN user_roles ur ON ss.user_type_id = ur.id
 WHERE
     ss.session_id = :sessionId!
     AND ur.name = :userType!
