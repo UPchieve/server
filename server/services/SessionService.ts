@@ -73,7 +73,7 @@ import { getFeedbackBySessionId } from '../models/Feedback/queries'
 import { getPresessionSurveyResponse } from '../models/Survey'
 import { getSessionNotificationsWithSessionId } from '../models/Notification'
 import { getPostsessionSurveyResponse } from './SurveyService'
-import { getSessionRating } from '../models/Survey'
+import { getSessionSummaryByUserType } from './SessionSummariesService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1069,18 +1069,14 @@ export async function isRecapDmsAvailable(
 export async function getStudentSessionDetails(studentId: Ulid) {
   const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-  const sessionsWithRatings = []
+  const sessionsWithSummaries = []
 
   for (const session of sessions) {
-    const [studentRating, volunteerRating] = await Promise.all([
-      getSessionRating(session.id, USER_ROLES.STUDENT),
-      getSessionRating(session.id, USER_ROLES.VOLUNTEER),
-    ])
-
-    sessionsWithRatings.push({ ...session, studentRating, volunteerRating })
+    const sessionSummary = await getSessionSummaryByUserType(session.id, USER_ROLES.TEACHER)
+    sessionsWithSummaries.push({ ...session, summary: sessionSummary})
   }
 
-  return sessionsWithRatings
+  return sessionsWithSummaries
 }
 
 function isQualifiedFallIncentiveSession(
