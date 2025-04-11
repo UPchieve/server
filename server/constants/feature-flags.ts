@@ -13,4 +13,5 @@ export enum FEATURE_FLAGS {
   AI_TUTOR_BOT_SUBJECT_MODELS = 'ai-tutor-bot-subject-models',
   TREMENDOUS_EMBDED_REWARDS = 'tremendous-embeded-rewards',
   TEACHER_GETTING_STARTED_ASSIGNMENT = 'teacher-getting-started-assignment',
+  GENERATE_SESSION_SUMMARY = 'generate-session-summary',
 }
