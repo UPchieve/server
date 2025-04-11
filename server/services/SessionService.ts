@@ -1067,10 +1067,13 @@ export async function isRecapDmsAvailable(
   return sentMessages || isVolunteer
 }
 
-export async function getStudentSessionDetails(studentId: Ulid) {
+export async function getStudentSessionDetails(
+  studentId: Ulid,
+  teacherId: Ulid
+) {
   const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-  if (!(await getSessionSummaryFeatureFlag(studentId))) {
+  if (!(await getSessionSummaryFeatureFlag(teacherId))) {
     return sessions
   } else {
     const sessionsWithSummaries = []
