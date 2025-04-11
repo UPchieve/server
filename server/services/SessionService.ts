@@ -1072,8 +1072,11 @@ export async function getStudentSessionDetails(studentId: Ulid) {
   const sessionsWithSummaries = []
 
   for (const session of sessions) {
-    const sessionSummary = await getSessionSummaryByUserType(session.id, USER_ROLES.TEACHER)
-    sessionsWithSummaries.push({ ...session, summary: sessionSummary})
+    const sessionSummary = await getSessionSummaryByUserType(
+      session.id,
+      USER_ROLES.TEACHER
+    )
+    sessionsWithSummaries.push({ ...session, summary: sessionSummary })
   }
 
   return sessionsWithSummaries
