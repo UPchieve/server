@@ -4,6 +4,6 @@ export type SessionSummary = {
   id: Uuid
   sessionId: Uuid
   summary: string
-  userType: string | null
+  userType: string
   createdAt: Date
 }
