@@ -61,6 +61,7 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
+  getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
@@ -1069,17 +1070,21 @@ export async function isRecapDmsAvailable(
 export async function getStudentSessionDetails(studentId: Ulid) {
   const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-  const sessionsWithSummaries = []
+  if (!(await getSessionSummaryFeatureFlag(studentId))) {
+    return sessions
+  } else {
+    const sessionsWithSummaries = []
 
-  for (const session of sessions) {
-    const sessionSummary = await getSessionSummaryByUserType(
-      session.id,
-      USER_ROLES.TEACHER
-    )
-    sessionsWithSummaries.push({ ...session, summary: sessionSummary })
+    for (const session of sessions) {
+      const sessionSummary = await getSessionSummaryByUserType(
+        session.id,
+        USER_ROLES.TEACHER
+      )
+      sessionsWithSummaries.push({ ...session, summary: sessionSummary })
+    }
+
+    return sessionsWithSummaries
   }
-
-  return sessionsWithSummaries
 }
 
 function isQualifiedFallIncentiveSession(
