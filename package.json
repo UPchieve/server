@@ -9,6 +9,7 @@
     "deploy:local": "./bin/deploy.sh",
     "start": "node -r newrelic build/main",
     "start:worker": "node build/worker",
+    "start:socket-servers-monitoring": "node build/socket-servers-monitoring",
     "build:database": "docker build -t subway-postgres .",
     "dev:backend": "ts-node-dev -r dotenv/config -P tsconfig.server.json --watch server --transpile-only server/main",
     "dev:worker": "ts-node-dev -P tsconfig.server.json --watch server --transpile-only server/worker",

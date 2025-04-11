@@ -1,6 +1,7 @@
 /**
  * Processes incoming socket messages
  */
+import * as os from 'os'
 import Sentry from '@sentry/node'
 import { PGStore } from 'connect-pg-simple'
 import session from 'express-session'
@@ -81,6 +82,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     } else {
       next(new Error('unauthorized'))
     }
+  })
+
+  io.on('ping', (cb) => {
+    cb(os.hostname())
   })
 
   // TODO: handle transport close errors from worker socket disconnecting
