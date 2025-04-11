@@ -11,6 +11,7 @@ import { openai } from './BotsService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
 import {
+  ExtractedTextItem,
   SessionTranscript,
   SessionTranscriptItem,
   updateSessionFlagsById,
@@ -123,9 +124,11 @@ export type ModerationSource =
   | 'voice_chat'
   | 'audio_transcription'
   | 'text_chat'
+  | 'whiteboard'
 
 const DIRECT_MESSAGE_TAG = 'direct_message'
 const MESSAGE_TAG = 'session_chat'
+const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
 
 /*
   detect harmful content in the image
@@ -221,7 +224,7 @@ async function detectMinorFailures(image: Buffer) {
   return labelFailures
 }
 
-async function extractTextFromImage(image: Buffer) {
+export async function extractTextFromImage(image: Buffer) {
   const extractedText = await awsRekognitionClient.send(
     new DetectTextCommand({
       Image: {
@@ -635,7 +638,10 @@ async function saveImageToBucket({
 }: {
   sessionId: string
   image: Buffer
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }): Promise<{ location: string }> {
   let bucketName: string
   switch (source) {
@@ -643,6 +649,9 @@ async function saveImageToBucket({
       bucketName = config.awsS3.moderatedScreenshareBucket
       break
     case 'image_upload':
+      bucketName = config.awsS3.moderatedSessionImageUploadBucket
+      break
+    case 'whiteboard':
       bucketName = config.awsS3.moderatedSessionImageUploadBucket
       break
   }
@@ -667,7 +676,10 @@ async function handleImageModerationFailure({
   sessionId: string
   failureReasons: ImageModerationFailureReason[]
   image: Buffer
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }) {
   const { location: imageUrl } = await saveImageToBucket({
     sessionId,
@@ -725,7 +737,10 @@ export function moderateImageInBackground(options: {
   sessionId: string
   userId: string
   isVolunteer: boolean
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }): void {
   detectImageModerationFailures(options.image, options.sessionId).then(
     maybeHandleImageModerationFailure(options)
@@ -1215,13 +1230,18 @@ export const moderateImage = async ({
   isVolunteer,
   source,
   aggregateInfractions,
+  recordInfractions = true,
 }: {
   image: Buffer
   sessionId: string
   userId: string
   isVolunteer: boolean
   aggregateInfractions: boolean
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
+  recordInfractions?: boolean
 }): Promise<{
   isClean: boolean
   failures: string[]
@@ -1232,16 +1252,17 @@ export const moderateImage = async ({
       sessionId,
       isVolunteer,
     })
-
     if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
 
-    await handleImageModerationFailure({
-      userId,
-      sessionId,
-      failureReasons: result.failureReasons,
-      image,
-      source,
-    })
+    if (recordInfractions) {
+      await handleImageModerationFailure({
+        userId,
+        sessionId,
+        failureReasons: result.failureReasons,
+        image,
+        source,
+      })
+    }
 
     // Duplicate moderation failures may be present
     // if different objects in the image trigger it
@@ -1315,15 +1336,31 @@ export type TranscriptChunkModerationResult = {
   flaggedMessages: string[]
 }
 export const moderateTranscript = async (
-  transcript: SessionTranscript
+  transcript: SessionTranscript,
+  extractedText?: string[]
 ): Promise<{
   reasons: ModerationSessionReviewFlagReason[]
   flaggedMessages: string[]
 }> => {
-  const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
+  const extractedTextItems: ExtractedTextItem[] =
+    extractedText?.map((text) => {
+      return {
+        messageType: 'whiteboard_text',
+        message: text,
+        role: 'unknown',
+      }
+    }) ?? []
+
+  const getChunkAsString = (
+    chunk: (SessionTranscriptItem | ExtractedTextItem)[]
+  ): string => {
     return chunk.reduce((acc: string, item) => {
       const messageTag =
-        item.messageType === 'direct_message' ? DIRECT_MESSAGE_TAG : MESSAGE_TAG
+        item.messageType === 'whiteboard_text'
+          ? WHITEBOARD_TEXT_TAG
+          : item.messageType === 'direct_message'
+            ? DIRECT_MESSAGE_TAG
+            : MESSAGE_TAG
       return (
         acc +
         `<${messageTag}><role>${item.role}</role>${item.message}</${messageTag}>\n`
@@ -1346,14 +1383,15 @@ export const moderateTranscript = async (
 
   const model = 'gpt-4o'
   const results: TranscriptChunkModerationResult[] = []
-  const chunks: SessionTranscriptItem[][] = chunk(
-    transcript.messages,
+  const chunks: (SessionTranscriptItem | ExtractedTextItem)[][] = chunk(
+    [...transcript.messages, ...extractedTextItems],
     config.contextualModerationBatchSize
   )
   for (const chunk of chunks) {
+    const message = getChunkAsString(chunk)
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
-      getChunkAsString(chunk),
+      message,
       model,
       t,
       promptData?.promptObject

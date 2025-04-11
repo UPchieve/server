@@ -460,7 +460,9 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
   awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
   awsBedrockModelId: process.env.SUBWAY_AWS_BEDROCK_MODEL_ID || 'bogus',
-}
 
+  // Zwibbler
+  zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
+}
 module.exports = config
 export default config
