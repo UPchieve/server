@@ -4,7 +4,6 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import * as AnalyticsService from './AnalyticsService'
 import { TUTOR_BOT_MODELS } from './TutorBotService'
-import { UserRole } from '../models/User'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
