@@ -292,7 +292,9 @@ class CommentFromStudent extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const studentComment = uvd.surveyResponses?.find(
       (resp) =>
-        resp.questionText === 'Your thoughts' && resp.userRole === 'student'
+        resp.questionText ===
+          'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.' &&
+        resp.userRole === 'student'
     )
     if (studentComment) {
       return 1
@@ -311,7 +313,9 @@ class CommentFromVolunteer extends CounterMetricProcessor {
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const volunteerComment = uvd.surveyResponses?.find(
       (resp) =>
-        resp.questionText === 'Your thoughts' && resp.userRole === 'volunteer'
+        resp.questionText ===
+          'This can be about the web app, the student you helped, technical issues, etc.' &&
+        resp.userRole === 'volunteer'
     )
     if (volunteerComment) {
       return 1
@@ -412,7 +416,7 @@ class GradedAssignment extends CounterMetricProcessor {
 }
 
 class CoachUncomfortable extends CounterMetricProcessor {
-  public key = USER_SESSION_METRICS.gradedAssignment
+  public key = USER_SESSION_METRICS.coachUncomfortable
   public requiresFeedback = true
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
