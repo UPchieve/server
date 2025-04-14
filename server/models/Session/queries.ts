@@ -138,7 +138,6 @@ export async function updateSessionFlagsById(
 ): Promise<void> {
   const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
     const result = await pgQueries.insertSessionFlagsById.run(
       { sessionId, flags },
       client
@@ -147,13 +146,8 @@ export async function updateSessionFlagsById(
       throw new Error(
         `Did not insert any session flags for session ${sessionId}`
       )
-
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 

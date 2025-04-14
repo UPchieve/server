@@ -996,34 +996,22 @@ LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name insertSessionReviewReasons */
-WITH ins AS (
 INSERT INTO session_review_reasons (session_id, session_flag_id, created_at, updated_at)
-    SELECT
-        :sessionId!,
-        session_flags.id,
-        NOW(),
-        NOW()
-    FROM
-        session_flags
-    WHERE
-        session_flags.name = ANY (:flags!::text[])
-    ON CONFLICT
-        DO NOTHING
-    RETURNING
-        session_id AS ok
-)
 SELECT
-    *
+    :sessionId!,
+    session_flags.id,
+    NOW(),
+    NOW()
 FROM
-    ins
-UNION
-SELECT
-    session_id
-FROM
-    session_review_reasons
-    LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id
+    session_flags
 WHERE
-    session_flags.name = ANY (:flags!::text[]);
+    session_flags.name = ANY (:flags!::text[])
+ON CONFLICT (session_id,
+    session_flag_id)
+    DO UPDATE SET
+        updated_at = NOW()
+    RETURNING
+        session_id AS ok;
 
 
 /* @name insertSessionFailedJoin */
