@@ -50,7 +50,9 @@ const SYSTEM_PROMPTS_FOR_USER_TYPES: Partial<Record<UserRole, string>> = {
     ${responseInstructions}`,
 }
 
-const LANGFUSE_MAPPING: Partial<Record<UserRole, LangfusePromptNameEnum>> = {
+const LANGFUSE_USER_TYPE_TO_SUMMARY_PROMPT: Partial<
+  Record<UserRole, LangfusePromptNameEnum>
+> = {
   [USER_ROLES.TEACHER]: LangfusePromptNameEnum.SESSION_SUMMARY_TEACHER_PROMPT,
 }
 
@@ -63,7 +65,7 @@ async function getPromptDataForUserType(userType: UserRole): Promise<
     }
   | undefined
 > {
-  const promptName = LANGFUSE_MAPPING[userType]
+  const promptName = LANGFUSE_USER_TYPE_TO_SUMMARY_PROMPT[userType]
   const promptFromLangfuse = promptName
     ? await LangfuseService.getPrompt(promptName)
     : undefined
@@ -110,7 +112,9 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
     sessionWithMessages,
   ])
 
-  for (const userType of Object.keys(LANGFUSE_MAPPING) as USER_ROLES_TYPE[]) {
+  for (const userType of Object.keys(
+    LANGFUSE_USER_TYPE_TO_SUMMARY_PROMPT
+  ) as USER_ROLES_TYPE[]) {
     const promptData = await getPromptDataForUserType(userType)
     if (!promptData) continue
     const summary = await generateSessionSummary(
