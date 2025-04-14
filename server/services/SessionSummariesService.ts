@@ -10,15 +10,15 @@ import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { getActiveClassesForStudent } from './StudentService'
-import { getGenerateSessionSummaryPayload } from './FeatureFlagService'
+import { LangfusePromptNameEnum } from './LangfuseService'
+import { TextPromptClient } from 'langfuse-core'
+import { UserRole } from '../models/User'
 
 const responseInstructions =
   'Use whatever information is available to generate your summary. Respond in exactly one sentence that can be stored in a Postgres text column. If you are unable to generate a helpful or accurate summary based on the information provided, respond with nothing. Return a truly empty string (not in quotes, just no characters at all).'
 
-const SYSTEM_PROMPTS_FOR_USER_TYPES = [
-  {
-    userType: USER_ROLES.TEACHER,
-    systemPrompt: `You are an assistant helping summarize high school tutoring sessions for teachers.
+const SYSTEM_PROMPTS_FOR_USER_TYPES: Partial<Record<UserRole, string>> = {
+  [USER_ROLES.TEACHER]: `You are an assistant helping summarize high school tutoring sessions for teachers.
 
     Based on the session transcript and, when available, collaborative editor content and image text, 
     generate a single sentence summary that would be useful for the student's 
@@ -48,8 +48,46 @@ const SYSTEM_PROMPTS_FOR_USER_TYPES = [
     However, image text may not always be present.
 
     ${responseInstructions}`,
-  },
-]
+}
+
+const LANGFUSE_MAPPING: Partial<Record<UserRole, LangfusePromptNameEnum>> = {
+  [USER_ROLES.TEACHER]:
+    LangfusePromptNameEnum.TUTOR_BOT_COLLEGE_COUNSELING_PROMPT,
+}
+
+async function getPromptDataForUserType(userType: UserRole): Promise<
+  | {
+      isFallback: boolean
+      prompt: string
+      version: string
+      promptObject?: TextPromptClient
+    }
+  | undefined
+> {
+  const promptName = LANGFUSE_MAPPING[userType]
+  const promptFromLangfuse = promptName
+    ? await LangfuseService.getPrompt(promptName)
+    : undefined
+  const isFallback = !promptFromLangfuse
+  const prompt = isFallback
+    ? SYSTEM_PROMPTS_FOR_USER_TYPES[userType]
+    : (promptFromLangfuse! as TextPromptClient).prompt
+  if (!prompt) {
+    logger.error(`No prompt defined for user type: ${userType}`)
+    return
+  }
+
+  return {
+    isFallback,
+    prompt,
+    version: isFallback
+      ? 'FALLBACK'
+      : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
+    ...(!isFallback && {
+      promptObject: promptFromLangfuse as TextPromptClient,
+    }),
+  }
+}
 
 export async function generateSessionSummaryForSession(sessionId: Uuid) {
   const session = await SessionRepo.getSessionById(sessionId)
@@ -73,15 +111,12 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
     sessionWithMessages,
   ])
 
-  const featureFlagSystemPrompts = await getGenerateSessionSummaryPayload(
-    session.studentId
-  )
-  const systemPrompts =
-    featureFlagSystemPrompts || SYSTEM_PROMPTS_FOR_USER_TYPES
-  for (const { userType, systemPrompt } of systemPrompts) {
+  for (const userType of Object.keys(LANGFUSE_MAPPING) as USER_ROLES_TYPE[]) {
+    const promptData = await getPromptDataForUserType(userType)
+    if (!promptData) continue
     const summary = await generateSessionSummary(
       session.studentId,
-      systemPrompt,
+      promptData.prompt,
       botPrompt
     )
 

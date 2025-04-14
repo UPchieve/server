@@ -26,6 +26,7 @@ export enum LangfusePromptNameEnum {
   TUTOR_BOT_COLLEGE_COUNSELING_PROMPT = 'tutor-bot-college-counseling-prompt',
   SESSION_TRANSCRIPT_MODERATION = 'session-transcript-moderation',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
+  SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
 }
 
 export enum LangfuseTraceTagEnum {
