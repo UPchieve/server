@@ -155,5 +155,6 @@ SELECT
 FROM
     user_session_metrics_view
 WHERE
-    user_id = :userId!;
+    user_id = :userId!
+    AND user_role = :userRole!;
 

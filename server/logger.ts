@@ -4,7 +4,8 @@ import config from './config'
 import newrelic from 'newrelic'
 import { isDevEnvironment, isE2eEnvironment } from './utils/environments'
 
-const pinoLogger =
+// TODO: Update pino.
+export const pinoLogger =
   !isDevEnvironment() && !isE2eEnvironment()
     ? pino({
         level: config.logLevel,
@@ -16,6 +17,7 @@ const pinoLogger =
         },
       })
 
+// TODO: Update args and their types.
 const logger = {
   debug(...args: any) {
     // @ts-ignore
@@ -37,6 +39,7 @@ const logger = {
 }
 
 // TODO: Consolidate into one logger file
+// TODO: Remove in favour of `logger.error`.
 export function logError(
   error: Error,
   customAttributes?: { [key: string]: string | number | boolean }

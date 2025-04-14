@@ -56,6 +56,7 @@ import updateSendGridGradeLevels from './updateSendGridGradeLevels'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
+import generateSessionSummary from './generateSessionSummary'
 import processSessionEnded from './processSessionEnded'
 
 export enum Jobs {
@@ -110,6 +111,7 @@ export enum Jobs {
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
   EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
   EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
+  GenerateSessionSummary = 'GenerateSessionSummary',
   ProcessSessionEnded = 'ProcessSessionEnded',
 
   // TODO: remove the following deprecated job names
@@ -333,6 +335,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailFallIncentiveSessionQualification,
     processor: emailFallIncentiveSessionQualification,
+  },
+  {
+    name: Jobs.GenerateSessionSummary,
+    processor: generateSessionSummary,
   },
   {
     name: Jobs.ProcessSessionEnded,

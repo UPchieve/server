@@ -93,7 +93,7 @@ export function computeLowSessionRatingFromStudent(
   surveyResponses: PostsessionSurveyResponse[]
 ): boolean {
   const sessionRatingFromStudent = surveyResponses?.find((resp) =>
-    resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
+    resp.questionText?.endsWith('Did UPchieve help you achieve your goal?')
   )?.score
   return !!(sessionRatingFromStudent && sessionRatingFromStudent <= 2)
 }
@@ -102,7 +102,9 @@ export function computeLowSessionRatingFromCoach(
   surveyResponses: PostsessionSurveyResponse[]
 ): boolean {
   const sessionRatingFromCoach = surveyResponses?.find((resp) =>
-    resp.questionText.endsWith('Were you able to help them achieve their goal?')
+    resp.questionText?.endsWith(
+      'Were you able to help them achieve their goal?'
+    )
   )?.score
   return !!(sessionRatingFromCoach && sessionRatingFromCoach <= 2)
 }
@@ -438,20 +440,21 @@ export async function processMetrics(
   await updateSessionFlagsById(session.id, flags)
 
   const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
-    session.studentId
+    session.studentId,
+    'student'
   )
   // There will not be a user session metrics record if the student has not
   // had any sessions that have been flagged. This may be okay behavior for now, but
   // we may consider having a default record instead of undefined
   if (!studentUserSessionMetrics) {
-    logger.error(
+    logger.info(
       `No user session metrics found for student ${session.studentId}`
     )
     return
   }
 
   const volunteerUserSessionMetrics = session.volunteerId
-    ? await getUserSessionMetricsByUserId(session.volunteerId)
+    ? await getUserSessionMetricsByUserId(session.volunteerId, 'volunteer')
     : undefined
 
   const reviewReasons = callbacks.computeReviewReasons(

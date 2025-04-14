@@ -470,21 +470,6 @@ WHERE
     sessions.id = :sessionId!;
 
 
-/* @name getSessionUserAgent */
-SELECT
-    device,
-    browser,
-    browser_version,
-    operating_system,
-    operating_system_version
-FROM
-    user_actions
-WHERE
-    user_actions.session_id = :sessionId!
-    AND user_actions.action = 'REQUESTED SESSION'
-LIMIT 1;
-
-
 /* @name getSessionMessagesForFrontend */
 SELECT
     id,

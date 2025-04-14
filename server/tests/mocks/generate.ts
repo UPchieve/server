@@ -871,7 +871,6 @@ export function buildSurveyResponse(
   return {
     userRole: '',
     questionText: '',
-    displayLabel: '',
     response: '',
     displayOrder: 1,
     score: 1,

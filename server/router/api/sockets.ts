@@ -1,6 +1,7 @@
 /**
  * Processes incoming socket messages
  */
+import * as os from 'os'
 import Sentry from '@sentry/node'
 import { PGStore } from 'connect-pg-simple'
 import session from 'express-session'
@@ -76,30 +77,26 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   io.use(wrap(passport.initialize()))
   io.use(wrap(passport.session()))
   io.use((socket: SocketUser, next) => {
-    if (socket.request.user || socket.handshake.query.key) {
+    if (socket.request.user) {
       next()
     } else {
       next(new Error('unauthorized'))
     }
   })
 
+  io.on('ping', (cb) => {
+    cb(os.hostname())
+  })
+
   // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function (socket: SocketUser) {
     const {
       request: { user },
-      handshake: {
-        query: { key: socketApiKey },
-      },
     } = socket
 
     if (user) {
       await handleUser(socket, user)
       logSocketEvent('connection', socket) // Log the initial connection
-    } else {
-      if (!socketApiKey) {
-        socket.emit('redirect')
-        throw new Error('User not authenticated')
-      }
     }
 
     if (socket.recovered) {

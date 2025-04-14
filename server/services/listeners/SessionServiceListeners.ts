@@ -1,5 +1,6 @@
 import { SESSION_EVENTS } from '../../constants/events'
 import * as SessionService from '../SessionService'
+import * as SessionSummariesService from '../SessionSummariesService'
 import register from './register'
 
 export function listeners() {
@@ -32,5 +33,12 @@ export function listeners() {
     SESSION_EVENTS.SESSION_METRICS_CALCULATED,
     SessionService.processFirstSessionCongratsEmail,
     'processFirstSessionCongratsEmail'
+  )
+  // Temporarily putting this listener here until the refactored session ended
+  // process is on production
+  register(
+    SESSION_EVENTS.SESSION_METRICS_CALCULATED,
+    SessionSummariesService.queueGenerateSessionSummaryForSession,
+    'queueGenerateSessionSummaryForSession'
   )
 }

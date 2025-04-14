@@ -11,27 +11,6 @@ jest.mock('../services/FeatureFlagService')
 jest.mock('../services/EventsService')
 
 jest.mock('../worker/logger')
-// Custom mock to avoid "TypeError: (0 , socket_io_client_1.io) is not a function" errors
-jest.mock('socket.io-client', () => ({
-  io: () => ({
-    on: () => undefined,
-  }),
-}))
-
-jest.mock('../worker/sockets', () => {
-  const originalModule = jest.requireActual('../worker/sockets')
-  const mockEmit = jest.fn()
-
-  // Create a partial mock with only the methods you need
-  const partialMockSocket = {
-    emit: mockEmit,
-  }
-
-  return {
-    ...originalModule,
-    getSocket: () => partialMockSocket as any,
-  }
-})
 
 const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'example'

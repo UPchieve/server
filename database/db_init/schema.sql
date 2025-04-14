@@ -1684,6 +1684,20 @@ CREATE TABLE upchieve.session_review_reasons (
 
 
 --
+-- Name: session_summaries; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_summaries (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    summary text NOT NULL,
+    user_type_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: session_voice_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3867,6 +3881,14 @@ ALTER TABLE ONLY upchieve.session_review_reasons
 
 
 --
+-- Name: session_summaries session_summaries_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_summaries
+    ADD CONSTRAINT session_summaries_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: session_voice_messages session_voice_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5475,6 +5497,22 @@ ALTER TABLE ONLY upchieve.session_review_reasons
 
 
 --
+-- Name: session_summaries session_summaries_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_summaries
+    ADD CONSTRAINT session_summaries_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_summaries session_summaries_user_type_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_summaries
+    ADD CONSTRAINT session_summaries_user_type_id_fkey FOREIGN KEY (user_type_id) REFERENCES upchieve.user_roles(id);
+
+
+--
 -- Name: session_voice_messages session_voice_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6408,4 +6446,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250327202139'),
     ('20250401193833'),
     ('20250407171122'),
-    ('20250407182416');
+    ('20250407182416'),
+    ('20250409193923');

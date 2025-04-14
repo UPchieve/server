@@ -998,48 +998,6 @@ const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params
 export const getSessionForAdminView = new PreparedQuery<IGetSessionForAdminViewParams,IGetSessionForAdminViewResult>(getSessionForAdminViewIR);
 
 
-/** 'GetSessionUserAgent' parameters type */
-export interface IGetSessionUserAgentParams {
-  sessionId: string;
-}
-
-/** 'GetSessionUserAgent' return type */
-export interface IGetSessionUserAgentResult {
-  browser: string | null;
-  browserVersion: string | null;
-  device: string | null;
-  operatingSystem: string | null;
-  operatingSystemVersion: string | null;
-}
-
-/** 'GetSessionUserAgent' query type */
-export interface IGetSessionUserAgentQuery {
-  params: IGetSessionUserAgentParams;
-  result: IGetSessionUserAgentResult;
-}
-
-const getSessionUserAgentIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":162,"b":172}]}],"statement":"SELECT\n    device,\n    browser,\n    browser_version,\n    operating_system,\n    operating_system_version\nFROM\n    user_actions\nWHERE\n    user_actions.session_id = :sessionId!\n    AND user_actions.action = 'REQUESTED SESSION'\nLIMIT 1"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     device,
- *     browser,
- *     browser_version,
- *     operating_system,
- *     operating_system_version
- * FROM
- *     user_actions
- * WHERE
- *     user_actions.session_id = :sessionId!
- *     AND user_actions.action = 'REQUESTED SESSION'
- * LIMIT 1
- * ```
- */
-export const getSessionUserAgent = new PreparedQuery<IGetSessionUserAgentParams,IGetSessionUserAgentResult>(getSessionUserAgentIR);
-
-
 /** 'GetSessionMessagesForFrontend' parameters type */
 export interface IGetSessionMessagesForFrontendParams {
   sessionId: string;
