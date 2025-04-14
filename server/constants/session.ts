@@ -18,6 +18,22 @@ export enum USER_SESSION_METRICS {
 }
 
 export enum UserSessionFlags {
+  absentStudent = 'Absent student',
+  absentVolunteer = 'Absent volunteer',
+  lowSessionRatingFromCoach = 'Low session rating from coach',
+  lowSessionRatingFromStudent = 'Low session rating from student',
+  lowCoachRatingFromStudent = 'Low coach rating from student',
+  reported = 'Reported',
+  onlyLookingForAnswers = 'Pressuring coach',
+  rudeOrInappropriate = 'Mean or inappropriate',
+  commentFromStudent = 'Comment from student',
+  commentFromVolunteer = 'Comment from volunteer',
+  hasBeenUnmatched = 'Has been unmatched',
+  hasHadTechnicalIssues = 'Has had technical issues',
+  personalIdentifyingInfo = 'PII',
+  gradedAssignment = 'Graded assignment',
+  coachUncomfortable = 'Coach uncomfortable',
+  studentCrisis = 'Student in distress',
   coachReportedStudentDm = 'Coach reported student DM',
   studentReportedCoachDm = 'Student reported coach DM',
   hateSpeech = 'Hate speech',
