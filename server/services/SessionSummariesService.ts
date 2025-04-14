@@ -145,6 +145,7 @@ export async function generateSessionSummary(
 
 export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
   const session = await SessionRepo.getSessionById(sessionId)
+  if (!session.volunteerId) return
   const classes = await getActiveClassesForStudent(session.studentId)
   // Summaries are currently generated only for teachers,
   // so the student must be enrolled in at least one class
