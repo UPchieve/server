@@ -2,7 +2,7 @@ import { Uuid } from '../models/pgUtils'
 import * as SessionRepo from '../models/Session/queries'
 import * as ProgressReportsService from './ProgressReportsService'
 import { getSubjectAndTopic } from '../models/Subjects'
-import { TOOL_TYPES, USER_ROLES, USER_ROLES_TYPE } from '../constants'
+import { USER_ROLES, USER_ROLES_TYPE } from '../constants'
 import * as LangfuseService from './LangfuseService'
 import { openai } from './BotsService'
 import logger from '../logger'
@@ -10,16 +10,17 @@ import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { getActiveClassesForStudent } from './StudentService'
+import { getGenerateSessionSummaryPayload } from './FeatureFlagService'
 
 const responseInstructions =
-  'Respond in exactly one sentence that can be stored in a Postgres text column.'
+  'Use whatever information is available to generate your summary. Respond in exactly one sentence that can be stored in a Postgres text column. If you are unable to generate a helpful or accurate summary based on the information provided, respond with nothing. Return a truly empty string (not in quotes, just no characters at all).'
 
 const SYSTEM_PROMPTS_FOR_USER_TYPES = [
   {
     userType: USER_ROLES.TEACHER,
     systemPrompt: `You are an assistant helping summarize high school tutoring sessions for teachers.
-    
-    Based on the session transcript and collaborative editor content below, 
+
+    Based on the session transcript and, when available, collaborative editor content and image text, 
     generate a single sentence summary that would be useful for the student's 
     teacher to understand what happened in the session.
 
@@ -32,12 +33,19 @@ const SYSTEM_PROMPTS_FOR_USER_TYPES = [
     Editor:
     {editorContent}
 
+    Image text:
+    {imageText}
+
     The editor content is a JSON representation of a Quill Editor document in Quill's Delta format. 
     The Delta format is a series of operations applied to the document. 
     Both the student and the tutor can commit operations. You will not know the author of an operation, 
     although you can assume that students insert the early original content into the document; 
     tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; 
     and students may make additional edits to respond to the tutor's feedback. 
+
+    The image text represents text extracted from any images uploaded to the editor during the session. 
+    It may provide helpful context about diagrams, screenshots, or handwritten work that was shared. 
+    However, image text may not always be present.
 
     ${responseInstructions}`,
   },
@@ -61,19 +69,25 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
     messages,
   }
 
-  const botPrompt = await ProgressReportsService.formatSessionsForBotPrompt(
-    [sessionWithMessages],
-    subjectData.toolType as TOOL_TYPES
-  )
+  const botPrompt = await ProgressReportsService.formatSessionsForBotPrompt([
+    sessionWithMessages,
+  ])
 
-  for (const { userType, systemPrompt } of SYSTEM_PROMPTS_FOR_USER_TYPES) {
+  const featureFlagSystemPrompts = await getGenerateSessionSummaryPayload(
+    session.studentId
+  )
+  const systemPrompts =
+    featureFlagSystemPrompts || SYSTEM_PROMPTS_FOR_USER_TYPES
+  for (const { userType, systemPrompt } of systemPrompts) {
     const summary = await generateSessionSummary(
       session.studentId,
       systemPrompt,
       botPrompt
     )
 
-    if (!summary) continue
+    // Sometimes the LLM will return a summary like "''" or '""'. We'll check for characters
+    // to avoid storing empty summaries
+    if (!/[a-zA-Z0-9]/.test(summary.trim())) continue
     await SessionSummariesRepo.addSessionSummary(session.id, summary, userType)
   }
 }
