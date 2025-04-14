@@ -410,8 +410,11 @@ export function routeSession(router: Router) {
   router.get('/sessions/student/:studentId', async function (req, res) {
     try {
       const studentId = req.params.studentId as string
-      const sessionDetails =
-        await SessionService.getStudentSessionDetails(studentId)
+      const user = extractUser(req)
+      const sessionDetails = await SessionService.getStudentSessionDetails(
+        studentId,
+        user.id
+      )
       res.json({ sessionDetails })
     } catch (err) {
       resError(res, err)
