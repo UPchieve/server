@@ -51,8 +51,7 @@ const SYSTEM_PROMPTS_FOR_USER_TYPES: Partial<Record<UserRole, string>> = {
 }
 
 const LANGFUSE_MAPPING: Partial<Record<UserRole, LangfusePromptNameEnum>> = {
-  [USER_ROLES.TEACHER]:
-    LangfusePromptNameEnum.TUTOR_BOT_COLLEGE_COUNSELING_PROMPT,
+  [USER_ROLES.TEACHER]: LangfusePromptNameEnum.SESSION_SUMMARY_TEACHER_PROMPT,
 }
 
 async function getPromptDataForUserType(userType: UserRole): Promise<
