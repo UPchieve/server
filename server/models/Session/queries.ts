@@ -249,7 +249,7 @@ export type SessionsToReview = {
   subTopic: string
   studentFirstName: string
   isReported: boolean
-  flags: string[]
+  flags?: string[]
   reviewReasons?: string[]
   toReview: boolean
   studentRating?: number
@@ -274,6 +274,7 @@ export async function getSessionsToReview(
           'volunteerFirstName',
           'reviewReasons',
           'studentCounselingFeedback',
+          'flags',
         ])
         const studentRating = await getSessionRating(
           temp.id,
@@ -580,22 +581,6 @@ export async function getSessionForAdminView(
   } catch (error) {
     throw new RepoReadError(error)
   }
-}
-
-export async function getSessionUserAgent(
-  sessionId: Ulid
-): Promise<Partial<UserActionAgent> | undefined> {
-  const client = await getClient().connect()
-
-  const userAgentResult = await pgQueries.getSessionUserAgent.run(
-    { sessionId },
-    client
-  )
-  const userAgent = userAgentResult.length
-    ? makeSomeRequired(userAgentResult[0], [])
-    : undefined
-
-  return userAgent
 }
 
 export async function createSession(

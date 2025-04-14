@@ -1163,7 +1163,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
   sessionId: Ulid
 ): Promise<SessionRepo.SessionByIdWithStudentAndVolunteer> {
   const session = await SessionRepo.getSessionForAdminView(sessionId)
-  const userAgent = await SessionRepo.getSessionUserAgent(sessionId)
 
   const { student, volunteer } = await SessionRepo.getSessionUsers(
     session.id,
@@ -1171,7 +1170,8 @@ export async function getSessionByIdWithStudentAndVolunteer(
     session.volunteerId
   )
   const messages = await SessionRepo.getMessagesForFrontend(sessionId)
-  const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
+  // Need to get legacy feedback for before context sharing.
+  const feedbacks = await getFeedbackBySessionId(sessionId)
   const presessionSurvey = await getPresessionSurveyResponse(sessionId)
   const studentPostsessionSurvey = await getPostsessionSurveyResponse(
     sessionId,
@@ -1195,7 +1195,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
       volunteerPostsessionSurvey,
     },
     _id: session.id,
-    userAgent,
     notifications,
   }
 }
