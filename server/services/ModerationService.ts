@@ -631,7 +631,7 @@ async function detectTextModerationFailures(
   return [...toxicity, ...pii]
 }
 
-async function saveImageToBucket({
+export async function saveImageToBucket({
   sessionId,
   image,
   source,
@@ -652,14 +652,13 @@ async function saveImageToBucket({
       bucketName = config.awsS3.moderatedSessionImageUploadBucket
       break
     case 'whiteboard':
-      bucketName = config.awsS3.moderatedSessionImageUploadBucket
+      bucketName = config.awsS3.moderatedSessionWhiteboardImageUploadBucket
       break
   }
   if (!bucketName)
     throw new Error(
       `Could not save moderated image to S3: No bucket registered for source ${source}`
     )
-
   const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
   const result = await putObject(bucketName, s3Key, image)
   return { location: result.location }
@@ -704,6 +703,7 @@ async function handleImageModerationFailure({
       ImageModerationFailureReason['details']
     >
   )
+
   await handleModerationInfraction(userId, sessionId, { failures }, source)
 }
 
@@ -1490,7 +1490,7 @@ Acceptable values for the elements of the 'reasons' array are:
 
 const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
 You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor on a platform called UPchieve and decide if it violates any policies. The platform has built-in support for written chat messages, voice chat, and collaborative document editor and whiteboard.
-You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages or transcriptions of voice chat, both of which are built into the platform. Users may message each other after the end of the tutoring session for continuous asynchronous tutoring help. These messages are in <direct_message> tags.
+You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages, messages written on a whiteboard (and tagged with <whiteboard_text>), or transcriptions of voice chat, all of which are built into the platform. Users may message each other after the end of the tutoring session for continuous asynchronous tutoring help. These messages are in <direct_message> or <whiteboard_text> tags.
 Policies are described in the <policy> tags, and each has a name to be returned in your JSON response in the <name> tag. Exceptions to the policies are in <exception> tags.
 Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
 <policy><name>HATE_SPEECH</name>No hate speech</policy>

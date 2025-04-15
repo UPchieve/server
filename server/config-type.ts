@@ -202,6 +202,7 @@ export const Config = Record({
     sessionPhotoBucket: String,
     moderatedScreenshareBucket: String,
     moderatedSessionImageUploadBucket: String,
+    moderatedSessionWhiteboardImageUploadBucket: String,
   }),
   awsModerationToolsRegion: String,
   posthogToken: String,

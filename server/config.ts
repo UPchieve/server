@@ -311,6 +311,9 @@ const config: Static<typeof Config> = {
     moderatedSessionImageUploadBucket:
       process.env.SUBWAY_MODERATED_SESSION_IMAGE_UPLOAD_BUCKET ||
       'moderated-session-images-bucket',
+    moderatedSessionWhiteboardImageUploadBucket:
+      process.env.SUBWAY_MODERATED_SESSION_WHITEBOARD_IMAGE_UPLOAD_BUCKET ||
+      'moderated-session-whiteboard-images-bucket',
   },
   awsModerationToolsRegion:
     process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',

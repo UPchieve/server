@@ -56,6 +56,14 @@ export default async function moderateSessionTranscript(
       recordInfractions: false,
     })
 
+    if (moderatedWhiteboardResults?.failures.length) {
+      await ModerationService.saveImageToBucket({
+        sessionId: job.data.sessionId,
+        image: Buffer.from(whiteboardImage, 'binary'),
+        source: 'whiteboard',
+      })
+    }
+
     const extractedText = await ModerationService.extractTextFromImage(
       Buffer.from(whiteboardImage, 'binary')
     )
