@@ -181,7 +181,7 @@ class LowSessionRatingFromStudent extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const sessionRatingFromSTudent = uvd.surveyResponses?.find((resp) =>
-      resp.questionText?.endsWith('Did UPchieve help you achieve your goal?')
+      resp.questionText.endsWith('Did UPchieve help you achieve your goal?')
     )?.score
     if (sessionRatingFromSTudent && sessionRatingFromSTudent <= 2) {
       return 1
@@ -200,7 +200,7 @@ class LowSessionRatingFromCoach extends CounterMetricProcessor {
 
   public computeUpdateValue = (uvd: UpdateValueData) => {
     const sessionRatingFromCoach = uvd.surveyResponses?.find((resp) =>
-      resp.questionText?.endsWith(
+      resp.questionText.endsWith(
         'Were you able to help them achieve their goal?'
       )
     )?.score
