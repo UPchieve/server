@@ -561,13 +561,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
       'reportReason',
       'reviewReasons',
     ])
-    const userAgentResult = await pgQueries.getSessionUserAgent.run(
-      { sessionId },
-      client
-    )
-    const userAgent = userAgentResult.length
-      ? makeSomeRequired(userAgentResult[0], [])
-      : undefined
     const { student, volunteer } = await getSessionUsers(
       session.id,
       session.studentId,
@@ -599,7 +592,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
         volunteerPostsessionSurvey,
       },
       _id: session.id,
-      userAgent,
       notifications,
     }
   } catch (err) {
