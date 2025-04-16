@@ -879,7 +879,6 @@ export function buildSurveyResponse(
     userRole: '',
     questionText: '',
     response: '',
-    displayLabel: '',
     displayOrder: 1,
     score: 1,
     ...overrides,
