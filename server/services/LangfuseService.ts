@@ -26,6 +26,7 @@ export enum LangfusePromptNameEnum {
   TUTOR_BOT_COLLEGE_COUNSELING_PROMPT = 'tutor-bot-college-counseling-prompt',
   SESSION_TRANSCRIPT_MODERATION = 'session-transcript-moderation',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
+  SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
 }
 
 export enum LangfuseTraceTagEnum {
@@ -34,7 +35,8 @@ export enum LangfuseTraceTagEnum {
 
 export async function getPrompt(
   promptName: string,
-  cacheTtlSeconds = 120
+  cacheTtlSeconds = 120,
+  waitInMs = 1000
 ): Promise<ChatPromptClient | TextPromptClient | undefined> {
   return await timeLimit({
     promise: getClient().getPrompt(promptName, undefined, {
@@ -42,6 +44,6 @@ export async function getPrompt(
     }),
     fallbackReturnValue: undefined,
     timeLimitReachedErrorMessage: `Time limit reached when fetching Langfuse prompt ${promptName}`,
-    waitInMs: 1000,
+    waitInMs,
   })
 }
