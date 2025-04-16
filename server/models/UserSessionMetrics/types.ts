@@ -1,7 +1,7 @@
-import { Ulid } from '../pgUtils'
+import { Uuid } from '../pgUtils'
 
 export type UserSessionMetrics = {
-  userId: Ulid
+  userId: Uuid
   absentStudent: number
   absentVolunteer: number
   lowSessionRatingFromCoach: number
@@ -10,10 +10,10 @@ export type UserSessionMetrics = {
   reported: number
   onlyLookingForAnswers: number
   rudeOrInappropriate: number
-  commentFromStudent: number // student has left a comment in the feedback form
-  commentFromVolunteer: number // volunteer has left a comment in the feedback form
-  hasBeenUnmatched: number // user has had sessions longer than 1 minute end unmatched
-  hasHadTechnicalIssues: number // user has had sessions where the volunteer reported technical issues
+  commentFromStudent: number
+  commentFromVolunteer: number
+  hasBeenUnmatched: number
+  hasHadTechnicalIssues: number
   personalIdentifyingInfo: number
   gradedAssignment: number
   coachUncomfortable: number

@@ -17,7 +17,7 @@ import swaggerUi from 'swagger-ui-express'
 import { promisify } from 'util'
 import YAML from 'yaml'
 import config from './config'
-import logger from './logger'
+import logger, { pinoLogger } from './logger'
 import pinoHttp from 'pino-http'
 import router from './router'
 import socketServer from './socket-server'
@@ -51,12 +51,14 @@ const app = express()
  * see https://github.com/expressjs/express/issues/4618
  */
 
-// TODO: Uncomment once we can use newrelic again.
-// app.use(
-//   pinoHttp({
-//     logger,
-//   }) as express.RequestHandler
-// )
+// TODO: Figure out how much we should sample so we don't run into
+// NR data ingestion limits.
+// TODO: Update pino-http.
+app.use(
+  pinoHttp({
+    logger: pinoLogger,
+  }) as express.RequestHandler
+)
 
 app.use(timeout('300000'))
 

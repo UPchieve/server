@@ -2,6 +2,7 @@ import expressWs from 'express-ws'
 import {
   getStudentsPresessionGoal,
   getSimpleSurveyDefinition,
+  getPostsessionSurveyResponse,
   getProgressReportSurveyResponse,
 } from '../../models/Survey'
 import {
@@ -89,7 +90,7 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const { sessionId, role } = req.query
       let parsedRole = parseUserRole(asString(role))
-      const surveyResponse = await SurveyService.getPostsessionSurveyResponse(
+      const surveyResponse = await getPostsessionSurveyResponse(
         asUlid(sessionId),
         parsedRole
       )
