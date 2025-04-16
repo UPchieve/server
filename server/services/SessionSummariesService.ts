@@ -117,11 +117,10 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
   ) as USER_ROLES_TYPE[]) {
     const promptData = await getPromptDataForUserType(userType)
     if (!promptData) continue
-    const summary = await generateSessionSummary(
-      session.studentId,
-      promptData.prompt,
-      botPrompt
-    )
+    const summary = await generateSessionSummary(promptData.prompt, botPrompt, {
+      sessionId,
+      userType,
+    })
 
     // Sometimes the LLM will return a summary like "''" or '""'. We'll check for characters
     // to avoid storing empty summaries
@@ -145,13 +144,16 @@ const LF_TRACE_NAME = 'teacherSessionSummary'
 const LF_GENERATION_NAME = 'getTeacherSessionSummary'
 const MODEL = 'gpt-4o'
 export async function generateSessionSummary(
-  userId: Uuid,
   systemPrompt: string,
-  botPrompt: string
+  botPrompt: string,
+  metadata: {
+    sessionId: Uuid
+    userType: USER_ROLES_TYPE
+  }
 ): Promise<string> {
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
-    userId,
+    metadata,
   })
 
   const gen = t.generation({
@@ -176,7 +178,7 @@ export async function generateSessionSummary(
 
   const response = completion.choices[0].message.content
   logger.info(
-    `User: ${userId} received session summary completion ${completion} with response ${response}`
+    `Session: ${metadata.sessionId} received session summary completion ${completion} for userType ${metadata.userType} with response ${response}`
   )
   return response ?? ''
 }
