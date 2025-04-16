@@ -67,7 +67,7 @@ async function getPromptDataForUserType(userType: UserRole): Promise<
 > {
   const promptName = LANGFUSE_USER_TYPE_TO_SUMMARY_PROMPT[userType]
   const promptFromLangfuse = promptName
-    ? await LangfuseService.getPrompt(promptName)
+    ? await LangfuseService.getPrompt(promptName, undefined, 5000)
     : undefined
   const isFallback = !promptFromLangfuse
   const prompt = isFallback

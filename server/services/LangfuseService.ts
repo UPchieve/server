@@ -35,7 +35,8 @@ export enum LangfuseTraceTagEnum {
 
 export async function getPrompt(
   promptName: string,
-  cacheTtlSeconds = 120
+  cacheTtlSeconds = 120,
+  waitInMs = 1000
 ): Promise<ChatPromptClient | TextPromptClient | undefined> {
   return await timeLimit({
     promise: getClient().getPrompt(promptName, undefined, {
@@ -43,6 +44,6 @@ export async function getPrompt(
     }),
     fallbackReturnValue: undefined,
     timeLimitReachedErrorMessage: `Time limit reached when fetching Langfuse prompt ${promptName}`,
-    waitInMs: 1000,
+    waitInMs,
   })
 }
