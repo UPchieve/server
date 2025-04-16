@@ -141,16 +141,16 @@ const messageHandlers: {
     }
     wsEmitter.broadcast(sessionId, packet)
   },
-  [MessageType.SET_KEY]: ({ wsClient, sessionId }) => {
-    captureUnimplemented(sessionId, 'SET_KEY')
-    wsClient.send(
-      encode({
-        messageType: MessageType.ERROR,
-        description: 'not implemented',
-        errorCode: DecodeError.UNIMPLEMENTED_ERROR,
-        more: 0,
-      })
-    )
+  [MessageType.SET_KEY]: ({ wsClient, sessionId, message }) => {
+    const packet = {
+      socketId: wsClient.id as string,
+      message: {
+        ...message,
+        messageType: MessageType.KEY_INFORMATION,
+        version: 1,
+      },
+    }
+    wsEmitter.broadcast(sessionId, packet)
   },
   [MessageType.BROADCAST]: ({ wsClient, sessionId }) => {
     captureUnimplemented(sessionId, 'BROADCAST')
