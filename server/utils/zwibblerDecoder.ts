@@ -176,7 +176,6 @@ const Descriptors: { [messageType: number]: FieldDescriptor[] } = {
     // key information
     field(1, NUMBER, 'messageType', MESSAGE_TYPES),
     field(1, NUMBER, 'more', DECODE_MORE),
-    field(0, REPEAT_TO_END, 'keys'),
     field(4, NUMBER, 'version'),
     field(4, NUMBER, 'nameLength'),
     field(-1, STRING, 'name'),
