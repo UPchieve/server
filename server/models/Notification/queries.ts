@@ -9,7 +9,7 @@ import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
 
-export async function getNotificationsByVolunteerId(
+export async function getTextNotificationsByVolunteerId(
   userId: Ulid
 ): Promise<Notification[]> {
   try {
@@ -18,7 +18,7 @@ export async function getNotificationsByVolunteerId(
       getClient()
     )
     return result.map((v) =>
-      makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful'])
+      makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful', 'sessionId'])
     )
   } catch (err) {
     throw new RepoReadError(err)

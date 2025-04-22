@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { getNotificationsByVolunteerId } from '../../../models/Notification/queries'
+import { getTextNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
 import countAvailabilitySelected from '../../../utils/count-availability-selected'
 import { asString } from '../../../utils/type-utils'
@@ -17,7 +17,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
 
   if (volunteer) {
     const { id, firstName, email, availability } = volunteer
-    const textNotifications = await getNotificationsByVolunteerId(id)
+    const textNotifications = await getTextNotificationsByVolunteerId(id)
 
     if (
       textNotifications.length === 0 &&
