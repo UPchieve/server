@@ -105,14 +105,6 @@ export class TwilioError extends CustomError {
   }
 }
 
-export class SmsVerificationDisabledError extends CustomError {
-  constructor() {
-    super(
-      'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.'
-    )
-  }
-}
-
 export class LowRecaptchaScoreError extends CustomError {
   constructor() {
     super('Something went wrong. Please refresh the page and try again.')
