@@ -83,6 +83,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       hasStudentRole: user.roleContext.hasRole('student'),
       hasVolunteerRole: user.roleContext.hasRole('volunteer'),
       hasTeacherRole: user.roleContext.hasRole('teacher'),
+      usesClever: user.usesClever ?? false,
     } as AnalyticPersonProperties
 
     personProperties.partner =
@@ -92,9 +93,6 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
     if (user.isSchoolPartner) {
       personProperties.schoolPartner = user.schoolName ?? null
     }
-
-    personProperties.usesClever = user.usesClever
-    if (!personProperties.usesClever) delete personProperties.usesClever
 
     if (user.roleContext.hasRole('volunteer')) {
       personProperties.onboarded = user.isOnboarded
