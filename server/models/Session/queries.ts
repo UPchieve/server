@@ -144,9 +144,9 @@ export async function updateSessionFlagsById(
       { sessionId, flags },
       client
     )
-    if (!result.length)
-      throw new RepoUpdateError(
-        'Insert session flags query did not return any results'
+    if (!result.length && makeRequired(result[0]).ok)
+      throw new Error(
+        `Did not insert any session flags for session ${sessionId}`
       )
   } catch (err) {
     throw new RepoUpdateError(err)
