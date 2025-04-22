@@ -13,12 +13,12 @@ export async function getTextNotificationsByVolunteerId(
   userId: Ulid
 ): Promise<Notification[]> {
   try {
-    const result = await pgQueries.getNotificationsByVolunteerId.run(
+    const result = await pgQueries.getTextNotificationsByVolunteerId.run(
       { userId },
       getClient()
     )
     return result.map((v) =>
-      makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful', 'sessionId'])
+      makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful'])
     )
   } catch (err) {
     throw new RepoReadError(err)
