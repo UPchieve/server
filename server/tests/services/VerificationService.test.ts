@@ -237,7 +237,6 @@ import {
   AlreadyInUseError,
   InputError,
   LookupError,
-  SmsVerificationDisabledError,
   TwilioError,
 } from '../../models/Errors'
 import { buildUserContactInfo } from '../mocks/generate'
@@ -262,7 +261,6 @@ describe('VerificationService', () => {
     const userId = '123'
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(userId)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(userId)
-    mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(true)
   })
 
   describe('sendVerification', () => {
@@ -365,15 +363,6 @@ describe('VerificationService', () => {
           verificationMethod: VERIFICATION_METHOD.SMS,
           sendTo: '+18187764450',
         }
-        mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(
-          false
-        )
-      })
-
-      it('Should throw an error when the verification method is SMS but SMS verification is disabled', async () => {
-        await expect(() =>
-          VerificationService.initiateVerification(req)
-        ).rejects.toThrow(SmsVerificationDisabledError)
       })
 
       it('Should succeed an email verification request when the SMS verification flag is off', async () => {
@@ -471,15 +460,6 @@ describe('VerificationService', () => {
           verificationMethod: VERIFICATION_METHOD.SMS,
           verificationCode: '123456',
         }
-        mockFeatureFlagService.getSmsVerificationFeatureFlag.mockResolvedValue(
-          false
-        )
-      })
-
-      it('Should throw an error when the verification method is SMS but SMS verification is disabled', async () => {
-        await expect(() =>
-          VerificationService.confirmVerification(req)
-        ).rejects.toThrow(SmsVerificationDisabledError)
       })
 
       it('Should succeed an email verification request when the SMS verification flag is off', async () => {
