@@ -12,7 +12,6 @@ import {
   AlreadyInUseError,
   InputError,
   LookupError,
-  SmsVerificationDisabledError,
   TwilioError,
 } from '../models/Errors'
 import * as StudentService from './StudentService'
@@ -25,8 +24,8 @@ import {
   updateUserVerifiedInfoById,
 } from '../models/User/queries'
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
-import { getSmsVerificationFeatureFlag } from './FeatureFlagService'
 import * as UserService from './UserService'
+import logger from '../logger'
 
 export interface InitiateVerificationData {
   userId: Ulid
@@ -97,27 +96,28 @@ export async function initiateVerification(data: unknown): Promise<void> {
     verificationType,
     initialVerificationMethod
   )
-  if (
-    verificationMethod === VERIFICATION_METHOD.SMS &&
-    !(await getSmsVerificationFeatureFlag(userId))
-  ) {
-    throw new SmsVerificationDisabledError()
-  }
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
 
   if (isPhoneVerification) {
-    if (!isValidInternationalPhoneNumber(sendTo))
+    if (!isValidInternationalPhoneNumber(sendTo)) {
+      logger.warn(
+        { phone: sendTo },
+        'Invalid phone number provided for verification.'
+      )
       throw new InputError('Must supply a valid phone number')
+    }
 
     existingUserErrorMessage = 'The phone number you entered is already in use'
     existingUserId = await getUserIdByPhone(sendTo)
   } else {
     // email verification
-    if (!isValidEmail(sendTo))
+    if (!isValidEmail(sendTo)) {
+      logger.warn({ email: sendTo }, 'Invalid email provided for verification.')
       throw new InputError('Must supply a valid email address')
+    }
 
     existingUserErrorMessage = 'The email address you entered is already in use'
     existingUserId = await getUserIdByEmail(sendTo)
@@ -128,6 +128,10 @@ export async function initiateVerification(data: unknown): Promise<void> {
       verificationType !== VERIFICATION_TYPE.EMAIL_FOR_EMAIL &&
       !existingUserId
     ) {
+      logger.warn(
+        { userId: existingUserId },
+        'Email addresses in verify did not match.'
+      )
       throw new LookupError(
         'The email address you entered does not match your account email address'
       )
@@ -150,6 +154,13 @@ export async function initiateVerification(data: unknown): Promise<void> {
       message: string
       status: number
     }
+    logger.error(
+      {
+        userId: existingUserId,
+        ...error,
+      },
+      'Failed to send Twilio verification code.'
+    )
     throw new TwilioError(
       error.message ?? 'Could not send verification',
       error.status
@@ -201,12 +212,6 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     verificationType,
     initialVerificationMethod
   )
-  if (
-    verificationMethod === VERIFICATION_METHOD.SMS &&
-    !(await getSmsVerificationFeatureFlag(userId))
-  ) {
-    throw new SmsVerificationDisabledError()
-  }
 
   // Validate code
   const VERIFICATION_CODE_LENGTH = 6

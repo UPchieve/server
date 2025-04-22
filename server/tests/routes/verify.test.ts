@@ -184,7 +184,7 @@ import { buildStudent } from '../mocks/generate'
 import { routeVerify } from '../../router/api/verify'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
-import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
+import { TwilioError } from '../../models/Errors'
 import { NextFunction, Request, Response } from 'express'
 
 const mockedVerificationService = mocked(VerificationService)
@@ -214,28 +214,6 @@ describe('verify', () => {
   }
 
   describe('POST /verify/send', () => {
-    describe('SMS verification flag', () => {
-      it('Should throw an error if an SMS verification request is made while the flag is off', async () => {
-        mockedVerificationService.initiateVerification.mockRejectedValue(
-          new SmsVerificationDisabledError()
-        )
-        const req = {
-          userId: '123',
-          sendTo: '+18189988876',
-          firstName: 'Louise',
-          verificationMethod: VERIFICATION_METHOD.SMS,
-        }
-        const res = await sendPost(req, '/send')
-
-        expect(res).toMatchObject({
-          status: 403,
-          body: {
-            err: 'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.',
-          },
-        })
-      })
-    })
-
     describe('Twilio errors', () => {
       it('Should return status 429 when too many requests are made', async () => {
         const expectedErr = new TwilioError('Too many requests', 429)
@@ -372,29 +350,6 @@ describe('verify', () => {
           status: 500,
           body: {
             err: 'Please double-check your verification code. If the problem persists, please contact the UPchieve team at support@upchieve.org for help.',
-          },
-        })
-      })
-    })
-
-    describe('SMS verification flag', () => {
-      it('Should throw an error if an SMS verification request is made while the flag is off', async () => {
-        mockedVerificationService.confirmVerification.mockRejectedValue(
-          new SmsVerificationDisabledError()
-        )
-        const req = {
-          userId: '123',
-          sendTo: '+18187779999',
-          verificationMethod: VERIFICATION_METHOD.SMS,
-          verificationCode: '123456',
-          forSignup: false,
-        }
-        const res = await sendPost(req, '/confirm')
-
-        expect(res).toMatchObject({
-          status: 403,
-          body: {
-            err: 'SMS verification is currently not available. Please verify by email or contact the UPchieve team at support@upchieve.org for help.',
           },
         })
       })
