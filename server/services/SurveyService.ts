@@ -93,12 +93,11 @@ export async function saveUserSurvey(
       userSurvey.surveyTypeId
     )
     // Only process feedback metrics for post-session surveys
-    if (
-      surveyType === 'postsession' &&
-      (await isUpdatedSessionEndedProcessingEnabled(userId))
-    )
-      await processFeedbackMetrics(userSurvey.sessionId)
-    else emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
+    if (surveyType === 'postsession') {
+      if (await isUpdatedSessionEndedProcessingEnabled(userId))
+        await processFeedbackMetrics(userSurvey.sessionId)
+      else emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
+    }
   }
 }
 
