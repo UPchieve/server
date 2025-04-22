@@ -117,7 +117,7 @@ SELECT
 FROM
     session_flags
 WHERE
-    name = ANY (:flags!)
+    name = ANY (:flags!::text[])
 ON CONFLICT (session_id,
     session_flag_id)
     DO UPDATE SET
@@ -990,11 +990,13 @@ SELECT
 FROM
     session_flags
 WHERE
-    session_flags.name = ANY (:reviewReasons!)
-ON CONFLICT
-    DO NOTHING
-RETURNING
-    session_id AS ok;
+    session_flags.name = ANY (:reviewReasons!::text[])
+ON CONFLICT (session_id,
+    session_flag_id)
+    DO UPDATE SET
+        updated_at = NOW()
+    RETURNING
+        session_id AS ok;
 
 
 /* @name insertSessionFailedJoin */
