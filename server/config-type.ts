@@ -286,10 +286,14 @@ export const Config = Record({
   tremendousCustomFieldsCacheExpirationSeconds: Number,
   tremendousCampaignCacheExpirationSeconds: Number,
 
+  // AWS Account ID
+  awsAccountId: String,
+
   // AWS Chime
   awsChimeAccessKey: String,
   awsChimeSecretAccessKey: String,
   awsChimeRegion: String,
+  awsChimeMeetingRecordingBucketArn: String,
 
   // AWS Bedrock
   awsBedrockAccessKey: String,

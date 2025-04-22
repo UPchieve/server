@@ -1,6 +1,6 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../product-client'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import * as AnalyticsService from './AnalyticsService'
 import { TUTOR_BOT_MODELS } from './TutorBotService'
@@ -67,10 +67,6 @@ export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
 
 export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
-}
-
-export async function getSmsVerificationFeatureFlag(userId: Ulid) {
-  return isFeatureEnabled(FEATURE_FLAGS.SMS_VERIFICATION, userId)
 }
 
 export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
@@ -161,4 +157,19 @@ export async function getTutorBotSubjectModelsPayload(
 
 export async function isTremendousEmbeddedRewardsEnabled(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
+}
+
+export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.TEACHER_GETTING_STARTED_ASSIGNMENT,
+    userId
+  )
+}
+
+export async function getGenerateSessionSummaryFeatureFlag(userId: Uuid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.GENERATE_SESSION_SUMMARY, userId)
+}
+
+export async function getSessionSummaryFeatureFlag(userId: Uuid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
 }

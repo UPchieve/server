@@ -470,21 +470,6 @@ WHERE
     sessions.id = :sessionId!;
 
 
-/* @name getSessionUserAgent */
-SELECT
-    device,
-    browser,
-    browser_version,
-    operating_system,
-    operating_system_version
-FROM
-    user_actions
-WHERE
-    user_actions.session_id = :sessionId!
-    AND user_actions.action = 'REQUESTED SESSION'
-LIMIT 1;
-
-
 /* @name getSessionMessagesForFrontend */
 SELECT
     id,
@@ -1005,7 +990,7 @@ SELECT
 FROM
     session_flags
 WHERE
-    session_flags.name = ANY (:flags!::text[])
+    session_flags.name = ANY (:reviewReasons!::text[])
 ON CONFLICT (session_id,
     session_flag_id)
     DO UPDATE SET
@@ -1051,6 +1036,21 @@ WHERE
 
 
 /* @name getFilteredSessionHistory */
+WITH sessions AS (
+    SELECT
+        id,
+        time_tutored,
+        volunteer_id,
+        student_id,
+        subject_id,
+        ended_at,
+        created_at
+    FROM
+        sessions
+    WHERE
+        student_id = :userId!
+        OR volunteer_id = :userId!
+)
 SELECT
     sessions.id,
     sessions.created_at AS created_at,
@@ -1076,26 +1076,40 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
     LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id
             AND volunteers.id = favorited.volunteer_id)
-WHERE (students.id = :userId!
-    OR volunteers.id = :userId!)
-AND sessions.time_tutored IS NOT NULL
-AND sessions.time_tutored > :minSessionLength!::int
-AND sessions.volunteer_id IS NOT NULL
-AND sessions.ended_at IS NOT NULL
-AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
-AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
-AND (:studentFirstName::text IS NULL
-    OR LOWER(students.first_name) = LOWER(:studentFirstName))
-AND (:volunteerFirstName::text IS NULL
-    OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
-AND (:subjectName::text IS NULL
-    OR subjects.name = :subjectName)
+WHERE
+    sessions.time_tutored IS NOT NULL
+    AND sessions.time_tutored > :minSessionLength!::int
+    AND sessions.volunteer_id IS NOT NULL
+    AND sessions.ended_at IS NOT NULL
+    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+    AND (:studentFirstName::text IS NULL
+        OR LOWER(students.first_name) = LOWER(:studentFirstName))
+    AND (:volunteerFirstName::text IS NULL
+        OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
+    AND (:subjectName::text IS NULL
+        OR subjects.name = :subjectName)
 ORDER BY
     created_at DESC
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name getFilteredSessionHistoryTotalCount */
+WITH sessions AS (
+    SELECT
+        id,
+        time_tutored,
+        volunteer_id,
+        student_id,
+        subject_id,
+        ended_at,
+        created_at
+    FROM
+        sessions
+    WHERE
+        student_id = :userId!
+        OR volunteer_id = :userId!
+)
 SELECT
     COUNT(*)::int
 FROM
@@ -1106,20 +1120,19 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
     LEFT JOIN student_favorite_volunteers favorited ON (students.id = favorited.student_id
             AND volunteers.id = favorited.volunteer_id)
-WHERE (students.id = :userId!
-    OR volunteers.id = :userId!)
-AND sessions.time_tutored IS NOT NULL
-AND sessions.time_tutored > :minSessionLength!::int
-AND sessions.volunteer_id IS NOT NULL
-AND sessions.ended_at IS NOT NULL
-AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
-AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
-AND (:studentFirstName::text IS NULL
-    OR LOWER(students.first_name) = LOWER(:studentFirstName))
-AND (:volunteerFirstName::text IS NULL
-    OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
-AND (:subjectName::text IS NULL
-    OR subjects.name = :subjectName);
+WHERE
+    sessions.time_tutored IS NOT NULL
+    AND sessions.time_tutored > :minSessionLength!::int
+    AND sessions.volunteer_id IS NOT NULL
+    AND sessions.ended_at IS NOT NULL
+    AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
+    AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+    AND (:studentFirstName::text IS NULL
+        OR LOWER(students.first_name) = LOWER(:studentFirstName))
+    AND (:volunteerFirstName::text IS NULL
+        OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
+    AND (:subjectName::text IS NULL
+        OR subjects.name = :subjectName);
 
 
 /* @name isEligibleForSessionRecap */
@@ -1321,8 +1334,10 @@ SELECT
     sender_id AS user_id,
     contents AS message,
     sm.created_at,
-    CASE WHEN TRUE THEN
-        'chat'
+    CASE WHEN sm.created_at > s.ended_at THEN
+        'direct_message'
+    ELSE
+        'session_message'
     END AS message_type,
     CASE WHEN s.volunteer_id = sm.sender_id THEN
         'volunteer'

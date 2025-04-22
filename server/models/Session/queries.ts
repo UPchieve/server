@@ -1,4 +1,4 @@
-import { TransactionClient, getClient } from '../../db'
+import { TransactionClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -15,6 +15,7 @@ import {
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
+  SessionMetrics,
 } from './types'
 import 'moment-timezone'
 import {
@@ -134,9 +135,10 @@ export async function getSessionById(
 
 export async function updateSessionFlagsById(
   sessionId: Ulid,
-  flags: (USER_SESSION_METRICS | UserSessionFlags)[]
+  flags: (USER_SESSION_METRICS | UserSessionFlags)[],
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  const client = await getClient().connect()
+  if (!flags.length) return
   try {
     const result = await pgQueries.insertSessionFlagsById.run(
       { sessionId, flags },
@@ -253,7 +255,7 @@ export type SessionsToReview = {
   subTopic: string
   studentFirstName: string
   isReported: boolean
-  flags: string[]
+  flags?: string[]
   reviewReasons?: string[]
   toReview: boolean
   studentRating?: number
@@ -278,6 +280,7 @@ export async function getSessionsToReview(
           'volunteerFirstName',
           'reviewReasons',
           'studentCounselingFeedback',
+          'flags',
         ])
         const studentRating = await getSessionRating(
           temp.id,
@@ -558,13 +561,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
       'reportReason',
       'reviewReasons',
     ])
-    const userAgentResult = await pgQueries.getSessionUserAgent.run(
-      { sessionId },
-      client
-    )
-    const userAgent = userAgentResult.length
-      ? makeSomeRequired(userAgentResult[0], [])
-      : undefined
     const { student, volunteer } = await getSessionUsers(
       session.id,
       session.studentId,
@@ -596,7 +592,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
         volunteerPostsessionSurvey,
       },
       _id: session.id,
-      userAgent,
       notifications,
     }
   } catch (err) {
@@ -1106,39 +1101,31 @@ export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
   reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
   // Use this property to override the reviewed status of a session
-  reviewed?: boolean
+  reviewed?: boolean,
+  client?: TransactionClient
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-    const insertReviewReasonsResult =
-      await pgQueries.insertSessionReviewReasons.run(
-        { sessionId, flags: reviewReasons },
-        client
-      )
-    if (
-      !insertReviewReasonsResult.length &&
-      makeRequired(insertReviewReasonsResult[0]).ok
-    ) {
-      throw new Error('Inserting session review reasons did not return "ok"')
+    const dbClient = client ?? getClient()
+    if (reviewReasons.length) {
+      const insertReviewReasonsResult =
+        await pgQueries.insertSessionReviewReasons.run(
+          { sessionId, reviewReasons },
+          dbClient
+        )
+      if (!insertReviewReasonsResult.length)
+        throw new Error(
+          'Query to insert session review reasons did not return any results'
+        )
     }
 
-    const updateSessionReviewResult = await pgQueries.updateSessionToReview.run(
+    const updateSessionResult = await pgQueries.updateSessionToReview.run(
       { sessionId, reviewed },
-      client
+      dbClient
     )
-    if (
-      !updateSessionReviewResult.length &&
-      makeRequired(updateSessionReviewResult[0]).ok
-    ) {
-      throw new Error('Updating to_review did not return "ok"')
-    }
-    await client.query('COMMIT')
+    if (!updateSessionResult.length && makeRequired(updateSessionResult[0]).ok)
+      throw new Error('Updating to_review did not return ok')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -1234,7 +1221,7 @@ export async function getFilteredSessionHistory(
     }
     const result = await pgQueries.getFilteredSessionHistory.run(
       params,
-      getClient()
+      getRoClient()
     )
     if (result.length) return result.map((v) => makeRequired(v))
     return []
@@ -1259,7 +1246,7 @@ export async function getFilteredSessionHistoryTotalCount(
     }
     const result = await pgQueries.getFilteredSessionHistoryTotalCount.run(
       params,
-      getClient()
+      getRoClient()
     )
     if (result.length) {
       return result[0].count ?? 0
@@ -1292,7 +1279,7 @@ export type SessionForSessionRecap = {
 export async function getSessionRecap(
   sessionId: Ulid
 ): Promise<SessionForSessionRecap> {
-  const client = await getClient().connect()
+  const client = await getRoClient().connect()
   try {
     const sessionResult = await pgQueries.getSessionRecap.run(
       { sessionId },

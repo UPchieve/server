@@ -60,6 +60,7 @@ export type AnalyticPersonProperties = {
   fallIncentiveEnrollmentAt?: ISODateString | null
   usesClever?: boolean
   usesGoogle?: boolean
+  hasSubjectCertification?: boolean
 } & AnalyticCertificationStats
 
 export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
@@ -82,9 +83,18 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       hasStudentRole: user.roleContext.hasRole('student'),
       hasVolunteerRole: user.roleContext.hasRole('volunteer'),
       hasTeacherRole: user.roleContext.hasRole('teacher'),
+      usesClever: user.usesClever ?? false,
     } as AnalyticPersonProperties
 
-    if (user.roleContext.isActiveRole('volunteer')) {
+    personProperties.partner =
+      user.studentPartnerOrg ?? user.volunteerPartnerOrg
+    if (!personProperties.partner) delete personProperties.partner
+
+    if (user.isSchoolPartner) {
+      personProperties.schoolPartner = user.schoolName ?? null
+    }
+
+    if (user.roleContext.hasRole('volunteer')) {
       personProperties.onboarded = user.isOnboarded
       personProperties.approved = user.isApproved
       personProperties.partner = user.volunteerPartnerOrg ?? null
@@ -95,20 +105,25 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
         acc[subject] = quizInfo.passed
         return acc
       }, {})
-      return {
+      personProperties = {
         ...personProperties,
         ...certificationInfo,
       }
-    } else if (user.roleContext.isActiveRole('student')) {
-      personProperties.partner = user.studentPartnerOrg ?? null
+      const hasSubjectCertification = Object.entries(certificationInfo).some(
+        ([cert, info]) => cert !== 'upchieve101' && info
+      )
+      personProperties.hasSubjectCertification = hasSubjectCertification
+    }
+
+    if (user.roleContext.hasRole('student')) {
       personProperties.gradeLevel = user.gradeLevel ?? null
-      if (user.isSchoolPartner)
-        personProperties.schoolPartner = user.schoolName ?? null
       personProperties.fallIncentiveEnrollmentAt =
         productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
       personProperties.usesClever = user.usesClever
       personProperties.usesGoogle = user.usesGoogle
-    } else if (user.roleContext.isActiveRole('teacher')) {
+    }
+
+    if (user.roleContext.hasRole('teacher')) {
       // TODO: TEACHER PROFILES.
     }
   } catch (error) {
@@ -118,6 +133,5 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       } - error ${error}`
     )
   }
-
   return personProperties
 }

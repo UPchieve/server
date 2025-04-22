@@ -7,4 +7,5 @@ export type SessionMeeting = {
   sessionId: Uuid
   createdAt: Date
   updatedAt: Date
+  recordingId?: string
 }

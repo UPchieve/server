@@ -1,5 +1,8 @@
 import config from '../../config'
-import { RegisterStudentPayload } from '../../utils/auth-utils'
+import {
+  RegisterStudentPayload,
+  RegisterTeacherPayload,
+} from '../../utils/auth-utils'
 
 export class AuthRedirect {
   private static baseRedirect = this.getBaseRedirect()
@@ -29,27 +32,28 @@ export class AuthRedirect {
   static failureRedirect(
     isLogin: boolean,
     provider: string,
-    studentData: Partial<RegisterStudentPayload> = {},
+    errorRedirect: string,
+    userData: Partial<RegisterStudentPayload | RegisterTeacherPayload> = {},
     errorMessage?: string
   ) {
     if (isLogin) {
       return this.loginFailureRedirect(provider)
     }
 
-    delete studentData.ip
-    delete studentData.issuer
-    delete studentData.password
-    delete studentData.profileId
+    delete userData.ip
+    delete userData.issuer
+    delete userData.password
+    delete userData.profileId
 
     const params = new URLSearchParams({
       error: errorMessage ?? 'Unknown server error.',
     })
-    for (const key of Object.keys(studentData)) {
-      const value = studentData[key as keyof RegisterStudentPayload]
+    for (const key of Object.keys(userData)) {
+      const value = userData[key as keyof typeof userData]
       if (value) params.append(key, value.toString())
     }
 
-    return this.baseRedirect + '/sign-up/student/account?' + params.toString()
+    return this.baseRedirect + (errorRedirect ?? '') + '?' + params.toString()
   }
 
   static loginFailureRedirect(provider: string) {

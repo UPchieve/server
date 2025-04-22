@@ -1,4 +1,4 @@
-import { Ulid } from '../pgUtils'
+import { Ulid, Uuid } from '../pgUtils'
 import { USER_ROLES_TYPE } from '../../constants'
 
 export type Session = {
@@ -71,7 +71,11 @@ export type VoiceMessage = {
   transcript: string
 }
 
-export type MessageType = 'chat' | 'voice_message' | 'transcription'
+export type MessageType =
+  | 'session_chat'
+  | 'voice_message'
+  | 'transcription'
+  | 'direct_message'
 export type SessionTranscriptItem = {
   messageId: string
   userId: string
@@ -84,4 +88,25 @@ export type SessionTranscriptItem = {
 export type SessionTranscript = {
   sessionId: string
   messages: SessionTranscriptItem[]
+}
+
+export type SessionMetrics = {
+  sessionId: Uuid
+  absentStudent: boolean
+  absentVolunteer: boolean
+  lowSessionRatingFromCoach: boolean
+  lowSessionRatingFromStudent: boolean
+  lowCoachRatingFromStudent: boolean
+  reported: boolean
+  onlyLookingForAnswers: boolean
+  rudeOrInappropriate: boolean
+  commentFromStudent: boolean
+  commentFromVolunteer: boolean
+  hasBeenUnmatched: boolean
+  hasHadTechnicalIssues: boolean
+  personalIdentifyingInfo: boolean
+  gradedAssignment: boolean
+  coachUncomfortable: boolean
+  studentCrisis: boolean
+  createdAt: Date
 }

@@ -82,7 +82,7 @@ export async function getStudentsPresessionGoal(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).goal
+    if (result.length) return makeSomeOptional(result[0], ['goal']).goal
   } catch (err) {
     throw new RepoReadError(err)
   }

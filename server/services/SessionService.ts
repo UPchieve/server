@@ -2,7 +2,7 @@ import * as SessionmeetingsService from '../services/SessionMeetingService'
 import crypto from 'crypto'
 import moment from 'moment'
 import * as cache from '../cache'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import config from '../config'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -63,14 +63,19 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
+  getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
-import { TransactionClient, runInTransaction } from '../db'
+import { TransactionClient, runInTransaction, getClient } from '../db'
 import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
+import { getFeedbackBySessionId } from '../models/Feedback/queries'
+import { getPresessionSurveyResponse } from '../models/Survey'
+import { getSessionNotificationsWithSessionId } from '../models/Notification'
+import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { getSessionRating } from '../models/Survey'
 import { KeyNotFoundError } from '../cache'
 
@@ -120,10 +125,13 @@ export async function getTimeTutoredForDateRange(
 
 export async function handleDmReporting(
   sessionId: Ulid,
-  sessionFlags: UserSessionFlags[]
+  sessionFlags: UserSessionFlags[],
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  await updateSessionFlagsById(sessionId, sessionFlags)
-  await updateSessionReviewReasonsById(sessionId, sessionFlags, false)
+  await runInTransaction(async (tc: TransactionClient) => {
+    await updateSessionFlagsById(sessionId, sessionFlags, tc)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+  }, client)
 }
 
 export async function reportSession(user: UserContactInfo, data: unknown) {
@@ -1064,21 +1072,27 @@ export async function isRecapDmsAvailable(
   return sentMessages || isVolunteer
 }
 
-export async function getStudentSessionDetails(studentId: Ulid) {
+export async function getStudentSessionDetails(
+  studentId: Ulid,
+  teacherId: Ulid
+) {
   const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-  const sessionsWithRatings = []
+  if (!(await getSessionSummaryFeatureFlag(teacherId))) {
+    return sessions
+  } else {
+    const sessionsWithSummaries = []
 
-  for (const session of sessions) {
-    const [studentRating, volunteerRating] = await Promise.all([
-      getSessionRating(session.id, USER_ROLES.STUDENT),
-      getSessionRating(session.id, USER_ROLES.VOLUNTEER),
-    ])
+    for (const session of sessions) {
+      const sessionSummary = await getSessionSummaryByUserType(
+        session.id,
+        USER_ROLES.TEACHER
+      )
+      sessionsWithSummaries.push({ ...session, summary: sessionSummary })
+    }
 
-    sessionsWithRatings.push({ ...session, studentRating, volunteerRating })
+    return sessionsWithSummaries
   }
-
-  return sessionsWithRatings
 }
 
 function isQualifiedFallIncentiveSession(

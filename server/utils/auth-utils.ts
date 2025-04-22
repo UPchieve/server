@@ -49,6 +49,7 @@ export interface SessionWithSsoData extends session.Session {
     isLogin?: boolean
     provider?: string
     redirect?: string
+    errorRedirect?: string
     userData?: Partial<RegisterStudentPayload | RegisterTeacherPayload>
     fedCredData?: {
       profileId: string
