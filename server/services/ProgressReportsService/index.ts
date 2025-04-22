@@ -36,7 +36,7 @@ import {
   getSessionById,
 } from '../../models/Session'
 import { captureEvent } from '../AnalyticsService'
-import { EVENTS, TOOL_TYPES } from '../../constants'
+import { EVENTS } from '../../constants'
 import moment from 'moment'
 import {
   ProgressReport,
@@ -214,19 +214,16 @@ export async function hasActiveSubjectPrompt(
 }
 
 export async function formatSessionsForBotPrompt(
-  sessions: UserSessionsWithMessages[],
-  toolType: TOOL_TYPES
+  sessions: UserSessionsWithMessages[]
 ): Promise<string> {
-  if (toolType === TOOL_TYPES.DOCUMENT_EDITOR) {
-    const results = await Promise.allSettled(
-      sessions.map(formatTranscriptAndEditor)
-    )
-    const formattedSessions = results
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => (result as PromiseFulfilledResult<string>).value)
-      .join('\n')
-    return formattedSessions
-  } else return ''
+  const results = await Promise.allSettled(
+    sessions.map(formatTranscriptAndEditor)
+  )
+  const formattedSessions = results
+    .filter((result) => result.status === 'fulfilled')
+    .map((result) => (result as PromiseFulfilledResult<string>).value)
+    .join('\n')
+  return formattedSessions
 }
 
 export async function saveProgressReport({
@@ -315,10 +312,7 @@ export async function generateProgressReportForUser(
       `generateProgressReportForUser: No subject named ${filter.subject} found`
     )
   const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
-  const botPrompt = await formatSessionsForBotPrompt(
-    sessions,
-    subjectData.toolType as TOOL_TYPES
-  )
+  const botPrompt = await formatSessionsForBotPrompt(sessions)
   const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
     userId,
     subjectData

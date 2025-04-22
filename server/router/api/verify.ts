@@ -4,7 +4,7 @@ import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
-import { SmsVerificationDisabledError, TwilioError } from '../../models/Errors'
+import { TwilioError } from '../../models/Errors'
 import { authPassport } from '../../utils/auth-utils'
 import { Request, Response } from 'express'
 
@@ -39,9 +39,6 @@ const sendVerificationCommon = async (
         message =
           "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
       }
-    } else if (err instanceof SmsVerificationDisabledError) {
-      status = 403
-      message = err.message
     }
 
     resError(res, new Error(message), status)
@@ -91,9 +88,6 @@ export function routeVerify(router: Router) {
         status = 400
         message =
           'The code has expired. Please request a new verification code and try again.'
-      } else if (err instanceof SmsVerificationDisabledError) {
-        status = 403
-        message = err.message
       }
 
       resError(res, new Error(message), status)
