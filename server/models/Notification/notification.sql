@@ -1,4 +1,4 @@
-/* @name getNotificationsByVolunteerId */
+/* @name getTextNotificationsByVolunteerId */
 SELECT
     notifications.id,
     user_id AS volunteer,
@@ -15,7 +15,8 @@ FROM
     LEFT JOIN notification_types ON notifications.type_id = notification_types.id
     LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id
 WHERE
-    notifications.user_id = :userId!;
+    notifications.user_id = :userId!
+    AND notifications.method_id = 1;
 
 
 /* @name getSessionNotificationsWithSessionId */
