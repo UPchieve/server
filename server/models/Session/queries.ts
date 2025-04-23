@@ -642,6 +642,7 @@ export type CurrentSession = {
   docEditorVersion?: number
   studentBannedFromLiveMedia?: boolean
   volunteerBannedFromLiveMedia?: boolean
+  volunteerLanguages?: string[]
 }
 
 export type SessionInfoForUser = {
@@ -694,6 +695,7 @@ export async function getCurrentSessionByUserId(
         'volunteerJoinedAt',
         'volunteerBannedFromLiveMedia',
         'studentBannedFromLiveMedia',
+        'volunteerLanguages',
       ])
       return handleSessionParsingForUser(session, tc)
     }
@@ -771,6 +773,7 @@ export async function getCurrentSessionBySessionId(
       'endedBy',
       'volunteerBannedFromLiveMedia',
       'studentBannedFromLiveMedia',
+      'volunteerLanguages',
     ])
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(

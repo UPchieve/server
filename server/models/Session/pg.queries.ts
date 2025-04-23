@@ -1185,6 +1185,7 @@ export interface IGetCurrentSessionByUserIdResult {
   volunteerBannedFromLiveMedia: boolean | null;
   volunteerId: string | null;
   volunteerJoinedAt: Date | null;
+  volunteerLanguages: stringArray | null;
 }
 
 /** 'GetCurrentSessionByUserId' query type */
@@ -1193,7 +1194,7 @@ export interface IGetCurrentSessionByUserIdQuery {
   result: IGetCurrentSessionByUserIdResult;
 }
 
-const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1063,"b":1070},{"a":1103,"b":1110}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    tool_types.name AS tool_type,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
+const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1207,"b":1214},{"a":1247,"b":1254}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -1208,6 +1209,7 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
  *     sessions.student_id,
  *     sessions.ended_at,
  *     tool_types.name AS tool_type,
+ *     volunteer_profiles.languages AS volunteer_languages,
  *     CASE WHEN sessions.volunteer_id IS NULL THEN
  *         FALSE
  *     WHEN (
@@ -1237,6 +1239,7 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
  *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
  *     JOIN tool_types ON subjects.tool_type_id = tool_types.id
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
  * WHERE (sessions.student_id = :userId!
  *     OR sessions.volunteer_id = :userId!)
  * AND sessions.ended_at IS NULL
@@ -1379,6 +1382,7 @@ export interface IGetCurrentSessionBySessionIdResult {
   volunteerBannedFromLiveMedia: boolean | null;
   volunteerId: string | null;
   volunteerJoinedAt: Date | null;
+  volunteerLanguages: stringArray | null;
 }
 
 /** 'GetCurrentSessionBySessionId' query type */
@@ -1387,7 +1391,7 @@ export interface IGetCurrentSessionBySessionIdQuery {
   result: IGetCurrentSessionBySessionIdResult;
 }
 
-const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1355,"b":1364}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    tool_types.name AS tool_type,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\nWHERE\n    sessions.id = :sessionId"};
+const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1499,"b":1508}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    volunteer_profiles.languages AS volunteer_languages,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    tool_types.name AS tool_type,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE\n    sessions.id = :sessionId"};
 
 /**
  * Query generated from SQL:
@@ -1401,6 +1405,7 @@ const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
  *     sessions.volunteer_id,
  *     sessions.student_id,
  *     sessions.ended_at,
+ *     volunteer_profiles.languages AS volunteer_languages,
  *     (
  *         CASE WHEN user_roles.name = 'volunteer' THEN
  *             sessions.volunteer_id
@@ -1440,6 +1445,7 @@ const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
  *     JOIN tool_types ON subjects.tool_type_id = tool_types.id
  *     LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
+ *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
  * WHERE
  *     sessions.id = :sessionId
  * ```
