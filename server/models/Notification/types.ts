@@ -16,7 +16,7 @@ export type Notification = {
   wasSuccessful?: boolean
   messageId?: string // twilio/messaging service id
   priorityGroup: string // volunteer priority group (i.e. notified last 24 hours, etc)
-  sessionId: Ulid
+  sessionId?: Ulid //  email notifications may not have a sesssion id associated with  it
 }
 
 export const NotificationType = <const>{

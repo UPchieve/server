@@ -9,11 +9,11 @@ import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
 
-export async function getNotificationsByVolunteerId(
+export async function getTextNotificationsByVolunteerId(
   userId: Ulid
 ): Promise<Notification[]> {
   try {
-    const result = await pgQueries.getNotificationsByVolunteerId.run(
+    const result = await pgQueries.getTextNotificationsByVolunteerId.run(
       { userId },
       getClient()
     )

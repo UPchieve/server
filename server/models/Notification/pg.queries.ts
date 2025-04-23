@@ -3,13 +3,13 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type DateOrString = Date | string;
 
-/** 'GetNotificationsByVolunteerId' parameters type */
-export interface IGetNotificationsByVolunteerIdParams {
+/** 'GetTextNotificationsByVolunteerId' parameters type */
+export interface IGetTextNotificationsByVolunteerIdParams {
   userId: string;
 }
 
-/** 'GetNotificationsByVolunteerId' return type */
-export interface IGetNotificationsByVolunteerIdResult {
+/** 'GetTextNotificationsByVolunteerId' return type */
+export interface IGetTextNotificationsByVolunteerIdResult {
   id: string;
   messageId: string | null;
   method: string;
@@ -21,13 +21,13 @@ export interface IGetNotificationsByVolunteerIdResult {
   wasSuccessful: boolean | null;
 }
 
-/** 'GetNotificationsByVolunteerId' query type */
-export interface IGetNotificationsByVolunteerIdQuery {
-  params: IGetNotificationsByVolunteerIdParams;
-  result: IGetNotificationsByVolunteerIdResult;
+/** 'GetTextNotificationsByVolunteerId' query type */
+export interface IGetTextNotificationsByVolunteerIdQuery {
+  params: IGetTextNotificationsByVolunteerIdParams;
+  result: IGetTextNotificationsByVolunteerIdResult;
 }
 
-const getNotificationsByVolunteerIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":631,"b":638}]}],"statement":"SELECT\n    notifications.id,\n    user_id AS volunteer,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS TYPE,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\nWHERE\n    notifications.user_id = :userId!"};
+const getTextNotificationsByVolunteerIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":631,"b":638}]}],"statement":"SELECT\n    notifications.id,\n    user_id AS volunteer,\n    sent_at,\n    successful AS was_successful,\n    message_carrier_id AS message_id,\n    session_id,\n    notification_types.type AS TYPE,\n    notification_priority_groups.name AS priority_group,\n    notification_methods.method AS method\nFROM\n    notifications\n    LEFT JOIN notification_methods ON notifications.method_id = notification_methods.id\n    LEFT JOIN notification_types ON notifications.type_id = notification_types.id\n    LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id\nWHERE\n    notifications.user_id = :userId!\n    AND notifications.method_id = 1"};
 
 /**
  * Query generated from SQL:
@@ -49,9 +49,10 @@ const getNotificationsByVolunteerIdIR: any = {"usedParamSet":{"userId":true},"pa
  *     LEFT JOIN notification_priority_groups ON notifications.priority_group_id = notification_priority_groups.id
  * WHERE
  *     notifications.user_id = :userId!
+ *     AND notifications.method_id = 1
  * ```
  */
-export const getNotificationsByVolunteerId = new PreparedQuery<IGetNotificationsByVolunteerIdParams,IGetNotificationsByVolunteerIdResult>(getNotificationsByVolunteerIdIR);
+export const getTextNotificationsByVolunteerId = new PreparedQuery<IGetTextNotificationsByVolunteerIdParams,IGetTextNotificationsByVolunteerIdResult>(getTextNotificationsByVolunteerIdIR);
 
 
 /** 'GetSessionNotificationsWithSessionId' parameters type */
