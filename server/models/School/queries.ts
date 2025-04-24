@@ -1,9 +1,4 @@
-import {
-  RepoCreateError,
-  RepoReadError,
-  RepoTransactionError,
-  RepoUpdateError,
-} from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { PartnerSchool, School } from './types'
 import {
   getDbUlid,
@@ -20,19 +15,10 @@ import {
   createSchoolStudentPartnerOrg,
   createStudentPartnerOrgUpchieveInstance,
   deactivateSchoolStudentPartnerOrgs,
-  StudentPartnerOrg,
 } from '../StudentPartnerOrg'
-import {
-  FormattedSchoolNcesMetadataRecord,
-  SCHOOL_RECORD_TRUE_VALUE,
-} from '../../scripts/upsert-schools'
-import { asNumber } from '../../utils/type-utils'
-import { toTitleCase } from '../../utils/string-utils'
-import logger from '../../logger'
+import { FormattedSchoolNcesMetadataRecord } from '../../scripts/upsert-schools'
 import { AdminUpdate } from '../../services/SchoolService'
 import { isSchoolApproved } from '../../services/EligibilityService'
-import { IGetStudentPartnerOrgForRegistrationByKeyParams } from '../StudentPartnerOrg/pg.queries'
-import { PoolClient } from 'pg'
 
 export async function getSchoolById(
   schoolId: Ulid,
@@ -143,34 +129,33 @@ export async function updateIsPartner(
   schoolId: Ulid,
   isPartner: boolean,
   existingStudentPartnerOrgId: string | undefined,
-  client?: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<void> {
   if (!existingStudentPartnerOrgId && !isPartner)
     throw new Error(
       `Cannot deactivate student partner org for school ${schoolId}: SPO does not exist`
     )
 
-  const transactionClient = client ?? getClient()
   try {
     // Set schools.partner.
     // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
     const result = await pgQueries.updateIsPartner.run(
       { schoolId, isPartner },
-      transactionClient
+      client
     )
 
-    const school = await getSchoolById(schoolId, transactionClient)
+    const school = await getSchoolById(schoolId, client)
     if (!school)
       throw new Error(
         `Cannot update partner status: School with id ${schoolId} does not exist`
       )
     if (isPartner) {
       if (!existingStudentPartnerOrgId) {
-        await createSchoolStudentPartnerOrg(school.id, transactionClient)
+        await createSchoolStudentPartnerOrg(school.id, client)
       }
-      await createStudentPartnerOrgUpchieveInstance(schoolId, transactionClient)
+      await createStudentPartnerOrgUpchieveInstance(schoolId, client)
     } else {
-      await deactivateSchoolStudentPartnerOrgs(schoolId, transactionClient)
+      await deactivateSchoolStudentPartnerOrgs(schoolId, client)
     }
     if (result.length) return makeRequired(result[0])
   } catch (err) {
@@ -180,9 +165,8 @@ export async function updateIsPartner(
 
 export async function adminUpdateSchool(
   data: AdminUpdate,
-  transactionClient?: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<void> {
-  const client = transactionClient ?? getClient()
   try {
     const { schoolId, name, city, state, zip, isApproved } = data
     await pgQueries.adminUpdateSchoolMetaData.run({ schoolId, zip }, client)

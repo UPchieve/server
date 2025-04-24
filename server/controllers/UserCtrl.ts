@@ -31,7 +31,6 @@ export async function createVolunteer(
   ip: string
 ): Promise<VolunteerRepo.CreatedVolunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-  const client = getClient()
   // Replaced by VolunteerRepo.createVolunteer
   return await runInTransaction(async (tc) => {
     try {
@@ -53,5 +52,5 @@ export async function createVolunteer(
       logError(err as Error)
       throw err
     }
-  }, client)
+  }, getClient())
 }
