@@ -5,7 +5,7 @@ import {
   Notification,
 } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
 
@@ -34,12 +34,13 @@ export type SessionNotification = {
 } & Notification
 
 export async function getSessionNotificationsWithSessionId(
-  sessionId: Ulid
+  sessionId: Ulid,
+  client: TransactionClient = getClient()
 ): Promise<SessionNotification[]> {
   try {
     const result = await pgQueries.getSessionNotificationsWithSessionId.run(
       { sessionId },
-      getClient()
+      client
     )
     return result.map((v) => {
       const row: any = makeSomeOptional(v, [

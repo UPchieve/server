@@ -451,9 +451,8 @@ export async function getPastSessionsForAdminDetail(
   userId: Ulid,
   limit: number,
   offset: number,
-  poolClient?: PoolClient
+  client: TransactionClient = getClient()
 ): Promise<PastSessionForAdmin[]> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getPastSessionsForAdminDetail.run(
       { userId, limit, offset },
@@ -483,9 +482,9 @@ export async function getPastSessionsForAdminDetail(
 export async function getUserForAdminDetail(
   userId: Ulid,
   limit: number,
-  offset: number
+  offset: number,
+  client: TransactionClient = getClient()
 ) {
-  const client = await getClient().connect()
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
       { userId },
@@ -542,8 +541,6 @@ export async function getUserForAdminDetail(
     }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 

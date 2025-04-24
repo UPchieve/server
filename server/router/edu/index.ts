@@ -11,6 +11,7 @@ import path from 'path'
 import { asString } from '../../utils/type-utils'
 import * as QuestionRepo from '../../models/Question'
 
+// @TODO Can we get rid of this entire file?
 const edu = express()
 edu.set('view engine', 'ejs')
 edu.set('views', path.join(__dirname, '../../views'))

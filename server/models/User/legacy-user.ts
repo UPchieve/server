@@ -100,7 +100,7 @@ export type LegacyUserModel = {
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     const baseResult = await pgQueries.getLegacyUser.run({ userId }, client)
     if (!baseResult.length)
@@ -219,7 +219,5 @@ export async function getLegacyUserObject(
     return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }

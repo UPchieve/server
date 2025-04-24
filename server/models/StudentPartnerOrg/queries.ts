@@ -228,7 +228,7 @@ export async function migrateExistingPartnerSchoolRelationships(
 
 export async function createSchoolStudentPartnerOrg(
   schoolId: string,
-  client?: PoolClient
+  client?: TransactionClient
 ): Promise<void> {
   try {
     await pgQueries.createSchoolStudentPartnerOrg.run(
@@ -244,7 +244,7 @@ export async function createSchoolStudentPartnerOrg(
 
 export async function createStudentPartnerOrgUpchieveInstance(
   schoolId: string,
-  client?: PoolClient
+  client?: TransactionClient
 ): Promise<void> {
   try {
     await pgQueries.createStudentPartnerOrgInstance.run(
@@ -260,7 +260,7 @@ export async function createStudentPartnerOrgUpchieveInstance(
 
 export async function deactivateSchoolStudentPartnerOrgs(
   schoolId: string,
-  client?: PoolClient
+  client?: TransactionClient
 ): Promise<void> {
   try {
     await pgQueries.deactivateStudentPartnerOrg.run(

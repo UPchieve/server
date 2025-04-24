@@ -57,13 +57,14 @@ export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
 }
 
 export async function getSessionRequestedUserAgentFromSessionId(
-  sessionId: Ulid
+  sessionId: Ulid,
+  client: TransactionClient = getClient()
 ): Promise<UserActionAgent | undefined> {
   try {
     const result =
       await pgQueries.getSessionRequestedUserAgentFromSessionId.run(
         { sessionId },
-        getClient()
+        client
       )
     if (result.length)
       return makeSomeOptional(result[0], [
@@ -118,8 +119,10 @@ interface QuizActionParams {
   ipAddress?: string
 }
 
-export async function createQuizAction(params: QuizActionParams) {
-  const client = await getClient().connect()
+export async function createQuizAction(
+  params: QuizActionParams,
+  client: TransactionClient = getClient()
+) {
   try {
     let ip = undefined
     if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
@@ -139,8 +142,6 @@ export async function createQuizAction(params: QuizActionParams) {
       throw new Error('insertion of quiz user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -190,9 +191,8 @@ export async function createSessionAction(
 
 export async function createAccountAction(
   params: AccountActionParams,
-  tc?: TransactionClient
+  client: TransactionClient = getClient()
 ) {
-  const client = tc ?? (await getClient().connect())
   try {
     let ipId = undefined
     if (params.ipAddress) ipId = await upsertIpAddress(params.ipAddress, client)
@@ -215,9 +215,6 @@ export async function createAccountAction(
       throw new Error('insertion of account user action did not return ok')
   } catch (err) {
     throw new RepoCreateError(err)
-  } finally {
-    // @ts-ignore
-    if (!tc && client.release) client.release()
   }
 }
 

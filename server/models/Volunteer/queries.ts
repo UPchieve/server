@@ -176,9 +176,8 @@ export type VolunteerTypeMap<T> = {
 export type VolunteerQuizMap = VolunteerTypeMap<Quizzes>
 export async function getQuizzesForVolunteers(
   userIds: Ulid[],
-  poolClient?: PoolClient
+  client: TransactionClient = getClient()
 ): Promise<VolunteerQuizMap> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getQuizzesForVolunteers.run(
       { userIds },
@@ -207,9 +206,8 @@ export async function getQuizzesForVolunteers(
 
 export async function getCertificationsForVolunteer(
   userIds: Ulid[],
-  poolClient?: PoolClient
+  client: TransactionClient = getClient()
 ): Promise<VolunteerQuizMap> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getCertificationsForVolunteer.run(
       { userIds },
@@ -238,9 +236,8 @@ export async function getCertificationsForVolunteer(
 
 export async function getActiveQuizzesForVolunteers(
   userIds: Ulid[],
-  poolClient?: PoolClient
+  client: TransactionClient = getClient()
 ): Promise<VolunteerQuizMap> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getActiveQuizzesForVolunteers.run(
       { userIds },
@@ -960,9 +957,8 @@ export type ReferenceContactInfo = {
 
 export async function getReferencesByVolunteer(
   userId: Ulid,
-  poolClient?: PoolClient
+  client: TransactionClient = getClient()
 ): Promise<ReferenceContactInfo[]> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getReferencesByVolunteer.run(
       { userId },
@@ -980,9 +976,8 @@ export async function getReferencesByVolunteer(
 
 export async function getReferencesByVolunteerForAdminDetail(
   userId: Ulid,
-  poolClient?: PoolClient
+  client: TransactionClient = getClient()
 ): Promise<ReferenceContactInfo[]> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getReferencesByVolunteerForAdminDetail.run(
       { userId },
@@ -1245,16 +1240,15 @@ export async function createVolunteerProfile(
   }
 }
 
-export async function createVolunteer(
-  volunteerData: CreateVolunteerPayload
+export async function createVolunteer( // @TODO runInTransaction
+  volunteerData: CreateVolunteerPayload,
+  client: TransactionClient = getClient()
 ): Promise<CreatedVolunteer> {
-  const client = await getClient().connect()
   try {
     volunteerData.email = volunteerData.email.toLowerCase()
     const partnerOrg = volunteerData.volunteerPartnerOrg
       ? await getPartnerOrgByKey(volunteerData.volunteerPartnerOrg, client)
       : undefined
-    await client.query('BEGIN')
     const userId = getDbUlid()
     const userResult = await pgQueries.createVolunteerUser.run(
       {
@@ -1292,7 +1286,6 @@ export async function createVolunteer(
           'Could not create volunteer: user partner org instance creation did not return rows'
         )
     }
-    await client.query('COMMIT')
     await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER, client)
     return {
       ...user,
@@ -1302,10 +1295,7 @@ export async function createVolunteer(
       isAdmin: false,
     }
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 export type VolunteerForTextResponse = {

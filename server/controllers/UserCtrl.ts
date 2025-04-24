@@ -9,6 +9,7 @@ import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { logError } from '../logger'
 import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
+import { getClient, runInTransaction } from '../db'
 
 export async function checkReferral(
   referredByCode: string | undefined
@@ -30,11 +31,15 @@ export async function createVolunteer(
   ip: string
 ): Promise<VolunteerRepo.CreatedVolunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
+  const client = getClient()
   // Replaced by VolunteerRepo.createVolunteer
-  const volunteer = await VolunteerRepo.createVolunteer(volunteerData)
+  const volunteer = await runInTransaction(async (tc) => {
+    return VolunteerRepo.createVolunteer(volunteerData)
+  }, client)
 
   // Create a USM object for this new user
   try {
+    // @TODO move all of these subsequent calls into the same transaction
     await USMRepo.createUSMByUserId(volunteer.id)
   } catch (err) {
     captureException(err)
