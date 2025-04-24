@@ -1240,7 +1240,7 @@ export async function createVolunteerProfile(
   }
 }
 
-export async function createVolunteer( // @TODO runInTransaction
+export async function createVolunteer(
   volunteerData: CreateVolunteerPayload,
   client: TransactionClient = getClient()
 ): Promise<CreatedVolunteer> {

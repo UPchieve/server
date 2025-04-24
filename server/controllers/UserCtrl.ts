@@ -33,46 +33,25 @@ export async function createVolunteer(
   volunteerData.password = await hashPassword(volunteerData.password)
   const client = getClient()
   // Replaced by VolunteerRepo.createVolunteer
-  const volunteer = await runInTransaction(async (tc) => {
-    return VolunteerRepo.createVolunteer(volunteerData)
+  return await runInTransaction(async (tc) => {
+    try {
+      const volunteer = await VolunteerRepo.createVolunteer(volunteerData, tc)
+      await USMRepo.createUSMByUserId(volunteer.id, tc)
+      await UPFRepo.createUPFByUserId(volunteer.id, tc)
+      await UserActionRepo.createAccountAction(
+        {
+          action: ACCOUNT_USER_ACTIONS.CREATED,
+          userId: volunteer.id,
+          ipAddress: ip,
+        },
+        tc
+      )
+      await createContact(volunteer.id)
+      return volunteer
+    } catch (err) {
+      captureException(err)
+      logError(err as Error)
+      throw err
+    }
   }, client)
-
-  // Create a USM object for this new user
-  try {
-    // @TODO move all of these subsequent calls into the same transaction
-    await USMRepo.createUSMByUserId(volunteer.id)
-  } catch (err) {
-    captureException(err)
-    logError(err as Error)
-  }
-
-  // Create a UPF object for this new user
-  try {
-    await UPFRepo.createUPFByUserId(volunteer.id)
-  } catch (err) {
-    captureException(err)
-    logError(err as Error)
-  }
-
-  try {
-    await UserActionRepo.createAccountAction({
-      action: ACCOUNT_USER_ACTIONS.CREATED,
-      userId: volunteer.id,
-      ipAddress: ip,
-    })
-  } catch (err) {
-    captureException(err)
-    logError(err as Error)
-  }
-
-  try {
-    // needs id, firstname, lastname, email, isvolunteer, ban type, testuser, admin, deactivated, createdat
-    await createContact(volunteer.id)
-  } catch (err) {
-    captureException(err)
-    logError(err as Error)
-  }
-
-  // needs to return id and partner org for frontend
-  return volunteer
 }
