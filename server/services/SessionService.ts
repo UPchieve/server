@@ -351,7 +351,7 @@ export async function processCalculateMetrics(sessionId: Ulid) {
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   const client = getClient()
   const session = await runInTransaction(async (tc) => {
-    return SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+    return SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId, tc)
   }, client)
 
   const fifteenMinutes = 1000 * 60 * 15
@@ -559,9 +559,10 @@ export async function adminFilteredSessions(data: unknown) {
 export async function adminSessionView(data: unknown) {
   const sessionId = asString(data)
   const client = getClient()
-  const session = await runInTransaction(async (tc) => {
-    return SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
-  }, client)
+  const session = await SessionRepo.getSessionByIdWithStudentAndVolunteer(
+    sessionId,
+    client
+  )
 
   if (
     sessionUtils.isSubjectUsingDocumentEditor(session.toolType) &&

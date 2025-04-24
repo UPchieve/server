@@ -38,9 +38,8 @@ export async function listQuestions(
 
 export async function createQuestion(
   question: Question,
-  transactionClient?: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<Question> {
-  const client = transactionClient ?? getClient()
   try {
     const quizUpsertResult = await pgQueries.upsertQuiz.run(
       { name: question.category },

@@ -555,9 +555,8 @@ export async function getMessagesForFrontend(
 
 export async function getSessionByIdWithStudentAndVolunteer(
   sessionId: Ulid,
-  transactionClient?: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<SessionByIdWithStudentAndVolunteer> {
-  const client = transactionClient ?? getClient()
   try {
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },

@@ -9,7 +9,6 @@ import {
   StudentPartnerOrg,
   StudentPartnerOrgForRegistration,
 } from './types'
-import { School } from '../School'
 import logger from '../../logger'
 
 export async function getStudentPartnerOrgForRegistrationByKey(
