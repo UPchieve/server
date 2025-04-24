@@ -17,9 +17,9 @@ export async function createVolunteer(
   volunteerData.password = await hashPassword(volunteerData.password)
   const client = getClient()
   const volunteer = await runInTransaction(async (tc) => {
-    const v = await VolunteerRepo.createVolunteer(volunteerData)
+    const v = await VolunteerRepo.createVolunteer(volunteerData, tc)
     if (volunteerData.referredBy) {
-      await ReferralService.addReferralFor(v.id, volunteerData.referredBy)
+      await ReferralService.addReferralFor(v.id, volunteerData.referredBy, tc)
     }
     return v
   })

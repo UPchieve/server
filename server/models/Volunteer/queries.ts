@@ -1203,7 +1203,7 @@ export async function createUserVolunteerPartnerOrgInstance(
   return vpoInstanceResult
 }
 
-export async function createVolunteer( // @TODO runInTransaction
+export async function createVolunteer(
   volunteerData: CreateVolunteerPayload,
   client: TransactionClient = getClient()
 ): Promise<CreatedVolunteer> {
