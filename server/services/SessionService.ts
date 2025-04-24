@@ -349,8 +349,11 @@ export async function processCalculateMetrics(sessionId: Ulid) {
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
-  const session =
-    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  const client = getClient()
+  const session = await runInTransaction(async (tc) => {
+    return SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  }, client)
+
   const fifteenMinutes = 1000 * 60 * 15
   const isLongSession = session.timeTutored
     ? session.timeTutored >= fifteenMinutes
@@ -555,8 +558,10 @@ export async function adminFilteredSessions(data: unknown) {
 
 export async function adminSessionView(data: unknown) {
   const sessionId = asString(data)
-  const session =
-    await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  const client = getClient()
+  const session = await runInTransaction(async (tc) => {
+    return SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
+  }, client)
 
   if (
     sessionUtils.isSubjectUsingDocumentEditor(session.toolType) &&
@@ -566,8 +571,10 @@ export async function adminSessionView(data: unknown) {
     session.quillDoc = JSON.stringify(quillDoc)
   }
 
-  const sessionUserAgent =
-    await getSessionRequestedUserAgentFromSessionId(sessionId)
+  const sessionUserAgent = await getSessionRequestedUserAgentFromSessionId(
+    sessionId,
+    client
+  )
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
 
   let sessionPhotos = []

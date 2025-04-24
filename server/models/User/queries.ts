@@ -457,7 +457,8 @@ export type PastSessionForAdmin = {
 export async function getPastSessionsForAdminDetail(
   userId: Ulid,
   limit: number,
-  offset: number
+  offset: number,
+  client: TransactionClient = getClient()
 ): Promise<PastSessionForAdmin[]> {
   try {
     const result = await pgQueries.getPastSessionsForAdminDetail.run(
@@ -488,7 +489,8 @@ export async function getPastSessionsForAdminDetail(
 export async function getUserForAdminDetail(
   userId: Ulid,
   limit: number,
-  offset: number
+  offset: number,
+  client: TransactionClient = getClient()
 ) {
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(

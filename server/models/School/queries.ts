@@ -34,7 +34,7 @@ import { PoolClient } from 'pg'
 
 export async function getSchoolById(
   schoolId: Ulid,
-  client?: PoolClient
+  client?: TransactionClient
 ): Promise<School | undefined> {
   try {
     const result = await pgQueries.getSchoolById.run(
@@ -140,16 +140,16 @@ export async function updateApproval(
 export async function updateIsPartner(
   schoolId: Ulid,
   isPartner: boolean,
-  existingStudentPartnerOrgId: string | undefined
+  existingStudentPartnerOrgId: string | undefined,
+  client?: TransactionClient
 ): Promise<void> {
   if (!existingStudentPartnerOrgId && !isPartner)
     throw new Error(
       `Cannot deactivate student partner org for school ${schoolId}: SPO does not exist`
     )
 
-  const transactionClient = await getClient().connect()
+  const transactionClient = client ?? getClient()
   try {
-    await transactionClient.query('BEGIN')
     // Set schools.partner.
     // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
     const result = await pgQueries.updateIsPartner.run(
@@ -170,24 +170,19 @@ export async function updateIsPartner(
     } else {
       await deactivateSchoolStudentPartnerOrgs(schoolId, transactionClient)
     }
-
-    // @TODO switch to runInTransaction style and move this logic into the service layer.
-    await transactionClient.query('COMMIT')
     if (result.length) return makeRequired(result[0])
   } catch (err) {
-    await transactionClient.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    transactionClient.release()
   }
 }
 
-export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
-  const client = await getClient().connect()
+export async function adminUpdateSchool(
+  data: AdminUpdate,
+  transactionClient?: TransactionClient
+): Promise<void> {
+  const client = transactionClient ?? getClient()
   try {
     const { schoolId, name, city, state, zip, isApproved } = data
-
-    await client.query('BEGIN')
     await pgQueries.adminUpdateSchoolMetaData.run({ schoolId, zip }, client)
 
     // we need to find the city's id, or if it doesn't exist, create it
@@ -204,12 +199,8 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
       { schoolId, name, cityId, isApproved },
       client
     )
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 

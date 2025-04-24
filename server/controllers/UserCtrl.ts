@@ -6,7 +6,8 @@ import * as ReferralService from '../services/ReferralService'
 import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { logError } from '../logger'
-import { ACCOUNT_USER_ACTIONS } from '../constants'
+import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
+import { getClient, runInTransaction } from '../db'
 
 // TODO: Move to UserCreationService.
 export async function createVolunteer(
@@ -14,11 +15,14 @@ export async function createVolunteer(
   ip: string
 ): Promise<VolunteerRepo.CreatedVolunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-
-  const volunteer = await VolunteerRepo.createVolunteer(volunteerData)
-  if (volunteerData.referredBy) {
-    await ReferralService.addReferralFor(volunteer.id, volunteerData.referredBy)
-  }
+  const client = getClient()
+  const volunteer = await runInTransaction(async (tc) => {
+    const v = await VolunteerRepo.createVolunteer(volunteerData)
+    if (volunteerData.referredBy) {
+      await ReferralService.addReferralFor(v.id, volunteerData.referredBy)
+    }
+    return v
+  })
 
   // Create a UPF object for this new user
   try {

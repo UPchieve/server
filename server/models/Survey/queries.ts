@@ -233,12 +233,13 @@ export type SimpleSurveyResponse = {
 }
 
 export async function getPresessionSurveyResponse(
-  sessionId: string
+  sessionId: string,
+  client: TransactionClient = getClient()
 ): Promise<SimpleSurveyResponse[]> {
   try {
     const result = await pgQueries.getPresessionSurveyResponse.run(
       { sessionId },
-      getClient()
+      client
     )
     if (result.length)
       return result.map((row) =>
@@ -261,13 +262,14 @@ export type PostsessionSurveyResponse = {
 
 export async function getPostsessionSurveyResponse(
   sessionId: string,
-  userRole: USER_ROLES_TYPE
+  userRole: USER_ROLES_TYPE,
+  client: TransactionClient = getClient()
 ): Promise<PostsessionSurveyResponse[]> {
   try {
     if (userRole === USER_ROLES.STUDENT) {
       const result = await pgQueries.getStudentPostsessionSurveyResponse.run(
         { sessionId },
-        getClient()
+        client
       )
       if (result.length)
         return result.map((row) => makeSomeOptional(row, ['response']))
@@ -275,7 +277,7 @@ export async function getPostsessionSurveyResponse(
     } else {
       const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
         { sessionId },
-        getClient()
+        client
       )
       if (result.length)
         return result.map((row) => makeSomeOptional(row, ['response']))

@@ -110,6 +110,7 @@ export type LegacyUserModel = {
 export async function getLegacyUserObject(
   userId: Ulid
 ): Promise<LegacyUserModel> {
+  const client = await getClient()
   try {
     const baseResult = await pgQueries.getLegacyUser.run(
       { userId },
