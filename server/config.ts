@@ -407,12 +407,6 @@ const config: Static<typeof Config> = {
   tutorBotHuggingfaceInstanceName:
     process.env.TUTOR_BOT_HUGGINGFACE_INSTANCE_NAME || 'bogus',
 
-  // Zoom
-  zoomTokenExpirationSeconds:
-    Number(process.env.ZOOM_TOKEN_EXPIRATION_SECONDS) || 60 * 60 * 2,
-  zoomVideoSdkKey: process.env.ZOOM_VIDEO_SDK_KEY || 'bogus',
-  zoomVideoSdkSecret: process.env.ZOOM_VIDEO_SDK_SECRET || 'bogus',
-
   // Moderation
   liveMediaBanInfractionScoreThreshold:
     Number(process.env.LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,

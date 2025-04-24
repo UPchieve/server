@@ -421,25 +421,6 @@ export function routeSession(router: Router) {
     }
   })
 
-  const createSessionAudioRequestValidator =
-    asFactory<CreateSessionAudioPayload>({
-      volunteerJoinedAt: asOptional(asDate),
-      studentJoinedAt: asOptional(asDate),
-      resourceUri: asOptional(asString),
-    })
-  router.post('/sessions/:sessionId/call', async function (req, res) {
-    try {
-      const sessionId = req.params.sessionId as string
-      const result = await SessionService.getOrCreateSessionAudio(
-        sessionId,
-        createSessionAudioRequestValidator(req.body)
-      )
-      return res.json({ sessionAudio: result })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router.post('/sessions/:sessionId/meeting', async function (req, res) {
     try {
       const sessionId = req.params.sessionId
@@ -493,23 +474,4 @@ export function routeSession(router: Router) {
       }
     }
   )
-
-  const updateSessionAudioRequestValidator =
-    asFactory<UpdateSessionAudioPayload>({
-      volunteerJoinedAt: asOptional(asDate),
-      studentJoinedAt: asOptional(asDate),
-      resourceUri: asOptional(asString),
-    })
-  router.put('/sessions/:sessionId/call', async function (req, res) {
-    try {
-      const sessionId = req.params.sessionId as string
-      const updated = await SessionService.updateSessionAudio(
-        sessionId,
-        updateSessionAudioRequestValidator(req.body)
-      )
-      return res.json({ sessionAudio: updated })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }

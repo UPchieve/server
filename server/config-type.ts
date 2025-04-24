@@ -265,11 +265,6 @@ export const Config = Record({
   tutorBotHuggingfaceNamespace: String,
   tutorBotHuggingfaceInstanceName: String,
 
-  // Zoom
-  zoomTokenExpirationSeconds: Number,
-  zoomVideoSdkKey: String,
-  zoomVideoSdkSecret: String,
-
   // Moderation
   liveMediaBanInfractionScoreThreshold: Number,
   imageModerationMinConfidence: Number,
