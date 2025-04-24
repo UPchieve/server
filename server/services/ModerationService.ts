@@ -711,7 +711,10 @@ function maybeHandleImageModerationFailure(options: {
   userId: string
   sessionId: string
   image: Buffer
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }) {
   return function (failures: ImageModerationFailureReason[]) {
     if (failures.length > 0) {
