@@ -157,7 +157,11 @@ export async function startTranscription(meetingId: string) {
         MeetingId: meetingId,
         TranscriptionConfiguration: {
           EngineTranscribeSettings: {
-            LanguageCode: 'en-US',
+            IdentifyLanguage: true,
+            // These are the top 5 languages spoken by our tutors
+            // English, Spanish, Mandarin, French, and Korean
+            LanguageOptions: 'en-US,es-US,zh-CN,fr-FR,ko-KR',
+            PreferredLanguage: 'en-US',
           },
         },
       })
