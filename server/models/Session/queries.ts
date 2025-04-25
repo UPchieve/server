@@ -567,12 +567,10 @@ export type SessionResult = {
 export async function getSessionForAdminView(
   sessionId: Ulid
 ): Promise<SessionResult> {
-  const client = await getClient().connect()
-
-  try {
+   try {
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },
-      client
+      getClient()
     )
 
     if (!sessionResult.length) throw new Error('Session not found')
