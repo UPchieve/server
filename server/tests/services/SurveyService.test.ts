@@ -115,7 +115,7 @@ describe('saveUserSurvey', () => {
     )
   })
 
-  test(`Should trigger ${FEEDBACK_EVENTS.FEEDBACK_SAVED} after saving user survey`, async () => {
+  test(`Should trigger ${FEEDBACK_EVENTS.FEEDBACK_SAVED} after saving postsession survey`, async () => {
     const sessionId = getDbUlid()
     const userSurvey = buildUserSurvey({ sessionId })
     const submissions = [
@@ -127,6 +127,9 @@ describe('saveUserSurvey', () => {
     const userId = getDbUlid()
 
     mockedSurveyRepo.saveUserSurveyAndSubmissions.mockResolvedValueOnce()
+    mockedSurveyRepo.getSurveyTypeFromSurveyTypeId.mockResolvedValueOnce(
+      'postsession'
+    )
 
     await SurveyService.saveUserSurvey(userId, data)
     const expectedUserSurvey = {

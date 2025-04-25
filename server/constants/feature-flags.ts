@@ -15,4 +15,5 @@ export enum FEATURE_FLAGS {
   TEACHER_GETTING_STARTED_ASSIGNMENT = 'teacher-getting-started-assignment',
   GENERATE_SESSION_SUMMARY = 'generate-session-summary',
   GET_SESSION_SUMMARY = 'get-session-summary',
+  UPDATED_SESSION_ENDED_PROCESSING = 'updated-session-ended-processing',
 }

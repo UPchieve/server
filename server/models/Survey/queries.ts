@@ -421,3 +421,17 @@ export async function getSurveyIdForLatestImpactStudySurveySubmission(
     throw new RepoReadError(err)
   }
 }
+
+export async function getSurveyTypeFromSurveyTypeId(
+  surveyTypeId: number
+): Promise<SurveyType | undefined> {
+  try {
+    const result = await pgQueries.getSurveyTypeFromSurveyTypeId.run(
+      { surveyTypeId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).surveyType as SurveyType
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
