@@ -521,3 +521,12 @@ ORDER BY
     users_surveys.created_at DESC
 LIMIT 1;
 
+
+/* @name getSurveyTypeFromSurveyTypeId */
+SELECT
+    name AS survey_type
+FROM
+    survey_types
+WHERE
+    id = :surveyTypeId!;
+

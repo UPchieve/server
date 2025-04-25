@@ -64,6 +64,7 @@ import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
+  isUpdatedSessionEndedProcessingEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
@@ -76,8 +77,7 @@ import { getFeedbackBySessionId } from '../models/Feedback/queries'
 import { getPresessionSurveyResponse } from '../models/Survey'
 import { getSessionNotificationsWithSessionId } from '../models/Notification'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
-import { getSessionRating } from '../models/Survey'
-import { KeyNotFoundError } from '../cache'
+import { processReportMetrics } from './SessionFlagsService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -182,7 +182,9 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     }
   }
 
-  emitter.emit(SESSION_EVENTS.SESSION_REPORTED, session.id)
+  if (await isUpdatedSessionEndedProcessingEnabled(session.studentId))
+    await processReportMetrics(sessionId)
+  else emitter.emit(SESSION_EVENTS.SESSION_REPORTED, session.id)
 
   // Queue up job to send reporting alert emails
   const emailData = {
@@ -211,13 +213,13 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 }
 
 export async function endSession(
-  sessionId: Ulid,
-  endedBy: Ulid | null = null,
+  sessionId: Uuid,
+  endedBy: Uuid | null = null,
   isAdmin: boolean = false,
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
 ) {
-  await runInTransaction(async (tc: TransactionClient) => {
+  const endedSession = await runInTransaction(async (tc: TransactionClient) => {
     const reqIdentifiers = identifiers
       ? sessionUtils.asRequestIdentifiers(identifiers)
       : undefined
@@ -264,11 +266,24 @@ export async function endSession(
         },
         tc
       )
+
+    return session
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  emitter.emit(SESSION_EVENTS.SESSION_ENDED, sessionId)
+  if (await isUpdatedSessionEndedProcessingEnabled(endedSession.student.id))
+    QueueService.add(
+      Jobs.ProcessSessionEnded,
+      {
+        sessionId,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: false,
+      }
+    )
+  else emitter.emit(SESSION_EVENTS.SESSION_ENDED, sessionId)
 }
 
 export async function processSessionReported(sessionId: Ulid) {
@@ -314,7 +329,8 @@ export async function processCalculateMetrics(sessionId: Ulid) {
     timeTutored = await sessionUtils.calculateTimeTutored(session)
 
   await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
-  emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
+  if (!(await isUpdatedSessionEndedProcessingEnabled(session.studentId)))
+    emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
