@@ -567,7 +567,7 @@ export type SessionResult = {
 export async function getSessionForAdminView(
   sessionId: Ulid
 ): Promise<SessionResult> {
-   try {
+  try {
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },
       getClient()
