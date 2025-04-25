@@ -180,3 +180,10 @@ export async function isUpdatedSessionEndedProcessingEnabled(userId: Uuid) {
     userId
   )
 }
+
+export async function getDisplayVolunteerLanguagesFlag(userId: Uuid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.DISPLAY_VOLUNTEER_LANGUAGES,
+    userId
+  )
+}

@@ -16,4 +16,5 @@ export enum FEATURE_FLAGS {
   GENERATE_SESSION_SUMMARY = 'generate-session-summary',
   GET_SESSION_SUMMARY = 'get-session-summary',
   UPDATED_SESSION_ENDED_PROCESSING = 'updated-session-ended-processing',
+  DISPLAY_VOLUNTEER_LANGUAGES = 'display-volunteer-languages',
 }
