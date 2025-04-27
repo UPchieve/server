@@ -281,7 +281,7 @@ export async function endSession(
       },
       {
         removeOnComplete: true,
-        removeOnFail: false,
+        removeOnFail: true,
       }
     )
 
