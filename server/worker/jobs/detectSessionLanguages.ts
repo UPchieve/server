@@ -50,9 +50,14 @@ export default async (
     }
 
     const languages = await detectLanguages(transcript)
+    const languageCodes =
+      languages?.map((lang) => lang.LanguageCode).join(',') || ''
+    const primaryLanguage = languages?.[0]?.LanguageCode || ''
     captureEvent(session.studentId, EVENTS.SESSION_LANGUAGES_DETECTED, {
       sessionId: sessionId,
-      languages,
+      languages: languageCodes,
+      primaryLanguage,
+      rawLanguages: languages,
     })
   } catch (error) {
     throw new Error(
