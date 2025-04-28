@@ -109,14 +109,14 @@ export async function initiateVerification(data: unknown): Promise<void> {
 
   if (isPhoneVerification) {
     if (!isValidInternationalPhoneNumber(sendTo)) {
-      logger.error(logData, 'Invalid phone number provided for verification.')
+      logger.warn(logData, 'Invalid phone number provided for verification.')
       throw new InputError('Must supply a valid phone number')
     }
     existingUserId = await getUserIdByPhone(sendTo)
   } else {
     // email verification
     if (!isValidEmail(sendTo)) {
-      logger.error(logData, 'Invalid email provided for verification.')
+      logger.warn(logData, 'Invalid email provided for verification.')
       throw new InputError('Must supply a valid email address')
     }
     existingUserId = await getUserIdByEmail(sendTo)

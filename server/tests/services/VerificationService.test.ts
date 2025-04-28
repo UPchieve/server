@@ -313,7 +313,7 @@ describe('VerificationService', () => {
         await expect(async () =>
           VerificationService.initiateVerification(req)
         ).rejects.toThrow(new InputError(expectedErrorMsg))
-        expect(mockLogger.error).toHaveBeenCalledWith(
+        expect(mockLogger.warn).toHaveBeenCalledWith(
           expect.objectContaining({
             sendTo: req.sendTo,
             userId: req.userId,
