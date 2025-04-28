@@ -97,29 +97,28 @@ export async function initiateVerification(data: unknown): Promise<void> {
     initialVerificationMethod
   )
 
+  const logData = {
+    userId,
+    sendTo,
+    verificationMethod,
+  }
+
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
   let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
 
   if (isPhoneVerification) {
     if (!isValidInternationalPhoneNumber(sendTo)) {
-      logger.warn(
-        { phone: sendTo },
-        'Invalid phone number provided for verification.'
-      )
+      logger.warn(logData, 'Invalid phone number provided for verification.')
       throw new InputError('Must supply a valid phone number')
     }
-
-    existingUserErrorMessage = 'The phone number you entered is already in use'
     existingUserId = await getUserIdByPhone(sendTo)
   } else {
     // email verification
     if (!isValidEmail(sendTo)) {
-      logger.warn({ email: sendTo }, 'Invalid email provided for verification.')
+      logger.warn(logData, 'Invalid email provided for verification.')
       throw new InputError('Must supply a valid email address')
     }
-
-    existingUserErrorMessage = 'The email address you entered is already in use'
     existingUserId = await getUserIdByEmail(sendTo)
 
     if (
@@ -129,7 +128,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
       !existingUserId
     ) {
       logger.warn(
-        { userId: existingUserId },
+        { ...logData, existingUserId },
         'Email addresses in verify did not match.'
       )
       throw new LookupError(
@@ -139,8 +138,15 @@ export async function initiateVerification(data: unknown): Promise<void> {
   }
 
   // Make sure the user from DB matches the one in the request
-  if (existingUserId && !(userId === existingUserId))
-    throw new AlreadyInUseError(existingUserErrorMessage)
+  if (existingUserId && !(userId === existingUserId)) {
+    logger.warn(
+      logData,
+      `Cannot complete verification - phone or email is already in use`
+    )
+    throw new AlreadyInUseError(
+      'The phone number or email address provided for verification is already in use'
+    )
+  }
 
   try {
     await TwilioService.sendVerification(
@@ -156,7 +162,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
     }
     logger.error(
       {
-        userId: existingUserId,
+        ...logData,
         ...error,
       },
       'Failed to send Twilio verification code.'

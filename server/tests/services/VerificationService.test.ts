@@ -231,8 +231,8 @@ import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
-import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as UserService from '../../services/UserService'
+import logger from '../../logger'
 import {
   AlreadyInUseError,
   InputError,
@@ -248,12 +248,13 @@ jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
+jest.mock('../../logger')
 
 const mockedTwilioService = mocked(TwilioService)
 const mockedUserRepo = mocked(UserRepo)
 const mockedUserService = mocked(UserService)
 const mockedMailService = mocked(MailService)
-const mockFeatureFlagService = mocked(FeatureFlagService)
+const mockLogger = mocked(logger)
 
 describe('VerificationService', () => {
   beforeEach(async () => {
@@ -312,6 +313,14 @@ describe('VerificationService', () => {
         await expect(async () =>
           VerificationService.initiateVerification(req)
         ).rejects.toThrow(new InputError(expectedErrorMsg))
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            sendTo: req.sendTo,
+            userId: req.userId,
+            verificationMethod: req.verificationMethod,
+          }),
+          'Invalid phone number provided for verification.'
+        )
       }
     )
 
@@ -325,6 +334,14 @@ describe('VerificationService', () => {
       await expect(async () =>
         VerificationService.initiateVerification(req)
       ).rejects.toThrow(AlreadyInUseError)
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: req.userId,
+          verificationMethod: req.verificationMethod,
+          sendTo: req.sendTo,
+        }),
+        'Cannot complete verification - phone or email is already in use'
+      )
     })
 
     it('Should throw a LookupError if the sendTo email does not match the email in DB', async () => {
@@ -338,6 +355,14 @@ describe('VerificationService', () => {
       await expect(async () =>
         VerificationService.initiateVerification(req)
       ).rejects.toThrow(LookupError)
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: req.userId,
+          verificationMethod: req.verificationMethod,
+          sendTo: req.sendTo,
+        }),
+        'Email addresses in verify did not match.'
+      )
     })
 
     it('Should throw a TwilioError if one is thrown by the TwilioService', async () => {
@@ -352,6 +377,16 @@ describe('VerificationService', () => {
       await expect(() =>
         VerificationService.initiateVerification(req)
       ).rejects.toThrow(expectedErr)
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: req.userId,
+          verificationMethod: req.verificationMethod,
+          sendTo: req.sendTo,
+          message: expectedErr.message,
+          status: expectedErr.status,
+        }),
+        'Failed to send Twilio verification code.'
+      )
     })
 
     describe('SMS Verification flag', () => {
