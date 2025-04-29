@@ -2,11 +2,9 @@ import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import * as SessionService from '../../services/SessionService'
 import { buildUserContactInfo } from '../mocks/generate'
-import { KeyNotFoundError } from '../../cache'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import { authPassport } from '../../utils/auth-utils'
 import { routes as routeStats } from '../../router/api/stats'
-import * as SessionUtils from '../../utils/session-utils'
 
 jest.mock('../../services/SessionService')
 const mockedSessionService = mocked(SessionService)
@@ -227,15 +225,13 @@ describe(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, () => {
 
   test('Should send wait time heat map with valid GET request', async () => {
     const payload = {}
-    mockedSessionService.getWaitTimeHeatMap.mockImplementationOnce(
-      async () => mockedHeatMap
-    )
+    mockedSessionService.getWaitTimeHeatMap.mockResolvedValue(mockedHeatMap)
     const response = await sendGet(VOLUNTEER_WAIT_TIME_HEAT_MAP_PATH, payload)
+    expect(response.status).toBe(200)
     const {
       body: { heatMap },
     } = response
     expect(SessionService.getWaitTimeHeatMap).toHaveBeenCalledTimes(1)
     expect(heatMap).toEqual(mockedHeatMap)
-    expect(response.status).toBe(200)
   })
 })
