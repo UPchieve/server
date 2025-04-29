@@ -62,6 +62,7 @@ import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
+  getDisplayVolunteerLanguagesFlag,
   getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
   isUpdatedSessionEndedProcessingEnabled,
@@ -271,6 +272,18 @@ export async function endSession(
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
+
+  if (await getDisplayVolunteerLanguagesFlag(endedSession.student.id))
+    QueueService.add(
+      Jobs.DetectSessionLanguages,
+      {
+        sessionId,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    )
 
   if (await isUpdatedSessionEndedProcessingEnabled(endedSession.student.id))
     QueueService.add(
