@@ -24,6 +24,8 @@ const AWS_CONFIG = {
 }
 const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
 
+const MINIMUM_TRANSCRIPT_LENGTH_FOR_LANGUAGE_DETECTION = 20
+
 async function detectLanguages(text: string) {
   const response = await awsComprehendClient.send(
     new DetectDominantLanguageCommand({
@@ -44,7 +46,10 @@ export default async (
   try {
     const messages = await getMessagesForFrontend(session.id)
     const transcript = messages.map((msg) => msg.contents).join(' ')
-    if (!transcript || transcript.length < 20) {
+    if (
+      !transcript ||
+      transcript.length < MINIMUM_TRANSCRIPT_LENGTH_FOR_LANGUAGE_DETECTION
+    ) {
       log(`Not enough content to detect language for session ${session.id}`)
       return
     }
