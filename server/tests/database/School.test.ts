@@ -12,6 +12,7 @@ import {
   buildStudentPartnerOrgUpchieveInstance,
 } from '../mocks/generate'
 import * as SchoolService from '../../services/SchoolService'
+import { schoolSearch } from '../../models/School'
 
 const client = getClient()
 
@@ -307,5 +308,63 @@ describe('getPartnerSchools', () => {
           .length
       ).toEqual(1)
     })
+  })
+})
+
+describe('schoolSearch', () => {
+  let schools: any[] = []
+  beforeAll(async () => {
+    const school1 = await insertSingleRow(
+      'schools',
+      buildSchool({
+        name: "St. Malzie's School of Cats",
+      }),
+      client
+    )
+    const school2 = await insertSingleRow(
+      'schools',
+      buildSchool({
+        name: 'St Malzies School of Cats',
+      }),
+      client
+    )
+    const school3 = await insertSingleRow(
+      'schools',
+      buildSchool({
+        name: 'St Malzies School of Hippopotami',
+      }),
+      client
+    )
+    const school4 = await insertSingleRow(
+      'schools',
+      buildSchool({
+        name: 'School for dogs',
+      }),
+      client
+    )
+    schools = [school1, school2, school3, school4]
+  })
+
+  it('Returns the most exact match first', async () => {
+    const results = await schoolSearch(schools[0].name)
+    expect(results[0]).toEqual(
+      expect.objectContaining({
+        id: schools[0].id,
+        name: schools[0].name,
+      })
+    )
+  })
+
+  it('Returns fuzzy matches within the similarity threshold', async () => {
+    const results = await schoolSearch('St Malzies')
+    expect(results.length).toEqual(3)
+    expect(new Set(results.map((r) => r.name))).toEqual(
+      new Set([schools[0].name, schools[1].name, schools[2].name])
+    )
+  })
+
+  it('Returns no match when outside of the similarity threshold', async () => {
+    const results = await schoolSearch('water')
+    expect(results.length).toEqual(0)
   })
 })
