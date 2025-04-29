@@ -137,13 +137,17 @@ SELECT
     COALESCE(schools.name, meta.sch_name) AS name,
     COALESCE(cities.us_state_code, meta.st) AS state,
     COALESCE(cities.name, meta.lcity) AS city,
-    meta.lea_name AS district
+    meta.lea_name AS district,
+    public.similarity (schools.name, :query!::text) AS similarity_score
 FROM
     schools
     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
     LEFT JOIN cities ON schools.city_id = cities.id
 WHERE
-    schools.name ILIKE '%' || :query! || '%'
+    schools.name OPERATOR (public. %)
+    :query!::text
+ORDER BY
+    similarity_score DESC
 LIMIT 100;
 
 

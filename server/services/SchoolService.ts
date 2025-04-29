@@ -30,23 +30,16 @@ export async function search(query: string): Promise<SchoolForFrontend[]> {
   const q = query.substring(0, 70) // avoid prohibitively long queries for performance reasons
   const results = await SchoolRepo.schoolSearch(q)
 
-  return results
-    .sort((s1: SchoolRepo.School, s2: SchoolRepo.School) => {
-      if (s1.name && s2.name) {
-        return s1.name.localeCompare(s2.name)
-      }
-      return 0
-    })
-    .map((school) => {
-      return {
-        id: school.id,
-        upchieveId: school.id,
-        name: school.name,
-        districtName: school.district,
-        city: school.city,
-        state: school.state,
-      }
-    })
+  return results.map((school) => {
+    return {
+      id: school.id,
+      upchieveId: school.id,
+      name: school.name,
+      districtName: school.district,
+      city: school.city,
+      state: school.state,
+    }
+  })
 }
 
 export async function getSchool(schoolId: Ulid): Promise<SchoolRepo.School> {

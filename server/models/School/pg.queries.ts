@@ -280,6 +280,7 @@ export interface ISchoolSearchResult {
   district: string | null;
   id: string;
   name: string | null;
+  similarityScore: number | null;
   state: string | null;
 }
 
@@ -289,7 +290,7 @@ export interface ISchoolSearchQuery {
   result: ISchoolSearchResult;
 }
 
-const schoolSearchIR: any = {"usedParamSet":{"query":true},"params":[{"name":"query","required":true,"transform":{"type":"scalar"},"locs":[{"a":381,"b":387}]}],"statement":"SELECT\n    schools.id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    COALESCE(cities.name, meta.lcity) AS city,\n    meta.lea_name AS district\nFROM\n    schools\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN cities ON schools.city_id = cities.id\nWHERE\n    schools.name ILIKE '%' || :query! || '%'\nLIMIT 100"};
+const schoolSearchIR: any = {"usedParamSet":{"query":true},"params":[{"name":"query","required":true,"transform":{"type":"scalar"},"locs":[{"a":243,"b":249},{"a":466,"b":472}]}],"statement":"SELECT\n    schools.id,\n    COALESCE(schools.name, meta.sch_name) AS name,\n    COALESCE(cities.us_state_code, meta.st) AS state,\n    COALESCE(cities.name, meta.lcity) AS city,\n    meta.lea_name AS district,\n    public.similarity (schools.name, :query!::text) AS similarity_score\nFROM\n    schools\n    LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id\n    LEFT JOIN cities ON schools.city_id = cities.id\nWHERE\n    schools.name OPERATOR (public. %)\n    :query!::text\nORDER BY\n    similarity_score DESC\nLIMIT 100"};
 
 /**
  * Query generated from SQL:
@@ -299,13 +300,17 @@ const schoolSearchIR: any = {"usedParamSet":{"query":true},"params":[{"name":"qu
  *     COALESCE(schools.name, meta.sch_name) AS name,
  *     COALESCE(cities.us_state_code, meta.st) AS state,
  *     COALESCE(cities.name, meta.lcity) AS city,
- *     meta.lea_name AS district
+ *     meta.lea_name AS district,
+ *     public.similarity (schools.name, :query!::text) AS similarity_score
  * FROM
  *     schools
  *     LEFT JOIN school_nces_metadata meta ON schools.id = meta.school_id
  *     LEFT JOIN cities ON schools.city_id = cities.id
  * WHERE
- *     schools.name ILIKE '%' || :query! || '%'
+ *     schools.name OPERATOR (public. %)
+ *     :query!::text
+ * ORDER BY
+ *     similarity_score DESC
  * LIMIT 100
  * ```
  */
