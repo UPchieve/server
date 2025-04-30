@@ -687,7 +687,6 @@ export async function getCurrentSessionByUserId(
 ): Promise<CurrentSession | undefined> {
   try {
     const result = await pgQueries.getCurrentSessionByUserId.run({ userId }, tc)
-    console.log('****result', result)
     if (!result.length) return
     else {
       const session = makeSomeOptional(result[0], [

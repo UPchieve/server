@@ -691,7 +691,7 @@ SELECT
     users.first_name AS firstname,
     users.first_name,
     past_sessions.total AS past_sessions,
-    grade_levels.name AS grade_level
+    cgl.current_grade_name AS grade_level
 FROM
     users
     LEFT JOIN sessions ON sessions.student_id = users.id
@@ -705,13 +705,13 @@ FROM
             s.student_id = users.id
             OR s.volunteer_id = users.id) AS past_sessions ON TRUE
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
+    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
 WHERE
     sessions.id = :sessionId!
 GROUP BY
     users.id,
     past_sessions.total,
-    grade_levels.name;
+    cgl.current_grade_name;
 
 
 /* @name getLatestSessionByStudentId */
