@@ -1,4 +1,5 @@
 stages:
+  - test_new_relic
   - build
   - test
   - deploy
@@ -115,7 +116,7 @@ deploy_staging:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 new_relic_deploy_tracker_staging:
-  stage: post-deploy
+  stage: test_new_relic
   script: >
     curl -X POST https://api.newrelic.com/graphql
     -H 'content-type: application/json; charset=utf-8'
