@@ -700,10 +700,10 @@ FROM
         SELECT
             array_agg(s.id ORDER BY s.created_at) AS total
         FROM
-            sessions s
+            sessions
         WHERE
-            s.student_id = users.id
-            OR s.volunteer_id = users.id) AS past_sessions ON TRUE
+            sessions.student_id = users.id
+            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
 WHERE
