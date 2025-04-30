@@ -1463,6 +1463,7 @@ export interface IGetSessionUsersResult {
   createdAt: Date;
   firstname: string;
   firstName: string;
+  gradeLevel: string;
   id: string;
   pastSessions: stringArray | null;
 }
@@ -1473,7 +1474,7 @@ export interface IGetSessionUsersQuery {
   result: IGetSessionUsersResult;
 }
 
-const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":540,"b":550}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id\n            OR volunteer_id = users.id) AS past_sessions ON TRUE\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total"};
+const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":720,"b":730}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    grade_levels.name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(s.id ORDER BY s.created_at) AS total\n        FROM\n            sessions s\n        WHERE\n            s.student_id = users.id\n            OR s.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    grade_levels.name"};
 
 /**
  * Query generated from SQL:
@@ -1483,24 +1484,28 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *     users.id,
  *     users.first_name AS firstname,
  *     users.first_name,
- *     past_sessions.total AS past_sessions
+ *     past_sessions.total AS past_sessions,
+ *     grade_levels.name AS grade_level
  * FROM
  *     users
  *     LEFT JOIN sessions ON sessions.student_id = users.id
  *         OR sessions.volunteer_id = users.id
  *     LEFT JOIN LATERAL (
  *         SELECT
- *             array_agg(sessions.id ORDER BY sessions.created_at) AS total
+ *             array_agg(s.id ORDER BY s.created_at) AS total
  *         FROM
- *             sessions
+ *             sessions s
  *         WHERE
- *             student_id = users.id
- *             OR volunteer_id = users.id) AS past_sessions ON TRUE
+ *             s.student_id = users.id
+ *             OR s.volunteer_id = users.id) AS past_sessions ON TRUE
+ *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+ *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
  * WHERE
  *     sessions.id = :sessionId!
  * GROUP BY
  *     users.id,
- *     past_sessions.total
+ *     past_sessions.total,
+ *     grade_levels.name
  * ```
  */
 export const getSessionUsers = new PreparedQuery<IGetSessionUsersParams,IGetSessionUsersResult>(getSessionUsersIR);

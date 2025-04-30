@@ -690,24 +690,28 @@ SELECT
     users.id,
     users.first_name AS firstname,
     users.first_name,
-    past_sessions.total AS past_sessions
+    past_sessions.total AS past_sessions,
+    grade_levels.name AS grade_level
 FROM
     users
     LEFT JOIN sessions ON sessions.student_id = users.id
         OR sessions.volunteer_id = users.id
     LEFT JOIN LATERAL (
         SELECT
-            array_agg(sessions.id ORDER BY sessions.created_at) AS total
+            array_agg(s.id ORDER BY s.created_at) AS total
         FROM
-            sessions
+            sessions s
         WHERE
-            student_id = users.id
-            OR volunteer_id = users.id) AS past_sessions ON TRUE
+            s.student_id = users.id
+            OR s.volunteer_id = users.id) AS past_sessions ON TRUE
+    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
+    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
 WHERE
     sessions.id = :sessionId!
 GROUP BY
     users.id,
-    past_sessions.total;
+    past_sessions.total,
+    grade_levels.name;
 
 
 /* @name getLatestSessionByStudentId */
