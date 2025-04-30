@@ -121,10 +121,10 @@ new_relic_deploy_tracker_staging:
     NEW_RELIC_DEPLOYMENT_USER_KEY: $NEW_RELIC_DEPLOYMENT_USER_KEY
     NEW_RELIC_SERVICE_GUID_STAGING: $NEW_RELIC_SERVICE_GUID_STAGING
   script: >
-    curl -v https://api.newrelic.com/graphql
+    echo https://api.newrelic.com/graphql
     -H 'content-type: application/json; charset=utf-8'
     -H "API-Key: $NEW_RELIC_DEPLOYMENT_USER_KEY"
-    --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: "'$CI_COMMIT_SHA'", entityGuid: "'$NEW_RELIC_SERVICE_GUID_STAGING'"}) { deploymentId timestamp } }"}'
+    --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"'$CI_COMMIT_SHA'\", entityGuid: \"'$NEW_RELIC_SERVICE_GUID_STAGING'\"}) { deploymentId timestamp } }"}'
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
