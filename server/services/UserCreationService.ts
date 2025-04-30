@@ -12,7 +12,10 @@ import {
   RegisterStudentWithPGPayload,
   RegisterTeacherPayload,
 } from '../utils/auth-utils'
-import { sendReset, sendRosterStudentSetPasswordEmail } from './MailService'
+import {
+  sendRosterStudentSetPasswordEmail,
+  sendStudentParentGuardianCreatedAccountEmail,
+} from './MailService'
 import * as UserRepo from '../models/User'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
@@ -236,7 +239,10 @@ export async function registerStudent(
         tc
       )
       await linkParentGuardianToStudent(parentGuardian.id, user.id, tc)
-      await sendReset(data.email, passwordResetToken)
+      await sendStudentParentGuardianCreatedAccountEmail(
+        data.email,
+        passwordResetToken
+      )
     }
 
     return user

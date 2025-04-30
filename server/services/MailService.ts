@@ -168,9 +168,11 @@ export async function sendContactForm(requestData: ContactData): Promise<void> {
   )
 }
 
-export async function sendReset(email: string, token: string): Promise<void> {
-  const url = `https://${config.client.host}/setpassword?token=${token}`
+function createSetPasswordUrl(token: string) {
+  return `https://${config.client.host}/setpassword?token=${token}`
+}
 
+export async function sendReset(email: string, token: string): Promise<void> {
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -182,7 +184,7 @@ export async function sendReset(email: string, token: string): Promise<void> {
     config.sendgrid.resetTemplate,
     {
       userEmail: email,
-      resetLink: url,
+      resetLink: createSetPasswordUrl(token),
     },
     overrides
   )
@@ -259,6 +261,22 @@ export async function sendTeacherOnboardingWelcomeEmail(
     config.sendgrid.teacherOnboardingWelcomeTemplate,
     { firstName },
     overrides
+  )
+}
+
+export async function sendStudentParentGuardianCreatedAccountEmail(
+  email: string,
+  token: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.programsManager,
+    'UPchieve',
+    config.sendgrid.studentParentGuardianCreatedAccountTemplate,
+    {
+      userEmail: email,
+      resetLink: createSetPasswordUrl(token),
+    }
   )
 }
 
