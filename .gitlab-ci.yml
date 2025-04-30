@@ -115,19 +115,6 @@ deploy_staging:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-new_relic_deploy_tracker_staging:
-  stage: test_new_relic
-  variables:
-    NEW_RELIC_DEPLOYMENT_USER_KEY: $NEW_RELIC_DEPLOYMENT_USER_KEY
-    NEW_RELIC_SERVICE_GUID_STAGING: $NEW_RELIC_SERVICE_GUID_STAGING
-  script: >
-    curl -v https://api.newrelic.com/graphql
-    -H 'content-type: application/json; charset=utf-8'
-    -H "API-Key: $NEW_RELIC_DEPLOYMENT_USER_KEY"
-    --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"'$CI_COMMIT_SHA'\", entityGuid: \"'$NEW_RELIC_SERVICE_GUID_STAGING'\"}) { deploymentId timestamp } }"}'
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
-
 deploy_production:
   extends: .deploy
   environment:
@@ -164,11 +151,14 @@ new_relic_deploy_tracker_production:
   stage: post-deploy
   needs:
     - job: deploy_production
+  variables:
+    NEW_RELIC_DEPLOYMENT_USER_KEY: $NEW_RELIC_DEPLOYMENT_USER_KEY
+    NEW_RELIC_SERVICE_GUID_PRODUCTION: $NEW_RELIC_SERVICE_GUID_PRODUCTION
   script: >
-    curl -X POST https://api.newrelic.com/graphql \
-    -H 'content-type: application/json; charset=utf-8' \
-    -H 'API-Key: ${NEW_RELIC_DEPLOYMENT_USER_KEY}' \
-    --data-raw "{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"'${CI_COMMIT_SHA}'\", entityGuid: \"'${NEW_RELIC_SERVICE_GUID_PRODUCTION}'\"}) { deploymentId timestamp } }"}"
+    curl -v https://api.newrelic.com/graphql
+    -H 'content-type: application/json; charset=utf-8'
+    -H "API-Key: $NEW_RELIC_DEPLOYMENT_USER_KEY"
+    --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"'$CI_COMMIT_SHA'\", entityGuid: \"'$NEW_RELIC_SERVICE_GUID_PRODUCTION'\"}) { deploymentId timestamp } }"}'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
