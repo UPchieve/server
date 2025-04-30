@@ -7,7 +7,7 @@ import { getDbUlid, Ulid } from '../../models/pgUtils'
 jest.mock('../../models/School')
 const mockSchoolRepo = mocked(SchoolRepo)
 
-describe('SchoolService', () => {
+describe('search', () => {
   beforeEach(() => {
     jest.resetAllMocks()
   })
