@@ -1110,6 +1110,7 @@ export async function updateSessionReviewReasonsById(
   try {
     const dbClient = client ?? getClient()
     if (reviewReasons.length) {
+      // @TODO Run in transaction.
       const insertReviewReasonsResult =
         await pgQueries.insertSessionReviewReasons.run(
           { sessionId, reviewReasons },
@@ -1119,14 +1120,17 @@ export async function updateSessionReviewReasonsById(
         throw new Error(
           'Query to insert session review reasons did not return any results'
         )
-    }
 
-    const updateSessionResult = await pgQueries.updateSessionToReview.run(
-      { sessionId, reviewed },
-      dbClient
-    )
-    if (!updateSessionResult.length && makeRequired(updateSessionResult[0]).ok)
-      throw new Error('Updating to_review did not return ok')
+      const updateSessionResult = await pgQueries.updateSessionToReview.run(
+        { sessionId, reviewed },
+        dbClient
+      )
+      if (
+        !updateSessionResult.length &&
+        makeRequired(updateSessionResult[0]).ok
+      )
+        throw new Error('Updating to_review did not return ok')
+    }
   } catch (err) {
     throw new RepoCreateError(err)
   }
