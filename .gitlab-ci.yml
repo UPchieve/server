@@ -114,7 +114,7 @@ deploy_staging:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
-stg_new_relic_deploy_tracker:
+new_relic_deploy_tracker_staging:
   stage: post-deploy
   needs:
     - job: deploy_staging
@@ -122,7 +122,7 @@ stg_new_relic_deploy_tracker:
   - curl -X POST https://api.newrelic.com/graphql \
   - -H 'content-type: application/json; charset=utf-8' \
   - -H 'API-Key: ${NEW_RELIC_DEPLOYMENT_USER_KEY}' \
-  - --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"${CI_COMMIT_SHA}\", entityGuid: \"${NEW_RELIC_SERVICE_GUID}\"}) { deploymentId timestamp } }"}'
+  - --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"${CI_COMMIT_SHA}\", entityGuid: \"${NEW_RELIC_SERVICE_GUID_STAGING}\"}) { deploymentId timestamp } }"}'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
@@ -155,6 +155,18 @@ tag_commit_production:
   release:
     tag_name: 'deployed-$(date +%Y-%m-%d_%H-%M-%S)'
     description: 'Deployed from GitLab CI.'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+new_relic_deploy_tracker_production:
+  stage: post-deploy
+  needs:
+    - job: deploy_production
+  script:
+  - curl -X POST https://api.newrelic.com/graphql \
+  - -H 'content-type: application/json; charset=utf-8' \
+  - -H 'API-Key: ${NEW_RELIC_DEPLOYMENT_USER_KEY}' \
+  - --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"${CI_COMMIT_SHA}\", entityGuid: \"${NEW_RELIC_SERVICE_GUID_PRODUCTION}\"}) { deploymentId timestamp } }"}'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
