@@ -1551,6 +1551,51 @@ const getLatestSessionByStudentIdIR: any = {"usedParamSet":{"studentId":true},"p
 export const getLatestSessionByStudentId = new PreparedQuery<IGetLatestSessionByStudentIdParams,IGetLatestSessionByStudentIdResult>(getLatestSessionByStudentIdIR);
 
 
+/** 'GetLatestSessionByVolunteerId' parameters type */
+export interface IGetLatestSessionByVolunteerIdParams {
+  volunteerId: string;
+}
+
+/** 'GetLatestSessionByVolunteerId' return type */
+export interface IGetLatestSessionByVolunteerIdResult {
+  createdAt: Date;
+  endedByUserRole: string;
+  id: string;
+  subject: string;
+  timeTutored: number | null;
+}
+
+/** 'GetLatestSessionByVolunteerId' query type */
+export interface IGetLatestSessionByVolunteerIdQuery {
+  params: IGetLatestSessionByVolunteerIdParams;
+  result: IGetLatestSessionByVolunteerIdResult;
+}
+
+const getLatestSessionByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":321,"b":333}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    user_roles.name AS ended_by_user_role\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id\nWHERE\n    sessions.volunteer_id = :volunteerId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.id,
+ *     sessions.created_at,
+ *     time_tutored::int,
+ *     subjects.name AS subject,
+ *     user_roles.name AS ended_by_user_role
+ * FROM
+ *     sessions
+ *     JOIN subjects ON sessions.subject_id = subjects.id
+ *     LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
+ * WHERE
+ *     sessions.volunteer_id = :volunteerId!
+ * ORDER BY
+ *     created_at DESC
+ * LIMIT 1
+ * ```
+ */
+export const getLatestSessionByVolunteerId = new PreparedQuery<IGetLatestSessionByVolunteerIdParams,IGetLatestSessionByVolunteerIdResult>(getLatestSessionByVolunteerIdIR);
+
+
 /** 'UpdateSessionVolunteerById' parameters type */
 export interface IUpdateSessionVolunteerByIdParams {
   sessionId: string;

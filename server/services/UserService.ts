@@ -57,7 +57,8 @@ import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
-import { getClient, runInTransaction, TransactionClient } from '../db'
+import { runInTransaction, TransactionClient } from '../db'
+import * as VolunteerService from './VolunteerService'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
@@ -65,6 +66,9 @@ export async function parseUser(baseUser: UserContactInfo) {
   // Approved volunteer
   if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
+    user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
+      baseUser.id
+    )
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
 

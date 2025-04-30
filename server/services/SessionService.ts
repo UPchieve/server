@@ -694,6 +694,11 @@ export async function studentLatestSession(data: unknown) {
   return await SessionRepo.getLatestSessionByStudentId(userId)
 }
 
+export async function volunteerLatestSession(data: unknown) {
+  const userId = asString(data)
+  return await SessionRepo.getLatestSessionByVolunteerId(userId)
+}
+
 export async function sessionTimedOut(user: UserContactInfo, data: unknown) {
   const { sessionId, timeout, ip, userAgent } =
     sessionUtils.asSessionTimedOutData(data)
