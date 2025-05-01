@@ -6,6 +6,7 @@ import {
   getCertificationsForVolunteer,
   getVolunteerTrainingCourses,
   Reference,
+  Sponsorship,
   TrainingCourses,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
@@ -94,6 +95,9 @@ export type LegacyUserModel = {
   ratings?: PostsessionSurveyRatingsMetric
   // teacher
   lastSuccessfulCleverSync?: Date
+
+  // sponsor
+  sponsorships?: Sponsorship[]
 }
 
 // TODO: Actually make this legacy and clean this up.

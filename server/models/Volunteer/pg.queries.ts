@@ -3613,3 +3613,45 @@ const getPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgKey":true},"params
 export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IGetPartnerOrgByKeyResult>(getPartnerOrgByKeyIR);
 
 
+/** 'GetActiveSponsorshipsByUserId' parameters type */
+export interface IGetActiveSponsorshipsByUserIdParams {
+  userId: string;
+}
+
+/** 'GetActiveSponsorshipsByUserId' return type */
+export interface IGetActiveSponsorshipsByUserIdResult {
+  id: string;
+  key: string;
+  name: string;
+}
+
+/** 'GetActiveSponsorshipsByUserId' query type */
+export interface IGetActiveSponsorshipsByUserIdQuery {
+  params: IGetActiveSponsorshipsByUserIdParams;
+  result: IGetActiveSponsorshipsByUserIdResult;
+}
+
+const getActiveSponsorshipsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":587,"b":594}]}],"statement":"SELECT\n    sponsor_orgs.id,\n    sponsor_orgs.name,\n    sponsor_orgs.key\nFROM\n    users_volunteer_partner_orgs_instances\n    JOIN sponsor_orgs_volunteer_partner_orgs_instances ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = sponsor_orgs_volunteer_partner_orgs_instances.volunteer_partner_org_id\n    JOIN sponsor_orgs ON sponsor_orgs_volunteer_partner_orgs_instances.sponsor_org_id = sponsor_orgs.id\n    JOIN sponsor_orgs_upchieve_instances ON sponsor_orgs.id = sponsor_orgs_upchieve_instances.sponsor_org_id\nWHERE\n    users_volunteer_partner_orgs_instances.user_id = :userId!\n    AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL\n    AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL\n    AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sponsor_orgs.id,
+ *     sponsor_orgs.name,
+ *     sponsor_orgs.key
+ * FROM
+ *     users_volunteer_partner_orgs_instances
+ *     JOIN sponsor_orgs_volunteer_partner_orgs_instances ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = sponsor_orgs_volunteer_partner_orgs_instances.volunteer_partner_org_id
+ *     JOIN sponsor_orgs ON sponsor_orgs_volunteer_partner_orgs_instances.sponsor_org_id = sponsor_orgs.id
+ *     JOIN sponsor_orgs_upchieve_instances ON sponsor_orgs.id = sponsor_orgs_upchieve_instances.sponsor_org_id
+ * WHERE
+ *     users_volunteer_partner_orgs_instances.user_id = :userId!
+ *     AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+ *     AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL
+ *     AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL
+ * ```
+ */
+export const getActiveSponsorshipsByUserId = new PreparedQuery<IGetActiveSponsorshipsByUserIdParams,IGetActiveSponsorshipsByUserIdResult>(getActiveSponsorshipsByUserIdIR);
+
+

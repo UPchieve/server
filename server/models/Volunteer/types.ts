@@ -75,3 +75,9 @@ export type VolunteersForAnalyticsReport = {
   totalSessions: number
   totalSessionsWithinRange: number
 } & UniqueStudentsHelped
+
+export type Sponsorship = {
+  id: Ulid
+  name: string
+  key: string
+}

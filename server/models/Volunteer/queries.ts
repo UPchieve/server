@@ -17,7 +17,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Quizzes, VolunteersForAnalyticsReport } from './types'
+import { Quizzes, Sponsorship, VolunteersForAnalyticsReport } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
@@ -1780,6 +1780,21 @@ export async function getVolunteersForAnalyticsReport(
       } as VolunteersForAnalyticsReport
     })
     return volunteers
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getActiveSponsorshipsByUserId(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<Sponsorship[]> {
+  try {
+    const result = await pgQueries.getActiveSponsorshipsByUserId.run(
+      { userId },
+      tc
+    )
+    return result.map((v) => makeRequired(v))
   } catch (err) {
     throw new RepoReadError(err)
   }

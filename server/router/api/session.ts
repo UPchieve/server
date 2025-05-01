@@ -128,7 +128,9 @@ export function routeSession(router: Router) {
   router.route('/session/latest').post(async function (req, res) {
     try {
       const user = extractUser(req)
-      const latestSession = await SessionService.studentLatestSession(user.id)
+      const latestSession = user.roleContext.isActiveRole('volunteer')
+        ? await SessionService.volunteerLatestSession(user.id)
+        : await SessionService.studentLatestSession(user.id)
 
       if (!latestSession) {
         res.json(null)

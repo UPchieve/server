@@ -816,6 +816,21 @@ export async function getLatestSessionByStudentId(
   }
 }
 
+export async function getLatestSessionByVolunteerId(
+  volunteerId: Ulid
+): Promise<StudentLatestSession | undefined> {
+  try {
+    const result = await pgQueries.getLatestSessionByVolunteerId.run(
+      { volunteerId },
+      getClient()
+    )
+    if (!result.length) return
+    return makeSomeOptional(result[0], ['endedByUserRole'])
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
 export async function updateSessionVolunteerById(
   sessionId: Ulid,
   volunteerId: Ulid,
