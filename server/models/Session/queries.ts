@@ -827,7 +827,7 @@ export async function getLatestSessionByVolunteerId(
     if (!result.length) return
     return makeSomeOptional(result[0], ['endedByUserRole'])
   } catch (error) {
-    throw error
+    throw new RepoReadError(error)
   }
 }
 

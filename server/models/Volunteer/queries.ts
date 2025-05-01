@@ -1796,6 +1796,6 @@ export async function getActiveSponsorshipsByUserId(
     )
     return result.map((v) => makeRequired(v))
   } catch (err) {
-    throw new RepoUpdateError(err)
+    throw new RepoReadError(err)
   }
 }
