@@ -290,6 +290,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               transcript,
               saidAt,
               zoomMessageId,
+              msgId,
             } = data
 
             newrelic.addCustomAttribute('sessionId', sessionId)
@@ -360,6 +361,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               type?: SessionMessageType
               transcript?: string
               zoomMessageId?: string
+              msgId?: string
             } = {
               contents: sanitizedMessage ?? message,
               createdAt: createdAt,
@@ -368,6 +370,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               user: user.id,
               sessionId,
               zoomMessageId,
+              msgId,
             }
 
             if (type) {
