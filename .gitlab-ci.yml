@@ -14,17 +14,17 @@ cache:
     - .npm
 
 variables:
-  AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: "true"
-  AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER: "heroku/buildpacks:20"
-  npm_config_cache: "$CI_PROJECT_DIR/.npm"
-  NEW_RELIC_ENABLED: "false"
-  NEW_RELIC_NO_CONFIG_FILE: "true"
+  AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: 'true'
+  AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER: 'heroku/buildpacks:20'
+  npm_config_cache: '$CI_PROJECT_DIR/.npm'
+  NEW_RELIC_ENABLED: 'false'
+  NEW_RELIC_NO_CONFIG_FILE: 'true'
 
 .docker_service:
   services:
     - docker:20.10.6-dind
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_CERTDIR: ''
 
 .build_docker:
   extends: .docker_service
@@ -146,6 +146,21 @@ tag_commit_production:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
+new_relic_deploy_tracker_production:
+  stage: post-deploy
+  needs:
+    - job: deploy_production
+  variables:
+    NEW_RELIC_DEPLOYMENT_USER_KEY: $NEW_RELIC_DEPLOYMENT_USER_KEY
+    NEW_RELIC_SERVICE_GUID_PRODUCTION: $NEW_RELIC_SERVICE_GUID_PRODUCTION
+  script: >
+    curl -v https://api.newrelic.com/graphql
+    -H 'content-type: application/json; charset=utf-8'
+    -H "API-Key: $NEW_RELIC_DEPLOYMENT_USER_KEY"
+    --data-raw '{"query":"mutation { changeTrackingCreateDeployment(deployment: {version: \"'$CI_COMMIT_SHA'\", entityGuid: \"'$NEW_RELIC_SERVICE_GUID_PRODUCTION'\"}) { deploymentId timestamp } }"}'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
 test_backend:
   stage: test
   image: node:20.10.0-bullseye
@@ -169,19 +184,26 @@ test_database:
   services:
     - name: postgres:14
       alias: postgres
-      command: [ "postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "pg_stat_statements.track=all" ]
+      command:
+        [
+          'postgres',
+          '-c',
+          'shared_preload_libraries=pg_stat_statements',
+          '-c',
+          'pg_stat_statements.track=all',
+        ]
   variables:
     POSTGRES_USER: admin
     POSTGRES_PASSWORD: Password123 # pragma: allowlist secret
     POSTGRES_DB: upchieve
-    CI: "true"
+    CI: 'true'
     DB_PORT: 5432
   before_script:
-  - npm ci --cache .npm --prefer-offline
-  - apt-get update && apt-get install -y postgresql-client
-  - export PGPASSWORD=$POSTGRES_PASSWORD
-  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-  - |
+    - npm ci --cache .npm --prefer-offline
+    - apt-get update && apt-get install -y postgresql-client
+    - export PGPASSWORD=$POSTGRES_PASSWORD
+    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
+    - |
       for file in database/db_init/{schema,test_seeds,seed_migrations}.sql; do
         PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
       done
