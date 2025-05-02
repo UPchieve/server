@@ -336,6 +336,9 @@ export type ModeratedPII =
   | ModeratedPhone
   | ModeratedAddress
 
+const meetsOrExceedsLinkConfidenceThreshold = (link: ModeratedLink) =>
+  link.details.confidence >= Number(config.minimumModerationLinkConfidence)
+
 export function filterDisallowedDomains({
   allowedDomains,
   links,
@@ -349,7 +352,6 @@ export function filterDisallowedDomains({
       // if it does, filter it out of this set and do not moderate it
       (allowed) => link.details.text.toLowerCase().indexOf(allowed) === -1
     )
-
   return links.filter(linksWithDisallowedDomain)
 }
 
@@ -481,10 +483,12 @@ async function detectPii(
   }
 
   const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
-  const moderatedLinks = await filterDisallowedDomains({
-    allowedDomains,
-    links,
-  })
+  const moderatedLinks = (
+    await filterDisallowedDomains({
+      allowedDomains,
+      links,
+    })
+  ).filter(meetsOrExceedsLinkConfidenceThreshold)
 
   const moderatedPII: ModeratedPII[] = [...moderatedLinks, ...emails, ...phones]
 
