@@ -82,6 +82,7 @@ enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
   SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'getAddressDetectionModerationDecision',
+  GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'getQuestionableLinkModerationDecision',
 }
 
 // Image moderation
@@ -312,7 +313,12 @@ function existsInArray(array: any[], item: any) {
 
 export type ModeratedLink = {
   reason: 'Link'
-  details: { text: string; confidence: number }
+  details: {
+    text: string
+    confidence: number
+    policyNames?: string[]
+    explanation?: string
+  }
 }
 
 type ModeratedAddress = {
@@ -336,8 +342,9 @@ export type ModeratedPII =
   | ModeratedPhone
   | ModeratedAddress
 
-const meetsOrExceedsLinkConfidenceThreshold = (link: ModeratedLink) =>
-  link.details.confidence >= Number(config.minimumModerationLinkConfidence)
+const meetsOrExceedsLinkConfidenceThreshold = (
+  link: Pick<ModeratedLink, 'details'>
+) => link.details.confidence >= Number(config.minimumModerationLinkConfidence)
 
 export function filterDisallowedDomains({
   allowedDomains,
@@ -412,6 +419,76 @@ async function checkForFullAddresses({
   }
 }
 
+type ModeratedLinkResponse = {
+  reason: 'Link'
+  details: {
+    links: Array<{
+      link: string
+      details: {
+        confidence: number
+        policyNames: string[]
+        explanation: string
+      }
+    }>
+  }
+}
+
+async function checkForQuestionableLinks({
+  links,
+  sessionId,
+}: {
+  links: ModeratedLink[]
+  sessionId: string
+}): Promise<ModeratedLinkResponse | null> {
+  const modelId = config.awsBedrockModelId
+
+  const promptData = await getPromptData(
+    LangfusePromptNameEnum.GET_QUESTIONABLE_LINK_MODERATION_DECISION,
+    QUESTIONABLE_LINK_FALLBACK_MODERATION_PROMPT
+  )
+
+  const t = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
+    sessionId,
+  })
+
+  const formattedLinks = links
+    .map((link) => `<link>${link.details.text}</link>`)
+    .join(' ')
+
+  const gen = t.generation({
+    name: LangfuseGenerationName.GET_QUESTIONABLE_LINK_MODERATION_DECISION,
+    model: modelId,
+    input: {
+      links: formattedLinks,
+    },
+    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
+    ...(promptData.promptObject && { prompt: promptData.promptObject }),
+  })
+  try {
+    const completion = await invokeModel({
+      modelId,
+      text: formattedLinks,
+      prompt: promptData.prompt,
+    })
+
+    gen.end({
+      output: completion,
+    })
+    if (completion) {
+      return {
+        reason: 'Link',
+        details: completion satisfies ModeratedLinkResponse['details'],
+      }
+    } else {
+      return null
+    }
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to detect questionable links')
+    return null
+  }
+}
+
 async function detectPii(
   text: string,
   sessionId: string,
@@ -482,6 +559,8 @@ async function detectPii(
     }
   }
 
+  const moderatedPII: ModeratedPII[] = [...emails, ...phones]
+
   const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
   const moderatedLinks = (
     await filterDisallowedDomains({
@@ -490,7 +569,30 @@ async function detectPii(
     })
   ).filter(meetsOrExceedsLinkConfidenceThreshold)
 
-  const moderatedPII: ModeratedPII[] = [...moderatedLinks, ...emails, ...phones]
+  if (moderatedLinks.length > 0) {
+    const questionableLinks = await checkForQuestionableLinks({
+      links: moderatedLinks,
+      sessionId,
+    })
+    if (questionableLinks !== null) {
+      const moderatedQuestionableLinks = questionableLinks?.details.links
+        .map(
+          (link) =>
+            ({
+              reason: 'Link',
+              details: {
+                text: link.link,
+                confidence: link.details.confidence,
+                policyNames: link.details.policyNames,
+                explanation: link.details.explanation,
+              },
+            }) as ModeratedLink
+        )
+        .filter(meetsOrExceedsLinkConfidenceThreshold)
+
+      moderatedPII.push(...moderatedQuestionableLinks)
+    }
+  }
 
   if (addresses.length > 0) {
     const moderatedAddress = await checkForFullAddresses({ text, sessionId })
@@ -1373,4 +1475,25 @@ You are a Trust & Safety expert. Your job is to review the text extracted from a
 You will find the extracted text in <text> tags.
 Given the text, provide a confidence rating from 0 to 1 (to 3 decimal places) that the text contains an address, where 1 means maximally confident that the text contains an address of the student, tutor, or a place they might meet in person.
 Provide your response in this JSON format: "{ confidence: number, explanation: string }"
+`
+
+const QUESTIONABLE_LINK_FALLBACK_MODERATION_PROMPT = `
+You are a Trust & Safety expert. Your job is to review the links extracted from an image that was shared between a student and volunteer tutor during a tutoring session and decide if the links in question are appropriate to be shared.
+The tutoring session is on a platform called UPchieve which allows users to share their screen and upload images.
+
+Policies are listed below in <policy> tags and named in the <name> tag:
+<policy><name>INAPPROPRIATE_CONTENT</name>Links to pornographic or sexually explicit content</policy>
+<policy><name>INAPPROPRIATE_CONTENT</name>Links to illegal or illicit content</policy>
+<policy><name>HATE_SPEECH</name>Links to hate speech or hate groups</policy>
+<policy><name>SAFETY</name>Links to self-harm or suicide content</policy>
+<policy><name>SAFETY</name>Links to violence or weapons content</policy>
+<policy><name>SAFETY</name>Links to drugs or drug paraphernalia</policy>
+<policy><name>SOCIAL_MEDIA</name>Links to social media platforms such as instagram.com, facebook.com, x.com, etc.</policy>
+<policy><name>PLATFORM_CIRCUMVENTION</name>Links that facilitate communication outside of the platform (such as zoom.us, meet.google.com, etc.)</policy>
+<policy><name>OTHER</name>Links that fall outside of the above categories but would be considered inappropriate to share between an adult and a minor</policy>
+
+The extracted links are delimited by <link> tags.
+
+Given the links, provide a confidence rating from 0 to 1 (to 3 decimal places) that the links are inappropriate to be shared, where 1 means maximally confident that the links is inappropriate to be shared.
+Provide your response in this JSON format: "{ links: [{ link: string, details: { confidence: number, policyNames: string[], explanation: string } }]"
 `
