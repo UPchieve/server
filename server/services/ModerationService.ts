@@ -313,7 +313,12 @@ function existsInArray(array: any[], item: any) {
 
 export type ModeratedLink = {
   reason: 'Link'
-  details: { text: string; confidence: number }
+  details: {
+    text: string
+    confidence: number
+    policyNames?: string[]
+    explanation?: string
+  }
 }
 
 type ModeratedAddress = {
@@ -337,8 +342,9 @@ export type ModeratedPII =
   | ModeratedPhone
   | ModeratedAddress
 
-const meetsOrExceedsLinkConfidenceThreshold = (link: ModeratedLink) =>
-  link.details.confidence >= Number(config.minimumModerationLinkConfidence)
+const meetsOrExceedsLinkConfidenceThreshold = (
+  link: Pick<ModeratedLink, 'details'>
+) => link.details.confidence >= Number(config.minimumModerationLinkConfidence)
 
 export function filterDisallowedDomains({
   allowedDomains,
@@ -413,13 +419,27 @@ async function checkForFullAddresses({
   }
 }
 
+type ModeratedLinkResponse = {
+  reason: 'Link'
+  details: {
+    links: Array<{
+      link: string
+      details: {
+        confidence: number
+        policyNames: string[]
+        explanation: string
+      }
+    }>
+  }
+}
+
 async function checkForQuestionableLinks({
   links,
   sessionId,
 }: {
   links: ModeratedLink[]
   sessionId: string
-}) {
+}): Promise<ModeratedLinkResponse | null> {
   const modelId = config.awsBedrockModelId
 
   const promptData = await getPromptData(
@@ -457,10 +477,8 @@ async function checkForQuestionableLinks({
     })
     if (completion) {
       return {
-        reason: 'Questionable Link',
-        details: {
-          links: completion.links,
-        },
+        reason: 'Link',
+        details: completion satisfies ModeratedLinkResponse['details'],
       }
     } else {
       return null
@@ -556,10 +574,24 @@ async function detectPii(
       links: moderatedLinks,
       sessionId,
     })
-    const moderatedQuestionableLinks = questionableLinks?.details.links.filter(
-      meetsOrExceedsLinkConfidenceThreshold
-    )
-    moderatedPII.push(...moderatedQuestionableLinks)
+    if (questionableLinks !== null) {
+      const moderatedQuestionableLinks = questionableLinks?.details.links
+        .map(
+          (link) =>
+            ({
+              reason: 'Link',
+              details: {
+                text: link.link,
+                confidence: link.details.confidence,
+                policyNames: link.details.policyNames,
+                explanation: link.details.explanation,
+              },
+            }) as ModeratedLink
+        )
+        .filter(meetsOrExceedsLinkConfidenceThreshold)
+
+      moderatedPII.push(...moderatedQuestionableLinks)
+    }
   }
 
   if (addresses.length > 0) {
