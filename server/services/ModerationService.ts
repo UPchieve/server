@@ -1488,6 +1488,7 @@ Policies are listed below in <policy> tags and named in the <name> tag:
 <policy><name>SAFETY</name>Links to self-harm or suicide content</policy>
 <policy><name>SAFETY</name>Links to violence or weapons content</policy>
 <policy><name>SAFETY</name>Links to drugs or drug paraphernalia</policy>
+<policy><name>SOCIAL_MEDIA</name>Links to social media platforms such as instagram.com, facebook.com, x.com, etc.</policy>
 <policy><name>PLATFORM_CIRCUMVENTION</name>Links that facilitate communication outside of the platform (such as zoom.us, meet.google.com, etc.)</policy>
 <policy><name>OTHER</name>Links that fall outside of the above categories but would be considered inappropriate to share between an adult and a minor</policy>
 
