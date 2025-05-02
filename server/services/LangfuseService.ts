@@ -27,6 +27,7 @@ export enum LangfusePromptNameEnum {
   SESSION_TRANSCRIPT_MODERATION = 'session-transcript-moderation',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
   SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
+  GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'get-questionable-link-moderation-decision',
 }
 
 export enum LangfuseTraceTagEnum {
