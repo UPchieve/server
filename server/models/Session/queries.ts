@@ -1443,7 +1443,7 @@ async function getSessionUsers(
   tc: TransactionClient = getClient()
 ): Promise<{ student: CurrentSessionUser; volunteer?: CurrentSessionUser }> {
   const userResult = await pgQueries.getSessionUsers.run({ sessionId }, tc)
-  const users = userResult.map((v) => makeRequired(v))
+  const users = userResult.map((v) => makeSomeOptional(v, ['gradeLevel']))
   let student, volunteer
   for (const u of users) {
     if (u.id === sessionStudentId) student = u
