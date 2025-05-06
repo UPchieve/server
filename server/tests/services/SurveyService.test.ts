@@ -148,9 +148,9 @@ describe('saveUserSurvey', () => {
       expectedUserSurvey,
       expectedSubmissions
     )
-    expect(mockedSessionFlagsService.processFeedbackMetrics).toHaveBeenCalledWith(
-      expectedUserSurvey.sessionId
-    )
+    expect(
+      mockedSessionFlagsService.processFeedbackMetrics
+    ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
   })
 })
 
