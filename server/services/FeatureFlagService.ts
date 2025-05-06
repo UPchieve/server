@@ -174,13 +174,6 @@ export async function getSessionSummaryFeatureFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
 }
 
-export async function isUpdatedSessionEndedProcessingEnabled(userId: Uuid) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.UPDATED_SESSION_ENDED_PROCESSING,
-    userId
-  )
-}
-
 export async function getDisplayVolunteerLanguagesFlag(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.DISPLAY_VOLUNTEER_LANGUAGES,

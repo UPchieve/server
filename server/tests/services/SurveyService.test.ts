@@ -2,6 +2,7 @@ import { mocked } from 'jest-mock'
 import * as SurveyService from '../../services/SurveyService'
 import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
+import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SurveyRepo from '../../models/Survey/queries'
 import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
@@ -15,7 +16,6 @@ import {
 import { getDbUlid } from '../../models/pgUtils'
 import { InputError } from '../../models/Errors'
 import { FEEDBACK_EVENTS } from '../../constants'
-import { emitter } from '../../services/EventsService'
 import { Session } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
 import { RoleContext } from '../../services/UserRolesService'
@@ -26,12 +26,14 @@ jest.mock('../../models/User/queries')
 jest.mock('../../models/Session/queries')
 jest.mock('../../services/UserService')
 jest.mock('../../services/UserRolesService')
+jest.mock('../../services/SessionFlagsService')
 
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedUserRepo = mocked(UserRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedUserService = mocked(UserService)
 const mockedUserRolesService = mocked(UserRolesService)
+const mockedSessionFlagsService = mocked(SessionFlagsService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -146,10 +148,8 @@ describe('saveUserSurvey', () => {
       expectedUserSurvey,
       expectedSubmissions
     )
-    expect(emitter.emit).toHaveBeenCalledTimes(1)
-    expect(emitter.emit).toHaveBeenCalledWith(
-      FEEDBACK_EVENTS.FEEDBACK_SAVED,
-      userSurvey.sessionId
+    expect(mockedSessionFlagsService.processFeedbackMetrics).toHaveBeenCalledWith(
+      expectedUserSurvey.sessionId
     )
   })
 })

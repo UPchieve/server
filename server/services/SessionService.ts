@@ -65,7 +65,6 @@ import {
   getDisplayVolunteerLanguagesFlag,
   getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
-  isUpdatedSessionEndedProcessingEnabled,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
@@ -183,9 +182,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     }
   }
 
-  if (await isUpdatedSessionEndedProcessingEnabled(session.studentId))
-    await processReportMetrics(sessionId)
-  else emitter.emit(SESSION_EVENTS.SESSION_REPORTED, session.id)
+  await processReportMetrics(sessionId)
 
   // Queue up job to send reporting alert emails
   const emailData = {
@@ -273,30 +270,28 @@ export async function endSession(
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  if (await getDisplayVolunteerLanguagesFlag(endedSession.student.id))
-    QueueService.add(
-      Jobs.DetectSessionLanguages,
-      {
-        sessionId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: true,
-      }
-    )
+  QueueService.add(
+    Jobs.DetectSessionLanguages,
+    {
+      sessionId,
+      studentId: endedSession.student.id,
+    },
+    {
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
+  )
 
-  if (await isUpdatedSessionEndedProcessingEnabled(endedSession.student.id))
-    QueueService.add(
-      Jobs.ProcessSessionEnded,
-      {
-        sessionId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: false,
-      }
-    )
-  else emitter.emit(SESSION_EVENTS.SESSION_ENDED, sessionId)
+  QueueService.add(
+    Jobs.ProcessSessionEnded,
+    {
+      sessionId,
+    },
+    {
+      removeOnComplete: true,
+      removeOnFail: false,
+    }
+  )
 }
 
 export async function processSessionReported(sessionId: Ulid) {
@@ -342,8 +337,6 @@ export async function processCalculateMetrics(sessionId: Ulid) {
     timeTutored = await sessionUtils.calculateTimeTutored(session)
 
   await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
-  if (!(await isUpdatedSessionEndedProcessingEnabled(session.studentId)))
-    emitter.emit(SESSION_EVENTS.SESSION_METRICS_CALCULATED, sessionId)
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {

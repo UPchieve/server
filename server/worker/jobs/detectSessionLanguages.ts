@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import { log } from '../logger'
-import { Uuid } from '../../models/pgUtils'
+import { Ulid, Uuid } from '../../models/pgUtils'
 import { getMessagesForFrontend, getSessionById } from '../../models/Session'
 import {
   ComprehendClient,
@@ -10,9 +10,11 @@ import config from '../../config'
 import { asString } from '../../utils/type-utils'
 import { captureEvent } from '../../services/AnalyticsService'
 import { EVENTS } from '../../constants'
+import { getDisplayVolunteerLanguagesFlag } from '../../services/FeatureFlagService'
 
 type DetectLanguagesSessionJobData = {
   sessionId: Uuid
+  studentId: Ulid
 }
 
 const AWS_CONFIG = {
@@ -39,6 +41,8 @@ async function detectLanguages(text: string) {
 export default async (
   job: Job<DetectLanguagesSessionJobData>
 ): Promise<void> => {
+  if (!(await getDisplayVolunteerLanguagesFlag(job.data.studentId))) return
+
   const sessionId = asString(job.data.sessionId)
   const session = await getSessionById(sessionId)
   if (!session) throw new Error(`Session ${sessionId} not found`)

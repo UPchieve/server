@@ -31,7 +31,7 @@ describe('reportSession', () => {
     const reportMessage = 'User was rude'
     const source = 'recap'
     const user = buildVolunteer()
-    const session = await buildSession({
+    const session = buildSession({
       studentId: 'studentId',
       volunteerId: user.id,
     })

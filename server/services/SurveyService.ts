@@ -33,7 +33,6 @@ import {
 import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
 import { emitter } from './EventsService'
 import { partition } from 'lodash'
-import { isUpdatedSessionEndedProcessingEnabled } from './FeatureFlagService'
 import { processFeedbackMetrics } from './SessionFlagsService'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
@@ -94,9 +93,7 @@ export async function saveUserSurvey(
     )
     // Only process feedback metrics for post-session surveys
     if (surveyType === 'postsession') {
-      if (await isUpdatedSessionEndedProcessingEnabled(userId))
-        await processFeedbackMetrics(userSurvey.sessionId)
-      else emitter.emit(FEEDBACK_EVENTS.FEEDBACK_SAVED, userSurvey.sessionId)
+      await processFeedbackMetrics(userSurvey.sessionId)
     }
   }
 }
