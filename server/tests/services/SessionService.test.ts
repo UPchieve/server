@@ -2,6 +2,8 @@
 
 import * as SessionService from '../../services/SessionService'
 import * as SessionRepo from '../../models/Session/queries'
+import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics/queries'
+
 import * as SessionAudioRepo from '../../models/SessionAudio'
 import * as UserRepo from '../../models/User/queries'
 import {
@@ -17,10 +19,11 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/SessionAudio')
+jest.mock('../../models/UserSessionMetrics/queries')
 
 describe('reportSession', () => {
   const mockSessionRepo = mocked(SessionRepo)
-
+  const mockUSMRepo = mocked(UserSessionMetricsRepo)
   beforeEach(async () => {
     jest.clearAllMocks()
     jest.restoreAllMocks()
@@ -36,11 +39,13 @@ describe('reportSession', () => {
       volunteerId: user.id,
     })
 
-    mockSessionRepo.getSessionById.mockImplementationOnce(async () => session)
-
+    mockSessionRepo.getSessionById.mockImplementation(async () => session)
     const sessionId = session.id
     mockSessionRepo.updateSessionReported.mockResolvedValue()
 
+    mockUSMRepo.getUserSessionMetricsByUserId.mockImplementation(
+      async () => undefined
+    )
     const data = {
       sessionId,
       reportReason,

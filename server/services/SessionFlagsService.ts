@@ -235,7 +235,7 @@ export async function computeFeedbackFlags(
 
 export function computeReportedFlags(session: Session): UserSessionFlags[] {
   const flags = []
-  if (session.reported) flags.push(UserSessionFlags.reported)
+  if (session?.reported) flags.push(UserSessionFlags.reported)
   return flags
 }
 
