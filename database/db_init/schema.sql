@@ -6460,3 +6460,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250409193923'),
     ('20250522182628');
     ('20250522182628');
+    ('20250522182628');
