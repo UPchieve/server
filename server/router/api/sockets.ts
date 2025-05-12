@@ -38,6 +38,7 @@ import {
 } from '../../services/ModerationService'
 import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
+import { asJoinSessionData } from '../../utils/session-utils'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -140,10 +141,16 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             try {
-              // TODO: correctly type User from passport
-              await SessionService.joinSession(user, sessionId, {
+              const data = asJoinSessionData({
                 socket,
                 joinedFrom,
+              })
+              const ipAddress = socket.handshake?.address
+              const userAgent = socket.request?.headers['user-agent']
+              await SessionService.joinSession(user, sessionId, {
+                ipAddress,
+                userAgent,
+                joinedFrom: data.joinedFrom,
               })
             } catch (error) {
               logger.error(

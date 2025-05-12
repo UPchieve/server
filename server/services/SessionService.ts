@@ -25,6 +25,7 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
+  CurrentSession,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -380,7 +381,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
 }
 
 async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
-  return await Number(await cache.get(`${sessionId}-doc-editor-version`))
+  return Number(await cache.get(`${sessionId}-doc-editor-version`))
 }
 
 async function setDocEditorVersion(
@@ -677,6 +678,7 @@ export async function startSession(
   return newSession
 }
 
+// TODO: Remove after midtown clean-up.
 export async function checkSession(data: unknown) {
   const sessionId = asString(data)
   const session = await SessionRepo.getSessionById(sessionId)
@@ -733,67 +735,47 @@ export async function getSessionNotifications(data: unknown) {
 export async function joinSession(
   user: UserContactInfo,
   sessionId: Ulid,
-  data: unknown
-): Promise<void> {
-  const { socket, joinedFrom } = sessionUtils.asJoinSessionData(data)
-  const userAgent = socket.request?.headers['user-agent']
-  const ipAddress = socket.handshake?.address
-  const session = await SessionRepo.getSessionById(sessionId)
-  if (session.endedAt) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error('Session has ended')
+  data: {
+    ipAddress?: string
+    userAgent?: string
+    joinedFrom?: string
+  }
+): Promise<Session> {
+  const session = await ensureCanJoinSession(user, sessionId)
+
+  const sessionAnalyticsData = {
+    userId: user.id,
+    sessionId: session.id,
+    ...getUserAgentInfo(data.userAgent ? data.userAgent : ''),
+    ipAddress: data.ipAddress,
   }
 
-  const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
-  if (isStudent && session.studentId !== user.id) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error(`A student cannot join another student's session`)
-  }
-
-  if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error('A volunteer has already joined the session')
-  }
-
-  if (isVolunteer && session.studentId === user.id) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error(
-      'You may not join your own session as both student and coach'
-    )
-  }
-
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
     } catch (err) {
-      throw new Error('A volunteer has already joined the session')
+      throw new Error('A volunteer has already joined the session.')
     }
 
     try {
       await createSessionAction({
-        userId: user.id,
-        sessionId: session.id,
-        ...getUserAgentInfo(userAgent ? userAgent : ''),
-        ipAddress,
+        ...sessionAnalyticsData,
         action: SESSION_USER_ACTIONS.JOINED,
       })
-
       captureEvent(user.id, EVENTS.SESSION_JOINED, {
-        event: EVENTS.SESSION_JOINED,
         sessionId: session.id,
-        joinedFrom: joinedFrom || '',
+        joinedFrom: data.joinedFrom || '',
       })
-
       captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
-        event: EVENTS.SESSION_MATCHED,
         sessionId: session.id,
       })
     } catch (error) {
-      logger.error(
-        `Failed to log user joined session action for user ${user.id} in session ${session.id} : ${error}`
-      )
+      logger.error(error, `Failed to log session join actions.`, {
+        userId: user.id,
+        sessionId: session.id,
+      })
     }
 
     try {
@@ -803,25 +785,19 @@ export async function joinSession(
         await PushTokenService.sendVolunteerJoined(session as Session, tokens)
       }
     } catch (error) {
-      logger.error(
-        `Failed to send FCM notifications to student ${session.studentId} for session ${session.id}: ${error}`
-      )
+      logger.error(error, `Failed to send FCM notifications to student.`, {
+        studentId: session.studentId,
+        userId: user.id,
+        sessionId: session.id,
+      })
     }
   }
 
-  // After 30 seconds of the this.createdAt, we can assume the user is
-  // rejoining the session instead of joining for the first time
-  const thirtySecondsElapsed = 1000 * 30
-  if (
-    !isInitialVolunteerJoin &&
-    session.createdAt.getTime() + thirtySecondsElapsed < Date.now()
-  ) {
+  const isStudent = user.roleContext.isActiveRole('student')
+  if (!isInitialVolunteerJoin || isStudent) {
     try {
       await createSessionAction({
-        userId: user.id,
-        sessionId: session.id,
-        ...getUserAgentInfo(userAgent ? userAgent : ''),
-        ipAddress,
+        ...sessionAnalyticsData,
         action: SESSION_USER_ACTIONS.REJOINED,
       })
       captureEvent(user.id, EVENTS.SESSION_REJOINED, {
@@ -829,11 +805,47 @@ export async function joinSession(
         sessionId: session.id,
       })
     } catch (error) {
-      logger.error(
-        `Failed to log user rejoined session action for user ${user.id} in session ${session.id} : ${error}`
-      )
+      logger.error(`Failed to log session rejoined session actions`, {
+        userId: user.id,
+        sessionId: session.id,
+      })
     }
   }
+
+  return session
+}
+
+export async function ensureCanJoinSession(
+  user: UserContactInfo,
+  sessionId: Ulid
+) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const isStudent = user.roleContext.isActiveRole('student')
+  const isVolunteer = user.roleContext.isActiveRole('volunteer')
+
+  if (session.endedAt) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error('Session has ended.')
+  }
+
+  if (isStudent && session.studentId !== user.id) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error(`A student cannot join another student's session.`)
+  }
+
+  if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error('A volunteer has already joined the session.')
+  }
+
+  if (isVolunteer && session.studentId === user.id) {
+    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    throw new Error(
+      'You may not join your own session as both student and coach.'
+    )
+  }
+
+  return session
 }
 
 export async function saveVoiceMessage({

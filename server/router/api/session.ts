@@ -45,6 +45,22 @@ export function routeSession(router: Router) {
     }
   })
 
+  router.route('/session/join').post(async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const sessionId = asUlid(req.body.sessionId)
+      const joinedFrom = asString(req.body.joinedFrom)
+      const session = await SessionService.joinSession(user, sessionId, {
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        joinedFrom,
+      })
+      res.json({ session })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
   router.route('/session/end').post(async function (req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
@@ -66,6 +82,7 @@ export function routeSession(router: Router) {
     }
   })
 
+  // TODO: Remove once no longer have legacy mobile app.
   router.route('/session/check').post(async function (req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
