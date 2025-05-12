@@ -1474,7 +1474,7 @@ export interface IGetSessionUsersQuery {
   result: IGetSessionUsersResult;
 }
 
-const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":732,"b":742}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(s.id ORDER BY s.created_at) AS total\n        FROM\n            sessions s\n        WHERE\n            s.student_id = users.id\n            OR s.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
+const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":758,"b":768}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id\n            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
 
 /**
  * Query generated from SQL:
@@ -1492,12 +1492,12 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *         OR sessions.volunteer_id = users.id
  *     LEFT JOIN LATERAL (
  *         SELECT
- *             array_agg(s.id ORDER BY s.created_at) AS total
+ *             array_agg(sessions.id ORDER BY sessions.created_at) AS total
  *         FROM
- *             sessions s
+ *             sessions
  *         WHERE
- *             s.student_id = users.id
- *             OR s.volunteer_id = users.id) AS past_sessions ON TRUE
+ *             sessions.student_id = users.id
+ *             OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
  *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
  * WHERE

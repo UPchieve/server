@@ -698,7 +698,7 @@ FROM
         OR sessions.volunteer_id = users.id
     LEFT JOIN LATERAL (
         SELECT
-            array_agg(s.id ORDER BY s.created_at) AS total
+            array_agg(sessions.id ORDER BY sessions.created_at) AS total
         FROM
             sessions
         WHERE
