@@ -1,29 +1,34 @@
 import * as UserRepo from '../models/User'
 import * as UserRolesService from '../services/UserRolesService'
 import { getClient, TransactionClient } from '../db'
-async function addStudentAmbassadorRole() {
-  // @TODO update user IDs before running.
-  const userIds = []
+import { Job } from 'bull'
+import logger from '../logger'
 
+export interface BackfillStudentAmbassadorRoleJobData {
+  userIds: string[]
+}
+
+export default async function (job: Job<BackfillStudentAmbassadorRoleJobData>) {
+  const jobName = 'BackfillStudentAmbassadorRole'
   const client = getClient()
 
-  for (const userId of userIds) {
-    console.log(`Processing user ${userId}`)
+  for (const userId of job.data.userIds) {
+    logger.info(`${jobName}: Processing user ${userId}`)
     try {
       const hasAmbassadorRole = await hasStudentAmbassadorRole(userId, client)
       if (!hasAmbassadorRole) {
         await addAmbassadorRole(userId, client)
-        console.log('Added ambassador role for user.')
+        logger.info(`${jobName}: Added ambassador role for user ${userId}`)
       }
       const roleContext = await refreshRoleContext(userId, client)
-      console.log(roleContext, `Refreshed role context for user.`)
+      logger.info(roleContext, `${jobName}: Refreshed role context for user.`)
     } catch (err) {
-      console.error(`Error while processing user ${userId}: ${err}`, err)
-      process.exit(1)
+      logger.error(
+        `${jobName}: Error while processing user ${userId}: ${err}`,
+        err
+      )
     }
   }
-
-  process.exit(0)
 }
 
 async function hasStudentAmbassadorRole(
@@ -42,5 +47,3 @@ async function refreshRoleContext(userId: string, client: TransactionClient) {
   const forceRefresh = true
   return await UserRolesService.getRoleContext(userId, forceRefresh, client)
 }
-
-addStudentAmbassadorRole()
