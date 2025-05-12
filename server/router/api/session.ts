@@ -11,23 +11,9 @@ import {
   ReportSessionError,
 } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
-import {
-  asCamelCaseString,
-  asDate,
-  asFactory,
-  asNumber,
-  asOptional,
-  asString,
-  asUlid,
-} from '../../utils/type-utils'
-import * as UserRolesService from '../../services/UserRolesService'
+import { asNumber, asString, asUlid } from '../../utils/type-utils'
 import multer from 'multer'
-import {
-  CreateSessionAudioPayload,
-  UpdateSessionAudioPayload,
-} from '../../models/SessionAudio'
 import * as SessionMeetingService from '../../services/SessionMeetingService'
-import * as AwsChimeService from '../../services/AwsChimeService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -44,10 +30,9 @@ export function routeSession(router: Router) {
         userAgent: req.get('User-Agent'),
         ip: req.ip,
       })
-      sessionData.subject = asCamelCaseString(sessionData.subject)
-      sessionData.topic = asCamelCaseString(sessionData.topic)
-      const sessionId = await SessionService.startSession(user, sessionData)
-      res.json({ sessionId })
+      const session = await SessionService.startSession(user, sessionData)
+      // For legacy (mobile), we still need to just return the sessionId.
+      res.json({ sessionId: session.id, session })
     } catch (error) {
       resError(res, error)
     }

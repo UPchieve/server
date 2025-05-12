@@ -529,7 +529,7 @@ FROM
 WHERE
     subjects.name = :subject!
 RETURNING
-    sessions.id;
+    *;
 
 
 /* @name getCurrentSessionByUserId */

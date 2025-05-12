@@ -8,7 +8,6 @@ import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
   HOURS_UTC,
-  SESSION_ACTIVITY_KEY,
   SESSION_REPORT_REASON,
   SESSION_USER_ACTIONS,
   USER_BAN_REASONS,
@@ -48,7 +47,6 @@ import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
 import * as AssignmentsService from './AssignmentsService'
 import * as AwsService from './AwsService'
-import { emitter } from './EventsService'
 import * as PushTokenService from './PushTokenService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
@@ -61,7 +59,6 @@ import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
-  getDisplayVolunteerLanguagesFlag,
   getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
@@ -72,9 +69,6 @@ import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
-import { getFeedbackBySessionId } from '../models/Feedback/queries'
-import { getPresessionSurveyResponse } from '../models/Survey'
-import { getSessionNotificationsWithSessionId } from '../models/Notification'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
 
@@ -582,40 +576,34 @@ export async function startSession(
   user: UserContactInfo,
   data: sessionUtils.StartSessionData
 ) {
-  return await runInTransaction(async (tc: TransactionClient) => {
-    const { subject, topic, assignmentId, docEditorVersion, userAgent, ip } =
-      data
+  const { subject, topic, assignmentId, docEditorVersion, userAgent, ip } = data
 
-    const subjectAndTopic = await getSubjectAndTopic(subject, topic, tc)
-    if (!subjectAndTopic)
-      throw new sessionUtils.StartSessionError(
-        `Unable to start new session for the topic ${topic} and subject ${subject}`
-      )
-
-    const userId = user.id
-    if (user.roleContext.isActiveRole('volunteer'))
-      throw new sessionUtils.StartSessionError(
-        'Volunteers cannot create new sessions'
-      )
-
-    const userBanned = user.banType === USER_BAN_TYPES.COMPLETE
-
-    if (userBanned)
-      throw new sessionUtils.StartSessionError(
-        'Banned students cannot request a new session'
-      )
-
-    const currentSession = await SessionRepo.getCurrentSessionByUserId(
-      userId,
-      tc
+  const subjectAndTopic = await getSubjectAndTopic(subject, topic)
+  if (!subjectAndTopic)
+    throw new sessionUtils.StartSessionError(
+      `Unable to start new session for the topic ${topic} and subject ${subject}`
     )
-    if (currentSession)
-      throw new sessionUtils.StartSessionError(
-        'Student already has an active session'
-      )
 
-    const newSessionId = await SessionRepo.createSession(
-      userId,
+  if (user.roleContext.isActiveRole('volunteer'))
+    throw new sessionUtils.StartSessionError(
+      'Volunteers cannot create new sessions'
+    )
+
+  const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
+  if (isUserBanned)
+    throw new sessionUtils.StartSessionError(
+      'Banned students cannot request a new session'
+    )
+
+  const currentSession = await SessionRepo.getCurrentSessionByUserId(user.id)
+  if (currentSession)
+    throw new sessionUtils.StartSessionError(
+      'Student already has an active session'
+    )
+
+  const newSession = await runInTransaction(async (tc: TransactionClient) => {
+    const newSession = await SessionRepo.createSession(
+      user.id,
       subject,
       user.banType === USER_BAN_TYPES.SHADOW,
       tc
@@ -623,35 +611,17 @@ export async function startSession(
 
     if (assignmentId) {
       await AssignmentsService.linkSessionToAssignment(
-        userId,
-        newSessionId,
+        user.id,
+        newSession.id,
         assignmentId,
         tc
       )
     }
 
-    if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
-      // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
-      // and looking for this value before it's set
-      await setDocEditorVersion(newSessionId, `${docEditorVersion ?? 1}`)
-    }
-
-    if (!userBanned) {
-      await beginRegularNotifications(newSessionId, tc)
-    }
-
-    // Auto end the session after 45 minutes if the session is unmatched
-    const delay = 1000 * 60 * 45
-    await QueueService.add(
-      Jobs.EndUnmatchedSession,
-      { sessionId: newSessionId },
-      { delay, removeOnComplete: true, removeOnFail: true }
-    )
-
     await createSessionAction(
       {
         userId: user.id,
-        sessionId: newSessionId,
+        sessionId: newSession.id,
         ...getUserAgentInfo(userAgent),
         ipAddress: ip,
         action: SESSION_USER_ACTIONS.REQUESTED,
@@ -659,10 +629,29 @@ export async function startSession(
       tc
     )
 
-    // TODO: We can just return the session here, instead of the
-    // client then having to fetch it.
-    return newSessionId
+    return newSession
   })
+
+  // TODO: Remove after midtown clean-up.
+  if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
+    // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
+    // and looking for this value before it's set.
+    await setDocEditorVersion(newSession.id, `${docEditorVersion ?? 1}`)
+  }
+
+  if (!isUserBanned) {
+    await beginRegularNotifications(newSession.id, newSession.studentId)
+  }
+
+  // Auto end the session after 45 minutes if the session is unmatched.
+  const delay = 1000 * 60 * 45
+  await QueueService.add(
+    Jobs.EndUnmatchedSession,
+    { sessionId: newSession.id },
+    { delay, removeOnComplete: true, removeOnFail: true }
+  )
+
+  return newSession
 }
 
 export async function checkSession(data: unknown) {

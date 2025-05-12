@@ -605,15 +605,15 @@ export async function getSessionByIdWithStudentAndVolunteer(
 export async function createSession(
   studentId: Ulid,
   subject: string,
-  shadowbanned: boolean,
-  tc: TransactionClient = getClient()
-): Promise<Ulid> {
+  isShadowBanned: boolean,
+  tc: TransactionClient
+) {
   try {
     const result = await pgQueries.createSession.run(
-      { id: getDbUlid(), studentId, subject, shadowbanned },
+      { id: getDbUlid(), studentId, subject, shadowbanned: isShadowBanned },
       tc
     )
-    return makeRequired(result[0]).id
+    return makeSomeRequired(result[0], ['id', 'studentId', 'subjectId'])
   } catch (err) {
     throw new RepoCreateError(err)
   }

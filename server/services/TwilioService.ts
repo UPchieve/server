@@ -509,10 +509,9 @@ export async function confirmVerification(
 
 export async function beginRegularNotifications(
   sessionId: Ulid,
-  tc: TransactionClient = getClient()
+  studentId: Ulid
 ): Promise<void> {
-  const session = await getSessionById(sessionId, tc)
-  const isTestUser = await StudentsRepo.isTestUser(session.studentId, tc)
+  const isTestUser = await StudentsRepo.isTestUser(studentId)
 
   if (isTestUser) return
   // Delay initial wave of notifications by 1 min to give
