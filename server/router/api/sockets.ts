@@ -23,11 +23,6 @@ import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
-import {
-  getSocketIdsFromRoom,
-  remoteJoinRoom,
-  emitSessionPresence,
-} from '../../utils/socket-utils'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
@@ -39,13 +34,14 @@ import {
 import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
+import * as UserRolesService from '../../services/UserRolesService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
 async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
-  socket.join(user.id.toString())
+  await socket.join(user.id.toString())
 
   const latestSession = await SessionService.currentSession(user.id)
 
@@ -55,7 +51,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
   }
 
   if (user.roleContext.isActiveRole('volunteer')) {
-    socket.join('volunteers')
+    await socket.join('volunteers')
     await updateVolunteerSubjectPresence(user.id, 'add')
   }
 }
@@ -92,7 +88,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     cb(os.hostname())
   })
 
-  // TODO: handle transport close errors from worker socket disconnecting
   io.on('connection', async function (socket: SocketUser) {
     const {
       request: { user },
@@ -106,12 +101,33 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     if (socket.recovered) {
       logSocketEvent('recovered', socket)
       if (user && socket.data.sessionId) {
-        const sessionRoom = getSessionRoom(socket.data.sessionId)
-        await emitSessionPresence(io, socket.id, user.id, sessionRoom)
+        try {
+          await socketService.joinSession(socket, user, socket.data.sessionId)
+        } catch (error) {
+          logger.error(
+            `Unable to join socket session on socket recovery: ${error}`
+          )
+        }
       }
     }
 
-    // Tutor session management
+    socket.on('sessions:join', async (data, callback) => {
+      newrelic.startWebTransaction('/socket-io/sessions:join', () => {
+        new Promise<void>(async (resolve) => {
+          try {
+            const user = await extractSocketUser(socket)
+            await socketService.joinSession(socket, user, data.sessionId)
+            callback(data.sessionId)
+            resolve()
+          } catch (error) {
+            logger.error(`Unable to join socket session: ${error}`)
+            resolve()
+          }
+        })
+      })
+    })
+
+    // TODO: Remove once no longer have legacy mobile app.
     socket.on('join', async function (data) {
       newrelic.startWebTransaction(
         '/socket-io/join',
@@ -173,18 +189,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             }
 
             try {
-              const sessionRoom = getSessionRoom(sessionId)
-              const userSocketIds = await getSocketIdsFromRoom(io, user.id)
-              // Have all of the user's socket connections join the tutoring session room
-              for (const id of userSocketIds) {
-                remoteJoinRoom(io, id, sessionRoom)
-              }
-
-              await socketService.emitSessionChange(sessionId)
-              // Attach the sessionId to the socket for analytics and debugging purposes
-              // Currently only one sessionId is attached to a socket at a time
-              socket.data.sessionId = data.sessionId
-              await emitSessionPresence(io, socket.id, user.id, sessionRoom)
+              await socketService.joinSession(socket, user, sessionId)
               resolve()
             } catch (error) {
               logger.error(
@@ -225,7 +230,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             try {
               const sessionRoom = getSessionRoom(sessionId)
-              await remoteJoinRoom(io, socket.id, sessionRoom)
+              await socket.join(sessionRoom)
               socket.emit('sessions/recap:joined')
               // Attach the sessionId to the socket for analytics and debugging purposes
               // Currently only one sessionId is attached to a socket at a time
@@ -539,16 +544,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     socket.on('disconnecting', async () => {
       const user = await extractSocketUser(socket)
 
-      if (user?.roleContext?.isActiveRole('volunteer'))
-        await updateVolunteerSubjectPresence(user.id, 'remove')
+      if (socket.data.sessionId) {
+        await socketService.leaveSession(socket, user, socket.data.sessionId)
+      }
 
-      for (const room of socket.rooms) {
-        if (room.includes('sessions')) {
-          socket
-            .to(room)
-            .except(user.id)
-            .emit('sessions/partner:in-session', false)
-        }
+      if (user?.roleContext?.isActiveRole('volunteer')) {
+        await updateVolunteerSubjectPresence(user.id, 'remove')
       }
     })
 
@@ -556,19 +557,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/sessions:leave', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            const sessionRoom = getSessionRoom(sessionId)
-            // Ensure the user's socket is part of the session room before leaving.
-            // This prevents emitting session-presence from non-session participants
-            const isSocketInRoom = socket.rooms.has(sessionRoom)
-            if (isSocketInRoom) {
-              socket.leave(sessionRoom)
-              delete socket.data.sessionId
-              const user = await extractSocketUser(socket)
-              await socket
-                .to(sessionRoom)
-                .except(user.id)
-                .emit('sessions/partner:in-session', false)
-            }
+            const user = await extractSocketUser(socket)
+            await socketService.leaveSession(socket, user, sessionId)
             resolve()
           } catch (error) {
             reject(error)

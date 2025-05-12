@@ -291,6 +291,18 @@ export async function endSession(
   )
 }
 
+export async function getSessionWithAllDetails(
+  sessionId: Ulid,
+  tc?: TransactionClient
+): Promise<CurrentSession> {
+  const session = await SessionRepo.getCurrentSessionBySessionId(sessionId, tc)
+  if (!session) {
+    throw new Error(`Session data for ${sessionId} not found`)
+  }
+
+  return session
+}
+
 export async function processSessionReported(sessionId: Ulid) {
   try {
     await QueueService.add(
