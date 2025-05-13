@@ -34,10 +34,26 @@ export type Quizzes = {
   [subject: string]: QuizInfo
 }
 
+export type UserQuiz = {
+  userId: Ulid
+  quizId: number
+  attempts: number
+  passed: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type TrainingCourseData = {
   isComplete: boolean
   progress: number
   completedMaterials: string[]
+}
+
+export type UserTrainingCourse = TrainingCourseData & {
+  userId: Ulid
+  trainingCourseId: number
+  createdAt: Date
+  updatedAt: Date
 }
 
 export type TrainingCourses = {

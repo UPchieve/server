@@ -45,7 +45,11 @@ import {
   ProgressReportStatuses,
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
-import { VolunteersForAnalyticsReport } from '../../models/Volunteer'
+import {
+  UserQuiz,
+  UserTrainingCourse,
+  VolunteersForAnalyticsReport,
+} from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
 import { LegacyUserModel } from '../../models/User/legacy-user'
@@ -153,8 +157,8 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
   const userRow = buildUserRow()
   return {
     ...userRow,
-    firstname: userRow.firstName,
-    lastname: userRow.lastName,
+    firstName: userRow.firstName,
+    lastName: userRow.lastName,
     isDeactivated: userRow.deactivated,
     isTestUser: userRow.testUser,
     isAdmin: false,
@@ -875,6 +879,45 @@ export function buildSurveyResponse(
     displayLabel: '',
     displayOrder: 1,
     score: 1,
+    ...overrides,
+  }
+}
+
+export function buildUserTrainingCourse(
+  userId: string,
+  overrides = {}
+): {
+  userId: Ulid
+  trainingCourseId: number
+  complete: boolean
+  progress: number
+  createdAt: Date
+  updatedAt: Date
+  completedMaterials: string[]
+} {
+  return {
+    userId,
+    trainingCourseId: 1,
+    completedMaterials: ['a', 'b', 'c', 'd', 'e'],
+    complete: true,
+    progress: 100,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildUserQuiz(
+  userId: string,
+  overrides: Partial<UserQuiz> = {}
+): UserQuiz {
+  return {
+    userId,
+    quizId: 1,
+    attempts: 1,
+    passed: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   }
 }

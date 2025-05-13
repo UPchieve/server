@@ -28,8 +28,8 @@ export interface VolunteerRegistrationForm extends RegistrationForm {
 
 // TODO: Use actual type definitions.
 export type AppUser = {
-  firstname: string
-  lastname: string
+  firstName: string
+  lastName: string
   isDeactivated: boolean
   isTestUser: boolean
   isAdmin: boolean
