@@ -1416,3 +1416,14 @@ WHERE
 ORDER BY
     created_at ASC;
 
+
+/* @name getUniqueStudentsHelpedCount */
+SELECT
+    COUNT(DISTINCT student_id)::int AS total
+FROM
+    sessions
+WHERE
+    volunteer_id = :userId!
+    AND time_tutored >= :minSessionLength!::int
+    AND ended_at IS NOT NULL;
+

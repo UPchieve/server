@@ -214,7 +214,7 @@ export async function getQuizzesForVolunteers(
 
 export async function getCertificationsForVolunteer(
   userIds: Ulid[],
-  poolClient?: PoolClient
+  poolClient?: TransactionClient
 ): Promise<VolunteerQuizMap> {
   const client = poolClient ? poolClient : getClient()
   try {
@@ -245,7 +245,7 @@ export async function getCertificationsForVolunteer(
 
 export async function getActiveQuizzesForVolunteers(
   userIds: Ulid[],
-  poolClient?: PoolClient
+  poolClient?: TransactionClient
 ): Promise<VolunteerQuizMap> {
   const client = poolClient ? poolClient : getClient()
   try {
@@ -978,7 +978,7 @@ export type ReferenceContactInfo = {
 
 export async function getReferencesByVolunteer(
   userId: Ulid,
-  poolClient?: PoolClient
+  poolClient?: TransactionClient
 ): Promise<ReferenceContactInfo[]> {
   const client = poolClient ? poolClient : getClient()
   try {

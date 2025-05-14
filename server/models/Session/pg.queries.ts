@@ -3002,3 +3002,38 @@ const getSessionTranscriptIR: any = {"usedParamSet":{"sessionId":true},"params":
 export const getSessionTranscript = new PreparedQuery<IGetSessionTranscriptParams,IGetSessionTranscriptResult>(getSessionTranscriptIR);
 
 
+/** 'GetUniqueStudentsHelpedCount' parameters type */
+export interface IGetUniqueStudentsHelpedCountParams {
+  minSessionLength: number;
+  userId: string;
+}
+
+/** 'GetUniqueStudentsHelpedCount' return type */
+export interface IGetUniqueStudentsHelpedCountResult {
+  total: number | null;
+}
+
+/** 'GetUniqueStudentsHelpedCount' query type */
+export interface IGetUniqueStudentsHelpedCountQuery {
+  params: IGetUniqueStudentsHelpedCountParams;
+  result: IGetUniqueStudentsHelpedCountResult;
+}
+
+const getUniqueStudentsHelpedCountIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":102}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":145}]}],"statement":"SELECT\n    COUNT(DISTINCT student_id)::int AS total\nFROM\n    sessions\nWHERE\n    volunteer_id = :userId!\n    AND time_tutored >= :minSessionLength!::int\n    AND ended_at IS NOT NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     COUNT(DISTINCT student_id)::int AS total
+ * FROM
+ *     sessions
+ * WHERE
+ *     volunteer_id = :userId!
+ *     AND time_tutored >= :minSessionLength!::int
+ *     AND ended_at IS NOT NULL
+ * ```
+ */
+export const getUniqueStudentsHelpedCount = new PreparedQuery<IGetUniqueStudentsHelpedCountParams,IGetUniqueStudentsHelpedCountResult>(getUniqueStudentsHelpedCountIR);
+
+
