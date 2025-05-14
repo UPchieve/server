@@ -149,6 +149,7 @@ async function updateOnboardedAndSendEmails(
   userIds: string[],
   writeClient: TransactionClient
 ): Promise<void> {
+  logger.info({ userIds }, `${logPrefix}Updating onboarded status for users`)
   await runInTransaction(async (tc) => {
     // Get volunteer contact info (for the VPO key) in one batch.
     const volunteerContactInfosRaw =
