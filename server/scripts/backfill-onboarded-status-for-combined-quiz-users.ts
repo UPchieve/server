@@ -35,6 +35,7 @@ async function getUsersQuizzesForUsers(userIds: string[]): Promise<UserQuiz[]> {
       FROM users_quizzes uq
       WHERE uq.user_id = ANY($1)
       AND uq.passed IS TRUE
+      AND uq.updated_at >= '2025-04-11 00:00:00 EST'
     `,
       [userIds]
     )
