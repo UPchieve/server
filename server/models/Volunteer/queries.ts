@@ -17,7 +17,12 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
-import { Quizzes, Sponsorship, VolunteersForAnalyticsReport } from './types'
+import {
+  QuizInfo,
+  Quizzes,
+  Sponsorship,
+  VolunteersForAnalyticsReport,
+} from './types'
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
@@ -176,9 +181,9 @@ export type VolunteerTypeMap<T> = {
 export type VolunteerQuizMap = VolunteerTypeMap<Quizzes>
 export async function getQuizzesForVolunteers(
   userIds: Ulid[],
-  poolClient?: PoolClient
+  dbClient?: TransactionClient
 ): Promise<VolunteerQuizMap> {
-  const client = poolClient ? poolClient : getClient()
+  const client = dbClient ? dbClient : getClient()
   try {
     const result = await pgQueries.getQuizzesForVolunteers.run(
       { userIds },
@@ -388,13 +393,24 @@ export async function getVolunteerForOnboardingById(
       'country',
       'volunteerPartnerOrgKey',
     ])
-    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
     if (volunteer.email) {
       volunteer.email = volunteer.email.toLowerCase()
     }
+
+    // Some users may skip the UPchieve101 training course and go straight to the quiz
+    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
+    const userQuizzes = (await getQuizzesForVolunteers([userId], tc))[userId]
+
+    const upchieve101Quiz = userQuizzes.hasOwnProperty('upchieve101')
+      ? userQuizzes['upchieve101']
+      : null
+    const completedTrainingCourse = !!trainingCourses['upchieve101']?.complete
+    const passedQuiz = upchieve101Quiz
+      ? (upchieve101Quiz?.passed as boolean)
+      : false
     return {
       ...volunteer,
-      hasCompletedUpchieve101: !!trainingCourses['upchieve101']?.complete,
+      hasCompletedUpchieve101: completedTrainingCourse || passedQuiz,
     }
   } catch (err) {
     throw new RepoReadError(err)

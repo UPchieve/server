@@ -15,6 +15,7 @@ import {
   CreateVolunteerPayload,
   getNextVolunteerToNotify,
   getVolunteerContactInfoById,
+  getVolunteerForOnboardingById,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
 } from '../../models/Volunteer'
@@ -25,14 +26,20 @@ import {
   buildFullAvailability,
   buildNotification,
   buildSessionRow,
+  buildUser,
+  buildUserQuiz,
+  buildUserTrainingCourse,
+  buildVolunteer,
 } from '../mocks/generate'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
+import { buildVolunteerProfile } from '../../../database/seeds/testData/generate'
 
 const client = getClient()
 const TIMEZONE = 'EST'
 let studentId = '01919662-885c-d39a-1749-5aaf18cf5d3b'
 let completedUnmatchedSession: any
+const UPCHIEVE_101_QUIZ_ID = 22
 
 describe('VolunteerRepo', () => {
   beforeAll(async () => {
@@ -427,6 +434,126 @@ describe('VolunteerRepo', () => {
       ])
       volunteerResult = await queryForVolunteer()
       expect(volunteerResult).toBeUndefined()
+    })
+  })
+
+  describe('getVolunteerForOnboardingById', () => {
+    it('Returns hasCompletedUpchieve101 = true if the user completed the training course', async () => {
+      const volunteer = await loadVolunteer({
+        onboarded: false,
+        approved: false,
+      })
+      await insertSingleRow(
+        'users_training_courses',
+        buildUserTrainingCourse(volunteer.id, {
+          complete: true,
+          progress: 100,
+        }),
+        client
+      )
+      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      expect(actual?.id).toEqual(volunteer.id)
+      expect(actual?.hasCompletedUpchieve101).toBeTruthy()
+    })
+
+    it('Returns hasCompletedUpchieve101 = true if the user completed the quiz but no training course', async () => {
+      const volunteer = await loadVolunteer({
+        onboarded: false,
+        approved: false,
+      })
+      await insertSingleRow(
+        'users_quizzes',
+        buildUserQuiz(volunteer.id, {
+          quizId: UPCHIEVE_101_QUIZ_ID,
+          passed: true,
+        }),
+        client
+      )
+      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      expect(actual?.id).toEqual(volunteer.id)
+      expect(actual?.hasCompletedUpchieve101).toBeTruthy()
+    })
+
+    it('Returns hasCompletedUpchieve101 = true if the user completed the training course AND quiz', async () => {
+      const volunteer = await loadVolunteer({
+        onboarded: false,
+        approved: false,
+      })
+      await insertSingleRow(
+        'users_training_courses',
+        buildUserTrainingCourse(volunteer.id, {
+          complete: true,
+          progress: 100,
+        }),
+        client
+      )
+      await insertSingleRow(
+        'users_quizzes',
+        buildUserQuiz(volunteer.id, {
+          quizId: UPCHIEVE_101_QUIZ_ID,
+          passed: true,
+        }),
+        client
+      )
+      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      expect(actual?.id).toEqual(volunteer.id)
+      expect(actual?.hasCompletedUpchieve101).toBeTruthy()
+    })
+
+    it('Returns hasCompletedUpchieve101 = false if neither the training course nor quiz is complete', async () => {
+      const volunteer = await loadVolunteer({
+        onboarded: false,
+        approved: false,
+      })
+
+      const firstActual = await getVolunteerForOnboardingById(
+        volunteer.id,
+        client
+      )
+      expect(firstActual?.id).toEqual(volunteer.id)
+      expect(firstActual?.hasCompletedUpchieve101).toBeFalsy()
+
+      await insertSingleRow(
+        'users_training_courses',
+        buildUserTrainingCourse(volunteer.id, {
+          complete: false,
+          progress: 80,
+        }),
+        client
+      )
+      const secondActual = await getVolunteerForOnboardingById(
+        volunteer.id,
+        client
+      )
+      expect(secondActual?.id).toEqual(volunteer.id)
+      expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
+
+      await insertSingleRow(
+        'users_quizzes',
+        buildUserQuiz(volunteer.id, {
+          quizId: UPCHIEVE_101_QUIZ_ID,
+          passed: false,
+        }),
+        client
+      )
+      const thirdActual = await getVolunteerForOnboardingById(
+        volunteer.id,
+        client
+      )
+      expect(thirdActual?.id).toEqual(volunteer.id)
+      expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
+
+      // Quiz passed ==> It should be marked as complete
+      await client.query(
+        'UPDATE users_quizzes SET attempts = 2, passed = true WHERE quiz_id = $1 and user_id = $2',
+        [UPCHIEVE_101_QUIZ_ID, volunteer.id]
+      )
+      const fourthActual = await getVolunteerForOnboardingById(
+        volunteer.id,
+        client
+      )
+      expect(fourthActual?.id).toEqual(volunteer.id)
+      expect(fourthActual?.hasCompletedUpchieve101).toBeTruthy()
     })
   })
 })
