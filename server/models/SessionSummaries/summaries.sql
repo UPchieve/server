@@ -1,6 +1,6 @@
 /* @name addSessionSummary */
-INSERT INTO session_summaries (id, session_id, summary, user_type_id, created_at, updated_at)
-    VALUES (:id!, :sessionId!, :summary!, (
+INSERT INTO session_summaries (id, session_id, summary, trace_id, user_type_id, created_at, updated_at)
+    VALUES (:id!, :sessionId!, :summary!, :traceId!, (
             SELECT
                 id
             FROM
@@ -11,6 +11,7 @@ RETURNING
     id,
     session_id,
     summary,
+    trace_id,
     (
         SELECT
             name

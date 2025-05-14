@@ -124,8 +124,13 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
 
     // Sometimes the LLM will return a summary like "''" or '""'. We'll check for characters
     // to avoid storing empty summaries
-    if (!/[a-zA-Z0-9]/.test(summary.trim())) continue
-    await SessionSummariesRepo.addSessionSummary(session.id, summary, userType)
+    if (!/[a-zA-Z0-9]/.test(summary.response.trim())) continue
+    await SessionSummariesRepo.addSessionSummary(
+      session.id,
+      summary.response,
+      userType,
+      summary.traceId
+    )
   }
 }
 
@@ -150,7 +155,7 @@ export async function generateSessionSummary(
     sessionId: Uuid
     userType: USER_ROLES_TYPE
   }
-): Promise<string> {
+): Promise<{ response: string; traceId: string }> {
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
     metadata,
@@ -176,7 +181,10 @@ export async function generateSessionSummary(
   })
   gen.end({ output: completion })
 
-  const response = completion.choices[0].message.content
+  const response = {
+    response: completion.choices[0].message.content ?? '',
+    traceId: t.traceId,
+  }
   logger.info(
     `Session: ${metadata.sessionId} received session summary completion ${completion} for userType ${metadata.userType} with response ${response}`
   )
