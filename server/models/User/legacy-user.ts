@@ -78,6 +78,7 @@ export type LegacyUserModel = {
   timezone?: string
   totalVolunteerHours?: number
   hoursTutored?: number
+  hoursTutoredThisWeek?: number
   elapsedAvailability?: number
   references?: Reference[]
   photoIdStatus?: string
