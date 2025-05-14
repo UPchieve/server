@@ -11,6 +11,7 @@ import { openai } from './BotsService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
 import {
+  ExtractedTextItem,
   SessionTranscript,
   SessionTranscriptItem,
   updateSessionFlagsById,
@@ -123,9 +124,11 @@ export type ModerationSource =
   | 'voice_chat'
   | 'audio_transcription'
   | 'text_chat'
+  | 'whiteboard'
 
 const DIRECT_MESSAGE_TAG = 'direct_message'
 const MESSAGE_TAG = 'session_chat'
+const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
 
 /*
   detect harmful content in the image
@@ -221,7 +224,7 @@ async function detectMinorFailures(image: Buffer) {
   return labelFailures
 }
 
-async function extractTextFromImage(image: Buffer) {
+export async function extractTextFromImage(image: Buffer) {
   const extractedText = await awsRekognitionClient.send(
     new DetectTextCommand({
       Image: {
@@ -628,14 +631,17 @@ async function detectTextModerationFailures(
   return [...toxicity, ...pii]
 }
 
-async function saveImageToBucket({
+export async function saveImageToBucket({
   sessionId,
   image,
   source,
 }: {
   sessionId: string
   image: Buffer
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }): Promise<{ location: string }> {
   let bucketName: string
   switch (source) {
@@ -645,12 +651,14 @@ async function saveImageToBucket({
     case 'image_upload':
       bucketName = config.awsS3.moderatedSessionImageUploadBucket
       break
+    case 'whiteboard':
+      bucketName = config.awsS3.moderatedSessionWhiteboardImageUploadBucket
+      break
   }
   if (!bucketName)
     throw new Error(
       `Could not save moderated image to S3: No bucket registered for source ${source}`
     )
-
   const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
   const result = await putObject(bucketName, s3Key, image)
   return { location: result.location }
@@ -667,7 +675,10 @@ async function handleImageModerationFailure({
   sessionId: string
   failureReasons: ImageModerationFailureReason[]
   image: Buffer
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }) {
   const { location: imageUrl } = await saveImageToBucket({
     sessionId,
@@ -692,6 +703,7 @@ async function handleImageModerationFailure({
       ImageModerationFailureReason['details']
     >
   )
+
   await handleModerationInfraction(userId, sessionId, { failures }, source)
 }
 
@@ -699,7 +711,10 @@ function maybeHandleImageModerationFailure(options: {
   userId: string
   sessionId: string
   image: Buffer
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }) {
   return function (failures: ImageModerationFailureReason[]) {
     if (failures.length > 0) {
@@ -725,7 +740,10 @@ export function moderateImageInBackground(options: {
   sessionId: string
   userId: string
   isVolunteer: boolean
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
 }): void {
   detectImageModerationFailures(options.image, options.sessionId).then(
     maybeHandleImageModerationFailure(options)
@@ -1215,13 +1233,18 @@ export const moderateImage = async ({
   isVolunteer,
   source,
   aggregateInfractions,
+  recordInfractions = true,
 }: {
   image: Buffer
   sessionId: string
   userId: string
   isVolunteer: boolean
   aggregateInfractions: boolean
-  source: Extract<ModerationSource, 'screenshare' | 'image_upload'>
+  source: Extract<
+    ModerationSource,
+    'screenshare' | 'image_upload' | 'whiteboard'
+  >
+  recordInfractions?: boolean
 }): Promise<{
   isClean: boolean
   failures: string[]
@@ -1232,16 +1255,17 @@ export const moderateImage = async ({
       sessionId,
       isVolunteer,
     })
-
     if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
 
-    await handleImageModerationFailure({
-      userId,
-      sessionId,
-      failureReasons: result.failureReasons,
-      image,
-      source,
-    })
+    if (recordInfractions) {
+      await handleImageModerationFailure({
+        userId,
+        sessionId,
+        failureReasons: result.failureReasons,
+        image,
+        source,
+      })
+    }
 
     // Duplicate moderation failures may be present
     // if different objects in the image trigger it
@@ -1315,15 +1339,31 @@ export type TranscriptChunkModerationResult = {
   flaggedMessages: string[]
 }
 export const moderateTranscript = async (
-  transcript: SessionTranscript
+  transcript: SessionTranscript,
+  extractedText?: string[]
 ): Promise<{
   reasons: ModerationSessionReviewFlagReason[]
   flaggedMessages: string[]
 }> => {
-  const getChunkAsString = (chunk: SessionTranscriptItem[]): string => {
+  const extractedTextItems: ExtractedTextItem[] =
+    extractedText?.map((text) => {
+      return {
+        messageType: 'whiteboard_text',
+        message: text,
+        role: 'unknown',
+      }
+    }) ?? []
+
+  const getChunkAsString = (
+    chunk: (SessionTranscriptItem | ExtractedTextItem)[]
+  ): string => {
     return chunk.reduce((acc: string, item) => {
       const messageTag =
-        item.messageType === 'direct_message' ? DIRECT_MESSAGE_TAG : MESSAGE_TAG
+        item.messageType === 'whiteboard_text'
+          ? WHITEBOARD_TEXT_TAG
+          : item.messageType === 'direct_message'
+            ? DIRECT_MESSAGE_TAG
+            : MESSAGE_TAG
       return (
         acc +
         `<${messageTag}><role>${item.role}</role>${item.message}</${messageTag}>\n`
@@ -1346,14 +1386,15 @@ export const moderateTranscript = async (
 
   const model = 'gpt-4o'
   const results: TranscriptChunkModerationResult[] = []
-  const chunks: SessionTranscriptItem[][] = chunk(
-    transcript.messages,
+  const chunks: (SessionTranscriptItem | ExtractedTextItem)[][] = chunk(
+    [...transcript.messages, ...extractedTextItems],
     config.contextualModerationBatchSize
   )
   for (const chunk of chunks) {
+    const message = getChunkAsString(chunk)
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
-      getChunkAsString(chunk),
+      message,
       model,
       t,
       promptData?.promptObject
@@ -1452,7 +1493,7 @@ Acceptable values for the elements of the 'reasons' array are:
 
 const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
 You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor on a platform called UPchieve and decide if it violates any policies. The platform has built-in support for written chat messages, voice chat, and collaborative document editor and whiteboard.
-You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages or transcriptions of voice chat, both of which are built into the platform. Users may message each other after the end of the tutoring session for continuous asynchronous tutoring help. These messages are in <direct_message> tags.
+You will find the message in <message> tags and the role of the user who sent the message in the <role> tags. Messages are either written chat messages, messages written on a whiteboard (and tagged with <whiteboard_text>), or transcriptions of voice chat, all of which are built into the platform. Users may message each other after the end of the tutoring session for continuous asynchronous tutoring help. These messages are in <direct_message> or <whiteboard_text> tags.
 Policies are described in the <policy> tags, and each has a name to be returned in your JSON response in the <name> tag. Exceptions to the policies are in <exception> tags.
 Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
 <policy><name>HATE_SPEECH</name>No hate speech</policy>

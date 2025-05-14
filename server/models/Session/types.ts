@@ -84,6 +84,11 @@ export type SessionTranscriptItem = {
   messageType: MessageType
   role: USER_ROLES_TYPE
 }
+export type ExtractedTextItem = {
+  messageType: 'whiteboard_text'
+  message: string
+  role: 'unknown'
+}
 
 export type SessionTranscript = {
   sessionId: string

@@ -202,6 +202,7 @@ export const Config = Record({
     sessionPhotoBucket: String,
     moderatedScreenshareBucket: String,
     moderatedSessionImageUploadBucket: String,
+    moderatedSessionWhiteboardImageUploadBucket: String,
   }),
   awsModerationToolsRegion: String,
   posthogToken: String,
@@ -297,4 +298,7 @@ export const Config = Record({
   awsBedrockSecretAccessKey: String,
   awsBedrockRegion: String,
   awsBedrockModelId: String,
+
+  // Zwibbler
+  zwibblerNodeUrl: String,
 })

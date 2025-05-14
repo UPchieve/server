@@ -311,6 +311,9 @@ const config: Static<typeof Config> = {
     moderatedSessionImageUploadBucket:
       process.env.SUBWAY_MODERATED_SESSION_IMAGE_UPLOAD_BUCKET ||
       'moderated-session-images-bucket',
+    moderatedSessionWhiteboardImageUploadBucket:
+      process.env.SUBWAY_MODERATED_SESSION_WHITEBOARD_IMAGE_UPLOAD_BUCKET ||
+      'moderated-session-whiteboard-images-bucket',
   },
   awsModerationToolsRegion:
     process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',
@@ -460,7 +463,9 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
   awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
   awsBedrockModelId: process.env.SUBWAY_AWS_BEDROCK_MODEL_ID || 'bogus',
-}
 
+  // Zwibbler
+  zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
+}
 module.exports = config
 export default config
