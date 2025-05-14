@@ -400,7 +400,6 @@ export async function getVolunteerForOnboardingById(
     // Some users may skip the UPchieve101 training course and go straight to the quiz
     const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
     const userQuizzes = (await getQuizzesForVolunteers([userId], tc))[userId]
-    console.log('user quizzes', userQuizzes)
 
     const upchieve101Quiz = userQuizzes.hasOwnProperty('upchieve101')
       ? userQuizzes['upchieve101']

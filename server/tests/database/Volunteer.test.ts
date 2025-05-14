@@ -544,20 +544,16 @@ describe('VolunteerRepo', () => {
       expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
 
       // Quiz passed ==> It should be marked as complete
-      await insertSingleRow(
-        'users_quizzes',
-        buildUserQuiz(volunteer.id, {
-          quizId: UPCHIEVE_101_QUIZ_ID,
-          passed: true,
-        }),
-        client
+      await client.query(
+        'UPDATE users_quizzes SET attempts = 2, passed = true WHERE quiz_id = $1 and user_id = $2',
+        [UPCHIEVE_101_QUIZ_ID, volunteer.id]
       )
       const fourthActual = await getVolunteerForOnboardingById(
         volunteer.id,
         client
       )
       expect(fourthActual?.id).toEqual(volunteer.id)
-      expect(secondActual?.hasCompletedUpchieve101).toBeTruthy()
+      expect(fourthActual?.hasCompletedUpchieve101).toBeTruthy()
     })
   })
 })
