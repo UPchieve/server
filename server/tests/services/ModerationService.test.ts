@@ -642,8 +642,14 @@ describe('ModerationService', () => {
       'acceleratelearning.com',
     ]
 
+    // all edu domains are allowed
+    const anEduDomain: ModeratedLink = {
+      reason: 'Link',
+      details: { text: 'https://www.smell-u.edu', confidence: 0.9 },
+    }
+
     test('Returns a list of disallowed links', () => {
-      const links = [...allowedLinks, ...disallowedLinks]
+      const links = [...allowedLinks, ...disallowedLinks, anEduDomain]
 
       const moderatedLinks = filterDisallowedDomains({
         allowedDomains,
