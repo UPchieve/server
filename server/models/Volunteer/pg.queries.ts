@@ -1190,17 +1190,23 @@ export interface IUpdateVolunteerTrainingByIdQuery {
   result: IUpdateVolunteerTrainingByIdResult;
 }
 
-const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"materialKey":true,"requiredMaterialKeys":true,"trainingCourse":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":145}]},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":196},{"a":325,"b":337},{"a":771,"b":783},{"a":960,"b":972},{"a":1223,"b":1235}]},{"name":"requiredMaterialKeys","required":true,"transform":{"type":"scalar"},"locs":[{"a":434,"b":455},{"a":486,"b":507},{"a":1075,"b":1096},{"a":1127,"b":1148}]},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"locs":[{"a":614,"b":629}]}],"statement":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, created_at, updated_at)\nSELECT\n    :userId!,\n    training_courses.id,\n    ARRAY[(:materialKey!)::text],\n    COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                    SELECT\n                        REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')\n                INTERSECT\n                SELECT\n                    unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n    NOW(),\n    NOW()\nFROM\n    training_courses\nWHERE\n    training_courses.name = :trainingCourse!\nLIMIT 1\nON CONFLICT (user_id,\n    training_course_id)\n    DO UPDATE SET\n        completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n        progress = COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                        SELECT\n                            REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')\n                    INTERSECT\n                    SELECT\n                        unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n        updated_at = NOW()\n    WHERE\n        NOT :materialKey! = ANY (ins.completed_materials)\n    RETURNING\n        *"};
+const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"materialKey":true,"requiredMaterialKeys":true,"trainingCourse":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":155}]},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":194,"b":206},{"a":335,"b":347},{"a":667,"b":679},{"a":1113,"b":1125},{"a":1302,"b":1314},{"a":1689,"b":1701},{"a":1958,"b":1970}]},{"name":"requiredMaterialKeys","required":true,"transform":{"type":"scalar"},"locs":[{"a":444,"b":465},{"a":496,"b":517},{"a":776,"b":797},{"a":828,"b":849},{"a":1417,"b":1438},{"a":1469,"b":1490},{"a":1804,"b":1825},{"a":1856,"b":1877}]},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"locs":[{"a":956,"b":971}]}],"statement":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, complete, created_at, updated_at)\nSELECT\n    :userId!,\n    training_courses.id,\n    ARRAY[(:materialKey!)::text],\n    COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                    SELECT\n                        REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')\n                INTERSECT\n                SELECT\n                    unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n    100 = COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                    SELECT\n                        REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')\n                INTERSECT\n                SELECT\n                    unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n    NOW(),\n    NOW()\nFROM\n    training_courses\nWHERE\n    training_courses.name = :trainingCourse!\nLIMIT 1\nON CONFLICT (user_id,\n    training_course_id)\n    DO UPDATE SET\n        completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n        progress = COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                        SELECT\n                            REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')\n                    INTERSECT\n                    SELECT\n                        unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n        complete = COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                        SELECT\n                            REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')\n                    INTERSECT\n                    SELECT\n                        unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0) = 100,\n        updated_at = NOW()\n    WHERE\n        NOT :materialKey! = ANY (ins.completed_materials)\n    RETURNING\n        *"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, created_at, updated_at)
+ * INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, complete, created_at, updated_at)
  * SELECT
  *     :userId!,
  *     training_courses.id,
  *     ARRAY[(:materialKey!)::text],
  *     COALESCE(FLOOR(1.0 * array_length(ARRAY (
+ *                     SELECT
+ *                         REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')
+ *                 INTERSECT
+ *                 SELECT
+ *                     unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
+ *     100 = COALESCE(FLOOR(1.0 * array_length(ARRAY (
  *                     SELECT
  *                         REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')
  *                 INTERSECT
@@ -1223,6 +1229,12 @@ const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"mater
  *                     INTERSECT
  *                     SELECT
  *                         unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
+ *         complete = COALESCE(FLOOR(1.0 * array_length(ARRAY (
+ *                         SELECT
+ *                             REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')
+ *                     INTERSECT
+ *                     SELECT
+ *                         unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0) = 100,
  *         updated_at = NOW()
  *     WHERE
  *         NOT :materialKey! = ANY (ins.completed_materials)

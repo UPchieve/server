@@ -34,7 +34,6 @@ import {
 } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
-import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
@@ -762,11 +761,6 @@ export async function getVolunteerTrainingCourses(
       map[temp.trainingCourse] = {
         ...temp,
         isComplete: temp.complete,
-        progress: await getProgress(
-          temp.trainingCourse,
-          temp.completedMaterials,
-          userId
-        ),
       }
     }
     return map
@@ -792,15 +786,9 @@ export async function updateVolunteerTrainingById(
       },
       tc ?? getClient()
     )
-    const result: UserTrainingCourse = makeRequired(results[0])
-    if (!(results.length && result))
+    if (!results.length)
       throw new RepoUpdateError('Update query did not return ok')
-
-    // @TODO - Drop the `complete` column altogether (it is redundant with progress)
-    return {
-      ...result,
-      complete: result.progress === 100,
-    }
+    return makeRequired(results[0])
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

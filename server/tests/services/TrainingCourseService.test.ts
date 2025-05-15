@@ -82,6 +82,15 @@ describe('TrainingCourseService', () => {
       const progress = 20 // There are 5 required materials, so completing 1 brings you to 20% complete
 
       mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({})
+      mockedVolunteerRepo.updateVolunteerTrainingById.mockResolvedValue({
+        userId: volunteer.id,
+        complete: false,
+        trainingCourseId: 1,
+        progress: 20,
+        completedMaterials: [materialKey],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
       const result = await recordProgress(volunteer, courseKey, materialKey)
       expect(
         mockedVolunteerRepo.updateVolunteerTrainingById
@@ -104,6 +113,16 @@ describe('TrainingCourseService', () => {
       const originalProgress = 20
       const endingProgress = 40
       const newMaterialKey = 'jsn832' // Another required material, which counts toward total progress.
+
+      mockedVolunteerRepo.updateVolunteerTrainingById.mockResolvedValue({
+        userId: volunteer.id,
+        complete: false,
+        trainingCourseId: 1,
+        progress: endingProgress,
+        completedMaterials: [materialKey],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
       mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
         [TRAINING.UPCHIEVE_101]: {

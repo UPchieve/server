@@ -734,17 +734,3 @@ export const getRequiredMaterials = async (
     .map('materialKey')
     .value()
 }
-
-export const getProgress = async (
-  // @TODO Delete me after updating getVolunteerTrainingCourses.
-  courseKey: string,
-  userCompleted: string[],
-  userId: Ulid
-): Promise<number> => {
-  const requiredMaterials = await getRequiredMaterials(courseKey, userId)
-  const completedMaterials = requiredMaterials.filter((mat) =>
-    userCompleted.includes(mat)
-  )
-  const fraction = completedMaterials.length / requiredMaterials.length
-  return Math.floor(fraction * 100)
-}

@@ -16,7 +16,6 @@ import {
   getNextVolunteerToNotify,
   getVolunteerContactInfoById,
   getVolunteerForOnboardingById,
-  getVolunteerTrainingCourses,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
   updateVolunteerTrainingById,

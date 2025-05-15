@@ -104,7 +104,7 @@ export async function recordProgress(
       )
       return {
         progress: updated.progress,
-        isComplete: updated.progress === 100,
+        isComplete: updated.complete,
       }
     }
     return {
