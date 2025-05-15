@@ -34,21 +34,21 @@ describe('processSessionEnded', () => {
   test('should call all session processing services in correct order', async () => {
     await processSessionEnded(job)
 
-    expect(
-      mockedSessionFlagsService.processSessionMetrics
-    ).toHaveBeenCalledWith(sessionId)
-    expect(mockedSessionService.processSessionReported).toHaveBeenCalledWith(
-      sessionId
-    )
-    expect(mockedSessionService.processSessionEditors).toHaveBeenCalledWith(
-      sessionId
-    )
-    expect(mockedSessionService.processSessionTranscript).toHaveBeenCalledWith(
-      sessionId
-    )
-    expect(mockedSessionService.processCalculateMetrics).toHaveBeenCalledWith(
-      sessionId
-    )
+    // Only enforce call order between strictly sequential steps
+    const orderedSteps = [
+      mockedSessionFlagsService.processSessionMetrics,
+      mockedSessionService.processCalculateMetrics,
+    ]
+
+    let previousStepCallOrder = -1
+    for (const step of orderedSteps) {
+      const currentStepCallOrder = step.mock.invocationCallOrder[0]
+      expect(currentStepCallOrder).toBeGreaterThan(previousStepCallOrder)
+      previousStepCallOrder = currentStepCallOrder
+      expect(step).toHaveBeenCalledWith(sessionId)
+      expect(step).toHaveBeenCalledTimes(1)
+    }
+
     expect(
       mockedSessionSummariesService.queueGenerateSessionSummaryForSession
     ).toHaveBeenCalledWith(sessionId)
@@ -64,6 +64,15 @@ describe('processSessionEnded', () => {
     expect(
       mockedIncentiveProgramService.queueFallIncentiveSessionQualificationJob
     ).toHaveBeenCalledWith(sessionId)
+    expect(mockedSessionService.processSessionReported).toHaveBeenCalledWith(
+      sessionId
+    )
+    expect(mockedSessionService.processSessionEditors).toHaveBeenCalledWith(
+      sessionId
+    )
+    expect(mockedSessionService.processSessionTranscript).toHaveBeenCalledWith(
+      sessionId
+    )
   })
 
   test('should throw an error if one of the services fails', async () => {
