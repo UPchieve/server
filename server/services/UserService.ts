@@ -59,7 +59,6 @@ import { RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
-import { getMostRecentSunday } from '../utils/get-times'
 import * as SessionService from './SessionService'
 
 export async function parseUser(baseUser: UserContactInfo) {
@@ -69,12 +68,9 @@ export async function parseUser(baseUser: UserContactInfo) {
   if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
 
-    const msTutoredThisWeek = await SessionService.getTimeTutoredForDateRange(
-      baseUser.id,
-      getMostRecentSunday(),
-      new Date()
+    user.hoursTutoredThisWeek = await SessionService.hoursTutoredThisWeek(
+      baseUser.id
     )
-    user.hoursTutoredThisWeek = Number((msTutoredThisWeek / 3600000).toFixed(2))
 
     user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
       baseUser.id

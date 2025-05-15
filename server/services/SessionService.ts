@@ -1190,3 +1190,15 @@ export async function getSessionTranscript(
     messages,
   }
 }
+
+export async function hoursTutoredThisWeek(userId: Ulid) {
+  const lastMonday = moment().utc().startOf('isoWeek').toDate()
+  const now = moment().utc().toDate()
+  const msTutoredThisWeek = await getTimeTutoredForDateRange(
+    userId,
+    lastMonday,
+    now
+  )
+
+  return Number((msTutoredThisWeek / 3600000).toFixed(2))
+}
