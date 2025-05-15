@@ -9,11 +9,12 @@ export async function addSessionSummary(
   sessionId: Ulid,
   summary: string,
   userType: USER_ROLES_TYPE,
+  traceId: string,
   tc?: TransactionClient
 ): Promise<SessionSummary> {
   try {
     const result = await pgQueries.addSessionSummary.run(
-      { id: getDbUlid(), sessionId, summary, userType },
+      { id: getDbUlid(), sessionId, summary, traceId, userType },
       tc ?? getClient()
     )
     if (!result.length)
