@@ -124,7 +124,7 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
 
     // Sometimes the LLM will return a summary like "''" or '""'. We'll check for characters
     // to avoid storing empty summaries
-    if(summary.response) {
+    if (summary.response) {
       if (!/[a-zA-Z0-9]/.test(summary.response.trim())) continue
       await SessionSummariesRepo.addSessionSummary(
         session.id,
