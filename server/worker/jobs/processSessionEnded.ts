@@ -13,6 +13,7 @@ import {
   processSessionTranscript,
 } from '../../services/SessionService'
 import { asString } from '../../utils/type-utils'
+import { queueGenerateSessionSummaryForSession } from '../../services/SessionSummariesService'
 
 type ProcessSessionEndedJobData = {
   sessionId: Uuid
@@ -27,6 +28,7 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
     await processSessionEditors(sessionId)
     await processSessionTranscript(sessionId)
     await processCalculateMetrics(sessionId)
+    await queueGenerateSessionSummaryForSession(sessionId)
     await processEmailVolunteer(sessionId)
     await processFirstSessionCongratsEmail(sessionId)
     await queueGenerateProgressReportForUser(sessionId)
