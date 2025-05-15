@@ -69,6 +69,7 @@ export interface IGetSessionSummaryBySessionIdResult {
   id: string;
   sessionId: string;
   summary: string;
+  traceId: string | null;
   userType: string;
 }
 
@@ -78,7 +79,7 @@ export interface IGetSessionSummaryBySessionIdQuery {
   result: IGetSessionSummaryBySessionIdResult;
 }
 
-const getSessionSummaryBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"userType":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":213}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":242}]}],"statement":"SELECT\n    ss.id,\n    ss.session_id,\n    ss.summary,\n    ur.name AS user_type,\n    ss.created_at\nFROM\n    session_summaries ss\n    JOIN user_roles ur ON ss.user_type_id = ur.id\nWHERE\n    ss.session_id = :sessionId!\n    AND ur.name = :userType!\nORDER BY\n    ss.created_at DESC\nLIMIT 1"};
+const getSessionSummaryBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"userType":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":230}]},{"name":"userType","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":259}]}],"statement":"SELECT\n    ss.id,\n    ss.session_id,\n    ss.summary,\n    ss.trace_id,\n    ur.name AS user_type,\n    ss.created_at\nFROM\n    session_summaries ss\n    JOIN user_roles ur ON ss.user_type_id = ur.id\nWHERE\n    ss.session_id = :sessionId!\n    AND ur.name = :userType!\nORDER BY\n    ss.created_at DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -87,6 +88,7 @@ const getSessionSummaryBySessionIdIR: any = {"usedParamSet":{"sessionId":true,"u
  *     ss.id,
  *     ss.session_id,
  *     ss.summary,
+ *     ss.trace_id,
  *     ur.name AS user_type,
  *     ss.created_at
  * FROM

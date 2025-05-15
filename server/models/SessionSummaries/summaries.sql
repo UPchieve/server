@@ -27,6 +27,7 @@ SELECT
     ss.id,
     ss.session_id,
     ss.summary,
+    ss.trace_id,
     ur.name AS user_type,
     ss.created_at
 FROM
