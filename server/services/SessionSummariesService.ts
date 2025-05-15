@@ -92,6 +92,7 @@ async function getPromptDataForUserType(userType: UserRole): Promise<
 
 export async function generateSessionSummaryForSession(sessionId: Uuid) {
   const session = await SessionRepo.getSessionById(sessionId)
+  console.log('******SESSION', session)
   if (!session.volunteerId) return
   const subjectData = await getSubjectAndTopic(session.subject)
   if (!subjectData)
