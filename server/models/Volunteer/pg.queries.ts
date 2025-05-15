@@ -1167,16 +1167,21 @@ export const getVolunteerTrainingCourses = new PreparedQuery<IGetVolunteerTraini
 
 /** 'UpdateVolunteerTrainingById' parameters type */
 export interface IUpdateVolunteerTrainingByIdParams {
-  complete: boolean;
   materialKey: string;
-  progress: number;
+  requiredMaterialKeys: stringArray;
   trainingCourse: string;
   userId: string;
 }
 
 /** 'UpdateVolunteerTrainingById' return type */
 export interface IUpdateVolunteerTrainingByIdResult {
-  ok: string;
+  complete: boolean;
+  completedMaterials: stringArray | null;
+  createdAt: Date;
+  progress: number;
+  trainingCourseId: number;
+  updatedAt: Date;
+  userId: string;
 }
 
 /** 'UpdateVolunteerTrainingById' query type */
@@ -1185,35 +1190,44 @@ export interface IUpdateVolunteerTrainingByIdQuery {
   result: IUpdateVolunteerTrainingByIdResult;
 }
 
-const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"complete":true,"progress":true,"materialKey":true,"trainingCourse":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":155}]},{"name":"complete","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":196},{"a":430,"b":439}]},{"name":"progress","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":212},{"a":461,"b":470}]},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":226,"b":238},{"a":541,"b":553},{"a":606,"b":618}]},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"locs":[{"a":330,"b":345}]}],"statement":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)\nSELECT\n    :userId!,\n    training_courses.id,\n    :complete!,\n    :progress!,\n    ARRAY[(:materialKey!)::text],\n    NOW(),\n    NOW()\nFROM\n    training_courses\nWHERE\n    training_courses.name = :trainingCourse!\nON CONFLICT (user_id,\n    training_course_id)\n    DO UPDATE SET\n        complete = :complete!,\n        progress = :progress!,\n        completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n        updated_at = NOW()\n    WHERE\n        NOT :materialKey! = ANY (ins.completed_materials)\n    RETURNING\n        user_id AS ok"};
+const updateVolunteerTrainingByIdIR: any = {"usedParamSet":{"userId":true,"materialKey":true,"requiredMaterialKeys":true,"trainingCourse":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":145}]},{"name":"materialKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":196},{"a":325,"b":337},{"a":771,"b":783},{"a":960,"b":972},{"a":1223,"b":1235}]},{"name":"requiredMaterialKeys","required":true,"transform":{"type":"scalar"},"locs":[{"a":434,"b":455},{"a":486,"b":507},{"a":1075,"b":1096},{"a":1127,"b":1148}]},{"name":"trainingCourse","required":true,"transform":{"type":"scalar"},"locs":[{"a":614,"b":629}]}],"statement":"INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, created_at, updated_at)\nSELECT\n    :userId!,\n    training_courses.id,\n    ARRAY[(:materialKey!)::text],\n    COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                    SELECT\n                        REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')\n                INTERSECT\n                SELECT\n                    unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n    NOW(),\n    NOW()\nFROM\n    training_courses\nWHERE\n    training_courses.name = :trainingCourse!\nLIMIT 1\nON CONFLICT (user_id,\n    training_course_id)\n    DO UPDATE SET\n        completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),\n        progress = COALESCE(FLOOR(1.0 * array_length(ARRAY (\n                        SELECT\n                            REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')\n                    INTERSECT\n                    SELECT\n                        unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),\n        updated_at = NOW()\n    WHERE\n        NOT :materialKey! = ANY (ins.completed_materials)\n    RETURNING\n        *"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)
+ * INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, created_at, updated_at)
  * SELECT
  *     :userId!,
  *     training_courses.id,
- *     :complete!,
- *     :progress!,
  *     ARRAY[(:materialKey!)::text],
+ *     COALESCE(FLOOR(1.0 * array_length(ARRAY (
+ *                     SELECT
+ *                         REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')
+ *                 INTERSECT
+ *                 SELECT
+ *                     unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
  *     NOW(),
  *     NOW()
  * FROM
  *     training_courses
  * WHERE
  *     training_courses.name = :trainingCourse!
+ * LIMIT 1
  * ON CONFLICT (user_id,
  *     training_course_id)
  *     DO UPDATE SET
- *         complete = :complete!,
- *         progress = :progress!,
  *         completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),
+ *         progress = COALESCE(FLOOR(1.0 * array_length(ARRAY (
+ *                         SELECT
+ *                             REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')
+ *                     INTERSECT
+ *                     SELECT
+ *                         unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
  *         updated_at = NOW()
  *     WHERE
  *         NOT :materialKey! = ANY (ins.completed_materials)
  *     RETURNING
- *         user_id AS ok
+ *         *
  * ```
  */
 export const updateVolunteerTrainingById = new PreparedQuery<IUpdateVolunteerTrainingByIdParams,IUpdateVolunteerTrainingByIdResult>(updateVolunteerTrainingByIdIR);

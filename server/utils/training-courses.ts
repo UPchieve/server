@@ -722,7 +722,7 @@ export const getCourse = async (
   return isShowPlatformActive ? addUsingOurPlatformTo101(course) : course
 }
 
-const getRequiredMaterials = async (
+export const getRequiredMaterials = async (
   courseKey: string,
   userId: Ulid
 ): Promise<string[]> => {
@@ -736,6 +736,7 @@ const getRequiredMaterials = async (
 }
 
 export const getProgress = async (
+  // @TODO Delete me after updating getVolunteerTrainingCourses.
   courseKey: string,
   userCompleted: string[],
   userId: Ulid

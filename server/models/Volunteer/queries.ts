@@ -21,6 +21,7 @@ import {
   QuizInfo,
   Quizzes,
   Sponsorship,
+  UserTrainingCourse,
   VolunteersForAnalyticsReport,
 } from './types'
 import config from '../../config'
@@ -777,24 +778,29 @@ export async function getVolunteerTrainingCourses(
 export async function updateVolunteerTrainingById(
   userId: Ulid,
   trainingCourse: string,
-  complete: boolean,
-  progress: number,
+  requiredMaterialKeys: string[],
   materialKey: string,
   tc?: TransactionClient
-): Promise<void> {
+): Promise<UserTrainingCourse> {
   try {
-    const result = await pgQueries.updateVolunteerTrainingById.run(
+    const results = await pgQueries.updateVolunteerTrainingById.run(
       {
         userId,
         trainingCourse,
-        complete,
-        progress,
+        requiredMaterialKeys,
         materialKey,
       },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
+    const result: UserTrainingCourse = makeRequired(results[0])
+    if (!(results.length && result))
       throw new RepoUpdateError('Update query did not return ok')
+
+    // @TODO - Drop the `complete` column altogether (it is redundant with progress)
+    return {
+      ...result,
+      complete: result.progress === 100,
+    }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

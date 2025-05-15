@@ -40,6 +40,7 @@ describe('TrainingCourseService', () => {
   describe('recordProgress', () => {
     const courseKey = TRAINING.UPCHIEVE_101
     const materialKey = '7b6a76' // A required material (counts toward progress)
+    const requiredMaterials = ['7b6a76', 'jsn832', 'ps87f9', 'jgu55k', 'fj8tzq']
 
     it('Returns the progress info for a material that was already completed', async () => {
       const isComplete = false
@@ -87,8 +88,7 @@ describe('TrainingCourseService', () => {
       ).toHaveBeenCalledWith(
         volunteer.id,
         courseKey,
-        isComplete,
-        progress,
+        requiredMaterials,
         materialKey,
         expect.toBeTransactionClient()
       )
@@ -124,8 +124,7 @@ describe('TrainingCourseService', () => {
       ).toHaveBeenCalledWith(
         volunteer.id,
         courseKey,
-        isComplete,
-        endingProgress,
+        requiredMaterials,
         newMaterialKey,
         expect.toBeTransactionClient()
       )
