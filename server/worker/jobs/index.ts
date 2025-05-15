@@ -59,6 +59,7 @@ import emailFallIncentiveSessionQualification from './student-emails/emailFallIn
 import generateSessionSummary from './generateSessionSummary'
 import processSessionEnded from './processSessionEnded'
 import detectSessionLanguages from './detectSessionLanguages'
+import backfillCombinedQuizUsersOnboardedStatus from './backfill-onboarded-status-for-combined-quiz-users'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -128,6 +129,7 @@ export enum Jobs {
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
+  BackfillOnboardedStatusForCombinedQuizUsers = 'BackfillOnboardedStatusForCombinedQuizUsers',
 
   // Delete scripts
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
@@ -437,6 +439,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MigrateBannedAndTestUsersToBanType,
     processor: migrateBannedAndTestUsersToBanType,
+  },
+  {
+    name: Jobs.BackfillOnboardedStatusForCombinedQuizUsers,
+    processor: backfillCombinedQuizUsersOnboardedStatus,
   },
 ]
 

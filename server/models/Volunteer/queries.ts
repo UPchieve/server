@@ -89,12 +89,14 @@ export async function getSubjectsForVolunteer(
 }
 
 export async function getVolunteerContactInfoByIds(
-  userIds: Ulid[]
+  userIds: Ulid[],
+  client?: TransactionClient
 ): Promise<VolunteerContactInfo[]> {
+  const dbClient = client ?? getClient()
   try {
     const result = await pgQueries.getVolunteerContactInfoByIds.run(
       { userIds },
-      getClient()
+      dbClient
     )
     return result.map((v) => {
       const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
