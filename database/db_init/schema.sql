@@ -1693,7 +1693,8 @@ CREATE TABLE upchieve.session_summaries (
     summary text NOT NULL,
     user_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    trace_id character varying(255)
 );
 
 
@@ -6447,4 +6448,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250401193833'),
     ('20250407171122'),
     ('20250407182416'),
-    ('20250409193923');
+    ('20250409193923'),
+    ('20250514151906');

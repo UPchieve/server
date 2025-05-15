@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
 -- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
@@ -2785,7 +2785,7 @@ COPY upchieve.session_review_reasons (session_id, session_flag_id, created_at, u
 -- Data for Name: session_summaries; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_summaries (id, session_id, summary, user_type_id, created_at, updated_at) FROM stdin;
+COPY upchieve.session_summaries (id, session_id, summary, user_type_id, created_at, updated_at, trace_id) FROM stdin;
 \.
 
 
