@@ -50,7 +50,9 @@ export async function getRoleContext(
     if (!roles.length) {
       throw new Error('User is missing roles')
     }
-    const legacyRole = roles.filter((r) => r !== 'admin')[0] as PrimaryUserRole
+    const legacyRole = roles.filter(
+      (r) => r !== 'admin' && r !== 'ambassador'
+    )[0] as PrimaryUserRole
     let activeRole = legacyRole
     if (roleContextStr) {
       // Maintain activeRole if there is one
