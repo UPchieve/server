@@ -301,12 +301,13 @@ export async function getSessionsToReview(
 export async function getTotalTimeTutoredForDateRange(
   volunteerId: Ulid,
   start: Date,
-  end: Date
+  end: Date,
+  tc?: TransactionClient
 ): Promise<number> {
   try {
     const result = await pgQueries.getTotalTimeTutoredForDateRange.run(
       { volunteerId, start, end },
-      getClient()
+      tc || getClient()
     )
     if (!(result.length && result[0].total)) return 0
     // manually parse out incoming bigint to number
@@ -1510,6 +1511,25 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
         role: camelCased.role as USER_ROLES_TYPE,
       }
     })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getUniqueStudentsHelpedCount(
+  userId: Ulid,
+  minSessionLength: number,
+  tc?: TransactionClient
+) {
+  try {
+    const result = await pgQueries.getUniqueStudentsHelpedCount.run(
+      {
+        userId,
+        minSessionLength,
+      },
+      tc || getClient()
+    )
+    return makeRequired(result[0]).total
   } catch (err) {
     throw new RepoReadError(err)
   }
