@@ -59,6 +59,7 @@ import { RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
+import * as SessionService from './SessionService'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
@@ -66,6 +67,11 @@ export async function parseUser(baseUser: UserContactInfo) {
   // Approved volunteer
   if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
+
+    user.hoursTutoredThisWeek = await SessionService.hoursTutoredThisWeek(
+      baseUser.id
+    )
+
     user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
       baseUser.id
     )
