@@ -285,7 +285,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           action: SESSION_USER_ACTIONS.SENT_CELEBRATION,
         })
 
-        socket.to(getSessionRoom(sessionId)).emit('celebrate', { duration })
+        io.in(getSessionRoom(sessionId)).emit('celebrate', { duration })
       })
     })
 
