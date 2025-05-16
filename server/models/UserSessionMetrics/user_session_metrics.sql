@@ -1,39 +1,3 @@
-/* @name createUSMByUserId */
-INSERT INTO user_session_metrics (user_id, created_at, updated_at)
-SELECT
-    :userId!,
-    NOW(),
-    NOW()
-WHERE
-    NOT EXISTS (
-        SELECT
-            1
-        FROM
-            user_session_metrics
-        WHERE
-            user_id = :userId!)
-RETURNING
-    user_id,
-    absent_student,
-    absent_volunteer,
-    low_session_rating_from_coach,
-    low_session_rating_from_student,
-    low_coach_rating_from_student,
-    only_looking_for_answers,
-    rude_or_inappropriate,
-    comment_from_student,
-    comment_from_volunteer,
-    has_been_unmatched,
-    has_had_technical_issues,
-    reported,
-    personal_identifying_info,
-    graded_assignment,
-    coach_uncomfortable,
-    student_crisis,
-    created_at,
-    updated_at;
-
-
 /* @name getUSMByUserId */
 SELECT
     user_id,

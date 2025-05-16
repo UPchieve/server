@@ -19,7 +19,6 @@ import {
 import * as UserRepo from '../models/User'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
-import { createUSMByUserId } from '../models/UserSessionMetrics'
 import { createUPFByUserId } from '../models/UserProductFlags'
 import { createAccountAction } from '../models/UserAction'
 import * as SignUpSourceRepo from '../models/SignUpSource'
@@ -305,7 +304,6 @@ async function createUserMetadata(
   // TODO: Should any of these be moved to the listener?
   await Promise.all([
     UserRepo.insertUserRoleByUserId(userId, role, tc),
-    createUSMByUserId(userId, tc),
     createUPFByUserId(userId, tc),
     createAccountAction(
       {
