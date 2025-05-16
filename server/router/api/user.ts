@@ -1,4 +1,3 @@
-import logger from '../../logger'
 import * as UserService from '../../services/UserService'
 import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'

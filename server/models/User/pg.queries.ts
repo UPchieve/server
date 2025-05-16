@@ -551,6 +551,53 @@ const countUsersReferredByOtherIdIR: any = {"usedParamSet":{"userId":true},"para
 export const countUsersReferredByOtherId = new PreparedQuery<ICountUsersReferredByOtherIdParams,ICountUsersReferredByOtherIdResult>(countUsersReferredByOtherIdIR);
 
 
+/** 'CountReferredUsersWithFilter' parameters type */
+export interface ICountReferredUsersWithFilterParams {
+  emailVerified?: boolean | null | void;
+  hasRoles?: stringArray | null | void;
+  phoneVerified?: boolean | null | void;
+  userId: string;
+}
+
+/** 'CountReferredUsersWithFilter' return type */
+export interface ICountReferredUsersWithFilterResult {
+  id: string;
+  roles: stringArray | null;
+}
+
+/** 'CountReferredUsersWithFilter' query type */
+export interface ICountReferredUsersWithFilterQuery {
+  params: ICountReferredUsersWithFilterParams;
+  result: ICountReferredUsersWithFilterResult;
+}
+
+const countReferredUsersWithFilterIR: any = {"usedParamSet":{"userId":true,"phoneVerified":true,"emailVerified":true,"hasRoles":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":199,"b":206}]},{"name":"phoneVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":223,"b":236},{"a":285,"b":298}]},{"name":"emailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":319,"b":332},{"a":381,"b":394}]},{"name":"hasRoles","required":false,"transform":{"type":"scalar"},"locs":[{"a":477,"b":485}]}],"statement":"SELECT\n    u.id,\n    array_agg(roles.name)::text[] AS roles\nFROM\n    users u\n    JOIN users_roles ur ON ur.user_id = u.id\n    JOIN user_roles roles ON roles.id = ur.role_id\nWHERE\n    u.referred_by = :userId!::uuid\n    AND (:phoneVerified::boolean IS NULL\n        OR u.phone_verified = :phoneVerified::boolean)\n    AND (:emailVerified::boolean IS NULL\n        OR u.email_verified = :emailVerified::boolean)\nGROUP BY\n    u.id\nHAVING\n    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[])"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     u.id,
+ *     array_agg(roles.name)::text[] AS roles
+ * FROM
+ *     users u
+ *     JOIN users_roles ur ON ur.user_id = u.id
+ *     JOIN user_roles roles ON roles.id = ur.role_id
+ * WHERE
+ *     u.referred_by = :userId!::uuid
+ *     AND (:phoneVerified::boolean IS NULL
+ *         OR u.phone_verified = :phoneVerified::boolean)
+ *     AND (:emailVerified::boolean IS NULL
+ *         OR u.email_verified = :emailVerified::boolean)
+ * GROUP BY
+ *     u.id
+ * HAVING
+ *     array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[])
+ * ```
+ */
+export const countReferredUsersWithFilter = new PreparedQuery<ICountReferredUsersWithFilterParams,ICountReferredUsersWithFilterResult>(countReferredUsersWithFilterIR);
+
+
 /** 'UpdateUserResetTokenById' parameters type */
 export interface IUpdateUserResetTokenByIdParams {
   token: string;

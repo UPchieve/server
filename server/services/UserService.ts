@@ -66,6 +66,11 @@ export async function parseUser(baseUser: UserContactInfo) {
   return runInTransaction(async (tc) => {
     const user = await getLegacyUserObject(baseUser.id, tc)
 
+    if (user.roleContext.hasRole('ambassador')) {
+      user.numReferredVolunteers = await countReferredUsers(user.id, {
+        withRoles: ['volunteer'],
+      })
+
     // Approved volunteer
     if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
       user.hoursTutored = Number(user.hoursTutored)
@@ -85,9 +90,7 @@ export async function parseUser(baseUser: UserContactInfo) {
       return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
     }
 
-    // Student or unapproved volunteer
-    return user
-  })
+  return user
 }
 
 export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
@@ -569,4 +572,15 @@ export async function updatePreferredLanguage(
   languageCode: string
 ): Promise<void> {
   return await updatePreferredLanguageToUser(userId, languageCode)
+}
+
+export async function countReferredUsers(
+  referrerId: string,
+  filters?: {
+    withPhoneVerifiedAs?: boolean
+    withEmailVerifiedAs?: boolean
+    withRoles?: UserRole[]
+  }
+): Promise<number> {
+  return await UserRepo.countReferredUsers(referrerId, filters)
 }

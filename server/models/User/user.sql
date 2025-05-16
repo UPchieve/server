@@ -179,6 +179,26 @@ WHERE
     OR email_verified IS TRUE;
 
 
+/* @name countReferredUsersWithFilter */
+SELECT
+    u.id,
+    array_agg(roles.name)::text[] AS roles
+FROM
+    users u
+    JOIN users_roles ur ON ur.user_id = u.id
+    JOIN user_roles roles ON roles.id = ur.role_id
+WHERE
+    u.referred_by = :userId!::uuid
+    AND (:phoneVerified::boolean IS NULL
+        OR u.phone_verified = :phoneVerified::boolean)
+    AND (:emailVerified::boolean IS NULL
+        OR u.email_verified = :emailVerified::boolean)
+GROUP BY
+    u.id
+HAVING
+    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[]);
+
+
 /* @name updateUserResetTokenById */
 UPDATE
     users
