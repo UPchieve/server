@@ -6,24 +6,6 @@ import * as pgQueries from './pg.queries'
 import { UserSessionMetrics } from './types'
 import { UserRole } from '../User'
 
-export async function getUSMByUserId(
-  userId: Ulid,
-  tc?: TransactionClient
-): Promise<UserSessionMetrics | undefined> {
-  try {
-    const result = await pgQueries.getUsmByUserId.run(
-      {
-        userId,
-      },
-      tc ?? getClient()
-    )
-
-    if (result.length) return makeRequired(result[0])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type UserSessionMetricsUpdateQuery = { [key: string]: number }
 
 // NOTE: when queries are merged conflicting scalar values will be overwritten
