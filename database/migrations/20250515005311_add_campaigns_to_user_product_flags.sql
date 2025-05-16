@@ -5,3 +5,4 @@ ALTER TABLE upchieve.user_product_flags
 -- migrate:down
 ALTER TABLE upchieve.user_product_flags
     DROP COLUMN campaigns;
+
