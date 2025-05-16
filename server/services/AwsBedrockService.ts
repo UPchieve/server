@@ -1,3 +1,4 @@
+import { jsonrepair } from 'jsonrepair'
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
@@ -53,5 +54,8 @@ export async function invokeModel({
   const response = await client.send(command)
   const jsonString = new TextDecoder().decode(response.body)
   const modelRes = JSON.parse(jsonString)
-  return JSON.parse(modelRes.content[0].text)
+
+  let responseText = jsonrepair(modelRes.content[0].text)
+
+  return JSON.parse(responseText)
 }

@@ -317,53 +317,55 @@ const getAwsBedRockResponse = async (
   // NOTE these are ordered by created at ASC
   const transcript = await getTranscriptForConversation(conversationId, tc)
   const promptData = await getPromptData(subjectName, transcript)
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    metadata: { model: config.awsBedrockModelId },
+    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
+    input: promptData.prompt,
+  })
+  let savedBotMessage = null
+  let botResponse = null
 
   try {
-    const gen = t.generation({
-      name: LF_GENERATION_NAME,
-      metadata: { model: config.awsBedrockModelId },
-      // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
-      input: promptData.prompt,
-    })
-
-    const completion = await invokeModel({
+    botResponse = await invokeModel({
       modelId: config.awsBedrockModelId,
       text: '',
       prompt: promptData.prompt,
     })
-
-    const savedBotMessage = await insertTutorBotConversationMessage(
-      {
-        conversationId,
-        userId,
-        message: completion.response,
-        senderUserType: 'bot',
-      },
-      tc
-    )
-    gen.end({
-      output: { botResponse: completion, responseDbo: savedBotMessage },
-    })
-
-    return {
-      senderUserType: 'bot',
-      message: completion.response,
-      createdAt: savedBotMessage.createdAt,
-      tutorBotConversationId: conversationId,
-      userId,
-      status: completion.reason,
-      traceId: gen.traceId,
-      obeservationId: gen.observationId,
-    }
   } catch (err) {
     // We could add a retry if we see this happening a fair amount
+    logger.error(err)
+    botResponse = AWS_BEDROCK_TUTOR_ANSWER_FALLBACK
     logger.error('AI tutor: Unprocessbable response from aws bedrock', {
       messagePrompt: promptData,
       traceName: LF_TRACE_NAME,
     })
+  } finally {
+    savedBotMessage = await insertTutorBotConversationMessage(
+      {
+        conversationId,
+        userId,
+        message: botResponse?.response ? botResponse.response : botResponse,
+        senderUserType: 'bot',
+      },
+      tc
+    )
+
+    gen.end({
+      output: { botResponse: botResponse, responseDbo: savedBotMessage },
+    })
   }
 
-  return null
+  return {
+    senderUserType: 'bot',
+    message: botResponse?.response ? botResponse.response : botResponse,
+    createdAt: savedBotMessage.createdAt,
+    tutorBotConversationId: conversationId,
+    userId,
+    status: botResponse?.reason ? botResponse.reason : 0,
+    traceId: gen.traceId,
+    obeservationId: gen.observationId,
+  }
 }
 
 const getBotResponse = async (
@@ -554,3 +556,9 @@ Then, using your choices, respond to the student as an experienced math teacher 
 to help the student with the next step in solving the given problem or better understanding the subject.
 Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "write out your reason for picking that strategy and intention", "response": "write out your response to the student's last message"}
 `
+
+const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
+Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear. 
+Could you tell me what specific calculus topic or problem you're working on? 
+I'm here to help you learn and understand, so don't hesitate to share what's on your mind.
+ Are you struggling with derivatives, integrals, limits, or something else in calculus?`
