@@ -85,12 +85,9 @@ describe('getRoleContext', () => {
     mockedCacheService.getIfExists.mockResolvedValue(
       JSON.stringify(existingRoleContext)
     )
-    mockedUserRepo.getUserRolesById.mockResolvedValue([
-      'student',
-      'student_ambassador',
-    ])
+    mockedUserRepo.getUserRolesById.mockResolvedValue(['student', 'ambassador'])
     const result = await UserRolesService.getRoleContext('some-key', true)
-    expect(result.roles).toEqual(['student', 'student_ambassador'])
+    expect(result.roles).toEqual(['student', 'ambassador'])
     expect(result.legacyRole).toEqual(existingRoleContext.legacyRole)
     expect(result.activeRole).toEqual(existingRoleContext.activeRole)
     expect(mockedCacheService.getIfExists).toHaveBeenCalledWith(

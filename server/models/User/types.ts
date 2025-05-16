@@ -7,7 +7,7 @@ export type UserRole =
   | 'student'
   | 'teacher'
   | 'admin'
-  | 'student_ambassador'
+  | 'ambassador'
 
 export type User = {
   id: Ulid

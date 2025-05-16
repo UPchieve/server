@@ -36,11 +36,11 @@ async function hasStudentAmbassadorRole(
   client: TransactionClient
 ) {
   const roles = await UserRepo.getUserRolesById(userId, client)
-  return roles.includes('student_ambassador')
+  return roles.includes('ambassador')
 }
 
 async function addAmbassadorRole(userId: string, client: TransactionClient) {
-  await UserRepo.insertUserRoleByUserId(userId, 'student_ambassador', client)
+  await UserRepo.insertUserRoleByUserId(userId, 'ambassador', client)
 }
 
 async function refreshRoleContext(userId: string, client: TransactionClient) {

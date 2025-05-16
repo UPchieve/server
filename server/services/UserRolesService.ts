@@ -6,7 +6,7 @@ import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
 
-export type PrimaryUserRole = Exclude<UserRole, 'admin' | 'student_ambassador'>
+export type PrimaryUserRole = Exclude<UserRole, 'admin' | 'ambassador'>
 
 export class RoleContext {
   readonly roles: UserRole[]
