@@ -10,9 +10,8 @@ import passport from 'passport'
 import { LockError } from 'redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
-import * as cache from '../../cache'
 import config from '../../config'
-import { EVENTS, SESSION_ACTIVITY_KEY } from '../../constants'
+import { EVENTS, SESSION_USER_ACTIONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
@@ -37,7 +36,7 @@ import {
   moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
-import * as UserRolesService from '../../services/UserRolesService'
+import { createSessionAction } from '../../models/UserAction/queries'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -274,6 +273,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         socket
           .to(getSessionRoom(data.sessionId))
           .emit('not-typing', { sessionId: data.sessionId })
+      })
+    })
+
+    socket.on('celebrate', async (data) => {
+      newrelic.startWebTransaction('/socket-io/celebrate', async () => {
+        const { sessionId, userId, duration } = data
+        await createSessionAction({
+          userId,
+          sessionId,
+          action: SESSION_USER_ACTIONS.SENT_CELEBRATION,
+        })
+
+        io.in(getSessionRoom(sessionId)).emit('celebrate', { duration })
       })
     })
 

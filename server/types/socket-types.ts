@@ -17,6 +17,7 @@ export type ClientToServerEvents = {
   list: (_data: { sessionId: Ulid }, callback: Function) => void
   typing: (data: { sessionId: Ulid }) => void
   notTyping: (data: { sessionId: Ulid }) => void
+  celebrate: (data: { sessionId: Ulid; userId: Ulid; duration: number }) => void
   message: (data: {
     user: SocketUser
     sessionId: Ulid
@@ -46,6 +47,7 @@ export type ServerToClientEvents = {
   'sessions/partner:in-session': (status: boolean) => void
   'sessions/recap:joined': () => void
   'sessions/recap:join-failed': (error: Error) => void
+  celebrate: (data: { duration: number }) => void
   sessions: (sessions: UnfulfilledSessions[]) => void
   'is-typing': (data: { sessionId: Ulid }) => void
   'not-typing': (data: { sessionId: Ulid }) => void
