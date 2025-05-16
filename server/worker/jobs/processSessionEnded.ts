@@ -13,6 +13,7 @@ import {
   processSessionTranscript,
 } from '../../services/SessionService'
 import { asString } from '../../utils/type-utils'
+import { queueGenerateSessionSummaryForSession } from '../../services/SessionSummariesService'
 
 type ProcessSessionEndedJobData = {
   sessionId: Uuid
@@ -23,14 +24,22 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
 
   try {
     await processSessionMetrics(sessionId)
-    await processSessionReported(sessionId)
-    await processSessionEditors(sessionId)
-    await processSessionTranscript(sessionId)
     await processCalculateMetrics(sessionId)
-    await processEmailVolunteer(sessionId)
-    await processFirstSessionCongratsEmail(sessionId)
-    await queueGenerateProgressReportForUser(sessionId)
-    await queueFallIncentiveSessionQualificationJob(sessionId)
+
+    // Dependent on metrics being calculated first
+    await Promise.all([
+      queueGenerateSessionSummaryForSession(sessionId),
+      processEmailVolunteer(sessionId),
+      processFirstSessionCongratsEmail(sessionId),
+      queueFallIncentiveSessionQualificationJob(sessionId),
+      queueGenerateProgressReportForUser(sessionId),
+    ])
+
+    await Promise.all([
+      processSessionReported(sessionId),
+      processSessionEditors(sessionId),
+      processSessionTranscript(sessionId),
+    ])
   } catch (error) {
     throw new Error(
       `Failed to complete ${Jobs.ProcessSessionEnded} for session ${sessionId}: ${error}`
