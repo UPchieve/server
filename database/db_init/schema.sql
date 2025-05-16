@@ -2464,7 +2464,8 @@ CREATE TABLE upchieve.user_product_flags (
     paid_tutors_pilot_group public.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
     impact_study_enrollment_at timestamp with time zone,
-    tell_them_college_prep_modal_seen_at timestamp with time zone
+    tell_them_college_prep_modal_seen_at timestamp with time zone,
+    campaigns jsonb DEFAULT '{}'::jsonb
 );
 
 
@@ -6449,4 +6450,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250407171122'),
     ('20250407182416'),
     ('20250409193923'),
-    ('20250514151906');
+    ('20250514151906'),
+    ('20250515005311');
