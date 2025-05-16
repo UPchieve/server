@@ -168,17 +168,6 @@ RETURNING
     id AS ok;
 
 
-/* @name countUsersReferredByOtherId */
-SELECT
-    count(*)::int AS total
-FROM
-    users
-WHERE
-    referred_by = :userId!
-    AND phone_verified IS TRUE
-    OR email_verified IS TRUE;
-
-
 /* @name countReferredUsersWithFilter */
 SELECT
     u.id,
@@ -189,10 +178,9 @@ FROM
     JOIN user_roles roles ON roles.id = ur.role_id
 WHERE
     u.referred_by = :userId!::uuid
-    AND (:phoneVerified::boolean IS NULL
-        OR u.phone_verified = :phoneVerified::boolean)
-    AND (:emailVerified::boolean IS NULL
-        OR u.email_verified = :emailVerified::boolean)
+    AND (:phoneOrEmailVerified::boolean IS NULL
+        OR u.phone_verified = :phoneOrEmailVerified::boolean
+        OR u.email_verified = :phoneOrEmailVerified::boolean)
 GROUP BY
     u.id
 HAVING

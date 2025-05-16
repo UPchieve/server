@@ -577,8 +577,7 @@ export async function updatePreferredLanguage(
 export async function countReferredUsers(
   referrerId: string,
   filters?: {
-    withPhoneVerifiedAs?: boolean
-    withEmailVerifiedAs?: boolean
+    withPhoneOrEmailVerifiedAs?: boolean
     withRoles?: UserRole[]
   }
 ): Promise<number> {

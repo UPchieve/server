@@ -3,11 +3,7 @@ import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as UserRolesService from '../../services/UserRolesService'
-import {
-  countUsersReferredByOtherId,
-  getUserForAdminDetail,
-  getUserIdByEmail,
-} from '../../models/User/'
+import { getUserForAdminDetail, getUserIdByEmail } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { Router } from 'express'
 import { resError } from '../res-error'
@@ -213,7 +209,9 @@ export function routeUser(router: Router): void {
   router.get('/user/referred-friends', async (req, res) => {
     try {
       const user = extractUser(req)
-      const referredFriends = await countUsersReferredByOtherId(user.id)
+      const referredFriends = await UserService.countReferredUsers(user.id, {
+        withPhoneOrEmailVerifiedAs: true,
+      })
       // the frontend is expecting to look at the length of an array, not a #
       const referredFriendsArr = Array(referredFriends)
       res.json({ referredFriendsArr })

@@ -518,7 +518,7 @@ test.only('countReferredUsers', async () => {
     buildUserRow({
       referredBy: referrer.id,
       phoneVerified: false,
-      emailVerified: true,
+      emailVerified: false,
     }),
     client
   )
@@ -532,7 +532,7 @@ test.only('countReferredUsers', async () => {
     'users',
     buildUserRow({
       referredBy: referrer.id,
-      phoneVerified: true,
+      phoneVerified: false,
       emailVerified: true,
     }),
     client
@@ -560,25 +560,19 @@ test.only('countReferredUsers', async () => {
   const onlyVolunteers = await countReferredUsers(referrer.id, {
     withRoles: ['volunteer'],
   })
-  const onlyEmailVerified = await countReferredUsers(referrer.id, {
-    withEmailVerifiedAs: true,
+
+  const onlyVerified = await countReferredUsers(referrer.id, {
+    withPhoneOrEmailVerifiedAs: true,
   })
-  const onlyPhoneVerified = await countReferredUsers(referrer.id, {
-    withPhoneVerifiedAs: true,
+  const onlyVerifiedVolunteers = await countReferredUsers(referrer.id, {
+    withPhoneOrEmailVerifiedAs: true,
+    withRoles: ['volunteer'],
   })
-  const onlyEmailAndPhoneVerifiedAndVolunteerRole = await countReferredUsers(
-    referrer.id,
-    {
-      withPhoneVerifiedAs: true,
-      withEmailVerifiedAs: true,
-      withRoles: ['volunteer'],
-    }
-  )
 
   expect(onlyStudents).toEqual(1)
   expect(onlyStudentVolunteers).toEqual(1)
   expect(onlyVolunteers).toEqual(2)
-  expect(onlyEmailVerified).toEqual(2)
-  expect(onlyPhoneVerified).toEqual(1)
-  expect(onlyEmailAndPhoneVerifiedAndVolunteerRole).toEqual(1)
+
+  expect(onlyVerified).toEqual(1)
+  expect(onlyVerifiedVolunteers).toEqual(1)
 })

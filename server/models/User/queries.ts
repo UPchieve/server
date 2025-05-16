@@ -272,27 +272,10 @@ export async function getUserByResetToken(
   }
 }
 
-// getUsersReferredByOtherId
-export async function countUsersReferredByOtherId(
-  userId: Ulid
-): Promise<number> {
-  try {
-    const result = await pgQueries.countUsersReferredByOtherId.run(
-      { userId },
-      getClient()
-    )
-    if (result.length && result[0].total) return makeRequired(result[0]).total
-    return 0
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function countReferredUsers(
   referrerId: Ulid,
   filters?: {
-    withPhoneVerifiedAs?: boolean
-    withEmailVerifiedAs?: boolean
+    withPhoneOrEmailVerifiedAs?: boolean
     withRoles?: UserRole[]
   }
 ): Promise<number> {
@@ -300,8 +283,7 @@ export async function countReferredUsers(
     const result = await pgQueries.countReferredUsersWithFilter.run(
       {
         userId: referrerId,
-        phoneVerified: filters?.withPhoneVerifiedAs ?? null,
-        emailVerified: filters?.withEmailVerifiedAs ?? null,
+        phoneOrEmailVerified: filters?.withPhoneOrEmailVerifiedAs ?? null,
         hasRoles: filters?.withRoles ?? null,
       },
       getRoClient()

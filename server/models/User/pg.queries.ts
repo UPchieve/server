@@ -517,45 +517,10 @@ const deleteUserIR: any = {"usedParamSet":{"email":true,"userId":true},"params":
 export const deleteUser = new PreparedQuery<IDeleteUserParams,IDeleteUserResult>(deleteUserIR);
 
 
-/** 'CountUsersReferredByOtherId' parameters type */
-export interface ICountUsersReferredByOtherIdParams {
-  userId: string;
-}
-
-/** 'CountUsersReferredByOtherId' return type */
-export interface ICountUsersReferredByOtherIdResult {
-  total: number | null;
-}
-
-/** 'CountUsersReferredByOtherId' query type */
-export interface ICountUsersReferredByOtherIdQuery {
-  params: ICountUsersReferredByOtherIdParams;
-  result: ICountUsersReferredByOtherIdResult;
-}
-
-const countUsersReferredByOtherIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":80}]}],"statement":"SELECT\n    count(*)::int AS total\nFROM\n    users\nWHERE\n    referred_by = :userId!\n    AND phone_verified IS TRUE\n    OR email_verified IS TRUE"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     count(*)::int AS total
- * FROM
- *     users
- * WHERE
- *     referred_by = :userId!
- *     AND phone_verified IS TRUE
- *     OR email_verified IS TRUE
- * ```
- */
-export const countUsersReferredByOtherId = new PreparedQuery<ICountUsersReferredByOtherIdParams,ICountUsersReferredByOtherIdResult>(countUsersReferredByOtherIdIR);
-
-
 /** 'CountReferredUsersWithFilter' parameters type */
 export interface ICountReferredUsersWithFilterParams {
-  emailVerified?: boolean | null | void;
   hasRoles?: stringArray | null | void;
-  phoneVerified?: boolean | null | void;
+  phoneOrEmailVerified?: boolean | null | void;
   userId: string;
 }
 
@@ -571,7 +536,7 @@ export interface ICountReferredUsersWithFilterQuery {
   result: ICountReferredUsersWithFilterResult;
 }
 
-const countReferredUsersWithFilterIR: any = {"usedParamSet":{"userId":true,"phoneVerified":true,"emailVerified":true,"hasRoles":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":199,"b":206}]},{"name":"phoneVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":223,"b":236},{"a":285,"b":298}]},{"name":"emailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":319,"b":332},{"a":381,"b":394}]},{"name":"hasRoles","required":false,"transform":{"type":"scalar"},"locs":[{"a":477,"b":485}]}],"statement":"SELECT\n    u.id,\n    array_agg(roles.name)::text[] AS roles\nFROM\n    users u\n    JOIN users_roles ur ON ur.user_id = u.id\n    JOIN user_roles roles ON roles.id = ur.role_id\nWHERE\n    u.referred_by = :userId!::uuid\n    AND (:phoneVerified::boolean IS NULL\n        OR u.phone_verified = :phoneVerified::boolean)\n    AND (:emailVerified::boolean IS NULL\n        OR u.email_verified = :emailVerified::boolean)\nGROUP BY\n    u.id\nHAVING\n    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[])"};
+const countReferredUsersWithFilterIR: any = {"usedParamSet":{"userId":true,"phoneOrEmailVerified":true,"hasRoles":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":199,"b":206}]},{"name":"phoneOrEmailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":223,"b":243},{"a":292,"b":312},{"a":353,"b":373}]},{"name":"hasRoles","required":false,"transform":{"type":"scalar"},"locs":[{"a":456,"b":464}]}],"statement":"SELECT\n    u.id,\n    array_agg(roles.name)::text[] AS roles\nFROM\n    users u\n    JOIN users_roles ur ON ur.user_id = u.id\n    JOIN user_roles roles ON roles.id = ur.role_id\nWHERE\n    u.referred_by = :userId!::uuid\n    AND (:phoneOrEmailVerified::boolean IS NULL\n        OR u.phone_verified = :phoneOrEmailVerified::boolean\n        OR u.email_verified = :phoneOrEmailVerified::boolean)\nGROUP BY\n    u.id\nHAVING\n    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[])"};
 
 /**
  * Query generated from SQL:
@@ -585,10 +550,9 @@ const countReferredUsersWithFilterIR: any = {"usedParamSet":{"userId":true,"phon
  *     JOIN user_roles roles ON roles.id = ur.role_id
  * WHERE
  *     u.referred_by = :userId!::uuid
- *     AND (:phoneVerified::boolean IS NULL
- *         OR u.phone_verified = :phoneVerified::boolean)
- *     AND (:emailVerified::boolean IS NULL
- *         OR u.email_verified = :emailVerified::boolean)
+ *     AND (:phoneOrEmailVerified::boolean IS NULL
+ *         OR u.phone_verified = :phoneOrEmailVerified::boolean
+ *         OR u.email_verified = :phoneOrEmailVerified::boolean)
  * GROUP BY
  *     u.id
  * HAVING
