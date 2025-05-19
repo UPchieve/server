@@ -16,7 +16,7 @@ import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
-import { invokeModel } from './AwsBedrockService'
+import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
 import * as FeatureFlagService from './FeatureFlagService'
 import { getSubjectNameIdMapping } from '../models/Subjects'
 import { TextPromptClient } from 'langfuse-core'
@@ -29,7 +29,33 @@ export const TUTOR_BOT_MODELS = {
   PHI_3: 'phi3-upchieve-tutormodel',
   AWS_BEDROCK: config.awsBedrockModelId,
 }
+
 const TUTOR_BOT_MODEL_PHI_3 = 'phi3-upchieve-tutormodel'
+const BED_ROCK_TOOL_NAME = 'print_response'
+const BED_ROCK_TOOL = [
+  {
+    name: BED_ROCK_TOOL_NAME,
+    description: 'Prints answer in json format',
+    input_schema: {
+      type: 'object',
+      properties: {
+        strategy: {
+          type: 'string',
+          description: 'The strategy used to assist the student',
+        },
+        intention: {
+          type: 'string',
+          description: 'The intention of using the strategy',
+        },
+        response: {
+          type: 'string',
+          description: "The response to the student's last message",
+        },
+      },
+      required: ['strategy', 'intention', 'response'],
+    },
+  },
+]
 
 interface TutorBotConversationMessage {
   tutorBotConversationId: string
@@ -331,6 +357,10 @@ const getAwsBedRockResponse = async (
       modelId: config.awsBedrockModelId,
       text: '',
       prompt: promptData.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: BED_ROCK_TOOL_NAME },
+        tools: BED_ROCK_TOOL,
+      },
     })
   } catch (err) {
     // We could add a retry if we see this happening a fair amount
