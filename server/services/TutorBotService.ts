@@ -30,7 +30,6 @@ export const TUTOR_BOT_MODELS = {
   AWS_BEDROCK: config.awsBedrockModelId,
 }
 
-const TUTOR_BOT_MODEL_PHI_3 = 'phi3-upchieve-tutormodel'
 const BED_ROCK_TOOL_NAME = 'print_response'
 const BED_ROCK_TOOL = [
   {
@@ -238,7 +237,7 @@ export const addMessageToConversation = async (
     }
 
     const botResponse =
-      model === TUTOR_BOT_MODEL_PHI_3
+      model === TUTOR_BOT_MODELS.PHI_3
         ? await getBotResponse({ userId, conversationId, subjectName }, tc)
         : await getAwsBedRockResponse(
             { userId, conversationId, subjectName },
@@ -425,7 +424,7 @@ const getBotResponse = async (
   const prompt = createPromptFromTranscript(transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    model: TUTOR_BOT_MODEL_PHI_3,
+    model: TUTOR_BOT_MODELS.PHI_3,
   })
   const completion = await createChatCompletion(prompt, conversationId)
   const { assistant: botMessage, system } = getBotResponseMessage(completion)
