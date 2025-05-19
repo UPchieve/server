@@ -390,7 +390,9 @@ const getAwsBedRockResponse = async (
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-    status: botResponse?.reason ? botResponse.reason : 0,
+    status: botResponse?.intention
+      ? botResponse.intention
+      : '1. Get the student to elaborate their answer',
     traceId: gen.traceId,
     obeservationId: gen.observationId,
   }
