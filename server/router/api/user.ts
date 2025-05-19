@@ -298,4 +298,17 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
+
+  router.post('/user/preferred-language', async function (req, res) {
+    try {
+      const user = await extractUser(req)
+      await UserService.addPreferredLanguage(
+        user.id,
+        asString(req.body.language)
+      )
+      return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
