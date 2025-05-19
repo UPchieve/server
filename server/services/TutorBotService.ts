@@ -345,7 +345,6 @@ const getAwsBedRockResponse = async (
   const gen = t.generation({
     name: LF_GENERATION_NAME,
     metadata: { model: config.awsBedrockModelId },
-    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
     input: promptData.prompt,
   })
   let savedBotMessage = null
