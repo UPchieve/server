@@ -304,7 +304,7 @@ export function routeUser(router: Router): void {
       const user = await extractUser(req)
       await UserService.addPreferredLanguage(
         user.id,
-        asString(req.body.language)
+        asString(req.body.preferredLanguageCode)
       )
       return res.sendStatus(200)
     } catch (err) {
