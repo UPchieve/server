@@ -898,3 +898,15 @@ SET
 WHERE
     users.id = :userId!;
 
+
+/* @name addPreferredLanguageToUser */
+UPDATE
+    users
+SET
+    preferred_language_code = :preferredLanguageCode!,
+    updated_at = NOW()
+WHERE
+    users.id = :userId
+RETURNING
+    id AS ok;
+
