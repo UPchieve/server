@@ -630,6 +630,7 @@ export async function updateUserProfileById(
         deactivated: data.deactivated,
         phone: data.phone,
         smsConsent: data.smsConsent,
+        preferredLanguageCode: data.preferredLanguageCode,
       },
       getClient()
     )

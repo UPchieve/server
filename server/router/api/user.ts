@@ -55,6 +55,10 @@ export function routeUser(router: Router): void {
         }
         updateReq['phone'] = phone
       }
+      if ('preferredLanguageCode' in req.body) {
+        const preferredLanguageCode = asString(req.body.preferredLanguageCode)
+        updateReq['preferredLanguageCode'] = preferredLanguageCode
+      }
 
       await UserService.updateUserProfile(user.id, updateReq)
 
