@@ -122,7 +122,6 @@ describe('ModerationInfractions', () => {
       expect(inactiveOnly.length).toEqual(1)
       expect(inactiveOnly[0].active).toBeFalsy()
       // Session one filter
-      console.log('Session One Only', sessionOneOnly)
       expect(sessionOneOnly.length).toEqual(2)
       expect(sessionOneOnly.map((r) => r.sessionId)).toEqual([
         session.id,

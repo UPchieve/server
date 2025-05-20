@@ -71,7 +71,11 @@ export async function recordProgress(
     // The user may already have some progress toward the course if
     // they have completed any of the materials.
     let materialAlreadyCompleted = false
-    const completedMaterials = [...volunteerCourse.completedMaterials]
+    const completedMaterialKeys = [...volunteerCourse.completedMaterials]
+    const requiredMaterialKeys = await TrainingUtils.getRequiredMaterials(
+      courseKey,
+      volunteer.id
+    )
     if (volunteerCourse.completedMaterials.includes(materialKey)) {
       // This _shouldn't_ happen if the client is making the right calls,
       // but it appears to happen on occasion.
@@ -85,27 +89,27 @@ export async function recordProgress(
         'User has already completed this training material'
       )
     } else {
-      completedMaterials.push(materialKey)
+      completedMaterialKeys.push(materialKey)
     }
 
-    const progress = await TrainingUtils.getProgress(
-      courseKey,
-      completedMaterials,
-      volunteer.id
-    )
-    const isComplete = progress === 100
-
+    // @TODO Drop the `complete` column altogether - it is redundant with `progress`
+    // Let isComplete be a generated column OR just drop it and read progress === 100 instead
     if (!materialAlreadyCompleted) {
-      await updateVolunteerTrainingById(
+      const updated = await updateVolunteerTrainingById(
         volunteer.id,
         courseKey,
-        isComplete,
-        progress,
+        requiredMaterialKeys,
         materialKey,
         tc
       )
+      return {
+        progress: updated.progress,
+        isComplete: updated.complete,
+      }
     }
-
-    return { progress, isComplete }
+    return {
+      progress: volunteerCourse.progress,
+      isComplete: volunteerCourse.progress === 100,
+    }
   })
 }

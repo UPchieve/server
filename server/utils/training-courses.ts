@@ -722,7 +722,7 @@ export const getCourse = async (
   return isShowPlatformActive ? addUsingOurPlatformTo101(course) : course
 }
 
-const getRequiredMaterials = async (
+export const getRequiredMaterials = async (
   courseKey: string,
   userId: Ulid
 ): Promise<string[]> => {
@@ -733,17 +733,4 @@ const getRequiredMaterials = async (
     .filter('isRequired')
     .map('materialKey')
     .value()
-}
-
-export const getProgress = async (
-  courseKey: string,
-  userCompleted: string[],
-  userId: Ulid
-): Promise<number> => {
-  const requiredMaterials = await getRequiredMaterials(courseKey, userId)
-  const completedMaterials = requiredMaterials.filter((mat) =>
-    userCompleted.includes(mat)
-  )
-  const fraction = completedMaterials.length / requiredMaterials.length
-  return Math.floor(fraction * 100)
 }
