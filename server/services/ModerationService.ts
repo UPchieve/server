@@ -446,7 +446,7 @@ async function checkForQuestionableLinks({
   links: ModeratedLink[]
   sessionId: string
 }): Promise<ModeratedLinkResponse | null> {
-  const modelId = config.awsBedrockModelId
+  const modelId = config.awsBedrockHaikuId
 
   const promptData = await getPromptData(
     LangfusePromptNameEnum.GET_QUESTIONABLE_LINK_MODERATION_DECISION,
