@@ -462,7 +462,9 @@ const config: Static<typeof Config> = {
   awsBedrockSecretAccessKey:
     process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
   awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
-  awsBedrockModelId: process.env.SUBWAY_AWS_BEDROCK_MODEL_ID || 'bogus',
+  awsBedrockHaikuId: process.env.SUBWAY_AWS_BEDROCK_HAIKU_ID || 'bogus',
+  awsBedrockSonnetArnId:
+    process.env.SUBWAY_AWS_BEDROCK_SONNET_ARN_ID || 'bogus',
 
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',

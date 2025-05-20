@@ -297,7 +297,8 @@ export const Config = Record({
   awsBedrockAccessKey: String,
   awsBedrockSecretAccessKey: String,
   awsBedrockRegion: String,
-  awsBedrockModelId: String,
+  awsBedrockHaikuId: String,
+  awsBedrockSonnetArnId: String,
 
   // Zwibbler
   zwibblerNodeUrl: String,

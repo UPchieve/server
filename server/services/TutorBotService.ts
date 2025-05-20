@@ -27,7 +27,7 @@ const LF_GENERATION_NAME = 'tutorBotSessionMessage'
 
 export const TUTOR_BOT_MODELS = {
   PHI_3: 'phi3-upchieve-tutormodel',
-  AWS_BEDROCK: config.awsBedrockModelId,
+  AWS_BEDROCK: config.awsBedrockSonnetArnId,
 }
 
 const BED_ROCK_TOOL_NAME = 'print_response'
@@ -344,7 +344,7 @@ const getAwsBedRockResponse = async (
   const promptData = await getPromptData(subjectName, transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    metadata: { model: config.awsBedrockModelId },
+    metadata: { model: config.awsBedrockSonnetArnId },
     input: promptData.prompt,
   })
   let savedBotMessage = null
@@ -352,7 +352,7 @@ const getAwsBedRockResponse = async (
 
   try {
     botResponse = await invokeModel({
-      modelId: config.awsBedrockModelId,
+      modelId: config.awsBedrockSonnetArnId,
       text: '',
       prompt: promptData.prompt,
       tools_option: {

@@ -378,7 +378,7 @@ async function checkForFullAddresses({
   reason: 'Address'
   details: { text: string; confidence: number; explanation: string }
 } | null> {
-  const modelId = config.awsBedrockModelId
+  const modelId = config.awsBedrockHaikuId
 
   const promptData = await getPromptData(
     LangfusePromptNameEnum.GET_ADDRESS_DETECTION_MODERATION_DECISION,
