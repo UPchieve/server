@@ -18,7 +18,6 @@ import {
   USER_SESSION_METRICS,
   UTC_TO_HOUR_MAPPING,
 } from '../constants'
-import { SESSION_EVENTS } from '../constants/events'
 import logger from '../logger'
 import { DAYS } from '../constants'
 import { LookupError, NotAllowedError } from '../models/Errors'
