@@ -117,6 +117,18 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 
 --
+-- Name: training_course_material_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.training_course_material_type AS ENUM (
+    'video',
+    'document',
+    'link',
+    'resources'
+);
+
+
+--
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -2315,6 +2327,74 @@ ALTER SEQUENCE upchieve.topics_id_seq OWNED BY upchieve.topics.id;
 
 
 --
+-- Name: training_course_module_materials; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.training_course_module_materials (
+    id integer NOT NULL,
+    module_id integer NOT NULL,
+    name text NOT NULL,
+    key text NOT NULL,
+    type upchieve.training_course_material_type NOT NULL,
+    required boolean NOT NULL,
+    resource_id text,
+    resource_url text NOT NULL,
+    links json
+);
+
+
+--
+-- Name: training_course_module_materials_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.training_course_module_materials_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: training_course_module_materials_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.training_course_module_materials_id_seq OWNED BY upchieve.training_course_module_materials.id;
+
+
+--
+-- Name: training_course_modules; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.training_course_modules (
+    id integer NOT NULL,
+    training_course_id integer NOT NULL,
+    name text NOT NULL
+);
+
+
+--
+-- Name: training_course_modules_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.training_course_modules_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: training_course_modules_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.training_course_modules_id_seq OWNED BY upchieve.training_course_modules.id;
+
+
+--
 -- Name: training_courses; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3093,6 +3173,20 @@ ALTER TABLE ONLY upchieve.tool_types ALTER COLUMN id SET DEFAULT nextval('upchie
 --
 
 ALTER TABLE ONLY upchieve.topics ALTER COLUMN id SET DEFAULT nextval('upchieve.topics_id_seq'::regclass);
+
+
+--
+-- Name: training_course_module_materials id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_module_materials ALTER COLUMN id SET DEFAULT nextval('upchieve.training_course_module_materials_id_seq'::regclass);
+
+
+--
+-- Name: training_course_modules id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_modules ALTER COLUMN id SET DEFAULT nextval('upchieve.training_course_modules_id_seq'::regclass);
 
 
 --
@@ -4163,6 +4257,22 @@ ALTER TABLE ONLY upchieve.surveys_survey_questions
 
 
 --
+-- Name: training_course_module_materials tc_materials_unique_module_id_name; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_module_materials
+    ADD CONSTRAINT tc_materials_unique_module_id_name UNIQUE (module_id, name);
+
+
+--
+-- Name: training_course_modules tc_modules_unique_training_course_id_name; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_modules
+    ADD CONSTRAINT tc_modules_unique_training_course_id_name UNIQUE (training_course_id, name);
+
+
+--
 -- Name: teacher_classes teacher_classes_code_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4216,6 +4326,22 @@ ALTER TABLE ONLY upchieve.topics
 
 ALTER TABLE ONLY upchieve.topics
     ADD CONSTRAINT topics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: training_course_module_materials training_course_module_materials_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_module_materials
+    ADD CONSTRAINT training_course_module_materials_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: training_course_modules training_course_modules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_modules
+    ADD CONSTRAINT training_course_modules_pkey PRIMARY KEY (id);
 
 
 --
@@ -5907,6 +6033,22 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
+-- Name: training_course_module_materials training_course_module_materials_module_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_module_materials
+    ADD CONSTRAINT training_course_module_materials_module_id_fkey FOREIGN KEY (module_id) REFERENCES upchieve.training_course_modules(id);
+
+
+--
+-- Name: training_course_modules training_course_modules_training_course_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_course_modules
+    ADD CONSTRAINT training_course_modules_training_course_id_fkey FOREIGN KEY (training_course_id) REFERENCES upchieve.training_courses(id);
+
+
+--
 -- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6451,4 +6593,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250407182416'),
     ('20250409193923'),
     ('20250514151906'),
-    ('20250517000547');
+    ('20250517000547'),
+    ('20250521183432');
