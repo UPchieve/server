@@ -2407,7 +2407,9 @@ CREATE TABLE upchieve.training_courses (
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    display_name text
+    display_name text,
+    quiz_id integer,
+    description text
 );
 
 
@@ -6053,6 +6055,14 @@ ALTER TABLE ONLY upchieve.training_course_modules
 
 
 --
+-- Name: training_courses training_courses_quiz_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.training_courses
+    ADD CONSTRAINT training_courses_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES upchieve.quizzes(id);
+
+
+--
 -- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6598,4 +6608,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250409193923'),
     ('20250514151906'),
     ('20250517000547'),
-    ('20250521183432');
+    ('20250521183432'),
+    ('20250521203533');
