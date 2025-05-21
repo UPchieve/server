@@ -25,7 +25,7 @@ import {
   deleteUserPhoneInfo,
   UserForAdmin,
   UserRole,
-  addPreferredLanguageToUser,
+  updatePreferredLanguageToUser,
 } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -564,9 +564,9 @@ export async function switchActiveRoleForUser(
   return { activeRole, user: parsedUser }
 }
 
-export async function addPreferredLanguage(
+export async function updatePreferredLanguage(
   userId: Uuid,
   languageCode: string
 ): Promise<void> {
-  return await addPreferredLanguageToUser(userId, languageCode)
+  return await updatePreferredLanguageToUser(userId, languageCode)
 }

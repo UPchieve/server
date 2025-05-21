@@ -901,7 +901,7 @@ WHERE
     users.id = :userId!;
 
 
-/* @name addPreferredLanguageToUser */
+/* @name updatePreferredLanguageToUser */
 UPDATE
     users
 SET

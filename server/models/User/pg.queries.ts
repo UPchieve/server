@@ -2018,24 +2018,24 @@ const adminUpdateUserIR: any = {"usedParamSet":{"firstName":true,"lastName":true
 export const adminUpdateUser = new PreparedQuery<IAdminUpdateUserParams,IAdminUpdateUserResult>(adminUpdateUserIR);
 
 
-/** 'AddPreferredLanguageToUser' parameters type */
-export interface IAddPreferredLanguageToUserParams {
+/** 'UpdatePreferredLanguageToUser' parameters type */
+export interface IUpdatePreferredLanguageToUserParams {
   preferredLanguageCode: string;
   userId?: string | null | void;
 }
 
-/** 'AddPreferredLanguageToUser' return type */
-export interface IAddPreferredLanguageToUserResult {
+/** 'UpdatePreferredLanguageToUser' return type */
+export interface IUpdatePreferredLanguageToUserResult {
   ok: string;
 }
 
-/** 'AddPreferredLanguageToUser' query type */
-export interface IAddPreferredLanguageToUserQuery {
-  params: IAddPreferredLanguageToUserParams;
-  result: IAddPreferredLanguageToUserResult;
+/** 'UpdatePreferredLanguageToUser' query type */
+export interface IUpdatePreferredLanguageToUserQuery {
+  params: IUpdatePreferredLanguageToUserParams;
+  result: IUpdatePreferredLanguageToUserResult;
 }
 
-const addPreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguageCode":true,"userId":true},"params":[{"name":"preferredLanguageCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":51,"b":73}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":120,"b":126}]}],"statement":"UPDATE\n    users\nSET\n    preferred_language_code = :preferredLanguageCode!,\n    updated_at = NOW()\nWHERE\n    users.id = :userId\nRETURNING\n    id AS ok"};
+const updatePreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguageCode":true,"userId":true},"params":[{"name":"preferredLanguageCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":51,"b":73}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":120,"b":126}]}],"statement":"UPDATE\n    users\nSET\n    preferred_language_code = :preferredLanguageCode!,\n    updated_at = NOW()\nWHERE\n    users.id = :userId\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -2051,6 +2051,6 @@ const addPreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguageCod
  *     id AS ok
  * ```
  */
-export const addPreferredLanguageToUser = new PreparedQuery<IAddPreferredLanguageToUserParams,IAddPreferredLanguageToUserResult>(addPreferredLanguageToUserIR);
+export const updatePreferredLanguageToUser = new PreparedQuery<IUpdatePreferredLanguageToUserParams,IUpdatePreferredLanguageToUserResult>(updatePreferredLanguageToUserIR);
 
 

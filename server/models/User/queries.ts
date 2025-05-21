@@ -790,13 +790,13 @@ export async function adminUpdateUser(
   }
 }
 
-export async function addPreferredLanguageToUser(
+export async function updatePreferredLanguageToUser(
   userId: Uuid,
   preferredLanguageCode: string,
   tc?: TransactionClient
 ) {
   try {
-    const result = await pgQueries.addPreferredLanguageToUser.run(
+    const result = await pgQueries.updatePreferredLanguageToUser.run(
       {
         userId,
         preferredLanguageCode,

@@ -306,7 +306,7 @@ export function routeUser(router: Router): void {
   router.post('/user/preferred-language', async function (req, res) {
     try {
       const user = await extractUser(req)
-      await UserService.addPreferredLanguage(
+      await UserService.updatePreferredLanguage(
         user.id,
         asString(req.body.preferredLanguageCode)
       )
