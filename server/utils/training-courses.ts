@@ -43,11 +43,10 @@ interface TrainingMaterialLink {
 }
 
 /**
- *
  * Keeping for historical purposes to be able to tell which
  * materialKey belongs to a particular training.
  * This will be useful for when we migrate the training
- * course materials into the database
+ * course materials into the database. @TODO
  *
  */
 export const legacyCourses: TrainingCourse[] = [
@@ -711,6 +710,7 @@ function addUsingOurPlatformTo101(course: TrainingCourse) {
 }
 
 export const getCourse = async (
+  // @TODO
   courseKey: string,
   userId: Ulid
 ): Promise<TrainingCourse> => {

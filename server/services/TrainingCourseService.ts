@@ -8,6 +8,10 @@ import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
 import * as TrainingCourseRepo from '../models/TrainingCourses'
+import {
+  FullTrainingCourse,
+  TrainingCourseModuleWithMaterials,
+} from '../models/TrainingCourses'
 
 // @note: this type was derived from how the return type is used by the frontend
 // TODO: come back and verify this is the return shape we want
@@ -119,4 +123,25 @@ export async function getRequiredMaterialsForTrainingCourse(
   return await TrainingCourseRepo.getRequiredMaterialKeysByTrainingCourseName(
     trainingCourseName
   )
+}
+
+export async function getTrainingCourse(
+  trainingCourseName: string
+): Promise<FullTrainingCourse> {
+  const result =
+    await TrainingCourseRepo.getFullTrainingCourseByName(trainingCourseName)
+  const modules: TrainingCourseModuleWithMaterials[] = []
+  result.modules.forEach((module) => {
+    const moduleMaterials = result.materials.filter(
+      (material) => material.moduleId === module.id
+    )
+    modules.push({
+      ...module,
+      materials: moduleMaterials,
+    })
+  })
+  return {
+    ...result.trainingCourse,
+    modules,
+  }
 }
