@@ -1,12 +1,12 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getDbUlid, makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeOptional, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { USER_ROLES_TYPE } from '../../constants'
 import { SessionSummary } from './types'
 
 export async function addSessionSummary(
-  sessionId: Ulid,
+  sessionId: Uuid,
   summary: string,
   userType: USER_ROLES_TYPE,
   traceId: string,
@@ -26,7 +26,7 @@ export async function addSessionSummary(
 }
 
 export async function getSessionSummaryByUserType(
-  sessionId: Ulid,
+  sessionId: Uuid,
   userType: USER_ROLES_TYPE,
   tc?: TransactionClient
 ): Promise<SessionSummary | undefined> {
