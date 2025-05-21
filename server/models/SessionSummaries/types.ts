@@ -5,5 +5,6 @@ export type SessionSummary = {
   sessionId: Uuid
   summary: string
   userType: string
+  traceId?: string
   createdAt: Date
 }
