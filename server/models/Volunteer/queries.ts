@@ -21,6 +21,7 @@ import {
   QuizInfo,
   Quizzes,
   Sponsorship,
+  UserTrainingCourse,
   VolunteersForAnalyticsReport,
 } from './types'
 import config from '../../config'
@@ -33,7 +34,6 @@ import {
 } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
 import { isPgId } from '../../utils/type-utils'
-import { getProgress } from '../../utils/training-courses'
 import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
@@ -761,11 +761,6 @@ export async function getVolunteerTrainingCourses(
       map[temp.trainingCourse] = {
         ...temp,
         isComplete: temp.complete,
-        progress: await getProgress(
-          temp.trainingCourse,
-          temp.completedMaterials,
-          userId
-        ),
       }
     }
     return map
@@ -777,24 +772,23 @@ export async function getVolunteerTrainingCourses(
 export async function updateVolunteerTrainingById(
   userId: Ulid,
   trainingCourse: string,
-  complete: boolean,
-  progress: number,
+  requiredMaterialKeys: string[],
   materialKey: string,
   tc?: TransactionClient
-): Promise<void> {
+): Promise<UserTrainingCourse> {
   try {
-    const result = await pgQueries.updateVolunteerTrainingById.run(
+    const results = await pgQueries.updateVolunteerTrainingById.run(
       {
         userId,
         trainingCourse,
-        complete,
-        progress,
+        requiredMaterialKeys,
         materialKey,
       },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
+    if (!results.length)
       throw new RepoUpdateError('Update query did not return ok')
+    return makeRequired(results[0])
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

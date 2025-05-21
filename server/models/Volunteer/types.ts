@@ -44,7 +44,7 @@ export type UserQuiz = {
 }
 
 export type TrainingCourseData = {
-  isComplete: boolean
+  complete: boolean
   progress: number
   completedMaterials: string[]
 }
