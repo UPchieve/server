@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
@@ -25,6 +25,7 @@ import {
   deleteUserPhoneInfo,
   UserForAdmin,
   UserRole,
+  updatePreferredLanguageToUser,
 } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -561,4 +562,11 @@ export async function switchActiveRoleForUser(
     )
   const parsedUser = await parseUser(userContactInfo)
   return { activeRole, user: parsedUser }
+}
+
+export async function updatePreferredLanguage(
+  userId: Uuid,
+  languageCode: string
+): Promise<void> {
+  return await updatePreferredLanguageToUser(userId, languageCode)
 }

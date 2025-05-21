@@ -25,6 +25,7 @@ export type User = {
   signupSourceId?: Pgid
   testUser: boolean
   verified: boolean
+  preferredLanguageCode: string
   createdAt: Date
   updatedAt: Date
   // Volunteer-only

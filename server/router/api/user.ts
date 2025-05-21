@@ -55,6 +55,10 @@ export function routeUser(router: Router): void {
         }
         updateReq['phone'] = phone
       }
+      if ('preferredLanguageCode' in req.body) {
+        const preferredLanguageCode = asString(req.body.preferredLanguageCode)
+        updateReq['preferredLanguageCode'] = preferredLanguageCode
+      }
 
       await UserService.updateUserProfile(user.id, updateReq)
 
@@ -294,6 +298,19 @@ export function routeUser(router: Router): void {
       const user = await extractUser(req)
       await UserRolesService.addVolunteerRoleToUser(user.id)
       return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/user/preferred-language', async function (req, res) {
+    try {
+      const user = await extractUser(req)
+      await UserService.updatePreferredLanguage(
+        user.id,
+        asString(req.body.preferredLanguageCode)
+      )
+      return res.sendStatus(200)
     } catch (err) {
       resError(res, err)
     }

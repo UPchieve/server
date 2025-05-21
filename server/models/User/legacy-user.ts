@@ -61,6 +61,7 @@ export type LegacyUserModel = {
   referralCode: string
   referredBy?: Ulid
   sessionStats: UserSessionStats
+  preferredLanguageCode: string
   // volunteer
   isOnboarded?: boolean
   isApproved?: boolean
