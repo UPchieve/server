@@ -3735,9 +3735,9 @@ COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) 
 -- Data for Name: training_course_modules; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.training_course_modules (id, training_course_id, name) FROM stdin;
-1	1	Coaching on UPchieve
-2	1	Community Safety & Success
+COPY upchieve.training_course_modules (id, training_course_id, name, created_at, updated_at) FROM stdin;
+1	1	Coaching on UPchieve	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
+2	1	Community Safety & Success	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
 \.
 
 
@@ -3745,12 +3745,12 @@ COPY upchieve.training_course_modules (id, training_course_id, name) FROM stdin;
 -- Data for Name: training_course_module_materials; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.training_course_module_materials (id, module_id, name, key, type, required, resource_id, resource_url, links) FROM stdin;
-1	1	Implementing Effective Coaching Strategies	7b6a76	video	t	760386859	https://cdn.upchieve.org/training-courses/upchieve101/video-decks/implementing-effective-coaching-strategies-deck.pdf	[{ "displayName": "Summary", "url": "https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf"}]
-2	2	Community Safety & Success	jsn832	video	t	773599358	https://cdn.upchieve.org/training-courses/upchieve101/video-decks/community-safety-&-success-deck.pdf	\N
-3	2	Review Safety Policy	ps87f9	document	t	\N	https://cdn.upchieve.org/training-courses/upchieve101/upchieve-student-safety-policy.pdf	\N
-4	2	Review Academic Integrity Policy	jgu55k	document	t	\N	https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf	\N
-5	2	Review Diversity, Equity, and Inclusion Policy	fj8tzq	document	t	\N	https://cdn.upchieve.org/training-courses/upchieve101/volunteer-dei-policy-v2.pdf	\N
+COPY upchieve.training_course_module_materials (id, module_id, name, key, type, required, resource_id, resource_url, links, created_at, updated_at) FROM stdin;
+1	1	Implementing Effective Coaching Strategies	7b6a76	video	t	760386859	https://cdn.upchieve.org/training-courses/upchieve101/video-decks/implementing-effective-coaching-strategies-deck.pdf	[{ "displayName": "Summary", "url": "https://cdn.upchieve.org/training-courses/upchieve101/upchieve-coaching-strategies-v2.pdf"}]	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
+2	2	Community Safety & Success	jsn832	video	t	773599358	https://cdn.upchieve.org/training-courses/upchieve101/video-decks/community-safety-&-success-deck.pdf	\N	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
+3	2	Review Safety Policy	ps87f9	document	t	\N	https://cdn.upchieve.org/training-courses/upchieve101/upchieve-student-safety-policy.pdf	\N	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
+4	2	Review Academic Integrity Policy	jgu55k	document	t	\N	https://cdn.upchieve.org/training-courses/upchieve101/upchieve-academic-integrity-policy.pdf	\N	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
+5	2	Review Diversity, Equity, and Inclusion Policy	fj8tzq	document	t	\N	https://cdn.upchieve.org/training-courses/upchieve101/volunteer-dei-policy-v2.pdf	\N	2025-05-21 22:01:18.182138+00	2025-05-21 22:01:18.182138+00
 \.
 
 

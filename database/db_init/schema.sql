@@ -2339,7 +2339,9 @@ CREATE TABLE upchieve.training_course_module_materials (
     required boolean NOT NULL,
     resource_id text,
     resource_url text NOT NULL,
-    links json
+    links json,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -2370,7 +2372,9 @@ ALTER SEQUENCE upchieve.training_course_module_materials_id_seq OWNED BY upchiev
 CREATE TABLE upchieve.training_course_modules (
     id integer NOT NULL,
     training_course_id integer NOT NULL,
-    name text NOT NULL
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 

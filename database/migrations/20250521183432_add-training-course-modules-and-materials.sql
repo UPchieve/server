@@ -2,7 +2,9 @@
 CREATE TABLE upchieve.training_course_modules (
     id serial PRIMARY KEY,
     training_course_id integer NOT NULL REFERENCES upchieve.training_courses (id),
-    name text NOT NULL
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 ALTER TABLE upchieve.training_course_modules
@@ -23,8 +25,10 @@ CREATE TABLE upchieve.training_course_module_materials (
     TYPE upchieve.training_course_material_type NOT NULL,
     required boolean NOT NULL,
     resource_id text,
-    resource_url text NOT NULL, -- video PDF, link URL, etc
-    links json DEFAULT NULL
+    resource_url text NOT NULL,
+    links json DEFAULT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 ALTER TABLE upchieve.training_course_module_materials
