@@ -7,6 +7,7 @@ import {
 import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
+import * as TrainingCourseRepo from '../models/TrainingCourses'
 
 // @note: this type was derived from how the return type is used by the frontend
 // TODO: come back and verify this is the return shape we want
@@ -72,10 +73,8 @@ export async function recordProgress(
     // they have completed any of the materials.
     let materialAlreadyCompleted = false
     const completedMaterialKeys = [...volunteerCourse.completedMaterials]
-    const requiredMaterialKeys = await TrainingUtils.getRequiredMaterials(
-      courseKey,
-      volunteer.id
-    )
+    const requiredMaterialKeys =
+      await getRequiredMaterialsForTrainingCourse(courseKey)
     if (volunteerCourse.completedMaterials.includes(materialKey)) {
       // This _shouldn't_ happen if the client is making the right calls,
       // but it appears to happen on occasion.
@@ -112,4 +111,12 @@ export async function recordProgress(
       isComplete: volunteerCourse.progress === 100,
     }
   })
+}
+
+export async function getRequiredMaterialsForTrainingCourse(
+  trainingCourseName: string
+): Promise<string[]> {
+  return await TrainingCourseRepo.getRequiredMaterialKeysByTrainingCourseName(
+    trainingCourseName
+  )
 }

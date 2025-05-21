@@ -721,16 +721,3 @@ export const getCourse = async (
   const isShowPlatformActive = await getUsingOurPlatformFlag(userId)
   return isShowPlatformActive ? addUsingOurPlatformTo101(course) : course
 }
-
-export const getRequiredMaterials = async (
-  courseKey: string,
-  userId: Ulid
-): Promise<string[]> => {
-  const course: TrainingCourse = await getCourse(courseKey, userId)
-  return chain(course.modules)
-    .map('materials')
-    .flatten()
-    .filter('isRequired')
-    .map('materialKey')
-    .value()
-}
