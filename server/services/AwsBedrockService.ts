@@ -75,20 +75,31 @@ export async function invokeModel({
     body: JSON.stringify(payload),
     contentType: 'application/json',
   })
-  const response = await client.send(command)
-  const jsonString = new TextDecoder().decode(response.body)
+  const initResponse = await client.send(command)
+  const jsonString = new TextDecoder().decode(initResponse.body)
   const modelRes = JSON.parse(jsonString)
 
   const getModelResponse = !!tools_option
     ? getResponseWithToolsOption
     : getResponse
 
-  return getModelResponse(modelRes)
+  if (!!!modelRes.content[0]?.input) {
+    throw new Error('No response')
+  }
+  const response = getModelResponse(modelRes)
+
+  if (!response) {
+    throw new Error('No excpected Bedrock response')
+  }
+
+  return response
 }
 
 const getResponseWithToolsOption = (modelRes: BedrockInvokeResponse) => {
-  return modelRes.content[0].input
+  return modelRes?.content[0]?.input ?? null
 }
 const getResponse = (modelRes: BedrockInvokeResponse) => {
-  return JSON.parse(modelRes.content[0].text!)
+  return modelRes?.content[0]?.text
+    ? JSON.parse(modelRes.content[0].text)
+    : null
 }
