@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { USER_ROLES_TYPE } from '../../constants'
 import { SessionSummary } from './types'
@@ -35,7 +35,7 @@ export async function getSessionSummaryByUserType(
       { sessionId, userType },
       tc ?? getClient()
     )
-    if (summaries.length) return makeRequired(summaries[0])
+    if (summaries.length) return makeSomeOptional(summaries[0], ['traceId'])
   } catch (err) {
     throw new RepoReadError(err)
   }
