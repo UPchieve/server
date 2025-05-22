@@ -1,5 +1,15 @@
 import { Ulid } from '../pgUtils'
 
+export type ImpactStudyCampaign = {
+  id: string
+  surveyId: number
+  submitted: boolean
+  viewCount: number
+  maxViewCount: number
+}
+
+export type ImpactStudyCampaignsMap = Record<string, ImpactStudyCampaign>
+
 export type UserProductFlags = {
   userId: Ulid
   sentReadyToCoachEmail: boolean
@@ -11,6 +21,7 @@ export type UserProductFlags = {
   fallIncentiveEnrollmentAt?: Date
   impactStudyEnrollmentAt?: Date
   tellThemCollegePrepModalSeenAt?: Date
+  impactStudyCampaigns?: ImpactStudyCampaignsMap
   createdAt: Date
   updatedAt: Date
 }
@@ -22,4 +33,5 @@ export type PublicUserProductFlags = Pick<
   | 'fallIncentiveEnrollmentAt'
   | 'impactStudyEnrollmentAt'
   | 'tellThemCollegePrepModalSeenAt'
+  | 'impactStudyCampaigns'
 >
