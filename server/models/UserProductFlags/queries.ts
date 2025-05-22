@@ -215,7 +215,14 @@ export async function upsertImpactStudyCampaign(
 ) {
   try {
     const result = await pgQueries.upsertImpactStudyCampaign.run(
-      { userId, campaignId: campaign.id, campaignData: campaign },
+      {
+        userId,
+        campaignId: campaign.id,
+        campaignData: {
+          ...campaign,
+          createdAt: campaign.createdAt.toISOString(),
+        },
+      },
       getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return
