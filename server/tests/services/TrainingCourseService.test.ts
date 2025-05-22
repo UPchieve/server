@@ -1,14 +1,24 @@
 import * as VolunteerRepo from '../../models/Volunteer'
-import { recordProgress } from '../../services/TrainingCourseService'
+import * as TrainingCourseRepo from '../../models/TrainingCourses'
+import {
+  recordProgress,
+  getTrainingCourse,
+} from '../../services/TrainingCourseService'
 import { getDbUlid } from '../../models/pgUtils'
 import { faker } from '@faker-js/faker'
 import { UserContactInfo } from '../../models/User'
 import { TRAINING } from '../../constants'
 import logger from '../../logger'
 import { buildUserContactInfo } from '../mocks/generate'
+import {
+  TrainingCourseModule,
+  TrainingCourseModuleMaterial,
+  TrainingCourse,
+} from '../../models/TrainingCourses'
 
 jest.mock('../../logger')
 jest.mock('../../models/Volunteer')
+jest.mock('../../models/TrainingCourses')
 jest.mock('../../services/FeatureFlagService', () => {
   return {
     getUsingOurPlatformFlag: jest.fn().mockResolvedValue(true),
@@ -16,6 +26,7 @@ jest.mock('../../services/FeatureFlagService', () => {
 })
 describe('TrainingCourseService', () => {
   const mockedVolunteerRepo = jest.mocked(VolunteerRepo)
+  const mockedTrainingCourseRepo = jest.mocked(TrainingCourseRepo)
   const mockedLogger = jest.mocked(logger)
   const volunteer: UserContactInfo = {
     ...buildUserContactInfo(),
@@ -41,6 +52,12 @@ describe('TrainingCourseService', () => {
     const courseKey = TRAINING.UPCHIEVE_101
     const materialKey = '7b6a76' // A required material (counts toward progress)
     const requiredMaterials = ['7b6a76', 'jsn832', 'ps87f9', 'jgu55k', 'fj8tzq']
+
+    beforeEach(() => {
+      mockedTrainingCourseRepo.getRequiredMaterialKeysByTrainingCourseName.mockResolvedValue(
+        requiredMaterials
+      )
+    })
 
     it('Returns the progress info for a material that was already completed', async () => {
       const isComplete = false
@@ -151,6 +168,89 @@ describe('TrainingCourseService', () => {
         isComplete,
         progress: endingProgress,
       })
+    })
+  })
+
+  describe('getFullTrainingCourseByName', () => {
+    it('Correctly sorts materials with their modules', async () => {
+      const trainingCourseFromDb: TrainingCourse = {
+        id: 1,
+        displayName: 'Training course',
+        name: 'training-course',
+        description: 'description',
+        quizId: 1,
+        quizName: 'some-quiz',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      const module1FromDb: TrainingCourseModule = {
+        id: 1,
+        name: 'module 1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      const module2FromDb: TrainingCourseModule = {
+        id: 2,
+        name: 'module 2',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      const module1Material1FromDb: TrainingCourseModuleMaterial = {
+        id: 1,
+        moduleId: module1FromDb.id,
+        name: 'Material A',
+        key: 'materialA',
+        type: 'video',
+        required: true,
+        resourceUrl: 'url1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      const module1Material2FromDb: TrainingCourseModuleMaterial = {
+        ...module1Material1FromDb,
+        id: 2,
+        name: 'Material B',
+        key: 'materialB',
+        resourceId: 'blah blah',
+        links: [
+          {
+            displayName: 'Link 1',
+            url: 'url1.1',
+          },
+        ],
+      }
+      const module2Material1FromDb: TrainingCourseModuleMaterial = {
+        ...module1Material1FromDb,
+        id: 3,
+        moduleId: module2FromDb.id,
+        name: 'Material C',
+        key: 'materialC',
+      }
+      mockedTrainingCourseRepo.getFullTrainingCourseByName.mockResolvedValue({
+        trainingCourse: trainingCourseFromDb,
+        modules: [module1FromDb, module2FromDb],
+        materials: [
+          module1Material1FromDb,
+          module1Material2FromDb,
+          module2Material1FromDb,
+        ],
+      })
+      const actual = await getTrainingCourse('upchieve101')
+      expect(actual).toEqual(
+        expect.objectContaining({
+          ...trainingCourseFromDb,
+          modules: [
+            {
+              ...module1FromDb,
+              materials: [module1Material1FromDb, module1Material2FromDb],
+            },
+            {
+              ...module2FromDb,
+              materials: [module2Material1FromDb],
+            },
+          ],
+        })
+      )
     })
   })
 })

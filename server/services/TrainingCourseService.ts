@@ -56,7 +56,7 @@ interface CourseProgress {
 export async function recordProgress(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses,
-  materialKey: string
+  completdMaterialKey: string
 ): Promise<CourseProgress> {
   return runInTransaction(async (tc: TransactionClient) => {
     const volunteerTrainingCourses = await getVolunteerTrainingCourses(
@@ -79,7 +79,7 @@ export async function recordProgress(
     const completedMaterialKeys = [...volunteerCourse.completedMaterials]
     const requiredMaterialKeys =
       await getRequiredMaterialsForTrainingCourse(courseKey)
-    if (volunteerCourse.completedMaterials.includes(materialKey)) {
+    if (volunteerCourse.completedMaterials.includes(completdMaterialKey)) {
       // This _shouldn't_ happen if the client is making the right calls,
       // but it appears to happen on occasion.
       // TODO Remove once we figure out why.
@@ -87,12 +87,12 @@ export async function recordProgress(
       logger.warn(
         {
           courseKey,
-          materialKey,
+          materialKey: completdMaterialKey,
         },
         'User has already completed this training material'
       )
     } else {
-      completedMaterialKeys.push(materialKey)
+      completedMaterialKeys.push(completdMaterialKey)
     }
 
     // @TODO Drop the `complete` column altogether - it is redundant with `progress`
@@ -102,7 +102,7 @@ export async function recordProgress(
         volunteer.id,
         courseKey,
         requiredMaterialKeys,
-        materialKey,
+        completdMaterialKey,
         tc
       )
       return {
