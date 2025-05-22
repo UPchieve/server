@@ -54,10 +54,15 @@ export function routeProductFlags(router: Router) {
 
   router.route('/product-flags/impact-study').post(async function (req, res) {
     const user = extractUser(req)
-    const surveyId = asNumber(req.body.surveyId)
+    const impactStudySurveyCampaignId = asString(
+      req.body.impactStudySurveyCampaignId
+    )
     try {
       const impactStudyEnrollmentAt =
-        await UserProductFlagsService.impactStudyEnrollment(user.id, surveyId)
+        await UserProductFlagsService.impactStudyEnrollment(
+          user.id,
+          impactStudySurveyCampaignId
+        )
       res.json({ impactStudyEnrollmentAt })
     } catch (err) {
       resError(res, err)
@@ -72,6 +77,21 @@ export function routeProductFlags(router: Router) {
         const hasSeenTellThemCollegePrepModal =
           await UserProductFlagsService.sawTellThemCollegePrepModal(user.id)
         res.json({ hasSeenTellThemCollegePrepModal })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/product-flags/impact-study-campaigns')
+    .post(async function (req, res) {
+      try {
+        const user = extractUser(req)
+        await UserProductFlagsService.saveImpactStudyCampaign(
+          user.id,
+          UserProductFlagsService.asImpactStudyCampaignData(req.body.campaign)
+        )
+        res.sendStatus(200)
       } catch (err) {
         resError(res, err)
       }
