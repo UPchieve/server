@@ -14,7 +14,6 @@ import * as cache from '../cache'
 import { logError } from '../logger'
 import { Ulid } from '../models/pgUtils'
 import { isProductionEnvironment } from '../utils/environments'
-import { isTremendousEmbeddedRewardsEnabled } from './FeatureFlagService'
 
 const configuration = new Configuration({
   basePath: isProductionEnvironment()
@@ -270,8 +269,6 @@ export async function getUserRewards(
     )
 
     const allCampaigns = await getCampaigns()
-    const isEmbeddedRewardsEnabled =
-      await isTremendousEmbeddedRewardsEnabled(userId)
 
     for (const reward of rewardsData) {
       if (!reward?.id || reward.delivery?.method !== 'LINK') continue
@@ -283,9 +280,7 @@ export async function getUserRewards(
           ? allCampaigns[campaignId]
           : { name: 'No Campaign' }
 
-      const rewardLink = isEmbeddedRewardsEnabled
-        ? await getRewardEmbedLink(reward.id)
-        : await getRewardLink(reward.id)
+      const rewardLink = await getRewardLink(reward.id)
       userRewards.rewards.push({
         id: reward.id,
         amount: reward.value?.denomination ?? 0,
@@ -309,37 +304,6 @@ export async function getUserRewardByRewardId(rewardId: string) {
   const { data } = await rewards.getReward(rewardId)
   if (!data.reward) return
   return data.reward
-}
-
-function getTremendousEmbedLink(rewardToken: string) {
-  return `https://${
-    config.tremendousRewardDomain
-  }.com/embed/?id=${encodeURIComponent(rewardToken)}&embed=true`
-}
-
-export async function getRewardEmbedLink(rewardId: string) {
-  // TODO: Make a utility method for the pattern of retrieving from cache/fetching/storing into cache
-  const cacheKey = `reward-embed-token-${rewardId}`
-
-  let rewardToken: string | undefined
-  try {
-    rewardToken = await cache.get(cacheKey)
-  } catch (error) {
-    // Ignore cache-related errors
-  }
-
-  if (rewardToken) return getTremendousEmbedLink(rewardToken)
-
-  const { data } = await rewards.generateRewardToken(rewardId)
-  rewardToken = data?.reward.token
-  if (!rewardToken) throw new Error('Unable to generate reward token')
-
-  try {
-    await cache.saveWithExpiration(cacheKey, rewardToken)
-  } catch (error) {
-    // Ignore cache-related errors
-  }
-  return getTremendousEmbedLink(rewardToken)
 }
 
 export async function getRewardLink(rewardId: string) {
