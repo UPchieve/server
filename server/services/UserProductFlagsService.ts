@@ -29,6 +29,7 @@ import {
 } from './RewardsService'
 import {
   asBoolean,
+  asDate,
   asFactory,
   asNumber,
   asOptional,
@@ -127,6 +128,7 @@ export const asImpactStudyCampaignData = asFactory<ImpactStudyCampaign>({
   viewCount: asNumber,
   maxViewCount: asNumber,
   rewardAmount: asOptional(asNumber),
+  createdAt: asDate,
 })
 
 export async function saveImpactStudyCampaign(

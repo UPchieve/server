@@ -7,6 +7,7 @@ export type ImpactStudyCampaign = {
   viewCount: number
   maxViewCount: number
   rewardAmount?: number
+  createdAt: Date
 }
 
 export type ImpactStudyCampaignsMap = Record<string, ImpactStudyCampaign>
