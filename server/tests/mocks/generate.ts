@@ -149,7 +149,7 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
     createdAt: new Date(),
     updatedAt: new Date(),
     banType: undefined,
-    preferredLanguageCode: '',
+    preferredLanguage: '',
     ...overrides,
   }
 }

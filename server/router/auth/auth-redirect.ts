@@ -36,8 +36,12 @@ export class AuthRedirect {
     userData: Partial<RegisterStudentPayload | RegisterTeacherPayload> = {},
     errorMessage?: string
   ) {
+    if (provider === 'clever') {
+      errorRedirect = `/clever-signin-instructions`
+    }
+
     if (isLogin) {
-      return this.loginFailureRedirect(provider)
+      return this.loginFailureRedirect(provider, errorRedirect)
     }
 
     delete userData.ip
@@ -56,11 +60,14 @@ export class AuthRedirect {
     return this.baseRedirect + (errorRedirect ?? '') + '?' + params.toString()
   }
 
-  static loginFailureRedirect(provider: string) {
+  static loginFailureRedirect(
+    provider: string,
+    errorRedirect: string = '/login'
+  ) {
     const params = new URLSearchParams({
       400: 'true',
       provider: provider ?? '',
     })
-    return this.baseRedirect + '/login?' + params.toString()
+    return this.baseRedirect + errorRedirect + '?' + params.toString()
   }
 }
