@@ -5,6 +5,8 @@ export type training_course_material_type = 'document' | 'link' | 'resources' | 
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
+export type stringArray = (string)[];
+
 /** 'GetRequiredMaterialKeysByTrainingCourseName' parameters type */
 export interface IGetRequiredMaterialKeysByTrainingCourseNameParams {
   trainingCourseName: string;
@@ -12,7 +14,7 @@ export interface IGetRequiredMaterialKeysByTrainingCourseNameParams {
 
 /** 'GetRequiredMaterialKeysByTrainingCourseName' return type */
 export interface IGetRequiredMaterialKeysByTrainingCourseNameResult {
-  key: string;
+  keys: stringArray | null;
 }
 
 /** 'GetRequiredMaterialKeysByTrainingCourseName' query type */
@@ -21,13 +23,13 @@ export interface IGetRequiredMaterialKeysByTrainingCourseNameQuery {
   result: IGetRequiredMaterialKeysByTrainingCourseNameResult;
 }
 
-const getRequiredMaterialKeysByTrainingCourseNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":244,"b":263}]}],"statement":"SELECT\n    tcmm.key\nFROM\n    training_course_module_materials tcmm\n    JOIN training_course_modules tcm ON tcm.id = tcmm.module_id\n    JOIN training_courses tc ON tc.id = tcm.training_course_id\nWHERE\n    tcmm.required IS TRUE\n    AND tc.name = :trainingCourseName!"};
+const getRequiredMaterialKeysByTrainingCourseNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":263,"b":282}]}],"statement":"SELECT\n    ARRAY_AGG(tcmm.key) AS keys\nFROM\n    training_course_module_materials tcmm\n    JOIN training_course_modules tcm ON tcm.id = tcmm.module_id\n    JOIN training_courses tc ON tc.id = tcm.training_course_id\nWHERE\n    tcmm.required IS TRUE\n    AND tc.name = :trainingCourseName!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     tcmm.key
+ *     ARRAY_AGG(tcmm.key) AS keys
  * FROM
  *     training_course_module_materials tcmm
  *     JOIN training_course_modules tcm ON tcm.id = tcmm.module_id
@@ -49,6 +51,7 @@ export interface IGetTrainingCourseByNameParams {
 export interface IGetTrainingCourseByNameResult {
   createdAt: Date;
   description: string | null;
+  displayName: string | null;
   id: number;
   name: string;
   quizId: number;
@@ -62,7 +65,7 @@ export interface IGetTrainingCourseByNameQuery {
   result: IGetTrainingCourseByNameResult;
 }
 
-const getTrainingCourseByNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":228,"b":247}]}],"statement":"SELECT\n    tc.id,\n    tc.name,\n    tc.description,\n    q.name AS quiz_name,\n    q.id AS quiz_id,\n    tc.created_at,\n    tc.updated_at\nFROM\n    training_courses tc\n    LEFT JOIN quizzes q ON q.id = tc.quiz_id\nWHERE\n    tc.name = :trainingCourseName!"};
+const getTrainingCourseByNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":249,"b":268}]}],"statement":"SELECT\n    tc.id,\n    tc.name,\n    tc.description,\n    tc.display_name,\n    q.name AS quiz_name,\n    q.id AS quiz_id,\n    tc.created_at,\n    tc.updated_at\nFROM\n    training_courses tc\n    LEFT JOIN quizzes q ON q.id = tc.quiz_id\nWHERE\n    tc.name = :trainingCourseName!"};
 
 /**
  * Query generated from SQL:
@@ -71,6 +74,7 @@ const getTrainingCourseByNameIR: any = {"usedParamSet":{"trainingCourseName":tru
  *     tc.id,
  *     tc.name,
  *     tc.description,
+ *     tc.display_name,
  *     q.name AS quiz_name,
  *     q.id AS quiz_id,
  *     tc.created_at,
@@ -92,9 +96,11 @@ export interface IGetTrainingCourseModulesByTrainingCourseNameParams {
 
 /** 'GetTrainingCourseModulesByTrainingCourseName' return type */
 export interface IGetTrainingCourseModulesByTrainingCourseNameResult {
+  createdAt: Date | null;
   id: number;
   name: string;
   trainingCourseId: number;
+  updatedAt: Date | null;
 }
 
 /** 'GetTrainingCourseModulesByTrainingCourseName' query type */
@@ -103,7 +109,7 @@ export interface IGetTrainingCourseModulesByTrainingCourseNameQuery {
   result: IGetTrainingCourseModulesByTrainingCourseNameResult;
 }
 
-const getTrainingCourseModulesByTrainingCourseNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":137,"b":156}]}],"statement":"SELECT\n    tcm.*\nFROM\n    training_course_modules tcm\n    JOIN training_courses tc ON tc.id = tcm.training_course_id\nWHERE\n    tc.name = :trainingCourseName!"};
+const getTrainingCourseModulesByTrainingCourseNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":137,"b":156}]}],"statement":"SELECT\n    tcm.*\nFROM\n    training_course_modules tcm\n    JOIN training_courses tc ON tc.id = tcm.training_course_id\nWHERE\n    tc.name = :trainingCourseName!\nORDER BY\n    tc.id"};
 
 /**
  * Query generated from SQL:
@@ -115,6 +121,8 @@ const getTrainingCourseModulesByTrainingCourseNameIR: any = {"usedParamSet":{"tr
  *     JOIN training_courses tc ON tc.id = tcm.training_course_id
  * WHERE
  *     tc.name = :trainingCourseName!
+ * ORDER BY
+ *     tc.id
  * ```
  */
 export const getTrainingCourseModulesByTrainingCourseName = new PreparedQuery<IGetTrainingCourseModulesByTrainingCourseNameParams,IGetTrainingCourseModulesByTrainingCourseNameResult>(getTrainingCourseModulesByTrainingCourseNameIR);
@@ -127,6 +135,7 @@ export interface IGetTrainingCourseMaterialsByTrainingCourseNameParams {
 
 /** 'GetTrainingCourseMaterialsByTrainingCourseName' return type */
 export interface IGetTrainingCourseMaterialsByTrainingCourseNameResult {
+  createdAt: Date | null;
   id: number;
   key: string;
   links: Json | null;
@@ -136,6 +145,7 @@ export interface IGetTrainingCourseMaterialsByTrainingCourseNameResult {
   resourceId: string | null;
   resourceUrl: string;
   type: training_course_material_type;
+  updatedAt: Date | null;
 }
 
 /** 'GetTrainingCourseMaterialsByTrainingCourseName' query type */
@@ -144,7 +154,7 @@ export interface IGetTrainingCourseMaterialsByTrainingCourseNameQuery {
   result: IGetTrainingCourseMaterialsByTrainingCourseNameResult;
 }
 
-const getTrainingCourseMaterialsByTrainingCourseNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":212,"b":231}]}],"statement":"SELECT\n    tcmm.*\nFROM\n    training_course_module_materials tcmm\n    JOIN training_course_modules tcm ON tcm.id = tcmm.module_id\n    JOIN training_courses tc ON tc.id = tcm.training_course_id\nWHERE\n    tc.name = :trainingCourseName!"};
+const getTrainingCourseMaterialsByTrainingCourseNameIR: any = {"usedParamSet":{"trainingCourseName":true},"params":[{"name":"trainingCourseName","required":true,"transform":{"type":"scalar"},"locs":[{"a":212,"b":231}]}],"statement":"SELECT\n    tcmm.*\nFROM\n    training_course_module_materials tcmm\n    JOIN training_course_modules tcm ON tcm.id = tcmm.module_id\n    JOIN training_courses tc ON tc.id = tcm.training_course_id\nWHERE\n    tc.name = :trainingCourseName!\nORDER BY\n    tcmm.id"};
 
 /**
  * Query generated from SQL:
@@ -157,6 +167,8 @@ const getTrainingCourseMaterialsByTrainingCourseNameIR: any = {"usedParamSet":{"
  *     JOIN training_courses tc ON tc.id = tcm.training_course_id
  * WHERE
  *     tc.name = :trainingCourseName!
+ * ORDER BY
+ *     tcmm.id
  * ```
  */
 export const getTrainingCourseMaterialsByTrainingCourseName = new PreparedQuery<IGetTrainingCourseMaterialsByTrainingCourseNameParams,IGetTrainingCourseMaterialsByTrainingCourseNameResult>(getTrainingCourseMaterialsByTrainingCourseNameIR);

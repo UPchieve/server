@@ -2,14 +2,15 @@ export type TrainingCourse = {
   id: number
   displayName: string
   name: string
-  description: string
-  quizId?: number
+  description?: string
+  quizId: number
+  quizName: string
   createdAt: Date
   updatedAt: Date
 }
 
 export type FullTrainingCourse = TrainingCourse & {
-  modules: TrainingCourseModuleWithMaterials
+  modules: TrainingCourseModuleWithMaterials[]
 }
 
 export type TrainingCourseModule = {

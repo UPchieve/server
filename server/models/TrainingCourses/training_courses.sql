@@ -1,6 +1,6 @@
 /* @name getRequiredMaterialKeysByTrainingCourseName */
 SELECT
-    tcmm.key
+    ARRAY_AGG(tcmm.key) AS keys
 FROM
     training_course_module_materials tcmm
     JOIN training_course_modules tcm ON tcm.id = tcmm.module_id
@@ -15,6 +15,7 @@ SELECT
     tc.id,
     tc.name,
     tc.description,
+    tc.display_name,
     q.name AS quiz_name,
     q.id AS quiz_id,
     tc.created_at,
@@ -33,7 +34,9 @@ FROM
     training_course_modules tcm
     JOIN training_courses tc ON tc.id = tcm.training_course_id
 WHERE
-    tc.name = :trainingCourseName!;
+    tc.name = :trainingCourseName!
+ORDER BY
+    tc.id;
 
 
 /* @name getTrainingCourseMaterialsByTrainingCourseName */
@@ -44,5 +47,7 @@ FROM
     JOIN training_course_modules tcm ON tcm.id = tcmm.module_id
     JOIN training_courses tc ON tc.id = tcm.training_course_id
 WHERE
-    tc.name = :trainingCourseName!;
+    tc.name = :trainingCourseName!
+ORDER BY
+    tcmm.id;
 

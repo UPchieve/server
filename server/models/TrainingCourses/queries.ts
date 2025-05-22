@@ -3,7 +3,6 @@ import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
 import { makeRequired, makeSomeRequired } from '../pgUtils'
 import {
-  FullTrainingCourse,
   TrainingCourse,
   TrainingCourseModule,
   TrainingCourseModuleMaterial,
@@ -20,7 +19,9 @@ export async function getRequiredMaterialKeysByTrainingCourseName(
         },
         client
       )
-    return results.map((row) => makeRequired(row))
+    if (!results.length || !results[0].keys?.length)
+      throw new Error('No required material keys returned')
+    return results[0].keys!
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -41,13 +42,13 @@ export async function getFullTrainingCourseByName(
       },
       client
     )
+    if (!trainingCourseResult.length)
+      throw new Error(
+        `Did not find training course with name ${trainingCourseName}`
+      )
     const trainingCourse = makeRequired(
       trainingCourseResult[0]
     ) as TrainingCourse
-    if (!trainingCourse)
-      throw new Error(
-        `Did not find training course with name ${trainingCourse}`
-      )
 
     const modulesResult =
       await pgQueries.getTrainingCourseModulesByTrainingCourseName.run(
