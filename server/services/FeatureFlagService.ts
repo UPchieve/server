@@ -147,7 +147,7 @@ export async function getFallIncentiveProgramPayload(
 export async function getTutorBotSubjectModelsPayload(
   userId: Ulid,
   subjectName: string
-): Promise<String> {
+): Promise<string> {
   const subjectModels = await getFeatureFlagPayload(
     FEATURE_FLAGS.AI_TUTOR_BOT_SUBJECT_MODELS,
     userId
