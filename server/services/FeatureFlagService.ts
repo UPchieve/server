@@ -147,12 +147,12 @@ export async function getFallIncentiveProgramPayload(
 export async function getTutorBotSubjectModelsPayload(
   userId: Ulid,
   subjectName: string
-): Promise<TUTOR_BOT_MODELS> {
+): Promise<string> {
   const subjectModels = await getFeatureFlagPayload(
     FEATURE_FLAGS.AI_TUTOR_BOT_SUBJECT_MODELS,
     userId
   )
-  return subjectModels?.[subjectName] ?? TUTOR_BOT_MODELS.CHAT_GPT_4O
+  return subjectModels?.[subjectName] ?? TUTOR_BOT_MODELS.AWS_BEDROCK
 }
 
 export async function isTremendousEmbeddedRewardsEnabled(userId: Ulid) {

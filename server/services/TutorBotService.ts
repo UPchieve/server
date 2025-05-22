@@ -16,7 +16,7 @@ import * as LangfuseService from './LangfuseService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
-import { openai } from './BotsService'
+import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
 import * as FeatureFlagService from './FeatureFlagService'
 import { getSubjectNameIdMapping } from '../models/Subjects'
 import { TextPromptClient } from 'langfuse-core'
@@ -24,6 +24,37 @@ import { COLLEGE_SUBJECTS } from '../constants'
 
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
+
+export const TUTOR_BOT_MODELS = {
+  PHI_3: 'phi3-upchieve-tutormodel',
+  AWS_BEDROCK: config.awsBedrockSonnetArnId,
+}
+
+const BED_ROCK_TOOL_NAME = 'print_response'
+const BED_ROCK_TOOL = [
+  {
+    name: BED_ROCK_TOOL_NAME,
+    description: 'Prints answer in json format',
+    input_schema: {
+      type: 'object',
+      properties: {
+        strategy: {
+          type: 'string',
+          description: 'The strategy used to assist the student',
+        },
+        intention: {
+          type: 'string',
+          description: 'The intention of using the strategy',
+        },
+        response: {
+          type: 'string',
+          description: "The response to the student's last message",
+        },
+      },
+      required: ['strategy', 'intention', 'response'],
+    },
+  },
+]
 
 interface TutorBotConversationMessage {
   tutorBotConversationId: string
@@ -39,10 +70,6 @@ interface TutorBotConversationTranscript {
   messages: TutorBotConversationMessage[]
   sessionId?: string
 }
-
-const CHAT_GPT_ERROR_MESSAGE = JSON.stringify({
-  response: "I'm sorry, I encountered an error. Please try asking again.",
-})
 
 export const getTranscriptForConversation = async (
   conversationId: string,
@@ -170,11 +197,6 @@ const getBotResponseMessage = (
   }
 }
 
-export enum TUTOR_BOT_MODELS {
-  PHI_3 = 'phi3-upchieve-tutormodel',
-  CHAT_GPT_4O = 'gpt-4o',
-}
-
 export const addMessageToConversation = async (
   {
     userId,
@@ -217,7 +239,7 @@ export const addMessageToConversation = async (
     const botResponse =
       model === TUTOR_BOT_MODELS.PHI_3
         ? await getBotResponse({ userId, conversationId, subjectName }, tc)
-        : await getOpenAiBotResponse(
+        : await getAwsBedRockResponse(
             { userId, conversationId, subjectName },
             tc
           )
@@ -233,7 +255,10 @@ export const addMessageToConversation = async (
   }, parentTransaction)
 }
 
-async function getPromptDataFor(subjectName: string): Promise<{
+async function getPromptData(
+  subjectName: string,
+  transcript: TutorBotConversationTranscript
+): Promise<{
   isFallback: boolean
   prompt: string
   version: string
@@ -251,9 +276,22 @@ async function getPromptDataFor(subjectName: string): Promise<{
     ? TUTOR_BOT_GENERIC_SUBJECT_PROMPT_FALLBACK
     : (promptFromLangfuse! as TextPromptClient).prompt
 
+  const mostRecentMessages = transcript.messages
+    .map(({ senderUserType, message }) => `<|${senderUserType}|>: ${message}`)
+    .slice(-NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT)
+    .join('<|end|>\n')
+
+  const cleanedPrompt = interpolate({
+    text: prompt,
+    replacements: {
+      '{{subject}}': subjectName,
+      '{{conversation}}': mostRecentMessages,
+    },
+  })
+
   return {
     isFallback,
-    prompt,
+    prompt: cleanedPrompt,
     version: isFallback
       ? 'FALLBACK'
       : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
@@ -277,7 +315,7 @@ function interpolate({
 }
 
 const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
-const getOpenAiBotResponse = async (
+const getAwsBedRockResponse = async (
   {
     userId,
     conversationId,
@@ -289,11 +327,12 @@ const getOpenAiBotResponse = async (
   },
   tc: TransactionClient = getClient()
 ): Promise<
-  TutorBotConversationMessage & {
-    traceId: string
-    obeservationId: string | null
-    status: string
-  }
+  | (TutorBotConversationMessage & {
+      traceId: string
+      obeservationId: string | null
+      status: number
+    })
+  | null
 > => {
   // Save the latest user message to DB and create the transcript of the conversation so far
   const t = LangfuseService.getClient().trace({
@@ -302,64 +341,58 @@ const getOpenAiBotResponse = async (
   })
   // NOTE these are ordered by created at ASC
   const transcript = await getTranscriptForConversation(conversationId, tc)
-  const mostRecentMessages = transcript.messages
-    .map(({ senderUserType, message }) => `<|${senderUserType}|>: ${message}`)
-    .slice(-NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT)
-    .join('<|end|>\n')
+  const promptData = await getPromptData(subjectName, transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    model: TUTOR_BOT_MODELS.CHAT_GPT_4O,
+    metadata: { model: config.awsBedrockSonnetArnId },
+    input: promptData.prompt,
   })
-  const promptData = await getPromptDataFor(subjectName)
-  const messagePrompt = interpolate({
-    text: promptData.prompt,
-    replacements: {
-      '{{subject}}': subjectName,
-      '{{conversation}}': mostRecentMessages,
-    },
-  })
+  let savedBotMessage = null
+  let botResponse = null
 
-  const completion = await openai.chat.completions.create({
-    model: TUTOR_BOT_MODELS.CHAT_GPT_4O,
-    messages: [{ role: 'system', content: messagePrompt }],
-    response_format: { type: 'json_object' },
-    max_tokens: 400,
-  })
-  const response =
-    completion?.choices?.[0]?.message?.content ?? CHAT_GPT_ERROR_MESSAGE
-
-  if (response === CHAT_GPT_ERROR_MESSAGE) {
+  try {
+    botResponse = await invokeModel({
+      modelId: config.awsBedrockSonnetArnId,
+      text: '',
+      prompt: promptData.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: BED_ROCK_TOOL_NAME },
+        tools: BED_ROCK_TOOL,
+      },
+    })
+  } catch (err) {
     // We could add a retry if we see this happening a fair amount
-    logger.error('AI tutor: Unprocessbable response from chatGPT', {
-      messagePrompt,
-      completion,
+    logger.error(err)
+    botResponse = AWS_BEDROCK_TUTOR_ANSWER_FALLBACK
+    logger.error('AI tutor: Unprocessbable response from aws bedrock', {
+      messagePrompt: promptData,
       traceName: LF_TRACE_NAME,
+    })
+  } finally {
+    savedBotMessage = await insertTutorBotConversationMessage(
+      {
+        conversationId,
+        userId,
+        message: botResponse?.response ? botResponse.response : botResponse,
+        senderUserType: 'bot',
+      },
+      tc
+    )
+
+    gen.end({
+      output: { botResponse: botResponse, responseDbo: savedBotMessage },
     })
   }
 
-  // Save bot response to conversation messages and append to the existing transcript
-  const content = JSON.parse(response)
-  const savedBotMessage = await insertTutorBotConversationMessage(
-    {
-      conversationId,
-      userId,
-      message: content.response,
-      senderUserType: 'bot',
-    },
-    tc
-  )
-  gen.end({
-    output: content.response,
-    input: { prompt: messagePrompt, ...savedBotMessage, subjectName },
-  })
-
   return {
     senderUserType: 'bot',
-    message: content.response,
+    message: botResponse?.response ? botResponse.response : botResponse,
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-    status: content.reason,
+    status: botResponse?.intention
+      ? botResponse.intention
+      : '1. Get the student to elaborate their answer',
     traceId: gen.traceId,
     obeservationId: gen.observationId,
   }
@@ -553,3 +586,7 @@ Then, using your choices, respond to the student as an experienced math teacher 
 to help the student with the next step in solving the given problem or better understanding the subject.
 Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "write out your reason for picking that strategy and intention", "response": "write out your response to the student's last message"}
 `
+
+const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
+Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear. 
+Could you tell me more about what your problem?`
