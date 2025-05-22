@@ -27,17 +27,20 @@ const rewards = new RewardsApi(configuration)
 const campaigns = new CampaignsApi(configuration)
 
 enum CustomFieldLabels {
-  CAMPAIGN_ID = 'campaign_id',
+  // Tremendous campaign ID used for reward configuration on Tremendous
+  TREMENDOUS_CAMPAIGN_ID = 'campaign_id',
   USER_ID = 'user_id',
-  SURVEY_ID = 'survey_id',
-  USER_ID_SURVEY_ID = 'user_id_survey_id',
+  // Note: Do not confuse this with the Tremendous campaign ID.
+  // IMPACT_STUDY_CAMPAIGN_ID refers specifically to the campaign ID used in the impact study survey.
+  IMPACT_STUDY_CAMPAIGN_ID = 'impact_study_campaign_id',
+  USER_ID_IMPACT_STUDY_CAMPAIGN_ID = 'user_id_impact_study_campaign_id',
 }
 
 type CUSTOM_FIELDS_IDS = {
   [CustomFieldLabels.USER_ID]: string
-  [CustomFieldLabels.SURVEY_ID]: string
-  [CustomFieldLabels.USER_ID_SURVEY_ID]: string
-  [CustomFieldLabels.CAMPAIGN_ID]: string
+  [CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID]: string
+  [CustomFieldLabels.IMPACT_STUDY_CAMPAIGN_ID]: string
+  [CustomFieldLabels.TREMENDOUS_CAMPAIGN_ID]: string
 }
 
 type CreateGiftCardReward = {
@@ -45,9 +48,9 @@ type CreateGiftCardReward = {
   name: string
   email: string
   amount: number
-  campaignId: string
+  tremendousCampaignId: string
   externalId?: string
-  surveyId?: number
+  impactStudySurveyCampaignId?: string
 }
 
 type UserReward = {
@@ -114,15 +117,17 @@ export async function createGiftCardRewardLink(data: CreateGiftCardReward) {
      * filtering on multiple custom fields.
      *
      */
-    if (data.surveyId) {
+    if (data.impactStudySurveyCampaignId) {
       customFields.push(
         {
-          id: customFieldIds?.[CustomFieldLabels.USER_ID_SURVEY_ID],
-          value: `${data.userId}-${data.surveyId}`,
+          id: customFieldIds?.[
+            CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID
+          ],
+          value: `${data.userId}-${data.impactStudySurveyCampaignId}`,
         },
         {
-          id: customFieldIds?.[CustomFieldLabels.SURVEY_ID],
-          value: String(data.surveyId),
+          id: customFieldIds?.[CustomFieldLabels.IMPACT_STUDY_CAMPAIGN_ID],
+          value: String(data.impactStudySurveyCampaignId),
         }
       )
     }
@@ -141,15 +146,15 @@ export async function createGiftCardRewardLink(data: CreateGiftCardReward) {
           denomination: data.amount,
           currency_code: 'USD',
         },
-        campaign_id: data.campaignId,
+        campaign_id: data.tremendousCampaignId,
         custom_fields: [
           {
             id: customFieldIds?.[CustomFieldLabels.USER_ID],
             value: data.userId,
           },
           {
-            id: customFieldIds?.[CustomFieldLabels.CAMPAIGN_ID],
-            value: data.campaignId,
+            id: customFieldIds?.[CustomFieldLabels.TREMENDOUS_CAMPAIGN_ID],
+            value: data.tremendousCampaignId,
           },
           ...customFields,
         ],
@@ -273,7 +278,7 @@ export async function getUserRewards(
     for (const reward of rewardsData) {
       if (!reward?.id || reward.delivery?.method !== 'LINK') continue
       const campaignId = reward.custom_fields?.find(
-        (field) => field.label === CustomFieldLabels.CAMPAIGN_ID
+        (field) => field.label === CustomFieldLabels.TREMENDOUS_CAMPAIGN_ID
       )?.value
       const campaign =
         campaignId && allCampaigns[campaignId]
@@ -334,15 +339,18 @@ export async function getRewardLink(rewardId: string) {
 /**
  *
  * Due to Tremendous API limitations on filtering by multiple custom fields,
- * we use a compound custom field (user_id_survey_id) to fetch rewards tied to both a user and a survey.
- * This allows us to determine if a user has already received a reward for a given survey.
+ * we use a compound custom field (user_id_impact_study_campaign_id) to fetch rewards tied to both a user and an impact study campaign.
+ * This allows us to determine if a user has already received a reward for a given impact study campaign.
  *
  */
-export async function getUserRewardBySurveyId(userId: Ulid, surveyId: number) {
+export async function getUserRewardByImpactStudySurveyCampaignId(
+  userId: Ulid,
+  impactStudySurveyCampaignId: string
+) {
   try {
     const response = await rewards.listRewards(undefined, {
       params: {
-        [CustomFieldLabels.USER_ID_SURVEY_ID]: `${userId}-${surveyId}`,
+        [CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID]: `${userId}-${impactStudySurveyCampaignId}`,
       },
     })
     const { data } = response
