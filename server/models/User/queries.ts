@@ -630,7 +630,7 @@ export async function updateUserProfileById(
         deactivated: data.deactivated,
         phone: data.phone,
         smsConsent: data.smsConsent,
-        preferredLanguageCode: data.preferredLanguageCode,
+        preferredLanguage: data.preferredLanguage,
       },
       getClient()
     )
@@ -792,14 +792,14 @@ export async function adminUpdateUser(
 
 export async function updatePreferredLanguageToUser(
   userId: Uuid,
-  preferredLanguageCode: string,
+  preferredLanguage: string,
   tc?: TransactionClient
 ) {
   try {
     const result = await pgQueries.updatePreferredLanguageToUser.run(
       {
         userId,
-        preferredLanguageCode,
+        preferredLanguage,
       },
       tc ?? getClient()
     )

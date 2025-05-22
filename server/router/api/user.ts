@@ -55,9 +55,9 @@ export function routeUser(router: Router): void {
         }
         updateReq['phone'] = phone
       }
-      if ('preferredLanguageCode' in req.body) {
-        const preferredLanguageCode = asString(req.body.preferredLanguageCode)
-        updateReq['preferredLanguageCode'] = preferredLanguageCode
+      if ('preferredLanguage' in req.body) {
+        const preferredLanguage = asString(req.body.preferredLanguage)
+        updateReq['preferredLanguage'] = preferredLanguage
       }
 
       await UserService.updateUserProfile(user.id, updateReq)
@@ -308,7 +308,7 @@ export function routeUser(router: Router): void {
       const user = await extractUser(req)
       await UserService.updatePreferredLanguage(
         user.id,
-        asString(req.body.preferredLanguageCode)
+        asString(req.body.preferredLanguage)
       )
       return res.sendStatus(200)
     } catch (err) {
