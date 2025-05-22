@@ -79,11 +79,11 @@ export async function invokeModel({
   const jsonString = new TextDecoder().decode(initResponse.body)
   const modelRes = JSON.parse(jsonString)
 
-  const getModelResponse = !!tools_option
+  const getModelResponse = tools_option
     ? getResponseWithToolsOption
     : getResponse
 
-  if (!!!modelRes.content[0]?.input) {
+  if (!modelRes.content[0]?.input) {
     throw new Error('No response')
   }
   const response = getModelResponse(modelRes)
