@@ -589,6 +589,4 @@ Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "
 
 const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
 Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear. 
-Could you tell me what specific calculus topic or problem you're working on? 
-I'm here to help you learn and understand, so don't hesitate to share what's on your mind.
- Are you struggling with derivatives, integrals, limits, or something else in calculus?`
+Could you tell me more about what your problem?`
