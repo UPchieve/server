@@ -6,6 +6,7 @@ export type ImpactStudyCampaign = {
   submitted: boolean
   viewCount: number
   maxViewCount: number
+  rewardAmount?: number
 }
 
 export type ImpactStudyCampaignsMap = Record<string, ImpactStudyCampaign>
