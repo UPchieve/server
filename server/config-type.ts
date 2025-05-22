@@ -278,6 +278,7 @@ export const Config = Record({
   toxicityModerationMinConfidence: Number,
   phoneNumberModerationConfidenceThreshold: Number,
   contextualModerationConfidenceThreshold: Number,
+  emailModerationConfidenceThreshold: Number,
   moderateMessageTimeLimitMs: Number,
   contextualModerationBatchSize: Number,
   minimumModerationAddressConfidence: Number,
