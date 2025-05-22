@@ -506,30 +506,51 @@ WHERE
 
 
 /* @name updateVolunteerTrainingById */
-INSERT INTO users_training_courses AS ins (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)
+INSERT INTO users_training_courses AS ins (user_id, training_course_id, completed_materials, progress, complete, created_at, updated_at)
 SELECT
     :userId!,
     training_courses.id,
-    :complete!,
-    :progress!,
     ARRAY[(:materialKey!)::text],
+    COALESCE(FLOOR(1.0 * array_length(ARRAY (
+                    SELECT
+                        REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')
+                INTERSECT
+                SELECT
+                    unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
+    100 = COALESCE(FLOOR(1.0 * array_length(ARRAY (
+                    SELECT
+                        REPLACE(unnest(ARRAY[:materialKey!::text]), '''', '')
+                INTERSECT
+                SELECT
+                    unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
     NOW(),
     NOW()
 FROM
     training_courses
 WHERE
     training_courses.name = :trainingCourse!
+LIMIT 1
 ON CONFLICT (user_id,
     training_course_id)
     DO UPDATE SET
-        complete = :complete!,
-        progress = :progress!,
         completed_materials = ARRAY_APPEND(ins.completed_materials, :materialKey!),
+        progress = COALESCE(FLOOR(1.0 * array_length(ARRAY (
+                        SELECT
+                            REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')
+                    INTERSECT
+                    SELECT
+                        unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0),
+        complete = COALESCE(FLOOR(1.0 * array_length(ARRAY (
+                        SELECT
+                            REPLACE(unnest(ARRAY_APPEND(ins.completed_materials, :materialKey!)), '''', '')
+                    INTERSECT
+                    SELECT
+                        unnest(:requiredMaterialKeys!::text[])), 1) / array_length(:requiredMaterialKeys!::text[], 1) * 100), 0) = 100,
         updated_at = NOW()
     WHERE
         NOT :materialKey! = ANY (ins.completed_materials)
     RETURNING
-        user_id AS ok;
+        *;
 
 
 /* @name updateVolunteerPhotoIdById */

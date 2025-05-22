@@ -138,10 +138,6 @@ describe('rosterPartnerStudents', () => {
       USER_ROLES.STUDENT,
       expect.toBeTransactionClient()
     )
-    expect(mockedUSMRepo.createUSMByUserId).toHaveBeenCalledWith(
-      USER_ID,
-      expect.toBeTransactionClient()
-    )
     expect(mockedUPFRepo.createUPFByUserId).toHaveBeenCalledWith(
       USER_ID,
       expect.toBeTransactionClient()
@@ -254,7 +250,6 @@ describe('rosterPartnerStudents', () => {
 
       expect(mockedUserRepo.upsertUser).toHaveBeenCalled()
       expect(mockedUserRepo.insertUserRoleByUserId).not.toHaveBeenCalled()
-      expect(mockedUSMRepo.createUSMByUserId).not.toHaveBeenCalled()
       expect(mockedUPFRepo.createUPFByUserId).not.toHaveBeenCalled()
       expect(mockedUserActionRepo.createAccountAction).not.toHaveBeenCalled()
       expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalled()
@@ -303,10 +298,6 @@ describe('registerStudent', () => {
     expect(mockedUserRepo.insertUserRoleByUserId).toHaveBeenCalledWith(
       USER_ID,
       USER_ROLES.STUDENT,
-      expect.toBeTransactionClient()
-    )
-    expect(mockedUSMRepo.createUSMByUserId).toHaveBeenCalledWith(
-      USER_ID,
       expect.toBeTransactionClient()
     )
     expect(mockedUPFRepo.createUPFByUserId).toHaveBeenCalledWith(
@@ -1022,10 +1013,6 @@ describe('registerTeacher', () => {
     expect(mockedUserRepo.insertUserRoleByUserId).toHaveBeenCalledWith(
       USER_ID,
       USER_ROLES.TEACHER,
-      expect.toBeTransactionClient()
-    )
-    expect(mockedUSMRepo.createUSMByUserId).toHaveBeenCalledWith(
-      USER_ID,
       expect.toBeTransactionClient()
     )
     expect(mockedUPFRepo.createUPFByUserId).toHaveBeenCalledWith(

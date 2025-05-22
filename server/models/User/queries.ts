@@ -9,6 +9,7 @@ import {
   Pgid,
   getDbUlid,
   generateReferralCode,
+  Uuid,
 } from '../pgUtils'
 import {
   RepoCreateError,
@@ -629,6 +630,7 @@ export async function updateUserProfileById(
         deactivated: data.deactivated,
         phone: data.phone,
         smsConsent: data.smsConsent,
+        preferredLanguageCode: data.preferredLanguageCode,
       },
       getClient()
     )
@@ -783,6 +785,26 @@ export async function adminUpdateUser(
       },
       tc
     )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updatePreferredLanguageToUser(
+  userId: Uuid,
+  preferredLanguageCode: string,
+  tc?: TransactionClient
+) {
+  try {
+    const result = await pgQueries.updatePreferredLanguageToUser.run(
+      {
+        userId,
+        preferredLanguageCode,
+      },
+      tc ?? getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
   }

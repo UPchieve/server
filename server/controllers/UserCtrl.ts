@@ -1,6 +1,5 @@
 import { Ulid } from '../models/pgUtils'
 import { captureException } from '@sentry/node'
-import * as USMRepo from '../models/UserSessionMetrics'
 import * as UPFRepo from '../models/UserProductFlags'
 import * as UserRepo from '../models/User'
 import * as VolunteerRepo from '../models/Volunteer'
@@ -32,14 +31,6 @@ export async function createVolunteer(
   volunteerData.password = await hashPassword(volunteerData.password)
   // Replaced by VolunteerRepo.createVolunteer
   const volunteer = await VolunteerRepo.createVolunteer(volunteerData)
-
-  // Create a USM object for this new user
-  try {
-    await USMRepo.createUSMByUserId(volunteer.id)
-  } catch (err) {
-    captureException(err)
-    logError(err as Error)
-  }
 
   // Create a UPF object for this new user
   try {

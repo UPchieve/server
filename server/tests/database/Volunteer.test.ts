@@ -18,6 +18,7 @@ import {
   getVolunteerForOnboardingById,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
+  updateVolunteerTrainingById,
 } from '../../models/Volunteer'
 import moment from 'moment'
 import { getClient } from '../../db'
@@ -26,14 +27,11 @@ import {
   buildFullAvailability,
   buildNotification,
   buildSessionRow,
-  buildUser,
   buildUserQuiz,
   buildUserTrainingCourse,
-  buildVolunteer,
 } from '../mocks/generate'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
-import { buildVolunteerProfile } from '../../../database/seeds/testData/generate'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -554,6 +552,117 @@ describe('VolunteerRepo', () => {
       )
       expect(fourthActual?.id).toEqual(volunteer.id)
       expect(fourthActual?.hasCompletedUpchieve101).toBeTruthy()
+    })
+  })
+
+  describe('updateVolunteerTrainingById', () => {
+    const requiredMaterials = ['7b6a76', 'jsn832', 'ps87f9', 'jgu55k', 'fj8tzq']
+    const material = requiredMaterials[0]
+    const upchieve101TrainingCourseId = 1
+
+    it('Calculates progress/complete correctly when there are no completed REQUIRED materials', async () => {
+      const nonRequiredMaterial = 'some-nonrequired-material'
+      const volunteer = await loadVolunteer()
+      const actual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        nonRequiredMaterial,
+        client
+      )
+      expect(actual.userId).toEqual(volunteer.id)
+      expect(actual.trainingCourseId).toEqual(upchieve101TrainingCourseId)
+      expect(actual.complete).toBeFalsy()
+      expect(actual.completedMaterials).toEqual([nonRequiredMaterial])
+      expect(actual.progress).toEqual(0)
+
+      // Now add a required material
+      const secondActual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        requiredMaterials[0],
+        client
+      )
+      expect(secondActual.userId).toEqual(volunteer.id)
+      expect(secondActual.trainingCourseId).toEqual(upchieve101TrainingCourseId)
+      expect(secondActual.complete).toBeFalsy()
+      expect(secondActual.completedMaterials).toEqual([
+        nonRequiredMaterial,
+        requiredMaterials[0],
+      ])
+      expect(secondActual.progress).toEqual(20)
+    })
+
+    it('Calculates progress/complete correctly until complete', async () => {
+      const volunteer = await loadVolunteer()
+      // Complete 1/5
+      let actual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        requiredMaterials[0],
+        client
+      )
+      expect(actual.complete).toBeFalsy()
+      expect(actual.completedMaterials).toEqual([requiredMaterials[0]])
+      expect(actual.progress).toEqual(20)
+      // 2/5
+      actual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        requiredMaterials[1],
+        client
+      )
+      expect(actual.complete).toBeFalsy()
+      expect(actual.completedMaterials).toEqual([
+        requiredMaterials[0],
+        requiredMaterials[1],
+      ])
+      expect(actual.progress).toEqual(40)
+      // 3/5
+      actual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        requiredMaterials[2],
+        client
+      )
+      expect(actual.complete).toBeFalsy()
+      expect(actual.completedMaterials).toEqual([
+        requiredMaterials[0],
+        requiredMaterials[1],
+        requiredMaterials[2],
+      ])
+      expect(actual.progress).toEqual(60)
+      // 4/5
+      actual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        requiredMaterials[3],
+        client
+      )
+      expect(actual.complete).toBeFalsy()
+      expect(actual.completedMaterials).toEqual([
+        requiredMaterials[0],
+        requiredMaterials[1],
+        requiredMaterials[2],
+        requiredMaterials[3],
+      ])
+      expect(actual.progress).toEqual(80)
+      // 5/5
+      actual = await updateVolunteerTrainingById(
+        volunteer.id,
+        'upchieve101',
+        requiredMaterials,
+        requiredMaterials[4],
+        client
+      )
+      expect(actual.complete).toBeTruthy()
+      expect(actual.completedMaterials).toEqual(requiredMaterials)
+      expect(actual.progress).toEqual(100)
     })
   })
 })

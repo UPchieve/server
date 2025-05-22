@@ -40,6 +40,7 @@ describe('TrainingCourseService', () => {
   describe('recordProgress', () => {
     const courseKey = TRAINING.UPCHIEVE_101
     const materialKey = '7b6a76' // A required material (counts toward progress)
+    const requiredMaterials = ['7b6a76', 'jsn832', 'ps87f9', 'jgu55k', 'fj8tzq']
 
     it('Returns the progress info for a material that was already completed', async () => {
       const isComplete = false
@@ -81,14 +82,22 @@ describe('TrainingCourseService', () => {
       const progress = 20 // There are 5 required materials, so completing 1 brings you to 20% complete
 
       mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({})
+      mockedVolunteerRepo.updateVolunteerTrainingById.mockResolvedValue({
+        userId: volunteer.id,
+        complete: false,
+        trainingCourseId: 1,
+        progress: 20,
+        completedMaterials: [materialKey],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
       const result = await recordProgress(volunteer, courseKey, materialKey)
       expect(
         mockedVolunteerRepo.updateVolunteerTrainingById
       ).toHaveBeenCalledWith(
         volunteer.id,
         courseKey,
-        isComplete,
-        progress,
+        requiredMaterials,
         materialKey,
         expect.toBeTransactionClient()
       )
@@ -104,6 +113,16 @@ describe('TrainingCourseService', () => {
       const originalProgress = 20
       const endingProgress = 40
       const newMaterialKey = 'jsn832' // Another required material, which counts toward total progress.
+
+      mockedVolunteerRepo.updateVolunteerTrainingById.mockResolvedValue({
+        userId: volunteer.id,
+        complete: false,
+        trainingCourseId: 1,
+        progress: endingProgress,
+        completedMaterials: [materialKey],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
       mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
         [TRAINING.UPCHIEVE_101]: {
@@ -124,8 +143,7 @@ describe('TrainingCourseService', () => {
       ).toHaveBeenCalledWith(
         volunteer.id,
         courseKey,
-        isComplete,
-        endingProgress,
+        requiredMaterials,
         newMaterialKey,
         expect.toBeTransactionClient()
       )

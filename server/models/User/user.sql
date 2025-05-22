@@ -454,6 +454,7 @@ SELECT
     users.last_activity_at AS last_activity_at,
     users.referral_code AS referral_code,
     users.referred_by AS referred_by,
+    users.preferred_language_code AS preferred_language_code,
     volunteer_profiles.onboarded AS is_onboarded,
     volunteer_profiles.approved AS is_approved,
     volunteer_partner_orgs.key AS volunteer_partner_org,
@@ -753,7 +754,8 @@ UPDATE
 SET
     deactivated = COALESCE(:deactivated, deactivated),
     phone = COALESCE(:phone, phone),
-    sms_consent = COALESCE(:smsConsent, sms_consent)
+    sms_consent = COALESCE(:smsConsent, sms_consent),
+    preferred_language_code = COALESCE(:preferredLanguageCode, preferred_language_code)
 WHERE
     id = :userId!
 RETURNING
@@ -897,4 +899,16 @@ SET
             name = :ban_reason), deactivated = :isDeactivated!
 WHERE
     users.id = :userId!;
+
+
+/* @name updatePreferredLanguageToUser */
+UPDATE
+    users
+SET
+    preferred_language_code = :preferredLanguageCode!,
+    updated_at = NOW()
+WHERE
+    users.id = :userId
+RETURNING
+    id AS ok;
 
