@@ -2611,7 +2611,8 @@ CREATE TABLE upchieve.users (
     other_signup_source text,
     proxy_email text,
     ban_type upchieve.ban_types,
-    preferred_language_code text
+    preferred_language_code text,
+    preferred_language text
 );
 
 
@@ -6454,4 +6455,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250514151906'),
     ('20250517000547'),
     ('20250521200939'),
+    ('20250521232143'),
     ('20250522020702');
