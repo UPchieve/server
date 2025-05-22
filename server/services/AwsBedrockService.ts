@@ -61,7 +61,7 @@ export async function invokeModel({
     anthropic_version: ANTHROPIC_VERSION,
     max_tokens: 2000,
     system: prompt,
-    ...(tools_option && tools_option),
+    ...(tools_option ? tools_option : {}),
     messages: [
       {
         role: 'user',
