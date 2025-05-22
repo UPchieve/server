@@ -279,7 +279,6 @@ export const Config = Record({
   minimumModerationLinkConfidence: Number,
 
   tremendousApiKey: String,
-  tremendousRewardDomain: String,
   tremendousImpactStudyCampaign: String,
   tremendousCustomFieldsCacheExpirationSeconds: Number,
   tremendousCampaignCacheExpirationSeconds: Number,
