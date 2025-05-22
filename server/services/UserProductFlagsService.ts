@@ -1,6 +1,6 @@
 import config from '../config'
 import { NotAllowedError } from '../models/Errors'
-import { Ulid } from '../models/pgUtils'
+import { Uuid } from '../models/pgUtils'
 import { getSimpleSurveyDefinitionBySurveyId } from '../models/Survey'
 import {
   getUserVerificationInfoById,
@@ -9,9 +9,12 @@ import {
 import * as UserService from '../services/UserService'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import {
+  upsertImpactStudyCampaign,
+  ImpactStudyCampaign,
   enrollStudentToFallIncentiveProgram,
   enrollStudentToImpactStudy,
   updateTellThemCollegePrepModalSeenAt,
+  getUPFByUserId,
 } from '../models/UserProductFlags'
 import {
   isUserInIncentiveProgram,
@@ -22,11 +25,18 @@ import { createContact } from './MailService'
 import { getLatestUserSubmissionsForSurveyId } from './SurveyService'
 import {
   createGiftCardRewardLink,
-  getUserRewardBySurveyId,
+  getUserRewardByImpactStudySurveyCampaignId,
 } from './RewardsService'
+import {
+  asBoolean,
+  asFactory,
+  asNumber,
+  asOptional,
+  asString,
+} from '../utils/type-utils'
 
 export async function incentiveProgramEnrollmentEnroll(
-  userId: Ulid,
+  userId: Uuid,
   proxyEmail?: string
 ) {
   const isInIncentiveProgram = await isUserInIncentiveProgram(userId)
@@ -53,11 +63,24 @@ export async function incentiveProgramEnrollmentEnroll(
   return enrollmentDate
 }
 
-export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
+export async function impactStudyEnrollment(
+  userId: Uuid,
+  impactStudySurveyCampaignId: string
+) {
   const user = await UserService.getUserContactInfo(userId)
   if (!user) throw new NotAllowedError('No user found')
 
-  const survey = await getSimpleSurveyDefinitionBySurveyId(surveyId)
+  const userProductFlags = await getUPFByUserId(user.id)
+  if (
+    !userProductFlags ||
+    !userProductFlags.impactStudyCampaigns ||
+    !userProductFlags.impactStudyCampaigns[impactStudySurveyCampaignId]
+  )
+    throw new Error('User is not part of this Impact Study cohort')
+  const campaign =
+    userProductFlags.impactStudyCampaigns[impactStudySurveyCampaignId]
+
+  const survey = await getSimpleSurveyDefinitionBySurveyId(campaign.surveyId)
   const userSubmissions = await getLatestUserSubmissionsForSurveyId(
     userId,
     survey.surveyId
@@ -71,20 +94,21 @@ export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
   if (!isInImpactStudy)
     impactStudyEnrollmentAt = await enrollStudentToImpactStudy(userId)
 
-  if (survey.rewardAmount) {
-    const rewards = await getUserRewardBySurveyId(userId, survey.surveyId)
+  if (campaign.rewardAmount) {
+    const rewards = await getUserRewardByImpactStudySurveyCampaignId(
+      userId,
+      impactStudySurveyCampaignId
+    )
     if (rewards.length)
-      throw new Error(
-        `You've already received a reward for this survey. Please update your answers from your Profile page`
-      )
-
+      throw new Error(`You've already received a reward for this survey.`)
     const rewardPayload = {
       userId,
       surveyId: survey.surveyId,
-      amount: survey.rewardAmount,
+      amount: campaign.rewardAmount,
       name: user.firstName,
       email: user.proxyEmail ?? user.email,
-      campaignId: config.tremendousImpactStudyCampaign,
+      tremendousCampaignId: config.tremendousImpactStudyCampaign,
+      impactStudySurveyCampaignId,
     }
     await createGiftCardRewardLink(rewardPayload)
   }
@@ -92,6 +116,22 @@ export async function impactStudyEnrollment(userId: Ulid, surveyId: number) {
   return impactStudyEnrollmentAt
 }
 
-export async function sawTellThemCollegePrepModal(userId: Ulid) {
+export async function sawTellThemCollegePrepModal(userId: Uuid) {
   return await updateTellThemCollegePrepModalSeenAt(userId)
+}
+
+export const asImpactStudyCampaignData = asFactory<ImpactStudyCampaign>({
+  id: asString,
+  surveyId: asNumber,
+  submitted: asBoolean,
+  viewCount: asNumber,
+  maxViewCount: asNumber,
+  rewardAmount: asOptional(asNumber),
+})
+
+export async function saveImpactStudyCampaign(
+  userId: Uuid,
+  campaign: ImpactStudyCampaign
+) {
+  return upsertImpactStudyCampaign(userId, campaign)
 }
