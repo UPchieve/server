@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -263,6 +263,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 2	volunteer	2024-08-28 00:28:43.727419+00	2024-08-28 00:28:43.727419+00
 3	admin	2024-08-28 00:28:43.727767+00	2024-08-28 00:28:43.727767+00
 4	teacher	2024-08-28 00:28:44.179217+00	2024-08-28 00:28:44.179217+00
+5	ambassador	2025-05-23 14:28:01.998988+00	2025-05-23 14:28:01.998988+00
 \.
 
 
@@ -4271,7 +4272,7 @@ SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
 -- Name: user_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 4, true);
+SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 5, true);
 
 
 --
