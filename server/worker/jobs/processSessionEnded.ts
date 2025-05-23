@@ -25,6 +25,7 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
   try {
     await processSessionMetrics(sessionId)
     await processCalculateMetrics(sessionId)
+    await processSessionEditors(sessionId)
 
     // Dependent on metrics being calculated first
     await Promise.all([
@@ -37,7 +38,6 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
 
     await Promise.all([
       processSessionReported(sessionId),
-      processSessionEditors(sessionId),
       processSessionTranscript(sessionId),
     ])
   } catch (error) {
