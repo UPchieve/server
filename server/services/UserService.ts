@@ -56,7 +56,7 @@ import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
-import { RoleContext } from './UserRolesService'
+import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
@@ -542,7 +542,7 @@ export async function getUserContactInfo(
 ): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
   const baseUserInfo = await UserRepo.getUserContactInfoById(userId, tc)
   if (baseUserInfo) {
-    const roleContext = await UserRolesService.getRoleContext(userId, tc)
+    const roleContext = await UserRolesService.getRoleContext(userId, false, tc)
     return {
       ...baseUserInfo,
       roleContext,
@@ -552,8 +552,8 @@ export async function getUserContactInfo(
 
 export async function switchActiveRoleForUser(
   userId: string,
-  role: Exclude<UserRole, 'teacher' | 'admin'>
-): Promise<{ activeRole: Exclude<UserRole, 'teacher' | 'admin'>; user: any }> {
+  role: PrimaryUserRole
+): Promise<{ activeRole: PrimaryUserRole; user: any }> {
   const activeRole = await UserRolesService.switchActiveRole(userId, role)
   const userContactInfo = await getUserContactInfo(userId)
   if (!userContactInfo)

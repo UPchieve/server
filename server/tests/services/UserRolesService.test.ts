@@ -63,6 +63,7 @@ describe('getRoleContext', () => {
     expect(result.roles).toEqual(existingRoleContext.roles)
     expect(result.legacyRole).toEqual(existingRoleContext.legacyRole)
     expect(result.activeRole).toEqual(existingRoleContext.activeRole)
+    expect(mockedUserRepo.getUserRolesById).not.toHaveBeenCalled()
   })
 
   it('Generates role context from the DB if no entry in cache', async () => {
@@ -72,6 +73,27 @@ describe('getRoleContext', () => {
     expect(result.legacyRole).toEqual('volunteer')
     expect(result.roles).toEqual(['volunteer', 'admin'])
     expect(result.activeRole).toEqual('volunteer')
+    expect(mockedUserRepo.getUserRolesById).toHaveBeenCalled()
+  })
+
+  it('Regenerates the RoleContext even if it is in the cache if forceRefetch = true', async () => {
+    const existingRoleContext = new RoleContext(
+      ['student'],
+      'student',
+      'student'
+    )
+    mockedCacheService.getIfExists.mockResolvedValue(
+      JSON.stringify(existingRoleContext)
+    )
+    mockedUserRepo.getUserRolesById.mockResolvedValue(['student', 'ambassador'])
+    const result = await UserRolesService.getRoleContext('some-key', true)
+    expect(result.roles).toEqual(['student', 'ambassador'])
+    expect(result.legacyRole).toEqual(existingRoleContext.legacyRole)
+    expect(result.activeRole).toEqual(existingRoleContext.activeRole)
+    expect(mockedCacheService.getIfExists).toHaveBeenCalledWith(
+      `${config.cacheKeys.userRoleContextPrefix}some-key`
+    )
+    expect(mockedUserRepo.getUserRolesById).toHaveBeenCalled()
   })
 })
 
