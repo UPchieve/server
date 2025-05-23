@@ -83,9 +83,6 @@ export async function invokeModel({
     ? getResponseWithToolsOption
     : getResponse
 
-  if (!modelRes.content[0]?.input) {
-    throw new Error('No response')
-  }
   const response = getModelResponse(modelRes)
 
   if (!response) {
