@@ -498,8 +498,7 @@ describe('ban type users tests', () => {
   })
 })
 
-test.only('countReferredUsers', async () => {
-  // @TODO remove .only
+test('countReferredUsers', async () => {
   const referrer = await insertSingleRow(
     'users',
     buildUserRow({
