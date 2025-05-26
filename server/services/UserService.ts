@@ -66,10 +66,9 @@ export async function parseUser(baseUser: UserContactInfo) {
   return runInTransaction(async (tc) => {
     const user = await getLegacyUserObject(baseUser.id, tc)
 
-    if (user.roleContext.hasRole('ambassador')) {
-      user.numReferredVolunteers = await countReferredUsers(user.id, {
-        withRoles: ['volunteer'],
-      })
+    user.numReferredVolunteers = await countReferredUsers(user.id, {
+      withRoles: ['volunteer'],
+    })
 
     // Approved volunteer
     if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
@@ -90,7 +89,8 @@ export async function parseUser(baseUser: UserContactInfo) {
       return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
     }
 
-  return user
+    return user
+  })
 }
 
 export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
