@@ -50,38 +50,44 @@ export default async function moderateSessionTranscript(
       job.data.sessionId
     )
 
-    logger.warn(`4. whiteboardDoc, ${whiteboardDoc}`)
-    const whiteboardImage = await ZwibblerLib.Zwibbler.save(
-      whiteboardDoc,
-      'jpeg'
-    )
+    let extractedText = undefined
+    let moderatedWhiteboardResults = undefined
+    if (whiteboardDoc.length > 0) {
+      logger.warn(`4. whiteboardDoc, ${whiteboardDoc}`)
+      const whiteboardImage = await ZwibblerLib.Zwibbler.save(
+        whiteboardDoc,
+        'jpeg'
+      )
 
-    const moderatedWhiteboardResults = await ModerationService.moderateImage({
-      image: Buffer.from(whiteboardImage, 'binary'),
-      sessionId: job.data.sessionId,
-      userId: '',
-      isVolunteer: false,
-      source: 'whiteboard',
-      aggregateInfractions: true,
-      recordInfractions: false,
-    })
-
-    logger.warn(`5. moderatedWhiteboardResults, ${moderatedWhiteboardResults}`)
-
-    if (moderatedWhiteboardResults?.failures.length) {
-      logger.warn(`6. saving whiteboard image to bucket, ${whiteboardImage}`)
-      await ModerationService.saveImageToBucket({
-        sessionId: job.data.sessionId,
+      moderatedWhiteboardResults = await ModerationService.moderateImage({
         image: Buffer.from(whiteboardImage, 'binary'),
+        sessionId: job.data.sessionId,
+        userId: '',
+        isVolunteer: false,
         source: 'whiteboard',
+        aggregateInfractions: true,
+        recordInfractions: false,
       })
+
+      logger.warn(
+        `5. moderatedWhiteboardResults, ${moderatedWhiteboardResults}`
+      )
+
+      if (moderatedWhiteboardResults?.failures.length) {
+        logger.warn(`6. saving whiteboard image to bucket, ${whiteboardImage}`)
+        await ModerationService.saveImageToBucket({
+          sessionId: job.data.sessionId,
+          image: Buffer.from(whiteboardImage, 'binary'),
+          source: 'whiteboard',
+        })
+      }
+
+      extractedText = await ModerationService.extractTextFromImage(
+        Buffer.from(whiteboardImage, 'binary')
+      )
     }
 
-    const extractedText = await ModerationService.extractTextFromImage(
-      Buffer.from(whiteboardImage, 'binary')
-    )
-
-    logger.warn(`7. extractedText, ${extractedText}`)
+    logger.warn(`7. extractedText, ${extractedText?.join(' | ')}`)
 
     const moderationResults = await ModerationService.moderateTranscript(
       transcript,
