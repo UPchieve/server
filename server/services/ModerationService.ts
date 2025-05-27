@@ -403,7 +403,7 @@ async function checkForFullAddresses({
           explanation: {
             type: 'string',
             description:
-              'The explaination of why the confidence rating was choosen',
+              'The explanation of why the confidence rating was choosen',
           },
         },
         required: ['confidence', 'explanation'],
@@ -523,10 +523,10 @@ async function checkForQuestionableLinks({
                   items: { type: 'string' },
                   descrption: 'Array of the policy names the link violated',
                 },
-                explaination: {
+                explanation: {
                   type: 'string',
                   description:
-                    'The explaination why the confidence and policyNames were choosen',
+                    'The explanation why the confidence and policyNames were choosen',
                 },
               },
               required: ['link', 'confidence', 'policyNames', 'explanation'],
