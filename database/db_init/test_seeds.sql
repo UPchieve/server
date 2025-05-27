@@ -1650,6 +1650,7 @@ COPY upchieve.question_types (id, name, created_at, updated_at) FROM stdin;
 1	multiple choice	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
 2	check box	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
 3	free response	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+4	number	2025-05-23 19:02:00.90109+00	2025-05-23 19:02:00.90109+00
 \.
 
 
@@ -4132,7 +4133,7 @@ SELECT pg_catalog.setval('upchieve.question_tags_id_seq', 1, false);
 -- Name: question_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.question_types_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.question_types_id_seq', 4, true);
 
 
 --
