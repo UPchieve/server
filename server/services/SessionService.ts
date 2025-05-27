@@ -315,8 +315,8 @@ export async function processSessionTranscript(sessionId: Ulid) {
       Jobs.ModerateSessionTranscript,
       { sessionId },
       {
-        removeOnComplete: true,
-        removeOnFail: true,
+        removeOnComplete: false,
+        removeOnFail: false,
       }
     )
   } catch (err) {
