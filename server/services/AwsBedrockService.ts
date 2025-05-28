@@ -86,7 +86,7 @@ export async function invokeModel({
   const response = getModelResponse(modelRes)
 
   if (!response) {
-    throw new Error('No excpected Bedrock response')
+    throw new Error('No expected Bedrock response')
   }
 
   return response
