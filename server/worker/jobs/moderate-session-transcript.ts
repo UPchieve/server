@@ -59,6 +59,7 @@ export default async function moderateSessionTranscript(
         'jpeg'
       )
 
+      logger.warn(`4.5. whiteboardImage, ${whiteboardImage}`)
       moderatedWhiteboardResults = await ModerationService.moderateImage({
         image: Buffer.from(whiteboardImage, 'binary'),
         sessionId: job.data.sessionId,
