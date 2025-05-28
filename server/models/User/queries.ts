@@ -1,5 +1,5 @@
 import logger from '../../logger'
-import { getClient, TransactionClient } from '../../db'
+import { getClient, getRoClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -272,17 +272,24 @@ export async function getUserByResetToken(
   }
 }
 
-// getUsersReferredByOtherId
-export async function countUsersReferredByOtherId(
-  userId: Ulid
+export async function countReferredUsers(
+  referrerId: Ulid,
+  filters?: {
+    withPhoneOrEmailVerifiedAs?: boolean
+    withRoles?: UserRole[]
+  }
 ): Promise<number> {
   try {
-    const result = await pgQueries.countUsersReferredByOtherId.run(
-      { userId },
-      getClient()
+    const result = await pgQueries.countReferredUsersWithFilter.run(
+      {
+        userId: referrerId,
+        phoneOrEmailVerified: filters?.withPhoneOrEmailVerifiedAs ?? null,
+        hasRoles: filters?.withRoles ?? null,
+      },
+      getRoClient()
     )
-    if (result.length && result[0].total) return makeRequired(result[0]).total
-    return 0
+    result.map((row) => makeRequired(row))
+    return result.length
   } catch (err) {
     throw new RepoReadError(err)
   }

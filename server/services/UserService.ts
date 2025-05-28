@@ -66,6 +66,10 @@ export async function parseUser(baseUser: UserContactInfo) {
   return runInTransaction(async (tc) => {
     const user = await getLegacyUserObject(baseUser.id, tc)
 
+    user.numReferredVolunteers = await countReferredUsers(user.id, {
+      withRoles: ['volunteer'],
+    })
+
     // Approved volunteer
     if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
       user.hoursTutored = Number(user.hoursTutored)
@@ -85,7 +89,6 @@ export async function parseUser(baseUser: UserContactInfo) {
       return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
     }
 
-    // Student or unapproved volunteer
     return user
   })
 }
@@ -569,4 +572,14 @@ export async function updatePreferredLanguage(
   languageCode: string
 ): Promise<void> {
   return await updatePreferredLanguageToUser(userId, languageCode)
+}
+
+export async function countReferredUsers(
+  referrerId: string,
+  filters?: {
+    withPhoneOrEmailVerifiedAs?: boolean
+    withRoles?: UserRole[]
+  }
+): Promise<number> {
+  return await UserRepo.countReferredUsers(referrerId, filters)
 }

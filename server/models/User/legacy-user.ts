@@ -59,6 +59,7 @@ export type LegacyUserModel = {
   pastSessions: Ulid[]
   lastActivityAt?: Date
   referralCode: string
+  numReferredVolunteers?: number
   referredBy?: Ulid
   sessionStats: UserSessionStats
   preferredLanguage: string
