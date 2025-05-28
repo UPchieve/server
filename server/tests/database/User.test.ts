@@ -499,11 +499,17 @@ describe('ban type users tests', () => {
 })
 
 test('countReferredUsers', async () => {
+  const referralCodes = [
+    faker.string.uuid(),
+    faker.string.uuid(),
+    faker.string.uuid(),
+  ]
   const referrer = await insertSingleRow(
     'users',
     buildUserRow({
       phoneVerified: true,
       emailVerified: true,
+      referralCode: referralCodes[0],
     }),
     client
   )
@@ -518,6 +524,7 @@ test('countReferredUsers', async () => {
       referredBy: referrer.id,
       phoneVerified: false,
       emailVerified: false,
+      referralCode: referralCodes[1],
     }),
     client
   )
@@ -533,6 +540,7 @@ test('countReferredUsers', async () => {
       referredBy: referrer.id,
       phoneVerified: false,
       emailVerified: true,
+      referralCode: referralCodes[2],
     }),
     client
   )
