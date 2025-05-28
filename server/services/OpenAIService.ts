@@ -14,10 +14,7 @@ type ChatApiInput = {
   userMessage: string
 }
 
-export const invokeChatApi = async ({
-  prompt,
-  userMessage: userMessage,
-}: ChatApiInput) => {
+export const invokeChatApi = async ({ prompt, userMessage }: ChatApiInput) => {
   let results = null
   try {
     const response = await openai.chat.completions.create({
