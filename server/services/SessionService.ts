@@ -311,6 +311,10 @@ export async function processSessionTranscript(sessionId: Ulid) {
       {
         removeOnComplete: false,
         removeOnFail: false,
+        /* attempt to delay until the whiteboard is uploaded to storage */
+        delay: 2 * 60 * 1000,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 15000 },
       }
     )
   } catch (err) {

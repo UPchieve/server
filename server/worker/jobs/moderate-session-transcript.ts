@@ -45,7 +45,9 @@ export default async function moderateSessionTranscript(
     )
 
     logger.warn(`3. transcript, ${transcript}`)
-    const whiteboardDoc = await WhiteboardService.getDoc(job.data.sessionId)
+    const whiteboardDoc = await WhiteboardService.getDocFromStorage(
+      job.data.sessionId
+    )
 
     let extractedText = undefined
     let moderatedWhiteboardResults = undefined
