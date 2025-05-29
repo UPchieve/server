@@ -16,6 +16,10 @@ import {
 } from '../models/Student/queries'
 import { TeacherClassResult } from '../models/TeacherClass'
 import { runInTransaction, TransactionClient } from '../db'
+import {
+  getSubjectPresence,
+  VolunteerSubjectPresenceMap,
+} from './VolunteerService'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -215,4 +219,8 @@ export async function getStudentByCleverId(
   tc: TransactionClient
 ) {
   return StudentRepo.getStudentByCleverId(cleverStudentId, tc)
+}
+
+export async function getAvailableVolunteersBySubject(): Promise<VolunteerSubjectPresenceMap> {
+  return await getSubjectPresence()
 }
