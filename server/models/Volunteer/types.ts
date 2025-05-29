@@ -1,5 +1,5 @@
 import { REFERENCE_STATUS, TRAINING } from '../../constants'
-import { Ulid } from '../pgUtils'
+import { Ulid, Uuid } from '../pgUtils'
 
 export interface Reference {
   id: Ulid
@@ -96,4 +96,11 @@ export type Sponsorship = {
   id: Ulid
   name: string
   key: string
+}
+
+export type VolunteerSubjectProfile = {
+  userId: Uuid
+  subjects: string[]
+  activeSubjects: string[]
+  mutedSubjects: string[]
 }

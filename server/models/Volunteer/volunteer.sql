@@ -1754,3 +1754,71 @@ WHERE
     AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL
     AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL;
 
+
+/* @name getVolunteerSubjectProfile */
+SELECT
+    users.id AS user_id,
+    COALESCE(array_cat(COALESCE(total_subjects.subjects, '{}'), COALESCE(computed_subjects.subjects, '{}')), '{}') AS subjects,
+    COALESCE(array_cat(COALESCE(total_subjects.active_subjects, '{}'), COALESCE(computed_subjects.active_subjects, '{}')), '{}') AS active_subjects,
+    COALESCE(muted_users_subjects.muted_subject_alerts, '{}') AS muted_subjects
+FROM
+    users
+    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+    LEFT JOIN (
+        SELECT
+            array_agg(DISTINCT subjects_unlocked.subject) AS subjects,
+            array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_subject IS TRUE) AS active_subjects
+        FROM (
+            SELECT
+                subjects.name AS subject,
+                COUNT(*)::int AS earned_certs,
+                subjects.active AS active_subject
+            FROM
+                users_certifications
+                JOIN certification_subject_unlocks USING (certification_id)
+                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
+            WHERE
+                users_certifications.user_id = :userId!
+            GROUP BY
+                subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE
+    LEFT JOIN (
+        SELECT
+            array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,
+            array_agg(DISTINCT computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_subject IS TRUE) AS active_subjects
+        FROM (
+            SELECT
+                subjects.name AS subject,
+                COUNT(*)::int AS earned_certs,
+                subject_certs.total,
+                subjects.active AS active_subject
+            FROM
+                users_certifications
+                JOIN computed_subject_unlocks USING (certification_id)
+                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
+                JOIN (
+                    SELECT
+                        subjects.name, COUNT(*)::int AS total
+                    FROM
+                        computed_subject_unlocks
+                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
+                    GROUP BY
+                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name
+                WHERE
+                    users_certifications.user_id = :userId!
+                GROUP BY
+                    subjects.name,
+                    subject_certs.total,
+                    subjects.active
+                HAVING
+                    COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE
+    LEFT JOIN (
+        SELECT
+            array_agg(subjects.name) AS muted_subject_alerts
+        FROM
+            muted_users_subject_alerts
+            JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
+        WHERE
+            muted_users_subject_alerts.user_id = :userId!) AS muted_users_subjects ON TRUE
+WHERE
+    users.id = :userId!;
+

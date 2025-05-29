@@ -18,11 +18,11 @@ import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
-  QuizInfo,
   Quizzes,
   Sponsorship,
   UserTrainingCourse,
   VolunteersForAnalyticsReport,
+  VolunteerSubjectProfile,
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
@@ -1807,6 +1807,21 @@ export async function getActiveSponsorshipsByUserId(
       tc
     )
     return result.map((v) => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerSubjectProfile(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<VolunteerSubjectProfile | undefined> {
+  try {
+    const result = await pgQueries.getVolunteerSubjectProfile.run(
+      { userId },
+      tc ?? getClient()
+    )
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
