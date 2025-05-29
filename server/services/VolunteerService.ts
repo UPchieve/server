@@ -16,6 +16,8 @@ import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 import { TransactionClient } from '../db'
 import { Sponsorship } from '../models/Volunteer'
+import * as cache from '../cache'
+import { getSubjectsWithTopic } from './SubjectsService'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -23,6 +25,8 @@ export interface HourSummaryStats {
   totalElapsedAvailability: number
   totalVolunteerHours: number
 }
+
+export type VolunteerSubjectPresenceMap = { [subjectName: string]: number }
 
 export async function getHourSummaryStats(
   volunteerId: Ulid,
@@ -286,4 +290,43 @@ export async function getActiveSponsorshipsByUserId(
   tc?: TransactionClient
 ): Promise<Sponsorship[]> {
   return await VolunteerRepo.getActiveSponsorshipsByUserId(userId, tc)
+}
+
+export async function getVolunteerSubjectProfile(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<VolunteerRepo.VolunteerSubjectProfile | undefined> {
+  return VolunteerRepo.getVolunteerSubjectProfile(userId, tc)
+}
+
+export async function updateVolunteerSubjectPresence(
+  userId: string,
+  action: 'add' | 'remove'
+): Promise<void> {
+  const subjectProfile = await getVolunteerSubjectProfile(userId)
+  if (!subjectProfile) return
+
+  const activeSubjects = subjectProfile.activeSubjects.filter(
+    (subject) => !subjectProfile.mutedSubjects.includes(subject)
+  )
+  if (activeSubjects.length === 0) return
+
+  const promises = activeSubjects.map((subject) => {
+    const key = `online:subject:${subject}`
+    return action === 'add' ? cache.sadd(key, userId) : cache.srem(key, userId)
+  })
+  await Promise.all(promises)
+}
+
+export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap> {
+  const allSubjects = await getSubjectsWithTopic()
+  const subjectPresenceMap: VolunteerSubjectPresenceMap = {}
+
+  for (const subject of Object.values(allSubjects)) {
+    const key = `online:subject:${subject.name}`
+    const count = await cache.scard(key)
+    subjectPresenceMap[subject.name] = count
+  }
+
+  return subjectPresenceMap
 }
