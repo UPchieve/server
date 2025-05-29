@@ -222,5 +222,5 @@ export async function getStudentByCleverId(
 }
 
 export async function getAvailableVolunteersBySubject(): Promise<VolunteerSubjectPresenceMap> {
-  return await getSubjectPresence()
+  return getSubjectPresence()
 }
