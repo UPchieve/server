@@ -28,7 +28,12 @@ export async function insertModerationInfraction(
       throw new Error(
         `Failed to insert moderation infraction for user ${data.userId}, session ${data.sessionId}`
       )
-    return makeRequired(result[0])
+    const inserted = result[0]
+    const reason = inserted.reason as { [key: string]: any }
+    return makeRequired({
+      ...inserted,
+      reason,
+    })
   } catch (err) {
     throw new RepoCreateError(err)
   }
