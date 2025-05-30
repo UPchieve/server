@@ -761,7 +761,7 @@ async function handleImageModerationFailure({
   })
 
   logger.warn(
-    { sessionId, reasons: failureReasons, imageUrl, source },
+    { sessionId, reasons: failureReasons, imageUrl, source, userId },
     'Image triggered moderation'
   )
   const failures = failureReasons.reduce(
@@ -1151,14 +1151,15 @@ export const handleModerationInfraction = async (
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
     return
   }
-  await ModerationInfractionsRepo.insertModerationInfraction(
-    {
-      userId,
-      sessionId,
-      reason: reasons.failures,
-    },
-    client
-  )
+  const insertedInfraction =
+    await ModerationInfractionsRepo.insertModerationInfraction(
+      {
+        userId,
+        sessionId,
+        reason: reasons.failures,
+      },
+      client
+    )
   const allActiveInfractions =
     await ModerationInfractionsRepo.getModerationInfractionsByUser(
       userId,
@@ -1178,6 +1179,10 @@ export const handleModerationInfraction = async (
       USER_BAN_REASONS.AUTOMATED_MODERATION
     )
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
+    logger.info(
+      { userId, sessionId, infractionId: insertedInfraction.id },
+      'Live media banned user'
+    )
   }
 
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]

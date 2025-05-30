@@ -7,13 +7,13 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { getDbUlid } from '../pgUtils'
+import { getDbUlid, makeRequired } from '../pgUtils'
 import { camelCaseKeys } from '../../tests/db-utils'
 
 export async function insertModerationInfraction(
   data: InsertModerationInfractionArgs,
   client = getClient()
-): Promise<void> {
+): Promise<ModerationInfraction> {
   try {
     const result = await pgQueries.insertModerationInfraction.run(
       {
@@ -28,6 +28,12 @@ export async function insertModerationInfraction(
       throw new Error(
         `Failed to insert moderation infraction for user ${data.userId}, session ${data.sessionId}`
       )
+    const inserted = result[0]
+    const reason = inserted.reason as { [key: string]: any }
+    return makeRequired({
+      ...inserted,
+      reason,
+    })
   } catch (err) {
     throw new RepoCreateError(err)
   }
