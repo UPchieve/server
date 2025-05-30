@@ -13,6 +13,7 @@ import {
   getDbUlid,
   generateReferralCode,
   makeSomeRequired,
+  Uuid,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
@@ -1813,7 +1814,7 @@ export async function getActiveSponsorshipsByUserId(
 }
 
 export async function getVolunteerSubjects(
-  userId: Ulid,
+  userId: Uuid,
   tc?: TransactionClient
 ): Promise<VolunteerSubject[]> {
   try {
@@ -1829,7 +1830,7 @@ export async function getVolunteerSubjects(
 }
 
 export async function getVolunteerMutedSubjects(
-  userId: Ulid,
+  userId: Uuid,
   tc?: TransactionClient
 ): Promise<VolunteerSubject[]> {
   try {
