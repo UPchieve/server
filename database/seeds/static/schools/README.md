@@ -1,87 +1,76 @@
-# Updating School Seeds
+# Updating Schools Data
 
-Go to Table Generator[https://nces.ed.gov/ccd/elsi/tableGenerator.aspx] and load table with id 647516 to see the columns and filters.
-You'll likely have to replicate the table, but choosing the columns for the latest school year.
-For column glossary, see [here](https://nces.ed.gov/ccd/elsi/glossary.aspx?app=tableGenerator&term=11020,9558,13392,47446,47676,47407,47447,47448,47650,47246,47235,47438,47219,47677,47238,47240,47657,47210,47439,47654,13403,49759,47213,47212,47634,47635,47636,47637,47638,47639,47640,47641,47642,47643,47644,47645,47646,47647,47666,47648,47667,47668,47450,47244,47664,47665,47214,47441,47443,47442&level=PublicSchool&groupby=0).
+We download all the school metadata from NCES using
+their [Table Generator](https://nces.ed.gov/ccd/elsi/tableGenerator.aspx). For
+an example generated table when updating the schools in June 2025, load table with id 654281.
+If you load the table, you could probably just select "Modify" and select the latest year,
+then skip the column selection.
 
-The downloaded CSV file contains some extraneous lines that need to be deleted, some characters that should be replaced with NULL, and you'll need 
-to update the column names to remove references to the school year (see the `SchoolNcesMetadataRecord` interface for expected names).
-This is easy enough to do by simply importing the file into Google Sheets, making the changes, then exporting as CSV again.
+1. Under "Select a Table Row", select "Public School".
+2. Under "Select Years", select the latest year.
+3. Under "Select Table Columns", select the following:
+  - Information > Basic Information
+      - State Abbr
+      - School Name
+      - School ID (12-digit)
+      - Agency Name
+      - Agency ID
+  - Information > Contact Information
+      - Location City
+      - Location Zip
+      - Mailing City
+      - Mailing Zip
+  - Characteristics > School/District Classification Information
+      - National School Lunch Program
+  - Characteristics > Grade Span Information
+      - Lowest Grade Offered
+      - Highest Grade Offered
+  - Enrollments > Total Enrollment
+      - Total Students, All Grades (Excludes AE)
+  - Enrollments > Students in Special Programs
+      - Direct Certification
+      - Free and Reduced Lunch Students
+          - You might see both "Free Lunch Eligible" and "Reduced-price Lunch Eligible Students".
+            This field is just adding both of those together.
+4. Under "Select Filters", select State > Filter by individual states.
+    There are over 100,000 schools, and trying to open that as CSV melts my computer.
+    If the same happens for you, break the CSV download into two:
+    Alabama-Mississippi and Missouri-Wyoming.
 
-## `school_nces_metadata` Columns
- * school_id - The id of the school in the `upchieve.schools` table.
- * ncessch - The id of the school in NCES.
- * created_at
- * updated_at
- * school_year         
- * st - The state code (e.g. AK, AL, etc.).
- * sch_name - The school name.
- * lea_name - The district name.
- * lcity - The city where the school is located.
- * lzip - The zip where the school is located.
- * mcity - The school's mailing address city.
- * mstate - The school's mailing address state.
- * mzip - The school's mailing address zip.
- * phone               
- * website             
- * sy_status_text - Start of year school status.
- * updated_status_text - Updated school status.
- * effective_date - The effective date of the updated school status.
- * sch_type_text - One of - Regular School, Special Education School, Career and Technical School, or Alternative Education School.
- * nogrades - No grades offered.
- * g_pk_offered - Pre-K offered.   
- * g_kg_offered - Kindergarten offered.
- * g_1_offered - Grade 1 offered.
- * g_2_offered - Grade 2 offered.
- * g_3_offered - Grade 3 offered.
- * g_4_offered - Grade 4 offered.
- * g_5_offered - Grade 5 offered.
- * g_6_offered - Grade 6 offered.
- * g_7_offered - Grade 7 offered.
- * g_8_offered - Grade 8 offered.
- * g_9_offered - Grade 9 offered.
- * g_10_offered - Grade 10 offered.
- * g_11_offered - Grade 11 offered.
- * g_12_offered - Grade 12 offered.
- * g_13_offered - Grade 13 offered.
- * g_ug_offered - Ungraded offered.
- * g_ae_offered - Adult Education offered.
- * gslo - Lowest grade offered.
- * gshi - Highest grade offered.       
- * level - School level, one of - Prekindergarten, Elementary, Middle, Secondary, High, Other, Ungraded, Adult Education, Not Applicable, Not Reported.
- * total_students - The total number of students reported.
- * is_school_wide_title1 - Whether the school is Title1.
- * is_title1_eligible - Whether the school is Title1 eligible.
- * national_school_lunch_program - Whether the school participates in National School Lunch Program, and if so, under what special provisions.
- * nslp_direct_certification - Total students whose eligibility for National School Lunch Program is determined through direct certification.
- * frl_eligible - Total students eligible for free or reduced-price lunch.
+Once you've downloaded the CSV, import into a Google Sheet for some pre-processing.
 
-### Other Columns (Not Updated)
-These columns were not updated (consider dropping).
- * fipst
- * statename
- * state_agency_no
- * union
- * st_leaid
- * leaid
- * st_schid
- * schid
- * mstreet1
- * mstreet2
- * mstreet3
- * mzip4
- * lstreet1
- * lstreet2            
- * lstreet3            
- * lzip4
- * sy_status
- * updated_status
- * sch_type        
- * recon_status   
- * out_of_state_flag
- * charter_text
- * chartauth1
- * chartauthn1
- * chartauth2
- * chartauthn2
- * igoffered
+1. Remove the extra lines at the top. We want this to actually be a CSV.
+2. ZERO PAD THE NCES IDS.
+  In the upsert script, we use the school's NCES ID for finding existing schools
+  to update, so if that NCES ID is wrong, you'll end up creating a bunch of schools
+  instead of updating them.
+  - Select the entire School ID column, then go to Format > Number > Custom Number Format.
+  Enter 12 zeroes in the input and apply.
+  - Select the entire Agency ID column, and do the same but with 7 zeroes instead.
+3. Remove † and – characters.
+  - Copy the character (either or, you'll do these steps for both).
+  - Go to Edit > Find and replace.
+  - Paste the character into "Find" input.
+  - Don't add any input to "Replace with".
+  - Click "Replace all".
+4. Update the column names so it matches the expected fields in the script.
+  - School Name -> sch_name
+  - State Abbr -> st
+  - School ID -> ncessch
+  - Agency Name -> lea_name
+  - Agency ID -> leaid
+  - Location City -> lcity
+  - Location Zip -> lzip
+  - Mailing City -> mcity
+  - Mailing Zip -> mzip
+  - Lowest Grade Offered - gslo
+  - Highest Grade Offered - gshi
+  - Total Students All Grades -> total_students
+  - National School Lunch Program -> national_school_lunch_program
+  - Direct Certification -> nslp_direct_certification
+  - Free and Reduced Lunch Students -> frl_eligible
+  
+Now, download the data as CSVs from Google Sheets, and place
+the files into this directory. Commit and merge, then run the `UpsertSchools`
+job, passing in the school year (e.g. 2023-2024) of the data (not the year you ran it)
+and the names of the files. As a sanity check, run on staging first.
