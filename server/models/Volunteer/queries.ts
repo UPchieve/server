@@ -22,7 +22,7 @@ import {
   Sponsorship,
   UserTrainingCourse,
   VolunteersForAnalyticsReport,
-  VolunteerSubjectProfile,
+  VolunteerSubject,
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
@@ -1812,16 +1812,33 @@ export async function getActiveSponsorshipsByUserId(
   }
 }
 
-export async function getVolunteerSubjectProfile(
+export async function getVolunteerSubjects(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<VolunteerSubjectProfile | undefined> {
+): Promise<VolunteerSubject[]> {
   try {
-    const result = await pgQueries.getVolunteerSubjectProfile.run(
+    const result = await pgQueries.getVolunteerSubjects.run(
       { userId },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return result.map((row) => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerMutedSubjects(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<VolunteerSubject[]> {
+  try {
+    const result = await pgQueries.getVolunteerMutedSubjects.run(
+      { userId },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map((row) => makeRequired(row))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }

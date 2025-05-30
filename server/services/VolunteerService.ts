@@ -4,7 +4,7 @@ import {
   PHOTO_ID_STATUS,
   STATUS,
 } from '../constants'
-import { Ulid } from '../models/pgUtils'
+import { Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
@@ -28,8 +28,15 @@ export interface HourSummaryStats {
 
 export type VolunteerSubjectPresenceMap = { [subjectName: string]: number }
 
+export type VolunteerSubjectProfile = {
+  userId: Uuid
+  subjects: string[]
+  activeSubjects: string[]
+  mutedSubjects: string[]
+}
+
 export async function getHourSummaryStats(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   fromDate: Date,
   toDate: Date
 ): Promise<HourSummaryStats> {
@@ -61,7 +68,7 @@ export async function getHourSummaryStats(
 }
 
 export async function queueOnboardingReminderOneEmail(
-  volunteerId: Ulid
+  volunteerId: Uuid
 ): Promise<void> {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
   await QueueService.add(
@@ -72,7 +79,7 @@ export async function queueOnboardingReminderOneEmail(
 }
 
 export async function queueOnboardingEventEmails(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   isPartnerVolunteer: boolean = false
 ): Promise<void> {
   await QueueService.add(
@@ -103,7 +110,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   category: string,
   email: string,
   firstName: string,
-  volunteerId: Ulid
+  volunteerId: Uuid
 ) {
   await QueueService.add(
     Jobs.EmailFailedFirstAttemptedQuiz,
@@ -147,7 +154,7 @@ export function getPendingVolunteerApprovalStatus(
 }
 
 export async function updatePendingVolunteerStatus(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   photoIdStatus: string
 ): Promise<void> {
   const volunteerBeforeUpdate =
@@ -203,7 +210,7 @@ export async function updatePendingVolunteerStatus(
 }
 
 export async function addBackgroundInfo(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
   ip: string
 ): Promise<void> {
@@ -246,7 +253,7 @@ export async function addBackgroundInfo(
 }
 
 export async function onboardVolunteer(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
@@ -286,21 +293,40 @@ export async function onboardVolunteer(
 }
 
 export async function getActiveSponsorshipsByUserId(
-  userId: Ulid,
+  userId: Uuid,
   tc?: TransactionClient
 ): Promise<Sponsorship[]> {
   return await VolunteerRepo.getActiveSponsorshipsByUserId(userId, tc)
 }
 
 async function getVolunteerSubjectProfile(
-  userId: Ulid,
+  userId: Uuid,
   tc?: TransactionClient
-): Promise<VolunteerRepo.VolunteerSubjectProfile | undefined> {
-  return VolunteerRepo.getVolunteerSubjectProfile(userId, tc)
+): Promise<VolunteerSubjectProfile | undefined> {
+  const subjectsResult = await VolunteerRepo.getVolunteerSubjects(userId, tc)
+  const mutedSubjectsResult = await VolunteerRepo.getVolunteerMutedSubjects(
+    userId,
+    tc
+  )
+
+  const subjects: string[] = []
+  const activeSubjects: string[] = []
+  for (const { name, active } of subjectsResult) {
+    subjects.push(name)
+    if (active) activeSubjects.push(name)
+  }
+
+  const mutedSubjects = mutedSubjectsResult.map(({ name }) => name)
+  return {
+    userId,
+    subjects,
+    activeSubjects,
+    mutedSubjects,
+  }
 }
 
 export async function updateVolunteerSubjectPresence(
-  userId: string,
+  userId: Uuid,
   action: 'add' | 'remove'
 ): Promise<void> {
   const subjectProfile = await getVolunteerSubjectProfile(userId)

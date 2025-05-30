@@ -3681,97 +3681,73 @@ const getActiveSponsorshipsByUserIdIR: any = {"usedParamSet":{"userId":true},"pa
 export const getActiveSponsorshipsByUserId = new PreparedQuery<IGetActiveSponsorshipsByUserIdParams,IGetActiveSponsorshipsByUserIdResult>(getActiveSponsorshipsByUserIdIR);
 
 
-/** 'GetVolunteerSubjectProfile' parameters type */
-export interface IGetVolunteerSubjectProfileParams {
+/** 'GetVolunteerSubjects' parameters type */
+export interface IGetVolunteerSubjectsParams {
   userId: string;
 }
 
-/** 'GetVolunteerSubjectProfile' return type */
-export interface IGetVolunteerSubjectProfileResult {
-  activeSubjects: stringArray | null;
-  mutedSubjects: stringArray | null;
-  subjects: stringArray | null;
-  userId: string;
+/** 'GetVolunteerSubjects' return type */
+export interface IGetVolunteerSubjectsResult {
+  active: boolean;
+  name: string;
 }
 
-/** 'GetVolunteerSubjectProfile' query type */
-export interface IGetVolunteerSubjectProfileQuery {
-  params: IGetVolunteerSubjectProfileParams;
-  result: IGetVolunteerSubjectProfileResult;
+/** 'GetVolunteerSubjects' query type */
+export interface IGetVolunteerSubjectsQuery {
+  params: IGetVolunteerSubjectsParams;
+  result: IGetVolunteerSubjectsResult;
 }
 
-const getVolunteerSubjectProfileIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1169,"b":1176},{"a":2448,"b":2455},{"a":3023,"b":3030},{"a":3086,"b":3093}]}],"statement":"SELECT\n    users.id AS user_id,\n    COALESCE(array_cat(COALESCE(total_subjects.subjects, '{}'), COALESCE(computed_subjects.subjects, '{}')), '{}') AS subjects,\n    COALESCE(array_cat(COALESCE(total_subjects.active_subjects, '{}'), COALESCE(computed_subjects.active_subjects, '{}')), '{}') AS active_subjects,\n    COALESCE(muted_users_subjects.muted_subject_alerts, '{}') AS muted_subjects\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT subjects_unlocked.subject) AS subjects,\n            array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_subject IS TRUE) AS active_subjects\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subjects.active AS active_subject\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            WHERE\n                users_certifications.user_id = :userId!\n            GROUP BY\n                subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,\n            array_agg(DISTINCT computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_subject IS TRUE) AS active_subjects\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_certs.total,\n                subjects.active AS active_subject\n            FROM\n                users_certifications\n                JOIN computed_subject_unlocks USING (certification_id)\n                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        computed_subject_unlocks\n                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name\n                WHERE\n                    users_certifications.user_id = :userId!\n                GROUP BY\n                    subjects.name,\n                    subject_certs.total,\n                    subjects.active\n                HAVING\n                    COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(subjects.name) AS muted_subject_alerts\n        FROM\n            muted_users_subject_alerts\n            JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id\n        WHERE\n            muted_users_subject_alerts.user_id = :userId!) AS muted_users_subjects ON TRUE\nWHERE\n    users.id = :userId!"};
+const getVolunteerSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":191}]}],"statement":"SELECT\n    subjects.name,\n    subjects.active\nFROM\n    users_subjects_mview\n    JOIN subjects ON subjects.id = users_subjects_mview.subject_id\nWHERE\n    users_subjects_mview.user_id = :userId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     users.id AS user_id,
- *     COALESCE(array_cat(COALESCE(total_subjects.subjects, '{}'), COALESCE(computed_subjects.subjects, '{}')), '{}') AS subjects,
- *     COALESCE(array_cat(COALESCE(total_subjects.active_subjects, '{}'), COALESCE(computed_subjects.active_subjects, '{}')), '{}') AS active_subjects,
- *     COALESCE(muted_users_subjects.muted_subject_alerts, '{}') AS muted_subjects
+ *     subjects.name,
+ *     subjects.active
  * FROM
- *     users
- *     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
- *     LEFT JOIN (
- *         SELECT
- *             array_agg(DISTINCT subjects_unlocked.subject) AS subjects,
- *             array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_subject IS TRUE) AS active_subjects
- *         FROM (
- *             SELECT
- *                 subjects.name AS subject,
- *                 COUNT(*)::int AS earned_certs,
- *                 subjects.active AS active_subject
- *             FROM
- *                 users_certifications
- *                 JOIN certification_subject_unlocks USING (certification_id)
- *                 JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
- *             WHERE
- *                 users_certifications.user_id = :userId!
- *             GROUP BY
- *                 subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE
- *     LEFT JOIN (
- *         SELECT
- *             array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,
- *             array_agg(DISTINCT computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_subject IS TRUE) AS active_subjects
- *         FROM (
- *             SELECT
- *                 subjects.name AS subject,
- *                 COUNT(*)::int AS earned_certs,
- *                 subject_certs.total,
- *                 subjects.active AS active_subject
- *             FROM
- *                 users_certifications
- *                 JOIN computed_subject_unlocks USING (certification_id)
- *                 JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
- *                 JOIN (
- *                     SELECT
- *                         subjects.name, COUNT(*)::int AS total
- *                     FROM
- *                         computed_subject_unlocks
- *                         JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
- *                     GROUP BY
- *                         subjects.name) AS subject_certs ON subject_certs.name = subjects.name
- *                 WHERE
- *                     users_certifications.user_id = :userId!
- *                 GROUP BY
- *                     subjects.name,
- *                     subject_certs.total,
- *                     subjects.active
- *                 HAVING
- *                     COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE
- *     LEFT JOIN (
- *         SELECT
- *             array_agg(subjects.name) AS muted_subject_alerts
- *         FROM
- *             muted_users_subject_alerts
- *             JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
- *         WHERE
- *             muted_users_subject_alerts.user_id = :userId!) AS muted_users_subjects ON TRUE
+ *     users_subjects_mview
+ *     JOIN subjects ON subjects.id = users_subjects_mview.subject_id
  * WHERE
- *     users.id = :userId!
+ *     users_subjects_mview.user_id = :userId!
  * ```
  */
-export const getVolunteerSubjectProfile = new PreparedQuery<IGetVolunteerSubjectProfileParams,IGetVolunteerSubjectProfileResult>(getVolunteerSubjectProfileIR);
+export const getVolunteerSubjects = new PreparedQuery<IGetVolunteerSubjectsParams,IGetVolunteerSubjectsResult>(getVolunteerSubjectsIR);
+
+
+/** 'GetVolunteerMutedSubjects' parameters type */
+export interface IGetVolunteerMutedSubjectsParams {
+  userId: string;
+}
+
+/** 'GetVolunteerMutedSubjects' return type */
+export interface IGetVolunteerMutedSubjectsResult {
+  active: boolean;
+  name: string;
+}
+
+/** 'GetVolunteerMutedSubjects' query type */
+export interface IGetVolunteerMutedSubjectsQuery {
+  params: IGetVolunteerMutedSubjectsParams;
+  result: IGetVolunteerMutedSubjectsResult;
+}
+
+const getVolunteerMutedSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":202,"b":209}]}],"statement":"SELECT\n    subjects.name,\n    subjects.active\nFROM\n    muted_users_subject_alerts\n    JOIN subjects ON subjects.id = muted_users_subject_alerts.subject_id\nWHERE\n    muted_users_subject_alerts.user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name,
+ *     subjects.active
+ * FROM
+ *     muted_users_subject_alerts
+ *     JOIN subjects ON subjects.id = muted_users_subject_alerts.subject_id
+ * WHERE
+ *     muted_users_subject_alerts.user_id = :userId!
+ * ```
+ */
+export const getVolunteerMutedSubjects = new PreparedQuery<IGetVolunteerMutedSubjectsParams,IGetVolunteerMutedSubjectsResult>(getVolunteerMutedSubjectsIR);
 
 
