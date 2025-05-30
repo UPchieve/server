@@ -3,22 +3,30 @@ import OpenAI from 'openai'
 import config from '../config'
 import logger from '../logger'
 
-export const openai = new OpenAI({
+const openai = new OpenAI({
   apiKey: config.openAIApiKey,
 })
 
-export const CHAT_MODEL_ID = config.openAIModelId
+export const MODEL_ID = config.openAIModelId
 
-type ChatApiInput = {
+export type ChatApiInput = {
   prompt: string
   userMessage: string
 }
 
-export const invokeChatApi = async ({ prompt, userMessage }: ChatApiInput) => {
+export type ChatApiResults = {
+  modelId: string
+  results: object
+}
+
+export const invokeChatApi = async ({
+  prompt,
+  userMessage,
+}: ChatApiInput): Promise<ChatApiResults> => {
   let results = null
   try {
     const response = await openai.chat.completions.create({
-      model: CHAT_MODEL_ID,
+      model: MODEL_ID,
       messages: [
         { role: 'system', content: prompt },
         {
@@ -38,7 +46,7 @@ export const invokeChatApi = async ({ prompt, userMessage }: ChatApiInput) => {
   }
 
   return {
-    model: CHAT_MODEL_ID,
+    modelId: MODEL_ID,
     results,
   }
 }
