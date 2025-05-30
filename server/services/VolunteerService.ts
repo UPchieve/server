@@ -28,7 +28,7 @@ export interface HourSummaryStats {
 
 export type VolunteerSubjectPresenceMap = { [subjectName: string]: number }
 
-export type VolunteerSubjectProfile = {
+type VolunteerSubjectProfile = {
   userId: Uuid
   subjects: string[]
   activeSubjects: string[]
