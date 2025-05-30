@@ -16,10 +16,6 @@ import {
 } from '../models/Student/queries'
 import { TeacherClassResult } from '../models/TeacherClass'
 import { runInTransaction, TransactionClient } from '../db'
-import {
-  getSubjectPresence,
-  VolunteerSubjectPresenceMap,
-} from './VolunteerService'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
