@@ -292,7 +292,7 @@ export async function getActiveSponsorshipsByUserId(
   return await VolunteerRepo.getActiveSponsorshipsByUserId(userId, tc)
 }
 
-export async function getVolunteerSubjectProfile(
+async function getVolunteerSubjectProfile(
   userId: Ulid,
   tc?: TransactionClient
 ): Promise<VolunteerRepo.VolunteerSubjectProfile | undefined> {
@@ -313,7 +313,9 @@ export async function updateVolunteerSubjectPresence(
 
   const promises = activeSubjects.map((subject) => {
     const key = `online:subject:${subject}`
-    return action === 'add' ? cache.sadd(key, userId) : cache.srem(key, userId)
+    return action === 'add'
+      ? cache.sadd(key, userId)
+      : cache.removeFromSet(key, userId)
   })
   await Promise.all(promises)
 }
@@ -324,7 +326,7 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 
   for (const subject of Object.values(allSubjects)) {
     const key = `online:subject:${subject.name}`
-    const count = await cache.scard(key)
+    const count = await cache.getSetSize(key)
     subjectPresenceMap[subject.name] = count
   }
 

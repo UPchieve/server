@@ -100,10 +100,10 @@ export async function smembers(key: string) {
   return await redisClient.smembers(key)
 }
 
-export async function srem(key: string, ...members: string[]) {
+export async function removeFromSet(key: string, ...members: string[]) {
   return await redisClient.srem(key, ...members)
 }
 
-export async function scard(key: string) {
+export async function getSetSize(key: string) {
   return await redisClient.scard(key)
 }

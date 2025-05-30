@@ -220,7 +220,3 @@ export async function getStudentByCleverId(
 ) {
   return StudentRepo.getStudentByCleverId(cleverStudentId, tc)
 }
-
-export async function getAvailableVolunteersBySubject(): Promise<VolunteerSubjectPresenceMap> {
-  return getSubjectPresence()
-}

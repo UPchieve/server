@@ -130,14 +130,4 @@ export function routeStudents(router: Router): void {
       resError(res, err)
     }
   })
-
-  router.get('/students/volunteer-presence', async function (req, res) {
-    try {
-      const presenceBySubject =
-        await StudentService.getAvailableVolunteersBySubject()
-      res.json({ presenceBySubject })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }
