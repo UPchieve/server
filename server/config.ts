@@ -382,7 +382,8 @@ const config: Static<typeof Config> = {
 
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
-  openAIModelId: process.env.SUBWAY_OPEN_MODEL_ID || 'bogus',
+  openAIModelId: process.env.SUBWAY_OPEN_AI_MODEL_ID || 'bogus',
+  openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
   subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
   subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',
   subwayAIVisionApiKey: process.env.SUBWAY_VISION_AI_API_KEY || 'bogus',

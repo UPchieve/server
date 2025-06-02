@@ -4,7 +4,7 @@ import config from '../config'
 import logger from '../logger'
 
 export const openai = new OpenAI({
-  apiKey: config.openAIModelId,
+  apiKey: config.openAIApiKey,
 })
 
 export const MODEL_ID = config.openAIModelId
