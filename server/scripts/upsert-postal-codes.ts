@@ -13,7 +13,7 @@ export default async function upsertPostalCodes(): Promise<void> {
       columns: true,
     })
     await runInTransaction(async (tc) => {
-      return ZCRepo.upsertZipcodes(zipRecords)
+      return ZCRepo.upsertZipcodes(zipRecords, tc)
     })
   } catch (err) {
     throw new Error(`error upserting postal code records: ${err}`)

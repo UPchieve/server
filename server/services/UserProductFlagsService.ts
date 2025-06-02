@@ -32,6 +32,7 @@ import {
   asNumber,
   asOptional,
   asString,
+  getClient,
 } from '../utils/type-utils'
 import { runInTransaction, TransactionClient } from '../db'
 
@@ -39,11 +40,12 @@ export async function incentiveProgramEnrollmentEnroll(
   userId: Uuid,
   proxyEmail?: string
 ) {
+  // @TODO Run in transaction
   const isInIncentiveProgram = await isUserInIncentiveProgram(userId)
   if (isInIncentiveProgram)
     throw new Error(`You're already enrolled in the fall incentive program.`)
 
-  const user = await getLegacyUserObject(userId)
+  const user = await getLegacyUserObject(userId, getClient())
   if (user.isSchoolPartner) {
     if (proxyEmail) await updateUserProxyEmail(userId, proxyEmail)
     else

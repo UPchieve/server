@@ -458,7 +458,7 @@ export async function getPastSessionsForAdminDetail(
   userId: Ulid,
   limit: number,
   offset: number,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ): Promise<PastSessionForAdmin[]> {
   try {
     const result = await pgQueries.getPastSessionsForAdminDetail.run(

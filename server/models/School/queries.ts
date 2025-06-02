@@ -138,7 +138,7 @@ export async function updateIsPartner(
   schoolId: Ulid,
   isPartner: boolean,
   existingStudentPartnerOrgId: string | undefined,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ): Promise<void> {
   if (!existingStudentPartnerOrgId && !isPartner)
     throw new Error(
@@ -174,7 +174,7 @@ export async function updateIsPartner(
 
 export async function adminUpdateSchool(
   data: AdminUpdate,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ): Promise<void> {
   try {
     const { schoolId, name, city, state, zip, isApproved } = data

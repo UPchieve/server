@@ -35,7 +35,7 @@ export async function getZipCodeByZipCode(
 
 export async function upsertZipcodes(
   zipRecords: csvPostalCodeRecord[],
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ) {
   try {
     for (const record of zipRecords) {

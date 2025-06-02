@@ -38,7 +38,7 @@ export async function listQuestions(
 
 export async function createQuestion(
   question: Question,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ): Promise<Question> {
   try {
     const quizUpsertResult = await pgQueries.upsertQuiz.run(
@@ -87,7 +87,7 @@ export type QuestionUpdateOptions = {
 
 export async function updateQuestion(
   options: QuestionUpdateOptions,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ): Promise<Question> {
   try {
     const question = options.question
