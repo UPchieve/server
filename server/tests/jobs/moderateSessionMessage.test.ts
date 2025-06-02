@@ -5,7 +5,7 @@ import moderateSessionMessage, {
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import { Job } from 'bull'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
-import { openai } from '../../services/BotsService'
+import { openai } from '../../services/OpenAIService'
 
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../logger')

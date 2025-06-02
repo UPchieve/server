@@ -7,7 +7,7 @@ import {
 } from '../models/CensoredSessionMessage'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
-import { openai } from './BotsService'
+import { openai } from './OpenAIService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
 import {
