@@ -27,7 +27,7 @@ jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
     openai: {
       chat: {

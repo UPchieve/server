@@ -9,7 +9,7 @@ import { openai } from '../../services/OpenAIService'
 
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../logger')
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
     openai: {
       chat: {
