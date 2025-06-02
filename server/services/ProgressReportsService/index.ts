@@ -48,7 +48,7 @@ import {
   ProgressReportPromptTemplateVariables,
   SaveProgressReportOptions,
 } from './types'
-import { openai } from '../OpenAIService'
+import { invokeChatApi } from '../OpenAIService'
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 export * from './types'
@@ -362,25 +362,14 @@ export async function generateProgressReport(
     model: MODEL,
     input: botPrompt,
   })
-  const completion = await openai.chat.completions.create({
-    model: MODEL,
-    response_format: { type: 'json_object' },
-    messages: [
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      {
-        role: 'user',
-        content: botPrompt,
-      },
-    ],
+  const response = await invokeChatApi({
+    prompt: systemPrompt,
+    userMessage: botPrompt,
   })
-  gen.end({ output: completion })
+  gen.end({ output: result })
 
-  const response = completion.choices[0].message.content
   logger.info(
-    `User: ${userId} received ProgressReport completion ${completion} with response ${response}`
+    `User: ${userId} received ProgressReport completion ${response.results} with response ${response}`
   )
   return response ? JSON.parse(response) : { summary: {}, concepts: [] }
 }

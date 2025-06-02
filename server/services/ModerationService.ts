@@ -11,7 +11,6 @@ import {
   invokeChatApi,
   ChatApiResults,
   MODEL_ID as OPENAI_MODEL_ID,
-  ChatApiResponseType,
 } from './OpenAIService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
@@ -902,7 +901,6 @@ export async function getIndividualSessionMessageModerationResponse({
         censoredSessionMessage.message,
         isVolunteer
       ),
-      responseType: ChatApiResponseType.JSON,
     })
 
     gen.end({
@@ -1383,7 +1381,6 @@ const getSessionTranscriptModerationResult = async (
   const result: ChatApiResults = await invokeChatApi({
     prompt,
     userMessage: chunkAsString,
-    responseType: ChatApiResponseType.JSON,
   })
   gen.end({
     output: result,
