@@ -43,7 +43,7 @@ export const invokeChatApi = async ({
       response_format: { type: responseType },
     })
 
-    results = getChatContent(response)
+    results = getChatContent(response, responseType)
     if (!results) throw new Error("Didn't get an expected openai chat response")
   } catch (err) {
     logger.error(err)
@@ -56,7 +56,15 @@ export const invokeChatApi = async ({
   }
 }
 
-const getChatContent = (result: OpenAI.ChatCompletion) =>
-  result?.choices[0]?.message?.content
+const getChatContent = (
+  result: OpenAI.ChatCompletion,
+  responseType: ChatApiResponseType
+) => {
+  if (!result?.choices[0]?.message?.content) {
+    return null
+  }
+
+  return responseType === ChatApiResponseType.JSON
     ? JSON.parse(result.choices[0].message.content)
-    : null
+    : result.choices[0].message.content
+}
