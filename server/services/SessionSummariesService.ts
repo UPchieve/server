@@ -4,7 +4,7 @@ import * as ProgressReportsService from './ProgressReportsService'
 import { getSubjectAndTopic } from '../models/Subjects'
 import { USER_ROLES, USER_ROLES_TYPE } from '../constants'
 import * as LangfuseService from './LangfuseService'
-import { invokeChatApi } from './OpenAIService'
+import { invokeChatApi, MODEL_ID as OPENAI_MODELID } from './OpenAIService'
 import logger from '../logger'
 import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
@@ -165,7 +165,7 @@ export async function generateSessionSummary(
 
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    model: MODEL,
+    model: OPENAI_MODELID,
     input: botPrompt,
   })
   const result = await invokeChatApi({
