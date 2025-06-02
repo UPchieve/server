@@ -4,7 +4,7 @@ import * as ProgressReportsService from './ProgressReportsService'
 import { getSubjectAndTopic } from '../models/Subjects'
 import { USER_ROLES, USER_ROLES_TYPE } from '../constants'
 import * as LangfuseService from './LangfuseService'
-import { openai } from './OpenAIService'
+import { invokeChatApi, MODEL_ID as OPENAI_MODELID } from './OpenAIService'
 import logger from '../logger'
 import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
@@ -149,7 +149,7 @@ export async function getSessionSummaryByUserType(
 
 const LF_TRACE_NAME = 'teacherSessionSummary'
 const LF_GENERATION_NAME = 'getTeacherSessionSummary'
-const MODEL = 'gpt-4o'
+
 export async function generateSessionSummary(
   systemPrompt: string,
   botPrompt: string,
@@ -165,30 +165,21 @@ export async function generateSessionSummary(
 
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    model: MODEL,
+    model: OPENAI_MODELID,
     input: botPrompt,
   })
-  const completion = await openai.chat.completions.create({
-    model: MODEL,
-    messages: [
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      {
-        role: 'user',
-        content: botPrompt,
-      },
-    ],
+  const result = await invokeChatApi({
+    prompt: systemPrompt,
+    userMessage: botPrompt,
   })
-  gen.end({ output: completion })
+  gen.end({ output: result })
 
   const response = {
-    response: completion.choices[0].message.content,
+    response: result.results as string,
     traceId: t.traceId,
   }
   logger.info(
-    `Session: ${metadata.sessionId} received session summary completion ${completion} for userType ${metadata.userType} with response ${response}`
+    `Session: ${metadata.sessionId} received session summary completion ${result.results} for userType ${metadata.userType} with response ${response}`
   )
   return response
 }
