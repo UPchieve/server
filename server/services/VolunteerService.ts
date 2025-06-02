@@ -30,7 +30,6 @@ export type VolunteerSubjectPresenceMap = { [subjectName: string]: number }
 
 type VolunteerSubjectProfile = {
   userId: Uuid
-  subjects: string[]
   activeSubjects: string[]
   mutedSubjects: string[]
 }
@@ -316,7 +315,6 @@ async function getVolunteerSubjectProfile(
   const mutedSubjects = mutedSubjectsResult.map(({ name }) => name)
   return {
     userId,
-    subjects,
     activeSubjects,
     mutedSubjects,
   }
