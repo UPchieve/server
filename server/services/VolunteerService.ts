@@ -300,14 +300,11 @@ export async function getActiveSponsorshipsByUserId(
 }
 
 async function getVolunteerSubjectProfile(
-  userId: Uuid,
-  tc?: TransactionClient
+  userId: Uuid
 ): Promise<VolunteerSubjectProfile | undefined> {
-  const subjectsResult = await VolunteerRepo.getVolunteerSubjects(userId, tc)
-  const mutedSubjectsResult = await VolunteerRepo.getVolunteerMutedSubjects(
-    userId,
-    tc
-  )
+  const subjectsResult = await VolunteerRepo.getVolunteerSubjects(userId)
+  const mutedSubjectsResult =
+    await VolunteerRepo.getVolunteerMutedSubjects(userId)
 
   const subjects: string[] = []
   const activeSubjects: string[] = []
