@@ -12,8 +12,6 @@ export default async function updateBasicAccessViews() {
       )
     )
 
-    await db.connect()
-
     const dropFirst = []
     for (const table in tables) {
       try {
@@ -31,8 +29,6 @@ export default async function updateBasicAccessViews() {
     }
   } catch (err) {
     throw new Error(`error updating basic access views: ${err}`)
-  } finally {
-    await db.closeClient()
   }
 }
 
