@@ -298,6 +298,10 @@ export async function getActiveSponsorshipsByUserId(
   return await VolunteerRepo.getActiveSponsorshipsByUserId(userId, tc)
 }
 
+function getVolunteerSubjectPresenceCacheKey(subject: string) {
+  return `online:subject:${subject}`
+}
+
 async function getVolunteerSubjectProfile(
   userId: Uuid
 ): Promise<VolunteerSubjectProfile | undefined> {
@@ -333,7 +337,7 @@ export async function updateVolunteerSubjectPresence(
   if (activeSubjects.length === 0) return
 
   const promises = activeSubjects.map((subject) => {
-    const key = `online:subject:${subject}`
+    const key = getVolunteerSubjectPresenceCacheKey(subject)
     return action === 'add'
       ? cache.sadd(key, userId)
       : cache.removeFromSet(key, userId)
@@ -346,7 +350,7 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
   const subjectPresenceMap: VolunteerSubjectPresenceMap = {}
 
   for (const subject of Object.values(allSubjects)) {
-    const key = `online:subject:${subject.name}`
+    const key = getVolunteerSubjectPresenceCacheKey(subject.name)
     const count = await cache.getSetSize(key)
     subjectPresenceMap[subject.name] = count
   }
