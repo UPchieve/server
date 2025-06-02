@@ -34,6 +34,7 @@ import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
 import { emitter } from './EventsService'
 import { partition } from 'lodash'
 import { processFeedbackMetrics } from './SessionFlagsService'
+import { TransactionClient } from '../db'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -73,25 +74,26 @@ export async function getContextSharingForVolunteer(
 
 export async function saveUserSurvey(
   userId: Ulid,
-  data: unknown
+  data: SaveSurveyAndSubmissions,
+  tc?: TransactionClient
 ): Promise<void> {
-  const survey = asSaveUserSurveyAndSubmissions(data)
   const userSurvey = {
-    surveyId: survey.surveyId,
-    sessionId: survey.sessionId,
-    surveyTypeId: survey.surveyTypeId,
-    progressReportId: survey.progressReportId,
+    surveyId: data.surveyId,
+    sessionId: data.sessionId,
+    surveyTypeId: data.surveyTypeId,
+    progressReportId: data.progressReportId,
   }
-  // filter out questions the user didn't answer
-  const submissions = survey.submissions.filter(
+  // Filter out responses the user didn't answer.
+  const submissions = data.submissions.filter(
     (resp) => resp.responseChoiceId !== null
   )
-  await saveUserSurveyAndSubmissions(userId, userSurvey, submissions)
+  await saveUserSurveyAndSubmissions(userId, userSurvey, submissions, tc)
+
+  // Only process feedback metrics for post-session surveys.
   if (userSurvey.sessionId) {
     const surveyType = await getSurveyTypeFromSurveyTypeId(
       userSurvey.surveyTypeId
     )
-    // Only process feedback metrics for post-session surveys
     if (surveyType === 'postsession') {
       await processFeedbackMetrics(userSurvey.sessionId)
     }

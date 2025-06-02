@@ -71,6 +71,7 @@ import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
+import * as SurveyService from './SurveyService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -578,32 +579,46 @@ export async function adminSessionView(data: unknown) {
 
 export async function startSession(
   user: UserContactInfo,
-  data: sessionUtils.StartSessionData
+  data: sessionUtils.StartSessionData & {
+    presessionSurvey?: SurveyService.SaveSurveyAndSubmissions
+  }
 ) {
-  const { subject, topic, assignmentId, docEditorVersion, userAgent, ip } = data
+  const {
+    subject,
+    topic,
+    assignmentId,
+    presessionSurvey,
+    docEditorVersion,
+    userAgent,
+    ip,
+  } = data
 
   const subjectAndTopic = await getSubjectAndTopic(subject, topic)
-  if (!subjectAndTopic)
+  if (!subjectAndTopic) {
     throw new sessionUtils.StartSessionError(
-      `Unable to start new session for the topic ${topic} and subject ${subject}`
+      `Unable to start new session for the topic ${topic} and subject ${subject}.`
     )
+  }
 
-  if (user.roleContext.isActiveRole('volunteer'))
+  if (user.roleContext.isActiveRole('volunteer')) {
     throw new sessionUtils.StartSessionError(
-      'Volunteers cannot create new sessions'
+      'Volunteers cannot create new sessions.'
     )
+  }
 
   const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
-  if (isUserBanned)
+  if (isUserBanned) {
     throw new sessionUtils.StartSessionError(
-      'Banned students cannot request a new session'
+      'Banned students cannot request a new session.'
     )
+  }
 
   const currentSession = await SessionRepo.getCurrentSessionByUserId(user.id)
-  if (currentSession)
+  if (currentSession) {
     throw new sessionUtils.StartSessionError(
-      'Student already has an active session'
+      'Student already has an active session.'
     )
+  }
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
     const newSession = await SessionRepo.createSession(
@@ -620,6 +635,10 @@ export async function startSession(
         assignmentId,
         tc
       )
+    }
+
+    if (presessionSurvey) {
+      await SurveyService.saveUserSurvey(user.id, presessionSurvey, tc)
     }
 
     await createSessionAction(
