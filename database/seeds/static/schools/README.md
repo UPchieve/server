@@ -47,12 +47,13 @@ Once you've downloaded the CSV, import into a Google Sheet for some pre-processi
   - Select the entire School ID column, then go to Format > Number > Custom Number Format.
   Enter 12 zeroes in the input and apply.
   - Select the entire Agency ID column, and do the same but with 7 zeroes instead.
-3. Remove † and – characters.
-  - Copy the character (either or, you'll do these steps for both).
+3. Remove ‡, †, – and any other non-number characters.
+  - Copy the character.
   - Go to Edit > Find and replace.
   - Paste the character into "Find" input.
   - Don't add any input to "Replace with".
   - Click "Replace all".
+  - Repeat for each of the characters.
 4. Update the column names so it matches the expected fields in the script.
   - School Name -> sch_name
   - State Abbr -> st
