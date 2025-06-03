@@ -27,7 +27,7 @@ export type ChatApiResults = {
 export async function invokeModel({
   prompt,
   userMessage,
-  responseType = ChatApiResponseType.TEXT,
+  responseType = ChatApiResponseType.JSON,
 }: ChatApiInput): Promise<ChatApiResults> {
   let results = null
   try {
