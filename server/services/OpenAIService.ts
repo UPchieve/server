@@ -24,11 +24,11 @@ export type ChatApiResults = {
   results: string | object
 }
 
-export const invokeChatApi = async ({
+export async function invokeModel({
   prompt,
   userMessage,
   responseType = ChatApiResponseType.TEXT,
-}: ChatApiInput): Promise<ChatApiResults> => {
+}: ChatApiInput): Promise<ChatApiResults> {
   let results = null
   try {
     const response = await openai.chat.completions.create({
@@ -56,10 +56,10 @@ export const invokeChatApi = async ({
   }
 }
 
-const getChatContent = (
+function getChatContent(
   result: OpenAI.ChatCompletion,
   responseType: ChatApiResponseType
-) => {
+) {
   if (!result?.choices[0]?.message?.content) {
     return null
   }
