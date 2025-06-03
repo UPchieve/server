@@ -1754,3 +1754,25 @@ WHERE
     AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL
     AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL;
 
+
+/* @name getVolunteerSubjects */
+SELECT
+    subjects.name,
+    subjects.active
+FROM
+    users_subjects_mview
+    JOIN subjects ON subjects.id = users_subjects_mview.subject_id
+WHERE
+    users_subjects_mview.user_id = :userId!;
+
+
+/* @name getVolunteerMutedSubjects */
+SELECT
+    subjects.name,
+    subjects.active
+FROM
+    muted_users_subject_alerts
+    JOIN subjects ON subjects.id = muted_users_subject_alerts.subject_id
+WHERE
+    muted_users_subject_alerts.user_id = :userId!;
+

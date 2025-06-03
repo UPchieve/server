@@ -37,6 +37,7 @@ import {
   SanitizedTranscriptModerationResult,
 } from '../../services/ModerationService'
 import { createSessionAction } from '../../models/UserAction/queries'
+import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -52,7 +53,10 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', latestSession)
   }
 
-  if (user.roleContext.isActiveRole('volunteer')) socket.join('volunteers')
+  if (user.roleContext.isActiveRole('volunteer')) {
+    socket.join('volunteers')
+    await updateVolunteerSubjectPresence(user.id, 'add')
+  }
 }
 
 export function routeSockets(io: Server, sessionStore: PGStore): void {
@@ -527,6 +531,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     socket.on('disconnecting', async () => {
       const user = await extractSocketUser(socket)
+
+      if (user?.roleContext?.isActiveRole('volunteer'))
+        await updateVolunteerSubjectPresence(user.id, 'remove')
+
       for (const room of socket.rooms) {
         if (room.includes('sessions')) {
           socket
