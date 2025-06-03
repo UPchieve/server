@@ -4,7 +4,7 @@ import {
   PHOTO_ID_STATUS,
   STATUS,
 } from '../constants'
-import { Ulid } from '../models/pgUtils'
+import { Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
@@ -16,6 +16,8 @@ import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 import { TransactionClient } from '../db'
 import { Sponsorship } from '../models/Volunteer'
+import * as cache from '../cache'
+import { getSubjectsWithTopic } from './SubjectsService'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -24,8 +26,16 @@ export interface HourSummaryStats {
   totalVolunteerHours: number
 }
 
+export type VolunteerSubjectPresenceMap = { [subjectName: string]: number }
+
+type VolunteerSubjectProfile = {
+  userId: Uuid
+  activeSubjects: string[]
+  mutedSubjects: string[]
+}
+
 export async function getHourSummaryStats(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   fromDate: Date,
   toDate: Date
 ): Promise<HourSummaryStats> {
@@ -57,7 +67,7 @@ export async function getHourSummaryStats(
 }
 
 export async function queueOnboardingReminderOneEmail(
-  volunteerId: Ulid
+  volunteerId: Uuid
 ): Promise<void> {
   const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
   await QueueService.add(
@@ -68,7 +78,7 @@ export async function queueOnboardingReminderOneEmail(
 }
 
 export async function queueOnboardingEventEmails(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   isPartnerVolunteer: boolean = false
 ): Promise<void> {
   await QueueService.add(
@@ -99,7 +109,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   category: string,
   email: string,
   firstName: string,
-  volunteerId: Ulid
+  volunteerId: Uuid
 ) {
   await QueueService.add(
     Jobs.EmailFailedFirstAttemptedQuiz,
@@ -143,7 +153,7 @@ export function getPendingVolunteerApprovalStatus(
 }
 
 export async function updatePendingVolunteerStatus(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   photoIdStatus: string
 ): Promise<void> {
   const volunteerBeforeUpdate =
@@ -199,7 +209,7 @@ export async function updatePendingVolunteerStatus(
 }
 
 export async function addBackgroundInfo(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
   ip: string
 ): Promise<void> {
@@ -242,7 +252,7 @@ export async function addBackgroundInfo(
 }
 
 export async function onboardVolunteer(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
@@ -282,8 +292,68 @@ export async function onboardVolunteer(
 }
 
 export async function getActiveSponsorshipsByUserId(
-  userId: Ulid,
+  userId: Uuid,
   tc?: TransactionClient
 ): Promise<Sponsorship[]> {
   return await VolunteerRepo.getActiveSponsorshipsByUserId(userId, tc)
+}
+
+function getVolunteerSubjectPresenceCacheKey(subject: string) {
+  return `online:subject:${subject}`
+}
+
+async function getVolunteerSubjectProfile(
+  userId: Uuid
+): Promise<VolunteerSubjectProfile | undefined> {
+  const subjectsResult = await VolunteerRepo.getVolunteerSubjects(userId)
+  const mutedSubjectsResult =
+    await VolunteerRepo.getVolunteerMutedSubjects(userId)
+
+  const subjects: string[] = []
+  const activeSubjects: string[] = []
+  for (const { name, active } of subjectsResult) {
+    subjects.push(name)
+    if (active) activeSubjects.push(name)
+  }
+
+  const mutedSubjects = mutedSubjectsResult.map(({ name }) => name)
+  return {
+    userId,
+    activeSubjects,
+    mutedSubjects,
+  }
+}
+
+export async function updateVolunteerSubjectPresence(
+  userId: Uuid,
+  action: 'add' | 'remove'
+): Promise<void> {
+  const subjectProfile = await getVolunteerSubjectProfile(userId)
+  if (!subjectProfile) return
+
+  const activeSubjects = subjectProfile.activeSubjects.filter(
+    (subject) => !subjectProfile.mutedSubjects.includes(subject)
+  )
+  if (activeSubjects.length === 0) return
+
+  const promises = activeSubjects.map((subject) => {
+    const key = getVolunteerSubjectPresenceCacheKey(subject)
+    return action === 'add'
+      ? cache.sadd(key, userId)
+      : cache.removeFromSet(key, userId)
+  })
+  await Promise.all(promises)
+}
+
+export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap> {
+  const allSubjects = await getSubjectsWithTopic()
+  const subjectPresenceMap: VolunteerSubjectPresenceMap = {}
+
+  for (const subject of Object.values(allSubjects)) {
+    const key = getVolunteerSubjectPresenceCacheKey(subject.name)
+    const count = await cache.getSetSize(key)
+    subjectPresenceMap[subject.name] = count
+  }
+
+  return subjectPresenceMap
 }
