@@ -352,8 +352,7 @@ describe('generateProgressReportForUser', () => {
       summary,
       concepts,
     })
-    // This is smelly. There should be a proper mock for this
-    // This uses the types defined in OpenAI
+
     ;(invokeModel as jest.Mock).mockResolvedValue({
       results: progressReport,
       modelId: '',
