@@ -56,7 +56,7 @@ import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
-import { RoleContext } from './UserRolesService'
+import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
@@ -65,6 +65,10 @@ import * as ImpactStatsService from './ImpactStatsService'
 export async function parseUser(baseUser: UserContactInfo) {
   return runInTransaction(async (tc) => {
     const user = await getLegacyUserObject(baseUser.id, tc)
+
+    user.numReferredVolunteers = await countReferredUsers(user.id, {
+      withRoles: ['volunteer'],
+    })
 
     // Approved volunteer
     if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
@@ -85,7 +89,6 @@ export async function parseUser(baseUser: UserContactInfo) {
       return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
     }
 
-    // Student or unapproved volunteer
     return user
   })
 }
@@ -542,7 +545,7 @@ export async function getUserContactInfo(
 ): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
   const baseUserInfo = await UserRepo.getUserContactInfoById(userId, tc)
   if (baseUserInfo) {
-    const roleContext = await UserRolesService.getRoleContext(userId, tc)
+    const roleContext = await UserRolesService.getRoleContext(userId, false, tc)
     return {
       ...baseUserInfo,
       roleContext,
@@ -552,8 +555,8 @@ export async function getUserContactInfo(
 
 export async function switchActiveRoleForUser(
   userId: string,
-  role: Exclude<UserRole, 'teacher' | 'admin'>
-): Promise<{ activeRole: Exclude<UserRole, 'teacher' | 'admin'>; user: any }> {
+  role: PrimaryUserRole
+): Promise<{ activeRole: PrimaryUserRole; user: any }> {
   const activeRole = await UserRolesService.switchActiveRole(userId, role)
   const userContactInfo = await getUserContactInfo(userId)
   if (!userContactInfo)
@@ -569,4 +572,14 @@ export async function updatePreferredLanguage(
   languageCode: string
 ): Promise<void> {
   return await updatePreferredLanguageToUser(userId, languageCode)
+}
+
+export async function countReferredUsers(
+  referrerId: string,
+  filters?: {
+    withPhoneOrEmailVerifiedAs?: boolean
+    withRoles?: UserRole[]
+  }
+): Promise<number> {
+  return await UserRepo.countReferredUsers(referrerId, filters)
 }

@@ -1134,7 +1134,23 @@ export interface ICreateSessionParams {
 
 /** 'CreateSession' return type */
 export interface ICreateSessionResult {
+  createdAt: Date;
+  endedAt: Date | null;
+  endedByRoleId: number | null;
+  hasWhiteboardDoc: boolean;
   id: string;
+  mongoId: string | null;
+  quillDoc: string | null;
+  reviewed: boolean;
+  shadowbanned: boolean | null;
+  studentBanned: boolean | null;
+  studentId: string;
+  subjectId: number;
+  timeTutored: string;
+  toReview: boolean;
+  updatedAt: Date;
+  volunteerId: string | null;
+  volunteerJoinedAt: Date | null;
 }
 
 /** 'CreateSession' query type */
@@ -1143,7 +1159,7 @@ export interface ICreateSessionQuery {
   result: ICreateSessionResult;
 }
 
-const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":102}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":156}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":232}]}],"statement":"INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)\nSELECT\n    :id!,\n    :studentId!,\n    subjects.id,\n    :shadowbanned!,\n    NOW(),\n    NOW()\nFROM\n    subjects\nWHERE\n    subjects.name = :subject!\nRETURNING\n    sessions.id"};
+const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":102}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":156}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":232}]}],"statement":"INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)\nSELECT\n    :id!,\n    :studentId!,\n    subjects.id,\n    :shadowbanned!,\n    NOW(),\n    NOW()\nFROM\n    subjects\nWHERE\n    subjects.name = :subject!\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
@@ -1161,7 +1177,7 @@ const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadow
  * WHERE
  *     subjects.name = :subject!
  * RETURNING
- *     sessions.id
+ *     *
  * ```
  */
 export const createSession = new PreparedQuery<ICreateSessionParams,ICreateSessionResult>(createSessionIR);

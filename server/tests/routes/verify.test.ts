@@ -184,7 +184,7 @@ import { buildStudent } from '../mocks/generate'
 import { routeVerify } from '../../router/api/verify'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD } from '../../constants'
-import { TwilioError } from '../../models/Errors'
+import { AlreadyInUseError, TwilioError } from '../../models/Errors'
 import { NextFunction, Request, Response } from 'express'
 
 const mockedVerificationService = mocked(VerificationService)
@@ -262,6 +262,28 @@ describe('verify', () => {
           })
         }
       )
+
+      it('Returns 400 with Already In Use message', async () => {
+        const expectedError = new AlreadyInUseError(
+          'The phone number or email address provided for verification is already in use'
+        )
+        mockedVerificationService.initiateVerification.mockRejectedValue(
+          expectedError
+        )
+        const req = {
+          userId: '123',
+          sendTo: '+12128889999',
+          firstName: 'Malzie',
+          verificationMethod: VERIFICATION_METHOD.SMS,
+        }
+        const response = await sendPost(req, '/send')
+        expect(response).toMatchObject({
+          status: 400,
+          body: {
+            err: expectedError.message,
+          },
+        })
+      })
     })
   })
 

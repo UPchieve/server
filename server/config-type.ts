@@ -258,14 +258,6 @@ export const Config = Record({
   azureContentSafetyApiKey: String,
   azureContentSafetyBaseUrl: String,
 
-  // Tutor bot POC
-  tutorBotApiKey: String,
-  huggingFaceInferenceApiKey: String,
-  tutorBotBaseUrl: String,
-  posthogAiTutorBotSubjectModelsFeatureFlagId: String,
-  tutorBotHuggingfaceNamespace: String,
-  tutorBotHuggingfaceInstanceName: String,
-
   // Moderation
   liveMediaBanInfractionScoreThreshold: Number,
   imageModerationMinConfidence: Number,

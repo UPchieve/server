@@ -32,7 +32,6 @@ import * as ModerationInfractionsRepo from '../models/ModerationInfractions'
 import {
   USER_BAN_REASONS,
   USER_BAN_TYPES,
-  USER_ROLES_TYPE,
   UserSessionFlags,
 } from '../constants'
 import {
@@ -51,7 +50,7 @@ import {
 import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
-import { invokeModel } from './AwsBedrockService'
+import { invokeModel, BedrockToolChoice } from './AwsBedrockService'
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
@@ -390,6 +389,28 @@ async function checkForFullAddresses({
     sessionId,
   })
 
+  const VERIFY_EMAIL_RESPONSE_TOOL = [
+    {
+      name: 'json_response',
+      description: 'Prints answer in json format',
+      input_schema: {
+        type: 'object',
+        properties: {
+          confidence: {
+            type: 'string',
+            description: 'The confidence rating',
+          },
+          explanation: {
+            type: 'string',
+            description:
+              'The explanation of why the confidence rating was choosen',
+          },
+        },
+        required: ['confidence', 'explanation'],
+      },
+    },
+  ]
+
   const gen = t.generation({
     name: LangfuseGenerationName.GET_ADDRESS_DETECTION_MODERATION_DECISION,
     model: modelId,
@@ -402,6 +423,10 @@ async function checkForFullAddresses({
       modelId,
       text,
       prompt: promptData.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+        tools: VERIFY_EMAIL_RESPONSE_TOOL,
+      },
     })
 
     gen.end({
@@ -471,11 +496,57 @@ async function checkForQuestionableLinks({
     // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
+
+  const QUESTIONABLE_LINKS_RESPONSE_TOOL = [
+    {
+      name: 'json_response',
+      description: 'Prints answer in json format',
+      input_schema: {
+        type: 'object',
+        properties: {
+          links: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                link: {
+                  type: 'string',
+                  description: 'The name of the extracted link',
+                },
+                confidence: {
+                  type: 'number',
+                  description:
+                    'The confidence rating that the link is inappropriate',
+                },
+                policyNames: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  descrption: 'Array of the policy names the link violated',
+                },
+                explanation: {
+                  type: 'string',
+                  description:
+                    'The explanation why the confidence and policyNames were choosen',
+                },
+              },
+              required: ['link', 'confidence', 'policyNames', 'explanation'],
+            },
+          },
+        },
+        required: ['links'],
+      },
+    },
+  ]
+
   try {
     const completion = await invokeModel({
       modelId,
       text: formattedLinks,
       prompt: promptData.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+        tools: QUESTIONABLE_LINKS_RESPONSE_TOOL,
+      },
     })
 
     gen.end({
@@ -690,7 +761,7 @@ async function handleImageModerationFailure({
   })
 
   logger.warn(
-    { sessionId, reasons: failureReasons, imageUrl, source },
+    { sessionId, reasons: failureReasons, imageUrl, source, userId },
     'Image triggered moderation'
   )
   const failures = failureReasons.reduce(
@@ -1080,14 +1151,15 @@ export const handleModerationInfraction = async (
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
     return
   }
-  await ModerationInfractionsRepo.insertModerationInfraction(
-    {
-      userId,
-      sessionId,
-      reason: reasons.failures,
-    },
-    client
-  )
+  const insertedInfraction =
+    await ModerationInfractionsRepo.insertModerationInfraction(
+      {
+        userId,
+        sessionId,
+        reason: reasons.failures,
+      },
+      client
+    )
   const allActiveInfractions =
     await ModerationInfractionsRepo.getModerationInfractionsByUser(
       userId,
@@ -1107,6 +1179,10 @@ export const handleModerationInfraction = async (
       USER_BAN_REASONS.AUTOMATED_MODERATION
     )
     await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
+    logger.info(
+      { userId, sessionId, infractionId: insertedInfraction.id },
+      'Live media banned user'
+    )
   }
 
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]

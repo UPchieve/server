@@ -6,6 +6,7 @@ import { faker } from '@faker-js/faker'
 import { getClient } from '../../db'
 import {
   banUserById,
+  countReferredUsers,
   createUser,
   CreateUserPayload,
   deleteUserPhoneInfo,
@@ -23,6 +24,7 @@ import {
   buildStudentPartnerOrg,
   buildStudentPartnerOrgUpchieveInstance,
   buildStudentProfile,
+  buildUserRow,
   buildUserRole,
 } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
@@ -494,4 +496,90 @@ describe('ban type users tests', () => {
 
     expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
   })
+})
+
+test('countReferredUsers', async () => {
+  const referralCodes = [
+    faker.string.uuid(),
+    faker.string.uuid(),
+    faker.string.uuid(),
+  ]
+  const referrer = await insertSingleRow(
+    'users',
+    buildUserRow({
+      phoneVerified: true,
+      emailVerified: true,
+      referralCode: referralCodes[0],
+    }),
+    client
+  )
+  // Initial state
+  let actual = await countReferredUsers(referrer.id)
+  expect(actual).toEqual(0)
+
+  // Volunteer
+  const referredUser1 = await insertSingleRow(
+    'users',
+    buildUserRow({
+      referredBy: referrer.id,
+      phoneVerified: false,
+      emailVerified: false,
+      referralCode: referralCodes[1],
+    }),
+    client
+  )
+  await insertSingleRow(
+    'users_roles',
+    buildUserRole(referredUser1.id, 'volunteer'),
+    client
+  )
+  // Student and volunteer
+  const referredUser2 = await insertSingleRow(
+    'users',
+    buildUserRow({
+      referredBy: referrer.id,
+      phoneVerified: false,
+      emailVerified: true,
+      referralCode: referralCodes[2],
+    }),
+    client
+  )
+  await insertSingleRow(
+    'users_roles',
+    buildUserRole(referredUser2.id, 'student'),
+    client
+  )
+  await insertSingleRow(
+    'users_roles',
+    buildUserRole(referredUser2.id, 'volunteer'),
+    client
+  )
+  actual = await countReferredUsers(referrer.id)
+  expect(actual).toEqual(2)
+
+  // Now test the filters
+  const onlyStudents = await countReferredUsers(referrer.id, {
+    withRoles: ['student'],
+  })
+  const onlyStudentVolunteers = await countReferredUsers(referrer.id, {
+    withRoles: ['student', 'volunteer'],
+  })
+  const onlyVolunteers = await countReferredUsers(referrer.id, {
+    withRoles: ['volunteer'],
+  })
+
+  const onlyVerified = await countReferredUsers(referrer.id, {
+    withPhoneOrEmailVerifiedAs: true,
+  })
+  const onlyVerifiedVolunteers = await countReferredUsers(referrer.id, {
+    withPhoneOrEmailVerifiedAs: true,
+    withRoles: ['volunteer'],
+  })
+
+  expect(onlyStudents).toEqual(1)
+  expect(onlyStudentVolunteers).toEqual(1)
+  expect(onlyVolunteers).toEqual(2)
+
+  expect(onlyVerified).toEqual(1)
+  expect(onlyVerifiedVolunteers).toEqual(1)
 })

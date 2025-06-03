@@ -145,7 +145,7 @@ export function buildUserRow(overrides: Partial<User> = {}): User {
     lastName: getLastName(),
     testUser: false,
     deactivated: false,
-    referralCode: 'ABC',
+    referralCode: faker.string.uuid(),
     createdAt: new Date(),
     updatedAt: new Date(),
     banType: undefined,

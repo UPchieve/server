@@ -38,6 +38,7 @@ describe('processSessionEnded', () => {
     const orderedSteps = [
       mockedSessionFlagsService.processSessionMetrics,
       mockedSessionService.processCalculateMetrics,
+      mockedSessionService.processSessionEditors,
     ]
 
     let previousStepCallOrder = -1
@@ -65,9 +66,6 @@ describe('processSessionEnded', () => {
       mockedIncentiveProgramService.queueFallIncentiveSessionQualificationJob
     ).toHaveBeenCalledWith(sessionId)
     expect(mockedSessionService.processSessionReported).toHaveBeenCalledWith(
-      sessionId
-    )
-    expect(mockedSessionService.processSessionEditors).toHaveBeenCalledWith(
       sessionId
     )
     expect(mockedSessionService.processSessionTranscript).toHaveBeenCalledWith(

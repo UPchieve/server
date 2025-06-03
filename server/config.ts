@@ -398,18 +398,6 @@ const config: Static<typeof Config> = {
   azureContentSafetyBaseUrl:
     process.env.SUBWAY_AZURE_CONTENT_SAFETY_BASE_URL || 'bogus',
 
-  // Tutor bot POC
-  tutorBotApiKey: process.env.TUTOR_BOT_API_KEY || 'bogus',
-  huggingFaceInferenceApiKey:
-    process.env.HUGGING_FACE_INFERENCE_API_KEY || 'bogus',
-  tutorBotBaseUrl: process.env.TUTOR_BOT_BASE_URL || 'bogus',
-  posthogAiTutorBotSubjectModelsFeatureFlagId:
-    process.env.AI_TUTOR_BOT_SUBJECT_MODELS_FEATURE_FLAG_ID || 'bogus',
-  tutorBotHuggingfaceNamespace:
-    process.env.TUTOR_BOT_HUGGINGFACE_NAMESPACE || 'bogus',
-  tutorBotHuggingfaceInstanceName:
-    process.env.TUTOR_BOT_HUGGINGFACE_INSTANCE_NAME || 'bogus',
-
   // Moderation
   liveMediaBanInfractionScoreThreshold:
     Number(process.env.LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,

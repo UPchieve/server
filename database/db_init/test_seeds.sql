@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -263,6 +263,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 2	volunteer	2024-08-28 00:28:43.727419+00	2024-08-28 00:28:43.727419+00
 3	admin	2024-08-28 00:28:43.727767+00	2024-08-28 00:28:43.727767+00
 4	teacher	2024-08-28 00:28:44.179217+00	2024-08-28 00:28:44.179217+00
+5	ambassador	2025-06-02 18:00:23.062561+00	2025-06-02 18:00:23.062561+00
 \.
 
 
@@ -1649,6 +1650,7 @@ COPY upchieve.question_types (id, name, created_at, updated_at) FROM stdin;
 1	multiple choice	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
 2	check box	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
 3	free response	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+4	number	2025-05-23 19:02:00.90109+00	2025-05-23 19:02:00.90109+00
 \.
 
 
@@ -2661,7 +2663,7 @@ COPY upchieve.required_email_domains (id, domain, volunteer_partner_org_id, crea
 -- Data for Name: school_nces_metadata; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.school_nces_metadata (school_id, created_at, updated_at, school_year, fipst, statename, st, sch_name, lea_name, state_agency_no, "union", st_leaid, leaid, st_schid, ncessch, schid, mstreet1, mstreet2, mstreet3, mcity, mstate, mzip, mzip4, lstreet1, lstreet2, lstreet3, lcity, lzip, lzip4, phone, website, sy_status, sy_status_text, updated_status, updated_status_text, effective_date, sch_type, sch_type_text, recon_status, out_of_state_flag, charter_text, chartauth1, chartauthn1, chartauth2, chartauthn2, nogrades, g_pk_offered, g_kg_offered, g_1_offered, g_2_offered, g_3_offered, g_4_offered, g_5_offered, g_6_offered, g_7_offered, g_8_offered, g_9_offered, g_10_offered, g_11_offered, g_12_offered, g_13_offered, g_ug_offered, g_ae_offered, gslo, gshi, level, igoffered, is_school_wide_title1, is_title1_eligible, national_school_lunch_program, total_students, nslp_direct_certification, frl_eligible, title1_school_status) FROM stdin;
+COPY upchieve.school_nces_metadata (school_id, created_at, updated_at, school_year, st, sch_name, lea_name, leaid, ncessch, mcity, mzip, lcity, lzip, gslo, gshi, is_school_wide_title1, is_title1_eligible, national_school_lunch_program, total_students, nslp_direct_certification, frl_eligible, title1_school_status) FROM stdin;
 \.
 
 
@@ -4131,7 +4133,7 @@ SELECT pg_catalog.setval('upchieve.question_tags_id_seq', 1, false);
 -- Name: question_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.question_types_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.question_types_id_seq', 4, true);
 
 
 --
@@ -4271,7 +4273,7 @@ SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
 -- Name: user_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 4, true);
+SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 5, true);
 
 
 --

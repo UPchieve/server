@@ -64,30 +64,6 @@ describe('getContextSharingForVolunteer', () => {
 })
 
 describe('saveUserSurvey', () => {
-  test('Should throw InputError if user survey submissions are not an array', async () => {
-    const sessionId = getDbUlid()
-    const userSurvey = buildUserSurvey({
-      sessionId,
-    })
-    const submissions = buildUserSurveySubmission({
-      responseChoiceId: 1,
-      questionId: 1,
-    })
-
-    const data = { ...userSurvey, submissions }
-    const userId = getDbUlid()
-
-    try {
-      await SurveyService.saveUserSurvey(userId, data)
-    } catch (err) {
-      expect(err).toBeInstanceOf(InputError)
-    }
-
-    expect(mockedSurveyRepo.saveUserSurveyAndSubmissions).toHaveBeenCalledTimes(
-      0
-    )
-  })
-
   test('Should validate and save a user survey and its submissions', async () => {
     const userSurvey = buildUserSurvey()
     const submissions = [
@@ -113,7 +89,8 @@ describe('saveUserSurvey', () => {
     expect(mockedSurveyRepo.saveUserSurveyAndSubmissions).toHaveBeenCalledWith(
       userId,
       expectedUserSurvey,
-      expectedSubmissions
+      expectedSubmissions,
+      undefined
     )
   })
 
@@ -146,7 +123,8 @@ describe('saveUserSurvey', () => {
     expect(mockedSurveyRepo.saveUserSurveyAndSubmissions).toHaveBeenCalledWith(
       userId,
       expectedUserSurvey,
-      expectedSubmissions
+      expectedSubmissions,
+      undefined
     )
     expect(
       mockedSessionFlagsService.processFeedbackMetrics

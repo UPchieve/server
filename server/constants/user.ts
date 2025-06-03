@@ -174,5 +174,6 @@ export const USER_ROLES = <const>{
   VOLUNTEER: 'volunteer',
   ADMIN: 'admin',
   TEACHER: 'teacher',
+  AMBASSADOR: 'ambassador',
 }
 export type USER_ROLES_TYPE = ExtractValues<typeof USER_ROLES>

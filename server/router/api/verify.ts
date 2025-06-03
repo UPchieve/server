@@ -4,7 +4,7 @@ import * as VerificationService from '../../services/VerificationService'
 import logger from '../../logger'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
-import { TwilioError } from '../../models/Errors'
+import { AlreadyInUseError, TwilioError } from '../../models/Errors'
 import { authPassport } from '../../utils/auth-utils'
 import { Request, Response } from 'express'
 
@@ -39,6 +39,9 @@ const sendVerificationCommon = async (
         message =
           "You've made too many attempts for a verification code. Please wait 10 minutes before requesting a new one."
       }
+    } else if (err instanceof AlreadyInUseError) {
+      message = err.message
+      status = 400
     }
 
     resError(res, new Error(message), status)

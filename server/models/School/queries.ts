@@ -22,10 +22,7 @@ import {
   deactivateSchoolStudentPartnerOrgs,
   StudentPartnerOrg,
 } from '../StudentPartnerOrg'
-import {
-  FormattedSchoolNcesMetadataRecord,
-  SCHOOL_RECORD_TRUE_VALUE,
-} from '../../scripts/upsert-schools'
+import { FormattedSchoolNcesMetadataRecord } from '../../scripts/upsert-schools'
 import { asNumber } from '../../utils/type-utils'
 import { toTitleCase } from '../../utils/string-utils'
 import logger from '../../logger'

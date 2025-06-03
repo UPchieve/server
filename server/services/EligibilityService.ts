@@ -12,6 +12,7 @@ import { CustomError } from 'ts-custom-error'
 import { School } from '../models/School'
 import { ZipCode } from '../models/ZipCode'
 import config from '../config'
+import { InputError } from '../models/Errors'
 
 type CheckEligibilityPayload = {
   email: string
@@ -82,6 +83,9 @@ export async function checkEligibility(
   const zipCode = zipCodeInput
     ? await getZipCodeByZipCode(zipCodeInput)
     : undefined
+  if (zipCodeInput && !zipCode) {
+    throw new InputError('You must enter a valid United States zip code.')
+  }
 
   const isEligibleBySchool = isSchoolApproved(school)
   const isEligibleByZipCode = isZipCodeEligible(zipCode)

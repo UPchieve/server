@@ -104,7 +104,6 @@ export async function initiateVerification(data: unknown): Promise<void> {
   }
 
   const isPhoneVerification = verificationMethod === VERIFICATION_METHOD.SMS
-  let existingUserErrorMessage: string
   let existingUserId: Ulid | undefined
 
   if (isPhoneVerification) {
