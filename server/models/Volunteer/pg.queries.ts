@@ -3681,3 +3681,73 @@ const getActiveSponsorshipsByUserIdIR: any = {"usedParamSet":{"userId":true},"pa
 export const getActiveSponsorshipsByUserId = new PreparedQuery<IGetActiveSponsorshipsByUserIdParams,IGetActiveSponsorshipsByUserIdResult>(getActiveSponsorshipsByUserIdIR);
 
 
+/** 'GetVolunteerSubjects' parameters type */
+export interface IGetVolunteerSubjectsParams {
+  userId: string;
+}
+
+/** 'GetVolunteerSubjects' return type */
+export interface IGetVolunteerSubjectsResult {
+  active: boolean;
+  name: string;
+}
+
+/** 'GetVolunteerSubjects' query type */
+export interface IGetVolunteerSubjectsQuery {
+  params: IGetVolunteerSubjectsParams;
+  result: IGetVolunteerSubjectsResult;
+}
+
+const getVolunteerSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":191}]}],"statement":"SELECT\n    subjects.name,\n    subjects.active\nFROM\n    users_subjects_mview\n    JOIN subjects ON subjects.id = users_subjects_mview.subject_id\nWHERE\n    users_subjects_mview.user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name,
+ *     subjects.active
+ * FROM
+ *     users_subjects_mview
+ *     JOIN subjects ON subjects.id = users_subjects_mview.subject_id
+ * WHERE
+ *     users_subjects_mview.user_id = :userId!
+ * ```
+ */
+export const getVolunteerSubjects = new PreparedQuery<IGetVolunteerSubjectsParams,IGetVolunteerSubjectsResult>(getVolunteerSubjectsIR);
+
+
+/** 'GetVolunteerMutedSubjects' parameters type */
+export interface IGetVolunteerMutedSubjectsParams {
+  userId: string;
+}
+
+/** 'GetVolunteerMutedSubjects' return type */
+export interface IGetVolunteerMutedSubjectsResult {
+  active: boolean;
+  name: string;
+}
+
+/** 'GetVolunteerMutedSubjects' query type */
+export interface IGetVolunteerMutedSubjectsQuery {
+  params: IGetVolunteerMutedSubjectsParams;
+  result: IGetVolunteerMutedSubjectsResult;
+}
+
+const getVolunteerMutedSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":202,"b":209}]}],"statement":"SELECT\n    subjects.name,\n    subjects.active\nFROM\n    muted_users_subject_alerts\n    JOIN subjects ON subjects.id = muted_users_subject_alerts.subject_id\nWHERE\n    muted_users_subject_alerts.user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name,
+ *     subjects.active
+ * FROM
+ *     muted_users_subject_alerts
+ *     JOIN subjects ON subjects.id = muted_users_subject_alerts.subject_id
+ * WHERE
+ *     muted_users_subject_alerts.user_id = :userId!
+ * ```
+ */
+export const getVolunteerMutedSubjects = new PreparedQuery<IGetVolunteerMutedSubjectsParams,IGetVolunteerMutedSubjectsResult>(getVolunteerMutedSubjectsIR);
+
+
