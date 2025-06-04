@@ -14,6 +14,7 @@ import { extractUser } from '../extract-user'
 import { asNumber, asString, asUlid } from '../../utils/type-utils'
 import multer from 'multer'
 import * as SessionMeetingService from '../../services/SessionMeetingService'
+import { asSaveUserSurveyAndSubmissions } from '../../services/SurveyService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -30,9 +31,31 @@ export function routeSession(router: Router) {
         userAgent: req.get('User-Agent'),
         ip: req.ip,
       })
-      const session = await SessionService.startSession(user, sessionData)
+      const presessionSurvey = req.body.presessionSurvey
+        ? asSaveUserSurveyAndSubmissions(req.body.presessionSurvey)
+        : undefined
+      const session = await SessionService.startSession(user, {
+        ...sessionData,
+        presessionSurvey,
+      })
       // For legacy (mobile), we still need to just return the sessionId.
       res.json({ sessionId: session.id, session })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.route('/session/join').post(async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const sessionId = asUlid(req.body.sessionId)
+      const joinedFrom = asString(req.body.joinedFrom)
+      const session = await SessionService.joinSession(user, sessionId, {
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        joinedFrom,
+      })
+      res.json({ session })
     } catch (error) {
       resError(res, error)
     }
@@ -59,6 +82,7 @@ export function routeSession(router: Router) {
     }
   })
 
+  // TODO: Remove once no longer have legacy mobile app.
   router.route('/session/check').post(async function (req, res) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))

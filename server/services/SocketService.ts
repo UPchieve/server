@@ -1,14 +1,19 @@
-import { Ulid } from '../models/pgUtils'
-import socketio from 'socket.io'
+import socketio, { Socket } from 'socket.io'
+import { difference, intersection } from 'lodash'
+import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
-import { CurrentSession, getCurrentSessionBySessionId } from '../models/Session'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { addDocEditorVersionTo } from './SessionService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 import { TransactionClient } from '../db'
+import * as SessionService from '../services/SessionService'
+import { backOff } from 'exponential-backoff'
+import { UserContactInfo } from '../models/User'
 
+// TODO: Remove class wrapper.
 class SocketService {
   private static instance: SocketService
   private io: socketio.Server
@@ -26,23 +31,62 @@ class SocketService {
     return SocketService.instance
   }
 
-  /**
-   * Get session data to send to client for a given session ID
-   * @param sessionId
-   * @returns the session object
-   */
-  private async getSessionData(
-    sessionId: Ulid,
-    tc?: TransactionClient
-  ): Promise<CurrentSession> {
-    // Replaced by getCurrentSessionBySessionId
-    const populatedSession = await getCurrentSessionBySessionId(sessionId, tc)
+  async joinSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
+    try {
+      await SessionService.ensureCanJoinSession(user, sessionId)
+    } catch (error) {
+      delete socket.data.sessionId
+      throw error
+    }
 
-    if (populatedSession) return populatedSession
-    else throw new Error(`Session data for ${sessionId} not found`)
+    const sessionRoom = getSessionRoom(sessionId)
+    await socket.join(sessionRoom)
+    socket.data.sessionId = sessionId
+
+    await this.emitSessionChange(sessionId)
+    await this.emitSessionPresence(user.id, sessionRoom, true)
   }
 
-  async updateSessionList(): Promise<void> {
+  async leaveSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
+    const sessionRoom = getSessionRoom(sessionId)
+    await socket.leave(sessionRoom)
+    delete socket.data.sessionId
+
+    await this.emitSessionPresence(user.id, sessionRoom, false)
+  }
+
+  async emitSessionPresence(
+    userId: string,
+    roomName: string,
+    hasJoined: boolean
+  ) {
+    const sessionSocketIds = await this.getAllSocketIdsInRoom(roomName)
+    const userSocketIds = await this.getAllSocketIdsInRoom(userId)
+
+    if (hasJoined) {
+      // Emit to self if partner is connected to the session or not.
+      // If there are any sockets in the session room that are not this user's,
+      // we can assume the partner is in the room.
+      const partnerSocketsInSession = difference(
+        sessionSocketIds,
+        userSocketIds
+      )
+      this.io
+        .to(userId)
+        .emit('sessions/partner:in-session', !!partnerSocketsInSession.length)
+    }
+
+    // Emit to partner whether in the room.
+    // If there are any sockets in the session for this user, they are in
+    // the room.
+    const userSocketsInSession = intersection(sessionSocketIds, userSocketIds)
+    this.io
+      .to(roomName)
+      .except(userId)
+      .emit('sessions/partner:in-session', !!userSocketsInSession.length)
+  }
+
+  private async updateSessionList(): Promise<void> {
     const sessions = await getUnfulfilledSessions()
     this.io.in('volunteers').emit('sessions', sessions)
   }
@@ -51,7 +95,7 @@ class SocketService {
     sessionId: Ulid,
     tc?: TransactionClient
   ): Promise<void> {
-    const session = await this.getSessionData(sessionId, tc)
+    const session = await SessionService.getSessionWithAllDetails(sessionId, tc)
     await addDocEditorVersionTo(session)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
@@ -61,23 +105,6 @@ class SocketService {
   async emitTutorBotMessage(sessionId: Ulid, messageData: any): Promise<void> {
     const socketRoom = getSessionRoom(sessionId)
     this.io.in(socketRoom).emit('tutorBotConversationMessage', messageData)
-  }
-
-  bump(
-    socket: socketio.Socket,
-    data: {
-      endedAt?: Date
-      volunteer?: Ulid
-      student: Ulid
-      sessionId: Ulid
-      userId: Ulid
-    },
-    err: Error
-  ): void {
-    logger.error(
-      `User ${data.userId} could not join session ${data.sessionId}: ${err}`
-    )
-    socket.emit('bump', data, err.toString())
   }
 
   async emitProgressReportProcessedToUser(
@@ -117,6 +144,43 @@ class SocketService {
     }
   ): Promise<void> {
     this.io.to(userId).emit('moderation-infraction', data)
+  }
+
+  // TODO: Remove once no longer have legacy mobile app.
+  bump(
+    socket: socketio.Socket,
+    data: {
+      endedAt?: Date
+      volunteer?: Ulid
+      student: Ulid
+      sessionId: Ulid
+      userId: Ulid
+    },
+    err: Error
+  ): void {
+    logger.error(
+      `User ${data.userId} could not join session ${data.sessionId}: ${err}`
+    )
+    socket.emit('bump', data, err.toString())
+  }
+
+  private async getAllSocketIdsInRoom(roomName: string): Promise<string[]> {
+    const sockets = await this.getAllSocketsInRoom(roomName)
+    return sockets.map((socket) => socket.id)
+  }
+
+  private async getAllSocketsInRoom(
+    roomName: string
+  ): Promise<RemoteSocket<any, any>[]> {
+    try {
+      const sockets = await backOff(() => this.io.in(roomName).fetchSockets())
+      return sockets
+    } catch (error) {
+      logger.error(error, 'Failed to fetch sockets.', {
+        roomName,
+      })
+      return []
+    }
   }
 }
 

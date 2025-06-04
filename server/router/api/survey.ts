@@ -9,7 +9,6 @@ import {
   getContextSharingForVolunteer,
   getLatestImpactStudySurveyResponses,
   parseUserRole,
-  saveUserSurvey,
   getImpactSurveyDefinition,
 } from '../../services/SurveyService'
 import * as SurveyService from '../../services/SurveyService'
@@ -19,18 +18,10 @@ import { resError } from '../res-error'
 
 export function routeSurvey(router: expressWs.Router): void {
   router.post('/survey/save', async (req, res) => {
-    const user = extractUser(req)
-    const { surveyId, surveyTypeId, sessionId, progressReportId, submissions } =
-      req.body
-    const data = {
-      surveyId,
-      surveyTypeId,
-      sessionId,
-      progressReportId,
-      submissions,
-    }
     try {
-      await saveUserSurvey(user.id, data as unknown)
+      const user = extractUser(req)
+      const data = SurveyService.asSaveUserSurveyAndSubmissions(req.body)
+      await SurveyService.saveUserSurvey(user.id, data)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)

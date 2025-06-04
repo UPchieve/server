@@ -1,8 +1,8 @@
 import { REFERENCE_STATUS, TRAINING } from '../../constants'
-import { Ulid } from '../pgUtils'
+import { Uuid } from '../pgUtils'
 
 export interface Reference {
-  id: Ulid
+  id: Uuid
   firstName: string
   lastName: string
   createdAt: Date
@@ -35,7 +35,7 @@ export type Quizzes = {
 }
 
 export type UserQuiz = {
-  userId: Ulid
+  userId: Uuid
   quizId: number
   attempts: number
   passed: boolean
@@ -50,7 +50,7 @@ export type TrainingCourseData = {
 }
 
 export type UserTrainingCourse = TrainingCourseData & {
-  userId: Ulid
+  userId: Uuid
   trainingCourseId: number
   createdAt: Date
   updatedAt: Date
@@ -72,7 +72,7 @@ export type UniqueStudentsHelped = {
 }
 
 export type VolunteersForAnalyticsReport = {
-  userId: Ulid
+  userId: Uuid
   firstName: string
   lastName: string
   email: string
@@ -93,7 +93,12 @@ export type VolunteersForAnalyticsReport = {
 } & UniqueStudentsHelped
 
 export type Sponsorship = {
-  id: Ulid
+  id: Uuid
   name: string
   key: string
+}
+
+export type VolunteerSubject = {
+  name: string
+  active: boolean
 }

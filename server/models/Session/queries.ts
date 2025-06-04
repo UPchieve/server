@@ -758,6 +758,8 @@ export async function getMessageInfoByMessageId(
   }
 }
 
+// TODO: Rename method name. What does `current` have to do
+// with it?
 export async function getCurrentSessionBySessionId(
   sessionId: Ulid,
   tc: TransactionClient = getClient()
@@ -776,6 +778,7 @@ export async function getCurrentSessionBySessionId(
       'studentBannedFromLiveMedia',
       'volunteerLanguages',
     ])
+    // TODO: Move to service.
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
       session.id,
