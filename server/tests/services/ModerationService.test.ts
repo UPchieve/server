@@ -14,7 +14,7 @@ import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
-import { openai } from '../../services/BotsService'
+import { openai } from '../../services/OpenAIService'
 import * as LangfuseService from '../../services/LangfuseService'
 import { timeLimit } from '../../utils/time-limit'
 import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
@@ -27,7 +27,7 @@ jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
     openai: {
       chat: {
