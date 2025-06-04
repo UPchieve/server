@@ -979,14 +979,6 @@ function test({ regex, message }: { regex: RegExp; message: string }) {
   return results
 }
 
-function formatAiResponse(response: {
-  message: string
-  appropriate: boolean
-  reasons: string[]
-}) {
-  return response.appropriate ? {} : response.reasons
-}
-
 export type RegexModerationResult = {
   isClean: boolean
   failures: ModerationFailureReasons
