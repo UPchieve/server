@@ -4,33 +4,9 @@ import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   ImpactStudyCampaign,
-  ImpactStudyCampaignsMap,
   PublicUserProductFlags,
   UserProductFlags,
 } from './types'
-
-export function toImpactStudyCampaignsMap(
-  campaigns: unknown
-): ImpactStudyCampaignsMap | undefined {
-  if (!campaigns) return undefined
-
-  return typeof campaigns === 'object' &&
-    campaigns !== null &&
-    !Array.isArray(campaigns)
-    ? (campaigns as ImpactStudyCampaignsMap)
-    : undefined
-}
-
-export function toUserProductFlags(
-  upf: Omit<UserProductFlags, 'impactStudyCampaigns'> & {
-    impactStudyCampaigns: unknown
-  }
-): UserProductFlags {
-  return {
-    ...upf,
-    impactStudyCampaigns: toImpactStudyCampaignsMap(upf.impactStudyCampaigns),
-  } as UserProductFlags
-}
 
 export async function createUPFByUserId(
   userId: Ulid,
@@ -50,7 +26,7 @@ export async function createUPFByUserId(
         'tellThemCollegePrepModalSeenAt',
         'impactStudyCampaigns',
       ])
-      return toUserProductFlags(upf)
+      return upf as UserProductFlags
     }
     throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
@@ -76,7 +52,7 @@ export async function getUPFByUserId(
         'tellThemCollegePrepModalSeenAt',
         'impactStudyCampaigns',
       ])
-      return toUserProductFlags(upf)
+      return upf as UserProductFlags
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -101,12 +77,7 @@ export async function getPublicUPFByUserId(
         'tellThemCollegePrepModalSeenAt',
         'impactStudyCampaigns',
       ])
-      return {
-        ...upf,
-        impactStudyCampaigns: toImpactStudyCampaignsMap(
-          upf.impactStudyCampaigns
-        ),
-      }
+      return upf as UserProductFlags
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -221,6 +192,9 @@ export async function upsertImpactStudyCampaign(
         campaignData: {
           ...campaign,
           createdAt: campaign.createdAt.toISOString(),
+          submittedAt: campaign.submittedAt
+            ? campaign.submittedAt.toISOString()
+            : null,
         },
       },
       getClient()
