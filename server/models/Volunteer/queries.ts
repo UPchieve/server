@@ -13,16 +13,17 @@ import {
   getDbUlid,
   generateReferralCode,
   makeSomeRequired,
+  Uuid,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
-  QuizInfo,
   Quizzes,
   Sponsorship,
   UserTrainingCourse,
   VolunteersForAnalyticsReport,
+  VolunteerSubject,
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
@@ -1807,6 +1808,38 @@ export async function getActiveSponsorshipsByUserId(
       tc
     )
     return result.map((v) => makeRequired(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerSubjects(
+  userId: Uuid,
+  tc?: TransactionClient
+): Promise<VolunteerSubject[]> {
+  try {
+    const result = await pgQueries.getVolunteerSubjects.run(
+      { userId },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map((row) => makeRequired(row))
+    return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerMutedSubjects(
+  userId: Uuid,
+  tc?: TransactionClient
+): Promise<VolunteerSubject[]> {
+  try {
+    const result = await pgQueries.getVolunteerMutedSubjects.run(
+      { userId },
+      tc ?? getClient()
+    )
+    if (result.length) return result.map((row) => makeRequired(row))
+    return []
   } catch (err) {
     throw new RepoReadError(err)
   }

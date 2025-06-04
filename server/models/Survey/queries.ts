@@ -1,4 +1,4 @@
-import { getClient, getRoClient } from '../../db'
+import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -18,12 +18,10 @@ import { asNumber } from '../../utils/type-utils'
 export async function saveUserSurveyAndSubmissions(
   userId: Ulid,
   surveyData: SaveUserSurvey,
-  submissions: SaveUserSurveySubmission[]
+  submissions: SaveUserSurveySubmission[],
+  tc: TransactionClient = getClient()
 ): Promise<void> {
-  const client = await getClient().connect()
   try {
-    await client.query('BEGIN')
-
     const result = await pgQueries.saveUserSurvey.run(
       {
         surveyId: surveyData.surveyId,
@@ -32,7 +30,7 @@ export async function saveUserSurveyAndSubmissions(
         progressReportId: surveyData.progressReportId ?? undefined,
         surveyTypeId: surveyData.surveyTypeId,
       },
-      getClient()
+      tc
     )
     if (!result.length) {
       throw new RepoCreateError('Error upserting user survey')
@@ -53,7 +51,7 @@ export async function saveUserSurveyAndSubmissions(
             ? submission.openResponse
             : undefined,
         },
-        client
+        tc
       )
       if (!result.length && makeRequired(result[0]).ok)
         errors.push(
@@ -63,12 +61,8 @@ export async function saveUserSurveyAndSubmissions(
         )
     }
     if (errors.length) throw new RepoReadError(errors.join('\n'))
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 

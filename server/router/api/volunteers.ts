@@ -87,4 +87,13 @@ export function routeVolunteers(router: Router): void {
       res.json({ err: (error as Error).message })
     }
   })
+
+  router.get('/volunteers/presence', async function (req, res) {
+    try {
+      const presenceBySubject = await VolunteerService.getSubjectPresence()
+      res.json({ presenceBySubject })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

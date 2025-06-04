@@ -540,50 +540,22 @@ export const createSchool = new PreparedQuery<ICreateSchoolParams,ICreateSchoolR
 
 /** 'CreateSchoolMetadata' parameters type */
 export interface ICreateSchoolMetadataParams {
-  effective_date?: string | null | void;
   frl_eligible?: number | null | void;
-  g_1_offered?: string | null | void;
-  g_10_offered?: string | null | void;
-  g_11_offered?: string | null | void;
-  g_12_offered?: string | null | void;
-  g_13_offered?: string | null | void;
-  g_2_offered?: string | null | void;
-  g_3_offered?: string | null | void;
-  g_4_offered?: string | null | void;
-  g_5_offered?: string | null | void;
-  g_6_offered?: string | null | void;
-  g_7_offered?: string | null | void;
-  g_8_offered?: string | null | void;
-  g_9_offered?: string | null | void;
-  g_ae_offered?: string | null | void;
-  g_kg_offered?: string | null | void;
-  g_pk_offered?: string | null | void;
-  g_ug_offered?: string | null | void;
   gshi?: string | null | void;
   gslo?: string | null | void;
-  is_school_wide_title1?: boolean | null | void;
   lcity?: string | null | void;
   lea_name?: string | null | void;
-  level?: string | null | void;
   lzip?: string | null | void;
   mcity?: string | null | void;
-  mstate?: string | null | void;
   mzip?: string | null | void;
   national_school_lunch_program?: string | null | void;
   ncessch: string;
-  nogrades?: string | null | void;
   nslp_direct_certification?: number | null | void;
-  phone?: string | null | void;
   sch_name?: string | null | void;
-  sch_type_text?: string | null | void;
   school_id: string;
   school_year?: string | null | void;
   st?: string | null | void;
-  sy_status_text?: string | null | void;
-  title1_school_status?: string | null | void;
   total_students?: number | null | void;
-  updated_status_text?: string | null | void;
-  website?: string | null | void;
 }
 
 /** 'CreateSchoolMetadata' return type */
@@ -595,13 +567,13 @@ export interface ICreateSchoolMetadataQuery {
   result: ICreateSchoolMetadataResult;
 }
 
-const createSchoolMetadataIR: any = {"usedParamSet":{"school_id":true,"ncessch":true,"school_year":true,"st":true,"sch_name":true,"lea_name":true,"lcity":true,"lzip":true,"mcity":true,"mstate":true,"mzip":true,"phone":true,"website":true,"sy_status_text":true,"updated_status_text":true,"effective_date":true,"sch_type_text":true,"nogrades":true,"g_pk_offered":true,"g_kg_offered":true,"g_1_offered":true,"g_2_offered":true,"g_3_offered":true,"g_4_offered":true,"g_5_offered":true,"g_6_offered":true,"g_7_offered":true,"g_8_offered":true,"g_9_offered":true,"g_10_offered":true,"g_11_offered":true,"g_12_offered":true,"g_13_offered":true,"g_ug_offered":true,"g_ae_offered":true,"gslo":true,"gshi":true,"level":true,"total_students":true,"is_school_wide_title1":true,"title1_school_status":true,"national_school_lunch_program":true,"nslp_direct_certification":true,"frl_eligible":true},"params":[{"name":"school_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":612,"b":622}]},{"name":"ncessch","required":true,"transform":{"type":"scalar"},"locs":[{"a":625,"b":633}]},{"name":"school_year","required":false,"transform":{"type":"scalar"},"locs":[{"a":636,"b":647}]},{"name":"st","required":false,"transform":{"type":"scalar"},"locs":[{"a":650,"b":652}]},{"name":"sch_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":655,"b":663}]},{"name":"lea_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":666,"b":674}]},{"name":"lcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":677,"b":682}]},{"name":"lzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":685,"b":689}]},{"name":"mcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":692,"b":697}]},{"name":"mstate","required":false,"transform":{"type":"scalar"},"locs":[{"a":700,"b":706}]},{"name":"mzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":709,"b":713}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":716,"b":721}]},{"name":"website","required":false,"transform":{"type":"scalar"},"locs":[{"a":724,"b":731}]},{"name":"sy_status_text","required":false,"transform":{"type":"scalar"},"locs":[{"a":734,"b":748}]},{"name":"updated_status_text","required":false,"transform":{"type":"scalar"},"locs":[{"a":751,"b":770}]},{"name":"effective_date","required":false,"transform":{"type":"scalar"},"locs":[{"a":773,"b":787}]},{"name":"sch_type_text","required":false,"transform":{"type":"scalar"},"locs":[{"a":790,"b":803}]},{"name":"nogrades","required":false,"transform":{"type":"scalar"},"locs":[{"a":806,"b":814}]},{"name":"g_pk_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":817,"b":829}]},{"name":"g_kg_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":832,"b":844}]},{"name":"g_1_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":847,"b":858}]},{"name":"g_2_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":861,"b":872}]},{"name":"g_3_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":875,"b":886}]},{"name":"g_4_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":889,"b":900}]},{"name":"g_5_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":903,"b":914}]},{"name":"g_6_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":917,"b":928}]},{"name":"g_7_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":931,"b":942}]},{"name":"g_8_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":945,"b":956}]},{"name":"g_9_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":959,"b":970}]},{"name":"g_10_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":973,"b":985}]},{"name":"g_11_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":988,"b":1000}]},{"name":"g_12_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":1003,"b":1015}]},{"name":"g_13_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":1018,"b":1030}]},{"name":"g_ug_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":1033,"b":1045}]},{"name":"g_ae_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":1048,"b":1060}]},{"name":"gslo","required":false,"transform":{"type":"scalar"},"locs":[{"a":1063,"b":1067}]},{"name":"gshi","required":false,"transform":{"type":"scalar"},"locs":[{"a":1070,"b":1074}]},{"name":"level","required":false,"transform":{"type":"scalar"},"locs":[{"a":1077,"b":1082}]},{"name":"total_students","required":false,"transform":{"type":"scalar"},"locs":[{"a":1085,"b":1099}]},{"name":"is_school_wide_title1","required":false,"transform":{"type":"scalar"},"locs":[{"a":1102,"b":1123}]},{"name":"title1_school_status","required":false,"transform":{"type":"scalar"},"locs":[{"a":1126,"b":1146}]},{"name":"national_school_lunch_program","required":false,"transform":{"type":"scalar"},"locs":[{"a":1149,"b":1178}]},{"name":"nslp_direct_certification","required":false,"transform":{"type":"scalar"},"locs":[{"a":1181,"b":1206}]},{"name":"frl_eligible","required":false,"transform":{"type":"scalar"},"locs":[{"a":1209,"b":1221}]}],"statement":"INSERT INTO school_nces_metadata (school_id, ncessch, school_year, st, sch_name, lea_name, lcity, lzip, mcity, mstate, mzip, phone, website, sy_status_text, updated_status_text, effective_date, sch_type_text, nogrades, g_pk_offered, g_kg_offered, g_1_offered, g_2_offered, g_3_offered, g_4_offered, g_5_offered, g_6_offered, g_7_offered, g_8_offered, g_9_offered, g_10_offered, g_11_offered, g_12_offered, g_13_offered, g_ug_offered, g_ae_offered, gslo, gshi, level, total_students, is_school_wide_title1, title1_school_status, national_school_lunch_program, nslp_direct_certification, frl_eligible)\n    VALUES (:school_id!, :ncessch!, :school_year, :st, :sch_name, :lea_name, :lcity, :lzip, :mcity, :mstate, :mzip, :phone, :website, :sy_status_text, :updated_status_text, :effective_date, :sch_type_text, :nogrades, :g_pk_offered, :g_kg_offered, :g_1_offered, :g_2_offered, :g_3_offered, :g_4_offered, :g_5_offered, :g_6_offered, :g_7_offered, :g_8_offered, :g_9_offered, :g_10_offered, :g_11_offered, :g_12_offered, :g_13_offered, :g_ug_offered, :g_ae_offered, :gslo, :gshi, :level, :total_students, :is_school_wide_title1, :title1_school_status, :national_school_lunch_program, :nslp_direct_certification, :frl_eligible)"};
+const createSchoolMetadataIR: any = {"usedParamSet":{"school_id":true,"ncessch":true,"school_year":true,"st":true,"sch_name":true,"lea_name":true,"lcity":true,"lzip":true,"mcity":true,"mzip":true,"gslo":true,"gshi":true,"total_students":true,"national_school_lunch_program":true,"nslp_direct_certification":true,"frl_eligible":true},"params":[{"name":"school_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":239}]},{"name":"ncessch","required":true,"transform":{"type":"scalar"},"locs":[{"a":242,"b":250}]},{"name":"school_year","required":false,"transform":{"type":"scalar"},"locs":[{"a":253,"b":264}]},{"name":"st","required":false,"transform":{"type":"scalar"},"locs":[{"a":267,"b":269}]},{"name":"sch_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":272,"b":280}]},{"name":"lea_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":283,"b":291}]},{"name":"lcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":294,"b":299}]},{"name":"lzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":302,"b":306}]},{"name":"mcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":309,"b":314}]},{"name":"mzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":317,"b":321}]},{"name":"gslo","required":false,"transform":{"type":"scalar"},"locs":[{"a":324,"b":328}]},{"name":"gshi","required":false,"transform":{"type":"scalar"},"locs":[{"a":331,"b":335}]},{"name":"total_students","required":false,"transform":{"type":"scalar"},"locs":[{"a":338,"b":352}]},{"name":"national_school_lunch_program","required":false,"transform":{"type":"scalar"},"locs":[{"a":355,"b":384}]},{"name":"nslp_direct_certification","required":false,"transform":{"type":"scalar"},"locs":[{"a":387,"b":412}]},{"name":"frl_eligible","required":false,"transform":{"type":"scalar"},"locs":[{"a":415,"b":427}]}],"statement":"INSERT INTO school_nces_metadata (school_id, ncessch, school_year, st, sch_name, lea_name, lcity, lzip, mcity, mzip, gslo, gshi, total_students, national_school_lunch_program, nslp_direct_certification, frl_eligible)\n    VALUES (:school_id!, :ncessch!, :school_year, :st, :sch_name, :lea_name, :lcity, :lzip, :mcity, :mzip, :gslo, :gshi, :total_students, :national_school_lunch_program, :nslp_direct_certification, :frl_eligible)"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO school_nces_metadata (school_id, ncessch, school_year, st, sch_name, lea_name, lcity, lzip, mcity, mstate, mzip, phone, website, sy_status_text, updated_status_text, effective_date, sch_type_text, nogrades, g_pk_offered, g_kg_offered, g_1_offered, g_2_offered, g_3_offered, g_4_offered, g_5_offered, g_6_offered, g_7_offered, g_8_offered, g_9_offered, g_10_offered, g_11_offered, g_12_offered, g_13_offered, g_ug_offered, g_ae_offered, gslo, gshi, level, total_students, is_school_wide_title1, title1_school_status, national_school_lunch_program, nslp_direct_certification, frl_eligible)
- *     VALUES (:school_id!, :ncessch!, :school_year, :st, :sch_name, :lea_name, :lcity, :lzip, :mcity, :mstate, :mzip, :phone, :website, :sy_status_text, :updated_status_text, :effective_date, :sch_type_text, :nogrades, :g_pk_offered, :g_kg_offered, :g_1_offered, :g_2_offered, :g_3_offered, :g_4_offered, :g_5_offered, :g_6_offered, :g_7_offered, :g_8_offered, :g_9_offered, :g_10_offered, :g_11_offered, :g_12_offered, :g_13_offered, :g_ug_offered, :g_ae_offered, :gslo, :gshi, :level, :total_students, :is_school_wide_title1, :title1_school_status, :national_school_lunch_program, :nslp_direct_certification, :frl_eligible)
+ * INSERT INTO school_nces_metadata (school_id, ncessch, school_year, st, sch_name, lea_name, lcity, lzip, mcity, mzip, gslo, gshi, total_students, national_school_lunch_program, nslp_direct_certification, frl_eligible)
+ *     VALUES (:school_id!, :ncessch!, :school_year, :st, :sch_name, :lea_name, :lcity, :lzip, :mcity, :mzip, :gslo, :gshi, :total_students, :national_school_lunch_program, :nslp_direct_certification, :frl_eligible)
  * ```
  */
 export const createSchoolMetadata = new PreparedQuery<ICreateSchoolMetadataParams,ICreateSchoolMetadataResult>(createSchoolMetadataIR);
@@ -609,49 +581,21 @@ export const createSchoolMetadata = new PreparedQuery<ICreateSchoolMetadataParam
 
 /** 'UpdateSchoolMetadata' parameters type */
 export interface IUpdateSchoolMetadataParams {
-  effective_date?: string | null | void;
   frl_eligible?: number | null | void;
-  g_1_offered?: string | null | void;
-  g_10_offered?: string | null | void;
-  g_11_offered?: string | null | void;
-  g_12_offered?: string | null | void;
-  g_13_offered?: string | null | void;
-  g_2_offered?: string | null | void;
-  g_3_offered?: string | null | void;
-  g_4_offered?: string | null | void;
-  g_5_offered?: string | null | void;
-  g_6_offered?: string | null | void;
-  g_7_offered?: string | null | void;
-  g_8_offered?: string | null | void;
-  g_9_offered?: string | null | void;
-  g_ae_offered?: string | null | void;
-  g_kg_offered?: string | null | void;
-  g_pk_offered?: string | null | void;
-  g_ug_offered?: string | null | void;
   gshi?: string | null | void;
   gslo?: string | null | void;
-  is_school_wide_title1?: boolean | null | void;
   lcity?: string | null | void;
   lea_name?: string | null | void;
-  level?: string | null | void;
   lzip?: string | null | void;
   mcity?: string | null | void;
-  mstate?: string | null | void;
   mzip?: string | null | void;
   national_school_lunch_program?: string | null | void;
-  nogrades?: string | null | void;
   nslp_direct_certification?: number | null | void;
-  phone?: string | null | void;
   sch_name?: string | null | void;
-  sch_type_text?: string | null | void;
   school_id: string;
   school_year: string;
   st?: string | null | void;
-  sy_status_text?: string | null | void;
-  title1_school_status?: string | null | void;
   total_students?: number | null | void;
-  updated_status_text?: string | null | void;
-  website?: string | null | void;
 }
 
 /** 'UpdateSchoolMetadata' return type */
@@ -663,7 +607,7 @@ export interface IUpdateSchoolMetadataQuery {
   result: IUpdateSchoolMetadataResult;
 }
 
-const updateSchoolMetadataIR: any = {"usedParamSet":{"school_year":true,"st":true,"sch_name":true,"lea_name":true,"lcity":true,"lzip":true,"mcity":true,"mstate":true,"mzip":true,"phone":true,"website":true,"sy_status_text":true,"updated_status_text":true,"effective_date":true,"sch_type_text":true,"nogrades":true,"g_pk_offered":true,"g_kg_offered":true,"g_1_offered":true,"g_2_offered":true,"g_3_offered":true,"g_4_offered":true,"g_5_offered":true,"g_6_offered":true,"g_7_offered":true,"g_8_offered":true,"g_9_offered":true,"g_10_offered":true,"g_11_offered":true,"g_12_offered":true,"g_13_offered":true,"g_ug_offered":true,"g_ae_offered":true,"gslo":true,"gshi":true,"level":true,"total_students":true,"is_school_wide_title1":true,"title1_school_status":true,"national_school_lunch_program":true,"nslp_direct_certification":true,"frl_eligible":true,"school_id":true},"params":[{"name":"school_year","required":true,"transform":{"type":"scalar"},"locs":[{"a":54,"b":66}]},{"name":"st","required":false,"transform":{"type":"scalar"},"locs":[{"a":78,"b":80}]},{"name":"sch_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":98,"b":106}]},{"name":"lea_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":124,"b":132}]},{"name":"lcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":147,"b":152}]},{"name":"lzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":166,"b":170}]},{"name":"mcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":185,"b":190}]},{"name":"mstate","required":false,"transform":{"type":"scalar"},"locs":[{"a":206,"b":212}]},{"name":"mzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":226,"b":230}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":245,"b":250}]},{"name":"website","required":false,"transform":{"type":"scalar"},"locs":[{"a":267,"b":274}]},{"name":"sy_status_text","required":false,"transform":{"type":"scalar"},"locs":[{"a":298,"b":312}]},{"name":"updated_status_text","required":false,"transform":{"type":"scalar"},"locs":[{"a":341,"b":360}]},{"name":"effective_date","required":false,"transform":{"type":"scalar"},"locs":[{"a":384,"b":398}]},{"name":"sch_type_text","required":false,"transform":{"type":"scalar"},"locs":[{"a":421,"b":434}]},{"name":"nogrades","required":false,"transform":{"type":"scalar"},"locs":[{"a":452,"b":460}]},{"name":"g_pk_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":482,"b":494}]},{"name":"g_kg_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":516,"b":528}]},{"name":"g_1_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":549,"b":560}]},{"name":"g_2_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":581,"b":592}]},{"name":"g_3_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":613,"b":624}]},{"name":"g_4_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":645,"b":656}]},{"name":"g_5_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":677,"b":688}]},{"name":"g_6_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":709,"b":720}]},{"name":"g_7_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":741,"b":752}]},{"name":"g_8_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":773,"b":784}]},{"name":"g_9_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":805,"b":816}]},{"name":"g_10_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":838,"b":850}]},{"name":"g_11_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":872,"b":884}]},{"name":"g_12_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":906,"b":918}]},{"name":"g_13_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":940,"b":952}]},{"name":"g_ug_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":974,"b":986}]},{"name":"g_ae_offered","required":false,"transform":{"type":"scalar"},"locs":[{"a":1008,"b":1020}]},{"name":"gslo","required":false,"transform":{"type":"scalar"},"locs":[{"a":1034,"b":1038}]},{"name":"gshi","required":false,"transform":{"type":"scalar"},"locs":[{"a":1052,"b":1056}]},{"name":"level","required":false,"transform":{"type":"scalar"},"locs":[{"a":1071,"b":1076}]},{"name":"total_students","required":false,"transform":{"type":"scalar"},"locs":[{"a":1100,"b":1114}]},{"name":"is_school_wide_title1","required":false,"transform":{"type":"scalar"},"locs":[{"a":1145,"b":1166}]},{"name":"title1_school_status","required":false,"transform":{"type":"scalar"},"locs":[{"a":1196,"b":1216}]},{"name":"national_school_lunch_program","required":false,"transform":{"type":"scalar"},"locs":[{"a":1255,"b":1284}]},{"name":"nslp_direct_certification","required":false,"transform":{"type":"scalar"},"locs":[{"a":1319,"b":1344}]},{"name":"frl_eligible","required":false,"transform":{"type":"scalar"},"locs":[{"a":1366,"b":1378}]},{"name":"school_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1423,"b":1433}]}],"statement":"UPDATE\n    school_nces_metadata\nSET\n    school_year = :school_year!,\n    st = :st,\n    sch_name = :sch_name,\n    lea_name = :lea_name,\n    lcity = :lcity,\n    lzip = :lzip,\n    mcity = :mcity,\n    mstate = :mstate,\n    mzip = :mzip,\n    phone = :phone,\n    website = :website,\n    sy_status_text = :sy_status_text,\n    updated_status_text = :updated_status_text,\n    effective_date = :effective_date,\n    sch_type_text = :sch_type_text,\n    nogrades = :nogrades,\n    g_pk_offered = :g_pk_offered,\n    g_kg_offered = :g_kg_offered,\n    g_1_offered = :g_1_offered,\n    g_2_offered = :g_2_offered,\n    g_3_offered = :g_3_offered,\n    g_4_offered = :g_4_offered,\n    g_5_offered = :g_5_offered,\n    g_6_offered = :g_6_offered,\n    g_7_offered = :g_7_offered,\n    g_8_offered = :g_8_offered,\n    g_9_offered = :g_9_offered,\n    g_10_offered = :g_10_offered,\n    g_11_offered = :g_11_offered,\n    g_12_offered = :g_12_offered,\n    g_13_offered = :g_13_offered,\n    g_ug_offered = :g_ug_offered,\n    g_ae_offered = :g_ae_offered,\n    gslo = :gslo,\n    gshi = :gshi,\n    level = :level,\n    total_students = :total_students,\n    is_school_wide_title1 = :is_school_wide_title1,\n    title1_school_status = :title1_school_status,\n    national_school_lunch_program = :national_school_lunch_program,\n    nslp_direct_certification = :nslp_direct_certification,\n    frl_eligible = :frl_eligible\nWHERE\n    school_nces_metadata.school_id = :school_id!"};
+const updateSchoolMetadataIR: any = {"usedParamSet":{"school_year":true,"st":true,"sch_name":true,"lea_name":true,"lcity":true,"lzip":true,"mcity":true,"mzip":true,"gslo":true,"gshi":true,"total_students":true,"national_school_lunch_program":true,"nslp_direct_certification":true,"frl_eligible":true,"school_id":true},"params":[{"name":"school_year","required":true,"transform":{"type":"scalar"},"locs":[{"a":54,"b":66}]},{"name":"st","required":false,"transform":{"type":"scalar"},"locs":[{"a":78,"b":80}]},{"name":"sch_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":98,"b":106}]},{"name":"lea_name","required":false,"transform":{"type":"scalar"},"locs":[{"a":124,"b":132}]},{"name":"lcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":147,"b":152}]},{"name":"lzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":166,"b":170}]},{"name":"mcity","required":false,"transform":{"type":"scalar"},"locs":[{"a":185,"b":190}]},{"name":"mzip","required":false,"transform":{"type":"scalar"},"locs":[{"a":204,"b":208}]},{"name":"gslo","required":false,"transform":{"type":"scalar"},"locs":[{"a":222,"b":226}]},{"name":"gshi","required":false,"transform":{"type":"scalar"},"locs":[{"a":240,"b":244}]},{"name":"total_students","required":false,"transform":{"type":"scalar"},"locs":[{"a":268,"b":282}]},{"name":"national_school_lunch_program","required":false,"transform":{"type":"scalar"},"locs":[{"a":321,"b":350}]},{"name":"nslp_direct_certification","required":false,"transform":{"type":"scalar"},"locs":[{"a":385,"b":410}]},{"name":"frl_eligible","required":false,"transform":{"type":"scalar"},"locs":[{"a":432,"b":444}]},{"name":"school_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":489,"b":499}]}],"statement":"UPDATE\n    school_nces_metadata\nSET\n    school_year = :school_year!,\n    st = :st,\n    sch_name = :sch_name,\n    lea_name = :lea_name,\n    lcity = :lcity,\n    lzip = :lzip,\n    mcity = :mcity,\n    mzip = :mzip,\n    gslo = :gslo,\n    gshi = :gshi,\n    total_students = :total_students,\n    national_school_lunch_program = :national_school_lunch_program,\n    nslp_direct_certification = :nslp_direct_certification,\n    frl_eligible = :frl_eligible\nWHERE\n    school_nces_metadata.school_id = :school_id!"};
 
 /**
  * Query generated from SQL:
@@ -678,38 +622,10 @@ const updateSchoolMetadataIR: any = {"usedParamSet":{"school_year":true,"st":tru
  *     lcity = :lcity,
  *     lzip = :lzip,
  *     mcity = :mcity,
- *     mstate = :mstate,
  *     mzip = :mzip,
- *     phone = :phone,
- *     website = :website,
- *     sy_status_text = :sy_status_text,
- *     updated_status_text = :updated_status_text,
- *     effective_date = :effective_date,
- *     sch_type_text = :sch_type_text,
- *     nogrades = :nogrades,
- *     g_pk_offered = :g_pk_offered,
- *     g_kg_offered = :g_kg_offered,
- *     g_1_offered = :g_1_offered,
- *     g_2_offered = :g_2_offered,
- *     g_3_offered = :g_3_offered,
- *     g_4_offered = :g_4_offered,
- *     g_5_offered = :g_5_offered,
- *     g_6_offered = :g_6_offered,
- *     g_7_offered = :g_7_offered,
- *     g_8_offered = :g_8_offered,
- *     g_9_offered = :g_9_offered,
- *     g_10_offered = :g_10_offered,
- *     g_11_offered = :g_11_offered,
- *     g_12_offered = :g_12_offered,
- *     g_13_offered = :g_13_offered,
- *     g_ug_offered = :g_ug_offered,
- *     g_ae_offered = :g_ae_offered,
  *     gslo = :gslo,
  *     gshi = :gshi,
- *     level = :level,
  *     total_students = :total_students,
- *     is_school_wide_title1 = :is_school_wide_title1,
- *     title1_school_status = :title1_school_status,
  *     national_school_lunch_program = :national_school_lunch_program,
  *     nslp_direct_certification = :nslp_direct_certification,
  *     frl_eligible = :frl_eligible

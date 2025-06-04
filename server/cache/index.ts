@@ -99,3 +99,11 @@ export async function sadd(key: string, member: string) {
 export async function smembers(key: string) {
   return await redisClient.smembers(key)
 }
+
+export async function removeFromSet(key: string, ...members: string[]) {
+  return await redisClient.srem(key, ...members)
+}
+
+export async function getSetSize(key: string) {
+  return await redisClient.scard(key)
+}

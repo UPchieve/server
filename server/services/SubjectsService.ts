@@ -42,3 +42,7 @@ export async function getSubjectsForTopicByTopicId(
 ) {
   return SubjectsRepo.getSubjectsForTopicByTopicId(topicId, tc)
 }
+
+export async function getSubjectsWithTopic() {
+  return SubjectsRepo.getSubjectsWithTopic()
+}
