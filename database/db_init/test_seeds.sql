@@ -1,458 +1,1453 @@
 --
 -- PostgreSQL database dump
 --
+
 -- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
 -- Dumped by pg_dump version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
+
 SET statement_timeout = 0;
-
 SET lock_timeout = 0;
-
 SET idle_in_transaction_session_timeout = 0;
-
 SET client_encoding = 'UTF8';
-
-SET standard_conforming_strings = ON;
-
-SELECT
-    pg_catalog.set_config('search_path', '', FALSE);
-
-SET check_function_bodies = FALSE;
-
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
 SET xmloption = content;
-
 SET client_min_messages = warning;
-
-SET row_security = OFF;
+SET row_security = off;
 
 --
 -- Data for Name: ban_reasons; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.ban_reasons (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 non us signup 2024 - 08 - 28 00:28:43.728169 + 00 2024 - 08 - 28 00:28:43.728169 + 00 2 session reported 2024 - 08 - 28 00:28:43.728638 + 00 2024 - 08 - 28 00:28:43.728638 + 00 3 used banned ip 2024 - 08 - 28 00:28:43.728966 + 00 2024 - 08 - 28 00:28:43.728966 + 00 4 admin 2024 - 08 - 28 00:28:43.729273 + 00 2024 - 08 - 28 00:28:43.729273 + 00 5 banned service provider 2024 - 08 - 28 00:28:43.729617 + 00 2024 - 08 - 28 00:28:43.729617 + 00 6 automated moderation 2024 - 11 - 20 21:08:19.510606 + 00 2024 - 11 - 20 21:08:19.510606 + 00.
+COPY upchieve.ban_reasons (id, name, created_at, updated_at) FROM stdin;
+1	non us signup	2024-08-28 00:28:43.728169+00	2024-08-28 00:28:43.728169+00
+2	session reported	2024-08-28 00:28:43.728638+00	2024-08-28 00:28:43.728638+00
+3	used banned ip	2024-08-28 00:28:43.728966+00	2024-08-28 00:28:43.728966+00
+4	admin	2024-08-28 00:28:43.729273+00	2024-08-28 00:28:43.729273+00
+5	banned service provider	2024-08-28 00:28:43.729617+00	2024-08-28 00:28:43.729617+00
+6	automated moderation	2024-11-20 21:08:19.510606+00	2024-11-20 21:08:19.510606+00
+\.
+
+
 --
 -- Data for Name: signup_sources; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.signup_sources (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 Web search 2024 - 08 - 28 00:28:43.730006 + 00 2024 - 08 - 28 00:28:43.730006 + 00 2 Social media 2024 - 08 - 28 00:28:43.730461 + 00 2024 - 08 - 28 00:28:43.730461 + 00 3 Friend / Classmate 2024 - 08 - 28 00:28:43.730772 + 00 2024 - 08 - 28 00:28:43.730772 + 00 4 School / Teacher 2024 - 08 - 28 00:28:43.731071 + 00 2024 - 08 - 28 00:28:43.731071 + 00 5 Parent / Relative 2024 - 08 - 28 00:28:43.73139 + 00 2024 - 08 - 28 00:28:43.73139 + 00 6 Other 2024 - 08 - 28 00:28:43.731742 + 00 2024 - 08 - 28 00:28:43.731742 + 00 7 Roster 2024 - 08 - 28 00:28:44.14509 + 00 2024 - 08 - 28 00:28:44.14509 + 00.
+COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
+1	Web search	2024-08-28 00:28:43.730006+00	2024-08-28 00:28:43.730006+00
+2	Social media	2024-08-28 00:28:43.730461+00	2024-08-28 00:28:43.730461+00
+3	Friend / Classmate	2024-08-28 00:28:43.730772+00	2024-08-28 00:28:43.730772+00
+4	School / Teacher	2024-08-28 00:28:43.731071+00	2024-08-28 00:28:43.731071+00
+5	Parent / Relative	2024-08-28 00:28:43.73139+00	2024-08-28 00:28:43.73139+00
+6	Other	2024-08-28 00:28:43.731742+00	2024-08-28 00:28:43.731742+00
+7	Roster	2024-08-28 00:28:44.14509+00	2024-08-28 00:28:44.14509+00
+\.
+
+
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users (id, verified, email_verified, phone_verified, email, PASSWORD, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, sms_consent, mongo_id, other_signup_source, proxy_email, ban_type, preferred_language_code, preferred_language)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 t f f volunteer1@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Partner UPchieve f N B N f f N 25200000 N 2024 - 08 - 28 00:28:45.444933 + 00 2024 - 08 - 28 00:28:45.444933 + 00 + 12125551212 f N N N N N N 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 t f f volunteer2@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Special Reporting UPchieve f N C N f f N 25200000 N 2024 - 08 - 28 00:28:45.44726 + 00 2024 - 08 - 28 00:28:45.44726 + 00 + 12125551213 f N N N N N N 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b t f f volunteer3@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N OPEN Sign Up UPchieve f N D N f f N 25200000 N 2024 - 08 - 28 00:28:45.448816 + 00 2024 - 08 - 28 00:28:45.448816 + 00 + 12125551214 f N N N N N N 01919662 - 8804 - 29c4 - 5ff7 - cb6803c09fa6 t f f volunteer4@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Needs Onboarding UPchieve f N E N f f N 0 N 2024 - 08 - 28 00:28:45.450257 + 00 2024 - 08 - 28 00:28:45.450257 + 00 + 12125551215 f N N N N N N 01919662 - 8804 - 9826 - da53 - f1b2a1e53205 t f f volunteer5@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Needs Approval UPchieve f N Z N f f N 0 N 2024 - 08 - 28 00:28:45.451788 + 00 2024 - 08 - 28 00:28:45.451788 + 00 + 12125551216 f N N N N N N 01919662 - 8804 - cc87 - 1ee3 - 90a35b65414d t f f volunteer6@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Admin UPchieve f N Y N f f N 0 N 2024 - 08 - 28 00:28:45.453188 + 00 2024 - 08 - 28 00:28:45.453188 + 00 + 12125551217 f N N N N N N 01919662 - 885c - d39a - 1749 - 5aaf18cf5d3b t f f student1@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Student UPchieve f N A N f f N N N 2024 - 08 - 28 00:28:45.532467 + 00 2024 - 08 - 28 00:28:45.532467 + 00 N f N N N N N N 01919662 - 885c - 2fca - 264b - 9558f5b20fe4 t f f student2@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Student UPchieve f N F N f f N N N 2024 - 08 - 28 00:28:45.533913 + 00 2024 - 08 - 28 00:28:45.533913 + 00 N f N N N N N N 01919662 - 885c - a174 - 3088 - 998111f7cc80 t f f student3@upchieve.org $2a$ 10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT / x / OyAtdw3.y N Student UPchieve f N G N f f N N N 2024 - 08 - 28 00:28:45.535278 + 00 2024 - 08 - 28 00:28:45.535278 + 00 N f N N N N N N.
+COPY upchieve.users (id, verified, email_verified, phone_verified, email, password, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, sms_consent, mongo_id, other_signup_source, proxy_email, ban_type, preferred_language_code, preferred_language) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.444933+00	2024-08-28 00:28:45.444933+00	+12125551212	f	\N	\N	\N	\N	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.44726+00	2024-08-28 00:28:45.44726+00	+12125551213	f	\N	\N	\N	\N	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	t	f	f	volunteer3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Open Sign Up	UPchieve	f	\N	D	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.448816+00	2024-08-28 00:28:45.448816+00	+12125551214	f	\N	\N	\N	\N	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	t	f	f	volunteer4@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Onboarding	UPchieve	f	\N	E	\N	f	f	\N	0	\N	2024-08-28 00:28:45.450257+00	2024-08-28 00:28:45.450257+00	+12125551215	f	\N	\N	\N	\N	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	t	f	f	volunteer5@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Approval	UPchieve	f	\N	Z	\N	f	f	\N	0	\N	2024-08-28 00:28:45.451788+00	2024-08-28 00:28:45.451788+00	+12125551216	f	\N	\N	\N	\N	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	t	f	f	volunteer6@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Admin	UPchieve	f	\N	Y	\N	f	f	\N	0	\N	2024-08-28 00:28:45.453188+00	2024-08-28 00:28:45.453188+00	+12125551217	f	\N	\N	\N	\N	\N	\N
+01919662-885c-d39a-1749-5aaf18cf5d3b	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.532467+00	2024-08-28 00:28:45.532467+00	\N	f	\N	\N	\N	\N	\N	\N
+01919662-885c-2fca-264b-9558f5b20fe4	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.533913+00	2024-08-28 00:28:45.533913+00	\N	f	\N	\N	\N	\N	\N	\N
+01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N	\N	\N
+\.
+
+
 --
 -- Data for Name: admin_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.admin_profiles (user_id, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8804 - cc87 - 1ee3 - 90a35b65414d 2024 - 08 - 28 00:28:45.531702 + 00 2024 - 08 - 28 00:28:45.531702 + 00.
+COPY upchieve.admin_profiles (user_id, created_at, updated_at) FROM stdin;
+01919662-8804-cc87-1ee3-90a35b65414d	2024-08-28 00:28:45.531702+00	2024-08-28 00:28:45.531702+00
+\.
+
+
 --
 -- Data for Name: us_states; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.us_states (code, name, created_at, updated_at)
-FROM
-    stdin;
 
-AL Alabama 2024 - 08 - 28 00:28:43.613142 + 00 2024 - 08 - 28 00:28:43.613142 + 00 AK Alaska 2024 - 08 - 28 00:28:43.614573 + 00 2024 - 08 - 28 00:28:43.614573 + 00 AR Arkansas 2024 - 08 - 28 00:28:43.615334 + 00 2024 - 08 - 28 00:28:43.615334 + 00 AZ Arizona 2024 - 08 - 28 00:28:43.616037 + 00 2024 - 08 - 28 00:28:43.616037 + 00 CA California 2024 - 08 - 28 00:28:43.616854 + 00 2024 - 08 - 28 00:28:43.616854 + 00 CO Colorado 2024 - 08 - 28 00:28:43.61736 + 00 2024 - 08 - 28 00:28:43.61736 + 00 CT Connecticut 2024 - 08 - 28 00:28:43.617733 + 00 2024 - 08 - 28 00:28:43.617733 + 00 DE Delaware 2024 - 08 - 28 00:28:43.618286 + 00 2024 - 08 - 28 00:28:43.618286 + 00 DC District OF Columbia 2024 - 08 - 28 00:28:43.618724 + 00 2024 - 08 - 28 00:28:43.618724 + 00 FL Florida 2024 - 08 - 28 00:28:43.619226 + 00 2024 - 08 - 28 00:28:43.619226 + 00 GA Georgia 2024 - 08 - 28 00:28:43.619623 + 00 2024 - 08 - 28 00:28:43.619623 + 00 HI Hawaii 2024 - 08 - 28 00:28:43.620134 + 00 2024 - 08 - 28 00:28:43.620134 + 00 ID Idaho 2024 - 08 - 28 00:28:43.620522 + 00 2024 - 08 - 28 00:28:43.620522 + 00 IL Illinois 2024 - 08 - 28 00:28:43.620835 + 00 2024 - 08 - 28 00:28:43.620835 + 00 IN Indiana 2024 - 08 - 28 00:28:43.621217 + 00 2024 - 08 - 28 00:28:43.621217 + 00 IA Iowa 2024 - 08 - 28 00:28:43.621575 + 00 2024 - 08 - 28 00:28:43.621575 + 00 KS Kansas 2024 - 08 - 28 00:28:43.621965 + 00 2024 - 08 - 28 00:28:43.621965 + 00 KY Kentucky 2024 - 08 - 28 00:28:43.622449 + 00 2024 - 08 - 28 00:28:43.622449 + 00 LA Louisiana 2024 - 08 - 28 00:28:43.62292 + 00 2024 - 08 - 28 00:28:43.62292 + 00 ME Maine 2024 - 08 - 28 00:28:43.623317 + 00 2024 - 08 - 28 00:28:43.623317 + 00 MD Maryland 2024 - 08 - 28 00:28:43.623694 + 00 2024 - 08 - 28 00:28:43.623694 + 00 MA Massachusetts 2024 - 08 - 28 00:28:43.624119 + 00 2024 - 08 - 28 00:28:43.624119 + 00 MI Michigan 2024 - 08 - 28 00:28:43.62449 + 00 2024 - 08 - 28 00:28:43.62449 + 00 MN Minnesota 2024 - 08 - 28 00:28:43.624902 + 00 2024 - 08 - 28 00:28:43.624902 + 00 MS Mississippi 2024 - 08 - 28 00:28:43.625303 + 00 2024 - 08 - 28 00:28:43.625303 + 00 MO Missouri 2024 - 08 - 28 00:28:43.625715 + 00 2024 - 08 - 28 00:28:43.625715 + 00 MT Montana 2024 - 08 - 28 00:28:43.626034 + 00 2024 - 08 - 28 00:28:43.626034 + 00 NE Nebraska 2024 - 08 - 28 00:28:43.626348 + 00 2024 - 08 - 28 00:28:43.626348 + 00 NV Nevada 2024 - 08 - 28 00:28:43.626711 + 00 2024 - 08 - 28 00:28:43.626711 + 00 NH New Hampshire 2024 - 08 - 28 00:28:43.627052 + 00 2024 - 08 - 28 00:28:43.627052 + 00 NJ New Jersey 2024 - 08 - 28 00:28:43.627372 + 00 2024 - 08 - 28 00:28:43.627372 + 00 NM New Mexico 2024 - 08 - 28 00:28:43.627684 + 00 2024 - 08 - 28 00:28:43.627684 + 00 NY New York 2024 - 08 - 28 00:28:43.628001 + 00 2024 - 08 - 28 00:28:43.628001 + 00 NC North Carolina 2024 - 08 - 28 00:28:43.628348 + 00 2024 - 08 - 28 00:28:43.628348 + 00 ND North Dakota 2024 - 08 - 28 00:28:43.628673 + 00 2024 - 08 - 28 00:28:43.628673 + 00 OH Ohio 2024 - 08 - 28 00:28:43.628984 + 00 2024 - 08 - 28 00:28:43.628984 + 00 OK Oklahoma 2024 - 08 - 28 00:28:43.629337 + 00 2024 - 08 - 28 00:28:43.629337 + 00
-    OR Oregon 2024 - 08 - 28 00:28:43.629643 + 00 2024 - 08 - 28 00:28:43.629643 + 00 PA Pennsylvania 2024 - 08 - 28 00:28:43.629972 + 00 2024 - 08 - 28 00:28:43.629972 + 00 RI Rhode Island 2024 - 08 - 28 00:28:43.630294 + 00 2024 - 08 - 28 00:28:43.630294 + 00 SC South Carolina 2024 - 08 - 28 00:28:43.63059 + 00 2024 - 08 - 28 00:28:43.63059 + 00 SD South Dakota 2024 - 08 - 28 00:28:43.630919 + 00 2024 - 08 - 28 00:28:43.630919 + 00 TN Tennessee 2024 - 08 - 28 00:28:43.631247 + 00 2024 - 08 - 28 00:28:43.631247 + 00 TX Texas 2024 - 08 - 28 00:28:43.631574 + 00 2024 - 08 - 28 00:28:43.631574 + 00 UT Utah 2024 - 08 - 28 00:28:43.631899 + 00 2024 - 08 - 28 00:28:43.631899 + 00 VT Vermont 2024 - 08 - 28 00:28:43.632204 + 00 2024 - 08 - 28 00:28:43.632204 + 00 VA Virginia 2024 - 08 - 28 00:28:43.63252 + 00 2024 - 08 - 28 00:28:43.63252 + 00 WA Washington 2024 - 08 - 28 00:28:43.632817 + 00 2024 - 08 - 28 00:28:43.632817 + 00 WV West Virginia 2024 - 08 - 28 00:28:43.633128 + 00 2024 - 08 - 28 00:28:43.633128 + 00 WI Wisconsin 2024 - 08 - 28 00:28:43.633407 + 00 2024 - 08 - 28 00:28:43.633407 + 00 WY Wyoming 2024 - 08 - 28 00:28:43.633818 + 00 2024 - 08 - 28 00:28:43.633818 + 00 PR Puerto Rico 2024 - 08 - 28 00:28:43.634129 + 00 2024 - 08 - 28 00:28:43.634129 + 00 GU Guam 2024 - 08 - 28 00:28:43.634399 + 00 2024 - 08 - 28 00:28:43.634399 + 00 VI Virgin Islands 2024 - 08 - 28 00:28:43.634733 + 00 2024 - 08 - 28 00:28:43.634733 + 00 AS American Samoa 2024 - 08 - 28 00:28:43.635012 + 00 2024 - 08 - 28 00:28:43.635012 + 00 BI Bureau OF Indian Education 2024 - 08 - 28 00:28:43.635337 + 00 2024 - 08 - 28 00:28:43.635337 + 00 NA NA 2024 - 08 - 28 00:28:43.635663 + 00 2024 - 08 - 28 00:28:43.635663 + 00 AE U.S. Armed Forced - Europe 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 AA U.S. Armed Forced - Americas 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 AP U.S. Armed Forced - Pacific 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 PW Palau 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 FM Micronesia 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 MP Norther Mariana Islands 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 MH Marshall Islands 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00.
-    --
-    -- Data for Name: cities; Type: TABLE DATA; Schema: upchieve; Owner: admin
-    --
-    COPY upchieve.cities (id, name, us_state_code, created_at, updated_at)
-FROM
-    stdin;
+COPY upchieve.us_states (code, name, created_at, updated_at) FROM stdin;
+AL	Alabama	2024-08-28 00:28:43.613142+00	2024-08-28 00:28:43.613142+00
+AK	Alaska	2024-08-28 00:28:43.614573+00	2024-08-28 00:28:43.614573+00
+AR	Arkansas	2024-08-28 00:28:43.615334+00	2024-08-28 00:28:43.615334+00
+AZ	Arizona	2024-08-28 00:28:43.616037+00	2024-08-28 00:28:43.616037+00
+CA	California	2024-08-28 00:28:43.616854+00	2024-08-28 00:28:43.616854+00
+CO	Colorado	2024-08-28 00:28:43.61736+00	2024-08-28 00:28:43.61736+00
+CT	Connecticut	2024-08-28 00:28:43.617733+00	2024-08-28 00:28:43.617733+00
+DE	Delaware	2024-08-28 00:28:43.618286+00	2024-08-28 00:28:43.618286+00
+DC	District of Columbia	2024-08-28 00:28:43.618724+00	2024-08-28 00:28:43.618724+00
+FL	Florida	2024-08-28 00:28:43.619226+00	2024-08-28 00:28:43.619226+00
+GA	Georgia	2024-08-28 00:28:43.619623+00	2024-08-28 00:28:43.619623+00
+HI	Hawaii	2024-08-28 00:28:43.620134+00	2024-08-28 00:28:43.620134+00
+ID	Idaho	2024-08-28 00:28:43.620522+00	2024-08-28 00:28:43.620522+00
+IL	Illinois	2024-08-28 00:28:43.620835+00	2024-08-28 00:28:43.620835+00
+IN	Indiana	2024-08-28 00:28:43.621217+00	2024-08-28 00:28:43.621217+00
+IA	Iowa	2024-08-28 00:28:43.621575+00	2024-08-28 00:28:43.621575+00
+KS	Kansas	2024-08-28 00:28:43.621965+00	2024-08-28 00:28:43.621965+00
+KY	Kentucky	2024-08-28 00:28:43.622449+00	2024-08-28 00:28:43.622449+00
+LA	Louisiana	2024-08-28 00:28:43.62292+00	2024-08-28 00:28:43.62292+00
+ME	Maine	2024-08-28 00:28:43.623317+00	2024-08-28 00:28:43.623317+00
+MD	Maryland	2024-08-28 00:28:43.623694+00	2024-08-28 00:28:43.623694+00
+MA	Massachusetts	2024-08-28 00:28:43.624119+00	2024-08-28 00:28:43.624119+00
+MI	Michigan	2024-08-28 00:28:43.62449+00	2024-08-28 00:28:43.62449+00
+MN	Minnesota	2024-08-28 00:28:43.624902+00	2024-08-28 00:28:43.624902+00
+MS	Mississippi	2024-08-28 00:28:43.625303+00	2024-08-28 00:28:43.625303+00
+MO	Missouri	2024-08-28 00:28:43.625715+00	2024-08-28 00:28:43.625715+00
+MT	Montana	2024-08-28 00:28:43.626034+00	2024-08-28 00:28:43.626034+00
+NE	Nebraska	2024-08-28 00:28:43.626348+00	2024-08-28 00:28:43.626348+00
+NV	Nevada	2024-08-28 00:28:43.626711+00	2024-08-28 00:28:43.626711+00
+NH	New Hampshire	2024-08-28 00:28:43.627052+00	2024-08-28 00:28:43.627052+00
+NJ	New Jersey	2024-08-28 00:28:43.627372+00	2024-08-28 00:28:43.627372+00
+NM	New Mexico	2024-08-28 00:28:43.627684+00	2024-08-28 00:28:43.627684+00
+NY	New York	2024-08-28 00:28:43.628001+00	2024-08-28 00:28:43.628001+00
+NC	North Carolina	2024-08-28 00:28:43.628348+00	2024-08-28 00:28:43.628348+00
+ND	North Dakota	2024-08-28 00:28:43.628673+00	2024-08-28 00:28:43.628673+00
+OH	Ohio	2024-08-28 00:28:43.628984+00	2024-08-28 00:28:43.628984+00
+OK	Oklahoma	2024-08-28 00:28:43.629337+00	2024-08-28 00:28:43.629337+00
+OR	Oregon	2024-08-28 00:28:43.629643+00	2024-08-28 00:28:43.629643+00
+PA	Pennsylvania	2024-08-28 00:28:43.629972+00	2024-08-28 00:28:43.629972+00
+RI	Rhode Island	2024-08-28 00:28:43.630294+00	2024-08-28 00:28:43.630294+00
+SC	South Carolina	2024-08-28 00:28:43.63059+00	2024-08-28 00:28:43.63059+00
+SD	South Dakota	2024-08-28 00:28:43.630919+00	2024-08-28 00:28:43.630919+00
+TN	Tennessee	2024-08-28 00:28:43.631247+00	2024-08-28 00:28:43.631247+00
+TX	Texas	2024-08-28 00:28:43.631574+00	2024-08-28 00:28:43.631574+00
+UT	Utah	2024-08-28 00:28:43.631899+00	2024-08-28 00:28:43.631899+00
+VT	Vermont	2024-08-28 00:28:43.632204+00	2024-08-28 00:28:43.632204+00
+VA	Virginia	2024-08-28 00:28:43.63252+00	2024-08-28 00:28:43.63252+00
+WA	Washington	2024-08-28 00:28:43.632817+00	2024-08-28 00:28:43.632817+00
+WV	West Virginia	2024-08-28 00:28:43.633128+00	2024-08-28 00:28:43.633128+00
+WI	Wisconsin	2024-08-28 00:28:43.633407+00	2024-08-28 00:28:43.633407+00
+WY	Wyoming	2024-08-28 00:28:43.633818+00	2024-08-28 00:28:43.633818+00
+PR	Puerto Rico	2024-08-28 00:28:43.634129+00	2024-08-28 00:28:43.634129+00
+GU	Guam	2024-08-28 00:28:43.634399+00	2024-08-28 00:28:43.634399+00
+VI	Virgin Islands	2024-08-28 00:28:43.634733+00	2024-08-28 00:28:43.634733+00
+AS	American Samoa	2024-08-28 00:28:43.635012+00	2024-08-28 00:28:43.635012+00
+BI	Bureau of Indian Education	2024-08-28 00:28:43.635337+00	2024-08-28 00:28:43.635337+00
+NA	NA	2024-08-28 00:28:43.635663+00	2024-08-28 00:28:43.635663+00
+AE	U.S. Armed Forced - Europe	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+AA	U.S. Armed Forced - Americas	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+AP	U.S. Armed Forced - Pacific	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+PW	Palau	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+FM	Micronesia	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+MP	Norther Mariana Islands	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+MH	Marshall Islands	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00
+\.
 
-1 Denver CO 2024 - 08 - 28 00:28:45.434291 + 00 2024 - 08 - 28 00:28:45.434291 + 00 2 Brooklyn NY 2024 - 08 - 28 00:28:45.435033 + 00 2024 - 08 - 28 00:28:45.435033 + 00.
+
+--
+-- Data for Name: cities; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.cities (id, name, us_state_code, created_at, updated_at) FROM stdin;
+1	Denver	CO	2024-08-28 00:28:45.434291+00	2024-08-28 00:28:45.434291+00
+2	Brooklyn	NY	2024-08-28 00:28:45.435033+00	2024-08-28 00:28:45.435033+00
+\.
+
+
 --
 -- Data for Name: schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.schools (id, name, approved, partner, city_id, created_at, updated_at, mongo_id, legacy_city_name)
-FROM
-    stdin;
 
-01919662 - 87fb - 9261 - 542c - 58cbced78fc3 Unapproved School f f 1 2024 - 08 - 28 00:28:45.435468 + 00 2024 - 08 - 28 00:28:45.435468 + 00 N N 01919662 - 87fb - 76b3 - 54f8 - db306e73e181 Approved School t f 1 2024 - 08 - 28 00:28:45.436641 + 00 2024 - 08 - 28 00:28:45.436641 + 00 N N 01919662 - 87fb - d63d - 788d - 7417e752f5d0 Approved Partner School t t 2 2024 - 08 - 28 00:28:45.437064 + 00 2024 - 08 - 28 00:28:45.437064 + 00 N N 01919662 - 87fb - 6ad2 - 8227 - c1e38adf0907 Another Approved Partner School t t 2 2024 - 08 - 28 00:28:45.439498 + 00 2024 - 08 - 28 00:28:45.439498 + 00 N N.
+COPY upchieve.schools (id, name, approved, partner, city_id, created_at, updated_at, mongo_id, legacy_city_name) FROM stdin;
+01919662-87fb-9261-542c-58cbced78fc3	Unapproved School	f	f	1	2024-08-28 00:28:45.435468+00	2024-08-28 00:28:45.435468+00	\N	\N
+01919662-87fb-76b3-54f8-db306e73e181	Approved School	t	f	1	2024-08-28 00:28:45.436641+00	2024-08-28 00:28:45.436641+00	\N	\N
+01919662-87fb-d63d-788d-7417e752f5d0	Approved Partner School	t	t	2	2024-08-28 00:28:45.437064+00	2024-08-28 00:28:45.437064+00	\N	\N
+01919662-87fb-6ad2-8227-c1e38adf0907	Another Approved Partner School	t	t	2	2024-08-28 00:28:45.439498+00	2024-08-28 00:28:45.439498+00	\N	\N
+\.
+
+
 --
 -- Data for Name: tool_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.tool_types (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 whiteboard 2024 - 08 - 28 00:28:43.739705 + 00 2024 - 08 - 28 00:28:43.739705 + 00 2 documenteditor 2024 - 08 - 28 00:28:43.740116 + 00 2024 - 08 - 28 00:28:43.740116 + 00.
+COPY upchieve.tool_types (id, name, created_at, updated_at) FROM stdin;
+1	whiteboard	2024-08-28 00:28:43.739705+00	2024-08-28 00:28:43.739705+00
+2	documenteditor	2024-08-28 00:28:43.740116+00	2024-08-28 00:28:43.740116+00
+\.
+
+
 --
 -- Data for Name: topics; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.topics (id, name, icon_link, color, dashboard_order, display_name, created_at, updated_at, training_order)
-FROM
-    stdin;
 
-1 math https: // cdn.upchieve.org / site - images / topic - icons / math.svg # E398E4 1 Math 2024 - 08 - 28 00:28:43.737968 + 00 2024 - 08 - 28 00:28:44.16707 + 00 1 2 science https: // cdn.upchieve.org / site - images / topic - icons / science.svg # 9675CE 3 Science 2024 - 08 - 28 00:28:43.738456 + 00 2024 - 08 - 28 00:28:44.16707 + 00 2 3 college https: // cdn.upchieve.org / site - images / topic - icons / college.svg # F1C026 5 College Counseling 2024 - 08 - 28 00:28:43.73881 + 00 2024 - 08 - 28 00:28:44.16707 + 00 5 4 sat https: // cdn.upchieve.org / site - images / topic - icons / sat.svg # 54DEFD 6 Standardized Testing 2024 - 08 - 28 00:28:43.739115 + 00 2024 - 08 - 28 00:28:44.16707 + 00 6 5 readingWriting https: // cdn.upchieve.org / site - images / topic - icons / english.svg # 1855D1 2 English 2024 - 08 - 28 00:28:43.739385 + 00 2024 - 08 - 28 00:28:44.16707 + 00 3 6 socialStudies https: // cdn.upchieve.org / site - images / topic - icons / social - studies.svg # 593C33 4 Social Studies 2024 - 08 - 28 00:28:44.11297 + 00 2024 - 08 - 28 00:28:44.16707 + 00 4.
+COPY upchieve.topics (id, name, icon_link, color, dashboard_order, display_name, created_at, updated_at, training_order) FROM stdin;
+1	math	https://cdn.upchieve.org/site-images/topic-icons/math.svg	#E398E4	1	Math	2024-08-28 00:28:43.737968+00	2024-08-28 00:28:44.16707+00	1
+2	science	https://cdn.upchieve.org/site-images/topic-icons/science.svg	#9675CE	3	Science	2024-08-28 00:28:43.738456+00	2024-08-28 00:28:44.16707+00	2
+3	college	https://cdn.upchieve.org/site-images/topic-icons/college.svg	#F1C026	5	College Counseling	2024-08-28 00:28:43.73881+00	2024-08-28 00:28:44.16707+00	5
+4	sat	https://cdn.upchieve.org/site-images/topic-icons/sat.svg	#54DEFD	6	Standardized Testing	2024-08-28 00:28:43.739115+00	2024-08-28 00:28:44.16707+00	6
+5	readingWriting	https://cdn.upchieve.org/site-images/topic-icons/english.svg	#1855D1	2	English	2024-08-28 00:28:43.739385+00	2024-08-28 00:28:44.16707+00	3
+6	socialStudies	https://cdn.upchieve.org/site-images/topic-icons/social-studies.svg	#593C33	4	Social Studies	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.16707+00	4
+\.
+
+
 --
 -- Data for Name: subjects; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at, active)
-FROM
-    stdin;
 
-1 prealgebra Prealgebra 1 1 1 2024 - 08 - 28 00:28:43.74048 + 00 2024 - 08 - 28 00:28:43.74048 + 00 t 2 algebraOne Algebra 1 2 1 1 2024 - 08 - 28 00:28:43.741071 + 00 2024 - 08 - 28 00:28:43.741071 + 00 t 3 algebraTwo Algebra 2 3 1 1 2024 - 08 - 28 00:28:43.74146 + 00 2024 - 08 - 28 00:28:43.74146 + 00 t 4 geometry Geometry 4 1 1 2024 - 08 - 28 00:28:43.741833 + 00 2024 - 08 - 28 00:28:43.741833 + 00 t 5 trigonometry Trigonometry 5 1 1 2024 - 08 - 28 00:28:43.742186 + 00 2024 - 08 - 28 00:28:43.742186 + 00 t 6 precalculus Precalculus 6 1 1 2024 - 08 - 28 00:28:43.742548 + 00 2024 - 08 - 28 00:28:43.742548 + 00 t 7 calculusAB Calculus AB 7 1 1 2024 - 08 - 28 00:28:43.742892 + 00 2024 - 08 - 28 00:28:43.742892 + 00 t 9 statistics Statistics 9 1 1 2024 - 08 - 28 00:28:43.743537 + 00 2024 - 08 - 28 00:28:43.743537 + 00 t 10 biology Biology 1 2 1 2024 - 08 - 28 00:28:43.743892 + 00 2024 - 08 - 28 00:28:43.743892 + 00 t 11 chemistry Chemistry 2 2 1 2024 - 08 - 28 00:28:43.744261 + 00 2024 - 08 - 28 00:28:43.744261 + 00 t 12 physicsOne Physics 1 3 2 1 2024 - 08 - 28 00:28:43.744612 + 00 2024 - 08 - 28 00:28:43.744612 + 00 t 14 environmentalScience Environmental Science 5 2 1 2024 - 08 - 28 00:28:43.745257 + 00 2024 - 08 - 28 00:28:43.745257 + 00 t 15 satMath SAT Math 1 4 1 2024 - 08 - 28 00:28:43.745588 + 00 2024 - 08 - 28 00:28:43.745588 + 00 t 16 satReading SAT Reading 2 4 2 2024 - 08 - 28 00:28:43.745896 + 00 2024 - 08 - 28 00:28:43.745896 + 00 t 17 essays College Essays 2 3 2 2024 - 08 - 28 00:28:43.746244 + 00 2024 - 08 - 28 00:28:43.746244 + 00 t 18 planning Planning 1 3 2 2024 - 08 - 28 00:28:43.746563 + 00 2024 - 08 - 28 00:28:43.746563 + 00 t 19 applications Applications 3 3 2 2024 - 08 - 28 00:28:43.746955 + 00 2024 - 08 - 28 00:28:43.746955 + 00 t 21 integratedMathOne Integrated Math One 9 1 1 2024 - 08 - 28 00:28:43.747602 + 00 2024 - 08 - 28 00:28:43.747602 + 00 t 22 integratedMathTwo Integrated Math Two 9 1 1 2024 - 08 - 28 00:28:43.747905 + 00 2024 - 08 - 28 00:28:43.747905 + 00 t 23 integratedMathThree Integrated Math Three 9 1 1 2024 - 08 - 28 00:28:43.748224 + 00 2024 - 08 - 28 00:28:43.748224 + 00 t 24 integratedMathFour Integrated Math Four 9 1 1 2024 - 08 - 28 00:28:43.748545 + 00 2024 - 08 - 28 00:28:43.748545 + 00 t 26 usHistory U.S. History 1 6 2 2024 - 08 - 28 00:28:44.11297 + 00 2024 - 08 - 28 00:28:44.11297 + 00 t 25 reading Reading 1 5 2 2024 - 08 - 28 00:28:44.089401 + 00 2024 - 08 - 28 00:28:44.089401 + 00 t 20 humanitiesEssays Humanities Essays 1 5 2 2024 - 08 - 28 00:28:43.747265 + 00 2024 - 08 - 28 00:28:44.165993 + 00 t 8 calculusBC Calculus BC 8 1 1 2024 - 08 - 28 00:28:43.743225 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 13 physicsTwo Physics 2 4 2 1 2024 - 08 - 28 00:28:43.744915 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 27 collegePrep College Prep 1 3 2 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 28 collegeList College LIST 2 3 2 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 29 collegeApps Applications 3 3 2 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 30 applicationEssays Application Essays 4 3 2 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 31 financialAid Financial Aid 5 3 2 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 32 essayPlanning Essay Planning 2 5 2 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f 33 essayFeedback Essay Feedback 3 5 2 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.165993 + 00 f.
+COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at, active) FROM stdin;
+1	prealgebra	Prealgebra	1	1	1	2024-08-28 00:28:43.74048+00	2024-08-28 00:28:43.74048+00	t
+2	algebraOne	Algebra 1	2	1	1	2024-08-28 00:28:43.741071+00	2024-08-28 00:28:43.741071+00	t
+3	algebraTwo	Algebra 2	3	1	1	2024-08-28 00:28:43.74146+00	2024-08-28 00:28:43.74146+00	t
+4	geometry	Geometry	4	1	1	2024-08-28 00:28:43.741833+00	2024-08-28 00:28:43.741833+00	t
+5	trigonometry	Trigonometry	5	1	1	2024-08-28 00:28:43.742186+00	2024-08-28 00:28:43.742186+00	t
+6	precalculus	Precalculus	6	1	1	2024-08-28 00:28:43.742548+00	2024-08-28 00:28:43.742548+00	t
+7	calculusAB	Calculus AB	7	1	1	2024-08-28 00:28:43.742892+00	2024-08-28 00:28:43.742892+00	t
+9	statistics	Statistics	9	1	1	2024-08-28 00:28:43.743537+00	2024-08-28 00:28:43.743537+00	t
+10	biology	Biology	1	2	1	2024-08-28 00:28:43.743892+00	2024-08-28 00:28:43.743892+00	t
+11	chemistry	Chemistry	2	2	1	2024-08-28 00:28:43.744261+00	2024-08-28 00:28:43.744261+00	t
+12	physicsOne	Physics 1	3	2	1	2024-08-28 00:28:43.744612+00	2024-08-28 00:28:43.744612+00	t
+14	environmentalScience	Environmental Science	5	2	1	2024-08-28 00:28:43.745257+00	2024-08-28 00:28:43.745257+00	t
+15	satMath	SAT Math	1	4	1	2024-08-28 00:28:43.745588+00	2024-08-28 00:28:43.745588+00	t
+16	satReading	SAT Reading	2	4	2	2024-08-28 00:28:43.745896+00	2024-08-28 00:28:43.745896+00	t
+17	essays	College Essays	2	3	2	2024-08-28 00:28:43.746244+00	2024-08-28 00:28:43.746244+00	t
+18	planning	Planning	1	3	2	2024-08-28 00:28:43.746563+00	2024-08-28 00:28:43.746563+00	t
+19	applications	Applications	3	3	2	2024-08-28 00:28:43.746955+00	2024-08-28 00:28:43.746955+00	t
+21	integratedMathOne	Integrated Math One	9	1	1	2024-08-28 00:28:43.747602+00	2024-08-28 00:28:43.747602+00	t
+22	integratedMathTwo	Integrated Math Two	9	1	1	2024-08-28 00:28:43.747905+00	2024-08-28 00:28:43.747905+00	t
+23	integratedMathThree	Integrated Math Three	9	1	1	2024-08-28 00:28:43.748224+00	2024-08-28 00:28:43.748224+00	t
+24	integratedMathFour	Integrated Math Four	9	1	1	2024-08-28 00:28:43.748545+00	2024-08-28 00:28:43.748545+00	t
+26	usHistory	U.S. History	1	6	2	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.11297+00	t
+25	reading	Reading	1	5	2	2024-08-28 00:28:44.089401+00	2024-08-28 00:28:44.089401+00	t
+20	humanitiesEssays	Humanities Essays	1	5	2	2024-08-28 00:28:43.747265+00	2024-08-28 00:28:44.165993+00	t
+8	calculusBC	Calculus BC	8	1	1	2024-08-28 00:28:43.743225+00	2024-08-28 00:28:44.165993+00	f
+13	physicsTwo	Physics 2	4	2	1	2024-08-28 00:28:43.744915+00	2024-08-28 00:28:44.165993+00	f
+27	collegePrep	College Prep	1	3	2	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.165993+00	f
+28	collegeList	College List	2	3	2	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.165993+00	f
+29	collegeApps	Applications	3	3	2	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.165993+00	f
+30	applicationEssays	Application Essays	4	3	2	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.165993+00	f
+31	financialAid	Financial Aid	5	3	2	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.165993+00	f
+32	essayPlanning	Essay Planning	2	5	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.165993+00	f
+33	essayFeedback	Essay Feedback	3	5	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.165993+00	f
+\.
+
+
 --
 -- Data for Name: teacher_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last_successful_clever_sync)
-FROM
-    stdin;
 
-.
+COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last_successful_clever_sync) FROM stdin;
+\.
+
+
 --
 -- Data for Name: teacher_classes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on, clever_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on, clever_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: assignments; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, start_date, is_required, subject_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, start_date, is_required, subject_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.user_roles (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 student 2024 - 08 - 28 00:28:43.726843 + 00 2024 - 08 - 28 00:28:43.726843 + 00 2 volunteer 2024 - 08 - 28 00:28:43.727419 + 00 2024 - 08 - 28 00:28:43.727419 + 00 3 admin 2024 - 08 - 28 00:28:43.727767 + 00 2024 - 08 - 28 00:28:43.727767 + 00 4 teacher 2024 - 08 - 28 00:28:44.179217 + 00 2024 - 08 - 28 00:28:44.179217 + 00 5 ambassador 2025 - 06 - 02 18:00:23.062561 + 00 2025 - 06 - 02 18:00:23.062561 + 00.
+COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
+1	student	2024-08-28 00:28:43.726843+00	2024-08-28 00:28:43.726843+00
+2	volunteer	2024-08-28 00:28:43.727419+00	2024-08-28 00:28:43.727419+00
+3	admin	2024-08-28 00:28:43.727767+00	2024-08-28 00:28:43.727767+00
+4	teacher	2024-08-28 00:28:44.179217+00	2024-08-28 00:28:44.179217+00
+5	ambassador	2025-06-02 18:00:23.062561+00	2025-06-02 18:00:23.062561+00
+\.
+
+
 --
 -- Data for Name: sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned)
-FROM
-    stdin;
 
-.
+COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned) FROM stdin;
+\.
+
+
 --
 -- Data for Name: assistments_data; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.assistments_data (id, problem_id, assignment_id, student_id, session_id, sent, created_at, updated_at, sent_at, mongo_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.assistments_data (id, problem_id, assignment_id, student_id, session_id, sent, created_at, updated_at, sent_at, mongo_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: sponsor_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.sponsor_orgs (id, name, created_at, updated_at, KEY)
-FROM
-    stdin;
 
-01919662 - 8800 - b331 - 97c6 - 6521b0dfd65b ONLY Sponsors Schools 2024 - 08 - 28 00:28:45.440675 + 00 2024 - 08 - 28 00:28:45.440675 + 00 onlySponsorsSchools 01919662 - 8800 - 4db9 - 14f5 - af9f5905aa03 ONLY Sponsors Partner Orgs 2024 - 08 - 28 00:28:45.441219 + 00 2024 - 08 - 28 00:28:45.441219 + 00 onlySponsorsPartnerOrgs 01919662 - 8800 - b551 - 5a07 - 9021855c490c Sponsors BOTH 2024 - 08 - 28 00:28:45.441572 + 00 2024 - 08 - 28 00:28:45.441572 + 00 sponsorsBoth.
+COPY upchieve.sponsor_orgs (id, name, created_at, updated_at, key) FROM stdin;
+01919662-8800-b331-97c6-6521b0dfd65b	Only Sponsors Schools	2024-08-28 00:28:45.440675+00	2024-08-28 00:28:45.440675+00	onlySponsorsSchools
+01919662-8800-4db9-14f5-af9f5905aa03	Only Sponsors Partner Orgs	2024-08-28 00:28:45.441219+00	2024-08-28 00:28:45.441219+00	onlySponsorsPartnerOrgs
+01919662-8800-b551-5a07-9021855c490c	Sponsors Both	2024-08-28 00:28:45.441572+00	2024-08-28 00:28:45.441572+00	sponsorsBoth
+\.
+
+
 --
 -- Data for Name: student_partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, created_at, updated_at, school_id)
-FROM
-    stdin;
 
-01919662 - 87dc - 1b9c - e053 - 326c64a2edbc college - mentors College Mentors MENTORS t f t 2024 - 08 - 28 00:28:45.425445 + 00 2024 - 08 - 28 00:28:45.425445 + 00 N 01919662 - 87dc - 5f50 - e53d - d0a5687d4bfc community - org Community Org COMMUNITY t f f 2024 - 08 - 28 00:28:45.427079 + 00 2024 - 08 - 28 00:28:45.427079 + 00 N 01919662 - 87dc - 5824 - 8bf6 - e5e408bf6f40 school - helpers School Helpers SCHOOLHELPERS f f f 2024 - 08 - 28 00:28:45.427843 + 00 2024 - 08 - 28 00:28:45.427843 + 00 N 01919662 - 87dc - 9530 - b5f1 - ccc08f9bd619 college - learners College Learners COLLEGELEARNERS f t t 2024 - 08 - 28 00:28:45.428559 + 00 2024 - 08 - 28 00:28:45.428559 + 00 N 01919662 - 87dc - 57b3 - 892e - 791e974fd03a ALL - the - students ALL The Students ALLTHESTUDENTS t t t 2024 - 08 - 28 00:28:45.42937 + 00 2024 - 08 - 28 00:28:45.42937 + 00 N 01919662 - 87fe - 5dbc - 4b00 - 412d50590a2b approved - partner - school Approved Partner School APPROVED - PARTNER - SCHOOL t f t 2024 - 08 - 28 00:28:45.43769 + 00 2024 - 08 - 28 00:28:45.43769 + 00 01919662 - 87fb - d63d - 788d - 7417e752f5d0 01919662 - 8800 - b5d6 - dff4 - 97b4627082b9 another - approved - partner - school Another Approved Partner School ANOTHER - APPROVED - PARTNER - SCHOOL t f t 2024 - 08 - 28 00:28:45.44006 + 00 2024 - 08 - 28 00:28:45.44006 + 00 01919662 - 87fb - 6ad2 - 8227 - c1e38adf0907.
+COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_signup, college_signup, school_signup_required, created_at, updated_at, school_id) FROM stdin;
+01919662-87dc-1b9c-e053-326c64a2edbc	college-mentors	College Mentors	MENTORS	t	f	t	2024-08-28 00:28:45.425445+00	2024-08-28 00:28:45.425445+00	\N
+01919662-87dc-5f50-e53d-d0a5687d4bfc	community-org	Community Org	COMMUNITY	t	f	f	2024-08-28 00:28:45.427079+00	2024-08-28 00:28:45.427079+00	\N
+01919662-87dc-5824-8bf6-e5e408bf6f40	school-helpers	School Helpers	SCHOOLHELPERS	f	f	f	2024-08-28 00:28:45.427843+00	2024-08-28 00:28:45.427843+00	\N
+01919662-87dc-9530-b5f1-ccc08f9bd619	college-learners	College Learners	COLLEGELEARNERS	f	t	t	2024-08-28 00:28:45.428559+00	2024-08-28 00:28:45.428559+00	\N
+01919662-87dc-57b3-892e-791e974fd03a	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2024-08-28 00:28:45.42937+00	2024-08-28 00:28:45.42937+00	\N
+01919662-87fe-5dbc-4b00-412d50590a2b	approved-partner-school	Approved Partner School	APPROVED-PARTNER-SCHOOL	t	f	t	2024-08-28 00:28:45.43769+00	2024-08-28 00:28:45.43769+00	01919662-87fb-d63d-788d-7417e752f5d0
+01919662-8800-b5d6-dff4-97b4627082b9	another-approved-partner-school	Another Approved Partner School	ANOTHER-APPROVED-PARTNER-SCHOOL	t	f	t	2024-08-28 00:28:45.44006+00	2024-08-28 00:28:45.44006+00	01919662-87fb-6ad2-8227-c1e38adf0907
+\.
+
+
 --
 -- Data for Name: volunteer_partner_orgs; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.volunteer_partner_orgs (id, KEY, name, receive_weekly_hour_summary_email, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 87f7 - ecae - 08ec - 2d9b6c13ba3c big - telecom Big Telecom t 2024 - 08 - 28 00:28:45.431653 + 00 2024 - 08 - 28 00:28:45.431653 + 00 01919662 - 87f7 - e08c - 976a - 8abd40c8fd45 health - co Health Co f 2024 - 08 - 28 00:28:45.432353 + 00 2024 - 08 - 28 00:28:45.432353 + 00.
+COPY upchieve.volunteer_partner_orgs (id, key, name, receive_weekly_hour_summary_email, created_at, updated_at) FROM stdin;
+01919662-87f7-ecae-08ec-2d9b6c13ba3c	big-telecom	Big Telecom	t	2024-08-28 00:28:45.431653+00	2024-08-28 00:28:45.431653+00
+01919662-87f7-e08c-976a-8abd40c8fd45	health-co	Health Co	f	2024-08-28 00:28:45.432353+00	2024-08-28 00:28:45.432353+00
+\.
+
+
 --
 -- Data for Name: associated_partners; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.associated_partners (id, KEY, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8803 - be1b - 0fd6 - aa2196aa1679 associatedWithSponsorOrg 01919662 - 87f7 - ecae - 08ec - 2d9b6c13ba3c N 01919662 - 8800 - b331 - 97c6 - 6521b0dfd65b 2024 - 08 - 28 00:28:45.443793 + 00 2024 - 08 - 28 00:28:45.443793 + 00 01919662 - 8803 - 08c7 - 826d - 541f8e9b4a28 associatedWithPartnerOrg 01919662 - 87f7 - ecae - 08ec - 2d9b6c13ba3c 01919662 - 87dc - 1b9c - e053 - 326c64a2edbc N 2024 - 08 - 28 00:28:45.444321 + 00 2024 - 08 - 28 00:28:45.444321 + 00.
+COPY upchieve.associated_partners (id, key, volunteer_partner_org_id, student_partner_org_id, student_sponsor_org_id, created_at, updated_at) FROM stdin;
+01919662-8803-be1b-0fd6-aa2196aa1679	associatedWithSponsorOrg	01919662-87f7-ecae-08ec-2d9b6c13ba3c	\N	01919662-8800-b331-97c6-6521b0dfd65b	2024-08-28 00:28:45.443793+00	2024-08-28 00:28:45.443793+00
+01919662-8803-08c7-826d-541f8e9b4a28	associatedWithPartnerOrg	01919662-87f7-ecae-08ec-2d9b6c13ba3c	01919662-87dc-1b9c-e053-326c64a2edbc	\N	2024-08-28 00:28:45.444321+00	2024-08-28 00:28:45.444321+00
+\.
+
+
 --
 -- Data for Name: weekdays; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.weekdays (id, day, created_at, updated_at)
-FROM
-    stdin;
 
-1 Sunday 2024 - 08 - 28 00:28:43.724175 + 00 2024 - 08 - 28 00:28:43.724175 + 00 2 Monday 2024 - 08 - 28 00:28:43.724767 + 00 2024 - 08 - 28 00:28:43.724767 + 00 3 Tuesday 2024 - 08 - 28 00:28:43.725101 + 00 2024 - 08 - 28 00:28:43.725101 + 00 4 Wednesday 2024 - 08 - 28 00:28:43.725431 + 00 2024 - 08 - 28 00:28:43.725431 + 00 5 Thursday 2024 - 08 - 28 00:28:43.725754 + 00 2024 - 08 - 28 00:28:43.725754 + 00 6 Friday 2024 - 08 - 28 00:28:43.726137 + 00 2024 - 08 - 28 00:28:43.726137 + 00 7 Saturday 2024 - 08 - 28 00:28:43.726496 + 00 2024 - 08 - 28 00:28:43.726496 + 00.
+COPY upchieve.weekdays (id, day, created_at, updated_at) FROM stdin;
+1	Sunday	2024-08-28 00:28:43.724175+00	2024-08-28 00:28:43.724175+00
+2	Monday	2024-08-28 00:28:43.724767+00	2024-08-28 00:28:43.724767+00
+3	Tuesday	2024-08-28 00:28:43.725101+00	2024-08-28 00:28:43.725101+00
+4	Wednesday	2024-08-28 00:28:43.725431+00	2024-08-28 00:28:43.725431+00
+5	Thursday	2024-08-28 00:28:43.725754+00	2024-08-28 00:28:43.725754+00
+6	Friday	2024-08-28 00:28:43.726137+00	2024-08-28 00:28:43.726137+00
+7	Saturday	2024-08-28 00:28:43.726496+00	2024-08-28 00:28:43.726496+00
+\.
+
+
 --
 -- Data for Name: availabilities; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.availabilities (id, user_id, weekday_id, available_start, available_end, timezone, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.availabilities (id, user_id, weekday_id, available_start, available_end, timezone, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: availability_histories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, available_end, timezone, recorded_at, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, available_end, timezone, recorded_at, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at, shown)
-FROM
-    stdin;
 
-.
+COPY upchieve.censored_session_messages (id, sender_id, message, session_id, censored_by, sent_at, shown) FROM stdin;
+\.
+
+
 --
 -- Data for Name: certifications; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.certifications (id, name, created_at, updated_at, active)
-FROM
-    stdin;
 
-1 prealgebra 2024 - 08 - 28 00:28:43.997261 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 2 statistics 2024 - 08 - 28 00:28:43.997703 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 3 geometry 2024 - 08 - 28 00:28:43.997959 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 4 biology 2024 - 08 - 28 00:28:43.998196 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 5 chemistry 2024 - 08 - 28 00:28:43.998418 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 6 physicsOne 2024 - 08 - 28 00:28:43.998685 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 7 physicsTwo 2024 - 08 - 28 00:28:43.998996 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 8 environmentalScience 2024 - 08 - 28 00:28:43.999253 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 12 satMath 2024 - 08 - 28 00:28:44.00029 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 13 satReading 2024 - 08 - 28 00:28:44.000532 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 14 collegeCounseling 2024 - 08 - 28 00:28:44.000766 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 16 algebraOne 2024 - 08 - 28 00:28:44.001316 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 17 algebraTwo 2024 - 08 - 28 00:28:44.001596 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 18 trigonometry 2024 - 08 - 28 00:28:44.001855 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 19 precalculus 2024 - 08 - 28 00:28:44.002111 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 20 calculusAB 2024 - 08 - 28 00:28:44.002365 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 21 calculusBC 2024 - 08 - 28 00:28:44.002603 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 22 reading 2024 - 08 - 28 00:28:44.089401 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 23 usHistory 2024 - 08 - 28 00:28:44.11297 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 24 collegePrep 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 25 collegeList 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 26 collegeApps 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 27 applicationEssays 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 28 financialAid 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 9 essays 2024 - 08 - 28 00:28:43.999563 + 00 2024 - 08 - 28 00:28:44.154065 + 00 f 10 applications 2024 - 08 - 28 00:28:43.999801 + 00 2024 - 08 - 28 00:28:44.154065 + 00 f 11 planning 2024 - 08 - 28 00:28:44.000063 + 00 2024 - 08 - 28 00:28:44.154065 + 00 f 29 essayPlanning 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 t 30 essayFeedback 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 t 15 humanitiesEssays 2024 - 08 - 28 00:28:44.001035 + 00 2024 - 08 - 28 00:28:44.154065 + 00 f.
+COPY upchieve.certifications (id, name, created_at, updated_at, active) FROM stdin;
+1	prealgebra	2024-08-28 00:28:43.997261+00	2024-08-28 00:28:44.154065+00	t
+2	statistics	2024-08-28 00:28:43.997703+00	2024-08-28 00:28:44.154065+00	t
+3	geometry	2024-08-28 00:28:43.997959+00	2024-08-28 00:28:44.154065+00	t
+4	biology	2024-08-28 00:28:43.998196+00	2024-08-28 00:28:44.154065+00	t
+5	chemistry	2024-08-28 00:28:43.998418+00	2024-08-28 00:28:44.154065+00	t
+6	physicsOne	2024-08-28 00:28:43.998685+00	2024-08-28 00:28:44.154065+00	t
+7	physicsTwo	2024-08-28 00:28:43.998996+00	2024-08-28 00:28:44.154065+00	t
+8	environmentalScience	2024-08-28 00:28:43.999253+00	2024-08-28 00:28:44.154065+00	t
+12	satMath	2024-08-28 00:28:44.00029+00	2024-08-28 00:28:44.154065+00	t
+13	satReading	2024-08-28 00:28:44.000532+00	2024-08-28 00:28:44.154065+00	t
+14	collegeCounseling	2024-08-28 00:28:44.000766+00	2024-08-28 00:28:44.154065+00	t
+16	algebraOne	2024-08-28 00:28:44.001316+00	2024-08-28 00:28:44.154065+00	t
+17	algebraTwo	2024-08-28 00:28:44.001596+00	2024-08-28 00:28:44.154065+00	t
+18	trigonometry	2024-08-28 00:28:44.001855+00	2024-08-28 00:28:44.154065+00	t
+19	precalculus	2024-08-28 00:28:44.002111+00	2024-08-28 00:28:44.154065+00	t
+20	calculusAB	2024-08-28 00:28:44.002365+00	2024-08-28 00:28:44.154065+00	t
+21	calculusBC	2024-08-28 00:28:44.002603+00	2024-08-28 00:28:44.154065+00	t
+22	reading	2024-08-28 00:28:44.089401+00	2024-08-28 00:28:44.154065+00	t
+23	usHistory	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.154065+00	t
+24	collegePrep	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.154065+00	t
+25	collegeList	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.154065+00	t
+26	collegeApps	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.154065+00	t
+27	applicationEssays	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.154065+00	t
+28	financialAid	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.154065+00	t
+9	essays	2024-08-28 00:28:43.999563+00	2024-08-28 00:28:44.154065+00	f
+10	applications	2024-08-28 00:28:43.999801+00	2024-08-28 00:28:44.154065+00	f
+11	planning	2024-08-28 00:28:44.000063+00	2024-08-28 00:28:44.154065+00	f
+29	essayPlanning	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00	t
+30	essayFeedback	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00	t
+15	humanitiesEssays	2024-08-28 00:28:44.001035+00	2024-08-28 00:28:44.154065+00	f
+\.
+
+
 --
 -- Data for Name: certification_subject_unlocks; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.certification_subject_unlocks (subject_id, certification_id, created_at, updated_at)
-FROM
-    stdin;
 
-1 1 2024 - 08 - 28 00:28:44.016946 + 00 2024 - 08 - 28 00:28:44.016946 + 00 9 2 2024 - 08 - 28 00:28:44.017226 + 00 2024 - 08 - 28 00:28:44.017226 + 00 4 3 2024 - 08 - 28 00:28:44.01751 + 00 2024 - 08 - 28 00:28:44.01751 + 00 10 4 2024 - 08 - 28 00:28:44.017803 + 00 2024 - 08 - 28 00:28:44.017803 + 00 11 5 2024 - 08 - 28 00:28:44.018033 + 00 2024 - 08 - 28 00:28:44.018033 + 00 12 6 2024 - 08 - 28 00:28:44.018257 + 00 2024 - 08 - 28 00:28:44.018257 + 00 13 7 2024 - 08 - 28 00:28:44.018486 + 00 2024 - 08 - 28 00:28:44.018486 + 00 14 8 2024 - 08 - 28 00:28:44.018744 + 00 2024 - 08 - 28 00:28:44.018744 + 00 17 9 2024 - 08 - 28 00:28:44.019006 + 00 2024 - 08 - 28 00:28:44.019006 + 00 19 10 2024 - 08 - 28 00:28:44.019247 + 00 2024 - 08 - 28 00:28:44.019247 + 00 18 11 2024 - 08 - 28 00:28:44.019475 + 00 2024 - 08 - 28 00:28:44.019475 + 00 15 12 2024 - 08 - 28 00:28:44.01972 + 00 2024 - 08 - 28 00:28:44.01972 + 00 16 13 2024 - 08 - 28 00:28:44.020042 + 00 2024 - 08 - 28 00:28:44.020042 + 00 20 15 2024 - 08 - 28 00:28:44.020278 + 00 2024 - 08 - 28 00:28:44.020278 + 00 2 16 2024 - 08 - 28 00:28:44.020522 + 00 2024 - 08 - 28 00:28:44.020522 + 00 3 17 2024 - 08 - 28 00:28:44.020783 + 00 2024 - 08 - 28 00:28:44.020783 + 00 5 18 2024 - 08 - 28 00:28:44.02102 + 00 2024 - 08 - 28 00:28:44.02102 + 00 6 19 2024 - 08 - 28 00:28:44.021264 + 00 2024 - 08 - 28 00:28:44.021264 + 00 7 20 2024 - 08 - 28 00:28:44.021504 + 00 2024 - 08 - 28 00:28:44.021504 + 00 8 21 2024 - 08 - 28 00:28:44.021736 + 00 2024 - 08 - 28 00:28:44.021736 + 00 25 22 2024 - 08 - 28 00:28:44.089401 + 00 2024 - 08 - 28 00:28:44.089401 + 00 26 23 2024 - 08 - 28 00:28:44.11297 + 00 2024 - 08 - 28 00:28:44.11297 + 00 27 24 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 28 25 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 29 26 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 30 27 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 31 28 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 32 29 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 33 30 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00.
+COPY upchieve.certification_subject_unlocks (subject_id, certification_id, created_at, updated_at) FROM stdin;
+1	1	2024-08-28 00:28:44.016946+00	2024-08-28 00:28:44.016946+00
+9	2	2024-08-28 00:28:44.017226+00	2024-08-28 00:28:44.017226+00
+4	3	2024-08-28 00:28:44.01751+00	2024-08-28 00:28:44.01751+00
+10	4	2024-08-28 00:28:44.017803+00	2024-08-28 00:28:44.017803+00
+11	5	2024-08-28 00:28:44.018033+00	2024-08-28 00:28:44.018033+00
+12	6	2024-08-28 00:28:44.018257+00	2024-08-28 00:28:44.018257+00
+13	7	2024-08-28 00:28:44.018486+00	2024-08-28 00:28:44.018486+00
+14	8	2024-08-28 00:28:44.018744+00	2024-08-28 00:28:44.018744+00
+17	9	2024-08-28 00:28:44.019006+00	2024-08-28 00:28:44.019006+00
+19	10	2024-08-28 00:28:44.019247+00	2024-08-28 00:28:44.019247+00
+18	11	2024-08-28 00:28:44.019475+00	2024-08-28 00:28:44.019475+00
+15	12	2024-08-28 00:28:44.01972+00	2024-08-28 00:28:44.01972+00
+16	13	2024-08-28 00:28:44.020042+00	2024-08-28 00:28:44.020042+00
+20	15	2024-08-28 00:28:44.020278+00	2024-08-28 00:28:44.020278+00
+2	16	2024-08-28 00:28:44.020522+00	2024-08-28 00:28:44.020522+00
+3	17	2024-08-28 00:28:44.020783+00	2024-08-28 00:28:44.020783+00
+5	18	2024-08-28 00:28:44.02102+00	2024-08-28 00:28:44.02102+00
+6	19	2024-08-28 00:28:44.021264+00	2024-08-28 00:28:44.021264+00
+7	20	2024-08-28 00:28:44.021504+00	2024-08-28 00:28:44.021504+00
+8	21	2024-08-28 00:28:44.021736+00	2024-08-28 00:28:44.021736+00
+25	22	2024-08-28 00:28:44.089401+00	2024-08-28 00:28:44.089401+00
+26	23	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.11297+00
+27	24	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+28	25	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+29	26	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+30	27	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+31	28	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+32	29	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+33	30	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+\.
+
+
 --
 -- Data for Name: computed_subject_unlocks; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.computed_subject_unlocks (subject_id, certification_id, created_at, updated_at)
-FROM
-    stdin;
 
-21 16 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 21 3 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 21 2 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 22 16 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 22 3 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 22 18 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 22 2 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 23 2 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 23 19 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777 24 19 2024 - 08 - 28 00:28:44.170777 2024 - 08 - 28 00:28:44.170777.
+COPY upchieve.computed_subject_unlocks (subject_id, certification_id, created_at, updated_at) FROM stdin;
+21	16	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+21	3	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+21	2	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+22	16	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+22	3	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+22	18	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+22	2	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+23	2	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+23	19	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+24	19	2024-08-28 00:28:44.170777	2024-08-28 00:28:44.170777
+\.
+
+
 --
 -- Data for Name: contact_form_submissions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: federated_credentials; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.federated_credentials (id, issuer, user_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.federated_credentials (id, issuer, user_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: feedbacks; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, legacy_feedbacks, created_at, updated_at, mongo_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.feedbacks (id, topic_id, subject_id, user_role_id, session_id, student_tutoring_feedback, student_counseling_feedback, volunteer_feedback, comment, user_id, legacy_feedbacks, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: grade_level_sequence; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.grade_level_sequence (grade_name, next_grade_name)
-FROM
-    stdin;
 
-6th 7th 7th 8th 8th 9th 9th 10th 10th 11th 11th 12th 12th College College College Other Other.
+COPY upchieve.grade_level_sequence (grade_name, next_grade_name) FROM stdin;
+6th	7th
+7th	8th
+8th	9th
+9th	10th
+10th	11th
+11th	12th
+12th	College
+College	College
+Other	Other
+\.
+
+
 --
 -- Data for Name: grade_levels; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.grade_levels (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 8th 2024 - 08 - 28 00:28:43.73212 + 00 2024 - 08 - 28 00:28:43.73212 + 00 2 9th 2024 - 08 - 28 00:28:43.732526 + 00 2024 - 08 - 28 00:28:43.732526 + 00 3 10th 2024 - 08 - 28 00:28:43.732855 + 00 2024 - 08 - 28 00:28:43.732855 + 00 4 11th 2024 - 08 - 28 00:28:43.733156 + 00 2024 - 08 - 28 00:28:43.733156 + 00 5 12th 2024 - 08 - 28 00:28:43.733458 + 00 2024 - 08 - 28 00:28:43.733458 + 00 6 College 2024 - 08 - 28 00:28:43.733755 + 00 2024 - 08 - 28 00:28:43.733755 + 00 7 Other 2024 - 08 - 28 00:28:44.156618 + 00 2024 - 08 - 28 00:28:44.156618 + 00 8 6th 2024 - 08 - 28 00:28:44.173325 + 00 2024 - 08 - 28 00:28:44.173325 + 00 9 7th 2024 - 08 - 28 00:28:44.173325 + 00 2024 - 08 - 28 00:28:44.173325 + 00.
+COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
+1	8th	2024-08-28 00:28:43.73212+00	2024-08-28 00:28:43.73212+00
+2	9th	2024-08-28 00:28:43.732526+00	2024-08-28 00:28:43.732526+00
+3	10th	2024-08-28 00:28:43.732855+00	2024-08-28 00:28:43.732855+00
+4	11th	2024-08-28 00:28:43.733156+00	2024-08-28 00:28:43.733156+00
+5	12th	2024-08-28 00:28:43.733458+00	2024-08-28 00:28:43.733458+00
+6	College	2024-08-28 00:28:43.733755+00	2024-08-28 00:28:43.733755+00
+7	Other	2024-08-28 00:28:44.156618+00	2024-08-28 00:28:44.156618+00
+8	6th	2024-08-28 00:28:44.173325+00	2024-08-28 00:28:44.173325+00
+9	7th	2024-08-28 00:28:44.173325+00	2024-08-28 00:28:44.173325+00
+\.
+
+
 --
 -- Data for Name: ip_addresses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: postal_codes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.postal_codes (code, us_state_code, income, LOCATION, created_at, updated_at, cbsa_income, state_income)
-FROM
-    stdin;
 
-00501 NY 1000000 (40.81, - 73.04) 2024 - 08 - 28 00:28:43.710304 + 00 2024 - 08 - 28 00:28:43.710304 + 00 N N 00544 NY 1000000 (40.81, - 73.04) 2024 - 08 - 28 00:28:43.722499 + 00 2024 - 08 - 28 00:28:43.722499 + 00 N N 00000 NA 0 (0,
-    0) 2024 - 08 - 28 00:28:43.723697 + 00 2024 - 08 - 28 00:28:43.723697 + 00 N N 9001 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9002 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9003 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9004 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9005 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9006 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9008 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9009 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9010 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9011 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9012 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9013 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9014 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9015 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9016 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9017 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9018 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9020 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9021 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9034 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9044 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9046 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9049 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9053 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9055 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9060 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9067 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9068 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9069 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9079 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9094 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9095 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9096 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9103 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9104 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9107 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9112 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9113 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9114 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9115 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9116 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9123 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9125 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9126 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9128 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9131 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9135 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9136 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9138 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9139 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9140 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9142 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9154 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9160 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9170 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9171 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9172 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9173 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9174 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9175 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9176 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9177 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9178 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9180 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9186 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9203 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9204 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9211 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9213 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9214 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9216 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9226 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9227 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9240 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9241 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9242 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9250 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9261 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9263 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9264 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9265 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9266 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9276 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9277 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9278 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9279 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9283 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9285 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9287 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9289 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9290 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9291 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9292 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9301 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9302 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9304 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9305 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9306 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9307 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9309 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9310 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9311 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9312 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9313 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9315 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9316 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9317 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9318 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9319 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9320 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9321 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9322 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9323 AE 1000000 (- 44.25, 33.53) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9330 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9333 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9337 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9340 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9343 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9347 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9348 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9351 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9352 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9354 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9355 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9356 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9357 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9363 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9365 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9366 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9378 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9381 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9401 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9403 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9410 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9421 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9447 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9454 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9456 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9459 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9461 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9463 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9464 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9467 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9468 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9469 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9470 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9487 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9488 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9489 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9490 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9491 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9494 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9496 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9497 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9498 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9501 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9502 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9503 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9504 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9505 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9506 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9507 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9508 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9509 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9510 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9511 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9512 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9513 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9514 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9517 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9520 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9522 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9523 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9524 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9532 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9533 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9534 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9541 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9542 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9543 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9544 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9545 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9550 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9554 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9556 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9564 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9565 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9566 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9567 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9568 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9569 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9570 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9573 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9574 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9575 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9576 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9577 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9578 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9579 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9581 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9582 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9583 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9586 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9587 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9588 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9589 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9590 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9591 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9592 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9593 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9594 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9595 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9596 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9599 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9600 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9601 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9602 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9603 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9604 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9605 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9606 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9607 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9608 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9609 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9610 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9613 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9614 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9617 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9618 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9620 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9621 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9622 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9623 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9624 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9625 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9626 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9627 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9630 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9631 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9633 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9634 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9636 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9642 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9643 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9645 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9647 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9648 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9649 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9701 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9702 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9703 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9704 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9705 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9706 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9707 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9708 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9709 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9710 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9711 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9712 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9714 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9715 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9716 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9717 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9718 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9719 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9720 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9722 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9723 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9724 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9725 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9726 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9727 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9728 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9729 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9730 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9731 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9732 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9733 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9734 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9735 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9736 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9737 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9738 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9739 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9741 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9742 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9743 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9744 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9745 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9748 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9749 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9750 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9751 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9752 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9753 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9754 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9755 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9756 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9758 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9759 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9760 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9761 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9762 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9769 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9777 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9780 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9789 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9800 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9801 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9802 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9803 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9804 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9805 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9806 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9807 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9808 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9809 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9810 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9811 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9812 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9813 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9814 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9815 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9816 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9817 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9818 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9820 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9821 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9822 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9823 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9824 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9825 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9826 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9827 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9828 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9829 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9830 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9831 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9832 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9833 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9834 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9836 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9837 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9838 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9839 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9841 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9842 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9844 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9845 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9846 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9847 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9848 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9851 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9852 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9853 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9854 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9855 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9856 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9857 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9858 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9859 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9860 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9861 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9862 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9863 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9864 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9865 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9867 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9868 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9869 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9870 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9873 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9874 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9875 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9876 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9877 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9880 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9890 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9892 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9895 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9898 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9901 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9902 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9903 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9904 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9908 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9909 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9910 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9974 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9975 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9976 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 9977 AE 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34001 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34002 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34004 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34007 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34008 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34011 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34020 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34021 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34022 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34023 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34024 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34025 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34030 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34031 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34032 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34033 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34034 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34035 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34036 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34037 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34038 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34039 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34041 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34042 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34044 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34050 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34051 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34052 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34053 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34054 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34055 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34058 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34060 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34066 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34067 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34068 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34069 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34078 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34080 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34081 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34082 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34083 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34084 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34085 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34086 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34087 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34088 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34089 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34090 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34091 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34092 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34093 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34094 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 34095 AA 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96201 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96202 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96203 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96204 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96205 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96206 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96207 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96208 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96209 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96210 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96212 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96213 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96214 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96218 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96224 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96251 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96257 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96258 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96260 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96262 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96264 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96266 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96267 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96269 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96271 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96273 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96275 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96276 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96278 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96283 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96284 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96297 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96301 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96303 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96306 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96309 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96310 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96311 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96315 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96319 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96321 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96322 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96323 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96326 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96328 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96330 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96331 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96336 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96337 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96338 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96339 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96343 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96346 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96347 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96349 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96350 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96351 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96362 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96365 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96367 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96368 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96370 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96371 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96372 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96373 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96374 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96375 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96376 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96377 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96378 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96379 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96380 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96382 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96384 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96385 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96386 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96387 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96388 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96389 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96401 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96502 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96504 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96505 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96507 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96510 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96511 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96515 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96516 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96517 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96520 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96521 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96522 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96530 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96531 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96532 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96534 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96535 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96537 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96539 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96540 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96542 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96543 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96546 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96548 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96549 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96550 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96551 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96552 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96553 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96554 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96555 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96557 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96562 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96577 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96578 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96595 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96598 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96599 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96601 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96602 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96603 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96604 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96605 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96606 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96607 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96608 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96609 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96610 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96611 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96612 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96613 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96615 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96616 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96617 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96619 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96620 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96628 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96629 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96632 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96633 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96641 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96642 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96643 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96644 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96645 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96649 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96650 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96657 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96660 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96661 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96662 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96663 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96664 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96665 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96666 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96667 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96668 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96669 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96670 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96671 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96672 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96673 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96674 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96675 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96677 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96678 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96679 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96681 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96682 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96683 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96686 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96691 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96692 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96693 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96694 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96695 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96696 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96698 AP 1000000 (0, 0) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 601 PR 16001 (18.16, - 66.72) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 602 PR 19801 (18.38, - 67.18) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 603 PR 18973 (18.43, - 67.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 604 PR 0 (18.43,
-    - 67.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 605 PR 0 (18.43,
-    - 67.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 606 PR 15298 (18.18, - 66.98) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 610 PR 23612 (18.28, - 67.14) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 611 PR 0 (18.28,
-    - 66.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 612 PR 24339 (18.45, - 66.73) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 613 PR 0 (18.45,
-    - 66.73) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 614 PR 0 (18.45,
-    - 66.73) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 616 PR 20805 (18.42, - 66.67) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 617 PR 19838 (18.45, - 66.56) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 622 PR 17290 (17.99, - 67.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 623 PR 20448 (18.08, - 67.14) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 624 PR 19342 (18.06, - 66.72) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 627 PR 20616 (18.48, - 66.84) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 631 PR 12188 (18.19, - 66.82) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 636 PR 0 (18.15,
-    - 67.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 637 PR 22106 (18.08, - 66.96) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 638 PR 18914 (18.33, - 66.47) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 641 PR 19972 (18.27, - 66.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 646 PR 37357 (18.47, - 66.27) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 647 PR 17659 (17.96, - 66.94) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 650 PR 22310 (18.36, - 66.56) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 652 PR 24154 (18.45, - 66.6) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 653 PR 15234 (17.99, - 66.89) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 656 PR 19699 (18.02, - 66.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 659 PR 23679 (18.48, - 66.82) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 660 PR 23658 (18.14, - 67.12) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 662 PR 18840 (18.5, - 67.02) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 664 PR 17403 (18.22, - 66.59) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 667 PR 16166 (18.04, - 67.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 669 PR 19540 (18.29, - 66.88) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 670 PR 17861 (18.27, - 67.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 674 PR 23424 (18.43, - 66.48) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 676 PR 18630 (18.39, - 67.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 677 PR 29440 (18.34, - 67.25) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 678 PR 20992 (18.47, - 66.93) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 680 PR 20674 (18.2, - 67.14) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 681 PR 0 (18.2,
-    - 67.14) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 682 PR 20240 (18.22, - 67.16) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 683 PR 21870 (18.08, - 67.04) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 685 PR 18690 (18.33, - 66.99) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 687 PR 22147 (18.32, - 66.4) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 688 PR 20520 (18.38, - 66.62) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 690 PR 22042 (18.49, - 67.09) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 692 PR 23253 (18.41, - 66.32) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 693 PR 24677 (18.44, - 66.39) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 694 PR 0 (18.48,
-    - 66.39) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 698 PR 20794 (18.03, - 66.86) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 703 PR 21940 (18.25, - 66.1) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 704 PR 20742 (17.96, - 66.22) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 705 PR 23627 (18.14, - 66.26) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 707 PR 23232 (18, - 65.9) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 714 PR 19524 (17.97, - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 715 PR 13750 (18.01, - 66.56) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 716 PR 21350 (17.98, - 66.6) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 717 PR 16926 (18, - 66.61) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 718 PR 21011 (18.21, - 65.73) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 719 PR 23625 (18.3, - 66.24) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 720 PR 16709 (18.22, - 66.39) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 721 PR 0 (18.37,
-    - 65.77) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 723 PR 19915 (18, - 66.01) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 725 PR 26273 (18.23, - 66.03) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 726 PR 0 (18.23,
-    - 66.03) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 727 PR 37017 (18.22, - 66.07) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 728 PR 22100 (17.99, - 66.66) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 729 PR 26701 (18.37, - 65.9) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 730 PR 19328 (18.03, - 66.62) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 731 PR 19853 (18.11, - 66.63) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 732 PR 0 (17.98,
-    - 66.6) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 733 PR 0 (17.98,
-    - 66.6) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 734 PR 0 (17.98,
-    - 66.6) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 735 PR 22403 (18.25, - 65.68) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 736 PR 25507 (18.11, - 66.16) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 737 PR 0 (18.11,
-    - 66.16) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 738 PR 24045 (18.33, - 65.65) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 739 PR 22474 (18.17, - 66.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 740 PR 15061 (18.33, - 65.63) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 741 PR 25750 (18.16, - 65.75) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 742 PR 0 (18.27,
-    - 65.65) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 744 PR 0 (18.22,
-    - 65.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 745 PR 27260 (18.38, - 65.83) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 751 PR 21315 (17.97, - 66.29) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 754 PR 23476 (18.19, - 65.96) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 757 PR 23965 (17.97, - 66.4) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 765 PR 22301 (18.13, - 65.44) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 766 PR 23195 (18.13, - 66.48) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 767 PR 20785 (18.04, - 65.87) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 769 PR 24221 (18.08, - 66.36) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 771 PR 25175 (18.18, - 65.86) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 772 PR 20101 (18.43, - 65.88) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 773 PR 25135 (18.37, - 65.71) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 775 PR 33625 (18.33, - 65.3) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 777 PR 21426 (18.22, - 65.91) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 778 PR 39044 (18.25, - 65.97) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 780 PR 23592 (18.09, - 66.57) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 782 PR 16700 (18.22, - 66.22) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 783 PR 17808 (18.34, - 66.31) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 784 PR 21116 (17.97, - 66.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 785 PR 0 (17.97,
-    - 66.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 786 PR 37552 (18.16, - 66.23) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 791 PR 25582 (18.15, - 65.81) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 792 PR 0 (18.15,
-    - 65.81) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 794 PR 19682 (18.18, - 66.3) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 795 PR 23528 (18.05, - 66.5) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 801 VI 0 (18.35,
-    - 64.93) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 802 VI 0 (18.35,
-    - 64.93) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 803 VI 0 (18.35,
-    - 64.93) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 804 VI 0 (18.35,
-    - 64.93) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 805 VI 0 (18.34,
-    - 64.93) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 820 VI 0 (17.74,
-    - 64.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 821 VI 0 (17.74,
-    - 64.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 822 VI 0 (17.74,
-    - 64.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 823 VI 0 (17.74,
-    - 64.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 824 VI 0 (17.74,
-    - 64.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 830 VI 0 (18.33,
-    - 64.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 831 VI 0 (18.33,
-    - 64.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 840 VI 0 (17.71,
-    - 64.88) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 841 VI 0 (17.71,
-    - 64.88) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 850 VI 0 (17.76,
-    - 64.82) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 851 VI 0 (17.73,
-    - 64.8) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 901 PR 40839 (18.47, - 66.1) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 902 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 906 PR 0 (18.46,
-    - 66.09) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 907 PR 54813 (18.45, - 66.08) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 908 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 909 PR 24201 (18.44, - 66.07) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 910 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 911 PR 52912 (18.45, - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 912 PR 28107 (18.45, - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 913 PR 4506 (18.45, - 66.04) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 914 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 915 PR 15508 (18.44, - 66.05) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 916 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 917 PR 21911 (18.42, - 66.05) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 918 PR 43022 (18.42, - 66.07) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 919 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 920 PR 33612 (18.41, - 66.09) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 921 PR 23803 (18.39, - 66.09) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 922 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 923 PR 18466 (18.41, - 66.04) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 924 PR 20848 (18.4, - 66.01) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 925 PR 17024 (18.4, - 66.05) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 926 PR 45197 (18.35, - 66.05) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 927 PR 51667 (18.4, - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 928 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 929 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 930 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 931 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 933 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 934 PR 0 (18.41,
-    - 66.12) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 935 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 936 PR 0 (18.4,
-    - 66.07) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 937 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 939 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 940 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 949 PR 32175 (18.44, - 66.25) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 950 PR 0 (18.46,
-    - 66.23) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 951 PR 0 (18.43,
-    - 66.25) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 952 PR 18679 (18.42, - 66.19) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 953 PR 34545 (18.39, - 66.25) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 954 PR 0 (18.39,
-    - 66.25) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 955 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 956 PR 27862 (18.32, - 66.17) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 957 PR 30522 (18.37, - 66.19) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 958 PR 0 (18.28,
-    - 66.13) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 959 PR 36643 (18.39, - 66.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 960 PR 0 (18.42,
-    - 66.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 961 PR 36292 (18.41, - 66.17) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 962 PR 18520 (18.44, - 66.15) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 963 PR 0 (18.43,
-    - 66.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 965 PR 19460 (18.43, - 66.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 966 PR 65114 (18.4, - 66.12) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 968 PR 88869 (18.41, - 66.1) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 969 PR 58539 (18.38, - 66.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 970 PR 0 (18.38,
-    - 66.11) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 971 PR 29418 (18.32, - 66.12) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 975 PR 0 (18.4,
-    - 66.06) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 976 PR 39346 (18.36, - 66.01) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 977 PR 0 (18.36,
-    - 66.01) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 978 PR 0 (18.37,
-    - 66.01) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 979 PR 47639 (18.44, - 66.03) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 981 PR 0 (18.4,
-    - 65.98) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 982 PR 28143 (18.41, - 65.99) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 983 PR 30010 (18.4, - 65.98) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 984 PR 0 (18.4,
-    - 65.98) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 985 PR 31349 (18.41, - 65.95) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 986 PR 0 (18.4,
-    - 65.98) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 987 PR 37438 (18.34, - 65.94) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 988 PR 0 (18.4,
-    - 65.98) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96799 AS 0 (- 14.27,
-    - 170.7) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96910 GU 0 (13.47,
-    144.74) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96912 GU 0 (13.51,
-    144.83) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96913 GU 0 (13.46,
-    144.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96915 GU 0 (13.38,
-    144.66) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96916 GU 0 (13.26,
-    144.66) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96917 GU 0 (13.27,
-    144.74) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96919 GU 0 (13.46,
-    144.74) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96921 GU 0 (13.46,
-    144.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96923 GU 0 (13.43,
-    144.79) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96928 GU 0 (13.38,
-    144.65) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96929 GU 0 (13.53,
-    144.88) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96931 GU 0 (13.48,
-    144.77) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96932 GU 0 (13.47,
-    144.74) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96939 PW 0 (7.51,
-    134.58) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96940 PW 0 (7.5,
-    134.5) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96941 FM 0 (6.85,
-    158.26) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96942 FM 0 (7.33,
-    151.8) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96943 FM 0 (9.5,
-    138.14) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96944 FM 0 (5.29,
-    162.97) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96950 MP 0 (15.17,
-    145.75) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96951 MP 0 (14.15,
-    145.21) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96952 MP 0 (15,
-    145.63) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96960 MH 0 (7.11,
-    171.18) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N 96970 MH 0 (8.78,
-    167.73) 2024 - 08 - 28 00:28:44.091916 + 00 2024 - 08 - 28 00:28:44.091916 + 00 N N.
+COPY upchieve.postal_codes (code, us_state_code, income, location, created_at, updated_at, cbsa_income, state_income) FROM stdin;
+00501	NY	1000000	(40.81,-73.04)	2024-08-28 00:28:43.710304+00	2024-08-28 00:28:43.710304+00	\N	\N
+00544	NY	1000000	(40.81,-73.04)	2024-08-28 00:28:43.722499+00	2024-08-28 00:28:43.722499+00	\N	\N
+00000	NA	0	(0,0)	2024-08-28 00:28:43.723697+00	2024-08-28 00:28:43.723697+00	\N	\N
+9001	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9002	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9003	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9004	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9005	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9006	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9008	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9009	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9010	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9011	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9012	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9013	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9014	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9015	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9016	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9017	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9018	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9020	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9021	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9034	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9044	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9046	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9049	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9053	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9055	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9060	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9067	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9068	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9069	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9079	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9094	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9095	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9096	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9103	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9104	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9107	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9112	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9113	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9114	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9115	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9116	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9123	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9125	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9126	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9128	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9131	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9135	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9136	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9138	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9139	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9140	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9142	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9154	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9160	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9170	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9171	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9172	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9173	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9174	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9175	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9176	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9177	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9178	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9180	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9186	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9203	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9204	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9211	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9213	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9214	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9216	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9226	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9227	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9240	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9241	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9242	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9250	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9261	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9263	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9264	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9265	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9266	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9276	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9277	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9278	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9279	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9283	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9285	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9287	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9289	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9290	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9291	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9292	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9301	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9302	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9304	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9305	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9306	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9307	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9309	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9310	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9311	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9312	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9313	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9315	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9316	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9317	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9318	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9319	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9320	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9321	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9322	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9323	AE	1000000	(-44.25,33.53)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9330	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9333	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9337	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9340	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9343	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9347	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9348	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9351	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9352	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9354	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9355	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9356	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9357	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9363	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9365	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9366	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9378	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9381	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9401	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9403	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9410	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9421	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9447	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9454	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9456	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9459	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9461	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9463	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9464	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9467	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9468	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9469	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9470	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9487	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9488	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9489	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9490	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9491	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9494	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9496	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9497	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9498	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9501	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9502	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9503	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9504	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9505	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9506	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9507	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9508	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9509	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9510	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9511	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9512	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9513	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9514	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9517	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9520	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9522	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9523	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9524	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9532	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9533	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9534	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9541	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9542	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9543	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9544	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9545	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9550	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9554	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9556	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9564	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9565	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9566	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9567	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9568	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9569	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9570	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9573	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9574	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9575	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9576	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9577	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9578	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9579	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9581	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9582	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9583	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9586	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9587	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9588	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9589	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9590	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9591	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9592	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9593	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9594	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9595	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9596	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9599	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9600	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9601	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9602	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9603	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9604	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9605	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9606	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9607	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9608	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9609	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9610	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9613	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9614	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9617	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9618	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9620	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9621	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9622	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9623	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9624	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9625	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9626	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9627	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9630	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9631	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9633	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9634	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9636	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9642	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9643	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9645	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9647	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9648	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9649	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9701	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9702	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9703	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9704	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9705	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9706	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9707	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9708	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9709	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9710	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9711	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9712	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9714	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9715	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9716	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9717	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9718	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9719	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9720	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9722	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9723	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9724	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9725	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9726	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9727	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9728	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9729	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9730	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9731	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9732	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9733	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9734	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9735	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9736	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9737	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9738	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9739	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9741	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9742	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9743	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9744	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9745	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9748	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9749	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9750	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9751	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9752	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9753	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9754	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9755	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9756	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9758	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9759	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9760	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9761	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9762	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9769	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9777	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9780	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9789	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9800	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9801	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9802	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9803	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9804	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9805	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9806	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9807	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9808	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9809	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9810	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9811	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9812	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9813	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9814	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9815	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9816	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9817	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9818	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9820	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9821	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9822	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9823	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9824	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9825	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9826	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9827	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9828	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9829	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9830	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9831	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9832	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9833	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9834	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9836	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9837	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9838	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9839	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9841	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9842	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9844	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9845	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9846	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9847	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9848	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9851	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9852	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9853	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9854	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9855	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9856	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9857	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9858	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9859	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9860	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9861	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9862	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9863	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9864	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9865	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9867	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9868	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9869	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9870	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9873	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9874	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9875	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9876	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9877	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9880	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9890	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9892	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9895	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9898	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9901	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9902	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9903	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9904	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9908	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9909	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9910	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9974	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9975	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9976	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+9977	AE	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34001	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34002	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34004	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34007	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34008	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34011	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34020	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34021	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34022	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34023	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34024	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34025	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34030	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34031	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34032	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34033	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34034	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34035	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34036	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34037	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34038	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34039	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34041	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34042	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34044	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34050	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34051	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34052	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34053	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34054	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34055	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34058	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34060	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34066	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34067	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34068	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34069	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34078	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34080	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34081	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34082	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34083	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34084	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34085	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34086	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34087	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34088	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34089	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34090	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34091	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34092	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34093	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34094	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+34095	AA	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96201	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96202	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96203	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96204	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96205	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96206	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96207	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96208	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96209	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96210	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96212	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96213	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96214	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96218	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96224	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96251	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96257	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96258	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96260	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96262	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96264	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96266	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96267	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96269	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96271	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96273	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96275	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96276	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96278	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96283	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96284	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96297	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96301	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96303	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96306	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96309	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96310	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96311	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96315	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96319	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96321	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96322	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96323	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96326	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96328	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96330	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96331	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96336	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96337	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96338	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96339	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96343	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96346	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96347	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96349	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96350	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96351	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96362	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96365	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96367	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96368	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96370	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96371	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96372	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96373	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96374	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96375	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96376	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96377	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96378	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96379	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96380	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96382	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96384	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96385	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96386	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96387	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96388	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96389	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96401	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96502	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96504	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96505	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96507	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96510	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96511	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96515	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96516	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96517	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96520	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96521	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96522	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96530	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96531	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96532	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96534	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96535	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96537	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96539	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96540	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96542	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96543	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96546	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96548	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96549	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96550	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96551	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96552	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96553	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96554	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96555	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96557	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96562	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96577	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96578	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96595	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96598	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96599	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96601	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96602	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96603	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96604	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96605	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96606	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96607	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96608	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96609	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96610	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96611	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96612	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96613	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96615	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96616	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96617	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96619	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96620	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96628	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96629	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96632	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96633	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96641	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96642	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96643	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96644	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96645	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96649	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96650	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96657	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96660	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96661	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96662	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96663	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96664	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96665	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96666	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96667	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96668	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96669	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96670	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96671	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96672	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96673	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96674	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96675	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96677	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96678	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96679	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96681	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96682	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96683	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96686	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96691	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96692	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96693	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96694	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96695	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96696	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96698	AP	1000000	(0,0)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+601	PR	16001	(18.16,-66.72)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+602	PR	19801	(18.38,-67.18)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+603	PR	18973	(18.43,-67.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+604	PR	0	(18.43,-67.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+605	PR	0	(18.43,-67.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+606	PR	15298	(18.18,-66.98)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+610	PR	23612	(18.28,-67.14)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+611	PR	0	(18.28,-66.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+612	PR	24339	(18.45,-66.73)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+613	PR	0	(18.45,-66.73)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+614	PR	0	(18.45,-66.73)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+616	PR	20805	(18.42,-66.67)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+617	PR	19838	(18.45,-66.56)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+622	PR	17290	(17.99,-67.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+623	PR	20448	(18.08,-67.14)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+624	PR	19342	(18.06,-66.72)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+627	PR	20616	(18.48,-66.84)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+631	PR	12188	(18.19,-66.82)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+636	PR	0	(18.15,-67.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+637	PR	22106	(18.08,-66.96)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+638	PR	18914	(18.33,-66.47)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+641	PR	19972	(18.27,-66.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+646	PR	37357	(18.47,-66.27)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+647	PR	17659	(17.96,-66.94)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+650	PR	22310	(18.36,-66.56)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+652	PR	24154	(18.45,-66.6)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+653	PR	15234	(17.99,-66.89)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+656	PR	19699	(18.02,-66.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+659	PR	23679	(18.48,-66.82)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+660	PR	23658	(18.14,-67.12)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+662	PR	18840	(18.5,-67.02)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+664	PR	17403	(18.22,-66.59)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+667	PR	16166	(18.04,-67.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+669	PR	19540	(18.29,-66.88)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+670	PR	17861	(18.27,-67.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+674	PR	23424	(18.43,-66.48)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+676	PR	18630	(18.39,-67.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+677	PR	29440	(18.34,-67.25)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+678	PR	20992	(18.47,-66.93)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+680	PR	20674	(18.2,-67.14)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+681	PR	0	(18.2,-67.14)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+682	PR	20240	(18.22,-67.16)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+683	PR	21870	(18.08,-67.04)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+685	PR	18690	(18.33,-66.99)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+687	PR	22147	(18.32,-66.4)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+688	PR	20520	(18.38,-66.62)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+690	PR	22042	(18.49,-67.09)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+692	PR	23253	(18.41,-66.32)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+693	PR	24677	(18.44,-66.39)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+694	PR	0	(18.48,-66.39)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+698	PR	20794	(18.03,-66.86)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+703	PR	21940	(18.25,-66.1)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+704	PR	20742	(17.96,-66.22)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+705	PR	23627	(18.14,-66.26)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+707	PR	23232	(18,-65.9)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+714	PR	19524	(17.97,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+715	PR	13750	(18.01,-66.56)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+716	PR	21350	(17.98,-66.6)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+717	PR	16926	(18,-66.61)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+718	PR	21011	(18.21,-65.73)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+719	PR	23625	(18.3,-66.24)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+720	PR	16709	(18.22,-66.39)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+721	PR	0	(18.37,-65.77)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+723	PR	19915	(18,-66.01)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+725	PR	26273	(18.23,-66.03)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+726	PR	0	(18.23,-66.03)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+727	PR	37017	(18.22,-66.07)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+728	PR	22100	(17.99,-66.66)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+729	PR	26701	(18.37,-65.9)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+730	PR	19328	(18.03,-66.62)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+731	PR	19853	(18.11,-66.63)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+732	PR	0	(17.98,-66.6)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+733	PR	0	(17.98,-66.6)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+734	PR	0	(17.98,-66.6)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+735	PR	22403	(18.25,-65.68)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+736	PR	25507	(18.11,-66.16)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+737	PR	0	(18.11,-66.16)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+738	PR	24045	(18.33,-65.65)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+739	PR	22474	(18.17,-66.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+740	PR	15061	(18.33,-65.63)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+741	PR	25750	(18.16,-65.75)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+742	PR	0	(18.27,-65.65)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+744	PR	0	(18.22,-65.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+745	PR	27260	(18.38,-65.83)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+751	PR	21315	(17.97,-66.29)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+754	PR	23476	(18.19,-65.96)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+757	PR	23965	(17.97,-66.4)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+765	PR	22301	(18.13,-65.44)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+766	PR	23195	(18.13,-66.48)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+767	PR	20785	(18.04,-65.87)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+769	PR	24221	(18.08,-66.36)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+771	PR	25175	(18.18,-65.86)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+772	PR	20101	(18.43,-65.88)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+773	PR	25135	(18.37,-65.71)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+775	PR	33625	(18.33,-65.3)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+777	PR	21426	(18.22,-65.91)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+778	PR	39044	(18.25,-65.97)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+780	PR	23592	(18.09,-66.57)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+782	PR	16700	(18.22,-66.22)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+783	PR	17808	(18.34,-66.31)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+784	PR	21116	(17.97,-66.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+785	PR	0	(17.97,-66.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+786	PR	37552	(18.16,-66.23)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+791	PR	25582	(18.15,-65.81)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+792	PR	0	(18.15,-65.81)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+794	PR	19682	(18.18,-66.3)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+795	PR	23528	(18.05,-66.5)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+801	VI	0	(18.35,-64.93)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+802	VI	0	(18.35,-64.93)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+803	VI	0	(18.35,-64.93)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+804	VI	0	(18.35,-64.93)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+805	VI	0	(18.34,-64.93)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+820	VI	0	(17.74,-64.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+821	VI	0	(17.74,-64.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+822	VI	0	(17.74,-64.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+823	VI	0	(17.74,-64.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+824	VI	0	(17.74,-64.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+830	VI	0	(18.33,-64.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+831	VI	0	(18.33,-64.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+840	VI	0	(17.71,-64.88)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+841	VI	0	(17.71,-64.88)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+850	VI	0	(17.76,-64.82)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+851	VI	0	(17.73,-64.8)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+901	PR	40839	(18.47,-66.1)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+902	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+906	PR	0	(18.46,-66.09)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+907	PR	54813	(18.45,-66.08)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+908	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+909	PR	24201	(18.44,-66.07)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+910	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+911	PR	52912	(18.45,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+912	PR	28107	(18.45,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+913	PR	4506	(18.45,-66.04)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+914	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+915	PR	15508	(18.44,-66.05)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+916	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+917	PR	21911	(18.42,-66.05)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+918	PR	43022	(18.42,-66.07)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+919	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+920	PR	33612	(18.41,-66.09)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+921	PR	23803	(18.39,-66.09)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+922	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+923	PR	18466	(18.41,-66.04)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+924	PR	20848	(18.4,-66.01)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+925	PR	17024	(18.4,-66.05)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+926	PR	45197	(18.35,-66.05)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+927	PR	51667	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+928	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+929	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+930	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+931	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+933	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+934	PR	0	(18.41,-66.12)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+935	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+936	PR	0	(18.4,-66.07)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+937	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+939	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+940	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+949	PR	32175	(18.44,-66.25)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+950	PR	0	(18.46,-66.23)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+951	PR	0	(18.43,-66.25)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+952	PR	18679	(18.42,-66.19)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+953	PR	34545	(18.39,-66.25)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+954	PR	0	(18.39,-66.25)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+955	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+956	PR	27862	(18.32,-66.17)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+957	PR	30522	(18.37,-66.19)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+958	PR	0	(18.28,-66.13)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+959	PR	36643	(18.39,-66.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+960	PR	0	(18.42,-66.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+961	PR	36292	(18.41,-66.17)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+962	PR	18520	(18.44,-66.15)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+963	PR	0	(18.43,-66.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+965	PR	19460	(18.43,-66.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+966	PR	65114	(18.4,-66.12)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+968	PR	88869	(18.41,-66.1)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+969	PR	58539	(18.38,-66.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+970	PR	0	(18.38,-66.11)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+971	PR	29418	(18.32,-66.12)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+975	PR	0	(18.4,-66.06)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+976	PR	39346	(18.36,-66.01)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+977	PR	0	(18.36,-66.01)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+978	PR	0	(18.37,-66.01)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+979	PR	47639	(18.44,-66.03)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+981	PR	0	(18.4,-65.98)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+982	PR	28143	(18.41,-65.99)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+983	PR	30010	(18.4,-65.98)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+984	PR	0	(18.4,-65.98)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+985	PR	31349	(18.41,-65.95)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+986	PR	0	(18.4,-65.98)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+987	PR	37438	(18.34,-65.94)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+988	PR	0	(18.4,-65.98)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96799	AS	0	(-14.27,-170.7)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96910	GU	0	(13.47,144.74)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96912	GU	0	(13.51,144.83)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96913	GU	0	(13.46,144.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96915	GU	0	(13.38,144.66)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96916	GU	0	(13.26,144.66)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96917	GU	0	(13.27,144.74)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96919	GU	0	(13.46,144.74)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96921	GU	0	(13.46,144.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96923	GU	0	(13.43,144.79)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96928	GU	0	(13.38,144.65)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96929	GU	0	(13.53,144.88)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96931	GU	0	(13.48,144.77)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96932	GU	0	(13.47,144.74)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96939	PW	0	(7.51,134.58)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96940	PW	0	(7.5,134.5)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96941	FM	0	(6.85,158.26)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96942	FM	0	(7.33,151.8)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96943	FM	0	(9.5,138.14)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96944	FM	0	(5.29,162.97)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96950	MP	0	(15.17,145.75)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96951	MP	0	(14.15,145.21)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96952	MP	0	(15,145.63)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96960	MH	0	(7.11,171.18)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+96970	MH	0	(8.78,167.73)	2024-08-28 00:28:44.091916+00	2024-08-28 00:28:44.091916+00	\N	\N
+\.
+
+
 --
 -- Data for Name: ineligible_students; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.ineligible_students (id, email, postal_code, ip_address_id, school_id, grade_level_id, created_at, updated_at, mongo_id, referred_by)
-FROM
-    stdin;
 
-.
+COPY upchieve.ineligible_students (id, email, postal_code, ip_address_id, school_id, grade_level_id, created_at, updated_at, mongo_id, referred_by) FROM stdin;
+\.
+
+
 --
 -- Data for Name: legacy_availability_histories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, recorded_at, legacy_availability, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: moderation_infractions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: muted_users_subject_alerts; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.muted_users_subject_alerts (user_id, subject_id, created_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.muted_users_subject_alerts (user_id, subject_id, created_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: notification_methods; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.notification_methods (id, method, created_at, updated_at)
-FROM
-    stdin;
 
-1 sms 2024 - 08 - 28 00:28:44.027578 + 00 2024 - 08 - 28 00:28:44.027578 + 00 2 push 2024 - 08 - 28 00:28:44.027939 + 00 2024 - 08 - 28 00:28:44.027939 + 00 3 voice 2024 - 08 - 28 00:28:44.028174 + 00 2024 - 08 - 28 00:28:44.028174 + 00 4 email 2024 - 08 - 28 00:28:44.0284 + 00 2024 - 08 - 28 00:28:44.0284 + 00.
+COPY upchieve.notification_methods (id, method, created_at, updated_at) FROM stdin;
+1	sms	2024-08-28 00:28:44.027578+00	2024-08-28 00:28:44.027578+00
+2	push	2024-08-28 00:28:44.027939+00	2024-08-28 00:28:44.027939+00
+3	voice	2024-08-28 00:28:44.028174+00	2024-08-28 00:28:44.028174+00
+4	email	2024-08-28 00:28:44.0284+00	2024-08-28 00:28:44.0284+00
+\.
+
+
 --
 -- Data for Name: notification_priority_groups; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.notification_priority_groups (id, name, priority, created_at, updated_at)
-FROM
-    stdin;
 
-1 follow - up - 1 2024 - 08 - 28 00:28:44.028701 + 00 2024 - 08 - 28 00:28:44.028701 + 00 11 LEGACY: Regular volunteers - NOT notified IN the LAST 7 days - 1 2024 - 08 - 28 00:28:44.031239 + 00 2024 - 08 - 28 00:28:44.031239 + 00 12 LEGACY: Partner volunteers - NOT notified IN the LAST 7 days - 1 2024 - 08 - 28 00:28:44.03151 + 00 2024 - 08 - 28 00:28:44.03151 + 00 13 LEGACY: Partner volunteers - NOT notified IN the LAST 3 days - 1 2024 - 08 - 28 00:28:44.031773 + 00 2024 - 08 - 28 00:28:44.031773 + 00 14 LEGACY: ALL volunteers - NOT notified IN the LAST 15 mins who don 't have "high level subjects"	-1	2024-08-28 00:28:44.03202+00	2024-08-28 00:28:44.03202+00
+COPY upchieve.notification_priority_groups (id, name, priority, created_at, updated_at) FROM stdin;
+1	follow-up	-1	2024-08-28 00:28:44.028701+00	2024-08-28 00:28:44.028701+00
+11	LEGACY: Regular volunteers - not notified in the last 7 days	-1	2024-08-28 00:28:44.031239+00	2024-08-28 00:28:44.031239+00
+12	LEGACY: Partner volunteers - not notified in the last 7 days	-1	2024-08-28 00:28:44.03151+00	2024-08-28 00:28:44.03151+00
+13	LEGACY: Partner volunteers - not notified in the last 3 days	-1	2024-08-28 00:28:44.031773+00	2024-08-28 00:28:44.031773+00
+14	LEGACY: All volunteers - not notified in the last 15 mins who don't have "high level subjects"	-1	2024-08-28 00:28:44.03202+00	2024-08-28 00:28:44.03202+00
 15	LEGACY: Mizuho and Atlassian volunteers - Not notified in last 3 days	-1	2024-08-28 00:28:44.032277+00	2024-08-28 00:28:44.032277+00
 16	LEGACY: null	-1	2024-08-28 00:28:44.032491+00	2024-08-28 00:28:44.032491+00
-2	Partner volunteers - not notified in the last 3 days AND they don' t have "high level subjects" 20 2024 - 08 - 28 00:28:44.029084 + 00 2024 - 08 - 28 00:28:44.087159 + 00 3 Regular volunteers - NOT notified IN the LAST 3 days
-    AND they don 't have "high level subjects"	30	2024-08-28 00:28:44.029325+00	2024-08-28 00:28:44.087159+00
-4	Partner volunteers - not notified in the last 24 hours AND they don' t have "high level subjects" 40 2024 - 08 - 28 00:28:44.029564 + 00 2024 - 08 - 28 00:28:44.087159 + 00 5 Regular volunteers - NOT notified IN the LAST 24 hours
-    AND they don 't have "high level subjects"	50	2024-08-28 00:28:44.029789+00	2024-08-28 00:28:44.087159+00
+2	Partner volunteers - not notified in the last 3 days AND they don't have "high level subjects"	20	2024-08-28 00:28:44.029084+00	2024-08-28 00:28:44.087159+00
+3	Regular volunteers - not notified in the last 3 days AND they don't have "high level subjects"	30	2024-08-28 00:28:44.029325+00	2024-08-28 00:28:44.087159+00
+4	Partner volunteers - not notified in the last 24 hours AND they don't have "high level subjects"	40	2024-08-28 00:28:44.029564+00	2024-08-28 00:28:44.087159+00
+5	Regular volunteers - not notified in the last 24 hours AND they don't have "high level subjects"	50	2024-08-28 00:28:44.029789+00	2024-08-28 00:28:44.087159+00
 6	All volunteers - not notified in the last 24 hours	60	2024-08-28 00:28:44.029981+00	2024-08-28 00:28:44.087159+00
 7	All volunteers - not notified in the last 60 mins	70	2024-08-28 00:28:44.030252+00	2024-08-28 00:28:44.087159+00
 8	All volunteers - not notified in the last 15 mins	80	2024-08-28 00:28:44.030474+00	2024-08-28 00:28:44.087159+00
-9	Verizon volunteers - not notified in the last 24 hours AND they don' t have "high level subjects" 90 2024 - 08 - 28 00:28:44.030729 + 00 2024 - 08 - 28 00:28:44.087159 + 00 10 Verizon volunteers - NOT notified IN the LAST 3 days
-    AND they don 't have "high level subjects"	100	2024-08-28 00:28:44.030984+00	2024-08-28 00:28:44.087159+00
+9	Verizon volunteers - not notified in the last 24 hours AND they don't have "high level subjects"	90	2024-08-28 00:28:44.030729+00	2024-08-28 00:28:44.087159+00
+10	Verizon volunteers - not notified in the last 3 days AND they don't have "high level subjects"	100	2024-08-28 00:28:44.030984+00	2024-08-28 00:28:44.087159+00
 17	Favorite volunteers - not notified in the last 15 mins	10	2024-08-28 00:28:44.087159+00	2024-08-28 00:28:44.087159+00
-18	Associated partner volunteers - not notified in the last 24 hours AND they don' t have "high level subjects" 85 2024 - 08 - 28 00:28:44.101139 + 00 2024 - 08 - 28 00:28:44.101139 + 00 19 Associated partner volunteers - NOT notified IN the LAST 3 days
-    AND they don 't have "high level subjects"	95	2024-08-28 00:28:44.101139+00	2024-08-28 00:28:44.101139+00
+18	Associated partner volunteers - not notified in the last 24 hours AND they don't have "high level subjects"	85	2024-08-28 00:28:44.101139+00	2024-08-28 00:28:44.101139+00
+19	Associated partner volunteers - not notified in the last 3 days AND they don't have "high level subjects"	95	2024-08-28 00:28:44.101139+00	2024-08-28 00:28:44.101139+00
 \.
 
 
@@ -547,138 +1542,367 @@ COPY upchieve.progress_report_analysis_types (id, name, created_at, updated_at) 
 --
 
 COPY upchieve.progress_report_prompts (id, subject_id, prompt, active, created_at, updated_at) FROM stdin;
-1	25	Analyze transcripts from a series of high school reading tutoring sessions involving the same student. \n    Predict the topics for the student' s NEXT quiz
-    AND assess their likely performance. n Highlight the areas
-WHERE
-    the student IS expected TO excel, n based ON the dialogue
-    AND editor content provided IN EACH session. n The format OF the transcripts is: n n Session: n[hh:mm:ss] Tutor: {message} n[hh:mm:ss] Student: {message} n n Editor: n {editorContent} n n The editor content IS a JSON representation OF a Quill Editor document IN Quill 's Delta format. \n    The Delta format is a series of operations applied to the document. \n    Both the student and the tutor can commit operations. You will not know the author of an operation, \n    although you can assume that students insert the early original content into the document; \n    tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; \n    and students may make additional edits to respond to the tutor' s feedback. n n {{responseInstructions}} t 2024 - 08 - 28 00:28:44.178196 + 00 2024 - 08 - 28 00:28:44.178196 + 00.
-    --
-    -- Data for Name: progress_report_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
-    --
-    COPY upchieve.progress_report_statuses (id, name, created_at, updated_at)
-FROM
-    stdin;
+1	25	Analyze transcripts from a series of high school reading tutoring sessions involving the same student. \n    Predict the topics for the student's next quiz and assess their likely performance. \n    Highlight the areas where the student is expected to excel, \n    based on the dialogue and editor content provided in each session. \n    The format of the transcripts is:\n\n    Session:\n    [hh:mm:ss] Tutor: {message}\n    [hh:mm:ss] Student: {message}\n\n    Editor:\n    {editorContent}\n\n    The editor content is a JSON representation of a Quill Editor document in Quill's Delta format. \n    The Delta format is a series of operations applied to the document. \n    Both the student and the tutor can commit operations. You will not know the author of an operation, \n    although you can assume that students insert the early original content into the document; \n    tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; \n    and students may make additional edits to respond to the tutor's feedback. \n\n    {{responseInstructions}}	t	2024-08-28 00:28:44.178196+00	2024-08-28 00:28:44.178196+00
+\.
 
-1 pending 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00 2 processing 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00 3 error 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00 4 complete 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00.
+
+--
+-- Data for Name: progress_report_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.progress_report_statuses (id, name, created_at, updated_at) FROM stdin;
+1	pending	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+2	processing	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+3	error	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+4	complete	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+\.
+
+
 --
 -- Data for Name: progress_reports; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at, read_at, prompt_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.progress_reports (id, user_id, status_id, created_at, updated_at, read_at, prompt_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: progress_report_concepts; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_concepts (id, name, description, grade, progress_report_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.progress_report_concepts (id, name, description, grade, progress_report_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: progress_report_focus_areas; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_focus_areas (id, name, display_name, created_at, updated_at)
-FROM
-    stdin;
 
-1 strength Strength 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00 2 practiceArea Practice Area 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00.
+COPY upchieve.progress_report_focus_areas (id, name, display_name, created_at, updated_at) FROM stdin;
+1	strength	Strength	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+2	practiceArea	Practice Area	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+\.
+
+
 --
 -- Data for Name: progress_report_info_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_info_types (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 recommendation 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00 2 reason 2024 - 08 - 28 00:28:44.175153 + 00 2024 - 08 - 28 00:28:44.175153 + 00.
+COPY upchieve.progress_report_info_types (id, name, created_at, updated_at) FROM stdin;
+1	recommendation	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+2	reason	2024-08-28 00:28:44.175153+00	2024-08-28 00:28:44.175153+00
+\.
+
+
 --
 -- Data for Name: progress_report_concept_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.progress_report_concept_details (id, content, progress_report_concept_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: progress_report_sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_sessions (progress_report_id, session_id, progress_report_analysis_type_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.progress_report_sessions (progress_report_id, session_id, progress_report_analysis_type_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: progress_report_summaries; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_summaries (id, summary, overall_grade, progress_report_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.progress_report_summaries (id, summary, overall_grade, progress_report_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: progress_report_summary_details; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.progress_report_summary_details (id, content, progress_report_summary_id, progress_report_focus_area_id, progress_report_info_type_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: push_tokens; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.push_tokens (id, user_id, token, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.push_tokens (id, user_id, token, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: question_tags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.question_tags (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.question_tags (id, name, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: question_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.question_types (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 multiple choice 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 CHECK box 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 3 free response 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 number 2025 - 05 - 23 19:02:00.90109 + 00 2025 - 05 - 23 19:02:00.90109 + 00.
+COPY upchieve.question_types (id, name, created_at, updated_at) FROM stdin;
+1	multiple choice	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+2	check box	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+3	free response	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+4	number	2025-05-23 19:02:00.90109+00	2025-05-23 19:02:00.90109+00
+\.
+
+
 --
 -- Data for Name: quizzes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.quizzes (id, name, created_at, updated_at, active, questions_per_subcategory)
-FROM
-    stdin;
 
-14 collegeCounseling 2024 - 08 - 28 00:28:43.753088 + 00 2024 - 08 - 28 00:28:44.154065 + 00 t 1 2 statistics 2024 - 08 - 28 00:28:43.749337 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 4 biology 2024 - 08 - 28 00:28:43.75006 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 5 chemistry 2024 - 08 - 28 00:28:43.750356 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 6 physicsOne 2024 - 08 - 28 00:28:43.750645 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 7 physicsTwo 2024 - 08 - 28 00:28:43.750954 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 8 environmentalScience 2024 - 08 - 28 00:28:43.751241 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 12 satMath 2024 - 08 - 28 00:28:43.752473 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 13 satReading 2024 - 08 - 28 00:28:43.75279 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 17 algebraTwo 2024 - 08 - 28 00:28:43.753965 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 20 calculusAB 2024 - 08 - 28 00:28:43.754856 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 21 calculusBC 2024 - 08 - 28 00:28:43.755149 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 23 reading 2024 - 08 - 28 00:28:43.755715 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 24 anatomy 2024 - 08 - 28 00:28:43.75603 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 30 essayPlanning 2024 - 08 - 28 00:28:43.757754 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 31 essayFeedback 2024 - 08 - 28 00:28:43.758058 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 32 usHistory 2024 - 08 - 28 00:28:44.11297 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 1 15 humanitiesEssays 2024 - 08 - 28 00:28:43.75338 + 00 2024 - 08 - 28 00:28:44.16973 + 00 f 1 1 prealgebra 2024 - 08 - 28 00:28:43.748908 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 3 geometry 2024 - 08 - 28 00:28:43.749622 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 16 algebraOne 2024 - 08 - 28 00:28:43.753668 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 18 trigonometry 2024 - 08 - 28 00:28:43.754249 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 19 precalculus 2024 - 08 - 28 00:28:43.754572 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 25 financialAid 2024 - 08 - 28 00:28:43.756354 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 26 applicationEssays 2024 - 08 - 28 00:28:43.756669 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 27 collegeApps 2024 - 08 - 28 00:28:43.756941 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 28 collegeList 2024 - 08 - 28 00:28:43.757229 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 29 collegePrep 2024 - 08 - 28 00:28:43.757486 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 2 10 applications 2024 - 08 - 28 00:28:43.75191 + 00 2024 - 08 - 28 00:28:44.16973 + 00 f 2 9 essays 2024 - 08 - 28 00:28:43.751596 + 00 2024 - 08 - 28 00:28:44.16973 + 00 f 3 11 planning 2024 - 08 - 28 00:28:43.752204 + 00 2024 - 08 - 28 00:28:44.16973 + 00 f 4 22 upchieve101 2024 - 08 - 28 00:28:43.755436 + 00 2024 - 08 - 28 00:28:44.16973 + 00 t 27.
+COPY upchieve.quizzes (id, name, created_at, updated_at, active, questions_per_subcategory) FROM stdin;
+14	collegeCounseling	2024-08-28 00:28:43.753088+00	2024-08-28 00:28:44.154065+00	t	1
+2	statistics	2024-08-28 00:28:43.749337+00	2024-08-28 00:28:44.16973+00	t	1
+4	biology	2024-08-28 00:28:43.75006+00	2024-08-28 00:28:44.16973+00	t	1
+5	chemistry	2024-08-28 00:28:43.750356+00	2024-08-28 00:28:44.16973+00	t	1
+6	physicsOne	2024-08-28 00:28:43.750645+00	2024-08-28 00:28:44.16973+00	t	1
+7	physicsTwo	2024-08-28 00:28:43.750954+00	2024-08-28 00:28:44.16973+00	t	1
+8	environmentalScience	2024-08-28 00:28:43.751241+00	2024-08-28 00:28:44.16973+00	t	1
+12	satMath	2024-08-28 00:28:43.752473+00	2024-08-28 00:28:44.16973+00	t	1
+13	satReading	2024-08-28 00:28:43.75279+00	2024-08-28 00:28:44.16973+00	t	1
+17	algebraTwo	2024-08-28 00:28:43.753965+00	2024-08-28 00:28:44.16973+00	t	1
+20	calculusAB	2024-08-28 00:28:43.754856+00	2024-08-28 00:28:44.16973+00	t	1
+21	calculusBC	2024-08-28 00:28:43.755149+00	2024-08-28 00:28:44.16973+00	t	1
+23	reading	2024-08-28 00:28:43.755715+00	2024-08-28 00:28:44.16973+00	t	1
+24	anatomy	2024-08-28 00:28:43.75603+00	2024-08-28 00:28:44.16973+00	t	1
+30	essayPlanning	2024-08-28 00:28:43.757754+00	2024-08-28 00:28:44.16973+00	t	1
+31	essayFeedback	2024-08-28 00:28:43.758058+00	2024-08-28 00:28:44.16973+00	t	1
+32	usHistory	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.16973+00	t	1
+15	humanitiesEssays	2024-08-28 00:28:43.75338+00	2024-08-28 00:28:44.16973+00	f	1
+1	prealgebra	2024-08-28 00:28:43.748908+00	2024-08-28 00:28:44.16973+00	t	2
+3	geometry	2024-08-28 00:28:43.749622+00	2024-08-28 00:28:44.16973+00	t	2
+16	algebraOne	2024-08-28 00:28:43.753668+00	2024-08-28 00:28:44.16973+00	t	2
+18	trigonometry	2024-08-28 00:28:43.754249+00	2024-08-28 00:28:44.16973+00	t	2
+19	precalculus	2024-08-28 00:28:43.754572+00	2024-08-28 00:28:44.16973+00	t	2
+25	financialAid	2024-08-28 00:28:43.756354+00	2024-08-28 00:28:44.16973+00	t	2
+26	applicationEssays	2024-08-28 00:28:43.756669+00	2024-08-28 00:28:44.16973+00	t	2
+27	collegeApps	2024-08-28 00:28:43.756941+00	2024-08-28 00:28:44.16973+00	t	2
+28	collegeList	2024-08-28 00:28:43.757229+00	2024-08-28 00:28:44.16973+00	t	2
+29	collegePrep	2024-08-28 00:28:43.757486+00	2024-08-28 00:28:44.16973+00	t	2
+10	applications	2024-08-28 00:28:43.75191+00	2024-08-28 00:28:44.16973+00	f	2
+9	essays	2024-08-28 00:28:43.751596+00	2024-08-28 00:28:44.16973+00	f	3
+11	planning	2024-08-28 00:28:43.752204+00	2024-08-28 00:28:44.16973+00	f	4
+22	upchieve101	2024-08-28 00:28:43.755436+00	2024-08-28 00:28:44.16973+00	t	27
+\.
+
+
 --
 -- Data for Name: quiz_certification_grants; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.quiz_certification_grants (quiz_id, certification_id, created_at, updated_at)
-FROM
-    stdin;
 
-1 1 2024 - 08 - 28 00:28:44.00318 + 00 2024 - 08 - 28 00:28:44.00318 + 00 2 2 2024 - 08 - 28 00:28:44.003596 + 00 2024 - 08 - 28 00:28:44.003596 + 00 3 3 2024 - 08 - 28 00:28:44.003894 + 00 2024 - 08 - 28 00:28:44.003894 + 00 4 4 2024 - 08 - 28 00:28:44.004184 + 00 2024 - 08 - 28 00:28:44.004184 + 00 5 5 2024 - 08 - 28 00:28:44.0046 + 00 2024 - 08 - 28 00:28:44.0046 + 00 6 6 2024 - 08 - 28 00:28:44.004878 + 00 2024 - 08 - 28 00:28:44.004878 + 00 7 7 2024 - 08 - 28 00:28:44.005159 + 00 2024 - 08 - 28 00:28:44.005159 + 00 8 8 2024 - 08 - 28 00:28:44.005507 + 00 2024 - 08 - 28 00:28:44.005507 + 00 9 9 2024 - 08 - 28 00:28:44.005772 + 00 2024 - 08 - 28 00:28:44.005772 + 00 10 10 2024 - 08 - 28 00:28:44.006036 + 00 2024 - 08 - 28 00:28:44.006036 + 00 11 11 2024 - 08 - 28 00:28:44.006274 + 00 2024 - 08 - 28 00:28:44.006274 + 00 12 12 2024 - 08 - 28 00:28:44.006535 + 00 2024 - 08 - 28 00:28:44.006535 + 00 13 13 2024 - 08 - 28 00:28:44.006812 + 00 2024 - 08 - 28 00:28:44.006812 + 00 14 11 2024 - 08 - 28 00:28:44.007115 + 00 2024 - 08 - 28 00:28:44.007115 + 00 14 10 2024 - 08 - 28 00:28:44.007362 + 00 2024 - 08 - 28 00:28:44.007362 + 00 15 15 2024 - 08 - 28 00:28:44.007594 + 00 2024 - 08 - 28 00:28:44.007594 + 00 17 16 2024 - 08 - 28 00:28:44.007817 + 00 2024 - 08 - 28 00:28:44.007817 + 00 17 17 2024 - 08 - 28 00:28:44.008067 + 00 2024 - 08 - 28 00:28:44.008067 + 00 17 1 2024 - 08 - 28 00:28:44.008301 + 00 2024 - 08 - 28 00:28:44.008301 + 00 16 16 2024 - 08 - 28 00:28:44.008563 + 00 2024 - 08 - 28 00:28:44.008563 + 00 16 1 2024 - 08 - 28 00:28:44.008808 + 00 2024 - 08 - 28 00:28:44.008808 + 00 18 18 2024 - 08 - 28 00:28:44.00907 + 00 2024 - 08 - 28 00:28:44.00907 + 00 19 16 2024 - 08 - 28 00:28:44.009331 + 00 2024 - 08 - 28 00:28:44.009331 + 00 19 17 2024 - 08 - 28 00:28:44.009586 + 00 2024 - 08 - 28 00:28:44.009586 + 00 19 1 2024 - 08 - 28 00:28:44.009848 + 00 2024 - 08 - 28 00:28:44.009848 + 00 19 18 2024 - 08 - 28 00:28:44.010116 + 00 2024 - 08 - 28 00:28:44.010116 + 00 19 19 2024 - 08 - 28 00:28:44.010376 + 00 2024 - 08 - 28 00:28:44.010376 + 00 20 16 2024 - 08 - 28 00:28:44.010739 + 00 2024 - 08 - 28 00:28:44.010739 + 00 20 17 2024 - 08 - 28 00:28:44.010971 + 00 2024 - 08 - 28 00:28:44.010971 + 00 20 1 2024 - 08 - 28 00:28:44.01119 + 00 2024 - 08 - 28 00:28:44.01119 + 00 20 18 2024 - 08 - 28 00:28:44.011472 + 00 2024 - 08 - 28 00:28:44.011472 + 00 20 19 2024 - 08 - 28 00:28:44.011701 + 00 2024 - 08 - 28 00:28:44.011701 + 00 20 20 2024 - 08 - 28 00:28:44.011951 + 00 2024 - 08 - 28 00:28:44.011951 + 00 21 16 2024 - 08 - 28 00:28:44.012208 + 00 2024 - 08 - 28 00:28:44.012208 + 00 21 17 2024 - 08 - 28 00:28:44.012452 + 00 2024 - 08 - 28 00:28:44.012452 + 00 21 1 2024 - 08 - 28 00:28:44.012681 + 00 2024 - 08 - 28 00:28:44.012681 + 00 21 18 2024 - 08 - 28 00:28:44.012916 + 00 2024 - 08 - 28 00:28:44.012916 + 00 21 19 2024 - 08 - 28 00:28:44.013141 + 00 2024 - 08 - 28 00:28:44.013141 + 00 21 20 2024 - 08 - 28 00:28:44.013447 + 00 2024 - 08 - 28 00:28:44.013447 + 00 21 21 2024 - 08 - 28 00:28:44.013681 + 00 2024 - 08 - 28 00:28:44.013681 + 00 23 22 2024 - 08 - 28 00:28:44.089401 + 00 2024 - 08 - 28 00:28:44.089401 + 00 32 23 2024 - 08 - 28 00:28:44.11297 + 00 2024 - 08 - 28 00:28:44.11297 + 00 29 24 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 28 25 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 27 26 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 26 27 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 25 28 2024 - 08 - 28 00:28:44.14612 + 00 2024 - 08 - 28 00:28:44.14612 + 00 30 29 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 31 30 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00.
+COPY upchieve.quiz_certification_grants (quiz_id, certification_id, created_at, updated_at) FROM stdin;
+1	1	2024-08-28 00:28:44.00318+00	2024-08-28 00:28:44.00318+00
+2	2	2024-08-28 00:28:44.003596+00	2024-08-28 00:28:44.003596+00
+3	3	2024-08-28 00:28:44.003894+00	2024-08-28 00:28:44.003894+00
+4	4	2024-08-28 00:28:44.004184+00	2024-08-28 00:28:44.004184+00
+5	5	2024-08-28 00:28:44.0046+00	2024-08-28 00:28:44.0046+00
+6	6	2024-08-28 00:28:44.004878+00	2024-08-28 00:28:44.004878+00
+7	7	2024-08-28 00:28:44.005159+00	2024-08-28 00:28:44.005159+00
+8	8	2024-08-28 00:28:44.005507+00	2024-08-28 00:28:44.005507+00
+9	9	2024-08-28 00:28:44.005772+00	2024-08-28 00:28:44.005772+00
+10	10	2024-08-28 00:28:44.006036+00	2024-08-28 00:28:44.006036+00
+11	11	2024-08-28 00:28:44.006274+00	2024-08-28 00:28:44.006274+00
+12	12	2024-08-28 00:28:44.006535+00	2024-08-28 00:28:44.006535+00
+13	13	2024-08-28 00:28:44.006812+00	2024-08-28 00:28:44.006812+00
+14	11	2024-08-28 00:28:44.007115+00	2024-08-28 00:28:44.007115+00
+14	10	2024-08-28 00:28:44.007362+00	2024-08-28 00:28:44.007362+00
+15	15	2024-08-28 00:28:44.007594+00	2024-08-28 00:28:44.007594+00
+17	16	2024-08-28 00:28:44.007817+00	2024-08-28 00:28:44.007817+00
+17	17	2024-08-28 00:28:44.008067+00	2024-08-28 00:28:44.008067+00
+17	1	2024-08-28 00:28:44.008301+00	2024-08-28 00:28:44.008301+00
+16	16	2024-08-28 00:28:44.008563+00	2024-08-28 00:28:44.008563+00
+16	1	2024-08-28 00:28:44.008808+00	2024-08-28 00:28:44.008808+00
+18	18	2024-08-28 00:28:44.00907+00	2024-08-28 00:28:44.00907+00
+19	16	2024-08-28 00:28:44.009331+00	2024-08-28 00:28:44.009331+00
+19	17	2024-08-28 00:28:44.009586+00	2024-08-28 00:28:44.009586+00
+19	1	2024-08-28 00:28:44.009848+00	2024-08-28 00:28:44.009848+00
+19	18	2024-08-28 00:28:44.010116+00	2024-08-28 00:28:44.010116+00
+19	19	2024-08-28 00:28:44.010376+00	2024-08-28 00:28:44.010376+00
+20	16	2024-08-28 00:28:44.010739+00	2024-08-28 00:28:44.010739+00
+20	17	2024-08-28 00:28:44.010971+00	2024-08-28 00:28:44.010971+00
+20	1	2024-08-28 00:28:44.01119+00	2024-08-28 00:28:44.01119+00
+20	18	2024-08-28 00:28:44.011472+00	2024-08-28 00:28:44.011472+00
+20	19	2024-08-28 00:28:44.011701+00	2024-08-28 00:28:44.011701+00
+20	20	2024-08-28 00:28:44.011951+00	2024-08-28 00:28:44.011951+00
+21	16	2024-08-28 00:28:44.012208+00	2024-08-28 00:28:44.012208+00
+21	17	2024-08-28 00:28:44.012452+00	2024-08-28 00:28:44.012452+00
+21	1	2024-08-28 00:28:44.012681+00	2024-08-28 00:28:44.012681+00
+21	18	2024-08-28 00:28:44.012916+00	2024-08-28 00:28:44.012916+00
+21	19	2024-08-28 00:28:44.013141+00	2024-08-28 00:28:44.013141+00
+21	20	2024-08-28 00:28:44.013447+00	2024-08-28 00:28:44.013447+00
+21	21	2024-08-28 00:28:44.013681+00	2024-08-28 00:28:44.013681+00
+23	22	2024-08-28 00:28:44.089401+00	2024-08-28 00:28:44.089401+00
+32	23	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.11297+00
+29	24	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+28	25	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+27	26	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+26	27	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+25	28	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
+30	29	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+31	30	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+\.
+
+
 --
 -- Data for Name: quiz_subcategories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.quiz_subcategories (id, name, quiz_id, created_at, updated_at)
-FROM
-    stdin;
 
-1 numbers 1 2024 - 08 - 28 00:28:43.759175 + 00 2024 - 08 - 28 00:28:43.759175 + 00 2 arithmetic properties 1 2024 - 08 - 28 00:28:43.760184 + 00 2024 - 08 - 28 00:28:43.760184 + 00 3 exponents 1 2024 - 08 - 28 00:28:43.760784 + 00 2024 - 08 - 28 00:28:43.760784 + 00 4 exponents
-    AND radicals 1 2024 - 08 - 28 00:28:43.761441 + 00 2024 - 08 - 28 00:28:43.761441 + 00 5 polynomials 1 2024 - 08 - 28 00:28:43.762134 + 00 2024 - 08 - 28 00:28:43.762134 + 00 6 fractions 1 2024 - 08 - 28 00:28:43.762764 + 00 2024 - 08 - 28 00:28:43.762764 + 00 7 linear equations 16 2024 - 08 - 28 00:28:43.763887 + 00 2024 - 08 - 28 00:28:43.763887 + 00 8 rational exponents
-    AND radicals 16 2024 - 08 - 28 00:28:43.764464 + 00 2024 - 08 - 28 00:28:43.764464 + 00 9 application OF linear equations 16 2024 - 08 - 28 00:28:43.765129 + 00 2024 - 08 - 28 00:28:43.765129 + 00 10 two variable equations 16 2024 - 08 - 28 00:28:43.765745 + 00 2024 - 08 - 28 00:28:43.765745 + 00 11 rational expressions 16 2024 - 08 - 28 00:28:43.766377 + 00 2024 - 08 - 28 00:28:43.766377 + 00 12 complex numbers 16 2024 - 08 - 28 00:28:43.767033 + 00 2024 - 08 - 28 00:28:43.767033 + 00 13 functions_domain_range 17 2024 - 08 - 28 00:28:43.767695 + 00 2024 - 08 - 28 00:28:43.767695 + 00 14 higher_degree_polynomials 17 2024 - 08 - 28 00:28:43.768351 + 00 2024 - 08 - 28 00:28:43.768351 + 00 15 square_root_equations 17 2024 - 08 - 28 00:28:43.768967 + 00 2024 - 08 - 28 00:28:43.768967 + 00 16 roots_of_polynomials 17 2024 - 08 - 28 00:28:43.769597 + 00 2024 - 08 - 28 00:28:43.769597 + 00 17 multiply_polynomials_binomial 17 2024 - 08 - 28 00:28:43.770252 + 00 2024 - 08 - 28 00:28:43.770252 + 00 18 rational_radical_absolute 17 2024 - 08 - 28 00:28:43.770977 + 00 2024 - 08 - 28 00:28:43.770977 + 00 19 logarithms_properties 17 2024 - 08 - 28 00:28:43.771616 + 00 2024 - 08 - 28 00:28:43.771616 + 00 20 rational_expressions 17 2024 - 08 - 28 00:28:43.772357 + 00 2024 - 08 - 28 00:28:43.772357 + 00 21 systems_of_linear_equations 17 2024 - 08 - 28 00:28:43.772945 + 00 2024 - 08 - 28 00:28:43.772945 + 00 22 arithmetic_and_geometric_sequences 17 2024 - 08 - 28 00:28:43.773807 + 00 2024 - 08 - 28 00:28:43.773807 + 00 23 functions_domain 17 2024 - 08 - 28 00:28:43.774396 + 00 2024 - 08 - 28 00:28:43.774396 + 00 24 solving_linear_equations 17 2024 - 08 - 28 00:28:43.77509 + 00 2024 - 08 - 28 00:28:43.77509 + 00 25 function_transformations_shifts 17 2024 - 08 - 28 00:28:43.775936 + 00 2024 - 08 - 28 00:28:43.775936 + 00 26 graphing_quadratic_functions 17 2024 - 08 - 28 00:28:43.776633 + 00 2024 - 08 - 28 00:28:43.776633 + 00 27 exponential_functions_growth 17 2024 - 08 - 28 00:28:43.777239 + 00 2024 - 08 - 28 00:28:43.777239 + 00 28 rounding_and_scientific_notation 17 2024 - 08 - 28 00:28:43.777924 + 00 2024 - 08 - 28 00:28:43.777924 + 00 29 square root_equations_quadratic 17 2024 - 08 - 28 00:28:43.778592 + 00 2024 - 08 - 28 00:28:43.778592 + 00 30 advanced_factoring_techniques 17 2024 - 08 - 28 00:28:43.779201 + 00 2024 - 08 - 28 00:28:43.779201 + 00 31 congruence
-    AND similarity 3 2024 - 08 - 28 00:28:43.779864 + 00 2024 - 08 - 28 00:28:43.779864 + 00 32 vertices 3 2024 - 08 - 28 00:28:43.780507 + 00 2024 - 08 - 28 00:28:43.780507 + 00 33 angles 3 2024 - 08 - 28 00:28:43.781246 + 00 2024 - 08 - 28 00:28:43.781246 + 00 34 circles 3 2024 - 08 - 28 00:28:43.781846 + 00 2024 - 08 - 28 00:28:43.781846 + 00 35 triangles 3 2024 - 08 - 28 00:28:43.782486 + 00 2024 - 08 - 28 00:28:43.782486 + 00 36 rectangles 3 2024 - 08 - 28 00:28:43.78328 + 00 2024 - 08 - 28 00:28:43.78328 + 00 37 angles 18 2024 - 08 - 28 00:28:43.783954 + 00 2024 - 08 - 28 00:28:43.783954 + 00 38 triangles 18 2024 - 08 - 28 00:28:43.784598 + 00 2024 - 08 - 28 00:28:43.784598 + 00 39
-    RIGHT triangles 18 2024 - 08 - 28 00:28:43.785211 + 00 2024 - 08 - 28 00:28:43.785211 + 00 40 quadrants 18 2024 - 08 - 28 00:28:43.785804 + 00 2024 - 08 - 28 00:28:43.785804 + 00 41 radians 18 2024 - 08 - 28 00:28:43.786489 + 00 2024 - 08 - 28 00:28:43.786489 + 00 42 unit circles 18 2024 - 08 - 28 00:28:43.787221 + 00 2024 - 08 - 28 00:28:43.787221 + 00 43 inequalities 18 2024 - 08 - 28 00:28:43.787888 + 00 2024 - 08 - 28 00:28:43.787888 + 00 44 representing data numerically 2 2024 - 08 - 28 00:28:43.788489 + 00 2024 - 08 - 28 00:28:43.788489 + 00 45 representing data graphically 2 2024 - 08 - 28 00:28:43.789124 + 00 2024 - 08 - 28 00:28:43.789124 + 00 46 two means 2 2024 - 08 - 28 00:28:43.789759 + 00 2024 - 08 - 28 00:28:43.789759 + 00 47 two proportions 2 2024 - 08 - 28 00:28:43.790381 + 00 2024 - 08 - 28 00:28:43.790381 + 00 48 levels OF measurement 2 2024 - 08 - 28 00:28:43.791077 + 00 2024 - 08 - 28 00:28:43.791077 + 00 49 types OF sampling 2 2024 - 08 - 28 00:28:43.791744 + 00 2024 - 08 - 28 00:28:43.791744 + 00 50 finding probability 2 2024 - 08 - 28 00:28:43.792404 + 00 2024 - 08 - 28 00:28:43.792404 + 00 51 finding x
-FROM
-    z score 2 2024 - 08 - 28 00:28:43.793198 + 00 2024 - 08 - 28 00:28:43.793198 + 00 52 z score 2 2024 - 08 - 28 00:28:43.793877 + 00 2024 - 08 - 28 00:28:43.793877 + 00 53 basic SET operations 2 2024 - 08 - 28 00:28:43.794484 + 00 2024 - 08 - 28 00:28:43.794484 + 00 54 compound events 2 2024 - 08 - 28 00:28:43.795079 + 00 2024 - 08 - 28 00:28:43.795079 + 00 55 conditional probability 2 2024 - 08 - 28 00:28:43.79577 + 00 2024 - 08 - 28 00:28:43.79577 + 00 56 independent probability 2 2024 - 08 - 28 00:28:43.796441 + 00 2024 - 08 - 28 00:28:43.796441 + 00 57 permutations AND combinations 2 2024 - 08 - 28 00:28:43.797063 + 00 2024 - 08 - 28 00:28:43.797063 + 00 58 random variables distributions 2 2024 - 08 - 28 00:28:43.797681 + 00 2024 - 08 - 28 00:28:43.797681 + 00 59 relationships BETWEEN variables 2 2024 - 08 - 28 00:28:43.798349 + 00 2024 - 08 - 28 00:28:43.798349 + 00 60 confidence intervals 2 2024 - 08 - 28 00:28:43.799017 + 00 2024 - 08 - 28 00:28:43.799017 + 00 61 interpreting pvalue 2 2024 - 08 - 28 00:28:43.799611 + 00 2024 - 08 - 28 00:28:43.799611 + 00 62 finding the test statistic 2 2024 - 08 - 28 00:28:43.800188 + 00 2024 - 08 - 28 00:28:43.800188 + 00 63 rectangular coordinates 19 2024 - 08 - 28 00:28:43.800823 + 00 2024 - 08 - 28 00:28:43.800823 + 00 64 linear inequalities 19 2024 - 08 - 28 00:28:43.801414 + 00 2024 - 08 - 28 00:28:43.801414 + 00 65 functions 19 2024 - 08 - 28 00:28:43.802156 + 00 2024 - 08 - 28 00:28:43.802156 + 00 66 rational exponents 19 2024 - 08 - 28 00:28:43.802716 + 00 2024 - 08 - 28 00:28:43.802716 + 00 67 quadratic functions 19 2024 - 08 - 28 00:28:43.803355 + 00 2024 - 08 - 28 00:28:43.803355 + 00 68 logarithms AND exponents 19 2024 - 08 - 28 00:28:43.804098 + 00 2024 - 08 - 28 00:28:43.804098 + 00 69 absolute extrema 20 2024 - 08 - 28 00:28:43.804704 + 00 2024 - 08 - 28 00:28:43.804704 + 00 70 antiderivatives 20 2024 - 08 - 28 00:28:43.805301 + 00 2024 - 08 - 28 00:28:43.805301 + 00 71 area BETWEEN curves 20 2024 - 08 - 28 00:28:43.805858 + 00 2024 - 08 - 28 00:28:43.805858 + 00 72 chain RULE 20 2024 - 08 - 28 00:28:43.806405 + 00 2024 - 08 - 28 00:28:43.806405 + 00 73 concavity 20 2024 - 08 - 28 00:28:43.806937 + 00 2024 - 08 - 28 00:28:43.806937 + 00 74 continuity 20 2024 - 08 - 28 00:28:43.807542 + 00 2024 - 08 - 28 00:28:43.807542 + 00 75 derivatives 20 2024 - 08 - 28 00:28:43.80809 + 00 2024 - 08 - 28 00:28:43.80809 + 00 76 differential equations 20 2024 - 08 - 28 00:28:43.808643 + 00 2024 - 08 - 28 00:28:43.808643 + 00 77 fundamental theorem 20 2024 - 08 - 28 00:28:43.809162 + 00 2024 - 08 - 28 00:28:43.809162 + 00 78 lhopitals RULE 20 2024 - 08 - 28 00:28:43.809665 + 00 2024 - 08 - 28 00:28:43.809665 + 00 79 implicit differentiation 20 2024 - 08 - 28 00:28:43.810367 + 00 2024 - 08 - 28 00:28:43.810367 + 00 80 mean value theorem 20 2024 - 08 - 28 00:28:43.810902 + 00 2024 - 08 - 28 00:28:43.810902 + 00 81 optimization 20 2024 - 08 - 28 00:28:43.811383 + 00 2024 - 08 - 28 00:28:43.811383 + 00 82 reimann sums 20 2024 - 08 - 28 00:28:43.811947 + 00 2024 - 08 - 28 00:28:43.811947 + 00 83 related rates 20 2024 - 08 - 28 00:28:43.812469 + 00 2024 - 08 - 28 00:28:43.812469 + 00 84 relative extrema 20 2024 - 08 - 28 00:28:43.812993 + 00 2024 - 08 - 28 00:28:43.812993 + 00 85 absolute extrema 21 2024 - 08 - 28 00:28:43.813538 + 00 2024 - 08 - 28 00:28:43.813538 + 00 86 antiderivatives 21 2024 - 08 - 28 00:28:43.814054 + 00 2024 - 08 - 28 00:28:43.814054 + 00 87 area BETWEEN curves 21 2024 - 08 - 28 00:28:43.814599 + 00 2024 - 08 - 28 00:28:43.814599 + 00 88 chain RULE 21 2024 - 08 - 28 00:28:43.815136 + 00 2024 - 08 - 28 00:28:43.815136 + 00 89 derivatives 21 2024 - 08 - 28 00:28:43.815674 + 00 2024 - 08 - 28 00:28:43.815674 + 00 90 differential equations 21 2024 - 08 - 28 00:28:43.816224 + 00 2024 - 08 - 28 00:28:43.816224 + 00 91 fundamental theorem OF calculus 21 2024 - 08 - 28 00:28:43.816789 + 00 2024 - 08 - 28 00:28:43.816789 + 00 92 implicit differentiation 21 2024 - 08 - 28 00:28:43.81736 + 00 2024 - 08 - 28 00:28:43.81736 + 00 93 infinite sequences 21 2024 - 08 - 28 00:28:43.817877 + 00 2024 - 08 - 28 00:28:43.817877 + 00 94 limits 21 2024 - 08 - 28 00:28:43.818501 + 00 2024 - 08 - 28 00:28:43.818501 + 00 95 integration BY
-        parts 21 2024 - 08 - 28 00:28:43.819031 + 00 2024 - 08 - 28 00:28:43.819031 + 00 96 mean value theorem 21 2024 - 08 - 28 00:28:43.819552 + 00 2024 - 08 - 28 00:28:43.819552 + 00 97 optimization 21 2024 - 08 - 28 00:28:43.82008 + 00 2024 - 08 - 28 00:28:43.82008 + 00 98 parametric 21 2024 - 08 - 28 00:28:43.820625 + 00 2024 - 08 - 28 00:28:43.820625 + 00 99 reimann sums 21 2024 - 08 - 28 00:28:43.821161 + 00 2024 - 08 - 28 00:28:43.821161 + 00 100 relative extrema 21 2024 - 08 - 28 00:28:43.821682 + 00 2024 - 08 - 28 00:28:43.821682 + 00 101 taylor polynomials 21 2024 - 08 - 28 00:28:43.822231 + 00 2024 - 08 - 28 00:28:43.822231 + 00 102 basic 9 2024 - 08 - 28 00:28:43.822792 + 00 2024 - 08 - 28 00:28:43.822792 + 00 103 commonapp 9 2024 - 08 - 28 00:28:43.823351 + 00 2024 - 08 - 28 00:28:43.823351 + 00 104 answer 9 2024 - 08 - 28 00:28:43.823905 + 00 2024 - 08 - 28 00:28:43.823905 + 00 105 dhistory 9 2024 - 08 - 28 00:28:43.824492 + 00 2024 - 08 - 28 00:28:43.824492 + 00 106 optional 9 2024 - 08 - 28 00:28:43.825055 + 00 2024 - 08 - 28 00:28:43.825055 + 00 107 supplemental 9 2024 - 08 - 28 00:28:43.825626 + 00 2024 - 08 - 28 00:28:43.825626 + 00 108 exam 11 2024 - 08 - 28 00:28:43.826302 + 00 2024 - 08 - 28 00:28:43.826302 + 00 109 TYPE 11 2024 - 08 - 28 00:28:43.826828 + 00 2024 - 08 - 28 00:28:43.826828 + 00 110 LOR 11 2024 - 08 - 28 00:28:43.827366 + 00 2024 - 08 - 28 00:28:43.827366 + 00 111 basic 11 2024 - 08 - 28 00:28:43.827897 + 00 2024 - 08 - 28 00:28:43.827897 + 00 112 timeline 10 2024 - 08 - 28 00:28:43.828575 + 00 2024 - 08 - 28 00:28:43.828575 + 00 113 resume 10 2024 - 08 - 28 00:28:43.829238 + 00 2024 - 08 - 28 00:28:43.829238 + 00 114 schools 10 2024 - 08 - 28 00:28:43.829798 + 00 2024 - 08 - 28 00:28:43.829798 + 00 115 fees 10 2024 - 08 - 28 00:28:43.830395 + 00 2024 - 08 - 28 00:28:43.830395 + 00 116 FinAid 10 2024 - 08 - 28 00:28:43.830984 + 00 2024 - 08 - 28 00:28:43.830984 + 00 117 LOR 10 2024 - 08 - 28 00:28:43.831555 + 00 2024 - 08 - 28 00:28:43.831555 + 00 118 basic 10 2024 - 08 - 28 00:28:43.832234 + 00 2024 - 08 - 28 00:28:43.832234 + 00 119 biochemistry 4 2024 - 08 - 28 00:28:43.832813 + 00 2024 - 08 - 28 00:28:43.832813 + 00 120 the cell 4 2024 - 08 - 28 00:28:43.833401 + 00 2024 - 08 - 28 00:28:43.833401 + 00 121 cell division 4 2024 - 08 - 28 00:28:43.833989 + 00 2024 - 08 - 28 00:28:43.833989 + 00 122 cellular respiration 4 2024 - 08 - 28 00:28:43.834557 + 00 2024 - 08 - 28 00:28:43.834557 + 00 123 photosynthesis AND plants 4 2024 - 08 - 28 00:28:43.835427 + 00 2024 - 08 - 28 00:28:43.835427 + 00 124 classical genetics 4 2024 - 08 - 28 00:28:43.836047 + 00 2024 - 08 - 28 00:28:43.836047 + 00 125 molecular genetics 4 2024 - 08 - 28 00:28:43.836644 + 00 2024 - 08 - 28 00:28:43.836644 + 00 126 animal behavior AND physiology 4 2024 - 08 - 28 00:28:43.837293 + 00 2024 - 08 - 28 00:28:43.837293 + 00 127 ecology 4 2024 - 08 - 28 00:28:43.837958 + 00 2024 - 08 - 28 00:28:43.837958 + 00 128 human physiology AND anatomy 4 2024 - 08 - 28 00:28:43.838681 + 00 2024 - 08 - 28 00:28:43.838681 + 00 129 evolution AND taxonomy 4 2024 - 08 - 28 00:28:43.839211 + 00 2024 - 08 - 28 00:28:43.839211 + 00 130 chemical reactions 5 2024 - 08 - 28 00:28:43.839778 + 00 2024 - 08 - 28 00:28:43.839778 + 00 131 atoms, compounds, AND ions 5 2024 - 08 - 28 00:28:43.840374 + 00 2024 - 08 - 28 00:28:43.840374 + 00 132 stoichiometry 5 2024 - 08 - 28 00:28:43.840939 + 00 2024 - 08 - 28 00:28:43.840939 + 00 133 electron structure OF atoms 5 2024 - 08 - 28 00:28:43.841459 + 00 2024 - 08 - 28 00:28:43.841459 + 00 134 periodic TABLE 5 2024 - 08 - 28 00:28:43.842015 + 00 2024 - 08 - 28 00:28:43.842015 + 00 135 chemical bonds 5 2024 - 08 - 28 00:28:43.842531 + 00 2024 - 08 - 28 00:28:43.842531 + 00 136 gases 5 2024 - 08 - 28 00:28:43.843038 + 00 2024 - 08 - 28 00:28:43.843038 + 00 137 states OF matter AND intermolecular forces 5 2024 - 08 - 28 00:28:43.843678 + 00 2024 - 08 - 28 00:28:43.843678 + 00 138 chemical equilibrium 5 2024 - 08 - 28 00:28:43.844208 + 00 2024 - 08 - 28 00:28:43.844208 + 00 139 acids AND bases 5 2024 - 08 - 28 00:28:43.84476 + 00 2024 - 08 - 28 00:28:43.84476 + 00 140 buffers, titrations, AND solubility equilibria 5 2024 - 08 - 28 00:28:43.84532 + 00 2024 - 08 - 28 00:28:43.84532 + 00 141 thermodynamics 5 2024 - 08 - 28 00:28:43.84586 + 00 2024 - 08 - 28 00:28:43.84586 + 00 142 redox reactions AND electrochemistry 5 2024 - 08 - 28 00:28:43.846388 + 00 2024 - 08 - 28 00:28:43.846388 + 00 143 kinetics 5 2024 - 08 - 28 00:28:43.846987 + 00 2024 - 08 - 28 00:28:43.846987 + 00 144 nuclear chemistry 5 2024 - 08 - 28 00:28:43.847568 + 00 2024 - 08 - 28 00:28:43.847568 + 00 145 kinematics 5 2024 - 08 - 28 00:28:43.848155 + 00 2024 - 08 - 28 00:28:43.848155 + 00 146 kinematics 6 2024 - 08 - 28 00:28:43.84872 + 00 2024 - 08 - 28 00:28:43.84872 + 00 147 newton 's laws	6	2024-08-28 00:28:43.849248+00	2024-08-28 00:28:43.849248+00
+COPY upchieve.quiz_subcategories (id, name, quiz_id, created_at, updated_at) FROM stdin;
+1	numbers	1	2024-08-28 00:28:43.759175+00	2024-08-28 00:28:43.759175+00
+2	arithmetic properties	1	2024-08-28 00:28:43.760184+00	2024-08-28 00:28:43.760184+00
+3	exponents	1	2024-08-28 00:28:43.760784+00	2024-08-28 00:28:43.760784+00
+4	exponents and radicals	1	2024-08-28 00:28:43.761441+00	2024-08-28 00:28:43.761441+00
+5	polynomials	1	2024-08-28 00:28:43.762134+00	2024-08-28 00:28:43.762134+00
+6	fractions	1	2024-08-28 00:28:43.762764+00	2024-08-28 00:28:43.762764+00
+7	linear equations	16	2024-08-28 00:28:43.763887+00	2024-08-28 00:28:43.763887+00
+8	rational exponents and radicals	16	2024-08-28 00:28:43.764464+00	2024-08-28 00:28:43.764464+00
+9	application of linear equations	16	2024-08-28 00:28:43.765129+00	2024-08-28 00:28:43.765129+00
+10	two variable equations	16	2024-08-28 00:28:43.765745+00	2024-08-28 00:28:43.765745+00
+11	rational expressions	16	2024-08-28 00:28:43.766377+00	2024-08-28 00:28:43.766377+00
+12	complex numbers	16	2024-08-28 00:28:43.767033+00	2024-08-28 00:28:43.767033+00
+13	functions_domain_range	17	2024-08-28 00:28:43.767695+00	2024-08-28 00:28:43.767695+00
+14	higher_degree_polynomials	17	2024-08-28 00:28:43.768351+00	2024-08-28 00:28:43.768351+00
+15	square_root_equations	17	2024-08-28 00:28:43.768967+00	2024-08-28 00:28:43.768967+00
+16	roots_of_polynomials	17	2024-08-28 00:28:43.769597+00	2024-08-28 00:28:43.769597+00
+17	multiply_polynomials_binomial	17	2024-08-28 00:28:43.770252+00	2024-08-28 00:28:43.770252+00
+18	rational_radical_absolute	17	2024-08-28 00:28:43.770977+00	2024-08-28 00:28:43.770977+00
+19	logarithms_properties	17	2024-08-28 00:28:43.771616+00	2024-08-28 00:28:43.771616+00
+20	rational_expressions	17	2024-08-28 00:28:43.772357+00	2024-08-28 00:28:43.772357+00
+21	systems_of_linear_equations	17	2024-08-28 00:28:43.772945+00	2024-08-28 00:28:43.772945+00
+22	arithmetic_and_geometric_sequences	17	2024-08-28 00:28:43.773807+00	2024-08-28 00:28:43.773807+00
+23	functions_domain	17	2024-08-28 00:28:43.774396+00	2024-08-28 00:28:43.774396+00
+24	solving_linear_equations	17	2024-08-28 00:28:43.77509+00	2024-08-28 00:28:43.77509+00
+25	function_transformations_shifts	17	2024-08-28 00:28:43.775936+00	2024-08-28 00:28:43.775936+00
+26	graphing_quadratic_functions	17	2024-08-28 00:28:43.776633+00	2024-08-28 00:28:43.776633+00
+27	exponential_functions_growth	17	2024-08-28 00:28:43.777239+00	2024-08-28 00:28:43.777239+00
+28	rounding_and_scientific_notation	17	2024-08-28 00:28:43.777924+00	2024-08-28 00:28:43.777924+00
+29	square root_equations_quadratic	17	2024-08-28 00:28:43.778592+00	2024-08-28 00:28:43.778592+00
+30	advanced_factoring_techniques	17	2024-08-28 00:28:43.779201+00	2024-08-28 00:28:43.779201+00
+31	congruence and similarity	3	2024-08-28 00:28:43.779864+00	2024-08-28 00:28:43.779864+00
+32	vertices	3	2024-08-28 00:28:43.780507+00	2024-08-28 00:28:43.780507+00
+33	angles	3	2024-08-28 00:28:43.781246+00	2024-08-28 00:28:43.781246+00
+34	circles	3	2024-08-28 00:28:43.781846+00	2024-08-28 00:28:43.781846+00
+35	triangles	3	2024-08-28 00:28:43.782486+00	2024-08-28 00:28:43.782486+00
+36	rectangles	3	2024-08-28 00:28:43.78328+00	2024-08-28 00:28:43.78328+00
+37	angles	18	2024-08-28 00:28:43.783954+00	2024-08-28 00:28:43.783954+00
+38	triangles	18	2024-08-28 00:28:43.784598+00	2024-08-28 00:28:43.784598+00
+39	right triangles	18	2024-08-28 00:28:43.785211+00	2024-08-28 00:28:43.785211+00
+40	quadrants	18	2024-08-28 00:28:43.785804+00	2024-08-28 00:28:43.785804+00
+41	radians	18	2024-08-28 00:28:43.786489+00	2024-08-28 00:28:43.786489+00
+42	unit circles	18	2024-08-28 00:28:43.787221+00	2024-08-28 00:28:43.787221+00
+43	inequalities	18	2024-08-28 00:28:43.787888+00	2024-08-28 00:28:43.787888+00
+44	representing data numerically	2	2024-08-28 00:28:43.788489+00	2024-08-28 00:28:43.788489+00
+45	representing data graphically	2	2024-08-28 00:28:43.789124+00	2024-08-28 00:28:43.789124+00
+46	two means	2	2024-08-28 00:28:43.789759+00	2024-08-28 00:28:43.789759+00
+47	two proportions	2	2024-08-28 00:28:43.790381+00	2024-08-28 00:28:43.790381+00
+48	levels of measurement	2	2024-08-28 00:28:43.791077+00	2024-08-28 00:28:43.791077+00
+49	types of sampling	2	2024-08-28 00:28:43.791744+00	2024-08-28 00:28:43.791744+00
+50	finding probability	2	2024-08-28 00:28:43.792404+00	2024-08-28 00:28:43.792404+00
+51	finding x from z score	2	2024-08-28 00:28:43.793198+00	2024-08-28 00:28:43.793198+00
+52	z score	2	2024-08-28 00:28:43.793877+00	2024-08-28 00:28:43.793877+00
+53	basic set operations	2	2024-08-28 00:28:43.794484+00	2024-08-28 00:28:43.794484+00
+54	compound events	2	2024-08-28 00:28:43.795079+00	2024-08-28 00:28:43.795079+00
+55	conditional probability	2	2024-08-28 00:28:43.79577+00	2024-08-28 00:28:43.79577+00
+56	independent probability	2	2024-08-28 00:28:43.796441+00	2024-08-28 00:28:43.796441+00
+57	permutations and combinations	2	2024-08-28 00:28:43.797063+00	2024-08-28 00:28:43.797063+00
+58	random variables distributions	2	2024-08-28 00:28:43.797681+00	2024-08-28 00:28:43.797681+00
+59	relationships between variables	2	2024-08-28 00:28:43.798349+00	2024-08-28 00:28:43.798349+00
+60	confidence intervals	2	2024-08-28 00:28:43.799017+00	2024-08-28 00:28:43.799017+00
+61	interpreting pvalue	2	2024-08-28 00:28:43.799611+00	2024-08-28 00:28:43.799611+00
+62	finding the test statistic	2	2024-08-28 00:28:43.800188+00	2024-08-28 00:28:43.800188+00
+63	rectangular coordinates	19	2024-08-28 00:28:43.800823+00	2024-08-28 00:28:43.800823+00
+64	linear inequalities	19	2024-08-28 00:28:43.801414+00	2024-08-28 00:28:43.801414+00
+65	functions	19	2024-08-28 00:28:43.802156+00	2024-08-28 00:28:43.802156+00
+66	rational exponents	19	2024-08-28 00:28:43.802716+00	2024-08-28 00:28:43.802716+00
+67	quadratic functions	19	2024-08-28 00:28:43.803355+00	2024-08-28 00:28:43.803355+00
+68	logarithms and exponents	19	2024-08-28 00:28:43.804098+00	2024-08-28 00:28:43.804098+00
+69	absolute extrema	20	2024-08-28 00:28:43.804704+00	2024-08-28 00:28:43.804704+00
+70	antiderivatives	20	2024-08-28 00:28:43.805301+00	2024-08-28 00:28:43.805301+00
+71	area between curves	20	2024-08-28 00:28:43.805858+00	2024-08-28 00:28:43.805858+00
+72	chain rule	20	2024-08-28 00:28:43.806405+00	2024-08-28 00:28:43.806405+00
+73	concavity	20	2024-08-28 00:28:43.806937+00	2024-08-28 00:28:43.806937+00
+74	continuity	20	2024-08-28 00:28:43.807542+00	2024-08-28 00:28:43.807542+00
+75	derivatives	20	2024-08-28 00:28:43.80809+00	2024-08-28 00:28:43.80809+00
+76	differential equations	20	2024-08-28 00:28:43.808643+00	2024-08-28 00:28:43.808643+00
+77	fundamental theorem	20	2024-08-28 00:28:43.809162+00	2024-08-28 00:28:43.809162+00
+78	lhopitals rule	20	2024-08-28 00:28:43.809665+00	2024-08-28 00:28:43.809665+00
+79	implicit differentiation	20	2024-08-28 00:28:43.810367+00	2024-08-28 00:28:43.810367+00
+80	mean value theorem	20	2024-08-28 00:28:43.810902+00	2024-08-28 00:28:43.810902+00
+81	optimization	20	2024-08-28 00:28:43.811383+00	2024-08-28 00:28:43.811383+00
+82	reimann sums	20	2024-08-28 00:28:43.811947+00	2024-08-28 00:28:43.811947+00
+83	related rates	20	2024-08-28 00:28:43.812469+00	2024-08-28 00:28:43.812469+00
+84	relative extrema	20	2024-08-28 00:28:43.812993+00	2024-08-28 00:28:43.812993+00
+85	absolute extrema	21	2024-08-28 00:28:43.813538+00	2024-08-28 00:28:43.813538+00
+86	antiderivatives	21	2024-08-28 00:28:43.814054+00	2024-08-28 00:28:43.814054+00
+87	area between curves	21	2024-08-28 00:28:43.814599+00	2024-08-28 00:28:43.814599+00
+88	chain rule	21	2024-08-28 00:28:43.815136+00	2024-08-28 00:28:43.815136+00
+89	derivatives	21	2024-08-28 00:28:43.815674+00	2024-08-28 00:28:43.815674+00
+90	differential equations	21	2024-08-28 00:28:43.816224+00	2024-08-28 00:28:43.816224+00
+91	fundamental theorem of calculus	21	2024-08-28 00:28:43.816789+00	2024-08-28 00:28:43.816789+00
+92	implicit differentiation	21	2024-08-28 00:28:43.81736+00	2024-08-28 00:28:43.81736+00
+93	infinite sequences	21	2024-08-28 00:28:43.817877+00	2024-08-28 00:28:43.817877+00
+94	limits	21	2024-08-28 00:28:43.818501+00	2024-08-28 00:28:43.818501+00
+95	integration by parts	21	2024-08-28 00:28:43.819031+00	2024-08-28 00:28:43.819031+00
+96	mean value theorem	21	2024-08-28 00:28:43.819552+00	2024-08-28 00:28:43.819552+00
+97	optimization	21	2024-08-28 00:28:43.82008+00	2024-08-28 00:28:43.82008+00
+98	parametric	21	2024-08-28 00:28:43.820625+00	2024-08-28 00:28:43.820625+00
+99	reimann sums	21	2024-08-28 00:28:43.821161+00	2024-08-28 00:28:43.821161+00
+100	relative extrema	21	2024-08-28 00:28:43.821682+00	2024-08-28 00:28:43.821682+00
+101	taylor polynomials	21	2024-08-28 00:28:43.822231+00	2024-08-28 00:28:43.822231+00
+102	basic	9	2024-08-28 00:28:43.822792+00	2024-08-28 00:28:43.822792+00
+103	commonapp	9	2024-08-28 00:28:43.823351+00	2024-08-28 00:28:43.823351+00
+104	answer	9	2024-08-28 00:28:43.823905+00	2024-08-28 00:28:43.823905+00
+105	dhistory	9	2024-08-28 00:28:43.824492+00	2024-08-28 00:28:43.824492+00
+106	optional	9	2024-08-28 00:28:43.825055+00	2024-08-28 00:28:43.825055+00
+107	supplemental	9	2024-08-28 00:28:43.825626+00	2024-08-28 00:28:43.825626+00
+108	exam	11	2024-08-28 00:28:43.826302+00	2024-08-28 00:28:43.826302+00
+109	type	11	2024-08-28 00:28:43.826828+00	2024-08-28 00:28:43.826828+00
+110	LOR	11	2024-08-28 00:28:43.827366+00	2024-08-28 00:28:43.827366+00
+111	basic	11	2024-08-28 00:28:43.827897+00	2024-08-28 00:28:43.827897+00
+112	timeline	10	2024-08-28 00:28:43.828575+00	2024-08-28 00:28:43.828575+00
+113	resume	10	2024-08-28 00:28:43.829238+00	2024-08-28 00:28:43.829238+00
+114	schools	10	2024-08-28 00:28:43.829798+00	2024-08-28 00:28:43.829798+00
+115	fees	10	2024-08-28 00:28:43.830395+00	2024-08-28 00:28:43.830395+00
+116	FinAid	10	2024-08-28 00:28:43.830984+00	2024-08-28 00:28:43.830984+00
+117	LOR	10	2024-08-28 00:28:43.831555+00	2024-08-28 00:28:43.831555+00
+118	basic	10	2024-08-28 00:28:43.832234+00	2024-08-28 00:28:43.832234+00
+119	biochemistry	4	2024-08-28 00:28:43.832813+00	2024-08-28 00:28:43.832813+00
+120	the cell	4	2024-08-28 00:28:43.833401+00	2024-08-28 00:28:43.833401+00
+121	cell division	4	2024-08-28 00:28:43.833989+00	2024-08-28 00:28:43.833989+00
+122	cellular respiration	4	2024-08-28 00:28:43.834557+00	2024-08-28 00:28:43.834557+00
+123	photosynthesis and plants	4	2024-08-28 00:28:43.835427+00	2024-08-28 00:28:43.835427+00
+124	classical genetics	4	2024-08-28 00:28:43.836047+00	2024-08-28 00:28:43.836047+00
+125	molecular genetics	4	2024-08-28 00:28:43.836644+00	2024-08-28 00:28:43.836644+00
+126	animal behavior and physiology	4	2024-08-28 00:28:43.837293+00	2024-08-28 00:28:43.837293+00
+127	ecology	4	2024-08-28 00:28:43.837958+00	2024-08-28 00:28:43.837958+00
+128	human physiology and anatomy	4	2024-08-28 00:28:43.838681+00	2024-08-28 00:28:43.838681+00
+129	evolution and taxonomy	4	2024-08-28 00:28:43.839211+00	2024-08-28 00:28:43.839211+00
+130	chemical reactions	5	2024-08-28 00:28:43.839778+00	2024-08-28 00:28:43.839778+00
+131	atoms, compounds, and ions	5	2024-08-28 00:28:43.840374+00	2024-08-28 00:28:43.840374+00
+132	stoichiometry	5	2024-08-28 00:28:43.840939+00	2024-08-28 00:28:43.840939+00
+133	electron structure of atoms	5	2024-08-28 00:28:43.841459+00	2024-08-28 00:28:43.841459+00
+134	periodic table	5	2024-08-28 00:28:43.842015+00	2024-08-28 00:28:43.842015+00
+135	chemical bonds	5	2024-08-28 00:28:43.842531+00	2024-08-28 00:28:43.842531+00
+136	gases	5	2024-08-28 00:28:43.843038+00	2024-08-28 00:28:43.843038+00
+137	states of matter and intermolecular forces	5	2024-08-28 00:28:43.843678+00	2024-08-28 00:28:43.843678+00
+138	chemical equilibrium	5	2024-08-28 00:28:43.844208+00	2024-08-28 00:28:43.844208+00
+139	acids and bases	5	2024-08-28 00:28:43.84476+00	2024-08-28 00:28:43.84476+00
+140	buffers, titrations, and solubility equilibria	5	2024-08-28 00:28:43.84532+00	2024-08-28 00:28:43.84532+00
+141	thermodynamics	5	2024-08-28 00:28:43.84586+00	2024-08-28 00:28:43.84586+00
+142	redox reactions and electrochemistry	5	2024-08-28 00:28:43.846388+00	2024-08-28 00:28:43.846388+00
+143	kinetics	5	2024-08-28 00:28:43.846987+00	2024-08-28 00:28:43.846987+00
+144	nuclear chemistry	5	2024-08-28 00:28:43.847568+00	2024-08-28 00:28:43.847568+00
+145	kinematics	5	2024-08-28 00:28:43.848155+00	2024-08-28 00:28:43.848155+00
+146	kinematics	6	2024-08-28 00:28:43.84872+00	2024-08-28 00:28:43.84872+00
+147	newton's laws	6	2024-08-28 00:28:43.849248+00	2024-08-28 00:28:43.849248+00
 148	rotational mechanics	6	2024-08-28 00:28:43.849795+00	2024-08-28 00:28:43.849795+00
 149	work and energy	6	2024-08-28 00:28:43.85028+00	2024-08-28 00:28:43.85028+00
 150	momentum and collisions	6	2024-08-28 00:28:43.850817+00	2024-08-28 00:28:43.850817+00
@@ -1696,53 +2920,89 @@ COPY upchieve.survey_questions (id, question_type_id, question_text, created_at,
 9	1	Overall, how supportive was your coach today?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
 10	1	Overall, how much did your coach push you to do your best work today?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
 11	3	This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
-1	1	What is your primary goal for today' s session ? 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 Their goal FOR the session: N N 2 1
-    WHERE
-        are you IN the process OF reaching your goal ? 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 How much progress they 've made towards their goal:	\N	\N
+1	1	What is your primary goal for today's session?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	Their goal for the session:	\N	\N
+2	1	Where are you in the process of reaching your goal?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How much progress they've made towards their goal:	\N	\N
 3	1	Overall, how do you feel about applying to college?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How they feel about applying to college:	\N	\N
 4	1	How well do you understand the topic you want to talk about today?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How well they understand the topic:	\N	\N
 17	1	Were there any student safety, academic integrity, or community guideline issues during this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N
 18	1	Please select all that apply	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N
 19	3	This can be about the web app, the student you helped, technical issues, etc.	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N
-13	1	%s' s goal FOR this session was TO % s. Were you able TO help them achieve their goal ? 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.140339 + 00 N student_name student_goal 6 1 Your goal FOR this session was TO % s. Did UPchieve help you achieve your goal ? 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.140339 + 00 N student_goal N 8 1 Would you LIKE TO favorite your coach % s ? 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.140339 + 00 N coach_name N 14 1 How DO you think % s feels about % s at the
-END OF this session ? 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.140339 + 00 N student_name subject_name 15 1 How DO you think % s feels about the % s at the
-END OF this session ? 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.140339 + 00 N student_name subject_name 16 1 How DO you think % s feels about applying TO college at the
-END OF this session ? 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.140339 + 00 N student_name N 12 1 Overall, how DO you feel about the % s section ? 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.140339 + 00 How they feel about % s: subject_name N 5 1 Overall, how DO you feel about % s ? 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.140339 + 00 How they feel about % s: subject_name N 20 1 Rate your analysis 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N N N 21 1 What was the problem 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N N N 22 3 Tell us more about the issue OR how we can improve 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N N N 23 3 What 's your GPA right now?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
-24	3	What' s your lowest grade this semester ? 2024 - 12 - 19 07:33:43.228852 + 00 2024 - 12 - 19 07:33:43.228852 + 00 N N N 25 3
-WHERE
-    DO you hope TO go TO college ? 2024 - 12 - 19 07:33:43.228852 + 00 2024 - 12 - 19 07:33:43.228852 + 00 N N N 26 1 How confident are you about getting IN ? 2024 - 12 - 19 07:33:43.228852 + 00 2024 - 12 - 19 07:33:43.228852 + 00 N N N 27 3 What course IS your lowest grade IN (please be specific IN the course name) ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 28 3 How many AP courses are you taking this year ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 29 3 How many IB courses are you taking this year ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 30 3 How many Dual enrollment courses are you taking this year ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 31 3 How many Honors courses are you taking this year ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 32 1 What IS your closest estimate OF your CURRENT grades IN school ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 33 1 What IS your lowest grade ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 34 1 What subject IS your lowest grade IN ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 35 1 Will you be the FIRST person IN your family TO attend college ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 36 1 Are you OR have you ever been eligible FOR free OR reduced price lunch at school ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 37 1 DO you primarily speak English at home ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 38 1 DO you have an IEP OR 504 plan ? 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N 39 2 What IS your ethnicity ? (
-        SELECT
-            ALL that apply) 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N N N.
-        --
-        -- Data for Name: survey_questions_question_tags; Type: TABLE DATA; Schema: upchieve; Owner: admin
-        --
-        COPY upchieve.survey_questions_question_tags (id, survey_question_id, question_tag_id, created_at, updated_at)
-        FROM
-            stdin;
+13	1	%s's goal for this session was to %s. Were you able to help them achieve their goal?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	student_goal
+6	1	Your goal for this session was to %s. Did UPchieve help you achieve your goal?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.140339+00	\N	student_goal	\N
+8	1	Would you like to favorite your coach %s?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.140339+00	\N	coach_name	\N
+14	1	How do you think %s feels about %s at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	subject_name
+15	1	How do you think %s feels about the %s at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	subject_name
+16	1	How do you think %s feels about applying to college at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	\N
+12	1	Overall, how do you feel about the %s section?	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.140339+00	How they feel about %s:	subject_name	\N
+5	1	Overall, how do you feel about %s?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.140339+00	How they feel about %s:	subject_name	\N
+20	1	Rate your analysis	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
+21	1	What was the problem	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
+22	3	Tell us more about the issue or how we can improve	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
+23	3	What's your GPA right now?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+24	3	What's your lowest grade this semester?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+25	3	Where do you hope to go to college?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+26	1	How confident are you about getting in?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
+27	3	What course is your lowest grade in (please be specific in the course name)?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+28	3	How many AP courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+29	3	How many IB courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+30	3	How many Dual enrollment courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+31	3	How many Honors courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+32	1	What is your closest estimate of your current grades in school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+33	1	What is your lowest grade?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+34	1	What subject is your lowest grade in?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+35	1	Will you be the first person in your family to attend college?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+36	1	Are you or have you ever been eligible for free or reduced price lunch at school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+37	1	Do you primarily speak English at home?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+38	1	Do you have an IEP or 504 plan?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+39	2	What is your ethnicity? (Select all that apply)	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
+\.
 
-.
+
+--
+-- Data for Name: survey_questions_question_tags; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.survey_questions_question_tags (id, survey_question_id, question_tag_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: survey_response_choices; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updated_at, display_image)
-FROM
-    stdin;
 
-1 0 Solve a specific question 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 2 0 Complete a homework assignment 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 3 0 PREPARE FOR a quiz / test 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 4 0 CHECK my answers 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 7 0 Brainstorm
-    OR research an essay topic 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 8 0 Develop a thesis statement 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 9 0 CREATE an essay outline 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 10 0 Revise essay structure
-    AND ideas 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 11 0 Edit grammar 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 12 0 Improve my understanding OF a text 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 13 0 Answer questions based ON a text 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 14 0 Revise my response (
-        s)
-    TO reading questions 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 15 0 Understand college requirements 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 16 0 Pick classes
-    OR extracurricular activities 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 17 0 Research majors
-    OR careers 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 18 0
-    SELECT
-        colleges TO apply TO 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 19 0 Learn about financial aid
-        AND scholarships 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 20 0
-        SELECT
-            a prompt
-            AND brainstorm topics 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 21 0 CREATE an outline 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 22 0 Understand the parts OF an application 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 23 0 CREATE an application timeline 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 24 0 WORK ON an application 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 25 0 PREPARE FOR an interview 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 26 0 Complete financial aid applications 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 27 0 Learn more about the exam 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 28 0 WORK ON a practice question (
-                s) 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 29 0 Learn test taking strategies 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 31 1 I haven 't started on this yet	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
-32	2	I' ve done SOME WORK ON this 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 N 50 5 Extremely 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 N 52 0 Rude coach 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 N 53 0 Coach didn 't know topic	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
+COPY upchieve.survey_response_choices (id, score, choice_text, created_at, updated_at, display_image) FROM stdin;
+1	0	Solve a specific question	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+2	0	Complete a homework assignment	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+3	0	Prepare for a quiz/test	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+4	0	Check my answers	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+7	0	Brainstorm or research an essay topic	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+8	0	Develop a thesis statement	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+9	0	Create an essay outline	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+10	0	Revise essay structure and ideas	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+11	0	Edit grammar	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+12	0	Improve my understanding of a text	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+13	0	Answer questions based on a text	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+14	0	Revise my response(s) to reading questions	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+15	0	Understand college requirements	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+16	0	Pick classes or extracurricular activities	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+17	0	Research majors or careers	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+18	0	Select colleges to apply to	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+19	0	Learn about financial aid and scholarships	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+20	0	Select a prompt and brainstorm topics	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+21	0	Create an outline	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+22	0	Understand the parts of an application	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+23	0	Create an application timeline	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+24	0	Work on an application	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+25	0	Prepare for an interview	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+26	0	Complete financial aid applications	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+27	0	Learn more about the exam	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+28	0	Work on a practice question(s)	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+29	0	Learn test taking strategies	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+31	1	I haven't started on this yet	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+32	2	I've done some work on this	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	\N
+50	5	Extremely	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
+52	0	Rude coach	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
+53	0	Coach didn't know topic	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
 54	0	Coach slow to respond	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
 55	0	Ran out of time	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
 56	0	Tech issue	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
@@ -1750,9 +3010,21 @@ FROM
 59	0	Maybe later	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N
 5	0	Deepen my understanding of a topic	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.120318+00	\N
 30	0	Deepen my understanding of a concept	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.120318+00	\N
-60	0	I' m curious
-            AND want TO learn something new 2024 - 08 - 28 00:28:44.121198 + 00 2024 - 08 - 28 00:28:44.121198 + 00 N 61 3 Neutral 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 https: // cdn.upchieve.org / site - images / emojis / neutral - emoji.svg 35 1 Stressed 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 https: // cdn.upchieve.org / site - images / emojis / stressed - emoji.svg 36 2 Nervous 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 https: // cdn.upchieve.org / site - images / emojis / nervous - emoji.svg 37 4 Optimistic 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 https: // cdn.upchieve.org / site - images / emojis / optimistic - emoji.svg 38 5 Confident 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 https: // cdn.upchieve.org / site - images / emojis / confident - emoji.svg 44 2 Sorta but NOT really 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 40 2 A little 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 N 41 3 A medium amount 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 N 42 4 Really well 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 N 62 5 Almost perfectly 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 N 33 3 I 'm finishing this up	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	\N
-34	4	I' ve completed this 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 N 64 0 NO 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 N 65 0 I didn 't know topic	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N
+60	0	I'm curious and want to learn something new	2024-08-28 00:28:44.121198+00	2024-08-28 00:28:44.121198+00	\N
+61	3	Neutral	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	https://cdn.upchieve.org/site-images/emojis/neutral-emoji.svg
+35	1	Stressed	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	https://cdn.upchieve.org/site-images/emojis/stressed-emoji.svg
+36	2	Nervous	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	https://cdn.upchieve.org/site-images/emojis/nervous-emoji.svg
+37	4	Optimistic	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	https://cdn.upchieve.org/site-images/emojis/optimistic-emoji.svg
+38	5	Confident	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	https://cdn.upchieve.org/site-images/emojis/confident-emoji.svg
+44	2	Sorta but not really	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+40	2	A little	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	\N
+41	3	A medium amount	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	\N
+42	4	Really well	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	\N
+62	5	Almost perfectly	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	\N
+33	3	I'm finishing this up	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	\N
+34	4	I've completed this	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	\N
+64	0	No	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N
+65	0	I didn't know topic	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N
 66	0	Wrong subject	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N
 67	0	Student participation	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N
 68	0	Other	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	\N
@@ -1767,462 +3039,1258 @@ FROM
 78	0	Other (please provide details below)	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	\N
 79	0	Your thoughts	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	\N
 45	3	I guess so	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
-46	4	I' m def closer TO my goal 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 47 5 GOAL ACHIEVED 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 48 3 Somewhat 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 49 4 Mostly 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 51 5 A lot 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 69 1 NOT at ALL 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.142763 + 00 https: // cdn.upchieve.org / site - images / star.svg 80 0 Pick classes 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 81 0 Choose extracurricular activities 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 82 0 Find free summer programs 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 83 0 Determine preferences 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 84 0 Research colleges 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 85 0 Balance your LIST 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 86 0 Overview OF financial aid 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 87 0 Research scholarships 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 88 0 Complete forms 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 89 0 Understand aid letters 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 N 90 0 Brainstorm an essay topic 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 N 91 0 Gather information
-            OR research 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 N 92 1 LIKE 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 https: // cdn.upchieve.org / site - images / thumbs - up.svg 93 0 Dislike 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 https: // cdn.upchieve.org / site - images / thumbs - down.svg 94 0 Score 's too high	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
-95	0	Score' s too low 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N 96 0 My coach was bad 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N 97 0 What you told me TO DO IS NOT helpful 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N 98 0 These aren 't the concepts I' m studying 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 N 99 0 I 'm not sure / Prefer not to answer	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
-100	0	A' s 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 101 0 A 's and B' s 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 102 0 B's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
-103	0	B' s
-            AND C 's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
-104	0	C' s 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 105 0 C 's and D' s 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 106 0 D 's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
-107	0	D' s
-            AND below 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 108 0 Math 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 109 0 English 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 110 0 Science 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 111 0 Social Studies 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 112 0 FOREIGN
-            LANGUAGE 2025
-            - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 113 0 American Indian / Alaska Native 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 114 0 Asian 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 115 0 Black
-            OR African American 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 116 0 Hispanic
-            OR Latinx 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 117 0 Native Hawaiian / Pacific Islander 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 118 0 Middle Eastern
-            OR North African 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 119 0 White 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 120 0 Prefer NOT TO answer 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 N 121 0 A / A + 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 122 0 A - 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 123 0 B + 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 124 0 B 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 125 0 B - 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 126 0 C + 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 127 0 C 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 128 0 C - 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 129 0 D 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N 130 0 F 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 N.
-            --
-            -- Data for Name: surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
-            --
-            COPY upchieve.surveys (
-                id,
-                name,
-                created_at,
-                updated_at,
-                role_id,
-                reward_amount)
-        FROM
-            stdin;
+46	4	I'm def closer to my goal	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+47	5	GOAL ACHIEVED	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+48	3	Somewhat	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+49	4	Mostly	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+51	5	A lot	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+69	1	Not at all	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.142763+00	https://cdn.upchieve.org/site-images/star.svg
+80	0	Pick classes	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+81	0	Choose extracurricular activities	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+82	0	Find free summer programs	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+83	0	Determine preferences	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+84	0	Research colleges	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+85	0	Balance your list	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+86	0	Overview of financial aid	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+87	0	Research scholarships	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+88	0	Complete forms	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+89	0	Understand aid letters	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	\N
+90	0	Brainstorm an essay topic	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	\N
+91	0	Gather information or research	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	\N
+92	1	Like	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	https://cdn.upchieve.org/site-images/thumbs-up.svg
+93	0	Dislike	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	https://cdn.upchieve.org/site-images/thumbs-down.svg
+94	0	Score's too high	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
+95	0	Score's too low	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
+96	0	My coach was bad	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
+97	0	What you told me to do is not helpful	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
+98	0	These aren't the concepts I'm studying	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N
+99	0	I'm not sure / Prefer not to answer	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+100	0	A's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+101	0	A's and B's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+102	0	B's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+103	0	B's and C's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+104	0	C's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+105	0	C's and D's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+106	0	D's	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+107	0	D's and below	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+108	0	Math	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+109	0	English	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+110	0	Science	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+111	0	Social Studies	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+112	0	Foreign Language	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+113	0	American Indian / Alaska Native	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+114	0	Asian	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+115	0	Black or African American	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+116	0	Hispanic or Latinx	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+117	0	Native Hawaiian / Pacific Islander	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+118	0	Middle Eastern or North African	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+119	0	White	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+120	0	Prefer not to answer	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N
+121	0	A/A+	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+122	0	A-	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+123	0	B+	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+124	0	B	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+125	0	B-	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+126	0	C+	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+127	0	C	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+128	0	C-	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+129	0	D	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+130	0	F	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	\N
+\.
 
-1 STEM Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 2 Humanities Essays Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 3 Reading Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 4 College Planning Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 5 College Essays Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 6 College Applications Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 7 SAT Prep Pre - Session Survey 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 8 Student Post - Session Survey 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 12 U.S. History Pre - Session Survey 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.141444 + 00 1 N 9 General Volunteer Post - Session Survey 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.141444 + 00 2 N 10 SAT Prep Volunteer Post - Session Survey 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.141444 + 00 2 N 11 College Counseling Volunteer Post - Session Survey 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.141444 + 00 2 N 13 College Prep Pre - Session Survey 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 1 N 14 College LIST Pre - Session Survey 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 1 N 15 College Apps Pre - Session Survey 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 1 N 16 Application Essays Pre - Session Survey 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 1 N 17 Financial Aid Pre - Session Survey 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 1 N 18 Essay Planning Pre - Session Survey 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 1 N 19 Essay Feedback Pre - Session Survey 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 1 N 20 Progress Report Rating Survey 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 1 N 21 Impact Study Survey 1.0 2024 - 12 - 19 07:33:43.228852 + 00 2024 - 12 - 19 07:33:43.228852 + 00 1 10.
+
+--
+-- Data for Name: surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.surveys (id, name, created_at, updated_at, role_id, reward_amount) FROM stdin;
+1	STEM Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+2	Humanities Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+3	Reading Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+4	College Planning Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+5	College Essays Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+6	College Applications Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+7	SAT Prep Pre-Session Survey	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.141444+00	1	\N
+8	Student Post-Session Survey	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.141444+00	1	\N
+12	U.S. History Pre-Session Survey	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.141444+00	1	\N
+9	General Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+10	SAT Prep Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+11	College Counseling Volunteer Post-Session Survey	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.141444+00	2	\N
+13	College Prep Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+14	College List Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+15	College Apps Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+16	Application Essays Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+17	Financial Aid Pre-Session Survey	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	1	\N
+18	Essay Planning Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
+19	Essay Feedback Pre-Session Survey	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	1	\N
+20	Progress Report Rating Survey	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	1	\N
+21	Impact Study Survey 1.0	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	1	10
+\.
+
+
 --
 -- Data for Name: surveys_survey_questions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.surveys_survey_questions (id, survey_id, survey_question_id, display_priority, created_at, updated_at)
-FROM
-    stdin;
 
-1 1 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 2 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 3 3 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 4 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 5 5 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 6 6 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 7 7 1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 8 4 2 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 9 5 2 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 10 6 2 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 11 4 3 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 12 5 3 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 13 6 3 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 14 1 4 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 15 2 4 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 16 3 4 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 17 7 4 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 18 1 5 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 19 2 5 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 20 3 5 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 22 8 6 10 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 23 8 7 20 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 24 8 8 30 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 25 8 9 40 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 26 8 10 50 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 27 8 11 60 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 21 7 12 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.123956 + 00 28 9 13 10 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 29 10 13 10 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 38 12 1 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 39 12 4 20 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 40 12 5 30 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 41 11 13 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 43 11 16 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 36 9 19 70 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 37 10 19 70 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 45 11 19 70 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 32 9 17 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 33 10 17 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 44 11 17 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 30 9 14 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 31 10 15 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 34 9 7 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 35 10 7 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 42 11 7 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 9 18 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 10 18 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 11 18 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 49 13 1 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 50 14 1 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 51 15 1 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 52 16 1 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 53 17 1 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 54 13 2 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 55 14 2 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 56 15 2 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 57 16 2 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 58 17 2 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 59 13 3 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 60 14 3 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 61 15 3 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 62 16 3 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 63 17 3 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 64 18 1 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 65 19 1 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 66 18 4 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 67 19 4 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 68 18 5 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 69 19 5 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 70 20 20 10 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 20 21 20 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 72 20 22 30 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 77 21 27 40 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 78 21 28 50 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 79 21 29 60 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 80 21 30 70 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 81 21 31 80 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 21 32 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 83 21 33 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 21 34 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 85 21 35 100 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 86 21 36 110 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 87 21 37 120 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 88 21 38 130 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 21 39 90 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00.
+COPY upchieve.surveys_survey_questions (id, survey_id, survey_question_id, display_priority, created_at, updated_at) FROM stdin;
+1	1	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+2	2	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+3	3	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+4	4	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+5	5	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+6	6	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+7	7	1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+8	4	2	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+9	5	2	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+10	6	2	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+11	4	3	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+12	5	3	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+13	6	3	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+14	1	4	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+15	2	4	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+16	3	4	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+17	7	4	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+18	1	5	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+19	2	5	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+20	3	5	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00
+22	8	6	10	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+23	8	7	20	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+24	8	8	30	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+25	8	9	40	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+26	8	10	50	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+27	8	11	60	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+21	7	12	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00
+28	9	13	10	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+29	10	13	10	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+38	12	1	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00
+39	12	4	20	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00
+40	12	5	30	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00
+41	11	13	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+43	11	16	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+36	9	19	70	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+37	10	19	70	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+45	11	19	70	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+32	9	17	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+33	10	17	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+44	11	17	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+30	9	14	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+31	10	15	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+34	9	7	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+35	10	7	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+42	11	7	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+46	9	18	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+47	10	18	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+48	11	18	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+49	13	1	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+50	14	1	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+51	15	1	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+52	16	1	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+53	17	1	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+54	13	2	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+55	14	2	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+56	15	2	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+57	16	2	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+58	17	2	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+59	13	3	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+60	14	3	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+61	15	3	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+62	16	3	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+63	17	3	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+64	18	1	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+65	19	1	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+66	18	4	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+67	19	4	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+68	18	5	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+69	19	5	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+70	20	20	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+71	20	21	20	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+72	20	22	30	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+77	21	27	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+78	21	28	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+79	21	29	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+80	21	30	70	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+81	21	31	80	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+82	21	32	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+83	21	33	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+84	21	34	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+85	21	35	100	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+86	21	36	110	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+87	21	37	120	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+88	21	38	130	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+89	21	39	90	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00
+\.
+
+
 --
 -- Data for Name: survey_questions_response_choices; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.survey_questions_response_choices (response_choice_id, display_priority, created_at, updated_at, surveys_survey_question_id)
-FROM
-    stdin;
 
-1 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 1 7 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 12 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 3 15 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 20 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 5 22 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 6 27 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 7 31 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 8 31 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 9 31 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 10 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 11 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 12 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 13 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 18 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 19 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 20 35 10 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 21 2 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 1 8 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 13 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 3 16 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 21 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 5 23 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 6 29 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 7 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 11 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 12 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 13 40 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 14 40 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 15 40 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 16 40 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 17 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 18 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 19 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 20 36 20 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 21 3 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 1 9 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 14 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 3 17 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 10 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 5 24 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 6 28 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 7 33 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 8 33 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 9 33 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 10 41 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 14 41 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 15 41 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 16 41 30 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 17 4 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 1 10 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 18 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 11 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 5 25 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 6 4 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 7 42 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 14 42 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 15 42 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 16 42 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 17 5 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 1 11 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 2 19 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 4 26 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 6 30 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.102706 + 00 7 44 20 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 22 45 30 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 22 46 40 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 22 47 50 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 22 52 10 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 23 53 20 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 23 54 30 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 23 55 40 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 23 56 50 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 23 58 10 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 24 59 20 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 24 44 20 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 25 48 30 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 25 49 40 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 25 50 50 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 25 44 20 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 26 48 30 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 26 49 40 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 26 51 50 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 26 60 60 2024 - 08 - 28 00:28:44.121198 + 00 2024 - 08 - 28 00:28:44.121198 + 00 1 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 11 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 12 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 13 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 18 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 19 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 20 61 30 2024 - 08 - 28 00:28:44.122444 + 00 2024 - 08 - 28 00:28:44.122444 + 00 21 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 11 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 12 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 13 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 18 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 19 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 20 37 40 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 21 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 11 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 12 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 13 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 18 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 19 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 20 38 50 2024 - 08 - 28 00:28:44.102706 + 00 2024 - 08 - 28 00:28:44.122444 + 00 21 62 50 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 14 62 50 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 15 62 50 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 16 62 50 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 17 32 20 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 8 32 20 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 9 32 20 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 10 34 40 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 8 34 40 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 9 34 40 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 10 44 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 28 44 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 29 48 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 28 48 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 29 49 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 28 49 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 29 51 50 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 28 51 50 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 29 55 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 34 55 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 35 58 10 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 32 58 10 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 33 61 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 30 35 10 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 30 36 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 30 37 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 30 38 50 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 30 64 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 32 64 20 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 33 65 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 34 65 30 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 35 66 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 34 66 40 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 35 67 50 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 34 67 50 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 35 3 30 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 4 20 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 30 50 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 60 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 61 30 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 40 35 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 40 36 20 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 40 37 40 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 40 38 50 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 40 40 20 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 39 41 30 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 39 42 40 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 39 62 50 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 39 68 40 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 3 68 50 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 5 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 2 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 4 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 6 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 7 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 23 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 34 68 60 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 35 68 70 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 1 68 70 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 14 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 15 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 16 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 17 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 22 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 25 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 26 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 28 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 29 69 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 39 70 10 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 71 40 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 38 69 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 41 44 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 41 48 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 41 49 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 41 51 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 41 55 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 42 65 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 42 66 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 42 67 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 42 68 60 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 42 35 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 43 36 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 43 61 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 43 37 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 43 38 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 43 58 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 44 64 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 44 61 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 31 35 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 31 36 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 31 37 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 31 38 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 31 72 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 72 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 72 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 73 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 73 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 73 20 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 74 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 74 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 74 30 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 75 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 75 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 75 40 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 76 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 76 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 76 50 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 77 60 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 77 60 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 77 60 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 78 70 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 46 78 70 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 47 78 70 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 48 79 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 27 79 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 36 79 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 37 79 10 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 45 15 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 49 83 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 50 22 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 51 20 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 52 86 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 53 31 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 54 31 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 55 31 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 56 31 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 57 31 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 58 35 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 59 35 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 60 35 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 61 35 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 62 35 10 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 63 80 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 49 84 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 50 23 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 51 21 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 52 87 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 53 32 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 54 32 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 55 32 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 56 32 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 57 32 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 58 36 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 59 36 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 60 36 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 61 36 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 62 36 20 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 63 81 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 49 85 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 50 24 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 51 10 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 52 88 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 53 33 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 54 33 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 55 33 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 56 33 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 57 33 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 58 61 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 59 61 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 60 61 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 61 61 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 62 61 30 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 63 82 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 49 68 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 50 25 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 51 68 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 51 11 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 52 89 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 53 34 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 54 34 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 55 34 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 56 34 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 57 34 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 58 37 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 59 37 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 60 37 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 61 37 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 62 37 40 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 63 17 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 49 68 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 52 68 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 53 38 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 59 38 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 60 38 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 61 38 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 62 38 50 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 63 68 60 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 49 8 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 64 10 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 65 11 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 65 21 40 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 64 61 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 68 61 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 69 35 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 68 35 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 69 36 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 68 36 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 69 37 40 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 68 37 40 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 69 38 50 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 68 38 50 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 69 40 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 66 40 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 67 41 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 66 41 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 67 42 40 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 66 42 40 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 67 62 50 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 66 62 50 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 67 68 30 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 65 68 50 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 64 69 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 66 69 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 67 90 10 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 64 91 20 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 64 92 10 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 70 93 20 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 70 94 10 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 95 20 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 96 30 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 97 40 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 98 50 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 68 60 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 71 68 10 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 72 58 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 85 58 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 86 58 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 87 58 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 88 64 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 85 64 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 86 64 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 87 64 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 88 68 60 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 99 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 85 99 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 86 99 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 87 99 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 88 100 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 101 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 102 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 103 40 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 104 50 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 105 60 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 106 70 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 107 80 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 82 108 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 109 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 110 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 111 40 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 112 50 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 84 113 10 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 114 20 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 115 30 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 116 40 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 117 50 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 118 60 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 119 70 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 120 80 2025 - 01 - 30 14:41:17.912923 + 00 2025 - 01 - 30 14:41:17.912923 + 00 89 121 10 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 122 20 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 123 30 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 124 40 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 125 50 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 126 60 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 127 70 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 128 80 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 129 90 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83 130 100 2025 - 01 - 30 18:43:42.859562 + 00 2025 - 01 - 30 18:43:42.859562 + 00 83.
+COPY upchieve.survey_questions_response_choices (response_choice_id, display_priority, created_at, updated_at, surveys_survey_question_id) FROM stdin;
+1	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	1
+7	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	2
+12	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	3
+15	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	4
+20	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	5
+22	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	6
+27	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	7
+31	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	8
+31	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	9
+31	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	10
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	11
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	12
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	13
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	18
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	19
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	20
+35	10	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	21
+2	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	1
+8	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	2
+13	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	3
+16	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	4
+21	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	5
+23	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	6
+29	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	7
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	11
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	12
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	13
+40	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	14
+40	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	15
+40	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	16
+40	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	17
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	18
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	19
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	20
+36	20	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	21
+3	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	1
+9	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	2
+14	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	3
+17	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	4
+10	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	5
+24	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	6
+28	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	7
+33	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	8
+33	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	9
+33	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	10
+41	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	14
+41	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	15
+41	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	16
+41	30	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	17
+4	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	1
+10	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	2
+18	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	4
+11	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	5
+25	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	6
+4	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	7
+42	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	14
+42	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	15
+42	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	16
+42	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	17
+5	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	1
+11	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	2
+19	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	4
+26	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	6
+30	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.102706+00	7
+44	20	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	22
+45	30	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	22
+46	40	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	22
+47	50	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	22
+52	10	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	23
+53	20	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	23
+54	30	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	23
+55	40	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	23
+56	50	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	23
+58	10	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	24
+59	20	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	24
+44	20	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	25
+48	30	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	25
+49	40	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	25
+50	50	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	25
+44	20	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	26
+48	30	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	26
+49	40	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	26
+51	50	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	26
+60	60	2024-08-28 00:28:44.121198+00	2024-08-28 00:28:44.121198+00	1
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	11
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	12
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	13
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	18
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	19
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	20
+61	30	2024-08-28 00:28:44.122444+00	2024-08-28 00:28:44.122444+00	21
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	11
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	12
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	13
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	18
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	19
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	20
+37	40	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	21
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	11
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	12
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	13
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	18
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	19
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	20
+38	50	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.122444+00	21
+62	50	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	14
+62	50	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	15
+62	50	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	16
+62	50	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	17
+32	20	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	8
+32	20	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	9
+32	20	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	10
+34	40	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	8
+34	40	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	9
+34	40	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00	10
+44	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	28
+44	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	29
+48	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	28
+48	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	29
+49	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	28
+49	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	29
+51	50	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	28
+51	50	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	29
+55	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	34
+55	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	35
+58	10	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	32
+58	10	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	33
+61	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	30
+35	10	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	30
+36	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	30
+37	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	30
+38	50	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	30
+64	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	32
+64	20	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	33
+65	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	34
+65	30	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	35
+66	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	34
+66	40	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	35
+67	50	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	34
+67	50	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	35
+3	30	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+4	20	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+30	50	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+60	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+61	30	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	40
+35	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	40
+36	20	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	40
+37	40	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	40
+38	50	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	40
+40	20	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	39
+41	30	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	39
+42	40	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	39
+62	50	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	39
+68	40	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	3
+68	50	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	5
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	2
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	4
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	6
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	7
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	23
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	34
+68	60	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	35
+68	70	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	1
+68	70	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	14
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	15
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	16
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	17
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	22
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	25
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	26
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	28
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	29
+69	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	39
+70	10	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+71	40	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00	38
+69	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	41
+44	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	41
+48	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	41
+49	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	41
+51	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	41
+55	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	42
+65	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	42
+66	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	42
+67	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	42
+68	60	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	42
+35	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	43
+36	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	43
+61	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	43
+37	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	43
+38	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	43
+58	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	44
+64	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	44
+61	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	31
+35	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	31
+36	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	31
+37	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	31
+38	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	31
+72	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+72	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+72	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+73	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+73	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+73	20	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+74	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+74	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+74	30	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+75	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+75	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+75	40	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+76	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+76	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+76	50	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+77	60	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+77	60	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+77	60	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+78	70	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	46
+78	70	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	47
+78	70	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	48
+79	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	27
+79	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	36
+79	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	37
+79	10	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00	45
+15	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	49
+83	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	50
+22	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	51
+20	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	52
+86	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	53
+31	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	54
+31	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	55
+31	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	56
+31	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	57
+31	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	58
+35	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	59
+35	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	60
+35	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	61
+35	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	62
+35	10	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	63
+80	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	49
+84	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	50
+23	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	51
+21	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	52
+87	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	53
+32	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	54
+32	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	55
+32	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	56
+32	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	57
+32	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	58
+36	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	59
+36	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	60
+36	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	61
+36	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	62
+36	20	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	63
+81	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	49
+85	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	50
+24	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	51
+10	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	52
+88	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	53
+33	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	54
+33	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	55
+33	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	56
+33	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	57
+33	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	58
+61	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	59
+61	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	60
+61	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	61
+61	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	62
+61	30	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	63
+82	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	49
+68	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	50
+25	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	51
+68	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	51
+11	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	52
+89	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	53
+34	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	54
+34	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	55
+34	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	56
+34	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	57
+34	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	58
+37	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	59
+37	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	60
+37	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	61
+37	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	62
+37	40	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	63
+17	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	49
+68	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	52
+68	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	53
+38	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	59
+38	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	60
+38	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	61
+38	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	62
+38	50	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	63
+68	60	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00	49
+8	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	64
+10	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	65
+11	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	65
+21	40	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	64
+61	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	68
+61	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	69
+35	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	68
+35	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	69
+36	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	68
+36	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	69
+37	40	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	68
+37	40	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	69
+38	50	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	68
+38	50	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	69
+40	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	66
+40	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	67
+41	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	66
+41	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	67
+42	40	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	66
+42	40	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	67
+62	50	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	66
+62	50	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	67
+68	30	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	65
+68	50	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	64
+69	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	66
+69	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	67
+90	10	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	64
+91	20	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00	64
+92	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	70
+93	20	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	70
+94	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
+95	20	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
+96	30	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
+97	40	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
+98	50	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
+68	60	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	71
+68	10	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	72
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	85
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	86
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	87
+58	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	88
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	85
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	86
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	87
+64	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	88
+68	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	85
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	86
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	87
+99	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	88
+100	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+101	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+102	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+103	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+104	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+105	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+106	70	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+107	80	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	82
+108	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+109	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+110	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+111	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+112	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	84
+113	10	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+114	20	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+115	30	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+116	40	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+117	50	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+118	60	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+119	70	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+120	80	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	89
+121	10	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+122	20	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+123	30	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+124	40	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+125	50	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+126	60	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+127	70	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+128	80	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+129	90	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+130	100	2025-01-30 18:43:42.859562+00	2025-01-30 18:43:42.859562+00	83
+\.
+
+
 --
 -- Data for Name: survey_types; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.survey_types (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 presession 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 2 postsession 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 4 progress - report 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 5 impact - study 2024 - 12 - 19 07:33:43.228852 + 00 2024 - 12 - 19 07:33:43.228852 + 00.
+COPY upchieve.survey_types (id, name, created_at, updated_at) FROM stdin;
+1	presession	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+2	postsession	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+4	progress-report	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+5	impact-study	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
+\.
+
+
 --
 -- Data for Name: surveys_context; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at)
-FROM
-    stdin;
 
-1 1 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 2 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 3 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 4 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 5 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 6 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 7 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 8 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 9 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 10 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 11 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 12 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 13 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 14 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 21 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 22 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 23 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 1 24 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 2 20 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 3 25 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 4 18 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 6 19 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 7 15 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 7 16 1 2024 - 08 - 28 00:28:44.114521 + 00 2024 - 08 - 28 00:28:44.114521 + 00 8 1 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 2 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 3 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 4 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 5 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 6 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 7 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 8 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 9 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 10 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 11 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 12 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 13 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 14 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 15 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 16 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 17 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 18 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 19 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 20 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 21 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 22 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 23 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 24 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 8 25 2 2024 - 08 - 28 00:28:44.117528 + 00 2024 - 08 - 28 00:28:44.117528 + 00 5 17 1 2024 - 08 - 28 00:28:44.123956 + 00 2024 - 08 - 28 00:28:44.123956 + 00 9 1 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 2 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 3 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 4 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 5 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 6 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 7 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 8 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 9 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 10 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 11 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 12 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 13 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 14 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 20 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 21 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 22 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 23 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 24 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 9 25 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 10 15 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 10 16 2 2024 - 08 - 28 00:28:44.126016 + 00 2024 - 08 - 28 00:28:44.126016 + 00 12 26 1 2024 - 08 - 28 00:28:44.129508 + 00 2024 - 08 - 28 00:28:44.129508 + 00 8 26 2 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 9 26 2 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 11 17 2 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 11 18 2 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 11 19 2 2024 - 08 - 28 00:28:44.135646 + 00 2024 - 08 - 28 00:28:44.135646 + 00 13 27 1 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 14 28 1 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 15 29 1 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 16 30 1 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 17 31 1 2024 - 08 - 28 00:28:44.148169 + 00 2024 - 08 - 28 00:28:44.148169 + 00 8 27 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 8 28 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 8 29 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 8 30 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 8 31 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 11 27 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 11 28 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 11 29 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 11 30 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 11 31 2 2024 - 08 - 28 00:28:44.155295 + 00 2024 - 08 - 28 00:28:44.155295 + 00 8 32 2 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 8 33 2 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 9 32 2 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 9 33 2 2024 - 08 - 28 00:28:44.157676 + 00 2024 - 08 - 28 00:28:44.157676 + 00 18 32 1 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 19 33 1 2024 - 08 - 28 00:28:44.159246 + 00 2024 - 08 - 28 00:28:44.159246 + 00 20 N 4 2024 - 08 - 28 00:28:44.176491 + 00 2024 - 08 - 28 00:28:44.176491 + 00 21 N 5 2024 - 12 - 19 07:33:43.228852 + 00 2024 - 12 - 19 07:33:43.228852 + 00.
+COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at, updated_at) FROM stdin;
+1	1	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	2	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	3	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	4	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	5	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	6	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	7	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	8	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	9	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	10	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	11	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	12	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	13	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	14	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	21	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	22	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	23	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+1	24	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+2	20	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+3	25	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+4	18	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+6	19	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+7	15	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+7	16	1	2024-08-28 00:28:44.114521+00	2024-08-28 00:28:44.114521+00
+8	1	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	2	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	3	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	4	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	5	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	6	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	7	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	8	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	9	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	10	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	11	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	12	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	13	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	14	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	15	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	16	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	17	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	18	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	19	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	20	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	21	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	22	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	23	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	24	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+8	25	2	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00
+5	17	1	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.123956+00
+9	1	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	2	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	3	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	4	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	5	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	6	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	7	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	8	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	9	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	10	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	11	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	12	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	13	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	14	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	20	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	21	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	22	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	23	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	24	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+9	25	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+10	15	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+10	16	2	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00
+12	26	1	2024-08-28 00:28:44.129508+00	2024-08-28 00:28:44.129508+00
+8	26	2	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+9	26	2	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+11	17	2	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+11	18	2	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+11	19	2	2024-08-28 00:28:44.135646+00	2024-08-28 00:28:44.135646+00
+13	27	1	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+14	28	1	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+15	29	1	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+16	30	1	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+17	31	1	2024-08-28 00:28:44.148169+00	2024-08-28 00:28:44.148169+00
+8	27	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+8	28	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+8	29	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+8	30	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+8	31	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+11	27	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+11	28	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+11	29	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+11	30	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+11	31	2	2024-08-28 00:28:44.155295+00	2024-08-28 00:28:44.155295+00
+8	32	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+8	33	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+9	32	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+9	33	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+18	32	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+19	33	1	2024-08-28 00:28:44.159246+00	2024-08-28 00:28:44.159246+00
+20	\N	4	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00
+21	\N	5	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00
+\.
+
+
 --
 -- Data for Name: training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.training_courses (id, name, created_at, updated_at, display_name)
-FROM
-    stdin;
 
-1 upchieve101 2024 - 08 - 28 00:28:43.735425 + 00 2024 - 08 - 28 00:28:44.16882 + 00 UPchieve 101.
+COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) FROM stdin;
+1	upchieve101	2024-08-28 00:28:43.735425+00	2024-08-28 00:28:44.16882+00	UPchieve 101
+\.
+
+
 --
 -- Data for Name: tutor_bot_conversations; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.tutor_bot_conversations (id, user_id, session_id, created_at, updated_at, subject_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.tutor_bot_conversations (id, user_id, session_id, created_at, updated_at, subject_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: tutor_bot_conversation_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.tutor_bot_conversation_messages (tutor_bot_conversation_id, user_id, sender_user_type, message, created_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: tutor_bot_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type, created_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_session_user_type, created_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: user_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason)
-FROM
-    stdin;
 
-.
+COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason) FROM stdin;
+\.
+
+
 --
 -- Data for Name: user_product_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at, impact_study_enrollment_at, tell_them_college_prep_modal_seen_at, impact_study_campaigns)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 f f f f f f 2024 - 08 - 28 00:28:45.446241 + 00 2024 - 08 - 28 00:28:45.446241 + 00 f f N N N N {} 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 f f f f f f 2024 - 08 - 28 00:28:45.448064 + 00 2024 - 08 - 28 00:28:45.448064 + 00 f f N N N N {} 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b f f f f f f 2024 - 08 - 28 00:28:45.449549 + 00 2024 - 08 - 28 00:28:45.449549 + 00 f f N N N N {} 01919662 - 8804 - 29c4 - 5ff7 - cb6803c09fa6 f f f f f f 2024 - 08 - 28 00:28:45.450982 + 00 2024 - 08 - 28 00:28:45.450982 + 00 f f N N N N {} 01919662 - 8804 - 9826 - da53 - f1b2a1e53205 f f f f f f 2024 - 08 - 28 00:28:45.452468 + 00 2024 - 08 - 28 00:28:45.452468 + 00 f f N N N N {} 01919662 - 8804 - cc87 - 1ee3 - 90a35b65414d f f f f f f 2024 - 08 - 28 00:28:45.453882 + 00 2024 - 08 - 28 00:28:45.453882 + 00 f f N N N N {} 01919662 - 885c - d39a - 1749 - 5aaf18cf5d3b f f f f f f 2024 - 08 - 28 00:28:45.53321 + 00 2024 - 08 - 28 00:28:45.53321 + 00 f f N N N N {} 01919662 - 885c - 2fca - 264b - 9558f5b20fe4 f f f f f f 2024 - 08 - 28 00:28:45.534598 + 00 2024 - 08 - 28 00:28:45.534598 + 00 f f N N N N {} 01919662 - 885c - a174 - 3088 - 998111f7cc80 f f f f f f 2024 - 08 - 28 00:28:45.535987 + 00 2024 - 08 - 28 00:28:45.535987 + 00 f f N N N N {}.
+COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_summary_intro_email, sent_inactive_thirty_day_email, sent_inactive_sixty_day_email, sent_inactive_ninety_day_email, gates_qualified, created_at, updated_at, in_gates_study, fall_incentive_program, paid_tutors_pilot_group, fall_incentive_enrollment_at, impact_study_enrollment_at, tell_them_college_prep_modal_seen_at, impact_study_campaigns) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	f	f	f	f	f	f	2024-08-28 00:28:45.446241+00	2024-08-28 00:28:45.446241+00	f	f	\N	\N	\N	\N	{}
+01919662-8804-ad82-c517-37eaab0e19c2	f	f	f	f	f	f	2024-08-28 00:28:45.448064+00	2024-08-28 00:28:45.448064+00	f	f	\N	\N	\N	\N	{}
+01919662-8804-9ccc-4601-1e98c09c946b	f	f	f	f	f	f	2024-08-28 00:28:45.449549+00	2024-08-28 00:28:45.449549+00	f	f	\N	\N	\N	\N	{}
+01919662-8804-29c4-5ff7-cb6803c09fa6	f	f	f	f	f	f	2024-08-28 00:28:45.450982+00	2024-08-28 00:28:45.450982+00	f	f	\N	\N	\N	\N	{}
+01919662-8804-9826-da53-f1b2a1e53205	f	f	f	f	f	f	2024-08-28 00:28:45.452468+00	2024-08-28 00:28:45.452468+00	f	f	\N	\N	\N	\N	{}
+01919662-8804-cc87-1ee3-90a35b65414d	f	f	f	f	f	f	2024-08-28 00:28:45.453882+00	2024-08-28 00:28:45.453882+00	f	f	\N	\N	\N	\N	{}
+01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N	\N	\N	{}
+01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N	\N	\N	{}
+01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N	\N	{}
+\.
+
+
 --
 -- Data for Name: user_session_metrics; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.user_session_metrics (user_id, absent_student, absent_volunteer, low_session_rating_from_coach, low_session_rating_from_student, low_coach_rating_from_student, reported, only_looking_for_answers, rude_or_inappropriate, comment_from_student, comment_from_volunteer, has_been_unmatched, has_had_technical_issues, created_at, updated_at, personal_identifying_info, graded_assignment, coach_uncomfortable, student_crisis)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.445818 + 00 2024 - 08 - 28 00:28:45.445818 + 00 0 0 0 0 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.447687 + 00 2024 - 08 - 28 00:28:45.447687 + 00 0 0 0 0 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.44919 + 00 2024 - 08 - 28 00:28:45.44919 + 00 0 0 0 0 01919662 - 8804 - 29c4 - 5ff7 - cb6803c09fa6 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.450629 + 00 2024 - 08 - 28 00:28:45.450629 + 00 0 0 0 0 01919662 - 8804 - 9826 - da53 - f1b2a1e53205 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.452144 + 00 2024 - 08 - 28 00:28:45.452144 + 00 0 0 0 0 01919662 - 8804 - cc87 - 1ee3 - 90a35b65414d 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.453552 + 00 2024 - 08 - 28 00:28:45.453552 + 00 0 0 0 0 01919662 - 885c - d39a - 1749 - 5aaf18cf5d3b 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.532873 + 00 2024 - 08 - 28 00:28:45.532873 + 00 0 0 0 0 01919662 - 885c - 2fca - 264b - 9558f5b20fe4 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.534294 + 00 2024 - 08 - 28 00:28:45.534294 + 00 0 0 0 0 01919662 - 885c - a174 - 3088 - 998111f7cc80 0 0 0 0 0 0 0 0 0 0 0 0 2024 - 08 - 28 00:28:45.535656 + 00 2024 - 08 - 28 00:28:45.535656 + 00 0 0 0 0.
+COPY upchieve.user_session_metrics (user_id, absent_student, absent_volunteer, low_session_rating_from_coach, low_session_rating_from_student, low_coach_rating_from_student, reported, only_looking_for_answers, rude_or_inappropriate, comment_from_student, comment_from_volunteer, has_been_unmatched, has_had_technical_issues, created_at, updated_at, personal_identifying_info, graded_assignment, coach_uncomfortable, student_crisis) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.445818+00	2024-08-28 00:28:45.445818+00	0	0	0	0
+01919662-8804-ad82-c517-37eaab0e19c2	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.447687+00	2024-08-28 00:28:45.447687+00	0	0	0	0
+01919662-8804-9ccc-4601-1e98c09c946b	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.44919+00	2024-08-28 00:28:45.44919+00	0	0	0	0
+01919662-8804-29c4-5ff7-cb6803c09fa6	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.450629+00	2024-08-28 00:28:45.450629+00	0	0	0	0
+01919662-8804-9826-da53-f1b2a1e53205	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.452144+00	2024-08-28 00:28:45.452144+00	0	0	0	0
+01919662-8804-cc87-1ee3-90a35b65414d	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.453552+00	2024-08-28 00:28:45.453552+00	0	0	0	0
+01919662-885c-d39a-1749-5aaf18cf5d3b	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.532873+00	2024-08-28 00:28:45.532873+00	0	0	0	0
+01919662-885c-2fca-264b-9558f5b20fe4	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.534294+00	2024-08-28 00:28:45.534294+00	0	0	0	0
+01919662-885c-a174-3088-998111f7cc80	0	0	0	0	0	0	0	0	0	0	0	0	2024-08-28 00:28:45.535656+00	2024-08-28 00:28:45.535656+00	0	0	0	0
+\.
+
+
 --
 -- Data for Name: users_certifications; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_certifications (user_id, certification_id, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 1 2024 - 08 - 28 00:28:45.456864 + 00 2024 - 08 - 28 00:28:45.456864 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 16 2024 - 08 - 28 00:28:45.459785 + 00 2024 - 08 - 28 00:28:45.459785 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 17 2024 - 08 - 28 00:28:45.461179 + 00 2024 - 08 - 28 00:28:45.461179 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 11 2024 - 08 - 28 00:28:45.462765 + 00 2024 - 08 - 28 00:28:45.462765 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 4 2024 - 08 - 28 00:28:45.464017 + 00 2024 - 08 - 28 00:28:45.464017 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 20 2024 - 08 - 28 00:28:45.465507 + 00 2024 - 08 - 28 00:28:45.465507 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 5 2024 - 08 - 28 00:28:45.466711 + 00 2024 - 08 - 28 00:28:45.466711 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 9 2024 - 08 - 28 00:28:45.468263 + 00 2024 - 08 - 28 00:28:45.468263 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 3 2024 - 08 - 28 00:28:45.46948 + 00 2024 - 08 - 28 00:28:45.46948 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 6 2024 - 08 - 28 00:28:45.470805 + 00 2024 - 08 - 28 00:28:45.470805 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 19 2024 - 08 - 28 00:28:45.472072 + 00 2024 - 08 - 28 00:28:45.472072 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 18 2024 - 08 - 28 00:28:45.473433 + 00 2024 - 08 - 28 00:28:45.473433 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 15 2024 - 08 - 28 00:28:45.474608 + 00 2024 - 08 - 28 00:28:45.474608 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 1 2024 - 08 - 28 00:28:45.475933 + 00 2024 - 08 - 28 00:28:45.475933 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 12 2024 - 08 - 28 00:28:45.477365 + 00 2024 - 08 - 28 00:28:45.477365 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 23 2024 - 08 - 28 00:28:45.479661 + 00 2024 - 08 - 28 00:28:45.479661 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 16 2024 - 08 - 28 00:28:45.480819 + 00 2024 - 08 - 28 00:28:45.480819 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 17 2024 - 08 - 28 00:28:45.48201 + 00 2024 - 08 - 28 00:28:45.48201 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 10 2024 - 08 - 28 00:28:45.483248 + 00 2024 - 08 - 28 00:28:45.483248 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 4 2024 - 08 - 28 00:28:45.484444 + 00 2024 - 08 - 28 00:28:45.484444 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 20 2024 - 08 - 28 00:28:45.485968 + 00 2024 - 08 - 28 00:28:45.485968 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 5 2024 - 08 - 28 00:28:45.487481 + 00 2024 - 08 - 28 00:28:45.487481 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 9 2024 - 08 - 28 00:28:45.488815 + 00 2024 - 08 - 28 00:28:45.488815 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 3 2024 - 08 - 28 00:28:45.490168 + 00 2024 - 08 - 28 00:28:45.490168 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 6 2024 - 08 - 28 00:28:45.491493 + 00 2024 - 08 - 28 00:28:45.491493 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 11 2024 - 08 - 28 00:28:45.492706 + 00 2024 - 08 - 28 00:28:45.492706 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 19 2024 - 08 - 28 00:28:45.49402 + 00 2024 - 08 - 28 00:28:45.49402 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 18 2024 - 08 - 28 00:28:45.495242 + 00 2024 - 08 - 28 00:28:45.495242 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 1 2024 - 08 - 28 00:28:45.496514 + 00 2024 - 08 - 28 00:28:45.496514 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 16 2024 - 08 - 28 00:28:45.497815 + 00 2024 - 08 - 28 00:28:45.497815 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 17 2024 - 08 - 28 00:28:45.499091 + 00 2024 - 08 - 28 00:28:45.499091 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 10 2024 - 08 - 28 00:28:45.500352 + 00 2024 - 08 - 28 00:28:45.500352 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 4 2024 - 08 - 28 00:28:45.501475 + 00 2024 - 08 - 28 00:28:45.501475 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 20 2024 - 08 - 28 00:28:45.503625 + 00 2024 - 08 - 28 00:28:45.503625 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 5 2024 - 08 - 28 00:28:45.505101 + 00 2024 - 08 - 28 00:28:45.505101 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 9 2024 - 08 - 28 00:28:45.506373 + 00 2024 - 08 - 28 00:28:45.506373 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 3 2024 - 08 - 28 00:28:45.507682 + 00 2024 - 08 - 28 00:28:45.507682 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 6 2024 - 08 - 28 00:28:45.508941 + 00 2024 - 08 - 28 00:28:45.508941 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 11 2024 - 08 - 28 00:28:45.510522 + 00 2024 - 08 - 28 00:28:45.510522 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 19 2024 - 08 - 28 00:28:45.511876 + 00 2024 - 08 - 28 00:28:45.511876 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 18 2024 - 08 - 28 00:28:45.51322 + 00 2024 - 08 - 28 00:28:45.51322 + 00.
+COPY upchieve.users_certifications (user_id, certification_id, created_at, updated_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	1	2024-08-28 00:28:45.456864+00	2024-08-28 00:28:45.456864+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	16	2024-08-28 00:28:45.459785+00	2024-08-28 00:28:45.459785+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	17	2024-08-28 00:28:45.461179+00	2024-08-28 00:28:45.461179+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	11	2024-08-28 00:28:45.462765+00	2024-08-28 00:28:45.462765+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	4	2024-08-28 00:28:45.464017+00	2024-08-28 00:28:45.464017+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	20	2024-08-28 00:28:45.465507+00	2024-08-28 00:28:45.465507+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	5	2024-08-28 00:28:45.466711+00	2024-08-28 00:28:45.466711+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	9	2024-08-28 00:28:45.468263+00	2024-08-28 00:28:45.468263+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	3	2024-08-28 00:28:45.46948+00	2024-08-28 00:28:45.46948+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	6	2024-08-28 00:28:45.470805+00	2024-08-28 00:28:45.470805+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	19	2024-08-28 00:28:45.472072+00	2024-08-28 00:28:45.472072+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	18	2024-08-28 00:28:45.473433+00	2024-08-28 00:28:45.473433+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	15	2024-08-28 00:28:45.474608+00	2024-08-28 00:28:45.474608+00
+01919662-8804-ad82-c517-37eaab0e19c2	1	2024-08-28 00:28:45.475933+00	2024-08-28 00:28:45.475933+00
+01919662-8804-ad82-c517-37eaab0e19c2	12	2024-08-28 00:28:45.477365+00	2024-08-28 00:28:45.477365+00
+01919662-8804-ad82-c517-37eaab0e19c2	23	2024-08-28 00:28:45.479661+00	2024-08-28 00:28:45.479661+00
+01919662-8804-ad82-c517-37eaab0e19c2	16	2024-08-28 00:28:45.480819+00	2024-08-28 00:28:45.480819+00
+01919662-8804-ad82-c517-37eaab0e19c2	17	2024-08-28 00:28:45.48201+00	2024-08-28 00:28:45.48201+00
+01919662-8804-ad82-c517-37eaab0e19c2	10	2024-08-28 00:28:45.483248+00	2024-08-28 00:28:45.483248+00
+01919662-8804-ad82-c517-37eaab0e19c2	4	2024-08-28 00:28:45.484444+00	2024-08-28 00:28:45.484444+00
+01919662-8804-ad82-c517-37eaab0e19c2	20	2024-08-28 00:28:45.485968+00	2024-08-28 00:28:45.485968+00
+01919662-8804-ad82-c517-37eaab0e19c2	5	2024-08-28 00:28:45.487481+00	2024-08-28 00:28:45.487481+00
+01919662-8804-ad82-c517-37eaab0e19c2	9	2024-08-28 00:28:45.488815+00	2024-08-28 00:28:45.488815+00
+01919662-8804-ad82-c517-37eaab0e19c2	3	2024-08-28 00:28:45.490168+00	2024-08-28 00:28:45.490168+00
+01919662-8804-ad82-c517-37eaab0e19c2	6	2024-08-28 00:28:45.491493+00	2024-08-28 00:28:45.491493+00
+01919662-8804-ad82-c517-37eaab0e19c2	11	2024-08-28 00:28:45.492706+00	2024-08-28 00:28:45.492706+00
+01919662-8804-ad82-c517-37eaab0e19c2	19	2024-08-28 00:28:45.49402+00	2024-08-28 00:28:45.49402+00
+01919662-8804-ad82-c517-37eaab0e19c2	18	2024-08-28 00:28:45.495242+00	2024-08-28 00:28:45.495242+00
+01919662-8804-9ccc-4601-1e98c09c946b	1	2024-08-28 00:28:45.496514+00	2024-08-28 00:28:45.496514+00
+01919662-8804-9ccc-4601-1e98c09c946b	16	2024-08-28 00:28:45.497815+00	2024-08-28 00:28:45.497815+00
+01919662-8804-9ccc-4601-1e98c09c946b	17	2024-08-28 00:28:45.499091+00	2024-08-28 00:28:45.499091+00
+01919662-8804-9ccc-4601-1e98c09c946b	10	2024-08-28 00:28:45.500352+00	2024-08-28 00:28:45.500352+00
+01919662-8804-9ccc-4601-1e98c09c946b	4	2024-08-28 00:28:45.501475+00	2024-08-28 00:28:45.501475+00
+01919662-8804-9ccc-4601-1e98c09c946b	20	2024-08-28 00:28:45.503625+00	2024-08-28 00:28:45.503625+00
+01919662-8804-9ccc-4601-1e98c09c946b	5	2024-08-28 00:28:45.505101+00	2024-08-28 00:28:45.505101+00
+01919662-8804-9ccc-4601-1e98c09c946b	9	2024-08-28 00:28:45.506373+00	2024-08-28 00:28:45.506373+00
+01919662-8804-9ccc-4601-1e98c09c946b	3	2024-08-28 00:28:45.507682+00	2024-08-28 00:28:45.507682+00
+01919662-8804-9ccc-4601-1e98c09c946b	6	2024-08-28 00:28:45.508941+00	2024-08-28 00:28:45.508941+00
+01919662-8804-9ccc-4601-1e98c09c946b	11	2024-08-28 00:28:45.510522+00	2024-08-28 00:28:45.510522+00
+01919662-8804-9ccc-4601-1e98c09c946b	19	2024-08-28 00:28:45.511876+00	2024-08-28 00:28:45.511876+00
+01919662-8804-9ccc-4601-1e98c09c946b	18	2024-08-28 00:28:45.51322+00	2024-08-28 00:28:45.51322+00
+\.
+
+
 --
 -- Data for Name: users_ip_addresses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: users_quizzes; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_quizzes (user_id, quiz_id, attempts, passed, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 1 1 t 2024 - 08 - 28 00:28:45.514428 + 00 2024 - 08 - 28 00:28:45.514428 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 16 1 t 2024 - 08 - 28 00:28:45.515187 + 00 2024 - 08 - 28 00:28:45.515187 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 17 1 t 2024 - 08 - 28 00:28:45.515541 + 00 2024 - 08 - 28 00:28:45.515541 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 10 1 t 2024 - 08 - 28 00:28:45.515888 + 00 2024 - 08 - 28 00:28:45.515888 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 4 1 t 2024 - 08 - 28 00:28:45.516242 + 00 2024 - 08 - 28 00:28:45.516242 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 20 1 t 2024 - 08 - 28 00:28:45.516599 + 00 2024 - 08 - 28 00:28:45.516599 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 5 1 t 2024 - 08 - 28 00:28:45.516963 + 00 2024 - 08 - 28 00:28:45.516963 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 9 1 t 2024 - 08 - 28 00:28:45.51729 + 00 2024 - 08 - 28 00:28:45.51729 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 3 1 t 2024 - 08 - 28 00:28:45.517607 + 00 2024 - 08 - 28 00:28:45.517607 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 6 1 t 2024 - 08 - 28 00:28:45.517923 + 00 2024 - 08 - 28 00:28:45.517923 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 11 1 t 2024 - 08 - 28 00:28:45.518271 + 00 2024 - 08 - 28 00:28:45.518271 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 19 1 t 2024 - 08 - 28 00:28:45.518642 + 00 2024 - 08 - 28 00:28:45.518642 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 18 1 t 2024 - 08 - 28 00:28:45.518963 + 00 2024 - 08 - 28 00:28:45.518963 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 15 1 t 2024 - 08 - 28 00:28:45.519306 + 00 2024 - 08 - 28 00:28:45.519306 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 23 1 t 2024 - 08 - 28 00:28:45.519659 + 00 2024 - 08 - 28 00:28:45.519659 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 22 1 t 2024 - 08 - 28 00:28:45.519987 + 00 2024 - 08 - 28 00:28:45.519987 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 32 1 t 2024 - 08 - 28 00:28:45.520305 + 00 2024 - 08 - 28 00:28:45.520305 + 00 01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 12 1 t 2024 - 08 - 28 00:28:45.52064 + 00 2024 - 08 - 28 00:28:45.52064 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 1 1 t 2024 - 08 - 28 00:28:45.521031 + 00 2024 - 08 - 28 00:28:45.521031 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 16 1 t 2024 - 08 - 28 00:28:45.521487 + 00 2024 - 08 - 28 00:28:45.521487 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 17 1 t 2024 - 08 - 28 00:28:45.521875 + 00 2024 - 08 - 28 00:28:45.521875 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 10 1 t 2024 - 08 - 28 00:28:45.522305 + 00 2024 - 08 - 28 00:28:45.522305 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 4 1 t 2024 - 08 - 28 00:28:45.522633 + 00 2024 - 08 - 28 00:28:45.522633 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 20 1 t 2024 - 08 - 28 00:28:45.522967 + 00 2024 - 08 - 28 00:28:45.522967 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 5 1 t 2024 - 08 - 28 00:28:45.523318 + 00 2024 - 08 - 28 00:28:45.523318 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 9 1 t 2024 - 08 - 28 00:28:45.523687 + 00 2024 - 08 - 28 00:28:45.523687 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 3 1 t 2024 - 08 - 28 00:28:45.524028 + 00 2024 - 08 - 28 00:28:45.524028 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 6 1 t 2024 - 08 - 28 00:28:45.524441 + 00 2024 - 08 - 28 00:28:45.524441 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 11 1 t 2024 - 08 - 28 00:28:45.524766 + 00 2024 - 08 - 28 00:28:45.524766 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 19 1 t 2024 - 08 - 28 00:28:45.525083 + 00 2024 - 08 - 28 00:28:45.525083 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 18 1 t 2024 - 08 - 28 00:28:45.525427 + 00 2024 - 08 - 28 00:28:45.525427 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 1 1 t 2024 - 08 - 28 00:28:45.525853 + 00 2024 - 08 - 28 00:28:45.525853 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 16 1 t 2024 - 08 - 28 00:28:45.527651 + 00 2024 - 08 - 28 00:28:45.527651 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 17 1 t 2024 - 08 - 28 00:28:45.528047 + 00 2024 - 08 - 28 00:28:45.528047 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 10 1 t 2024 - 08 - 28 00:28:45.528366 + 00 2024 - 08 - 28 00:28:45.528366 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 4 1 t 2024 - 08 - 28 00:28:45.528692 + 00 2024 - 08 - 28 00:28:45.528692 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 20 1 t 2024 - 08 - 28 00:28:45.528996 + 00 2024 - 08 - 28 00:28:45.528996 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 5 1 t 2024 - 08 - 28 00:28:45.529355 + 00 2024 - 08 - 28 00:28:45.529355 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 9 1 t 2024 - 08 - 28 00:28:45.529694 + 00 2024 - 08 - 28 00:28:45.529694 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 3 1 t 2024 - 08 - 28 00:28:45.530001 + 00 2024 - 08 - 28 00:28:45.530001 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 6 1 t 2024 - 08 - 28 00:28:45.530334 + 00 2024 - 08 - 28 00:28:45.530334 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 11 1 t 2024 - 08 - 28 00:28:45.530678 + 00 2024 - 08 - 28 00:28:45.530678 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 19 1 t 2024 - 08 - 28 00:28:45.531015 + 00 2024 - 08 - 28 00:28:45.531015 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 18 1 t 2024 - 08 - 28 00:28:45.531326 + 00 2024 - 08 - 28 00:28:45.531326 + 00.
+COPY upchieve.users_quizzes (user_id, quiz_id, attempts, passed, created_at, updated_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	1	1	t	2024-08-28 00:28:45.514428+00	2024-08-28 00:28:45.514428+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	16	1	t	2024-08-28 00:28:45.515187+00	2024-08-28 00:28:45.515187+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	17	1	t	2024-08-28 00:28:45.515541+00	2024-08-28 00:28:45.515541+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	10	1	t	2024-08-28 00:28:45.515888+00	2024-08-28 00:28:45.515888+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	4	1	t	2024-08-28 00:28:45.516242+00	2024-08-28 00:28:45.516242+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	20	1	t	2024-08-28 00:28:45.516599+00	2024-08-28 00:28:45.516599+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	5	1	t	2024-08-28 00:28:45.516963+00	2024-08-28 00:28:45.516963+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	9	1	t	2024-08-28 00:28:45.51729+00	2024-08-28 00:28:45.51729+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	3	1	t	2024-08-28 00:28:45.517607+00	2024-08-28 00:28:45.517607+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	6	1	t	2024-08-28 00:28:45.517923+00	2024-08-28 00:28:45.517923+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	11	1	t	2024-08-28 00:28:45.518271+00	2024-08-28 00:28:45.518271+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	19	1	t	2024-08-28 00:28:45.518642+00	2024-08-28 00:28:45.518642+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	18	1	t	2024-08-28 00:28:45.518963+00	2024-08-28 00:28:45.518963+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	15	1	t	2024-08-28 00:28:45.519306+00	2024-08-28 00:28:45.519306+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	23	1	t	2024-08-28 00:28:45.519659+00	2024-08-28 00:28:45.519659+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	22	1	t	2024-08-28 00:28:45.519987+00	2024-08-28 00:28:45.519987+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	32	1	t	2024-08-28 00:28:45.520305+00	2024-08-28 00:28:45.520305+00
+01919662-8804-8772-ecf7-b08dfa28c6e4	12	1	t	2024-08-28 00:28:45.52064+00	2024-08-28 00:28:45.52064+00
+01919662-8804-ad82-c517-37eaab0e19c2	1	1	t	2024-08-28 00:28:45.521031+00	2024-08-28 00:28:45.521031+00
+01919662-8804-ad82-c517-37eaab0e19c2	16	1	t	2024-08-28 00:28:45.521487+00	2024-08-28 00:28:45.521487+00
+01919662-8804-ad82-c517-37eaab0e19c2	17	1	t	2024-08-28 00:28:45.521875+00	2024-08-28 00:28:45.521875+00
+01919662-8804-ad82-c517-37eaab0e19c2	10	1	t	2024-08-28 00:28:45.522305+00	2024-08-28 00:28:45.522305+00
+01919662-8804-ad82-c517-37eaab0e19c2	4	1	t	2024-08-28 00:28:45.522633+00	2024-08-28 00:28:45.522633+00
+01919662-8804-ad82-c517-37eaab0e19c2	20	1	t	2024-08-28 00:28:45.522967+00	2024-08-28 00:28:45.522967+00
+01919662-8804-ad82-c517-37eaab0e19c2	5	1	t	2024-08-28 00:28:45.523318+00	2024-08-28 00:28:45.523318+00
+01919662-8804-ad82-c517-37eaab0e19c2	9	1	t	2024-08-28 00:28:45.523687+00	2024-08-28 00:28:45.523687+00
+01919662-8804-ad82-c517-37eaab0e19c2	3	1	t	2024-08-28 00:28:45.524028+00	2024-08-28 00:28:45.524028+00
+01919662-8804-ad82-c517-37eaab0e19c2	6	1	t	2024-08-28 00:28:45.524441+00	2024-08-28 00:28:45.524441+00
+01919662-8804-ad82-c517-37eaab0e19c2	11	1	t	2024-08-28 00:28:45.524766+00	2024-08-28 00:28:45.524766+00
+01919662-8804-ad82-c517-37eaab0e19c2	19	1	t	2024-08-28 00:28:45.525083+00	2024-08-28 00:28:45.525083+00
+01919662-8804-ad82-c517-37eaab0e19c2	18	1	t	2024-08-28 00:28:45.525427+00	2024-08-28 00:28:45.525427+00
+01919662-8804-9ccc-4601-1e98c09c946b	1	1	t	2024-08-28 00:28:45.525853+00	2024-08-28 00:28:45.525853+00
+01919662-8804-9ccc-4601-1e98c09c946b	16	1	t	2024-08-28 00:28:45.527651+00	2024-08-28 00:28:45.527651+00
+01919662-8804-9ccc-4601-1e98c09c946b	17	1	t	2024-08-28 00:28:45.528047+00	2024-08-28 00:28:45.528047+00
+01919662-8804-9ccc-4601-1e98c09c946b	10	1	t	2024-08-28 00:28:45.528366+00	2024-08-28 00:28:45.528366+00
+01919662-8804-9ccc-4601-1e98c09c946b	4	1	t	2024-08-28 00:28:45.528692+00	2024-08-28 00:28:45.528692+00
+01919662-8804-9ccc-4601-1e98c09c946b	20	1	t	2024-08-28 00:28:45.528996+00	2024-08-28 00:28:45.528996+00
+01919662-8804-9ccc-4601-1e98c09c946b	5	1	t	2024-08-28 00:28:45.529355+00	2024-08-28 00:28:45.529355+00
+01919662-8804-9ccc-4601-1e98c09c946b	9	1	t	2024-08-28 00:28:45.529694+00	2024-08-28 00:28:45.529694+00
+01919662-8804-9ccc-4601-1e98c09c946b	3	1	t	2024-08-28 00:28:45.530001+00	2024-08-28 00:28:45.530001+00
+01919662-8804-9ccc-4601-1e98c09c946b	6	1	t	2024-08-28 00:28:45.530334+00	2024-08-28 00:28:45.530334+00
+01919662-8804-9ccc-4601-1e98c09c946b	11	1	t	2024-08-28 00:28:45.530678+00	2024-08-28 00:28:45.530678+00
+01919662-8804-9ccc-4601-1e98c09c946b	19	1	t	2024-08-28 00:28:45.531015+00	2024-08-28 00:28:45.531015+00
+01919662-8804-9ccc-4601-1e98c09c946b	18	1	t	2024-08-28 00:28:45.531326+00	2024-08-28 00:28:45.531326+00
+\.
+
+
 --
 -- Data for Name: users_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_roles (user_id, role_id, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 2 2024 - 08 - 28 00:28:45.446677 + 00 2024 - 08 - 28 00:28:45.446677 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 2 2024 - 08 - 28 00:28:45.448404 + 00 2024 - 08 - 28 00:28:45.448404 + 00 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b 2 2024 - 08 - 28 00:28:45.449886 + 00 2024 - 08 - 28 00:28:45.449886 + 00 01919662 - 8804 - 29c4 - 5ff7 - cb6803c09fa6 2 2024 - 08 - 28 00:28:45.451347 + 00 2024 - 08 - 28 00:28:45.451347 + 00 01919662 - 8804 - 9826 - da53 - f1b2a1e53205 2 2024 - 08 - 28 00:28:45.452825 + 00 2024 - 08 - 28 00:28:45.452825 + 00 01919662 - 8804 - cc87 - 1ee3 - 90a35b65414d 2 2024 - 08 - 28 00:28:45.454248 + 00 2024 - 08 - 28 00:28:45.454248 + 00 01919662 - 885c - d39a - 1749 - 5aaf18cf5d3b 1 2024 - 08 - 28 00:28:45.533524 + 00 2024 - 08 - 28 00:28:45.533524 + 00 01919662 - 885c - 2fca - 264b - 9558f5b20fe4 1 2024 - 08 - 28 00:28:45.534904 + 00 2024 - 08 - 28 00:28:45.534904 + 00 01919662 - 885c - a174 - 3088 - 998111f7cc80 1 2024 - 08 - 28 00:28:45.536315 + 00 2024 - 08 - 28 00:28:45.536315 + 00.
+COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	2	2024-08-28 00:28:45.446677+00	2024-08-28 00:28:45.446677+00
+01919662-8804-ad82-c517-37eaab0e19c2	2	2024-08-28 00:28:45.448404+00	2024-08-28 00:28:45.448404+00
+01919662-8804-9ccc-4601-1e98c09c946b	2	2024-08-28 00:28:45.449886+00	2024-08-28 00:28:45.449886+00
+01919662-8804-29c4-5ff7-cb6803c09fa6	2	2024-08-28 00:28:45.451347+00	2024-08-28 00:28:45.451347+00
+01919662-8804-9826-da53-f1b2a1e53205	2	2024-08-28 00:28:45.452825+00	2024-08-28 00:28:45.452825+00
+01919662-8804-cc87-1ee3-90a35b65414d	2	2024-08-28 00:28:45.454248+00	2024-08-28 00:28:45.454248+00
+01919662-885c-d39a-1749-5aaf18cf5d3b	1	2024-08-28 00:28:45.533524+00	2024-08-28 00:28:45.533524+00
+01919662-885c-2fca-264b-9558f5b20fe4	1	2024-08-28 00:28:45.534904+00	2024-08-28 00:28:45.534904+00
+01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
+\.
+
+
 --
 -- Data for Name: users_student_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, deactivated_on, created_at, updated_at, student_partner_org_user_id)
-FROM
-    stdin;
 
-01919662 - 885c - 2fca - 264b - 9558f5b20fe4 01919662 - 87dc - 1b9c - e053 - 326c64a2edbc N N 2024 - 08 - 28 00:28:45.537324 + 00 2024 - 08 - 28 00:28:45.538838 + 00 N 01919662 - 885c - a174 - 3088 - 998111f7cc80 01919662 - 87dc - 5824 - 8bf6 - e5e408bf6f40 N N 2024 - 08 - 28 00:28:45.537793 + 00 2024 - 08 - 28 00:28:45.538838 + 00 N 01919662 - 885c - 2fca - 264b - 9558f5b20fe4 01919662 - 87fe - 5dbc - 4b00 - 412d50590a2b N N 2024 - 08 - 28 00:28:45.537324 + 00 2024 - 08 - 28 00:28:45.539337 + 00 N.
+COPY upchieve.users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, deactivated_on, created_at, updated_at, student_partner_org_user_id) FROM stdin;
+01919662-885c-2fca-264b-9558f5b20fe4	01919662-87dc-1b9c-e053-326c64a2edbc	\N	\N	2024-08-28 00:28:45.537324+00	2024-08-28 00:28:45.538838+00	\N
+01919662-885c-a174-3088-998111f7cc80	01919662-87dc-5824-8bf6-e5e408bf6f40	\N	\N	2024-08-28 00:28:45.537793+00	2024-08-28 00:28:45.538838+00	\N
+01919662-885c-2fca-264b-9558f5b20fe4	01919662-87fe-5dbc-4b00-412d50590a2b	\N	\N	2024-08-28 00:28:45.537324+00	2024-08-28 00:28:45.539337+00	\N
+\.
+
+
 --
 -- Data for Name: users_surveys; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_surveys (id, survey_id, user_id, session_id, survey_type_id, created_at, updated_at, progress_report_id)
-FROM
-    stdin;
 
-.
+COPY upchieve.users_surveys (id, survey_id, user_id, session_id, survey_type_id, created_at, updated_at, progress_report_id) FROM stdin;
+\.
+
+
 --
 -- Data for Name: users_surveys_submissions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: users_training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_training_courses (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.users_training_courses (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: users_volunteer_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 01919662 - 87f7 - e08c - 976a - 8abd40c8fd45 N 2024 - 08 - 28 00:28:45.454635 + 00 2024 - 08 - 28 00:28:45.540091 + 00 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 01919662 - 87f7 - ecae - 08ec - 2d9b6c13ba3c N 2024 - 08 - 28 00:28:45.455158 + 00 2024 - 08 - 28 00:28:45.540091 + 00.
+COPY upchieve.users_volunteer_partner_orgs_instances (user_id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	01919662-87f7-e08c-976a-8abd40c8fd45	\N	2024-08-28 00:28:45.454635+00	2024-08-28 00:28:45.540091+00
+01919662-8804-ad82-c517-37eaab0e19c2	01919662-87f7-ecae-08ec-2d9b6c13ba3c	\N	2024-08-28 00:28:45.455158+00	2024-08-28 00:28:45.540091+00
+\.
+
+
 --
 -- Data for Name: volunteer_occupations; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.volunteer_occupations (user_id, occupation, created_at, updated_at)
-FROM
-    stdin;
 
-.
+COPY upchieve.volunteer_occupations (user_id, occupation, created_at, updated_at) FROM stdin;
+\.
+
+
 --
 -- Data for Name: volunteer_partner_orgs_upchieve_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, deactivated_on, created_at, updated_at)
-FROM
-    stdin;
 
-01919662 - 8864 - a2f1 - 7c2b - d418fd074e99 01919662 - 87f7 - ecae - 08ec - 2d9b6c13ba3c N 2024 - 08 - 28 00:28:45.431653 + 00 2024 - 08 - 28 00:28:45.539676 + 00 01919662 - 8864 - b428 - 98c9 - 11b49f5ba801 01919662 - 87f7 - e08c - 976a - 8abd40c8fd45 N 2024 - 08 - 28 00:28:45.432353 + 00 2024 - 08 - 28 00:28:45.539676 + 00.
+COPY upchieve.volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_org_id, deactivated_on, created_at, updated_at) FROM stdin;
+01919662-8864-a2f1-7c2b-d418fd074e99	01919662-87f7-ecae-08ec-2d9b6c13ba3c	\N	2024-08-28 00:28:45.431653+00	2024-08-28 00:28:45.539676+00
+01919662-8864-b428-98c9-11b49f5ba801	01919662-87f7-e08c-976a-8abd40c8fd45	\N	2024-08-28 00:28:45.432353+00	2024-08-28 00:28:45.539676+00
+\.
+
+
 --
 -- Data for Name: volunteer_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.volunteer_profiles (user_id, volunteer_partner_org_id, timezone, approved, onboarded, photo_id_s3_key, photo_id_status, linkedin_url, college, company, languages, experience, city, state, country, created_at, updated_at, total_volunteer_hours, elapsed_availability)
-FROM
-    stdin;
 
-01919662 - 8804 - 8772 - ecf7 - b08dfa28c6e4 01919662 - 87f7 - e08c - 976a - 8abd40c8fd45 America / New_York t t N N N Volunteer College N N N N N N 2024 - 08 - 28 00:28:45.454635 + 00 2024 - 08 - 28 00:28:45.454635 + 00 N N 01919662 - 8804 - ad82 - c517 - 37eaab0e19c2 01919662 - 87f7 - ecae - 08ec - 2d9b6c13ba3c America / New_York t t N N N Volunteer College N N N N N N 2024 - 08 - 28 00:28:45.455158 + 00 2024 - 08 - 28 00:28:45.455158 + 00 N N 01919662 - 8804 - 9ccc - 4601 - 1e98c09c946b N America / Denver t t N N N Volunteer College N N N N N N 2024 - 08 - 28 00:28:45.455493 + 00 2024 - 08 - 28 00:28:45.455493 + 00 N N 01919662 - 8804 - 29c4 - 5ff7 - cb6803c09fa6 N America / New_York t f N N N Volunteer College N N N N N N 2024 - 08 - 28 00:28:45.455818 + 00 2024 - 08 - 28 00:28:45.455818 + 00 N N 01919662 - 8804 - 9826 - da53 - f1b2a1e53205 N America / New_York f f N N N Volunteer College N N N N N N 2024 - 08 - 28 00:28:45.456156 + 00 2024 - 08 - 28 00:28:45.456156 + 00 N N 01919662 - 8804 - cc87 - 1ee3 - 90a35b65414d N America / New_York t t N N N N N N N N N 2024 - 08 - 28 00:28:45.456518 + 00 2024 - 08 - 28 00:28:45.456518 + 00 N N.
+COPY upchieve.volunteer_profiles (user_id, volunteer_partner_org_id, timezone, approved, onboarded, photo_id_s3_key, photo_id_status, linkedin_url, college, company, languages, experience, city, state, country, created_at, updated_at, total_volunteer_hours, elapsed_availability) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	01919662-87f7-e08c-976a-8abd40c8fd45	America/New_York	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.454635+00	2024-08-28 00:28:45.454635+00	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	01919662-87f7-ecae-08ec-2d9b6c13ba3c	America/New_York	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455158+00	2024-08-28 00:28:45.455158+00	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	\N	America/Denver	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455493+00	2024-08-28 00:28:45.455493+00	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	\N	America/New_York	t	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455818+00	2024-08-28 00:28:45.455818+00	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	\N	America/New_York	f	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456156+00	2024-08-28 00:28:45.456156+00	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	\N	America/New_York	t	t	\N	\N	\N		\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456518+00	2024-08-28 00:28:45.456518+00	\N	\N
+\.
+
+
 --
 -- Data for Name: volunteer_reference_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.volunteer_reference_statuses (id, name, created_at, updated_at)
-FROM
-    stdin;
 
-1 sent 2024 - 08 - 28 00:28:43.735893 + 00 2024 - 08 - 28 00:28:43.735893 + 00 2 submitted 2024 - 08 - 28 00:28:43.736288 + 00 2024 - 08 - 28 00:28:43.736288 + 00 3 approved 2024 - 08 - 28 00:28:43.736564 + 00 2024 - 08 - 28 00:28:43.736564 + 00 4 rejected 2024 - 08 - 28 00:28:43.736969 + 00 2024 - 08 - 28 00:28:43.736969 + 00 5 removed 2024 - 08 - 28 00:28:43.737275 + 00 2024 - 08 - 28 00:28:43.737275 + 00 6 unsent 2024 - 08 - 28 00:28:43.737603 + 00 2024 - 08 - 28 00:28:43.737603 + 00.
+COPY upchieve.volunteer_reference_statuses (id, name, created_at, updated_at) FROM stdin;
+1	sent	2024-08-28 00:28:43.735893+00	2024-08-28 00:28:43.735893+00
+2	submitted	2024-08-28 00:28:43.736288+00	2024-08-28 00:28:43.736288+00
+3	approved	2024-08-28 00:28:43.736564+00	2024-08-28 00:28:43.736564+00
+4	rejected	2024-08-28 00:28:43.736969+00	2024-08-28 00:28:43.736969+00
+5	removed	2024-08-28 00:28:43.737275+00	2024-08-28 00:28:43.737275+00
+6	unsent	2024-08-28 00:28:43.737603+00	2024-08-28 00:28:43.737603+00
+\.
+
+
 --
 -- Data for Name: volunteer_references; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
-COPY upchieve.volunteer_references (id, user_id, first_name, last_name, email, status_id, sent_at, affiliation, relationship_length, patient, positive_role_model, agreeable_and_approachable, communicates_effectively, rejection_reason, additional_info, created_at, updated_at, trustworthy_with_children)
-FROM
-    stdin;
 
-.
+COPY upchieve.volunteer_references (id, user_id, first_name, last_name, email, status_id, sent_at, affiliation, relationship_length, patient, positive_role_model, agreeable_and_approachable, communicates_effectively, rejection_reason, additional_info, created_at, updated_at, trustworthy_with_children) FROM stdin;
+\.
+
+
 --
 -- Name: ban_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, TRUE);
+
+SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, true);
+
 
 --
 -- Name: certifications_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.certifications_id_seq', 30, TRUE);
+
+SELECT pg_catalog.setval('upchieve.certifications_id_seq', 30, true);
+
 
 --
 -- Name: cities_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.cities_id_seq', 2, TRUE);
+
+SELECT pg_catalog.setval('upchieve.cities_id_seq', 2, true);
+
 
 --
 -- Name: grade_levels_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.grade_levels_id_seq', 9, TRUE);
+
+SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 9, true);
+
 
 --
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, FALSE);
+
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, false);
+
 
 --
 -- Name: notification_methods_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.notification_methods_id_seq', 4, TRUE);
+
+SELECT pg_catalog.setval('upchieve.notification_methods_id_seq', 4, true);
+
 
 --
 -- Name: notification_priority_groups_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 19, TRUE);
+
+SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 19, true);
+
 
 --
 -- Name: notification_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.notification_types_id_seq', 2, TRUE);
+
+SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
+
 
 --
 -- Name: photo_id_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.photo_id_statuses_id_seq', 4, TRUE);
+
+SELECT pg_catalog.setval('upchieve.photo_id_statuses_id_seq', 4, true);
+
 
 --
 -- Name: progress_report_analysis_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.progress_report_analysis_types_id_seq', 2, TRUE);
+
+SELECT pg_catalog.setval('upchieve.progress_report_analysis_types_id_seq', 2, true);
+
 
 --
 -- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.progress_report_focus_areas_id_seq', 2, TRUE);
+
+SELECT pg_catalog.setval('upchieve.progress_report_focus_areas_id_seq', 2, true);
+
 
 --
 -- Name: progress_report_info_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.progress_report_info_types_id_seq', 2, TRUE);
+
+SELECT pg_catalog.setval('upchieve.progress_report_info_types_id_seq', 2, true);
+
 
 --
 -- Name: progress_report_prompts_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.progress_report_prompts_id_seq', 1, TRUE);
+
+SELECT pg_catalog.setval('upchieve.progress_report_prompts_id_seq', 1, true);
+
 
 --
 -- Name: progress_report_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.progress_report_statuses_id_seq', 4, TRUE);
+
+SELECT pg_catalog.setval('upchieve.progress_report_statuses_id_seq', 4, true);
+
 
 --
 -- Name: question_tags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.question_tags_id_seq', 1, FALSE);
+
+SELECT pg_catalog.setval('upchieve.question_tags_id_seq', 1, false);
+
 
 --
 -- Name: question_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.question_types_id_seq', 4, TRUE);
+
+SELECT pg_catalog.setval('upchieve.question_types_id_seq', 4, true);
+
 
 --
 -- Name: quiz_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.quiz_questions_id_seq', 407, TRUE);
+
+SELECT pg_catalog.setval('upchieve.quiz_questions_id_seq', 407, true);
+
 
 --
 -- Name: quiz_review_materials_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.quiz_review_materials_id_seq', 44, TRUE);
+
+SELECT pg_catalog.setval('upchieve.quiz_review_materials_id_seq', 44, true);
+
 
 --
 -- Name: quiz_subcategories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 407, TRUE);
+
+SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 407, true);
+
 
 --
 -- Name: quizzes_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.quizzes_id_seq', 32, TRUE);
+
+SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 32, true);
+
 
 --
 -- Name: report_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.report_reasons_id_seq', 9, TRUE);
+
+SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
+
 
 --
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.session_flags_id_seq', 30, TRUE);
+
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 30, true);
+
 
 --
 -- Name: shareable_domains_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, FALSE);
+
+SELECT pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, false);
+
 
 --
 -- Name: signup_sources_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.signup_sources_id_seq', 7, TRUE);
+
+SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 7, true);
+
 
 --
 -- Name: subjects_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.subjects_id_seq', 33, TRUE);
+
+SELECT pg_catalog.setval('upchieve.subjects_id_seq', 33, true);
+
 
 --
 -- Name: survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.survey_questions_id_seq', 39, TRUE);
+
+SELECT pg_catalog.setval('upchieve.survey_questions_id_seq', 39, true);
+
 
 --
 -- Name: survey_questions_question_tags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.survey_questions_question_tags_id_seq', 1, FALSE);
+
+SELECT pg_catalog.setval('upchieve.survey_questions_question_tags_id_seq', 1, false);
+
 
 --
 -- Name: survey_response_choices_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.survey_response_choices_id_seq', 130, TRUE);
+
+SELECT pg_catalog.setval('upchieve.survey_response_choices_id_seq', 130, true);
+
 
 --
 -- Name: survey_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.survey_types_id_seq', 5, TRUE);
+
+SELECT pg_catalog.setval('upchieve.survey_types_id_seq', 5, true);
+
 
 --
 -- Name: surveys_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.surveys_id_seq', 21, TRUE);
+
+SELECT pg_catalog.setval('upchieve.surveys_id_seq', 21, true);
+
 
 --
 -- Name: surveys_survey_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 89, TRUE);
+
+SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 89, true);
+
 
 --
 -- Name: tool_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.tool_types_id_seq', 2, TRUE);
+
+SELECT pg_catalog.setval('upchieve.tool_types_id_seq', 2, true);
+
 
 --
 -- Name: topics_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.topics_id_seq', 6, TRUE);
+
+SELECT pg_catalog.setval('upchieve.topics_id_seq', 6, true);
+
 
 --
 -- Name: training_courses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.training_courses_id_seq', 1, TRUE);
+
+SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 1, true);
+
 
 --
 -- Name: user_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.user_actions_id_seq', 1, FALSE);
+
+SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
+
 
 --
 -- Name: user_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.user_roles_id_seq', 5, TRUE);
+
+SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 5, true);
+
 
 --
 -- Name: volunteer_reference_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.volunteer_reference_statuses_id_seq', 6, TRUE);
+
+SELECT pg_catalog.setval('upchieve.volunteer_reference_statuses_id_seq', 6, true);
+
 
 --
 -- Name: weekdays_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
-SELECT
-    pg_catalog.setval('upchieve.weekdays_id_seq', 1, FALSE);
+
+SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
+
 
 --
 -- PostgreSQL database dump complete
 --
+
