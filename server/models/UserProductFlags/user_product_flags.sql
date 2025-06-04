@@ -136,15 +136,13 @@ RETURNING
 
 
 /* @name upsertImpactStudyCampaign */
-UPDATE user_product_flags
+UPDATE
+    user_product_flags
 SET
-  impact_study_campaigns = jsonb_set(
-    impact_study_campaigns,
-    ARRAY[:campaignId],
-    to_jsonb(:campaignData::jsonb),
-    true
-  ),
-  updated_at = NOW()
-WHERE user_id = :userId!
-RETURNING user_id AS ok;
+    impact_study_campaigns = jsonb_set(COALESCE(impact_study_campaigns, '{}'), ARRAY[:campaignId], to_jsonb (:campaignData::jsonb), TRUE),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
 

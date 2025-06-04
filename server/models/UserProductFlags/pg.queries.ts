@@ -397,22 +397,20 @@ export interface IUpsertImpactStudyCampaignQuery {
   result: IUpsertImpactStudyCampaignResult;
 }
 
-const upsertImpactStudyCampaignIR: any = {"usedParamSet":{"campaignId":true,"campaignData":true,"userId":true},"params":[{"name":"campaignId","required":false,"transform":{"type":"scalar"},"locs":[{"a":106,"b":116}]},{"name":"campaignData","required":false,"transform":{"type":"scalar"},"locs":[{"a":133,"b":145}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":207,"b":214}]}],"statement":"UPDATE user_product_flags\nSET\n  impact_study_campaigns = jsonb_set(\n    impact_study_campaigns,\n    ARRAY[:campaignId],\n    to_jsonb(:campaignData::jsonb),\n    true\n  ),\n  updated_at = NOW()\nWHERE user_id = :userId!\nRETURNING user_id AS ok"};
+const upsertImpactStudyCampaignIR: any = {"usedParamSet":{"campaignId":true,"campaignData":true,"userId":true},"params":[{"name":"campaignId","required":false,"transform":{"type":"scalar"},"locs":[{"a":119,"b":129}]},{"name":"campaignData","required":false,"transform":{"type":"scalar"},"locs":[{"a":143,"b":155}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":216,"b":223}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    impact_study_campaigns = jsonb_set(COALESCE(impact_study_campaigns, '{}'), ARRAY[:campaignId], to_jsonb (:campaignData::jsonb), TRUE),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
- * UPDATE user_product_flags
+ * UPDATE
+ *     user_product_flags
  * SET
- *   impact_study_campaigns = jsonb_set(
- *     impact_study_campaigns,
- *     ARRAY[:campaignId],
- *     to_jsonb(:campaignData::jsonb),
- *     true
- *   ),
- *   updated_at = NOW()
- * WHERE user_id = :userId!
- * RETURNING user_id AS ok
+ *     impact_study_campaigns = jsonb_set(COALESCE(impact_study_campaigns, '{}'), ARRAY[:campaignId], to_jsonb (:campaignData::jsonb), TRUE),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS ok
  * ```
  */
 export const upsertImpactStudyCampaign = new PreparedQuery<IUpsertImpactStudyCampaignParams,IUpsertImpactStudyCampaignResult>(upsertImpactStudyCampaignIR);
