@@ -37,10 +37,10 @@ enum CustomFieldLabels {
 }
 
 type CUSTOM_FIELDS_IDS = {
-  [CustomFieldLabels.USER_ID]: string
-  [CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID]: string
-  [CustomFieldLabels.IMPACT_STUDY_CAMPAIGN_ID]: string
   [CustomFieldLabels.TREMENDOUS_CAMPAIGN_ID]: string
+  [CustomFieldLabels.USER_ID]: string
+  [CustomFieldLabels.IMPACT_STUDY_CAMPAIGN_ID]: string
+  [CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID]: string
 }
 
 type CreateGiftCardReward = {
