@@ -5,7 +5,7 @@ import { getSubjectAndTopic } from '../models/Subjects'
 import { USER_ROLES, USER_ROLES_TYPE } from '../constants'
 import * as LangfuseService from './LangfuseService'
 import {
-  ChatApiResponseType,
+  OpenApiResponseType,
   invokeModel,
   MODEL_ID as OPENAI_MODELID,
 } from './OpenAIService'
@@ -175,7 +175,7 @@ export async function generateSessionSummary(
   const result = await invokeModel({
     prompt: systemPrompt,
     userMessage: botPrompt,
-    responseType: ChatApiResponseType.TEXT,
+    responseType: OpenApiResponseType.TEXT,
   })
   gen.end({ output: result })
 
