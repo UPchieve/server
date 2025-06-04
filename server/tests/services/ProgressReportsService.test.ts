@@ -19,9 +19,9 @@ import {
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
-import { openai } from '../../services/BotsService'
+import { openai } from '../../services/OpenAIService'
 
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
     openai: {
       chat: {

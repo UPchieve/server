@@ -48,7 +48,7 @@ import {
   ProgressReportPromptTemplateVariables,
   SaveProgressReportOptions,
 } from './types'
-import { openai } from '../BotsService'
+import { openai } from '../OpenAIService'
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 export * from './types'
