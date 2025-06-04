@@ -32,6 +32,7 @@ export const Config = Record({
     approvedNotOnboardedTemplate: String,
     openReadyToCoachTemplate: String,
     partnerReadyToCoachTemplate: String,
+    becomeAnAmbassadorTemplate: String,
     customPartnerReadyToCoachTemplate: String,
     bannedUserAlertTemplate: String,
     referenceFollowupTemplate: String,

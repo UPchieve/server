@@ -125,6 +125,7 @@ export function buildUserContactInfo(
     studentPartnerOrg: undefined,
     lastActivityAt: new Date(),
     deactivated: false,
+    referralCode: faker.string.uuid(),
     ...overrides,
   }
 }

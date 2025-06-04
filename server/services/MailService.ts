@@ -19,6 +19,7 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
+import { EmailBecomeAnAmbassadorJobData } from '../worker/jobs/emailBecomeAnAmbassador'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -88,7 +89,17 @@ async function sendEmail(
   overrides: any = {}
 ): Promise<void> {
   if (isDevEnvironment() || isE2eEnvironment()) {
-    logger.debug('Skipping sendEmail')
+    logger.debug(
+      {
+        toEmail,
+        fromEmail,
+        fromName,
+        templateId,
+        dynamicData,
+        overrides,
+      },
+      'sendEmail: skipping email send'
+    )
     return
   }
 
@@ -495,6 +506,26 @@ export async function sendReadyToCoachEmail<V extends VolunteerContactInfo>(
     readyToCoachTemplate,
     { volunteerName: volunteer.firstName },
     overrides
+  )
+}
+
+export async function sendBecomeAnAmbassadorEmail(args: {
+  userId: Ulid
+  email: string
+  firstName: string
+  referralSignUpLink: string
+}): Promise<void> {
+  const becomeAnAmbassadorTemplateId =
+    config.sendgrid.becomeAnAmbassadorTemplate
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    becomeAnAmbassadorTemplateId,
+    {
+      firstName: args.firstName,
+      referralSignUpLink: args.referralSignUpLink,
+    }
   )
 }
 
