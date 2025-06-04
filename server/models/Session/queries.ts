@@ -1213,9 +1213,9 @@ export type SessionForSessionHistory = {
 }
 export async function getFilteredSessionHistory(
   userId: Ulid,
-  limit: number,
-  offset: number,
-  filter: SessionHistoryFilter = {}
+  filter: SessionHistoryFilter = {},
+  limit?: number,
+  offset?: number
 ): Promise<SessionForSessionHistory[]> {
   try {
     const params = {
