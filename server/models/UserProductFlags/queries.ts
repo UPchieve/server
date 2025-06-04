@@ -35,14 +35,15 @@ export async function createUPFByUserId(
 }
 
 export async function getUPFByUserId(
-  userId: Ulid
+  userId: Ulid,
+  tc?: TransactionClient
 ): Promise<UserProductFlags | undefined> {
   try {
     const result = await pgQueries.getUpfByUserId.run(
       {
         userId,
       },
-      getClient()
+      tc ?? getClient()
     )
 
     if (result.length) {
@@ -151,11 +152,14 @@ export async function enrollStudentToFallIncentiveProgram(
   }
 }
 
-export async function enrollStudentToImpactStudy(userId: Ulid): Promise<Date> {
+export async function enrollStudentToImpactStudy(
+  userId: Ulid,
+  tc?: TransactionClient
+): Promise<Date> {
   try {
     const result = await pgQueries.enrollStudentToImpactStudy.run(
       { userId },
-      getClient()
+      tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0]).impactStudyEnrollmentAt
     throw new RepoUpdateError('Update query was not acknowledged')
@@ -182,7 +186,8 @@ export async function updateTellThemCollegePrepModalSeenAt(userId: Ulid) {
 
 export async function upsertImpactStudyCampaign(
   userId: Ulid,
-  campaign: ImpactStudyCampaign
+  campaign: ImpactStudyCampaign,
+  tc?: TransactionClient
 ) {
   try {
     const result = await pgQueries.upsertImpactStudyCampaign.run(
@@ -197,7 +202,7 @@ export async function upsertImpactStudyCampaign(
             : null,
         },
       },
-      getClient()
+      tc ?? getClient()
     )
     if (result.length && makeRequired(result[0].ok)) return
     throw new RepoUpdateError('Update query was not acknowledged')

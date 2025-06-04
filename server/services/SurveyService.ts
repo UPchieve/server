@@ -315,7 +315,8 @@ export async function getLatestImpactStudySurveyResponses(
 
 export async function getLatestUserSubmissionsForSurveyId(
   userId: Ulid,
-  surveyId: number
+  surveyId: number,
+  tc?: TransactionClient
 ) {
-  return getLatestUserSubmissionsForSurveyBySurveyId(userId, surveyId)
+  return getLatestUserSubmissionsForSurveyBySurveyId(userId, surveyId, tc)
 }
