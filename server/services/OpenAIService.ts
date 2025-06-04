@@ -43,7 +43,7 @@ export async function invokeModel({
       response_format: { type: responseType },
     })
 
-    results = getChatContent(response, responseType)
+    results = getResults(response, responseType)
     if (!results) throw new Error("Didn't get an expected openai chat response")
   } catch (err) {
     logger.error(err)
@@ -56,7 +56,7 @@ export async function invokeModel({
   }
 }
 
-function getChatContent(
+function getResults(
   result: OpenAI.ChatCompletion,
   responseType: OpenApiResponseType
 ) {
