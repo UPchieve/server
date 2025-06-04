@@ -3,10 +3,10 @@ import { Ulid } from '../pgUtils'
 export type ImpactStudyCampaign = {
   id: string
   surveyId: number
-  submitted: boolean
   viewCount: number
   maxViewCount: number
   rewardAmount?: number
+  submittedAt?: Date
   createdAt: Date
 }
 
