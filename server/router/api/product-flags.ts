@@ -52,23 +52,6 @@ export function routeProductFlags(router: Router) {
       }
     })
 
-  router.route('/product-flags/impact-study').post(async function (req, res) {
-    const user = extractUser(req)
-    const impactStudySurveyCampaignId = asString(
-      req.body.impactStudySurveyCampaignId
-    )
-    try {
-      const impactStudyEnrollmentAt =
-        await UserProductFlagsService.impactStudyEnrollment(
-          user.id,
-          impactStudySurveyCampaignId
-        )
-      res.json({ impactStudyEnrollmentAt })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router
     .route('/product-flags/tell-them-college-prep-modal')
     .post(async function (req, res) {
@@ -87,11 +70,12 @@ export function routeProductFlags(router: Router) {
     .post(async function (req, res) {
       try {
         const user = extractUser(req)
-        await UserProductFlagsService.saveImpactStudyCampaign(
-          user.id,
-          UserProductFlagsService.asImpactStudyCampaignData(req.body.campaign)
-        )
-        res.sendStatus(200)
+        const impactStudyEnrollmentAt =
+          await UserProductFlagsService.saveImpactStudyCampaign(
+            user.id,
+            UserProductFlagsService.asImpactStudyCampaignData(req.body.campaign)
+          )
+        res.json({ impactStudyEnrollmentAt })
       } catch (err) {
         resError(res, err)
       }

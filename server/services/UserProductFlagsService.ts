@@ -20,7 +20,6 @@ import {
   isUserInIncentiveProgram,
   queueIncentiveProgramEnrollmentWelcomeJob,
 } from './IncentiveProgramService'
-import { isUserInImpactStudy } from './ImpactStudyService'
 import { createContact } from './MailService'
 import { getLatestUserSubmissionsForSurveyId } from './SurveyService'
 import {
@@ -28,13 +27,13 @@ import {
   getUserRewardByImpactStudySurveyCampaignId,
 } from './RewardsService'
 import {
-  asBoolean,
   asDate,
   asFactory,
   asNumber,
   asOptional,
   asString,
 } from '../utils/type-utils'
+import { runInTransaction, TransactionClient } from '../db'
 
 export async function incentiveProgramEnrollmentEnroll(
   userId: Uuid,
@@ -64,41 +63,44 @@ export async function incentiveProgramEnrollmentEnroll(
   return enrollmentDate
 }
 
-export async function impactStudyEnrollment(
+export async function processImpactStudyEnrollmentAndReward(
   userId: Uuid,
-  impactStudySurveyCampaignId: string
+  campaign: ImpactStudyCampaign,
+  tc?: TransactionClient
 ) {
-  const user = await UserService.getUserContactInfo(userId)
+  const user = await UserService.getUserContactInfo(userId, tc)
   if (!user) throw new NotAllowedError('No user found')
 
-  const userProductFlags = await getUPFByUserId(user.id)
+  const userProductFlags = await getUPFByUserId(user.id, tc)
   if (
     !userProductFlags ||
     !userProductFlags.impactStudyCampaigns ||
-    !userProductFlags.impactStudyCampaigns[impactStudySurveyCampaignId]
+    !userProductFlags.impactStudyCampaigns[campaign.id]
   )
     throw new Error('User is not part of this Impact Study cohort')
-  const campaign =
-    userProductFlags.impactStudyCampaigns[impactStudySurveyCampaignId]
 
-  const survey = await getSimpleSurveyDefinitionBySurveyId(campaign.surveyId)
+  const survey = await getSimpleSurveyDefinitionBySurveyId(
+    campaign.surveyId,
+    tc
+  )
   const userSubmissions = await getLatestUserSubmissionsForSurveyId(
     userId,
-    survey.surveyId
+    survey.surveyId,
+    tc
   )
 
   if (!userSubmissions.length)
     throw new Error('Your survey submission was not saved')
 
-  const isInImpactStudy = await isUserInImpactStudy(userId)
+  const isInImpactStudy = !!userProductFlags.impactStudyEnrollmentAt
   let impactStudyEnrollmentAt
   if (!isInImpactStudy)
-    impactStudyEnrollmentAt = await enrollStudentToImpactStudy(userId)
+    impactStudyEnrollmentAt = await enrollStudentToImpactStudy(userId, tc)
 
   if (campaign.rewardAmount) {
     const rewards = await getUserRewardByImpactStudySurveyCampaignId(
       userId,
-      impactStudySurveyCampaignId
+      campaign.id
     )
     if (rewards.length)
       throw new Error(`You've already received a reward for this survey.`)
@@ -109,7 +111,7 @@ export async function impactStudyEnrollment(
       name: user.firstName,
       email: user.proxyEmail ?? user.email,
       tremendousCampaignId: config.tremendousImpactStudyCampaign,
-      impactStudySurveyCampaignId,
+      impactStudySurveyCampaignId: campaign.id,
     }
     await createGiftCardRewardLink(rewardPayload)
   }
@@ -124,7 +126,7 @@ export async function sawTellThemCollegePrepModal(userId: Uuid) {
 export const asImpactStudyCampaignData = asFactory<ImpactStudyCampaign>({
   id: asString,
   surveyId: asNumber,
-  submitted: asBoolean,
+  submittedAt: asOptional(asDate),
   viewCount: asNumber,
   maxViewCount: asNumber,
   rewardAmount: asOptional(asNumber),
@@ -135,5 +137,9 @@ export async function saveImpactStudyCampaign(
   userId: Uuid,
   campaign: ImpactStudyCampaign
 ) {
-  return upsertImpactStudyCampaign(userId, campaign)
+  return runInTransaction(async (tc) => {
+    await upsertImpactStudyCampaign(userId, campaign, tc)
+    if (campaign.submittedAt)
+      return processImpactStudyEnrollmentAndReward(userId, campaign, tc)
+  })
 }
