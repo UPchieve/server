@@ -25,7 +25,7 @@ export default function (server: http.Server) {
   >(server, {
     pingTimeout: 30000,
     cors: {
-      origin: new RegExp(`^(${config.host})$`),
+      origin: new RegExp(`^(${config.protocol}://${config.host})$`),
       credentials: true,
     },
     cookie: {
