@@ -4,6 +4,7 @@ import * as UserService from '../../services/UserService'
 import { sendBecomeAnAmbassadorEmail } from '../../services/MailService'
 import { Job } from 'bull'
 import config from '../../config'
+import { getSendAmbassadorOpportunityEmailFeatureFlag } from '../../services/FeatureFlagService'
 
 export type EmailBecomeAnAmbassadorJobData = {
   userId: Ulid
@@ -12,11 +13,16 @@ export type EmailBecomeAnAmbassadorJobData = {
 export default async function (
   job: Job<EmailBecomeAnAmbassadorJobData>
 ): Promise<void> {
-  function getReferralSignUpLink(referralCode: string): string {
-    return `${config.host}/referral/${referralCode}`
-  }
   const jobName = 'SendBecomeAnAmbassadorEmail'
 
+  const isFeatureFlagEnabled =
+    await getSendAmbassadorOpportunityEmailFeatureFlag(job.data.userId)
+  if (!isFeatureFlagEnabled) {
+    logger.info(
+      `${jobName}: Skipping email send since the feature flag is not enabled`
+    )
+    return
+  }
   try {
     const user = await UserService.getUserContactInfo(job.data.userId)
     if (!user) {
@@ -38,4 +44,8 @@ export default async function (
     )
     throw err
   }
+}
+
+function getReferralSignUpLink(referralCode: string): string {
+  return `${config.host}/referral/${referralCode}`
 }
