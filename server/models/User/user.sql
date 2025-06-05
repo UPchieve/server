@@ -90,7 +90,8 @@ SELECT
     users.phone,
     users.phone_verified,
     users.sms_consent,
-    array_agg(user_roles.name) AS roles
+    array_agg(user_roles.name) AS roles,
+    users.referral_code
 FROM
     users
     LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id

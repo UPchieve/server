@@ -170,3 +170,13 @@ export async function getDisplayVolunteerLanguagesFlag(userId: Uuid) {
     userId
   )
 }
+
+export async function getSendAmbassadorOpportunityEmailFeatureFlag(
+  userId: Uuid
+) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.SEND_AMBASSADOR_OPPORTUNITY_EMAIL,
+    userId,
+    5 * 1000
+  )
+}

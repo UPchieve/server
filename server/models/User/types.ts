@@ -79,6 +79,7 @@ export type UserContactInfo = Pick<
   approved?: boolean
   isAdmin: boolean
   isVolunteer: boolean
+  referralCode: string
   /** @deprecated Use {@link roleContext} */
   roles: UserRole[]
   roleContext: RoleContext
@@ -88,7 +89,7 @@ export type UserContactInfo = Pick<
 
 export type UserForCreateSendGridContact = Omit<
   UserContactInfo,
-  'roles' | 'roleContext'
+  'roles' | 'roleContext' | 'referralCode'
 > & {
   createdAt: Date
   lastName: string
