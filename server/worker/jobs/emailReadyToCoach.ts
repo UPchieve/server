@@ -22,7 +22,7 @@ export default async (): Promise<void> => {
         {
           userId: volunteer.id,
         },
-        { removeOnComplete: true, removeOnFail: true, delay: twoDaysInMs }
+        { removeOnComplete: true, removeOnFail: false, delay: twoDaysInMs }
       )
     } catch (error) {
       errors.push(`volunteer ${volunteer.id}: ${error}`)

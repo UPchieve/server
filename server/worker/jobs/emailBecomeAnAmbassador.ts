@@ -9,13 +9,18 @@ export type EmailBecomeAnAmbassadorJobData = {
   userId: Ulid
 }
 
-export default async (
+export default async function (
   job: Job<EmailBecomeAnAmbassadorJobData>
-): Promise<void> => {
+): Promise<void> {
+  function getReferralSignUpLink(referralCode: string): string {
+    return `${config.host}/referral/${referralCode}`
+  }
+  const jobName = 'SendBecomeAnAmbassadorEmail'
+
   try {
     const user = await UserService.getUserContactInfo(job.data.userId)
     if (!user) {
-      throw new Error(`No user exists with ID ${job.data.userId}`)
+      throw new Error(`${jobName}: No user exists with ID ${job.data.userId}`)
     }
     await sendBecomeAnAmbassadorEmail({
       userId: user.id,
@@ -29,12 +34,8 @@ export default async (
         error: err,
         userId: job.data.userId,
       },
-      `Failed to send Become An Ambassador email to user: ${err}`
+      `${jobName}: Failed to send Become An Ambassador email to user: ${err}`
     )
     throw err
   }
-}
-
-function getReferralSignUpLink(referralCode: string): string {
-  return `${config.host}/referral/${referralCode}`
 }
