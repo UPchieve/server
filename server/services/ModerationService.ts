@@ -9,7 +9,7 @@ import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import {
   invokeModel as invokeOpenAI,
-  OpenApiResults,
+  OpenAiResults,
   MODEL_ID as OPENAI_MODEL_ID,
 } from './OpenAIService'
 import * as UsersRepo from '../models/User/queries'
@@ -1076,7 +1076,7 @@ export async function moderateMessage({
 
     const userTargetStatus = await getAiModerationFeatureFlag(senderId)
     if (userTargetStatus === AI_MODERATION_STATE.targeted) {
-      const response: OpenApiResults | undefined = await getAiModerationResult(
+      const response: OpenAiResults | undefined = await getAiModerationResult(
         censoredSessionMessage,
         userType === 'volunteer'
       )

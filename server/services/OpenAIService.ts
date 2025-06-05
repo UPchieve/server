@@ -9,17 +9,17 @@ export const openai = new OpenAI({
 
 export const MODEL_ID = config.openAIModelId
 
-export enum OpenApiResponseType {
+export enum OpenAiResponseType {
   JSON = 'json_object',
   TEXT = 'text',
 }
-export type OpenApiInput = {
+export type OpenAiInput = {
   prompt: string
   userMessage: string
-  responseType?: OpenApiResponseType
+  responseType?: OpenAiResponseType
 }
 
-export type OpenApiResults = {
+export type OpenAiResults = {
   modelId: string
   results: string | object
 }
@@ -27,8 +27,8 @@ export type OpenApiResults = {
 export async function invokeModel({
   prompt,
   userMessage,
-  responseType = OpenApiResponseType.JSON,
-}: OpenApiInput): Promise<OpenApiResults> {
+  responseType = OpenAiResponseType.JSON,
+}: OpenAiInput): Promise<OpenAiResults> {
   let results = null
   try {
     const response = await openai.chat.completions.create({
@@ -58,13 +58,13 @@ export async function invokeModel({
 
 function getResults(
   result: OpenAI.ChatCompletion,
-  responseType: OpenApiResponseType
+  responseType: OpenAiResponseType
 ) {
   if (!result?.choices[0]?.message?.content) {
     return null
   }
 
-  return responseType === OpenApiResponseType.JSON
+  return responseType === OpenAiResponseType.JSON
     ? JSON.parse(result.choices[0].message.content)
     : result.choices[0].message.content
 }
