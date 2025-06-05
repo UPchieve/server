@@ -300,9 +300,6 @@ async function getUserVerificationByEmails(
 }
 
 function getRedirectURI() {
-  const host =
-    config.NODE_ENV === 'dev'
-      ? 'http://localhost:3000'
-      : `https://${config.host}`
+  const host = `${config.protocol}://${config.host}`
   return `${host}/auth/oauth2/redirect`
 }
