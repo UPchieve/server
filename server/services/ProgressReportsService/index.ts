@@ -1,3 +1,5 @@
+import Delta from 'quill-delta'
+import moment from 'moment'
 import { Ulid } from '../../models/pgUtils'
 import logger, { logError } from '../../logger'
 import { TransactionClient, runInTransaction } from '../../db'
@@ -37,7 +39,6 @@ import {
 } from '../../models/Session'
 import { captureEvent } from '../AnalyticsService'
 import { EVENTS } from '../../constants'
-import moment from 'moment'
 import {
   ProgressReport,
   ProgressReportDetail,
@@ -48,7 +49,7 @@ import {
   ProgressReportPromptTemplateVariables,
   SaveProgressReportOptions,
 } from './types'
-import { openai } from '../BotsService'
+import { invokeModel, MODEL_ID as OPENAI_MODELID } from '../OpenAIService'
 import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 export * from './types'
@@ -60,7 +61,6 @@ import {
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
-import Delta from 'quill-delta'
 import { convertBase64ToImage } from '../../utils/convert-base-to-image'
 import { getTextFromImageAnalysis } from '../VisionService'
 import * as LangfuseService from '../LangfuseService'
@@ -346,43 +346,51 @@ export async function generateProgressReportForUser(
 
 const LF_TRACE_NAME = 'progressReport'
 const LF_GENERATION_NAME = 'getProgressReportResult'
-const MODEL = 'gpt-4o'
+
 export async function generateProgressReport(
   userId: Ulid,
   systemPrompt: string,
   botPrompt: string
 ): Promise<ProgressReport> {
-  const t = LangfuseService.getClient().trace({
-    name: LF_TRACE_NAME,
-    userId,
-  })
+  try {
+    const t = LangfuseService.getClient().trace({
+      name: LF_TRACE_NAME,
+      userId,
+    })
 
-  const gen = t.generation({
-    name: LF_GENERATION_NAME,
-    model: MODEL,
-    input: botPrompt,
-  })
-  const completion = await openai.chat.completions.create({
-    model: MODEL,
-    response_format: { type: 'json_object' },
-    messages: [
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      {
-        role: 'user',
-        content: botPrompt,
-      },
-    ],
-  })
-  gen.end({ output: completion })
+    const gen = t.generation({
+      name: LF_GENERATION_NAME,
+      model: OPENAI_MODELID,
+      input: botPrompt,
+    })
+    const result = await invokeModel({
+      prompt: systemPrompt,
+      userMessage: botPrompt,
+    })
+    gen.end({ output: result })
 
-  const response = completion.choices[0].message.content
-  logger.info(
-    `User: ${userId} received ProgressReport completion ${completion} with response ${response}`
-  )
-  return response ? JSON.parse(response) : { summary: {}, concepts: [] }
+    logger.info(
+      `User: ${userId} received ProgressReport with response ${result}`
+    )
+    return result.results as ProgressReport
+  } catch (err) {
+    logger.error(err)
+  }
+  return {
+    id: '-1',
+    status: 'error',
+    createdAt: new Date(),
+    summary: {
+      id: '',
+      summary: '',
+      overallGrade: 0,
+      details: [],
+      createdAt: new Date(),
+      reportId: '',
+      sessionCreatedAt: new Date(),
+    },
+    concepts: [],
+  }
 }
 
 export async function queueGenerateProgressReportForUser(

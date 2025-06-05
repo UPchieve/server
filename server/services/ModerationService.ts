@@ -7,7 +7,11 @@ import {
 } from '../models/CensoredSessionMessage'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
-import { openai } from './BotsService'
+import {
+  invokeModel as invokeOpenAI,
+  OpenAiResults,
+  MODEL_ID as OPENAI_MODEL_ID,
+} from './OpenAIService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
 import {
@@ -874,7 +878,6 @@ export async function getIndividualSessionMessageModerationResponse({
   > & { id?: string }
   isVolunteer: boolean
 }) {
-  const model = 'gpt-4o'
   const promptData = await getPromptData(
     LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION,
     FALLBACK_MODERATION_PROMPT
@@ -886,35 +889,25 @@ export async function getIndividualSessionMessageModerationResponse({
 
   const gen = t.generation({
     name: LangfuseGenerationName.SESSION_MESSAGE_MODERATION_DECISION,
-    model,
+    model: OPENAI_MODEL_ID,
     input: { censoredSessionMessage, isVolunteer },
     // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
   try {
-    const chatCompletion = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: promptData.prompt,
-        },
-        {
-          role: 'user',
-          content: wrapMessageInXmlTags(
-            censoredSessionMessage.message,
-            isVolunteer
-          ),
-        },
-      ],
-      response_format: { type: 'json_object' },
+    const response = await invokeOpenAI({
+      prompt: promptData.prompt,
+      userMessage: wrapMessageInXmlTags(
+        censoredSessionMessage.message,
+        isVolunteer
+      ),
     })
 
     gen.end({
-      output: chatCompletion,
+      output: response,
     })
 
-    return JSON.parse(chatCompletion.choices[0].message.content || '')
+    return response.results
   } catch (err) {
     logger.error(
       {
@@ -986,14 +979,6 @@ function test({ regex, message }: { regex: RegExp; message: string }) {
   return results
 }
 
-function formatAiResponse(response: {
-  message: string
-  appropriate: boolean
-  reasons: string[]
-}) {
-  return response.appropriate ? {} : response.reasons
-}
-
 export type RegexModerationResult = {
   isClean: boolean
   failures: ModerationFailureReasons
@@ -1047,11 +1032,18 @@ const getAiModerationResult = async (
   })
 }
 
+export type ModerationAIResult = {
+  message: string
+  appropriate: boolean
+  reasons: Record<string, string[] | never>
+}
+
 export type ModerationFailureReasons = {
   failures: Record<string, string[] | never>
 }
 
 export type oldClientModerationResult = boolean
+
 export async function moderateMessage({
   message,
   senderId,
@@ -1084,13 +1076,19 @@ export async function moderateMessage({
 
     const userTargetStatus = await getAiModerationFeatureFlag(senderId)
     if (userTargetStatus === AI_MODERATION_STATE.targeted) {
-      const response = await getAiModerationResult(
+      const response: OpenAiResults | undefined = await getAiModerationResult(
         censoredSessionMessage,
         userType === 'volunteer'
       )
+
+      const results: ModerationAIResult | undefined =
+        response?.results as ModerationAIResult
       // Override the regex moderation decision with the AI one if it's available
-      result.failures =
-        response === null ? result.failures : formatAiResponse(response)
+      result.failures = !results
+        ? result.failures
+        : results?.appropriate
+          ? {}
+          : results.reasons
     } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
       await createIndividualSessionMessageModerationJob({
         censoredSessionMessage,
@@ -1384,24 +1382,12 @@ const getSessionTranscriptModerationResult = async (
     input: chunkAsString,
     ...(promptObject && { prompt: promptObject }),
   })
-  const result = await openai.chat.completions.create({
-    model,
-    messages: [
-      {
-        role: 'system',
-        content: prompt,
-      },
-      {
-        role: 'user',
-        content: chunkAsString,
-      },
-    ],
-    response_format: { type: 'json_object' },
-  })
+  const result = await invokeOpenAI({ prompt, userMessage: chunkAsString })
   gen.end({
     output: result,
   })
-  return JSON.parse(result.choices[0].message.content || '')
+  const moderationResult = result.results as TranscriptChunkModerationResult
+  return moderationResult
 }
 
 export type ModerationSessionReviewFlagReason =
@@ -1463,7 +1449,6 @@ export const moderateTranscript = async (
     },
   })
 
-  const model = 'gpt-4o'
   const results: TranscriptChunkModerationResult[] = []
   const chunks: (SessionTranscriptItem | ExtractedTextItem)[][] = chunk(
     [...transcript.messages, ...extractedTextItems],
@@ -1474,7 +1459,7 @@ export const moderateTranscript = async (
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
       message,
-      model,
+      OPENAI_MODEL_ID,
       t,
       promptData?.promptObject
     )

@@ -14,7 +14,7 @@ import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
-import { openai } from '../../services/BotsService'
+import { invokeModel, MODEL_ID } from '../../services/OpenAIService'
 import * as LangfuseService from '../../services/LangfuseService'
 import { timeLimit } from '../../utils/time-limit'
 import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
@@ -27,15 +27,10 @@ jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
-    openai: {
-      chat: {
-        completions: {
-          create: jest.fn(),
-        },
-      },
-    },
+    invokeModel: jest.fn(),
+    MODEL_ID: 'gpt-4o',
   }
 })
 jest.mock('../../services/LangfuseService')
@@ -149,20 +144,15 @@ describe('ModerationService', () => {
       mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue(
         censoredSessionMessage
       )
-      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                appropriate: true,
-                reasons: {
-                  failures: {},
-                },
-                message: 'test-message',
-              }),
-            },
+      ;(invokeModel as jest.Mock).mockResolvedValue({
+        results: {
+          appropriate: true,
+          reasons: {
+            failures: {},
           },
-        ],
+          message: 'test-message',
+        },
+        modelId: '',
       })
     })
 
@@ -220,18 +210,12 @@ describe('ModerationService', () => {
         },
       }
       const mockAiResponse = {
-        choices: [
-          {
-            message: {
-              content: JSON.stringify(mockAiDecision),
-            },
-          },
-        ],
+        results: mockAiDecision,
+        modelId: 'gpt-4o',
       }
+
       mockTimeLimit.mockResolvedValue(mockAiDecision)
-      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue(
-        mockAiResponse
-      )
+      ;(invokeModel as jest.Mock).mockResolvedValue(mockAiResponse)
 
       expect(
         await moderateMessage({
@@ -260,17 +244,12 @@ describe('ModerationService', () => {
         message,
         shown: false,
       })
-      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                appropriate: true,
-                reasons: [],
-              }),
-            },
-          },
-        ],
+      ;(invokeModel as jest.Mock).mockResolvedValue({
+        results: {
+          appropriate: true,
+          reasons: [],
+        },
+        modelId: 'gpt-4o',
       })
 
       mockSessionService.getSessionTranscript.mockResolvedValue({
@@ -305,14 +284,12 @@ describe('ModerationService', () => {
           censoredSessionMessage,
           isVolunteer,
         })
-        expect(openai.chat.completions.create).toHaveBeenCalledWith(
+        expect(invokeModel).toHaveBeenCalledWith(
           expect.objectContaining({
-            messages: expect.arrayContaining([
-              {
-                role: 'system',
-                content: 'test-prompt-content',
-              },
-            ]),
+            prompt: 'test-prompt-content',
+            userMessage: expect.stringContaining(
+              censoredSessionMessage.message
+            ),
           })
         )
         expect(LangfuseService.getPrompt).toHaveBeenCalled()
@@ -329,14 +306,12 @@ describe('ModerationService', () => {
           censoredSessionMessage,
           isVolunteer,
         })
-        expect(openai.chat.completions.create).toHaveBeenCalledWith(
+        expect(invokeModel).toHaveBeenCalledWith(
           expect.objectContaining({
-            messages: expect.arrayContaining([
-              {
-                role: 'system',
-                content: FALLBACK_MODERATION_PROMPT,
-              },
-            ]),
+            prompt: FALLBACK_MODERATION_PROMPT,
+            userMessage: expect.stringContaining(
+              censoredSessionMessage.message
+            ),
           })
         )
         expect(LangfuseService.getPrompt).toHaveBeenCalled()
@@ -404,17 +379,11 @@ describe('ModerationService', () => {
         message,
       }
       const mockAiResponse = {
-        choices: [
-          {
-            message: {
-              content: JSON.stringify(mockAiDecision),
-            },
-          },
-        ],
+        results: mockAiDecision,
+        modelId: 'gpt-4o',
       }
-      ;(openai.chat.completions.create as jest.Mock).mockResolvedValue(
-        mockAiResponse
-      )
+
+      ;(invokeModel as jest.Mock).mockResolvedValue(mockAiResponse)
       mockTimeLimit.mockResolvedValue(null)
 
       const result = await moderateMessage({

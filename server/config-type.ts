@@ -243,6 +243,7 @@ export const Config = Record({
 
   minSessionLength: Number,
 
+  openAIModelId: String,
   openAIApiKey: String,
 
   subwayApiCredentials: String,
