@@ -652,7 +652,11 @@ export async function startSession(
     }
 
     if (presessionSurvey) {
-      await SurveyService.saveUserSurvey(user.id, presessionSurvey, tc)
+      await SurveyService.saveUserSurvey(
+        user.id,
+        { ...presessionSurvey, sessionId: newSession.id },
+        tc
+      )
     }
 
     await createSessionAction(
