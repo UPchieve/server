@@ -14,16 +14,15 @@ export default async function (
   job: Job<EmailBecomeAnAmbassadorJobData>
 ): Promise<void> {
   const jobName = 'SendBecomeAnAmbassadorEmail'
-
-  const isFeatureFlagEnabled =
-    await getSendAmbassadorOpportunityEmailFeatureFlag(job.data.userId)
-  if (!isFeatureFlagEnabled) {
-    logger.info(
-      `${jobName}: Skipping email send since the feature flag is not enabled`
-    )
-    return
-  }
   try {
+    const isFeatureFlagEnabled =
+      await getSendAmbassadorOpportunityEmailFeatureFlag(job.data.userId)
+    if (!isFeatureFlagEnabled) {
+      logger.info(
+        `${jobName}: Skipping email send since the feature flag is not enabled`
+      )
+      return
+    }
     const user = await UserService.getUserContactInfo(job.data.userId)
     if (!user) {
       throw new Error(`${jobName}: No user exists with ID ${job.data.userId}`)
