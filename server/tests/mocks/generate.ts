@@ -26,7 +26,7 @@ import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
 import {
   MessageForFrontend,
-  Session,
+  GetSessionByIdResult,
   SessionMessage,
   SessionTranscriptItem,
   UserSessions,
@@ -364,8 +364,8 @@ export async function buildSessionRow(
 }
 
 export function buildSession(
-  overrides: Partial<Session> & { studentId: Uuid }
-): Session {
+  overrides: Partial<GetSessionByIdResult> & { studentId: Uuid }
+): GetSessionByIdResult {
   return {
     id: getUuid(),
     hasWhiteboardDoc: true,

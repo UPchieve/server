@@ -1,5 +1,5 @@
 import { messaging } from 'firebase-admin'
-import { Session } from '../models/Session'
+import { GetSessionByIdResult } from '../models/Session'
 import Case from 'case'
 import { isDevEnvironment } from '../utils/environments'
 
@@ -54,7 +54,7 @@ async function sendToUser(
 }
 
 export async function sendVolunteerJoined(
-  session: Session,
+  session: GetSessionByIdResult,
   tokens: string[]
 ): Promise<void> {
   const { topic, subject, id } = session

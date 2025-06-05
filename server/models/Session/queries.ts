@@ -11,7 +11,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import {
-  Session,
+  GetSessionByIdResult,
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
@@ -118,7 +118,7 @@ export async function getUnfulfilledSessions(
 export async function getSessionById(
   sessionId: Ulid,
   tc: TransactionClient = getClient()
-): Promise<Session> {
+): Promise<GetSessionByIdResult> {
   try {
     const result = await pgQueries.getSessionById.run({ sessionId }, tc)
     if (!result.length) throw new RepoReadError('Session not found')
@@ -185,7 +185,7 @@ export type SessionToEndUserInfo = {
 }
 
 export type SessionToEnd = Pick<
-  Session,
+  GetSessionByIdResult,
   | 'id'
   | 'createdAt'
   | 'endedAt'

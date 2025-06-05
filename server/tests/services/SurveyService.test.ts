@@ -16,7 +16,7 @@ import {
 import { getDbUlid } from '../../models/pgUtils'
 import { InputError } from '../../models/Errors'
 import { FEEDBACK_EVENTS } from '../../constants'
-import { Session } from '../../models/Session'
+import { GetSessionByIdResult } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
 import { RoleContext } from '../../services/UserRolesService'
 import { PostsessionSurveyGoalResponse } from '../../models/Survey'
@@ -139,7 +139,7 @@ describe('getPostsessionSurveyDefinition', () => {
       studentId: 'student-id',
       volunteerId: 'volunteer-id',
       subjectDisplayName: 'Prealgebra',
-    } as Session)
+    } as GetSessionByIdResult)
     mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValue('eat cake')
     mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({
@@ -244,7 +244,7 @@ describe('getPostsessionSurveyDefinition', () => {
       studentId: 'student-id',
       volunteerId: 'volunteer-id',
       subjectDisplayName: 'Reading',
-    } as Session)
+    } as GetSessionByIdResult)
     mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValue(undefined)
     mockedUserService.getUserContactInfo
       .mockResolvedValueOnce({

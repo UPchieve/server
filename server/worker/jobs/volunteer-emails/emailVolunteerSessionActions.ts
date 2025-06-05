@@ -9,7 +9,7 @@ import {
 } from '../../../models/Volunteer/queries'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Uuid } from '../../../models/pgUtils'
-import { getSessionById, Session } from '../../../models/Session'
+import { getSessionById, GetSessionByIdResult } from '../../../models/Session'
 import {
   createEmailNotification,
   hasUserBeenSentEmail,
@@ -33,7 +33,7 @@ function getSendGridTemplate(currentJob: Jobs): string | undefined {
 
 function getEmailForJob(
   jobName: Jobs,
-  session: Session,
+  session: GetSessionByIdResult,
   student: StudentContactInfo,
   volunteer: VolunteerContactInfo
 ): (() => Promise<void>) | undefined {

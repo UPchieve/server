@@ -835,7 +835,7 @@ export async function joinSession(
 export async function ensureCanJoinSession(
   user: UserContactInfo,
   sessionId: Ulid
-) {
+): Promise<GetSessionByIdResult> {
   const session = await SessionRepo.getSessionById(sessionId)
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
