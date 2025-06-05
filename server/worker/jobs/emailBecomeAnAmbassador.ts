@@ -47,5 +47,6 @@ export default async function (
 }
 
 function getReferralSignUpLink(referralCode: string): string {
-  return `${config.host}/referral/${referralCode}`
+  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
+  return `${protocol}://${config.host}/referral/${referralCode}`
 }
