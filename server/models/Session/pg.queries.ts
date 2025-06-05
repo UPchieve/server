@@ -1625,7 +1625,25 @@ export interface IUpdateSessionVolunteerByIdParams {
 
 /** 'UpdateSessionVolunteerById' return type */
 export interface IUpdateSessionVolunteerByIdResult {
-  ok: string;
+  createdAt: Date;
+  endedAt: Date | null;
+  endedByRoleId: number | null;
+  hasWhiteboardDoc: boolean;
+  id: string;
+  mongoId: string | null;
+  quillDoc: string | null;
+  reviewed: boolean;
+  shadowbanned: boolean | null;
+  studentBanned: boolean | null;
+  studentId: string;
+  subject: string | null;
+  subjectId: number;
+  timeTutored: string;
+  topic: string | null;
+  toReview: boolean;
+  updatedAt: Date;
+  volunteerId: string | null;
+  volunteerJoinedAt: Date | null;
 }
 
 /** 'UpdateSessionVolunteerById' query type */
@@ -1634,7 +1652,7 @@ export interface IUpdateSessionVolunteerByIdQuery {
   result: IUpdateSessionVolunteerByIdResult;
 }
 
-const updateSessionVolunteerByIdIR: any = {"usedParamSet":{"volunteerId":true,"sessionId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":55}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139}]}],"statement":"UPDATE\n    sessions\nSET\n    volunteer_id = :volunteerId!,\n    volunteer_joined_at = NOW(),\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\n    AND volunteer_id IS NULL\nRETURNING\n    id AS ok"};
+const updateSessionVolunteerByIdIR: any = {"usedParamSet":{"volunteerId":true,"sessionId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":55}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":139}]}],"statement":"UPDATE\n    sessions\nSET\n    volunteer_id = :volunteerId!,\n    volunteer_joined_at = NOW(),\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\n    AND volunteer_id IS NULL\nRETURNING\n    sessions.*,\n    (\n        SELECT\n            subjects.name\n        FROM\n            subjects\n        WHERE\n            subjects.id = sessions.subject_id) AS subject,\n    (\n        SELECT\n            topics.name\n        FROM\n            topics\n            JOIN subjects ON subjects.topic_id = topics.id\n        WHERE\n            subjects.id = sessions.subject_id) AS topic"};
 
 /**
  * Query generated from SQL:
@@ -1649,7 +1667,22 @@ const updateSessionVolunteerByIdIR: any = {"usedParamSet":{"volunteerId":true,"s
  *     id = :sessionId!
  *     AND volunteer_id IS NULL
  * RETURNING
- *     id AS ok
+ *     sessions.*,
+ *     (
+ *         SELECT
+ *             subjects.name
+ *         FROM
+ *             subjects
+ *         WHERE
+ *             subjects.id = sessions.subject_id) AS subject,
+ *     (
+ *         SELECT
+ *             topics.name
+ *         FROM
+ *             topics
+ *             JOIN subjects ON subjects.topic_id = topics.id
+ *         WHERE
+ *             subjects.id = sessions.subject_id) AS topic
  * ```
  */
 export const updateSessionVolunteerById = new PreparedQuery<IUpdateSessionVolunteerByIdParams,IUpdateSessionVolunteerByIdResult>(updateSessionVolunteerByIdIR);
