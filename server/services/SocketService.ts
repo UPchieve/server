@@ -97,7 +97,11 @@ class SocketService {
   ): Promise<void> {
     const session = await SessionService.getSessionWithAllDetails(sessionId, tc)
     await addDocEditorVersionTo(session)
-    this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
+    const sessionParticipants = [session.student.id]
+    if (session.volunteer?.id) {
+      sessionParticipants.push(session.volunteer.id)
+    }
+    this.io.in(sessionParticipants).emit('session-change', session)
 
     await this.updateSessionList(tc)
   }
