@@ -214,26 +214,26 @@ export async function endSession(
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
 ) {
-  const endedSession = await runInTransaction(async (tc: TransactionClient) => {
-    const reqIdentifiers = identifiers
-      ? sessionUtils.asRequestIdentifiers(identifiers)
-      : undefined
+  const reqIdentifiers = identifiers
+    ? sessionUtils.asRequestIdentifiers(identifiers)
+    : undefined
 
-    const session = await SessionRepo.getSessionToEndById(sessionId, tc)
-    if (session.endedAt)
-      throw new sessionUtils.EndSessionError('Session has already ended')
-    if (
-      !isAdmin &&
-      !sessionUtils.isSessionParticipant(
-        session.student.id,
-        session.volunteer?.id,
-        endedBy ? endedBy : null
-      )
+  const session = await SessionRepo.getSessionToEndById(sessionId)
+  if (session.endedAt)
+    throw new sessionUtils.EndSessionError('Session has already ended')
+  if (
+    !isAdmin &&
+    !sessionUtils.isSessionParticipant(
+      session.student.id,
+      session.volunteer?.id,
+      endedBy ? endedBy : null
     )
-      throw new sessionUtils.EndSessionError(
-        'Only session participants can end a session'
-      )
+  )
+    throw new sessionUtils.EndSessionError(
+      'Only session participants can end a session'
+    )
 
+  await runInTransaction(async (tc: TransactionClient) => {
     await SessionRepo.updateSessionToEnd(
       session.id,
       new Date(),
@@ -249,7 +249,10 @@ export async function endSession(
       tc
     )
 
-    if (socketService) await socketService.emitSessionChange(sessionId, tc)
+    if (socketService) {
+      await socketService.emitSessionChange(sessionId, tc)
+    }
+
     if (endedBy && reqIdentifiers)
       await createSessionAction(
         {
@@ -261,8 +264,6 @@ export async function endSession(
         },
         tc
       )
-
-    return session
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
@@ -271,7 +272,7 @@ export async function endSession(
     Jobs.DetectSessionLanguages,
     {
       sessionId,
-      studentId: endedSession.student.id,
+      studentId: session.student.id,
     },
     {
       removeOnComplete: true,

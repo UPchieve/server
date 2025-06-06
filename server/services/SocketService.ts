@@ -86,8 +86,8 @@ class SocketService {
       .emit('sessions/partner:in-session', !!userSocketsInSession.length)
   }
 
-  private async updateSessionList(): Promise<void> {
-    const sessions = await getUnfulfilledSessions()
+  private async updateSessionList(tc?: TransactionClient): Promise<void> {
+    const sessions = await getUnfulfilledSessions(tc)
     this.io.in('volunteers').emit('sessions', sessions)
   }
 
@@ -99,7 +99,7 @@ class SocketService {
     await addDocEditorVersionTo(session)
     this.io.in(getSessionRoom(sessionId)).emit('session-change', session)
 
-    await this.updateSessionList()
+    await this.updateSessionList(tc)
   }
 
   async emitTutorBotMessage(sessionId: Ulid, messageData: any): Promise<void> {

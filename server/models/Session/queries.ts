@@ -87,13 +87,15 @@ export type UnfulfilledSessions = {
 }
 
 // sessions that have not yet been fulfilled by a volunteer
-export async function getUnfulfilledSessions(): Promise<UnfulfilledSessions[]> {
+export async function getUnfulfilledSessions(
+  tc: TransactionClient = getClient()
+): Promise<UnfulfilledSessions[]> {
   try {
     const result = await pgQueries.getUnfilledSessions.run(
       {
         start: moment().subtract(1, 'day').toDate(),
       },
-      getClient()
+      tc
     )
 
     return result.map((session) => {
