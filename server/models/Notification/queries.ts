@@ -50,7 +50,7 @@ export type SessionNotification = {
 
 export async function getSessionNotificationsWithSessionId(
   sessionId: Ulid,
-  client: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<SessionNotification[]> {
   try {
     const result = await pgQueries.getSessionNotificationsWithSessionId.run(

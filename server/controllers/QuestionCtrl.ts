@@ -18,10 +18,9 @@ export async function list(
 
 // TODO: duck type validation
 export async function create(question: Question): Promise<Question> {
-  const client = getClient()
   return await runInTransaction(async (tc) => {
     return createQuestion(question, tc)
-  }, client)
+  }, getClient())
 }
 
 // TODO: duck type validation

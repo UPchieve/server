@@ -349,10 +349,9 @@ export async function processCalculateMetrics(sessionId: Ulid) {
 }
 
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
-  const client = getClient()
   const session = await runInTransaction(async (tc) => {
     return SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId, tc)
-  }, client)
+  }, getClient())
 
   const fifteenMinutes = 1000 * 60 * 15
   const isLongSession = session.timeTutored
