@@ -1205,7 +1205,7 @@ export async function createUserVolunteerPartnerOrgInstance(
 
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ): Promise<CreatedVolunteer> {
   try {
     volunteerData.email = volunteerData.email.toLowerCase()

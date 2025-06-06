@@ -6,7 +6,6 @@ import { getLegacyUserObject } from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import { ISODateString } from '../types/dates'
 import logger from '../logger'
-import { getClient } from '../db'
 
 export const captureEvent = (
   userId: Ulid,
@@ -71,7 +70,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
   if (!userId) return personProperties
 
   try {
-    const user = await getLegacyUserObject(userId, getClient())
+    const user = await getLegacyUserObject(userId)
     if (!user) return personProperties
 
     const productFlags = await getUPFByUserId(userId)

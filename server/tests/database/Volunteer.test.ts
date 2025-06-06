@@ -786,7 +786,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
   if (options.partner) {
     v.volunteerPartnerOrg = options.partner as string
   }
-  const res = await createVolunteer(v)
+  const res = await createVolunteer(v, client)
   await client.query('UPDATE users SET sms_consent = $1 where id = $2', [
     options.smsConsent,
     res.id,

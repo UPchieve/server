@@ -7,13 +7,14 @@ import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { logError } from '../logger'
 import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
-import { runInTransaction } from '../db'
+import { getClient, runInTransaction } from '../db'
 
 // TODO: Move to UserCreationService.
 export async function createVolunteer(
   volunteerData: VolunteerRepo.CreateVolunteerPayload,
   ip: string
 ): Promise<VolunteerRepo.CreatedVolunteer> {
+  const client = getClient()
   volunteerData.password = await hashPassword(volunteerData.password)
   const volunteer = await runInTransaction(async (tc) => {
     const v = await VolunteerRepo.createVolunteer(volunteerData, tc)
@@ -21,7 +22,7 @@ export async function createVolunteer(
       await ReferralService.addReferralFor(v.id, volunteerData.referredBy, tc)
     }
     return v
-  })
+  }, client)
 
   // Create a UPF object for this new user
   try {
@@ -49,7 +50,4 @@ export async function createVolunteer(
     captureException(err)
     logError(err as Error)
   }
-
-  // needs to return id and partner org for frontend
-  return volunteer
 }

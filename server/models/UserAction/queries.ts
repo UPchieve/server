@@ -118,7 +118,7 @@ interface QuizActionParams {
   ipAddress?: string
 }
 
-export async function createQuizAction(
+export async function createQuizAction( // @TODO This needs to have a service fn that wraps in txn
   params: QuizActionParams,
   client: TransactionClient
 ) {
