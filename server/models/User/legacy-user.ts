@@ -109,7 +109,7 @@ export type LegacyUserModel = {
 // TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
   userId: Ulid,
-  client: TransactionClient
+  client?: TransactionClient
 ): Promise<LegacyUserModel> {
   try {
     return await runInTransaction(async (dbClient) => {

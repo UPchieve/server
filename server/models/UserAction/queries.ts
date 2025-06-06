@@ -120,7 +120,7 @@ interface QuizActionParams {
 
 export async function createQuizAction(
   params: QuizActionParams,
-  client: TransactionClient = getClient()
+  client: TransactionClient
 ) {
   try {
     let ip = undefined

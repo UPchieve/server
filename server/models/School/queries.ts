@@ -15,7 +15,7 @@ import {
   Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { getClient, TransactionClient } from '../../db'
+import { getClient, runInTransaction, TransactionClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
@@ -146,27 +146,28 @@ export async function updateIsPartner(
     )
 
   try {
-    // Set schools.partner.
-    // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
-    const result = await pgQueries.updateIsPartner.run(
-      { schoolId, isPartner },
-      client
-    )
-
-    const school = await getSchoolById(schoolId, client)
-    if (!school)
-      throw new Error(
-        `Cannot update partner status: School with id ${schoolId} does not exist`
+    await runInTransaction(async (tc) => {
+      // Set schools.partner.
+      // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
+      const result = await pgQueries.updateIsPartner.run(
+        { schoolId, isPartner },
+        tc
       )
-    if (isPartner) {
-      if (!existingStudentPartnerOrgId) {
-        await createSchoolStudentPartnerOrg(school.id, client)
+      const school = await getSchoolById(schoolId, tc)
+      if (!school)
+        throw new Error(
+          `Cannot update partner status: School with id ${schoolId} does not exist`
+        )
+      if (isPartner) {
+        if (!existingStudentPartnerOrgId) {
+          await createSchoolStudentPartnerOrg(school.id, tc)
+        }
+        await createStudentPartnerOrgUpchieveInstance(schoolId, tc)
+      } else {
+        await deactivateSchoolStudentPartnerOrgs(schoolId, tc)
       }
-      await createStudentPartnerOrgUpchieveInstance(schoolId, client)
-    } else {
-      await deactivateSchoolStudentPartnerOrgs(schoolId, client)
-    }
-    if (result.length) return makeRequired(result[0])
+      if (result.length) return makeRequired(result[0])
+    }, client)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
