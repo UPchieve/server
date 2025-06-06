@@ -5,12 +5,35 @@ export type Session = {
   id: Ulid
   studentId: Ulid
   volunteerId?: Ulid
+  subjectId: number
+  hasWhiteboardDoc: boolean
+  quillDoc?: string
+  volunteerJoinedAt?: Date
+  endedAt?: Date
+  endedByRoleId?: number
+  reviewed: boolean
+  toReview: boolean
+  studentBanned?: boolean
+  timeTutored: number
+  shadowbanned?: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type SessionWithSubjectAndTopic = Session & {
+  topic: string
+  subject: string
+}
+
+export type GetSessionByIdResult = {
+  id: Ulid
+  studentId: Ulid
+  volunteerId?: Ulid
   topic: string
   subjectId: number
   subject: string
   hasWhiteboardDoc: boolean
   quillDoc?: string
-  photos?: string[]
   volunteerJoinedAt?: Date
   endedAt?: Date
   endedByRole?: string

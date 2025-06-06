@@ -9,7 +9,7 @@ import {
   VolunteerContactInfo,
 } from '../../../models/Volunteer/queries'
 import { Jobs } from '../index'
-import { getSessionById, Session } from '../../../models/Session'
+import { getSessionById, GetSessionByIdResult } from '../../../models/Session'
 import {
   createEmailNotification,
   hasUserBeenSentEmail,
@@ -38,7 +38,7 @@ function getSendGridTemplate(currentJob: Jobs): string | undefined {
 
 function getEmailForJob(
   jobName: Jobs,
-  session: Session,
+  session: GetSessionByIdResult,
   student: StudentContactInfo,
   volunteer?: VolunteerContactInfo
 ): (() => Promise<void>) | undefined {

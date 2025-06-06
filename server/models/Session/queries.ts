@@ -11,11 +11,13 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import {
-  Session,
+  GetSessionByIdResult,
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
   SessionMetrics,
+  Session,
+  SessionWithSubjectAndTopic,
 } from './types'
 import 'moment-timezone'
 import {
@@ -118,7 +120,7 @@ export async function getUnfulfilledSessions(
 export async function getSessionById(
   sessionId: Ulid,
   tc: TransactionClient = getClient()
-): Promise<Session> {
+): Promise<GetSessionByIdResult> {
   try {
     const result = await pgQueries.getSessionById.run({ sessionId }, tc)
     if (!result.length) throw new RepoReadError('Session not found')
@@ -185,7 +187,7 @@ export type SessionToEndUserInfo = {
 }
 
 export type SessionToEnd = Pick<
-  Session,
+  GetSessionByIdResult,
   | 'id'
   | 'createdAt'
   | 'endedAt'
@@ -609,13 +611,30 @@ export async function createSession(
   subject: string,
   isShadowBanned: boolean,
   tc: TransactionClient
-) {
+): Promise<Session> {
   try {
     const result = await pgQueries.createSession.run(
       { id: getDbUlid(), studentId, subject, shadowbanned: isShadowBanned },
       tc
     )
-    return makeSomeRequired(result[0], ['id', 'studentId', 'subjectId'])
+    if (!result.length) {
+      throw new RepoCreateError('Failed to create new session.')
+    }
+    const session = makeSomeRequired(result[0], [
+      'id',
+      'studentId',
+      'subjectId',
+      'hasWhiteboardDoc',
+      'reviewed',
+      'toReview',
+      'timeTutored',
+      'createdAt',
+      'updatedAt',
+    ])
+    return {
+      ...session,
+      timeTutored: Number(session.timeTutored),
+    }
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -841,14 +860,32 @@ export async function updateSessionVolunteerById(
   sessionId: Ulid,
   volunteerId: Ulid,
   tc?: TransactionClient
-): Promise<void> {
+): Promise<SessionWithSubjectAndTopic> {
   try {
     const result = await pgQueries.updateSessionVolunteerById.run(
       { sessionId, volunteerId },
       tc ?? getClient()
     )
-    if (!result.length || !makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    if (!result.length) {
+      throw new RepoUpdateError('Failed to add volunteer to session.')
+    }
+    const session = makeSomeRequired(result[0], [
+      'id',
+      'studentId',
+      'subjectId',
+      'subject',
+      'topic',
+      'hasWhiteboardDoc',
+      'reviewed',
+      'toReview',
+      'timeTutored',
+      'createdAt',
+      'updatedAt',
+    ])
+    return {
+      ...session,
+      timeTutored: Number(session.timeTutored),
+    }
   } catch (err) {
     throw new RepoUpdateError(err)
   }

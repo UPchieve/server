@@ -26,9 +26,11 @@ import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   CurrentSession,
+  GetSessionByIdResult,
   Session,
   SessionsToReview,
   SessionTranscript,
+  SessionWithSubjectAndTopic,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -758,7 +760,10 @@ export async function joinSession(
     joinedFrom?: string
   }
 ): Promise<Session> {
-  const session = await ensureCanJoinSession(user, sessionId)
+  let session: SessionWithSubjectAndTopic = await ensureCanJoinSession(
+    user,
+    sessionId
+  )
 
   const sessionAnalyticsData = {
     userId: user.id,
@@ -771,7 +776,11 @@ export async function joinSession(
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
     try {
-      await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+      session = await SessionRepo.updateSessionVolunteerById(
+        session.id,
+        user.id
+      )
+      await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')
     }
@@ -799,7 +808,12 @@ export async function joinSession(
       const pushTokens = await getPushTokensByUserId(session.studentId)
       if (pushTokens && pushTokens.length > 0) {
         const tokens = pushTokens.map((token: PushToken) => token.token)
-        await PushTokenService.sendVolunteerJoined(session as Session, tokens)
+        await PushTokenService.sendVolunteerJoined(
+          session.id,
+          session.topic,
+          session.subject,
+          tokens
+        )
       }
     } catch (error) {
       logger.error(error, `Failed to send FCM notifications to student.`, {
@@ -835,7 +849,7 @@ export async function joinSession(
 export async function ensureCanJoinSession(
   user: UserContactInfo,
   sessionId: Ulid
-) {
+): Promise<GetSessionByIdResult> {
   const session = await SessionRepo.getSessionById(sessionId)
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
