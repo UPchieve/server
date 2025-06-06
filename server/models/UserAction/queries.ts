@@ -57,14 +57,13 @@ export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
 }
 
 export async function getSessionRequestedUserAgentFromSessionId(
-  sessionId: Ulid,
-  client: TransactionClient = getClient()
+  sessionId: Ulid
 ): Promise<UserActionAgent | undefined> {
   try {
     const result =
       await pgQueries.getSessionRequestedUserAgentFromSessionId.run(
         { sessionId },
-        client
+        getClient()
       )
     if (result.length)
       return makeSomeOptional(result[0], [

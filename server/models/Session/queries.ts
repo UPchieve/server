@@ -554,10 +554,10 @@ export async function getMessagesForFrontend(
 }
 
 export async function getSessionByIdWithStudentAndVolunteer(
-  sessionId: Ulid,
-  client: TransactionClient = getClient()
+  sessionId: Ulid
 ): Promise<SessionByIdWithStudentAndVolunteer> {
   try {
+    const client = getClient()
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },
       client
@@ -698,15 +698,16 @@ export type SessionInfoForUser = {
 
 export async function handleSessionParsingForUser(
   session: SessionInfoForUser,
-  tc: TransactionClient
+  tc?: TransactionClient
 ): Promise<CurrentSession> {
+  const client = tc ?? getClient()
   try {
-    const messages = await getMessagesForFrontend(session.id, tc)
+    const messages = await getMessagesForFrontend(session.id, client)
     const { student, volunteer } = await getSessionUsers(
       session.id,
       session.studentId,
       session.volunteerId,
-      tc
+      client
     )
     return {
       ...session,
