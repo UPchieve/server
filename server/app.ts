@@ -77,10 +77,10 @@ app.use(cookieParser(config.sessionSecret))
 let originRegex
 if (config.additionalAllowedOrigins !== '') {
   originRegex = new RegExp(
-    `^(${config.host}|${config.additionalAllowedOrigins})$`
+    `^(${config.protocol}://${config.host}|${config.additionalAllowedOrigins})$`
   )
 } else {
-  originRegex = new RegExp(`^(${config.host})$`)
+  originRegex = new RegExp(`^(${config.protocol}://${config.host})$`)
 }
 
 app.use(

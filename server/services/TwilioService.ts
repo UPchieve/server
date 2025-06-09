@@ -23,13 +23,9 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getClient, TransactionClient } from '../db'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-const apiRoot =
-  config.NODE_ENV === 'production'
-    ? `https://${config.host}/twiml`
-    : `http://${config.host}/twiml`
+const apiRoot = `${config.protocol}://${config.host}/twiml`
 
 const twilioClient =
   config.accountSid && config.authToken
@@ -136,7 +132,10 @@ export async function sendVoiceMessage(
 }
 
 // the URL that the volunteer can use to join the session on the client
-type SessionForUrl = Pick<SessionRepo.Session, 'subject' | 'topic' | 'id'>
+type SessionForUrl = Pick<
+  SessionRepo.GetSessionByIdResult,
+  'subject' | 'topic' | 'id'
+>
 export function getSessionUrl(session: SessionForUrl): string {
   return `${protocol}://${config.client.host}/session/${Case.kebab(
     session.topic
@@ -192,7 +191,7 @@ export function buildTargetStudentContent(
 }
 
 export function buildNotificationContent(
-  session: SessionRepo.Session,
+  session: SessionRepo.GetSessionByIdResult,
   volunteer: VolunteerContactInfo,
   associatedPartner: AssociatedPartner | undefined
 ) {
@@ -243,7 +242,7 @@ export async function getAssociatedPartner(
 }
 
 export async function notifyVolunteer(
-  session: SessionRepo.Session
+  session: SessionRepo.GetSessionByIdResult
 ): Promise<Ulid | undefined> {
   const student = await StudentsRepo.getStudentContactInfoById(
     session.studentId

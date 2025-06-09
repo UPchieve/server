@@ -761,7 +761,22 @@ WHERE
     id = :sessionId!
     AND volunteer_id IS NULL
 RETURNING
-    id AS ok;
+    sessions.*,
+    (
+        SELECT
+            subjects.name
+        FROM
+            subjects
+        WHERE
+            subjects.id = sessions.subject_id) AS subject,
+    (
+        SELECT
+            topics.name
+        FROM
+            topics
+            JOIN subjects ON subjects.topic_id = topics.id
+        WHERE
+            subjects.id = sessions.subject_id) AS topic;
 
 
 /* @name insertNewMessage */

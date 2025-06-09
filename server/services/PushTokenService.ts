@@ -1,5 +1,4 @@
 import { messaging } from 'firebase-admin'
-import { Session } from '../models/Session'
 import Case from 'case'
 import { isDevEnvironment } from '../utils/environments'
 
@@ -54,14 +53,15 @@ async function sendToUser(
 }
 
 export async function sendVolunteerJoined(
-  session: Session,
+  sessionId: string,
+  topic: string,
+  subject: string,
   tokens: string[]
 ): Promise<void> {
-  const { topic, subject, id } = session
   const title = 'We found a volunteer!'
   const text = 'Start chatting with your coach now.'
   const data = {
-    path: `/session/${Case.kebab(topic)}/${Case.kebab(subject)}/${id}`,
+    path: `/session/${Case.kebab(topic)}/${Case.kebab(subject)}/${sessionId}`,
   }
 
   await sendToUser(title, text, data, tokens)

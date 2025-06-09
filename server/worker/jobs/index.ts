@@ -61,6 +61,7 @@ import processSessionEnded from './processSessionEnded'
 import detectSessionLanguages from './detectSessionLanguages'
 import backfillCombinedQuizUsersOnboardedStatus from './backfill-onboarded-status-for-combined-quiz-users'
 import backfillStudentAmbassadorRole from '../../scripts/add-student-ambassador-role-for-user'
+import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -154,6 +155,7 @@ export enum Jobs {
   ModerateSessionTranscript = 'ModerateSessionTranscript',
 
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
+  SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
 }
 
 // register new job processors here
@@ -451,6 +453,11 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentAmbassadorRole,
     processor: backfillStudentAmbassadorRole,
+  },
+
+  {
+    name: Jobs.SendBecomeAnAmbassadorEmail,
+    processor: emailBecomeAnAmbassador,
   },
 ]
 

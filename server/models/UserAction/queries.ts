@@ -158,12 +158,11 @@ interface SessionActionParams {
 
 export async function createSessionAction(
   params: SessionActionParams,
-  tc?: TransactionClient
+  tc: TransactionClient = getClient()
 ) {
-  const client = tc ?? getClient()
   try {
     let ip = undefined
-    if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, client)
+    if (params.ipAddress) ip = await upsertIpAddress(params.ipAddress, tc)
     const result = await pgQueries.createSessionAction.run(
       {
         action: params.action,
@@ -179,7 +178,7 @@ export async function createSessionAction(
         sessionId: params.sessionId,
         userId: params.userId,
       },
-      client
+      tc
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new Error('insertion of session user action did not return ok')

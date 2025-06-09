@@ -6,7 +6,7 @@ import {
   getMessagesForFrontend,
   getSessionById,
   MessageForFrontend,
-  Session,
+  GetSessionByIdResult,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -25,7 +25,7 @@ export const VOLUNTEER_WAITING_PERIOD_MIN = 10
 export const STUDENT_WAITING_PERIOD_MIN = 5
 
 export function computeAbsentStudent(
-  session: Session,
+  session: GetSessionByIdResult,
   messages: MessageForFrontend[]
 ): boolean {
   if (session.volunteerJoinedAt) {
@@ -51,7 +51,7 @@ export function computeAbsentStudent(
 }
 
 export function computeAbsentVolunteer(
-  session: Session,
+  session: GetSessionByIdResult,
   messages: MessageForFrontend[]
 ): boolean {
   if (session.volunteerJoinedAt) {
@@ -75,7 +75,9 @@ export function computeAbsentVolunteer(
   return false
 }
 
-export function computeHasBeenUnmatched(session: Session): boolean {
+export function computeHasBeenUnmatched(
+  session: GetSessionByIdResult
+): boolean {
   return !session.volunteerId
 }
 
@@ -117,7 +119,7 @@ export function hasFeedbackMatch(
 }
 
 export async function computeSessionFlags(
-  session: Session
+  session: GetSessionByIdResult
 ): Promise<UserSessionFlags[]> {
   const messages = await getMessagesForFrontend(session.id)
   const flags = []
@@ -131,7 +133,7 @@ export async function computeSessionFlags(
 }
 
 export async function computeFeedbackFlags(
-  session: Session
+  session: GetSessionByIdResult
 ): Promise<UserSessionFlags[]> {
   const surveyResponses = await getPostsessionSurveyResponsesForSessionMetrics(
     session.id
@@ -233,7 +235,9 @@ export async function computeFeedbackFlags(
   return flags
 }
 
-export function computeReportedFlags(session: Session): UserSessionFlags[] {
+export function computeReportedFlags(
+  session: GetSessionByIdResult
+): UserSessionFlags[] {
   const flags = []
   if (session?.reported) flags.push(UserSessionFlags.reported)
   return flags
@@ -420,7 +424,7 @@ export async function processMetrics(
   sessionId: Uuid,
   callbacks: {
     computeSessionFlags: (
-      session: Session
+      session: GetSessionByIdResult
     ) => Promise<UserSessionFlags[]> | UserSessionFlags[]
     computeReviewReasons: (
       flags: UserSessionFlags[],

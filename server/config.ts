@@ -22,7 +22,8 @@ const config: Static<typeof Config> = {
   NODE_ENV: process.env.NODE_ENV || 'dev',
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
-  host: process.env.SUBWAY_SERVER_HOST || 'http://localhost:8080',
+  host: process.env.SUBWAY_SERVER_HOST || 'localhost:8080',
+  protocol: process.env.SUBWAY_SERVER_PROTOCOL || 'http',
   additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge: parseInt(
@@ -55,6 +56,7 @@ const config: Static<typeof Config> = {
     openReadyToCoachTemplate: 'd-09ec01c51be54c108b7fae4481acfd38',
     partnerReadyToCoachTemplate: 'd-d2ba9920683b4bd4a159f496a2346583',
     customPartnerReadyToCoachTemplate: 'd-af9b19d3eef745b69709df7bf0c410c9',
+    becomeAnAmbassadorTemplate: 'd-07e10d541a0c434dbbee2f704bac12ab',
     bannedUserAlertTemplate: 'd-7be8a21a59664f99a1f540e43c79b793',
     referenceFollowupTemplate: 'd-6b0d96c0cf15469db7a5e6ec655cf37a',
     rejectedPhotoSubmissionTemplate: 'd-c6d146a9eb4e44f6acc94a29a131d50d',
@@ -382,6 +384,7 @@ const config: Static<typeof Config> = {
 
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
+  openAIModelId: process.env.SUBWAY_OPEN_AI_MODEL_ID || 'bogus',
   openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
   subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
   subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',

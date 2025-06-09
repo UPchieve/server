@@ -19,17 +19,11 @@ import {
 } from '../mocks/generate'
 import { logError } from '../../logger'
 import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
-import { openai } from '../../services/BotsService'
+import { invokeModel } from '../../services/OpenAIService'
 
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
-    openai: {
-      chat: {
-        completions: {
-          create: jest.fn(),
-        },
-      },
-    },
+    invokeModel: jest.fn(),
   }
 })
 jest.mock('../../services/AnalyticsService')
@@ -358,26 +352,10 @@ describe('generateProgressReportForUser', () => {
       summary,
       concepts,
     })
-    // This is smelly. There should be a proper mock for this
-    // This uses the types defined in OpenAI
-    ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
-      id: getDbUlid(),
-      choices: [
-        {
-          message: {
-            content: JSON.stringify(progressReport),
-            role: 'assistant',
-          },
-          finish_reason: 'stop',
-          index: 1,
-        },
-      ],
-      model: 'gpt-4',
-      created: Date.now(),
-      // It seems that this is needed on the type, but TS complains when it's here.
-      // We're going to ignore TS for now
-      // @ts-ignore
-      object: 'chat.completion.chunk',
+
+    ;(invokeModel as jest.Mock).mockResolvedValue({
+      results: progressReport,
+      modelId: '',
     })
     mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)
     mockedProgressReportsRepo.getProgressReportByReportId.mockResolvedValueOnce(

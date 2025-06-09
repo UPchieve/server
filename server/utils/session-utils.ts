@@ -3,7 +3,7 @@ import { Socket } from 'socket.io'
 import { CustomError } from 'ts-custom-error'
 import { TOOL_TYPES } from '../constants'
 import { DAYS, HOURS } from '../constants'
-import { getMessagesForFrontend, Session } from '../models/Session'
+import { getMessagesForFrontend, GetSessionByIdResult } from '../models/Session'
 import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
@@ -63,7 +63,7 @@ export function isSessionParticipant(
 }
 
 export type SessionForTimeTutored = Pick<
-  Session,
+  GetSessionByIdResult,
   'volunteerId' | 'volunteerJoinedAt' | 'endedAt' | 'id'
 >
 export async function calculateTimeTutored(
@@ -119,7 +119,7 @@ export async function calculateTimeTutored(
   return sessionLengthMs
 }
 
-export function isSessionFulfilled(session: Session) {
+export function isSessionFulfilled(session: GetSessionByIdResult) {
   const hasEnded = !!session.endedAt
   const hasVolunteerJoined = !!session.volunteerId
 

@@ -4,20 +4,14 @@ import moderateSessionMessage, {
 } from '../../scripts/moderate-session-message'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import { Job } from 'bull'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
-import { openai } from '../../services/BotsService'
+import { getDbUlid } from '../../models/pgUtils'
+import { invokeModel } from '../../services/OpenAIService'
 
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../logger')
-jest.mock('../../services/BotsService', () => {
+jest.mock('../../services/OpenAIService', () => {
   return {
-    openai: {
-      chat: {
-        completions: {
-          create: jest.fn(),
-        },
-      },
-    },
+    invokeModel: jest.fn(),
   }
 })
 
@@ -45,19 +39,14 @@ describe('Moderate session message', () => {
   })
 
   it('Should make a call to OpenAI', async () => {
-    ;(openai.chat.completions.create as jest.Mock).mockResolvedValue({
-      choices: [
-        {
-          message: {
-            content: JSON.stringify({
-              appropriate: true,
-              reasons: [],
-            }),
-          },
-        },
-      ],
+    ;(invokeModel as jest.Mock).mockResolvedValue({
+      results: {
+        appropriate: true,
+        reasons: [],
+      },
+      modelId: '',
     })
     await moderateSessionMessage(jobData)
-    expect(openai.chat.completions.create).toHaveBeenCalled()
+    expect(invokeModel).toHaveBeenCalled()
   })
 })

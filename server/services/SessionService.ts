@@ -26,9 +26,11 @@ import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   CurrentSession,
+  GetSessionByIdResult,
   Session,
   SessionsToReview,
   SessionTranscript,
+  SessionWithSubjectAndTopic,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -214,26 +216,26 @@ export async function endSession(
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
 ) {
-  const endedSession = await runInTransaction(async (tc: TransactionClient) => {
-    const reqIdentifiers = identifiers
-      ? sessionUtils.asRequestIdentifiers(identifiers)
-      : undefined
+  const reqIdentifiers = identifiers
+    ? sessionUtils.asRequestIdentifiers(identifiers)
+    : undefined
 
-    const session = await SessionRepo.getSessionToEndById(sessionId, tc)
-    if (session.endedAt)
-      throw new sessionUtils.EndSessionError('Session has already ended')
-    if (
-      !isAdmin &&
-      !sessionUtils.isSessionParticipant(
-        session.student.id,
-        session.volunteer?.id,
-        endedBy ? endedBy : null
-      )
+  const session = await SessionRepo.getSessionToEndById(sessionId)
+  if (session.endedAt)
+    throw new sessionUtils.EndSessionError('Session has already ended')
+  if (
+    !isAdmin &&
+    !sessionUtils.isSessionParticipant(
+      session.student.id,
+      session.volunteer?.id,
+      endedBy ? endedBy : null
     )
-      throw new sessionUtils.EndSessionError(
-        'Only session participants can end a session'
-      )
+  )
+    throw new sessionUtils.EndSessionError(
+      'Only session participants can end a session'
+    )
 
+  await runInTransaction(async (tc: TransactionClient) => {
     await SessionRepo.updateSessionToEnd(
       session.id,
       new Date(),
@@ -249,7 +251,10 @@ export async function endSession(
       tc
     )
 
-    if (socketService) await socketService.emitSessionChange(sessionId, tc)
+    if (socketService) {
+      await socketService.emitSessionChange(sessionId, tc)
+    }
+
     if (endedBy && reqIdentifiers)
       await createSessionAction(
         {
@@ -261,8 +266,6 @@ export async function endSession(
         },
         tc
       )
-
-    return session
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
@@ -271,7 +274,7 @@ export async function endSession(
     Jobs.DetectSessionLanguages,
     {
       sessionId,
-      studentId: endedSession.student.id,
+      studentId: session.student.id,
     },
     {
       removeOnComplete: true,
@@ -651,7 +654,11 @@ export async function startSession(
     }
 
     if (presessionSurvey) {
-      await SurveyService.saveUserSurvey(user.id, presessionSurvey, tc)
+      await SurveyService.saveUserSurvey(
+        user.id,
+        { ...presessionSurvey, sessionId: newSession.id },
+        tc
+      )
     }
 
     await createSessionAction(
@@ -753,7 +760,10 @@ export async function joinSession(
     joinedFrom?: string
   }
 ): Promise<Session> {
-  const session = await ensureCanJoinSession(user, sessionId)
+  let session: SessionWithSubjectAndTopic = await ensureCanJoinSession(
+    user,
+    sessionId
+  )
 
   const sessionAnalyticsData = {
     userId: user.id,
@@ -766,7 +776,11 @@ export async function joinSession(
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
     try {
-      await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+      session = await SessionRepo.updateSessionVolunteerById(
+        session.id,
+        user.id
+      )
+      await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')
     }
@@ -794,7 +808,12 @@ export async function joinSession(
       const pushTokens = await getPushTokensByUserId(session.studentId)
       if (pushTokens && pushTokens.length > 0) {
         const tokens = pushTokens.map((token: PushToken) => token.token)
-        await PushTokenService.sendVolunteerJoined(session as Session, tokens)
+        await PushTokenService.sendVolunteerJoined(
+          session.id,
+          session.topic,
+          session.subject,
+          tokens
+        )
       }
     } catch (error) {
       logger.error(error, `Failed to send FCM notifications to student.`, {
@@ -830,7 +849,7 @@ export async function joinSession(
 export async function ensureCanJoinSession(
   user: UserContactInfo,
   sessionId: Ulid
-) {
+): Promise<GetSessionByIdResult> {
   const session = await SessionRepo.getSessionById(sessionId)
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
