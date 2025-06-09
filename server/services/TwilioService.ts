@@ -23,13 +23,9 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
-import { getClient, TransactionClient } from '../db'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-const apiRoot =
-  config.NODE_ENV === 'production'
-    ? `https://${config.host}/twiml`
-    : `http://${config.host}/twiml`
+const apiRoot = `${config.protocol}://${config.host}/twiml`
 
 const twilioClient =
   config.accountSid && config.authToken

@@ -4,6 +4,7 @@ export const Config = Record({
   NODE_ENV: String,
   SSL_CERT_PATH: String,
   host: String,
+  protocol: String,
   additionalAllowedOrigins: String,
   sessionSecret: String,
   sessionCookieMaxAge: Number,
