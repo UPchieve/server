@@ -12,7 +12,7 @@ import {
 import config from '../config'
 import * as cache from '../cache'
 import { logError } from '../logger'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { isProductionEnvironment } from '../utils/environments'
 
 const configuration = new Configuration({
@@ -123,7 +123,10 @@ export async function createGiftCardRewardLink(data: CreateGiftCardReward) {
           id: customFieldIds?.[
             CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID
           ],
-          value: `${data.userId}-${data.impactStudySurveyCampaignId}`,
+          value: getUserImpactCampaignFieldName(
+            data.userId,
+            data.impactStudySurveyCampaignId
+          ),
         },
         {
           id: customFieldIds?.[CustomFieldLabels.IMPACT_STUDY_CAMPAIGN_ID],
@@ -350,7 +353,8 @@ export async function getUserRewardByImpactStudySurveyCampaignId(
   try {
     const response = await rewards.listRewards(undefined, {
       params: {
-        [CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID]: `${userId}-${impactStudySurveyCampaignId}`,
+        [CustomFieldLabels.USER_ID_IMPACT_STUDY_CAMPAIGN_ID]:
+          getUserImpactCampaignFieldName(userId, impactStudySurveyCampaignId),
       },
     })
     const { data } = response
@@ -360,4 +364,11 @@ export async function getUserRewardByImpactStudySurveyCampaignId(
     logError(error as Error)
     return []
   }
+}
+
+function getUserImpactCampaignFieldName(
+  userId: Uuid,
+  impactStudySurveyCampaignId: string
+) {
+  return `${userId}-${impactStudySurveyCampaignId}`
 }

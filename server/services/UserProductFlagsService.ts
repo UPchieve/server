@@ -79,13 +79,9 @@ export async function processImpactStudyEnrollmentAndReward(
   )
     throw new Error('User is not part of this Impact Study cohort')
 
-  const survey = await getSimpleSurveyDefinitionBySurveyId(
-    campaign.surveyId,
-    tc
-  )
   const userSubmissions = await getLatestUserSubmissionsForSurveyId(
     userId,
-    survey.surveyId,
+    campaign.surveyId,
     tc
   )
 
@@ -106,7 +102,7 @@ export async function processImpactStudyEnrollmentAndReward(
       throw new Error(`You've already received a reward for this survey.`)
     const rewardPayload = {
       userId,
-      surveyId: survey.surveyId,
+      surveyId: campaign.surveyId,
       amount: campaign.rewardAmount,
       name: user.firstName,
       email: user.proxyEmail ?? user.email,
@@ -130,6 +126,7 @@ export const asImpactStudyCampaignData = asFactory<ImpactStudyCampaign>({
   viewCount: asNumber,
   maxViewCount: asNumber,
   rewardAmount: asOptional(asNumber),
+  launchedAt: asOptional(asDate),
   createdAt: asDate,
 })
 

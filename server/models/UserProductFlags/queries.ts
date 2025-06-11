@@ -186,9 +186,10 @@ export async function updateTellThemCollegePrepModalSeenAt(userId: Ulid) {
 
 type ImpactStudyCampaignJson = Omit<
   ImpactStudyCampaign,
-  'createdAt' | 'submittedAt'
+  'createdAt' | 'submittedAt' | 'launchedAt'
 > & {
   createdAt: string
+  launchedAt?: string
   submittedAt?: string
 }
 
@@ -203,6 +204,9 @@ export async function upsertImpactStudyCampaign(
       createdAt: campaign.createdAt.toISOString(),
       submittedAt: campaign.submittedAt
         ? campaign.submittedAt.toISOString()
+        : undefined,
+      launchedAt: campaign.launchedAt
+        ? campaign.launchedAt.toISOString()
         : undefined,
     }
     const result = await pgQueries.upsertImpactStudyCampaign.run(

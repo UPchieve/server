@@ -7,6 +7,7 @@ export type ImpactStudyCampaign = {
   maxViewCount: number
   rewardAmount?: number
   submittedAt?: Date
+  launchedAt?: Date
   createdAt: Date
 }
 
