@@ -23,6 +23,7 @@ RETURNING
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
     tell_them_college_prep_modal_seen_at,
+    impact_study_campaigns,
     created_at,
     updated_at;
 
@@ -39,6 +40,7 @@ SELECT
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
     tell_them_college_prep_modal_seen_at,
+    impact_study_campaigns,
     created_at,
     updated_at
 FROM
@@ -53,7 +55,8 @@ SELECT
     gates_qualified,
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
-    tell_them_college_prep_modal_seen_at
+    tell_them_college_prep_modal_seen_at,
+    impact_study_campaigns
 FROM
     user_product_flags
 WHERE
@@ -130,4 +133,16 @@ WHERE
     user_id = :userId!
 RETURNING
     tell_them_college_prep_modal_seen_at;
+
+
+/* @name upsertImpactStudyCampaign */
+UPDATE
+    user_product_flags
+SET
+    impact_study_campaigns = jsonb_set(COALESCE(impact_study_campaigns, '{}'), ARRAY[:campaignId], to_jsonb (:campaignData::jsonb), TRUE),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
 

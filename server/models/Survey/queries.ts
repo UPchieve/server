@@ -107,12 +107,13 @@ export async function getSimpleSurveyDefinition(
 }
 
 export async function getSimpleSurveyDefinitionBySurveyId(
-  surveyId: number
+  surveyId: number,
+  tc?: TransactionClient
 ): Promise<SurveyQueryResponse> {
   try {
     const result = await pgQueries.getSimpleSurveyDefinition.run(
       { surveyId },
-      getClient()
+      tc ?? getClient()
     )
     const resultArr = result.map((v) =>
       makeSomeOptional(v, [
@@ -386,12 +387,13 @@ export async function getLatestUserSubmissionsForSurveyBySurveyType(
 
 export async function getLatestUserSubmissionsForSurveyBySurveyId(
   userId: Ulid,
-  surveyId: number
+  surveyId: number,
+  tc?: TransactionClient
 ): Promise<SimpleSurveyResponse[]> {
   try {
     const result = await pgQueries.getLatestUserSubmissionsForSurvey.run(
       { userId, surveyId },
-      getClient()
+      tc ?? getClient()
     )
     if (result.length)
       return result.map((row) => makeSomeOptional(row, ['responseId']))

@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/UserProductFlags/user_product_flags.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
 /** 'CreateUpfByUserId' parameters type */
 export interface ICreateUpfByUserIdParams {
   userId: string;
@@ -11,6 +13,7 @@ export interface ICreateUpfByUserIdResult {
   createdAt: Date;
   fallIncentiveEnrollmentAt: Date | null;
   gatesQualified: boolean;
+  impactStudyCampaigns: Json | null;
   impactStudyEnrollmentAt: Date | null;
   sentHourSummaryIntroEmail: boolean;
   sentInactiveNinetyDayEmail: boolean;
@@ -28,7 +31,7 @@ export interface ICreateUpfByUserIdQuery {
   result: ICreateUpfByUserIdResult;
 }
 
-const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    created_at,\n    updated_at"};
+const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    impact_study_campaigns,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
@@ -57,6 +60,7 @@ const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"nam
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
  *     tell_them_college_prep_modal_seen_at,
+ *     impact_study_campaigns,
  *     created_at,
  *     updated_at
  * ```
@@ -74,6 +78,7 @@ export interface IGetUpfByUserIdResult {
   createdAt: Date;
   fallIncentiveEnrollmentAt: Date | null;
   gatesQualified: boolean;
+  impactStudyCampaigns: Json | null;
   impactStudyEnrollmentAt: Date | null;
   sentHourSummaryIntroEmail: boolean;
   sentInactiveNinetyDayEmail: boolean;
@@ -91,7 +96,7 @@ export interface IGetUpfByUserIdQuery {
   result: IGetUpfByUserIdResult;
 }
 
-const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":401,"b":408}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
+const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":429,"b":436}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    impact_study_campaigns,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -107,6 +112,7 @@ const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
  *     tell_them_college_prep_modal_seen_at,
+ *     impact_study_campaigns,
  *     created_at,
  *     updated_at
  * FROM
@@ -127,6 +133,7 @@ export interface IGetPublicUpfByUserIdParams {
 export interface IGetPublicUpfByUserIdResult {
   fallIncentiveEnrollmentAt: Date | null;
   gatesQualified: boolean;
+  impactStudyCampaigns: Json | null;
   impactStudyEnrollmentAt: Date | null;
   tellThemCollegePrepModalSeenAt: Date | null;
   userId: string;
@@ -138,7 +145,7 @@ export interface IGetPublicUpfByUserIdQuery {
   result: IGetPublicUpfByUserIdResult;
 }
 
-const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":203}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
+const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":231}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    tell_them_college_prep_modal_seen_at,\n    impact_study_campaigns\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -148,7 +155,8 @@ const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"
  *     gates_qualified,
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
- *     tell_them_college_prep_modal_seen_at
+ *     tell_them_college_prep_modal_seen_at,
+ *     impact_study_campaigns
  * FROM
  *     user_product_flags
  * WHERE
@@ -369,5 +377,42 @@ const tellThemCollegePrepModalSeenAtIR: any = {"usedParamSet":{"userId":true},"p
  * ```
  */
 export const tellThemCollegePrepModalSeenAt = new PreparedQuery<ITellThemCollegePrepModalSeenAtParams,ITellThemCollegePrepModalSeenAtResult>(tellThemCollegePrepModalSeenAtIR);
+
+
+/** 'UpsertImpactStudyCampaign' parameters type */
+export interface IUpsertImpactStudyCampaignParams {
+  campaignData?: Json | null | void;
+  campaignId?: string | null | void;
+  userId: string;
+}
+
+/** 'UpsertImpactStudyCampaign' return type */
+export interface IUpsertImpactStudyCampaignResult {
+  ok: string;
+}
+
+/** 'UpsertImpactStudyCampaign' query type */
+export interface IUpsertImpactStudyCampaignQuery {
+  params: IUpsertImpactStudyCampaignParams;
+  result: IUpsertImpactStudyCampaignResult;
+}
+
+const upsertImpactStudyCampaignIR: any = {"usedParamSet":{"campaignId":true,"campaignData":true,"userId":true},"params":[{"name":"campaignId","required":false,"transform":{"type":"scalar"},"locs":[{"a":119,"b":129}]},{"name":"campaignData","required":false,"transform":{"type":"scalar"},"locs":[{"a":143,"b":155}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":216,"b":223}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    impact_study_campaigns = jsonb_set(COALESCE(impact_study_campaigns, '{}'), ARRAY[:campaignId], to_jsonb (:campaignData::jsonb), TRUE),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     user_product_flags
+ * SET
+ *     impact_study_campaigns = jsonb_set(COALESCE(impact_study_campaigns, '{}'), ARRAY[:campaignId], to_jsonb (:campaignData::jsonb), TRUE),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const upsertImpactStudyCampaign = new PreparedQuery<IUpsertImpactStudyCampaignParams,IUpsertImpactStudyCampaignResult>(upsertImpactStudyCampaignIR);
 
 

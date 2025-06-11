@@ -10,7 +10,6 @@ export enum FEATURE_FLAGS {
   AI_MODERATION = 'ai-moderation',
   COLLEGE_LIST_WORKSHEET = 'college-list-worksheet',
   FALL_INCENTIVE_PROGRAM = 'fall-incentive-program',
-  TREMENDOUS_EMBDED_REWARDS = 'tremendous-embeded-rewards',
   TEACHER_GETTING_STARTED_ASSIGNMENT = 'teacher-getting-started-assignment',
   GENERATE_SESSION_SUMMARY = 'generate-session-summary',
   GET_SESSION_SUMMARY = 'get-session-summary',

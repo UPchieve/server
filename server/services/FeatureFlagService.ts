@@ -143,10 +143,6 @@ export async function getFallIncentiveProgramPayload(
   }
 }
 
-export async function isTremendousEmbeddedRewardsEnabled(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.TREMENDOUS_EMBDED_REWARDS, userId)
-}
-
 export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.TEACHER_GETTING_STARTED_ASSIGNMENT,
