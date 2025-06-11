@@ -1088,8 +1088,7 @@ WHERE
     AND (:subjectName::text IS NULL
         OR subjects.name = :subjectName)
 ORDER BY
-    created_at DESC OFFSET COALESCE(:offset, 0)
-LIMIT COALESCE(:limit, 2147483647);
+    created_at DESC;
 
 
 /* @name getFilteredSessionHistoryTotalCount */
