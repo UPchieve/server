@@ -54,7 +54,6 @@ import * as AuthRepo from '../models/Auth'
 import { FederatedCredential } from '../models/FederatedCredential'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
-import * as UserService from './UserService'
 
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
