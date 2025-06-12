@@ -1284,6 +1284,7 @@ export async function getFilteredSessionHistory(
       params,
       getRoClient()
     )
+    console.log('*****result', result)
     if (result.length) return result.map((v) => makeRequired(v))
     return []
   } catch (err) {
