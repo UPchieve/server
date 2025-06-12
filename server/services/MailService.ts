@@ -88,20 +88,20 @@ async function sendEmail(
   dynamicData: any,
   overrides: any = {}
 ): Promise<void> {
-  if (isDevEnvironment() || isE2eEnvironment()) {
-    logger.debug(
-      {
-        toEmail,
-        fromEmail,
-        fromName,
-        templateId,
-        dynamicData,
-        overrides,
-      },
-      'sendEmail: skipping email send'
-    )
-    return
-  }
+  // if (isDevEnvironment() || isE2eEnvironment()) {
+  //   logger.debug(
+  //     {
+  //       toEmail,
+  //       fromEmail,
+  //       fromName,
+  //       templateId,
+  //       dynamicData,
+  //       overrides,
+  //     },
+  //     'sendEmail: skipping email send'
+  //   )
+  //   return
+  // }
 
   const msg = {
     to: toEmail,
@@ -525,6 +525,28 @@ export async function sendBecomeAnAmbassadorEmail(args: {
     {
       firstName: args.firstName,
       referralSignUpLink: args.referralSignUpLink,
+    }
+  )
+}
+
+export async function sendReferralSignupCelebrationEmail(args: {
+  userId: Ulid
+  email: string
+  referrerFirstName: string
+  referredFirstName: string
+  referralSignupLink: string
+}): Promise<void> {
+  const referralSignupCelebrationTemplateId =
+    config.sendgrid.referralSignupCelebrationTemplate
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    referralSignupCelebrationTemplateId,
+    {
+      referrerFirstName: args.referrerFirstName,
+      referreredFirstName: args.referredFirstName,
+      referralSignupLink: args.referralSignupLink,
     }
   )
 }
