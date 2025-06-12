@@ -88,20 +88,20 @@ async function sendEmail(
   dynamicData: any,
   overrides: any = {}
 ): Promise<void> {
-  // if (isDevEnvironment() || isE2eEnvironment()) {
-  //   logger.debug(
-  //     {
-  //       toEmail,
-  //       fromEmail,
-  //       fromName,
-  //       templateId,
-  //       dynamicData,
-  //       overrides,
-  //     },
-  //     'sendEmail: skipping email send'
-  //   )
-  //   return
-  // }
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug(
+      {
+        toEmail,
+        fromEmail,
+        fromName,
+        templateId,
+        dynamicData,
+        overrides,
+      },
+      'sendEmail: skipping email send'
+    )
+    return
+  }
 
   const msg = {
     to: toEmail,
