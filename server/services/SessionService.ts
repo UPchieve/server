@@ -1035,15 +1035,7 @@ export async function getSessionHistory(
   userId: Ulid,
   filter: SessionHistoryFilter
 ) {
-  const [pastSessions, totalCount] = await Promise.all([
-    SessionRepo.getFilteredSessionHistory(userId, filter),
-    SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter),
-  ])
-
-  return {
-    pastSessions,
-    totalCount,
-  }
+  return SessionRepo.getFilteredSessionHistory(userId, filter)
 }
 
 export async function getTotalSessionHistory(
