@@ -514,6 +514,7 @@ export async function updateUserProfile(
     phone?: string
     smsConsent?: boolean
     mutedSubjectAlerts?: string[]
+    schoolId?: string
   }
 ) {
   await updateUserProfileById(userId, opts)

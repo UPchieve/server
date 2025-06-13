@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import { getClient, getRoClient, TransactionClient } from '../../db'
+import { upsertStudentProfile } from '../Student/pg.queries'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -628,21 +629,38 @@ export async function updateUserPhoneNumberByUserId(
 
 export async function updateUserProfileById(
   userId: Ulid,
-  data: Partial<User>
+  data: Partial<User> & { schoolId?: string }
 ): Promise<void> {
   try {
-    const result = await pgQueries.updateUserProfileById.run(
-      {
-        userId,
-        deactivated: data.deactivated,
-        phone: data.phone,
-        smsConsent: data.smsConsent,
-        preferredLanguage: data.preferredLanguage,
-      },
-      getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    if (
+      data.deactivated ||
+      data.phone ||
+      data.smsConsent ||
+      data.preferredLanguage
+    ) {
+      const result = await pgQueries.updateUserProfileById.run(
+        {
+          userId,
+          deactivated: data.deactivated,
+          phone: data.phone,
+          smsConsent: data.smsConsent,
+          preferredLanguage: data.preferredLanguage,
+        },
+        getClient()
+      )
+      if (!(result.length && makeRequired(result[0]).ok))
+        throw new RepoUpdateError('Update query did not return ok')
+    }
+
+    //update schoolId
+    debugger
+    if (data.schoolId) {
+      const userId = data.id as Ulid
+      await upsertStudentProfile.run(
+        { userId: userId, schoolId: data.schoolId },
+        getClient()
+      )
+    }
     // Update muted subject alerts for volunteers
     if (data.mutedSubjectAlerts) {
       if (data.mutedSubjectAlerts.length == 0) {

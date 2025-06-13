@@ -414,6 +414,7 @@ import { mocked } from 'jest-mock'
 import request from 'supertest'
 import { mockApp, mockPassportMiddleware } from '../mock-app'
 import * as UserRepo from '../../models/User/queries'
+import { upsertStudentProfile } from '../../models/Student/queries'
 import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
@@ -423,8 +424,10 @@ import { PrimaryUserRole } from '../../services/UserRolesService'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/UserRolesService')
+jest.mock('../../models/Student/queries')
 
 const mockUserRepo = mocked(UserRepo)
+const mockUpdateStudentProfile = mocked(upsertStudentProfile)
 const mockedUserRolesService = mocked(UserRolesService)
 const mockGetUser = () => buildStudent()
 const app = mockApp()
@@ -440,11 +443,13 @@ describe('UserService', () => {
       {
         deactivated: false,
         smsConsent: true,
+        schoolId: '00-34-33',
       },
       {
         deactivated: false,
         smsConsent: true,
         phone: '+8608880001',
+        schoolId: '00-34-33',
       },
     ])('Should call the user repo with the correct data', async (req) => {
       await UserService.updateUserProfile('123', req)
