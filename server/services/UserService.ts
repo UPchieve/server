@@ -61,6 +61,7 @@ import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
+import config from '../config'
 
 export async function parseUser(baseUser: UserContactInfo) {
   return runInTransaction(async (tc) => {
@@ -582,4 +583,8 @@ export async function countReferredUsers(
   }
 ): Promise<number> {
   return await UserRepo.countReferredUsers(referrerId, filters)
+}
+
+export function getReferralSignUpLink(referralCode: string): string {
+  return `${config.protocol}://${config.host}/referral/${referralCode}`
 }

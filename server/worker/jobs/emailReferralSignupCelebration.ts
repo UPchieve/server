@@ -3,7 +3,6 @@ import logger from '../../logger'
 import * as UserService from '../../services/UserService'
 import { sendReferralSignupCelebrationEmail } from '../../services/MailService'
 import { Job } from 'bull'
-import config from '../../config'
 
 export type EmailReferralSignupCelebrationJobData = {
   userId: Ulid
@@ -27,7 +26,7 @@ export default async function (
       email: user.email,
       referrerFirstName: user.firstName,
       referredFirstName: job.data.referredFirstName,
-      referralSignupLink: getReferralSignUpLink(user.referralCode),
+      referralSignupLink: UserService.getReferralSignUpLink(user.referralCode),
     })
   } catch (err) {
     logger.error(
@@ -38,8 +37,4 @@ export default async function (
       `${jobName}: Failed to send Referral Signup Celebration Email to user: ${err}`
     )
   }
-}
-
-function getReferralSignUpLink(referralCode: string): string {
-  return `${config.protocol}://${config.host}/referral/${referralCode}`
 }
