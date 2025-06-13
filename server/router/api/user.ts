@@ -27,7 +27,7 @@ export function routeUser(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
-      debugger
+
       const isDeactivated = req.body?.isDeactivated
         ? asBoolean(req.body.isDeactivated)
         : false
