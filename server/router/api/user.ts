@@ -27,12 +27,15 @@ export function routeUser(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
-
-      const isDeactivated = asBoolean(req.body.isDeactivated)
+      debugger
+      const isDeactivated = req.body?.isDeactivated
+        ? asBoolean(req.body.isDeactivated)
+        : false
 
       // Form request object
       let updateReq: { [k: string]: boolean | string | string[] } = {
         deactivated: isDeactivated,
+        ...req.body,
       }
 
       // optional fields

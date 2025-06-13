@@ -654,7 +654,6 @@ export async function updateUserProfileById(
 
     //update schoolId
     if (data.schoolId) {
-      const userId = data.id as Ulid
       await upsertStudentProfile.run(
         { userId, schoolId: data.schoolId },
         getClient()
