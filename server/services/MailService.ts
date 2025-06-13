@@ -529,24 +529,24 @@ export async function sendBecomeAnAmbassadorEmail(args: {
   )
 }
 
-export async function sendReferralSignupCelebrationEmail(args: {
+export async function sendReferralSignUpCelebrationEmail(args: {
   userId: Ulid
   email: string
   referrerFirstName: string
   referredFirstName: string
-  referralSignupLink: string
+  referralSignUpLink: string
 }): Promise<void> {
-  const referralSignupCelebrationTemplateId =
-    config.sendgrid.referralSignupCelebrationTemplate
+  const referralSignUpCelebrationTemplateId =
+    config.sendgrid.referralSignUpCelebrationTemplate
   await sendEmail(
     args.email,
     config.mail.senders.support,
     'UPchieve',
-    referralSignupCelebrationTemplateId,
+    referralSignUpCelebrationTemplateId,
     {
       referrerFirstName: args.referrerFirstName,
       referreredFirstName: args.referredFirstName,
-      referralSignupLink: args.referralSignupLink,
+      referralSignUpLink: args.referralSignUpLink,
     }
   )
 }

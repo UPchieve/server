@@ -147,7 +147,7 @@ export async function registerVolunteer(
 
   if (referredBy) {
     await QueueService.add(
-      Jobs.SendReferralSignupCelebrationEmail,
+      Jobs.SendReferralSignUpCelebrationEmail,
       {
         userId: referredBy,
         referredFirstName: volunteerData.firstName,
@@ -226,7 +226,7 @@ export async function registerPartnerVolunteer(
 
   if (referredBy) {
     await QueueService.add(
-      Jobs.SendReferralSignupCelebrationEmail,
+      Jobs.SendReferralSignUpCelebrationEmail,
       {
         userId: referredBy,
         referredFirstName: volunteerData.firstName,

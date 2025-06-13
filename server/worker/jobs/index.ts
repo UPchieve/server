@@ -62,7 +62,7 @@ import detectSessionLanguages from './detectSessionLanguages'
 import backfillCombinedQuizUsersOnboardedStatus from './backfill-onboarded-status-for-combined-quiz-users'
 import backfillStudentAmbassadorRole from '../../scripts/add-student-ambassador-role-for-user'
 import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
-import emailReferralSignupCelebration from './emailReferralSignupCelebration'
+import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -157,7 +157,7 @@ export enum Jobs {
 
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
-  SendReferralSignupCelebrationEmail = 'SendReferralSignupCelebrationEmail',
+  SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
 }
 
 // register new job processors here
@@ -463,8 +463,8 @@ const jobProcessors: JobProcessor[] = [
   },
 
   {
-    name: Jobs.SendReferralSignupCelebrationEmail,
-    processor: emailReferralSignupCelebration,
+    name: Jobs.SendReferralSignUpCelebrationEmail,
+    processor: emailReferralSignUpCelebration,
   },
 ]
 

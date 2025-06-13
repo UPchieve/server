@@ -1,18 +1,18 @@
 import { Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
 import * as UserService from '../../services/UserService'
-import { sendReferralSignupCelebrationEmail } from '../../services/MailService'
+import { sendReferralSignUpCelebrationEmail } from '../../services/MailService'
 import { Job } from 'bull'
 
-export type EmailReferralSignupCelebrationJobData = {
+export type EmailReferralSignUpCelebrationJobData = {
   userId: Ulid
   referredFirstName: string
 }
 
 export default async function (
-  job: Job<EmailReferralSignupCelebrationJobData>
+  job: Job<EmailReferralSignUpCelebrationJobData>
 ): Promise<void> {
-  const jobName = 'SendReferralSignupCelebrationEmail'
+  const jobName = 'SendReferralSignUpCelebrationEmail'
 
   try {
     const user = await UserService.getUserContactInfo(job.data.userId)
@@ -21,12 +21,12 @@ export default async function (
       throw new Error(`${jobName}: No user exists with ID ${job.data.userId}`)
     }
 
-    await sendReferralSignupCelebrationEmail({
+    await sendReferralSignUpCelebrationEmail({
       userId: user.id,
       email: user.email,
       referrerFirstName: user.firstName,
       referredFirstName: job.data.referredFirstName,
-      referralSignupLink: UserService.getReferralSignUpLink(user.referralCode),
+      referralSignUpLink: UserService.getReferralSignUpLink(user.referralCode),
     })
   } catch (err) {
     logger.error(
@@ -34,7 +34,7 @@ export default async function (
         error: err,
         userId: job.data.userId,
       },
-      `${jobName}: Failed to send Referral Signup Celebration Email to user: ${err}`
+      `${jobName}: Failed to send Referral SignUp Celebration Email to user: ${err}`
     )
   }
 }
