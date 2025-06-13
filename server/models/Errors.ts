@@ -118,3 +118,5 @@ export class MissingRecaptchaTokenError extends CustomError {
     )
   }
 }
+
+export class SessionJoinError extends CustomError {}

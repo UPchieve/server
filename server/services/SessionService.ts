@@ -19,7 +19,11 @@ import {
 } from '../constants'
 import logger from '../logger'
 import { DAYS } from '../constants'
-import { LookupError, NotAllowedError } from '../models/Errors'
+import {
+  LookupError,
+  NotAllowedError,
+  SessionJoinError,
+} from '../models/Errors'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
@@ -856,22 +860,24 @@ export async function ensureCanJoinSession(
 
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error('Session has ended.')
+    throw new SessionJoinError('Session has ended.')
   }
 
   if (isStudent && session.studentId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error(`A student cannot join another student's session.`)
+    throw new SessionJoinError(
+      `A student cannot join another student's session.`
+    )
   }
 
   if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error('A volunteer has already joined the session.')
+    throw new SessionJoinError('A volunteer has already joined the session.')
   }
 
   if (isVolunteer && session.studentId === user.id) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new Error(
+    throw new SessionJoinError(
       'You may not join your own session as both student and coach.'
     )
   }

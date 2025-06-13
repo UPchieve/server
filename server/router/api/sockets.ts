@@ -35,6 +35,7 @@ import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import * as UserRolesService from '../../services/UserRolesService'
+import { SessionJoinError } from '../../models/Errors'
 
 export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
 
@@ -117,9 +118,18 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           try {
             const user = await extractSocketUser(socket)
             await socketService.joinSession(socket, user, data.sessionId)
-            callback(data.sessionId)
+            callback({
+              sessionId: data.sessionId,
+              success: true,
+            })
             resolve()
           } catch (error) {
+            const isRetryable = !(error instanceof SessionJoinError)
+            callback({
+              sessionId: data.sessionId,
+              retry: isRetryable,
+              success: false,
+            })
             logger.error(`Unable to join socket session: ${error}`)
             resolve()
           }
