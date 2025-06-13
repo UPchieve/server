@@ -529,6 +529,28 @@ export async function sendBecomeAnAmbassadorEmail(args: {
   )
 }
 
+export async function sendReferralSignUpCelebrationEmail(args: {
+  userId: Ulid
+  email: string
+  referrerFirstName: string
+  referredFirstName: string
+  referralSignUpLink: string
+}): Promise<void> {
+  const referralSignUpCelebrationTemplateId =
+    config.sendgrid.referralSignUpCelebrationTemplate
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    referralSignUpCelebrationTemplateId,
+    {
+      referrerFirstName: args.referrerFirstName,
+      referreredFirstName: args.referredFirstName,
+      referralSignUpLink: args.referralSignUpLink,
+    }
+  )
+}
+
 export async function sendBannedUserAlert(
   userId: Ulid,
   banReason: USER_BAN_REASONS,

@@ -3,7 +3,6 @@ import logger from '../../logger'
 import * as UserService from '../../services/UserService'
 import { sendBecomeAnAmbassadorEmail } from '../../services/MailService'
 import { Job } from 'bull'
-import config from '../../config'
 import { getSendAmbassadorOpportunityEmailFeatureFlag } from '../../services/FeatureFlagService'
 
 export type EmailBecomeAnAmbassadorJobData = {
@@ -31,7 +30,7 @@ export default async function (
       userId: user.id,
       email: user.email,
       firstName: user.firstName,
-      referralSignUpLink: getReferralSignUpLink(user.referralCode),
+      referralSignUpLink: UserService.getReferralSignUpLink(user.referralCode),
     })
   } catch (err) {
     logger.error(
@@ -43,8 +42,4 @@ export default async function (
     )
     throw err
   }
-}
-
-function getReferralSignUpLink(referralCode: string): string {
-  return `${config.protocol}://${config.host}/referral/${referralCode}`
 }

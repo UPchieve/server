@@ -52,6 +52,8 @@ import * as MailService from './MailService'
 import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
 import { FederatedCredential } from '../models/FederatedCredential'
+import QueueService from './QueueService'
+import { Jobs } from '../worker/jobs'
 
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -143,6 +145,17 @@ export async function registerVolunteer(
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
+  if (referredBy) {
+    await QueueService.add(
+      Jobs.SendReferralSignUpCelebrationEmail,
+      {
+        userId: referredBy,
+        referredFirstName: volunteerData.firstName,
+      },
+      { removeOnComplete: true, removeOnFail: false }
+    )
+  }
+
   return volunteer
 }
 
@@ -210,6 +223,17 @@ export async function registerPartnerVolunteer(
 
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
+
+  if (referredBy) {
+    await QueueService.add(
+      Jobs.SendReferralSignUpCelebrationEmail,
+      {
+        userId: referredBy,
+        referredFirstName: volunteerData.firstName,
+      },
+      { removeOnComplete: true, removeOnFail: false }
+    )
+  }
 
   return volunteer
 }

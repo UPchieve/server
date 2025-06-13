@@ -57,6 +57,7 @@ const config: Static<typeof Config> = {
     partnerReadyToCoachTemplate: 'd-d2ba9920683b4bd4a159f496a2346583',
     customPartnerReadyToCoachTemplate: 'd-af9b19d3eef745b69709df7bf0c410c9',
     becomeAnAmbassadorTemplate: 'd-07e10d541a0c434dbbee2f704bac12ab',
+    referralSignUpCelebrationTemplate: 'd-07e10d541a0c434dbbee2f704bac12ab',
     bannedUserAlertTemplate: 'd-7be8a21a59664f99a1f540e43c79b793',
     referenceFollowupTemplate: 'd-6b0d96c0cf15469db7a5e6ec655cf37a',
     rejectedPhotoSubmissionTemplate: 'd-c6d146a9eb4e44f6acc94a29a131d50d',
