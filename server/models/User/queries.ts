@@ -653,11 +653,10 @@ export async function updateUserProfileById(
     }
 
     //update schoolId
-    debugger
     if (data.schoolId) {
       const userId = data.id as Ulid
       await upsertStudentProfile.run(
-        { userId: userId, schoolId: data.schoolId },
+        { userId, schoolId: data.schoolId },
         getClient()
       )
     }

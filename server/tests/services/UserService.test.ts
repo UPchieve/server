@@ -449,7 +449,6 @@ describe('UserService', () => {
         deactivated: false,
         smsConsent: true,
         phone: '+8608880001',
-        schoolId: '00-34-33',
       },
     ])('Should call the user repo with the correct data', async (req) => {
       await UserService.updateUserProfile('123', req)
