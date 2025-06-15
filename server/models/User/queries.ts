@@ -36,6 +36,7 @@ import {
   UserContactInfo,
   UserForCreateSendGridContact,
   UserForAdmin,
+  UserProfilePayload,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 
@@ -628,41 +629,51 @@ export async function updateUserPhoneNumberByUserId(
 }
 
 export async function updateUserProfileById(
-  userId: Ulid,
-  data: Partial<User> & { schoolId?: string }
+  userId: string,
+  data: UserProfilePayload
 ): Promise<void> {
   try {
-    if (
-      data.deactivated ||
-      data.phone ||
-      data.smsConsent ||
-      data.preferredLanguage
-    ) {
-      const result = await pgQueries.updateUserProfileById.run(
-        {
-          userId,
-          deactivated: data.deactivated,
-          phone: data.phone,
-          smsConsent: data.smsConsent,
-          preferredLanguage: data.preferredLanguage,
-        },
-        getClient()
-      )
-      if (!(result.length && makeRequired(result[0]).ok))
-        throw new RepoUpdateError('Update query did not return ok')
-    }
+    const updateProfileResult = await pgQueries.updateUserProfileById.run(
+      {
+        userId,
+        deactivated: data.deactivated,
+        phone: data.phone,
+        smsConsent: data.smsConsent,
+        preferredLanguage: data.preferredLanguage,
+      },
+      getClient()
+    )
 
-    //update schoolId
-    if (data.schoolId) {
-      await upsertStudentProfile.run(
-        { userId, schoolId: data.schoolId },
-        getClient()
-      )
-    }
-    // Update muted subject alerts for volunteers
-    if (data.mutedSubjectAlerts) {
-      if (data.mutedSubjectAlerts.length == 0) {
-        await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
+    if (
+      !(updateProfileResult.length && makeRequired(updateProfileResult[0]).ok)
+    )
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSubjectAlerts(
+  userId: string,
+  data: Pick<UserProfilePayload, 'mutedSubjectAlerts'>
+) {
+  try {
+    if (data?.mutedSubjectAlerts) {
+      //delete subjects
+      if (!data.mutedSubjectAlerts) {
+        const deleteSubjectAlertsResult =
+          await pgQueries.deleteAllUserSubjectAlerts.run(
+            { userId },
+            getClient()
+          )
+        if (
+          !(
+            deleteSubjectAlertsResult.length &&
+            makeRequired(deleteSubjectAlertsResult[0]).ok
+          )
+        )
+          throw new RepoUpdateError('Delete query did not return ok')
       } else {
         let subjectNameIdMapping: {
           [name: string]: number
@@ -676,16 +687,40 @@ export async function updateUserProfileById(
           subjectId: number
         }[] = []
         mutedSubjectAlertIds.forEach((subjectId) =>
-          mutedSubjectAlertIdsWithUserId.push({ userId, subjectId })
+          mutedSubjectAlertIdsWithUserId.push({
+            userId,
+            subjectId,
+          })
         )
-        await pgQueries.insertMutedUserSubjectAlerts.run(
-          { mutedSubjectAlertIdsWithUserId },
-          getClient()
-        )
-        await pgQueries.deleteUnmutedUserSubjectAlerts.run(
-          { userId, mutedSubjectAlertIds },
-          getClient()
-        )
+        const createSubjectAlerts =
+          await pgQueries.insertMutedUserSubjectAlerts.run(
+            { mutedSubjectAlertIdsWithUserId },
+            getClient()
+          )
+
+        if (
+          !(
+            createSubjectAlerts.length &&
+            makeRequired(createSubjectAlerts[0]).ok
+          )
+        ) {
+          throw new RepoUpdateError('Create query did not return ok')
+        }
+
+        const deleteSubjectAlerts =
+          await pgQueries.deleteUnmutedUserSubjectAlerts.run(
+            { userId, mutedSubjectAlertIds },
+            getClient()
+          )
+
+        if (
+          !(
+            deleteSubjectAlerts.length &&
+            makeRequired(deleteSubjectAlerts[0]).ok
+          )
+        ) {
+          throw new RepoUpdateError('Delete query did not return ok')
+        }
       }
     }
   } catch (err) {

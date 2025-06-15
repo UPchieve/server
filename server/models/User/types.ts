@@ -119,3 +119,12 @@ export type ReportedUser = Pick<
   studentPartnerOrg?: string
   volunteerPartnerOrg?: string
 }
+
+export type UserProfilePayload = {
+  deactivated: boolean
+  smsConsent?: boolean
+  mutedSubjectAlerts?: string[]
+  phone?: string
+  preferredLanguage?: string
+  schoolId?: string
+}

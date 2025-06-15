@@ -1,16 +1,18 @@
+import { Router } from 'express'
 import * as UserService from '../../services/UserService'
-import * as MailService from '../../services/MailService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as UserRolesService from '../../services/UserRolesService'
-import { getUserForAdminDetail, getUserIdByEmail } from '../../models/User/'
+import { updateUserProfile } from '../../services/UserProfileService'
+import {
+  getUserForAdminDetail,
+  getUserIdByEmail,
+  UserProfilePayload,
+} from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
-import { Router } from 'express'
 import { resError } from '../res-error'
 import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
-import { createAccountAction } from '../../models/UserAction'
-import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { InputError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
@@ -58,18 +60,10 @@ export function routeUser(router: Router): void {
         updateReq['preferredLanguage'] = preferredLanguage
       }
 
-      await UserService.updateUserProfile(user.id, updateReq)
+      updateUserProfile(user, ip, {
+        ...updateReq,
+      } as UserProfilePayload)
 
-      if (isDeactivated !== user.deactivated) {
-        await MailService.createContact(user.id)
-
-        if (isDeactivated)
-          await createAccountAction({
-            action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
-            userId: user.id,
-            ipAddress: ip,
-          })
-      }
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
