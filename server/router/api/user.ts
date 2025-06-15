@@ -35,7 +35,7 @@ export function routeUser(router: Router): void {
       // Form request object
       let updateReq: { [k: string]: boolean | string | string[] } = {
         deactivated: isDeactivated,
-        ...req.body,
+        ...(req.body?.schoolId ? { schoolId: req.body?.schoolId } : {}),
       }
 
       // optional fields
