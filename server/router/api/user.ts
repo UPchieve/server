@@ -60,7 +60,7 @@ export function routeUser(router: Router): void {
         updateReq['preferredLanguage'] = preferredLanguage
       }
 
-      updateUserProfile(user, ip, {
+      await updateUserProfile(user, ip, {
         ...updateReq,
       } as UserProfilePayload)
 

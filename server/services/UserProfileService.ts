@@ -12,7 +12,6 @@ export async function updateUserProfile(
   data: UserProfilePayload
 ) {
   runInTransaction(async (tc: TransactionClient) => {
-    debugger
     await updateUserProfileById(user.id, data)
     await updateSubjectAlerts(user.id, data)
 
