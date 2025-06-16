@@ -88,20 +88,20 @@ async function sendEmail(
   dynamicData: any,
   overrides: any = {}
 ): Promise<void> {
-  if (isDevEnvironment() || isE2eEnvironment()) {
-    logger.debug(
-      {
-        toEmail,
-        fromEmail,
-        fromName,
-        templateId,
-        dynamicData,
-        overrides,
-      },
-      'sendEmail: skipping email send'
-    )
-    return
-  }
+  // if (isDevEnvironment() || isE2eEnvironment()) {
+  //   logger.debug(
+  //     {
+  //       toEmail,
+  //       fromEmail,
+  //       fromName,
+  //       templateId,
+  //       dynamicData,
+  //       overrides,
+  //     },
+  //     'sendEmail: skipping email send'
+  //   )
+  //   return
+  // }
 
   const msg = {
     to: toEmail,
@@ -116,6 +116,8 @@ async function sendEmail(
     dynamic_template_data: dynamicData,
     ...overrides,
   }
+
+  console.log('****inside send email', msg)
 
   await sgMail.send(msg)
 }
@@ -545,7 +547,7 @@ export async function sendReferralSignUpCelebrationEmail(args: {
     referralSignUpCelebrationTemplateId,
     {
       referrerFirstName: args.referrerFirstName,
-      referreredFirstName: args.referredFirstName,
+      referredFirstName: args.referredFirstName,
       referralSignUpLink: args.referralSignUpLink,
     }
   )
