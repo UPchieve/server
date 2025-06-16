@@ -278,17 +278,33 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     socket.on('typing', (data) => {
       newrelic.startWebTransaction('/socket-io/typing', () => {
-        socket
-          .to(getSessionRoom(data.sessionId))
-          .emit('is-typing', { sessionId: data.sessionId })
+        new Promise<void>(async (resolve, reject) => {
+          try {
+            const user = await extractSocketUser(socket)
+            io.in(getSessionRoom(data.sessionId))
+              .except(user.id)
+              .emit('is-typing', { sessionId: data.sessionId })
+            resolve()
+          } catch {
+            reject()
+          }
+        })
       })
     })
 
     socket.on('notTyping', (data) => {
       newrelic.startWebTransaction('/socket-io/notTyping', () => {
-        socket
-          .to(getSessionRoom(data.sessionId))
-          .emit('not-typing', { sessionId: data.sessionId })
+        new Promise<void>(async (resolve, reject) => {
+          try {
+            const user = await extractSocketUser(socket)
+            io.in(getSessionRoom(data.sessionId))
+              .except(user.id)
+              .emit('not-typing', { sessionId: data.sessionId })
+            resolve()
+          } catch {
+            reject()
+          }
+        })
       })
     })
 
