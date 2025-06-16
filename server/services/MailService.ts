@@ -545,7 +545,7 @@ export async function sendReferralSignUpCelebrationEmail(args: {
     referralSignUpCelebrationTemplateId,
     {
       referrerFirstName: args.referrerFirstName,
-      referreredFirstName: args.referredFirstName,
+      referredFirstName: args.referredFirstName,
       referralSignUpLink: args.referralSignUpLink,
     }
   )
