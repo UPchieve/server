@@ -14,15 +14,13 @@ export async function updateUserProfile(
   runInTransaction(async (tc: TransactionClient) => {
     await updateUserProfileById(user.id, data)
     await updateSubjectAlerts(user.id, data)
-
-    data.schoolId &&
-      (await upsertStudentProfile(
-        {
-          userId: user.id,
-          schoolId: data.schoolId,
-        },
-        tc
-      ))
+    await upsertStudentProfile(
+      {
+        userId: user.id,
+        schoolId: data.schoolId,
+      },
+      tc
+    )
 
     if (data.deactivated !== user.deactivated) {
       await MailService.createContact(user.id)
