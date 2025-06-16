@@ -187,7 +187,7 @@ export async function registerPartnerVolunteer(
   }
 
   let referredBy: Ulid | undefined
-  if (referredBy) referredBy = await getReferredBy(referredByCode)
+  if (referredByCode) referredBy = await getReferredBy(referredByCode)
 
   // Volunteer partner org check
   let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration
