@@ -224,7 +224,7 @@ export async function registerPartnerVolunteer(
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
-  if (referredByCode) {
+  if (referredBy) {
     await QueueService.add(
       Jobs.SendReferralSignUpCelebrationEmail,
       {
