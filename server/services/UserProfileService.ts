@@ -15,26 +15,28 @@ export async function updateUserProfile(
     await updateUserProfileById(user.id, data)
     await updateSubjectAlerts(user.id, data)
 
-    if (data.schoolId) {
-      await upsertStudentProfile(
+    data.schoolId &&
+      (await upsertStudentProfile(
         {
           userId: user.id,
           schoolId: data.schoolId,
         },
         tc
+      ))
+
+    if (data.deactivated !== user.deactivated) {
+      await MailService.createContact(user.id)
+
+      await createAccountAction(
+        {
+          action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+          userId: user.id,
+          ipAddress: ipAdress,
+        },
+        tc
       )
     }
   })
-
-  if (data.deactivated !== user.deactivated) {
-    await MailService.createContact(user.id)
-
-    await createAccountAction({
-      action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
-      userId: user.id,
-      ipAddress: ipAdress,
-    })
-  }
 }
 
 //TODO move other user profile related code here
