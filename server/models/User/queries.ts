@@ -36,12 +36,7 @@ import {
   UserForCreateSendGridContact,
   UserForAdmin,
 } from './types'
-import {
-  IDeletePhoneResult,
-  IGetUsersWithIncompleteTrainingCourseResult,
-  IGetUsersWithNoTrainingCourseResult,
-} from './pg.queries'
-import { camelCaseKeys } from '../../tests/db-utils'
+import { IDeletePhoneResult } from './pg.queries'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -819,70 +814,5 @@ export async function updatePreferredLanguageToUser(
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
-  }
-}
-
-export async function getUsersWhoPassedUpc101Quiz(
-  tc: TransactionClient
-): Promise<string[]> {
-  try {
-    const result = await pgQueries.getUsersWhoPassedUpc101Quiz.run(
-      undefined,
-      tc
-    )
-    return result.map((r) => makeRequired(r).userId)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUsersWithIncompleteTrainingCourse(
-  userIds: string[],
-  tc: TransactionClient
-): Promise<string[]> {
-  try {
-    const result = await pgQueries.getUsersWithIncompleteTrainingCourse.run(
-      {
-        userIds,
-      },
-      tc
-    )
-    return result.map((r) => makeRequired(r).userId)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getUsersWithNoTrainingCourse(
-  userIds: string[],
-  tc: TransactionClient
-): Promise<string[]> {
-  try {
-    const result = await pgQueries.getUsersWithNoTrainingCourse.run(
-      {
-        userIds,
-      },
-      tc
-    )
-    return result.map((r) => makeRequired(r).userId as string)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function upsertCompleteUpchieve101TrainingCourses(
-  userIds: string[],
-  tc: TransactionClient
-) {
-  try {
-    const result = await pgQueries.upsertCompleteUpchieve101TrainingCourses.run(
-      {
-        userIds,
-      },
-      tc
-    )
-    return result.map((r) => makeRequired(r))
-  } catch (err) {
-    throw new RepoUpsertError(err)
   }
 }

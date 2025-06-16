@@ -59,11 +59,9 @@ import emailFallIncentiveSessionQualification from './student-emails/emailFallIn
 import generateSessionSummary from './generateSessionSummary'
 import processSessionEnded from './processSessionEnded'
 import detectSessionLanguages from './detectSessionLanguages'
-import backfillCombinedQuizUsersOnboardedStatus from './backfill-onboarded-status-for-combined-quiz-users'
 import backfillStudentAmbassadorRole from '../../scripts/add-student-ambassador-role-for-user'
 import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
-import backfillCompleteUpchieve101TrainingCourses from './backfill-upc101-training-courses'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -133,7 +131,6 @@ export enum Jobs {
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillOnboardedStatusForCombinedQuizUsers = 'BackfillOnboardedStatusForCombinedQuizUsers',
 
   // Delete scripts
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
@@ -159,8 +156,6 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
-
-  BackfillCompleteUpchieve101 = 'BackfillCompleteUpchieve101',
 }
 
 // register new job processors here
@@ -451,11 +446,6 @@ const jobProcessors: JobProcessor[] = [
     processor: migrateBannedAndTestUsersToBanType,
   },
   {
-    name: Jobs.BackfillOnboardedStatusForCombinedQuizUsers,
-    processor: backfillCombinedQuizUsersOnboardedStatus,
-  },
-
-  {
     name: Jobs.BackfillStudentAmbassadorRole,
     processor: backfillStudentAmbassadorRole,
   },
@@ -468,11 +458,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendReferralSignUpCelebrationEmail,
     processor: emailReferralSignUpCelebration,
-  },
-
-  {
-    name: Jobs.BackfillCompleteUpchieve101,
-    processor: backfillCompleteUpchieve101TrainingCourses,
   },
 ]
 
