@@ -125,6 +125,7 @@ export default async function sendWeeklyHourSummaryApology(): Promise<void> {
           summaryStats.totalElapsedAvailability,
           summaryStats.totalQuizzesPassed,
           summaryStats.totalVolunteerHours,
+          summaryStats.totalReferralMinutes,
           customCheck
         )
       if (!sentHourSummaryIntroEmail)

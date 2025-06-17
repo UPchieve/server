@@ -28,6 +28,7 @@ import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { ReportNoDataFoundError } from '../services/ReportService'
+import { countReferredUsers } from '../services/UserService'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -287,6 +288,7 @@ export function emptyHours(): HourSummaryStats {
     totalCoachingHours: 0,
     totalElapsedAvailability: 0,
     totalQuizzesPassed: 0,
+    totalReferralMinutes: 0,
   }
 }
 
@@ -304,11 +306,14 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
       await getVolunteerData(volunteer, start, end)
     const { totalTime, sessionTime, availabilityTime, certificationTime } =
       telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
+    const totalReferredVolunteers = Number(countReferredUsers(volunteer.id))
+    const totalReferralMinutes = totalReferredVolunteers * 12
     const row = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime),
+      totalReferralMinutes,
     } as HourSummaryStats
     return row
   } catch (error) {

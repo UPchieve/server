@@ -18,12 +18,14 @@ import { TransactionClient } from '../db'
 import { Sponsorship } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
+import { countReferredUsers } from './UserService'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
   totalQuizzesPassed: number
   totalElapsedAvailability: number
   totalVolunteerHours: number
+  totalReferralMinutes: number
 }
 
 export type VolunteerSubjectPresenceMap = { [subjectName: string]: number }
@@ -58,11 +60,16 @@ export async function getHourSummaryStats(
       Number(elapsedAvailability) * 0.1
     ).toFixed(2)
   )
+
+  const totalReferredVolunteers = Number(countReferredUsers(volunteerId))
+  const totalReferralMinutes = totalReferredVolunteers * 12
+
   return {
     totalCoachingHours,
     totalQuizzesPassed: quizzesPassed,
     totalElapsedAvailability: elapsedAvailability,
     totalVolunteerHours: totalVolunteerHours,
+    totalReferralMinutes: totalReferralMinutes,
   }
 }
 
