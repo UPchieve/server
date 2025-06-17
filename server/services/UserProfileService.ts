@@ -14,8 +14,9 @@ export async function updateUserProfile(
   await runInTransaction(async (tc: TransactionClient) => {
     await updateUserProfileById(user.id, data, tc)
 
-    if (user.roleContext.activeRole === 'student') {
+    if (user.roleContext.isActiveRole('volunteer')) {
       await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
+    } else if (user.roleContext.isActiveRole('student')) {
       await upsertStudentProfile(
         {
           userId: user.id,
