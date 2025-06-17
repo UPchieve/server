@@ -7,7 +7,7 @@ import { updateUserProfile } from '../../services/UserProfileService'
 import {
   getUserForAdminDetail,
   getUserIdByEmail,
-  UserProfilePayload,
+  EditUserProfilePayload,
 } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
@@ -62,7 +62,7 @@ export function routeUser(router: Router): void {
 
       await updateUserProfile(user, ip, {
         ...updateReq,
-      } as UserProfilePayload)
+      } as EditUserProfilePayload)
 
       res.sendStatus(200)
     } catch (err) {

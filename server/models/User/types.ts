@@ -120,7 +120,7 @@ export type ReportedUser = Pick<
   volunteerPartnerOrg?: string
 }
 
-export type UserProfilePayload = {
+export type EditUserProfilePayload = {
   deactivated: boolean
   smsConsent?: boolean
   mutedSubjectAlerts?: string[]

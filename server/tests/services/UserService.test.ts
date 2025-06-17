@@ -7,7 +7,7 @@ import * as UserService from '../../services/UserService'
 import { updateUserProfile } from '../../services/UserProfileService'
 import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid } from '../../models/pgUtils'
-import { UserProfilePayload, UserRole } from '../../models/User'
+import { EditUserProfilePayload, UserRole } from '../../models/User'
 import { PrimaryUserRole } from '../../services/UserRolesService'
 
 jest.mock('../../models/User/queries')
