@@ -62,7 +62,6 @@ import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
-  getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
   getStudentsInitiateDmsFeatureFlag,
 } from './FeatureFlagService'
@@ -1123,7 +1122,6 @@ export async function isEligibleForSessionRecap(
 }
 
 export enum DmIneligibilityReason {
-  DmFeatureFlag = 'DmFeatureFlag',
   PartnerStudentFeatureFlag = 'PartnerStudentFeatureFlag',
   SessionHasBannedParticipant = 'SessionHasBannedParticipant',
   Other = 'Other',
@@ -1176,12 +1174,6 @@ export async function isRecapDmsAvailable(
       }
   }
 
-  const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
-  if (!flag)
-    return {
-      isEligible: false,
-      ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
-    }
   // Only allow volunteers to initiate DMs, unless the student initiating DMs feature flag is on.
   const isVolunteer = userId === volunteerId
   if (isVolunteer) {
