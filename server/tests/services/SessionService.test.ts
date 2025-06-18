@@ -16,7 +16,10 @@ import { buildSession, buildVolunteer } from '../mocks/generate'
 import { LookupError } from '../../models/Errors'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { GetSessionByIdResult } from '../../models/Session'
-import { isRecapDmsAvailable } from '../../services/SessionService'
+import {
+  DmIneligibilityReason,
+  isRecapDmsAvailable,
+} from '../../services/SessionService'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
@@ -132,10 +135,13 @@ describe('SessionService', () => {
 
     it('Is available while neither user is complete-banned', async () => {
       mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(false)
-      expect(await getActual()).toEqual(true)
+      expect(await getActual()).toEqual({ eligible: true })
       // Now if one of them is banned, DMs shouldn't be available
       mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(true)
-      expect(await getActual()).toEqual(false)
+      expect(await getActual()).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.SessionHasBannedParticipant,
+      })
     })
 
     it('Is not available to partner students unless the FF is on', async () => {
@@ -147,22 +153,28 @@ describe('SessionService', () => {
       mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
         false
       )
-      expect(await getActual()).toEqual(false)
+      expect(await getActual()).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
+      })
       mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
         true
       )
-      expect(await getActual()).toEqual(true)
+      expect(await getActual()).toEqual({ eligible: true })
     })
 
     it('Is not available if the FF is off', async () => {
       mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
         false
       )
-      expect(await getActual()).toEqual(false)
+      expect(await getActual()).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
+      })
       mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
         true
       )
-      expect(await getActual()).toEqual(true)
+      expect(await getActual()).toEqual({ eligible: true })
     })
 
     it('Is only true for students if the volunteer has already sent some DMs', async () => {
@@ -173,12 +185,15 @@ describe('SessionService', () => {
         session.id,
         session.volunteerId!
       )
-      expect(actualForVolunteer).toEqual(true)
+      expect(actualForVolunteer).toEqual({ eligible: true })
       const actualForStudent = await isRecapDmsAvailable(
         session.id,
         session.studentId
       )
-      expect(actualForStudent).toEqual(false)
+      expect(actualForStudent).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
+      })
       mockSessionRepo.volunteerSentMessageAfterSessionEnded.mockResolvedValue(
         true
       )
@@ -186,7 +201,7 @@ describe('SessionService', () => {
         session.id,
         session.studentId
       )
-      expect(actualForStudentWhenThereAreDms).toEqual(true)
+      expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
     })
   })
 })

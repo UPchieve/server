@@ -404,13 +404,11 @@ export function routeSession(router: Router) {
         user.id,
         isTeacher
       )
-      const isSessionVolunteer = session.volunteerId === user.id
-
       const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
         session.id,
         user.id
       )
-      res.json({ session, isRecapDmsAvailable })
+      res.json({ session, isRecapDmsAvailable: isRecapDmsAvailable.eligible })
     } catch (err) {
       resError(res, err)
     }
