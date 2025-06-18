@@ -343,9 +343,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             const dbUser = await UserService.getUserContactInfo(user.id)
             if (!dbUser) return resolve()
             if (source === 'recap') {
-              const { eligible, ineligibleReason } =
+              const { isEligible, ineligibleReason } =
                 await SessionService.isRecapDmsAvailable(sessionId, dbUser.id)
-              if (!eligible) {
+              if (!isEligible) {
                 logger.warn(
                   { ineligibleReason },
                   'Dropping recap message because session is not eligible for DMs'

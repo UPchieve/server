@@ -1142,12 +1142,12 @@ export enum DmIneligibilityReason {
 export async function isRecapDmsAvailable(
   sessionId: Ulid,
   userId: Ulid
-): Promise<{ eligible: boolean; ineligibleReason?: DmIneligibilityReason }> {
+): Promise<{ isEligible: boolean; ineligibleReason?: DmIneligibilityReason }> {
   const hasBannedParticipant =
     await SessionRepo.sessionHasBannedParticipant(sessionId)
   if (hasBannedParticipant)
     return {
-      eligible: false,
+      isEligible: false,
       ineligibleReason: DmIneligibilityReason.SessionHasBannedParticipant,
     }
   const session = await SessionRepo.getSessionById(sessionId)
@@ -1162,7 +1162,7 @@ export async function isRecapDmsAvailable(
       },
       'isRecapDmsAvailable: Bad state - session is missing either student or volunteer'
     )
-    return { eligible: false, ineligibleReason: DmIneligibilityReason.Other }
+    return { isEligible: false, ineligibleReason: DmIneligibilityReason.Other }
   }
 
   const isAllowDmsToPartnerStudentsActive =
@@ -1171,7 +1171,7 @@ export async function isRecapDmsAvailable(
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg)
       return {
-        eligible: false,
+        isEligible: false,
         ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
       }
   }
@@ -1179,23 +1179,23 @@ export async function isRecapDmsAvailable(
   const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
   if (!flag)
     return {
-      eligible: false,
+      isEligible: false,
       ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
     }
   // Only allow volunteers to initiate DMs, unless the student initiating DMs feature flag is on.
   const isVolunteer = userId === volunteerId
   if (isVolunteer) {
-    return { eligible: true }
+    return { isEligible: true }
   } else {
     const canStudentsInitiateDms =
       await getStudentsInitiateDmsFeatureFlag(studentId)
     if (canStudentsInitiateDms) {
-      return { eligible: true }
+      return { isEligible: true }
     }
     const sentMessages =
       await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
     return {
-      eligible: sentMessages,
+      isEligible: sentMessages,
       ineligibleReason: sentMessages
         ? undefined
         : DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,

@@ -408,7 +408,7 @@ export function routeSession(router: Router) {
         session.id,
         user.id
       )
-      res.json({ session, isRecapDmsAvailable: isRecapDmsAvailable.eligible })
+      res.json({ session, isRecapDmsAvailable: isRecapDmsAvailable.isEligible })
     } catch (err) {
       resError(res, err)
     }

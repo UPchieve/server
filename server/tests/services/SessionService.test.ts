@@ -141,11 +141,11 @@ describe('SessionService', () => {
 
     it('Is available while neither user is complete-banned', async () => {
       mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(false)
-      expect(await getActual()).toEqual({ eligible: true })
+      expect(await getActual()).toEqual({ isEligible: true })
       // Now if one of them is banned, DMs shouldn't be available
       mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(true)
       expect(await getActual()).toEqual({
-        eligible: false,
+        isEligible: false,
         ineligibleReason: DmIneligibilityReason.SessionHasBannedParticipant,
       })
     })
@@ -160,13 +160,13 @@ describe('SessionService', () => {
         false
       )
       expect(await getActual()).toEqual({
-        eligible: false,
+        isEligible: false,
         ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
       })
       mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
         true
       )
-      expect(await getActual()).toEqual({ eligible: true })
+      expect(await getActual()).toEqual({ isEligible: true })
     })
 
     it('Is not available if the FF is off', async () => {
@@ -174,13 +174,13 @@ describe('SessionService', () => {
         false
       )
       expect(await getActual()).toEqual({
-        eligible: false,
+        isEligible: false,
         ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
       })
       mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
         true
       )
-      expect(await getActual()).toEqual({ eligible: true })
+      expect(await getActual()).toEqual({ isEligible: true })
     })
 
     it('Students can only send DMs when the FF is off if the volunteer has sent some messages already', async () => {
@@ -194,13 +194,13 @@ describe('SessionService', () => {
         session.id,
         session.volunteerId!
       )
-      expect(actualForVolunteer).toEqual({ eligible: true })
+      expect(actualForVolunteer).toEqual({ isEligible: true })
       const actualForStudent = await isRecapDmsAvailable(
         session.id,
         session.studentId
       )
       expect(actualForStudent).toEqual({
-        eligible: false,
+        isEligible: false,
         ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
       })
       mockSessionRepo.volunteerSentMessageAfterSessionEnded.mockResolvedValue(
@@ -210,7 +210,7 @@ describe('SessionService', () => {
         session.id,
         session.studentId
       )
-      expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
+      expect(actualForStudentWhenThereAreDms).toEqual({ isEligible: true })
     })
 
     it('Students can initiate DMs when the FF is on', async () => {
@@ -221,7 +221,7 @@ describe('SessionService', () => {
         session.id,
         session.studentId!
       )
-      expect(actual).toEqual({ eligible: true })
+      expect(actual).toEqual({ isEligible: true })
     })
   })
 })
