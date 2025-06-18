@@ -125,9 +125,15 @@ describe('SessionService', () => {
       mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
         true
       )
+      mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
+        false
+      )
       mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
         id: session.studentId,
       })
+      mockSessionRepo.volunteerSentMessageAfterSessionEnded.mockResolvedValue(
+        false
+      )
     })
 
     const getActual = async () =>
@@ -177,9 +183,12 @@ describe('SessionService', () => {
       expect(await getActual()).toEqual({ eligible: true })
     })
 
-    it('Is only true for students if the volunteer has already sent some DMs', async () => {
+    it('Students can only send DMs when the FF is off if the volunteer has sent some messages already', async () => {
       mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
         true
+      )
+      mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
+        false
       )
       const actualForVolunteer = await isRecapDmsAvailable(
         session.id,
@@ -202,6 +211,17 @@ describe('SessionService', () => {
         session.studentId
       )
       expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
+    })
+
+    it('Students can initiate DMs when the FF is on', async () => {
+      mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      const actual = await SessionService.isRecapDmsAvailable(
+        session.id,
+        session.studentId!
+      )
+      expect(actual).toEqual({ eligible: true })
     })
   })
 })

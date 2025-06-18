@@ -64,6 +64,7 @@ import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
+  getStudentsInitiateDmsFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
@@ -1163,7 +1164,6 @@ export async function isRecapDmsAvailable(
     )
     return { eligible: false, ineligibleReason: DmIneligibilityReason.Other }
   }
-  const isVolunteer = userId === volunteerId
 
   const isAllowDmsToPartnerStudentsActive =
     await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
@@ -1182,17 +1182,25 @@ export async function isRecapDmsAvailable(
       eligible: false,
       ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
     }
-  // Only allow volunteers to initiate DMs
-  // Students may send DMs if a DM conversation has already been started
-  const sentMessages =
-    await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
-  if (!isVolunteer && !sentMessages) {
+  // Only allow volunteers to initiate DMs, unless the student initiating DMs feature flag is on.
+  const isVolunteer = userId === volunteerId
+  if (isVolunteer) {
+    return { eligible: true }
+  } else {
+    const canStudentsInitiateDms =
+      await getStudentsInitiateDmsFeatureFlag(studentId)
+    if (canStudentsInitiateDms) {
+      return { eligible: true }
+    }
+    const sentMessages =
+      await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
     return {
-      eligible: false,
-      ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
+      eligible: sentMessages,
+      ineligibleReason: sentMessages
+        ? undefined
+        : DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
     }
   }
-  return { eligible: sentMessages || isVolunteer }
 }
 
 export async function getStudentSessionDetails(

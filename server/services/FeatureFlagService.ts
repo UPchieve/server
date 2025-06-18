@@ -64,6 +64,10 @@ export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
 }
 
+export async function getStudentsInitiateDmsFeatureFlag(userId: Ulid) {
+  return isFeatureEnabled(FEATURE_FLAGS.STUDENTS_INITIATE_DMS, userId)
+}
+
 export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
 }
@@ -151,13 +155,11 @@ export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
 }
 
 export async function getGenerateSessionSummaryFeatureFlag(userId: Uuid) {
-  return true
-  // return await isFeatureEnabled(FEATURE_FLAGS.GENERATE_SESSION_SUMMARY, userId)
+  return await isFeatureEnabled(FEATURE_FLAGS.GENERATE_SESSION_SUMMARY, userId)
 }
 
 export async function getSessionSummaryFeatureFlag(userId: Uuid) {
-  return true
-  // return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
+  return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
 }
 
 export async function getDisplayVolunteerLanguagesFlag(userId: Uuid) {
