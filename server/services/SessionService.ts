@@ -1133,13 +1133,26 @@ export async function isEligibleForSessionRecap(
  */
 export async function isRecapDmsAvailable(
   sessionId: Ulid,
-  studentId: Ulid,
-  volunteerId: Ulid,
-  isVolunteer: boolean
+  userId: Ulid
 ): Promise<boolean> {
   const hasBannedParticipant =
     await SessionRepo.sessionHasBannedParticipant(sessionId)
   if (hasBannedParticipant) return false
+  const session = await SessionRepo.getSessionById(sessionId)
+  const volunteerId = session.volunteerId
+  const studentId = session.studentId
+  if (!volunteerId || !studentId) {
+    logger.warn(
+      {
+        sessionId,
+        volunteerId,
+        studentId,
+      },
+      'isRecapDmsAvailable: Bad state - session is missing either student or volunteer'
+    )
+    return false
+  }
+  const isVolunteer = userId === volunteerId
 
   const isAllowDmsToPartnerStudentsActive =
     await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
@@ -1150,6 +1163,8 @@ export async function isRecapDmsAvailable(
 
   const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
   if (!flag) return false
+  // Only allow volunteers to initiate DMs
+  // Students may send DMs if a DM conversation has already been started
   const sentMessages =
     await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
   return sentMessages || isVolunteer
