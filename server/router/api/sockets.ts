@@ -342,14 +342,20 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             // Do not allow banned users to send DMs
             const dbUser = await UserService.getUserContactInfo(user.id)
             if (!dbUser) return resolve()
-            if (
-              source === 'recap' &&
-              !SessionService.isRecapDmsAvailable(sessionId, dbUser.id)
-            ) {
-              logger.warn(
-                'Dropping recap message because user is not eligible to send recap DMs'
-              )
-              return resolve()
+            if (source === 'recap') {
+              const { eligible, ineligibleReason } =
+                await SessionService.isRecapDmsAvailable(sessionId, dbUser.id)
+              if (!eligible) {
+                logger.warn(
+                  { ineligibleReason },
+                  'Dropping recap message because session is not eligible for DMs'
+                )
+                return reject(
+                  new Error(
+                    `Session is ineligible for DMs. Reason: ${ineligibleReason}`
+                  )
+                )
+              }
             }
 
             // TODO: handle this differently?
