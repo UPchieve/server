@@ -709,13 +709,9 @@ export async function sendHourSummaryEmail(
   const formattedVolunteerHours =
     getFormattedHourSummaryTime(totalVolunteerHours)
 
-  const hours = Math.floor(totalReferralMinutes / 60)
-  const minutes = totalReferralMinutes % 60
-
-  const formattedReferralHours =
-    (hours ? `${hours} hour${hours !== 1 ? 's' : ''}` : '') +
-    (hours && minutes ? ' and ' : '') +
-    (minutes ? `${minutes} minute${minutes !== 1 ? 's' : ''}` : '')
+  const formattedReferralHours = getFormattedHourSummaryTime(
+    totalReferralMinutes / 60
+  )
 
   const overrides = {
     asm: {

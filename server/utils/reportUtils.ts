@@ -35,6 +35,7 @@ import { countReferredUsers } from '../services/UserService'
  * acc is also typed any due to issues with Availability type
  */
 
+const VOLUNTEER_MINUTES_EARNED_PER_REFERRAL = 12
 interface Stamp {
   day: string
   hour: string
@@ -307,7 +308,8 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
     const { totalTime, sessionTime, availabilityTime, certificationTime } =
       telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
     const totalReferredVolunteers = Number(countReferredUsers(volunteer.id))
-    const totalReferralMinutes = totalReferredVolunteers * 12
+    const totalReferralMinutes =
+      totalReferredVolunteers * VOLUNTEER_MINUTES_EARNED_PER_REFERRAL
     const row = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
