@@ -83,7 +83,11 @@ LIMIT 1
 )
 SELECT
     sq.id::int AS question_id,
-    FORMAT(sq.question_text, most_recent_survey.subject_display_name) AS question_text,
+    CASE WHEN sq.replacement_column_1 IS NOT NULL THEN
+        FORMAT(sq.question_text, most_recent_survey.subject_display_name)
+    ELSE
+        sq.question_text
+    END AS question_text,
     ssq.display_priority,
     qt.name AS question_type,
     sub.response_id::int,
