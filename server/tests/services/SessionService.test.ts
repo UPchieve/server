@@ -1,10 +1,10 @@
-// test.todo('postgres migration')
-
 import * as SessionService from '../../services/SessionService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as SessionRepo from '../../models/Session/queries'
 import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics/queries'
 
 import * as SessionAudioRepo from '../../models/SessionAudio'
+import * as StudentRepo from '../../models/Student'
 import * as UserRepo from '../../models/User/queries'
 import {
   SESSION_REPORT_REASON,
@@ -14,83 +14,194 @@ import {
 import { mocked } from 'jest-mock'
 import { buildSession, buildVolunteer } from '../mocks/generate'
 import { LookupError } from '../../models/Errors'
+import { getDbUlid, Ulid } from '../../models/pgUtils'
+import { GetSessionByIdResult } from '../../models/Session'
+import {
+  DmIneligibilityReason,
+  isRecapDmsAvailable,
+} from '../../services/SessionService'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/SessionAudio')
 jest.mock('../../models/UserSessionMetrics/queries')
+jest.mock('../../models/Student/queries')
+jest.mock('../../services/FeatureFlagService')
 
-describe('reportSession', () => {
+describe('SessionService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    jest.resetAllMocks()
+  })
+
   const mockSessionRepo = mocked(SessionRepo)
   const mockUSMRepo = mocked(UserSessionMetricsRepo)
-  beforeEach(async () => {
-    jest.clearAllMocks()
-    jest.restoreAllMocks()
-  })
+  const mockedSessionAudioRepo = mocked(SessionAudioRepo)
+  const mockFeatureFlagService = mocked(FeatureFlagService)
+  const mockStudentRepo = mocked(StudentRepo)
 
-  test('should ban the user with ban_type of COMPLETE when reported', async () => {
-    const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
-    const reportMessage = 'User was rude'
-    const source = 'recap'
-    const user = buildVolunteer()
-    const session = buildSession({
-      studentId: 'studentId',
-      volunteerId: user.id,
-    })
-
-    mockSessionRepo.getSessionById.mockImplementation(async () => session)
-    const sessionId = session.id
-    mockSessionRepo.updateSessionReported.mockResolvedValue()
-
-    mockUSMRepo.getUserSessionMetricsByUserId.mockImplementation(
-      async () => undefined
-    )
-    const data = {
-      sessionId,
-      reportReason,
-      reportMessage,
-      source,
-    }
-
-    await SessionService.reportSession(user, data)
-
-    //Verify that the user was banned with the COMPLETE type
-    expect(UserRepo.banUserById).toHaveBeenCalledWith(
-      'studentId',
-      USER_BAN_TYPES.COMPLETE,
-      USER_BAN_REASONS.SESSION_REPORTED
-    )
-  })
-})
-
-describe('Session audio', () => {
-  describe('updateSessionAudio', () => {
-    const mockedSessionAudioRepo = mocked(SessionAudioRepo)
-    it('Throws a LookupError if the session audio does not exist', async () => {
-      mockedSessionAudioRepo.updateSessionAudio.mockResolvedValue(undefined)
-      await expect(() =>
-        SessionService.updateSessionAudio('123', {})
-      ).rejects.toThrow(LookupError)
-    })
-
-    it('Returns the updated SessionAudio', async () => {
-      const sessionId = '123'
-      const volunteerJoinedAt = new Date()
-      const sessionAudio = {
-        id: '123',
-        sessionId,
-        studentJoinedAt: new Date(),
-        volunteerJoinedAt,
-        resourceUri: 'resource-uri',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      mockedSessionAudioRepo.updateSessionAudio.mockResolvedValue(sessionAudio)
-      const result = await SessionService.updateSessionAudio(sessionId, {
-        volunteerJoinedAt,
+  describe('reportSession', () => {
+    test('should ban the user with ban_type of COMPLETE when reported', async () => {
+      const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
+      const reportMessage = 'User was rude'
+      const source = 'recap'
+      const user = buildVolunteer()
+      const session = buildSession({
+        studentId: 'studentId',
+        volunteerId: user.id,
       })
-      expect(result).toEqual(sessionAudio)
+
+      mockSessionRepo.getSessionById.mockImplementation(async () => session)
+      const sessionId = session.id
+      mockSessionRepo.updateSessionReported.mockResolvedValue()
+
+      mockUSMRepo.getUserSessionMetricsByUserId.mockImplementation(
+        async () => undefined
+      )
+      const data = {
+        sessionId,
+        reportReason,
+        reportMessage,
+        source,
+      }
+
+      await SessionService.reportSession(user, data)
+
+      //Verify that the user was banned with the COMPLETE type
+      expect(UserRepo.banUserById).toHaveBeenCalledWith(
+        'studentId',
+        USER_BAN_TYPES.COMPLETE,
+        USER_BAN_REASONS.SESSION_REPORTED
+      )
+    })
+  })
+
+  describe('Session audio', () => {
+    describe('updateSessionAudio', () => {
+      it('Throws a LookupError if the session audio does not exist', async () => {
+        mockedSessionAudioRepo.updateSessionAudio.mockResolvedValue(undefined)
+        await expect(() =>
+          SessionService.updateSessionAudio('123', {})
+        ).rejects.toThrow(LookupError)
+      })
+
+      it('Returns the updated SessionAudio', async () => {
+        const sessionId = '123'
+        const volunteerJoinedAt = new Date()
+        const sessionAudio = {
+          id: '123',
+          sessionId,
+          studentJoinedAt: new Date(),
+          volunteerJoinedAt,
+          resourceUri: 'resource-uri',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        mockedSessionAudioRepo.updateSessionAudio.mockResolvedValue(
+          sessionAudio
+        )
+        const result = await SessionService.updateSessionAudio(sessionId, {
+          volunteerJoinedAt,
+        })
+        expect(result).toEqual(sessionAudio)
+      })
+    })
+  })
+
+  describe('isRecapDmsAvailable', () => {
+    let session: GetSessionByIdResult
+
+    beforeEach(() => {
+      session = buildSession({
+        studentId: getDbUlid(),
+        volunteerId: getDbUlid(),
+      })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+      mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(false)
+      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
+        true
+      )
+      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
+        id: session.studentId,
+      })
+    })
+
+    const getActual = async () =>
+      await SessionService.isRecapDmsAvailable(session.id, session.volunteerId!)
+
+    it('Is available while neither user is complete-banned', async () => {
+      mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(false)
+      expect(await getActual()).toEqual({ eligible: true })
+      // Now if one of them is banned, DMs shouldn't be available
+      mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(true)
+      expect(await getActual()).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.SessionHasBannedParticipant,
+      })
+    })
+
+    it('Is not available to partner students unless the FF is on', async () => {
+      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
+        id: session.studentId,
+        studentPartnerOrg: 'some-partner-school',
+        approvedHighschool: 'HS',
+      })
+      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
+        false
+      )
+      expect(await getActual()).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
+      })
+      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
+        true
+      )
+      expect(await getActual()).toEqual({ eligible: true })
+    })
+
+    it('Is not available if the FF is off', async () => {
+      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
+        false
+      )
+      expect(await getActual()).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
+      })
+      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      expect(await getActual()).toEqual({ eligible: true })
+    })
+
+    it('Is only true for students if the volunteer has already sent some DMs', async () => {
+      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      const actualForVolunteer = await isRecapDmsAvailable(
+        session.id,
+        session.volunteerId!
+      )
+      expect(actualForVolunteer).toEqual({ eligible: true })
+      const actualForStudent = await isRecapDmsAvailable(
+        session.id,
+        session.studentId
+      )
+      expect(actualForStudent).toEqual({
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
+      })
+      mockSessionRepo.volunteerSentMessageAfterSessionEnded.mockResolvedValue(
+        true
+      )
+      const actualForStudentWhenThereAreDms = await isRecapDmsAvailable(
+        session.id,
+        session.studentId
+      )
+      expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
     })
   })
 })

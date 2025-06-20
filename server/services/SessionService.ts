@@ -1121,6 +1121,13 @@ export async function isEligibleForSessionRecap(
   return await SessionRepo.isEligibleForSessionRecap(sessionId)
 }
 
+export enum DmIneligibilityReason {
+  DmFeatureFlag = 'DmFeatureFlag',
+  PartnerStudentFeatureFlag = 'PartnerStudentFeatureFlag',
+  SessionHasBannedParticipant = 'SessionHasBannedParticipant',
+  Other = 'Other',
+  VolunteerHasNotInitiatedDmsYet = 'VolunteerHasNotInitiatedDmsYet',
+}
 /**
  *
  * - Banned users should not be able to send DMs in the recap page
@@ -1133,26 +1140,59 @@ export async function isEligibleForSessionRecap(
  */
 export async function isRecapDmsAvailable(
   sessionId: Ulid,
-  studentId: Ulid,
-  volunteerId: Ulid,
-  isVolunteer: boolean
-): Promise<boolean> {
+  userId: Ulid
+): Promise<{ eligible: boolean; ineligibleReason?: DmIneligibilityReason }> {
   const hasBannedParticipant =
     await SessionRepo.sessionHasBannedParticipant(sessionId)
-  if (hasBannedParticipant) return false
+  if (hasBannedParticipant)
+    return {
+      eligible: false,
+      ineligibleReason: DmIneligibilityReason.SessionHasBannedParticipant,
+    }
+  const session = await SessionRepo.getSessionById(sessionId)
+  const volunteerId = session.volunteerId
+  const studentId = session.studentId
+  if (!volunteerId || !studentId) {
+    logger.warn(
+      {
+        sessionId,
+        volunteerId,
+        studentId,
+      },
+      'isRecapDmsAvailable: Bad state - session is missing either student or volunteer'
+    )
+    return { eligible: false, ineligibleReason: DmIneligibilityReason.Other }
+  }
+  const isVolunteer = userId === volunteerId
 
   const isAllowDmsToPartnerStudentsActive =
     await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
-    if (student?.studentPartnerOrg) return false
+    if (student?.studentPartnerOrg)
+      return {
+        eligible: false,
+        ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
+      }
   }
 
   const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
-  if (!flag) return false
+  if (!flag)
+    return {
+      eligible: false,
+      ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
+    }
+  // Only allow volunteers to initiate DMs
+  // Students may send DMs if a DM conversation has already been started
   const sentMessages =
     await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
-  return sentMessages || isVolunteer
+  if (!isVolunteer && !sentMessages) {
+    return {
+      eligible: false,
+      ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
+    }
+  }
+  return { eligible: sentMessages || isVolunteer }
 }
 
 export async function getStudentSessionDetails(
