@@ -662,6 +662,7 @@ export type CurrentSession = {
   endedBy?: Ulid
   toolType: string
   docEditorVersion?: number
+  useNewZwibblerVersion?: boolean
   studentBannedFromLiveMedia?: boolean
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
@@ -860,32 +861,12 @@ export async function updateSessionVolunteerById(
   sessionId: Ulid,
   volunteerId: Ulid,
   tc?: TransactionClient
-): Promise<SessionWithSubjectAndTopic> {
+): Promise<void> {
   try {
-    const result = await pgQueries.updateSessionVolunteerById.run(
+    await pgQueries.updateSessionVolunteerById.run(
       { sessionId, volunteerId },
       tc ?? getClient()
     )
-    if (!result.length) {
-      throw new RepoUpdateError('Failed to add volunteer to session.')
-    }
-    const session = makeSomeRequired(result[0], [
-      'id',
-      'studentId',
-      'subjectId',
-      'subject',
-      'topic',
-      'hasWhiteboardDoc',
-      'reviewed',
-      'toReview',
-      'timeTutored',
-      'createdAt',
-      'updatedAt',
-    ])
-    return {
-      ...session,
-      timeTutored: Number(session.timeTutored),
-    }
   } catch (err) {
     throw new RepoUpdateError(err)
   }

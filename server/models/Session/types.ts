@@ -21,6 +21,7 @@ export type Session = {
 }
 
 export type SessionWithSubjectAndTopic = Session & {
+  toolType: string
   topic: string
   subject: string
 }

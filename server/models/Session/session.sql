@@ -759,24 +759,7 @@ SET
     updated_at = NOW()
 WHERE
     id = :sessionId!
-    AND volunteer_id IS NULL
-RETURNING
-    sessions.*,
-    (
-        SELECT
-            subjects.name
-        FROM
-            subjects
-        WHERE
-            subjects.id = sessions.subject_id) AS subject,
-    (
-        SELECT
-            topics.name
-        FROM
-            topics
-            JOIN subjects ON subjects.topic_id = topics.id
-        WHERE
-            subjects.id = sessions.subject_id) AS topic;
+    AND volunteer_id IS NULL;
 
 
 /* @name insertNewMessage */
