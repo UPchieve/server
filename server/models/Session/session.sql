@@ -1131,7 +1131,8 @@ WHERE
     AND (:subjectName::text IS NULL
         OR subjects.name = :subjectName)
 ORDER BY
-    created_at DESC;
+    created_at DESC
+LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
 /* @name getFilteredSessionHistoryTotalCount */

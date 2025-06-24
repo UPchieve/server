@@ -1045,12 +1045,26 @@ export type SessionHistoryFilter = {
   subjectName?: string
   volunteerId?: Ulid
 }
-
 export async function getSessionHistory(
   userId: Ulid,
+  pageNum: number,
+  pageLimit: number = 5,
   filter: SessionHistoryFilter
 ) {
-  return SessionRepo.getFilteredSessionHistory(userId, filter)
+  const fetchLimit = pageLimit + 1
+  const offset = (pageNum - 1) * pageLimit
+
+  const [pastSessions, totalCount] = await Promise.all([
+    SessionRepo.getFilteredSessionHistory(userId, fetchLimit, offset, filter),
+    SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter),
+  ])
+
+  return {
+    pastSessions: pastSessions.slice(0, pageLimit),
+    totalCount,
+    page: pageNum,
+    isLastPage: pastSessions.length < fetchLimit,
+  }
 }
 
 export async function getTotalSessionHistory(
