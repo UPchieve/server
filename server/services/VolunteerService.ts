@@ -203,6 +203,16 @@ export async function updatePendingVolunteerStatus(
     AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_APPROVED, {
       event: EVENTS.ACCOUNT_APPROVED,
     })
+
+    if (volunteerBeforeUpdate.onboarded) {
+      AnalyticsService.captureEvent(
+        volunteerId,
+        EVENTS.ACCOUNT_VOLUNTEER_READY,
+        {
+          event: EVENTS.ACCOUNT_VOLUNTEER_READY,
+        }
+      )
+    }
   }
   if (isNewlyApproved && !volunteerBeforeUpdate.onboarded)
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
@@ -288,6 +298,16 @@ export async function onboardVolunteer(
     AnalyticsService.captureEvent(volunteer.id, EVENTS.ACCOUNT_ONBOARDED, {
       event: EVENTS.ACCOUNT_ONBOARDED,
     })
+
+    if (volunteer.approved) {
+      AnalyticsService.captureEvent(
+        volunteerId,
+        EVENTS.ACCOUNT_VOLUNTEER_READY,
+        {
+          event: EVENTS.ACCOUNT_VOLUNTEER_READY,
+        }
+      )
+    }
   }
 }
 
