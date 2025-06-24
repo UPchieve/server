@@ -1264,16 +1264,12 @@ export type SessionForSessionHistory = {
 }
 export async function getFilteredSessionHistory(
   userId: Ulid,
-  limit: number,
-  offset: number,
   filter: SessionHistoryFilter = {}
 ): Promise<SessionForSessionHistory[]> {
   try {
     const params = {
       userId,
       minSessionLength: config.minSessionLength,
-      limit,
-      offset,
       studentFirstName: filter.studentFirstName || null,
       volunteerFirstName: filter.volunteerFirstName || null,
       subjectName: filter.subjectName || null,

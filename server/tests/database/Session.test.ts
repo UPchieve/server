@@ -46,11 +46,6 @@ describe('Session repo', () => {
 
         const total = await getFilteredSessionHistoryTotalCount(studentId)
         expect(total).toEqual(5)
-
-        const firstPage = await getFilteredSessionHistory(studentId, 4, 0)
-        const secondPage = await getFilteredSessionHistory(studentId, 4, 4)
-        expect(firstPage.length).toEqual(4)
-        expect(secondPage.length).toEqual(1)
       })
     })
   })
