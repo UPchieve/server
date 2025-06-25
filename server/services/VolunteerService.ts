@@ -205,13 +205,7 @@ export async function updatePendingVolunteerStatus(
     })
 
     if (volunteerBeforeUpdate.onboarded) {
-      AnalyticsService.captureEvent(
-        volunteerId,
-        EVENTS.ACCOUNT_VOLUNTEER_READY,
-        {
-          event: EVENTS.ACCOUNT_VOLUNTEER_READY,
-        }
-      )
+      AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_VOLUNTEER_READY)
     }
   }
   if (isNewlyApproved && !volunteerBeforeUpdate.onboarded)
@@ -300,13 +294,7 @@ export async function onboardVolunteer(
     })
 
     if (volunteer.approved) {
-      AnalyticsService.captureEvent(
-        volunteerId,
-        EVENTS.ACCOUNT_VOLUNTEER_READY,
-        {
-          event: EVENTS.ACCOUNT_VOLUNTEER_READY,
-        }
-      )
+      AnalyticsService.captureEvent(volunteerId, EVENTS.ACCOUNT_VOLUNTEER_READY)
     }
   }
 }
