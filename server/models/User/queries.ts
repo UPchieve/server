@@ -661,37 +661,26 @@ export async function updateSubjectAlerts(
   tc?: TransactionClient
 ) {
   try {
-    if (!mutedSubjectAlerts) {
-      await pgQueries.deleteAllUserSubjectAlerts.run(
-        { userId },
-        tc ?? getClient()
-      )
-    } else {
+    await pgQueries.deleteAllUserSubjectAlerts.run(
+      { userId },
+      tc ?? getClient()
+    )
+
+    if (mutedSubjectAlerts?.length) {
       let subjectNameIdMapping: {
         [name: string]: number
       } = await getSubjectNameIdMapping()
-      let mutedSubjectAlertIds = []
-      for (const subjectName of mutedSubjectAlerts) {
-        mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
-      }
-      let mutedSubjectAlertIdsWithUserId: {
+
+      const mutedSubjectAlertIdsWithUserId: {
         userId: Ulid
         subjectId: number
-      }[] = []
-      mutedSubjectAlertIds.forEach((subjectId) =>
-        mutedSubjectAlertIdsWithUserId.push({
-          userId,
-          subjectId,
-        })
-      )
+      }[] = mutedSubjectAlerts.map((subjectName) => ({
+        userId,
+        subjectId: subjectNameIdMapping[subjectName],
+      }))
 
       await pgQueries.insertMutedUserSubjectAlerts.run(
         { mutedSubjectAlertIdsWithUserId },
-        tc ?? getClient()
-      )
-
-      await pgQueries.deleteUnmutedUserSubjectAlerts.run(
-        { userId, mutedSubjectAlertIds },
         tc ?? getClient()
       )
     }
