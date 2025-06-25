@@ -662,18 +662,10 @@ export async function updateSubjectAlerts(
 ) {
   try {
     if (!mutedSubjectAlerts) {
-      const deleteSubjectAlertsResult =
-        await pgQueries.deleteAllUserSubjectAlerts.run(
-          { userId },
-          tc ?? getClient()
-        )
-      if (
-        !(
-          deleteSubjectAlertsResult.length &&
-          makeRequired(deleteSubjectAlertsResult[0]).ok
-        )
+      await pgQueries.deleteAllUserSubjectAlerts.run(
+        { userId },
+        tc ?? getClient()
       )
-        throw new RepoUpdateError('Delete query did not return ok')
     } else {
       let subjectNameIdMapping: {
         [name: string]: number
@@ -692,29 +684,16 @@ export async function updateSubjectAlerts(
           subjectId,
         })
       )
-      const createSubjectAlerts =
-        await pgQueries.insertMutedUserSubjectAlerts.run(
-          { mutedSubjectAlertIdsWithUserId },
-          tc ?? getClient()
-        )
 
-      if (
-        !(createSubjectAlerts.length && makeRequired(createSubjectAlerts[0]).ok)
-      ) {
-        throw new RepoUpdateError('Create query did not return ok')
-      }
+      await pgQueries.insertMutedUserSubjectAlerts.run(
+        { mutedSubjectAlertIdsWithUserId },
+        tc ?? getClient()
+      )
 
-      const deleteSubjectAlerts =
-        await pgQueries.deleteUnmutedUserSubjectAlerts.run(
-          { userId, mutedSubjectAlertIds },
-          tc ?? getClient()
-        )
-
-      if (
-        !(deleteSubjectAlerts.length && makeRequired(deleteSubjectAlerts[0]).ok)
-      ) {
-        throw new RepoUpdateError('Delete query did not return ok')
-      }
+      await pgQueries.deleteUnmutedUserSubjectAlerts.run(
+        { userId, mutedSubjectAlertIds },
+        tc ?? getClient()
+      )
     }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
