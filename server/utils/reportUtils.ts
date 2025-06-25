@@ -17,7 +17,10 @@ import {
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
-import { HourSummaryStats } from '../services/VolunteerService'
+import {
+  HourSummaryStats,
+  totalReferralMinutes,
+} from '../services/VolunteerService'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
@@ -307,15 +310,12 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
       await getVolunteerData(volunteer, start, end)
     const { totalTime, sessionTime, availabilityTime, certificationTime } =
       telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
-    const totalReferredVolunteers = Number(countReferredUsers(volunteer.id))
-    const totalReferralMinutes =
-      totalReferredVolunteers * VOLUNTEER_MINUTES_EARNED_PER_REFERRAL
     const row = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime),
-      totalReferralMinutes,
+      totalReferralMinutes: totalReferralMinutes(volunteer.id),
     } as HourSummaryStats
     return row
   } catch (error) {

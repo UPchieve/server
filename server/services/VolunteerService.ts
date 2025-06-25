@@ -36,6 +36,11 @@ type VolunteerSubjectProfile = {
   mutedSubjects: string[]
 }
 
+export function totalReferralMinutes(volunteerId: string) {
+  const totalReferredVolunteers = Number(countReferredUsers(volunteerId))
+  return totalReferredVolunteers * 12 // volunteer minutes earned per referral
+}
+
 export async function getHourSummaryStats(
   volunteerId: Uuid,
   fromDate: Date,
@@ -61,15 +66,12 @@ export async function getHourSummaryStats(
     ).toFixed(2)
   )
 
-  const totalReferredVolunteers = Number(countReferredUsers(volunteerId))
-  const totalReferralMinutes = totalReferredVolunteers * 12
-
   return {
     totalCoachingHours,
     totalQuizzesPassed: quizzesPassed,
     totalElapsedAvailability: elapsedAvailability,
     totalVolunteerHours: totalVolunteerHours,
-    totalReferralMinutes: totalReferralMinutes,
+    totalReferralMinutes: totalReferralMinutes(volunteerId),
   }
 }
 
