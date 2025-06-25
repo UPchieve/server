@@ -702,11 +702,16 @@ export async function sendHourSummaryEmail(
   totalElapsedAvailability: number,
   totalQuizzesPassed: number,
   totalVolunteerHours: number,
+  totalReferralMinutes: number,
   customOrg = false
 ): Promise<void> {
   const formattedCoachingHours = getFormattedHourSummaryTime(totalCoachingHours)
   const formattedVolunteerHours =
     getFormattedHourSummaryTime(totalVolunteerHours)
+
+  const formattedReferralHours = getFormattedHourSummaryTime(
+    totalReferralMinutes / 60
+  )
 
   const overrides = {
     asm: {
@@ -736,6 +741,7 @@ export async function sendHourSummaryEmail(
       totalElapsedAvailability,
       totalQuizzesPassed,
       totalVolunteerTime: formattedVolunteerHours,
+      totalReferralHours: formattedReferralHours,
     },
     overrides
   )

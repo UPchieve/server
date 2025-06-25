@@ -73,6 +73,7 @@ export default async (
       summaryStats.totalElapsedAvailability,
       summaryStats.totalQuizzesPassed,
       summaryStats.totalVolunteerHours,
+      summaryStats.totalReferralMinutes,
       customCheck
     )
     if (!sentHourSummaryIntroEmail)

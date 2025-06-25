@@ -17,7 +17,10 @@ import {
   VolunteerForTelecomReport,
 } from '../models/Volunteer/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
-import { HourSummaryStats } from '../services/VolunteerService'
+import {
+  HourSummaryStats,
+  totalReferralMinutes,
+} from '../services/VolunteerService'
 import { InputError } from '../models/Errors'
 import countCerts from './count-certs'
 import roundUpToNearestInterval from './round-up-to-nearest-interval'
@@ -28,12 +31,14 @@ import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { ReportNoDataFoundError } from '../services/ReportService'
+import { countReferredUsers } from '../services/UserService'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
  * acc is also typed any due to issues with Availability type
  */
 
+const VOLUNTEER_MINUTES_EARNED_PER_REFERRAL = 12
 interface Stamp {
   day: string
   hour: string
@@ -287,6 +292,7 @@ export function emptyHours(): HourSummaryStats {
     totalCoachingHours: 0,
     totalElapsedAvailability: 0,
     totalQuizzesPassed: 0,
+    totalReferralMinutes: 0,
   }
 }
 
@@ -309,6 +315,7 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime),
+      totalReferralMinutes: totalReferralMinutes(volunteer.id),
     } as HourSummaryStats
     return row
   } catch (error) {
