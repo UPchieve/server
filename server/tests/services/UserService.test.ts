@@ -4,10 +4,9 @@ import { mockApp, mockPassportMiddleware } from '../mock-app'
 import * as UserRepo from '../../models/User/queries'
 import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
-import { updateUserProfile } from '../../services/UserProfileService'
 import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid } from '../../models/pgUtils'
-import { EditUserProfilePayload, UserRole } from '../../models/User'
+import { UserRole } from '../../models/User'
 import { PrimaryUserRole } from '../../services/UserRolesService'
 
 jest.mock('../../models/User/queries')
@@ -20,7 +19,7 @@ const mockGetUser = () => buildStudent()
 const app = mockApp()
 app.use(mockPassportMiddleware(mockGetUser))
 const agent = request.agent(app)
-describe('User Profile', () => {
+describe('User Service', () => {
   describe('deletePhoneFromAccount', () => {
     it('Should throw an error if it is a volunteer account', async () => {
       const userId = getDbUlid()
