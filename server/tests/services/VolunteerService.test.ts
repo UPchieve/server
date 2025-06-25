@@ -26,6 +26,7 @@ describe('onboardVolunteer', () => {
     firstName: 'Volunteer',
     email: 'volunteer@email.com',
     onboarded: false,
+    approved: false,
     subjects: ['algebraOne'],
     hasCompletedUpchieve101: true,
     availabilityLastModifiedAt: new Date(),

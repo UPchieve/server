@@ -216,6 +216,7 @@ SELECT
     email,
     first_name,
     volunteer_profiles.onboarded,
+    volunteer_profiles.approved,
     COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,
     country,
     MAX(availabilities.updated_at) AS availability_last_modified_at,
@@ -249,6 +250,7 @@ WHERE
 GROUP BY
     users.id,
     onboarded,
+    approved,
     country,
     volunteer_partner_org_key;
 

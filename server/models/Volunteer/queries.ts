@@ -373,6 +373,7 @@ export type VolunteerForOnboarding = Pick<
   'id' | 'email' | 'firstName'
 > & {
   onboarded: boolean
+  approved: boolean
   hasCompletedUpchieve101: boolean
   subjects: string[]
   availabilityLastModifiedAt?: Date
