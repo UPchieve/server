@@ -19,6 +19,8 @@ import {
 import { isDevEnvironment } from '../../utils/environments'
 import config from '../../config'
 import logger from '../../logger'
+import { Uuid } from '../../models/pgUtils'
+import { USER_ROLES_TYPE } from '../../constants'
 
 async function passportLoginUser(
   profileId: string,
@@ -93,22 +95,24 @@ async function passportRegisterUser(
 
 type SSOProfile = passport.Profile & {
   issuer: string
-  userType: string
-  schoolId?: string
+  userType: USER_ROLES_TYPE
+  schoolId?: Uuid
+  // TODO: When including ClassLink rostering, normalize to a similar type
   teacher?: {
-    classes: any[]
-    students: any[]
+    classes: CleverAPIService.TCleverSectionData[]
+    students: CleverAPIService.TCleverStudentData[]
   }
 }
 
 type SSOHandlerOptions = {
   providerName: 'Clever' | 'ClassLink'
-  isStudent: (userType: string) => boolean
-  isTeacher: (userType: string) => boolean
+  isStudent: (userType: USER_ROLES_TYPE) => boolean
+  isTeacher: (userType: USER_ROLES_TYPE) => boolean
+  // TODO: When including ClassLink rostering, normalize to a similar type
   rosterTeacher?: (
-    userId: string,
-    classes: any[],
-    students: any[]
+    userId: Uuid,
+    classes: CleverAPIService.TCleverSectionData[],
+    students: CleverAPIService.TCleverStudentData[]
   ) => Promise<void>
 }
 
