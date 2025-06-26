@@ -383,6 +383,10 @@ const config: Static<typeof Config> = {
   cleverClientId: process.env.CLEVER_CLIENT_ID || 'bogus',
   cleverClientSecret: process.env.CLEVER_CLIENT_SECRET || 'bogus',
 
+  classlinkClientId: process.env.CLASSLINK_CLIENT_ID || 'bogus',
+  classlinkClientSecret: process.env.CLASSLINK_CLIENT_SECRET || 'bogus',
+  classlinkRosterApiKey: process.env.CLASSLINK_ROSTER_API_KEY || 'bogus',
+
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
   openAIModelId: process.env.SUBWAY_OPEN_AI_MODEL_ID || 'bogus',

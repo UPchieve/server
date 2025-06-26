@@ -244,6 +244,11 @@ export const Config = Record({
   cleverClientId: String,
   cleverClientSecret: String,
 
+  // ClassLink
+  classlinkClientId: String,
+  classlinkClientSecret: String,
+  classlinkRosterApiKey: String,
+
   minSessionLength: Number,
 
   openAIModelId: String,
