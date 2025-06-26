@@ -328,9 +328,17 @@ export function getApiKeyFromHeader(req: Request) {
   return apiKey
 }
 
+export type SsoProvider = 'google' | 'clever' | 'classlink'
+
+const supportedSsoProviders = new Set<SsoProvider>([
+  'google',
+  'clever',
+  'classlink',
+])
+
 export function isSupportedSsoProvider(provider?: string) {
   if (!provider) return false
-  return provider === 'google' || provider === 'clever'
+  return supportedSsoProviders.has(provider as SsoProvider)
 }
 
 // Passport functions
