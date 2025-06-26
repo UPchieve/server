@@ -20,12 +20,6 @@ export type Session = {
   updatedAt: Date
 }
 
-export type SessionWithSubjectAndTopic = Session & {
-  toolType: string
-  topic: string
-  subject: string
-}
-
 export type GetSessionByIdResult = {
   id: Ulid
   studentId: Ulid
