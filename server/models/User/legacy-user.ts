@@ -95,6 +95,7 @@ export type LegacyUserModel = {
   isSchoolPartner?: boolean
   usesClever?: boolean
   usesGoogle?: boolean
+  usesClassLink?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
   // teacher
@@ -151,7 +152,7 @@ export async function getLegacyUserObject(
       const sessionStats = await getUserSessionStats(userId)
       const volunteerUser: any = {}
       const studentUser: any = {}
-      const teacherUser: { usesClever?: boolean } = {}
+      const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
       const roleContext = await UserRolesService.getRoleContext(userId)
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
@@ -162,6 +163,9 @@ export async function getLegacyUserObject(
           baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
         studentUser.usesClever =
           baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
+        studentUser.usesClassLink =
+          baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
+          false
         delete baseUser.issuers
         studentUser.studentAssignments =
           await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
@@ -213,6 +217,9 @@ export async function getLegacyUserObject(
       if (roleContext.isActiveRole('teacher')) {
         teacherUser.usesClever =
           baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
+        teacherUser.usesClassLink =
+          baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
+          false
       }
       const final = _.merge(
         {
