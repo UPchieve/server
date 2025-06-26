@@ -15,9 +15,7 @@ import {
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
-  SessionMetrics,
   Session,
-  SessionWithSubjectAndTopic,
 } from './types'
 import 'moment-timezone'
 import {
@@ -662,7 +660,6 @@ export type CurrentSession = {
   endedBy?: Ulid
   toolType: string
   docEditorVersion?: number
-  useNewZwibblerVersion?: boolean
   studentBannedFromLiveMedia?: boolean
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
