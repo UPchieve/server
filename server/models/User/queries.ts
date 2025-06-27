@@ -1,6 +1,5 @@
 import logger from '../../logger'
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { upsertStudentProfile } from '../Student/pg.queries'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
