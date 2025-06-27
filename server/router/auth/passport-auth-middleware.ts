@@ -3,7 +3,7 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as GoogleStrategy } from 'passport-google-oidc'
 import ClassLinkStrategy, {
-  TClassLinkPassportProfile,
+  ClassLinkPassportProfile,
 } from './classlink-strategy'
 import CleverStrategy, { TCleverPassportProfile } from './clever-strategy'
 import * as UserRepo from '../../models/User/queries'
@@ -299,7 +299,7 @@ export function addPassportAuthMiddleware() {
       req: Request,
       _accessToken: string,
       _refreshToken: string,
-      profile: TClassLinkPassportProfile,
+      profile: ClassLinkPassportProfile,
       done: Function
     ) {
       try {
@@ -311,7 +311,6 @@ export function addPassportAuthMiddleware() {
         )
         if (existingFedCred) {
           if (userData && profile.userType === 'student') {
-            // Where does UserData really come from? I don't understand it...
             const data = {
               schoolId: userData.schoolId,
               studentPartnerOrgKey: (userData as RegisterStudentPayload)
@@ -408,7 +407,7 @@ async function getUserVerificationByEmails(
 
 function getRedirectURI() {
   const host = isDevEnvironment()
-    ? `${config.protocol}://'localhost:3000'`
+    ? `http://localhost:3000`
     : `${config.protocol}://${config.host}`
   return `${host}/auth/oauth2/redirect`
 }

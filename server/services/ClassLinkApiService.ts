@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const CLASSLINK_API_BASE = 'https://nodeapi.classlink.com'
 
-export type ClassLinkProfileRoles =
+export type ClassLinkProfileRole =
   | 'Student'
   | 'Teacher'
   | 'Tenant Administrator'
@@ -27,7 +27,7 @@ type ClassLinkProfile = {
   ProfileId: number
   Tenant: string
   Building: string
-  Role: ClassLinkProfileRoles
+  Role: ClassLinkProfileRole
   Role_Level: number
   LastAccessTime: Date
   OrgId: string[]
@@ -43,6 +43,7 @@ type ClassLinkDistrict = {
   ncesName: string
 }
 
+// TODO: May need to distinguish access token types (e.g user vs. district) for rostering later
 export async function getUserProfile(accessToken: string) {
   const response = await axios.get<ClassLinkProfile>(
     `${CLASSLINK_API_BASE}/v2/my/info`,
