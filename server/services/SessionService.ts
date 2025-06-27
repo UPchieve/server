@@ -34,7 +34,6 @@ import {
   Session,
   SessionsToReview,
   SessionTranscript,
-  SessionWithSubjectAndTopic,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -399,19 +398,8 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   }
 }
 
-function getUseNewZwibblerVersionKey(sessionId: Ulid): string {
-  return `${sessionId}-use-new-zwibbler-version`
-}
-
 async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
   return Number(await cache.get(`${sessionId}-doc-editor-version`))
-}
-
-async function useNewZwibblerVersion(sessionId: Ulid): Promise<boolean> {
-  return (
-    ((await cache.getIfExists(getUseNewZwibblerVersionKey(sessionId))) ??
-      'false') === 'true'
-  )
 }
 
 async function setDocEditorVersion(
@@ -424,27 +412,13 @@ async function setDocEditorVersion(
   )
 }
 
-async function setUseNewZwibblerVersion(
-  sessionId: Ulid,
-  value: boolean
-): Promise<void> {
-  return cache.saveWithExpiration(
-    getUseNewZwibblerVersionKey(sessionId),
-    value.toString()
-  )
-}
-
-// TODO: Remove after midtown clean-up.
-export async function addToolVersionTo(session: {
+export async function addDocEditorVersionTo(session: {
   id: Ulid
   toolType: string
   docEditorVersion?: number
-  useNewZwibblerVersion?: boolean
 }): Promise<void> {
   if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
     session.docEditorVersion = await getDocEditorVersion(session.id)
-  } else {
-    session.useNewZwibblerVersion = await useNewZwibblerVersion(session.id)
   }
 }
 
@@ -636,7 +610,6 @@ export async function startSession(
     assignmentId,
     presessionSurvey,
     docEditorVersion,
-    useNewZwibblerVersion,
     userAgent,
     ip,
   } = data
@@ -712,8 +685,6 @@ export async function startSession(
     // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
     // and looking for this value before it's set.
     await setDocEditorVersion(newSession.id, `${docEditorVersion ?? 1}`)
-  } else {
-    await setUseNewZwibblerVersion(newSession.id, !!useNewZwibblerVersion)
   }
 
   if (!isUserBanned) {
@@ -731,7 +702,6 @@ export async function startSession(
   return {
     ...newSession,
     docEditorVersion,
-    useNewZwibblerVersion: !!useNewZwibblerVersion,
   }
 }
 
@@ -745,7 +715,7 @@ export async function checkSession(data: unknown) {
 export async function currentSession(userId: Ulid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
   if (session) {
-    await addToolVersionTo(session)
+    await addDocEditorVersionTo(session)
   }
   return session
 }
@@ -798,10 +768,7 @@ export async function joinSession(
     joinedFrom?: string
   }
 ): Promise<Session> {
-  const session: GetSessionByIdResult = await ensureCanJoinSession(
-    user,
-    sessionId
-  )
+  const session = await ensureCanJoinSession(user, sessionId)
 
   const sessionAnalyticsData = {
     userId: user.id,
@@ -860,7 +827,7 @@ export async function joinSession(
     }
   }
 
-  await addToolVersionTo(session)
+  await addDocEditorVersionTo(session)
 
   const isStudent = user.roleContext.isActiveRole('student')
   if (!isInitialVolunteerJoin || isStudent) {

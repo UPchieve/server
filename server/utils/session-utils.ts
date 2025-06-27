@@ -173,7 +173,6 @@ export interface StartSessionData extends RequestIdentifier {
   topic: string
   assignmentId?: string
   docEditorVersion?: number
-  useNewZwibblerVersion?: boolean
 }
 export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
@@ -184,7 +183,6 @@ export const asStartSessionData = asFactory<StartSessionData>({
   topic: asCamelCaseString,
   assignmentId: asOptional(asString),
   docEditorVersion: asOptional(asNumber),
-  useNewZwibblerVersion: asOptional(asBoolean),
 })
 
 export interface SessionsToReviewData {
