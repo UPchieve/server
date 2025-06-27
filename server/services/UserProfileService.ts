@@ -1,10 +1,10 @@
 import { updateUserProfileById, updateSubjectAlerts } from '../models/User'
 import { UserContactInfo, EditUserProfilePayload } from '../models/User/types'
-import { upsertStudentProfile } from '../models/Student'
 import { runInTransaction, TransactionClient } from '../db'
 import { createAccountAction } from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import * as MailService from './MailService'
+import { upsertStudent } from './UserCreationService'
 
 export async function updateUserProfile(
   user: UserContactInfo,
@@ -17,13 +17,7 @@ export async function updateUserProfile(
     if (user.roleContext.isActiveRole('volunteer')) {
       await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
     } else if (user.roleContext.isActiveRole('student')) {
-      await upsertStudentProfile(
-        {
-          userId: user.id,
-          schoolId: data.schoolId,
-        },
-        tc
-      )
+      await upsertStudent({ userId: user.id, schoolId: data.schoolId }, tc)
     }
   })
 
