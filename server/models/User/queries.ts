@@ -630,11 +630,14 @@ export async function updateUserPhoneNumberByUserId(
 
 export async function updateUserProfileById(
   userId: string,
-  data: EditUserProfilePayload,
+  data: Pick<
+    EditUserProfilePayload,
+    'deactivated' | 'phone' | 'smsConsent' | 'preferredLanguage'
+  >,
   tc?: TransactionClient
 ): Promise<void> {
   try {
-    const updateProfileResult = await pgQueries.updateUserProfileById.run(
+    await pgQueries.updateUserProfileById.run(
       {
         userId,
         deactivated: data.deactivated,
@@ -644,11 +647,6 @@ export async function updateUserProfileById(
       },
       tc ?? getClient()
     )
-
-    if (
-      !(updateProfileResult.length && makeRequired(updateProfileResult[0]).ok)
-    )
-      throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -658,16 +656,13 @@ export async function updateUserProfileById(
 export async function updateSubjectAlerts(
   userId: string,
   mutedSubjectAlerts: string[] | undefined,
-  tc?: TransactionClient
+  tc: TransactionClient
 ) {
   try {
-    await pgQueries.deleteAllUserSubjectAlerts.run(
-      { userId },
-      tc ?? getClient()
-    )
+    await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, tc)
 
     if (mutedSubjectAlerts?.length) {
-      let subjectNameIdMapping: {
+      const subjectNameIdMapping: {
         [name: string]: number
       } = await getSubjectNameIdMapping()
 

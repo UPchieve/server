@@ -25,20 +25,17 @@ export async function updateUserProfile(
         tc
       )
     }
-
-    if (data.deactivated !== user.deactivated) {
-      await MailService.createContact(user.id)
-
-      await createAccountAction(
-        {
-          action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
-          userId: user.id,
-          ipAddress: ipAddress,
-        },
-        tc
-      )
-    }
   })
+
+  if (data.deactivated !== user.deactivated) {
+    await MailService.createContact(user.id)
+
+    await createAccountAction({
+      action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+      userId: user.id,
+      ipAddress: ipAddress,
+    })
+  }
 }
 
 //TODO move other user profile related code here
