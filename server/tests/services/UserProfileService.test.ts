@@ -94,14 +94,11 @@ describe('User Profile', () => {
       })
 
       expect(createContact).toHaveBeenCalledWith(mockedVolunteer.id)
-      expect(createAccountAction).toHaveBeenCalledWith(
-        {
-          action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
-          userId: mockedVolunteer.id,
-          ipAddress: '123',
-        },
-        expect.anything()
-      )
+      expect(createAccountAction).toHaveBeenCalledWith({
+        action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+        userId: mockedVolunteer.id,
+        ipAddress: '123',
+      })
     })
   })
 })
