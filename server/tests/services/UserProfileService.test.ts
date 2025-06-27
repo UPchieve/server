@@ -54,7 +54,7 @@ describe('User Profile', () => {
       )
     })
 
-    it('Should call update subject alerts', async () => {
+    it('Volunteer should call update subject alerts', async () => {
       await updateUserProfile(mockedVolunteer, '123', DEFAULT_VOLUNTEER_REQUEST)
 
       expect(mockUserRepo.updateSubjectAlerts).toHaveBeenCalledWith(
@@ -70,7 +70,7 @@ describe('User Profile', () => {
       expect(mockUserRepo.updateSubjectAlerts).toHaveBeenCalledTimes(0)
     })
 
-    it('Should update school', async () => {
+    it('Student should update school', async () => {
       const schoolId = '1235'
       await updateUserProfile(mockedStudent, '123', {
         ...DEFAULT_REQUEST,
