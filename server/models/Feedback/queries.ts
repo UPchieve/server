@@ -61,7 +61,7 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
 // need this for session review, which still displays legacy feedback
 export async function getFeedbackBySessionId(
   sessionId: Ulid,
-  client: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<Feedback | undefined> {
   try {
     const result = await pgQueries.getFeedbackBySessionId.run(

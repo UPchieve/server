@@ -751,10 +751,7 @@ export async function publicSession(data: unknown) {
 
 export async function getSessionNotifications(data: unknown) {
   const sessionId = asString(data)
-  return NotificationRepo.getSessionNotificationsWithSessionId(
-    sessionId,
-    getClient()
-  )
+  return NotificationRepo.getSessionNotificationsWithSessionId(sessionId)
 }
 
 export async function joinSession(

@@ -23,9 +23,6 @@ import {
   deactivateSchoolStudentPartnerOrgs,
 } from '../StudentPartnerOrg'
 import { FormattedSchoolNcesMetadataRecord } from '../../scripts/upsert-schools'
-import { asNumber } from '../../utils/type-utils'
-import { toTitleCase } from '../../utils/string-utils'
-import logger from '../../logger'
 import { AdminUpdate } from '../../services/SchoolService'
 import { isSchoolApproved } from '../../services/EligibilityService'
 
@@ -134,7 +131,7 @@ export async function updateApproval(
   }
 }
 
-export async function updateIsPartner(
+export async function updateIsPartner( // @TODO - Split into separate query functions and have service call all in a transaction
   schoolId: Ulid,
   isPartner: boolean,
   existingStudentPartnerOrgId: string | undefined,
@@ -146,34 +143,32 @@ export async function updateIsPartner(
     )
 
   try {
-    await runInTransaction(async (tc) => {
-      // Set schools.partner.
-      // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
-      const result = await pgQueries.updateIsPartner.run(
-        { schoolId, isPartner },
-        tc
+    // Set schools.partner.
+    // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
+    const result = await pgQueries.updateIsPartner.run(
+      { schoolId, isPartner },
+      client
+    )
+    const school = await getSchoolById(schoolId, client)
+    if (!school)
+      throw new Error(
+        `Cannot update partner status: School with id ${schoolId} does not exist`
       )
-      const school = await getSchoolById(schoolId, tc)
-      if (!school)
-        throw new Error(
-          `Cannot update partner status: School with id ${schoolId} does not exist`
-        )
-      if (isPartner) {
-        if (!existingStudentPartnerOrgId) {
-          await createSchoolStudentPartnerOrg(school.id, tc)
-        }
-        await createStudentPartnerOrgUpchieveInstance(schoolId, tc)
-      } else {
-        await deactivateSchoolStudentPartnerOrgs(schoolId, tc)
+    if (isPartner) {
+      if (!existingStudentPartnerOrgId) {
+        await createSchoolStudentPartnerOrg(school.id, client)
       }
-      if (result.length) return makeRequired(result[0])
-    }, client)
+      await createStudentPartnerOrgUpchieveInstance(schoolId, client)
+    } else {
+      await deactivateSchoolStudentPartnerOrgs(schoolId, client)
+    }
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
 
-export async function adminUpdateSchool(
+export async function adminUpdateSchool( // @TODO - Split into separate query functions and have service call all in a transaction
   data: AdminUpdate,
   client: TransactionClient
 ): Promise<void> {
