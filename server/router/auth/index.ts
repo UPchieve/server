@@ -6,6 +6,7 @@ import * as StudentService from '../../services/StudentService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   authPassport,
+  getSsoProviderFromReferer,
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
@@ -101,7 +102,7 @@ export function routes(app: Express) {
   // Redirect URI for SSO providers.
   router.route('/oauth2/redirect').get((req, res) => {
     const {
-      provider = req.headers.referer?.includes('clever') ? 'clever' : '',
+      provider = getSsoProviderFromReferer(req.headers.referer),
       isLogin = true,
       redirect = '',
       errorRedirect = '',
