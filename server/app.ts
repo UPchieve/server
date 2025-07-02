@@ -24,6 +24,8 @@ import socketServer from './socket-server'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
 import { Server as Engine } from 'engine.io'
+import setupLTI from './lti/index'
+import * as https from 'https'
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) next()
@@ -122,7 +124,13 @@ if (isDevEnvironment()) {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerYaml))
 }
 
-export const server = http.createServer(app)
+const privateKey = fs.readFileSync('certs/server.key', 'utf8')
+const certificate = fs.readFileSync('certs/server.cert', 'utf8')
+const credentials = { key: privateKey, cert: certificate }
+
+setupLTI(app)
+
+export const server = https.createServer(credentials, app)
 // Initialize Express WebSockets.
 const wsInstance = expressWs(app, server)
 // Initialize socket-io.
