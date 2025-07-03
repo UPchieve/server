@@ -13,8 +13,8 @@ async function setupLTI(app) {
       appRoute: '/',
       loginRoute: '/login',
       cookie: {
-        secure: true,
-        sameSite: 'None',
+        secure: false,
+        sameSite: 'Lax',
       },
       devMode: true,
     }
@@ -27,6 +27,19 @@ async function setupLTI(app) {
 
   const setup = async () => {
     await lti.deploy({ app, serverless: true })
+
+    await lti.registerPlatform({
+      url: 'http://localhost:3000', // or your Canvas URL if remote
+      name: 'Canvas',
+      clientId: '10000000000001',
+      authenticationEndpoint:
+        'https://canvas.instructure.com/login/oauth2/auth', // Canvas OAuth endpoint
+      accesstokenEndpoint: 'https://canvas.instructure.com/login/oauth2/token',
+      authConfig: {
+        method: 'JWK_SET',
+        key: 'https://canvas.instructure.com/api/lti/security/jwks',
+      },
+    })
   }
 
   setup()

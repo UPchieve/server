@@ -130,7 +130,7 @@ const credentials = { key: privateKey, cert: certificate }
 
 setupLTI(app)
 
-export const server = https.createServer(credentials, app)
+export const server = http.createServer(app)
 // Initialize Express WebSockets.
 const wsInstance = expressWs(app, server)
 // Initialize socket-io.
