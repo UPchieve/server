@@ -88,7 +88,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
         res.json({ success: false })
         return
       }
-      ;``
+
       const user = await getUserReferralLink(req.user.id)
       if (!user) {
         res.json({ success: false })
