@@ -97,7 +97,10 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
 
       const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
       const phoneNumber = asString(req.body.phoneNumber)
-      const message = `this is the message and here is my referral link ${referralLink}`
+      const message = `Hey! Want to change lives in your spare time? ✨
+        ${user.firstName} is volunteering online at UPchieve to tutor students at low-income schools and thought you'd enjoy it, too! 🍎 
+        💬 It's all chat & audio based and you can tutor as little or as much as you want. (Plus earn volunteer hours!) 
+        Sign up today to start making an impact! ${referralLink}`
 
       await sendTextMessage(phoneNumber, message)
       res.json({ success: true })
