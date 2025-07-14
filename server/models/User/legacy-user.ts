@@ -109,7 +109,8 @@ export type LegacyUserModel = {
 // TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
   userId: Ulid,
-  client?: TransactionClient
+  client?: TransactionClient,
+  forceLoginAsStudent = false
 ): Promise<LegacyUserModel> {
   try {
     return await runInTransaction(async (client) => {
@@ -153,8 +154,21 @@ export async function getLegacyUserObject(
       const sessionStats = await getUserSessionStats(userId)
       const volunteerUser: any = {}
       const studentUser: any = {}
+
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
-      const roleContext = await UserRolesService.getRoleContext(userId)
+      let roleContext = await UserRolesService.getRoleContext(userId)
+
+      if (
+        forceLoginAsStudent &&
+        roleContext.canBeStudent() &&
+        !roleContext.isCurrentlyStudent()
+      ) {
+        const { newRoleContext } = await UserRolesService.switchActiveRole(
+          userId,
+          'student'
+        )
+        roleContext = newRoleContext
+      }
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {

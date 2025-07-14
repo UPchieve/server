@@ -66,9 +66,14 @@ export function routes(app: Express) {
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     async function (req: Request, res: Response) {
-      const legacyUser = await getLegacyUserObject(extractUser(req).id)
-      await trackLoggedIn(legacyUser.id, req.ip)
-      res.json({ user: legacyUser })
+      let user = await getLegacyUserObject(
+        extractUser(req).id,
+        undefined,
+        req.body?.forceLoginAsStudent
+      )
+
+      await trackLoggedIn(user.id, req.ip)
+      res.json({ user: user })
     }
   )
 

@@ -36,6 +36,14 @@ export class RoleContext {
   isAdmin() {
     return this.hasRole('admin')
   }
+
+  canBeStudent() {
+    return this.hasRole('student')
+  }
+
+  isCurrentlyStudent() {
+    return this.isActiveRole('student')
+  }
 }
 
 export async function getRoleContext(
@@ -81,19 +89,22 @@ export async function getRoleContext(
 export async function switchActiveRole(
   userId: string,
   newActiveRole: PrimaryUserRole
-): Promise<PrimaryUserRole> {
+): Promise<{ newActiveRole: PrimaryUserRole; newRoleContext: RoleContext }> {
   const existingRoleContext = await getRoleContext(userId)
   if (!existingRoleContext.hasRole(newActiveRole))
     throw new InputError('User does not have the requested role')
   if (existingRoleContext.activeRole === newActiveRole)
-    return existingRoleContext.activeRole
+    return {
+      newActiveRole: existingRoleContext.activeRole,
+      newRoleContext: existingRoleContext,
+    }
   const newRoleContext = new RoleContext(
     existingRoleContext.roles,
     newActiveRole,
     existingRoleContext.legacyRole
   )
   await updateRoleContext(userId, newRoleContext)
-  return newActiveRole
+  return { newActiveRole, newRoleContext }
 }
 
 async function updateRoleContext(
