@@ -350,28 +350,22 @@ UPDATE
     sessions
 SET
     ended_at = :endedAt!,
-    ended_by_role_id = subquery.id,
     updated_at = NOW()
-FROM (
-    SELECT
-        user_roles.id
-    FROM
-        sessions
-    LEFT JOIN user_roles ON TRUE
-WHERE
-    sessions.id = :sessionId!
-    AND user_roles.name = (
-        CASE WHEN sessions.volunteer_id = :endedBy THEN
-            'volunteer'
-        WHEN sessions.student_id = :endedBy THEN
-            'student'
-        ELSE
-            'admin'
-        END)) AS subquery
 WHERE
     sessions.id = :sessionId!
 RETURNING
-    sessions.id AS ok;
+    sessions.id,
+    sessions.created_at,
+    sessions.ended_at,
+    sessions.volunteer_joined_at,
+    :endedBy::uuid AS ended_by,
+    CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN
+        'volunteer'
+    WHEN sessions.student_id = :endedBy::uuid THEN
+        'student'
+    ELSE
+        'admin'
+    END AS ended_by_user_role;
 
 
 /* @name getLongRunningSessions */

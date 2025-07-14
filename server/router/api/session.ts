@@ -66,7 +66,7 @@ export function routeSession(router: Router) {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
       const user = extractUser(req)
-      await SessionService.endSession(
+      const endedSession = await SessionService.endSession(
         asUlid(req.body.sessionId),
         user.id,
         false,
@@ -76,7 +76,7 @@ export function routeSession(router: Router) {
           ip: req.ip,
         }
       )
-      res.json({ sessionId: req.body.sessionId })
+      res.json({ sessionId: req.body.sessionId, session: endedSession })
     } catch (error) {
       resError(res, error)
     }
