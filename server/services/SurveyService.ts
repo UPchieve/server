@@ -30,11 +30,12 @@ import {
   asOptional,
   asString,
 } from '../utils/type-utils'
-import { USER_ROLES_TYPE, USER_ROLES, FEEDBACK_EVENTS } from '../constants'
-import { emitter } from './EventsService'
+import { USER_ROLES_TYPE, USER_ROLES } from '../constants'
 import { partition } from 'lodash'
 import { processFeedbackMetrics } from './SessionFlagsService'
 import { TransactionClient } from '../db'
+import QueueService from './QueueService'
+import { Jobs } from '../worker/jobs'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -72,6 +73,8 @@ export async function getContextSharingForVolunteer(
   }
 }
 
+const FIVE_MINUTES = 1000 * 60 * 5
+
 export async function saveUserSurvey(
   userId: Ulid,
   data: SaveSurveyAndSubmissions,
@@ -96,6 +99,12 @@ export async function saveUserSurvey(
     )
     if (surveyType === 'postsession') {
       await processFeedbackMetrics(userSurvey.sessionId)
+
+      await QueueService.add(
+        Jobs.MaybeSendStudentFeedbackToVolunteer,
+        { sessionId: userSurvey.sessionId },
+        { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
+      )
     }
   }
 }
@@ -319,4 +328,11 @@ export async function getLatestUserSubmissionsForSurveyId(
   tc?: TransactionClient
 ) {
   return getLatestUserSubmissionsForSurveyBySurveyId(userId, surveyId, tc)
+}
+
+export async function getStudentFeedbackForSession(
+  sessionId: Ulid,
+  tc?: TransactionClient
+) {
+  return SurveyRepo.getStudentFeedbackForSession(sessionId, tc)
 }

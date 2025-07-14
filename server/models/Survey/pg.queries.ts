@@ -979,3 +979,124 @@ const getSurveyTypeFromSurveyTypeIdIR: any = {"usedParamSet":{"surveyTypeId":tru
 export const getSurveyTypeFromSurveyTypeId = new PreparedQuery<IGetSurveyTypeFromSurveyTypeIdParams,IGetSurveyTypeFromSurveyTypeIdResult>(getSurveyTypeFromSurveyTypeIdIR);
 
 
+/** 'GetStudentFeedbackForSession' parameters type */
+export interface IGetStudentFeedbackForSessionParams {
+  sessionId: string;
+}
+
+/** 'GetStudentFeedbackForSession' return type */
+export interface IGetStudentFeedbackForSessionResult {
+  howMuchDidYourCoachPushYouToDoYourBestWorkToday: number | null;
+  howSupportiveWasYourCoachToday: number | null;
+  response: string | null;
+  sessionId: string | null;
+}
+
+/** 'GetStudentFeedbackForSession' query type */
+export interface IGetStudentFeedbackForSessionQuery {
+  params: IGetStudentFeedbackForSessionParams;
+  result: IGetStudentFeedbackForSessionResult;
+}
+
+const getStudentFeedbackForSessionIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":152}]}],"statement":"WITH session AS (\n    SELECT\n        id,\n        student_id,\n        volunteer_id\n    FROM\n        upchieve.sessions s\n    WHERE\n        id = :sessionId!\n),\n                                                                       \nresponses AS (\n    SELECT\n        sesh.volunteer_id,\n        us.session_id,\n        u.first_name AS student_first_name,\n        q.question_text,\n        uss.open_response,\n        src.score\n    FROM\n        upchieve.users_surveys us\n        INNER JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n        INNER JOIN upchieve.survey_types st ON us.survey_type_id = st.id\n        INNER JOIN session sesh ON sesh.id = us.session_id\n        INNER JOIN users u ON u.id = sesh.student_id\n        INNER JOIN upchieve.surveys s ON s.id = us.survey_id\n        INNER JOIN survey_questions q ON q.id = uss.survey_question_id\n        INNER JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id\n    WHERE\n        st.name = 'postsession'\n                          \n        AND s.role_id = 1\n        AND (q.question_text = 'Overall, how supportive was your coach today?'\n            OR q.question_text = 'Overall, how much did your coach push you to do your best work today?'\n            OR q.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.')\n),\n                                                                 \nopen_responses_and_scores AS (\n    SELECT\n        session_id,\n        question_text,\n        open_response,\n        score\n    FROM\n        responses\n    WHERE\n        open_response IS NOT NULL\n    UNION ALL\n    SELECT\n        session_id,\n        question_text,\n        open_response,\n        score\n    FROM\n        responses\n),\naggregated_session_responses AS (\n    SELECT\n        session_id,\n        array_to_string(array_agg(DISTINCT open_response), ',') AS response,\n        json_agg(json_build_object(question_text, score)) AS responses\nFROM\n    open_responses_and_scores\nGROUP BY\n    session_id\n),\nwith_q_columns AS (\n    SELECT\n        asr.session_id,\n        asr.response,\n        (r.response_object ->> 'Overall, how much did your coach push you to do your best work today?')::int AS \"How much did your coach push you to do your best work today?\",\n        (r.response_object ->> 'Overall, how supportive was your coach today?')::int AS \"How supportive was your coach today?\"\n    FROM\n        aggregated_session_responses asr,\n        LATERAL json_array_elements(asr.responses) AS r (response_object)\n),\nresults AS (\n    SELECT\n        session_id,\n        response,\n        max(\"How much did your coach push you to do your best work today?\") AS \"How much did your coach push you to do your best work today?\",\n        max(\"How supportive was your coach today?\") AS \"How supportive was your coach today?\"\n    FROM\n        with_q_columns\n    GROUP BY\n        session_id,\n        response\n)\nSELECT\n    *\nFROM\n    results"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH session AS (
+ *     SELECT
+ *         id,
+ *         student_id,
+ *         volunteer_id
+ *     FROM
+ *         upchieve.sessions s
+ *     WHERE
+ *         id = :sessionId!
+ * ),
+ *                                                                        
+ * responses AS (
+ *     SELECT
+ *         sesh.volunteer_id,
+ *         us.session_id,
+ *         u.first_name AS student_first_name,
+ *         q.question_text,
+ *         uss.open_response,
+ *         src.score
+ *     FROM
+ *         upchieve.users_surveys us
+ *         INNER JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+ *         INNER JOIN upchieve.survey_types st ON us.survey_type_id = st.id
+ *         INNER JOIN session sesh ON sesh.id = us.session_id
+ *         INNER JOIN users u ON u.id = sesh.student_id
+ *         INNER JOIN upchieve.surveys s ON s.id = us.survey_id
+ *         INNER JOIN survey_questions q ON q.id = uss.survey_question_id
+ *         INNER JOIN upchieve.survey_response_choices AS src ON uss.survey_response_choice_id = src.id
+ *     WHERE
+ *         st.name = 'postsession'
+ *                           
+ *         AND s.role_id = 1
+ *         AND (q.question_text = 'Overall, how supportive was your coach today?'
+ *             OR q.question_text = 'Overall, how much did your coach push you to do your best work today?'
+ *             OR q.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.')
+ * ),
+ *                                                                  
+ * open_responses_and_scores AS (
+ *     SELECT
+ *         session_id,
+ *         question_text,
+ *         open_response,
+ *         score
+ *     FROM
+ *         responses
+ *     WHERE
+ *         open_response IS NOT NULL
+ *     UNION ALL
+ *     SELECT
+ *         session_id,
+ *         question_text,
+ *         open_response,
+ *         score
+ *     FROM
+ *         responses
+ * ),
+ * aggregated_session_responses AS (
+ *     SELECT
+ *         session_id,
+ *         array_to_string(array_agg(DISTINCT open_response), ',') AS response,
+ *         json_agg(json_build_object(question_text, score)) AS responses
+ * FROM
+ *     open_responses_and_scores
+ * GROUP BY
+ *     session_id
+ * ),
+ * with_q_columns AS (
+ *     SELECT
+ *         asr.session_id,
+ *         asr.response,
+ *         (r.response_object ->> 'Overall, how much did your coach push you to do your best work today?')::int AS "How much did your coach push you to do your best work today?",
+ *         (r.response_object ->> 'Overall, how supportive was your coach today?')::int AS "How supportive was your coach today?"
+ *     FROM
+ *         aggregated_session_responses asr,
+ *         LATERAL json_array_elements(asr.responses) AS r (response_object)
+ * ),
+ * results AS (
+ *     SELECT
+ *         session_id,
+ *         response,
+ *         max("How much did your coach push you to do your best work today?") AS "How much did your coach push you to do your best work today?",
+ *         max("How supportive was your coach today?") AS "How supportive was your coach today?"
+ *     FROM
+ *         with_q_columns
+ *     GROUP BY
+ *         session_id,
+ *         response
+ * )
+ * SELECT
+ *     *
+ * FROM
+ *     results
+ * ```
+ */
+export const getStudentFeedbackForSession = new PreparedQuery<IGetStudentFeedbackForSessionParams,IGetStudentFeedbackForSessionResult>(getStudentFeedbackForSessionIR);
+
+

@@ -431,3 +431,18 @@ export async function getSurveyTypeFromSurveyTypeId(
     throw new RepoReadError(err)
   }
 }
+
+export async function getStudentFeedbackForSession(
+  sessionId: Ulid,
+  tc?: TransactionClient
+) {
+  try {
+    const result = await pgQueries.getStudentFeedbackForSession.run(
+      { sessionId },
+      tc ?? getClient()
+    )
+    if (result.length) return makeRequired(result[0])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
