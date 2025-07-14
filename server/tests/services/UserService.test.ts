@@ -465,6 +465,8 @@ describe('UserService', () => {
         hasRole: jest.fn().mockReturnValue(true),
         isActiveRole: jest.fn(),
         isAdmin: jest.fn(),
+        canBeStudent: jest.fn(),
+        isCurrentlyStudent: jest.fn(),
       }
       mockedUserRolesService.getRoleContext.mockResolvedValue(mockRoleContext)
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
@@ -481,6 +483,8 @@ describe('UserService', () => {
         hasRole: jest.fn().mockReturnValue(true),
         isActiveRole: jest.fn(),
         isAdmin: jest.fn(),
+        canBeStudent: jest.fn(),
+        isCurrentlyStudent: jest.fn(),
       }
       mockedUserRolesService.getRoleContext.mockResolvedValue(mockRoleContext)
       await expect(UserService.deletePhoneFromAccount(userId)).rejects.toThrow(
@@ -497,6 +501,8 @@ describe('UserService', () => {
         hasRole: jest.fn().mockReturnValue(false),
         isActiveRole: jest.fn(),
         isAdmin: jest.fn(),
+        canBeStudent: jest.fn(),
+        isCurrentlyStudent: jest.fn(),
       }
       mockedUserRolesService.getRoleContext.mockResolvedValue(mockRoleContext)
       await UserService.deletePhoneFromAccount(userId)
