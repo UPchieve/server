@@ -248,7 +248,6 @@ export async function endSession(
       endedBy,
       tc
     )
-    console.log('ended session', endedSession)
 
     await AssignmentsService.updateStudentAssignmentAfterSession(
       session.student.id,
