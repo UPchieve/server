@@ -36,14 +36,6 @@ export class RoleContext {
   isAdmin() {
     return this.hasRole('admin')
   }
-
-  canBeStudent() {
-    return this.hasRole('student')
-  }
-
-  isCurrentlyStudent() {
-    return this.isActiveRole('student')
-  }
 }
 
 export async function getRoleContext(

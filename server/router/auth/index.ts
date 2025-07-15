@@ -70,11 +70,13 @@ export function routes(app: Express) {
       let user = await getLegacyUserObject(extractUser(req).id)
 
       if (
-        req.body?.forceLoginAsStudent &&
-        user.roleContext.canBeStudent() &&
-        !user.roleContext.isCurrentlyStudent()
+        req.body?.forceLoginWithRole &&
+        user.roleContext.hasRole(req.body.forceLoginWithRole)
       ) {
-        const { newRoleContext } = await switchActiveRole(user.id, 'student')
+        const { newRoleContext } = await switchActiveRole(
+          user.id,
+          req.body.forceLoginWithRole
+        )
         user.roleContext = newRoleContext
         user.userType = newRoleContext.activeRole
       }
