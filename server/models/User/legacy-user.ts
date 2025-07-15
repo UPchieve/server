@@ -152,9 +152,8 @@ export async function getLegacyUserObject(
       const sessionStats = await getUserSessionStats(userId)
       const volunteerUser: any = {}
       const studentUser: any = {}
-
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
-      let roleContext = await UserRolesService.getRoleContext(userId)
+      const roleContext = await UserRolesService.getRoleContext(userId)
 
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)

@@ -47,7 +47,6 @@ export default function (app: Express) {
       '/api/session/latest',
     ]
     const apiKey = getApiKeyFromHeader(req)
-
     if (
       exclusions.some((ex) => req.url.indexOf(ex) !== -1) ||
       (apiKey && apiKey === config.subwayApiCredentials)
