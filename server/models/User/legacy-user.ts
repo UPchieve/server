@@ -12,7 +12,7 @@ import {
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
-import { getClient, runInTransaction, TransactionClient } from '../../db'
+import { runInTransaction, TransactionClient } from '../../db'
 import _ from 'lodash'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
@@ -44,7 +44,6 @@ export type LegacyUserModel = {
   college?: string
   /** @deprecated */
   isVolunteer: boolean
-  /** @deprecated */
   userType: UserRole
   /** @deprecated */
   isAdmin: boolean
@@ -109,8 +108,7 @@ export type LegacyUserModel = {
 // TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
   userId: Ulid,
-  client?: TransactionClient,
-  forceLoginAsStudent = false
+  client?: TransactionClient
 ): Promise<LegacyUserModel> {
   try {
     return await runInTransaction(async (client) => {
@@ -158,17 +156,6 @@ export async function getLegacyUserObject(
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
       let roleContext = await UserRolesService.getRoleContext(userId)
 
-      if (
-        forceLoginAsStudent &&
-        roleContext.canBeStudent() &&
-        !roleContext.isCurrentlyStudent()
-      ) {
-        const { newRoleContext } = await UserRolesService.switchActiveRole(
-          userId,
-          'student'
-        )
-        roleContext = newRoleContext
-      }
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {

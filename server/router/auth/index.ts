@@ -4,6 +4,7 @@ import * as AuthService from '../../services/AuthService'
 import * as FedCredService from '../../services/FederatedCredentialService'
 import * as StudentService from '../../services/StudentService'
 import * as UserCreationService from '../../services/UserCreationService'
+import { switchActiveRole } from '../../services/UserRolesService'
 import {
   authPassport,
   getSsoProviderFromReferer,
@@ -66,14 +67,20 @@ export function routes(app: Express) {
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     async function (req: Request, res: Response) {
-      let user = await getLegacyUserObject(
-        extractUser(req).id,
-        undefined,
-        req.body?.forceLoginAsStudent
-      )
+      let user = await getLegacyUserObject(extractUser(req).id)
+
+      if (
+        req.body?.forceLoginAsStudent &&
+        user.roleContext.canBeStudent() &&
+        !user.roleContext.isCurrentlyStudent()
+      ) {
+        const { newRoleContext } = await switchActiveRole(user.id, 'student')
+        user.roleContext = newRoleContext
+        user.userType = newRoleContext.activeRole
+      }
 
       await trackLoggedIn(user.id, req.ip)
-      res.json({ user: user })
+      res.json({ user })
     }
   )
 
