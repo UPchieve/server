@@ -466,8 +466,9 @@ export async function processMetrics(
     studentUserSessionMetrics,
     volunteerUserSessionMetrics
   )
+
   if (reviewReasons.length)
-    await updateSessionReviewReasonsById(session.id, reviewReasons)
+    await updateSessionReviewReasonsById(session.id, reviewReasons, true)
 
   if (callbacks.triggerActions)
     await callbacks.triggerActions(
