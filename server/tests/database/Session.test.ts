@@ -12,6 +12,7 @@ import { getClient } from '../../db'
 import {
   getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
+  getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
   updateSessionFlagsById,
@@ -629,6 +630,26 @@ describe('Session repo', () => {
       expect(updatedRow.id).toEqual(session.id)
       expect(updatedRow.endedByUserId).toEqual(volunteerId)
       expect(updatedRow.endedAt).toEqual(endedAt)
+    })
+  })
+
+  describe('getLatestSession', () => {
+    it('Returns the correct session, or none if there is none', async () => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          volunteerId,
+          studentId,
+          endedAt: new Date(),
+          endedByUserId: volunteerId,
+        }),
+        dbClient
+      )
+      const asStudent = await getLatestSession(volunteerId, 'student')
+      expect(asStudent).toBeUndefined()
+      const asVolunteer = await getLatestSession(volunteerId, 'volunteer')
+      expect(asVolunteer?.id).toEqual(session.id)
+      expect(asVolunteer?.endedByUserId).toEqual(volunteerId)
     })
   })
 })

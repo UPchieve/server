@@ -15,6 +15,10 @@ import { asNumber, asString, asUlid } from '../../utils/type-utils'
 import multer from 'multer'
 import * as SessionMeetingService from '../../services/SessionMeetingService'
 import { asSaveUserSurveyAndSubmissions } from '../../services/SurveyService'
+import {
+  PrimaryUserRole,
+  SessionUserRole,
+} from '../../services/UserRolesService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -137,9 +141,17 @@ export function routeSession(router: Router) {
   router.route('/session/latest').post(async function (req, res) {
     try {
       const user = extractUser(req)
-      const latestSession = user.roleContext.isActiveRole('volunteer')
-        ? await SessionService.volunteerLatestSession(user.id)
-        : await SessionService.studentLatestSession(user.id)
+      const role = user.roleContext.activeRole
+      if (
+        role !== ('volunteer' as PrimaryUserRole) &&
+        role !== ('student' as PrimaryUserRole)
+      ) {
+        throw new Error('Cannot get latest session for teacher-type user')
+      }
+      const latestSession = await SessionService.getLatestSession(
+        user.id,
+        role as SessionUserRole
+      )
 
       if (!latestSession) {
         res.json(null)

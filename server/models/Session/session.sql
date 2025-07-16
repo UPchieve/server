@@ -709,7 +709,7 @@ GROUP BY
     cgl.current_grade_name;
 
 
-/* @name getLatestSessionByStudentId */
+/* @name getLatestSession */
 SELECT
     sessions.id,
     sessions.created_at,
@@ -721,27 +721,10 @@ SELECT
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
-WHERE
-    sessions.student_id = :studentId!
-ORDER BY
-    created_at DESC
-LIMIT 1;
-
-
-/* @name getLatestSessionByVolunteerId */
-SELECT
-    sessions.id,
-    sessions.created_at,
-    time_tutored::int,
-    subjects.name AS subject,
-    sessions.student_id,
-    sessions.volunteer_id,
-    sessions.ended_by_user_id
-FROM
-    sessions
-    JOIN subjects ON sessions.subject_id = subjects.id
-WHERE
-    sessions.volunteer_id = :volunteerId!
+WHERE (:role!::text = 'student'
+    AND sessions.student_id = :userId!::uuid)
+    OR (:role!::text = 'volunteer'
+        AND sessions.volunteer_id = :userId!::uuid)
 ORDER BY
     created_at DESC
 LIMIT 1;
