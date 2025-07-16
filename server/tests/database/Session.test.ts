@@ -16,8 +16,9 @@ import {
   getSessionTranscriptItems,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
+  updateSessionToEnd,
 } from '../../models/Session'
-import { insertSingleRow } from '../db-utils'
+import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
 import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
@@ -577,6 +578,57 @@ describe('Session repo', () => {
       expect(new Set(finalFlagIds)).toEqual(
         new Set([initialFlagId, ...nextFlagsToInsertIds])
       )
+    })
+  })
+
+  describe('updateSessionToEnd', () => {
+    const getSessionRow = async (sessionId: string) => {
+      const rows = (
+        await dbClient.query('SELECT * FROM sessions WHERE id = $1', [
+          sessionId,
+        ])
+      ).rows
+      return camelCaseKeys(rows[0])
+    }
+
+    it('Sets endedBy to null when none is provided', async () => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId,
+        }),
+        dbClient
+      )
+      const initialRow = await getSessionRow(session.id)
+      expect(initialRow.endedByUserId).toBeNull()
+
+      const endedAt = new Date()
+      await updateSessionToEnd(session.id, endedAt, null, dbClient)
+      const updatedRow = await getSessionRow(session.id)
+      expect(updatedRow.id).toEqual(session.id)
+      expect(updatedRow.endedByUserId).toBeNull()
+      expect(updatedRow.endedAt).toEqual(endedAt)
+    })
+
+    it('Sets endedBy to the provided value', async () => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId,
+        }),
+        dbClient
+      )
+      const initialRow = await getSessionRow(session.id)
+      expect(initialRow.endedByUserId).toBeNull()
+
+      const endedAt = new Date()
+      await updateSessionToEnd(session.id, endedAt, volunteerId, dbClient)
+      const updatedRow = await getSessionRow(session.id)
+      expect(updatedRow.id).toEqual(session.id)
+      expect(updatedRow.endedByUserId).toEqual(volunteerId)
+      expect(updatedRow.endedAt).toEqual(endedAt)
     })
   })
 })

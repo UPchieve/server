@@ -330,18 +330,20 @@ export type SessionRow = {
   id: Ulid
   studentId: Ulid
   subjectId: number
-  volunteerId?: Ulid
   hasWhiteboardDoc: boolean
-  quillDoc?: string
-  volunteerJoinedAt?: Date
-  endedAt?: Date
   reviewed: boolean
   toReview: boolean
   shadowbanned: boolean
   timeTutored: number
   createdAt: Date
   updatedAt: Date
+  volunteerId?: Ulid
+  quillDoc?: string
+  volunteerJoinedAt?: Date
+  endedAt?: Date
   mongoId?: string
+  endedByRoleId?: string
+  endedByUserId?: string
 }
 
 export async function buildSessionRow(

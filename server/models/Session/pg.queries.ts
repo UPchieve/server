@@ -777,7 +777,7 @@ export interface IUpdateSessionToEndQuery {
   result: IUpdateSessionToEndResult;
 }
 
-const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":true,"endedBy":true},"params":[{"name":"endedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":47}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":107}]},{"name":"endedBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":222,"b":229},{"a":288,"b":295},{"a":359,"b":366}]}],"statement":"UPDATE\n    sessions\nSET\n    ended_at = :endedAt!,\n    updated_at = NOW()\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    sessions.id,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    :endedBy::uuid AS ended_by,\n    CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN\n        'volunteer'\n    WHEN sessions.student_id = :endedBy::uuid THEN\n        'student'\n    ELSE\n        'admin'\n    END AS ended_by_user_role"};
+const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"endedBy":true,"sessionId":true},"params":[{"name":"endedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":47}]},{"name":"endedBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":73,"b":80},{"a":255,"b":262},{"a":321,"b":328},{"a":392,"b":399}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":130,"b":140}]}],"statement":"UPDATE\n    sessions\nSET\n    ended_at = :endedAt!,\n    ended_by_user_id = :endedBy,\n    updated_at = NOW()\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    sessions.id,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    :endedBy::uuid AS ended_by,\n    CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN\n        'volunteer'\n    WHEN sessions.student_id = :endedBy::uuid THEN\n        'student'\n    ELSE\n        'admin'\n    END AS ended_by_user_role"};
 
 /**
  * Query generated from SQL:
@@ -786,6 +786,7 @@ const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":tr
  *     sessions
  * SET
  *     ended_at = :endedAt!,
+ *     ended_by_user_id = :endedBy,
  *     updated_at = NOW()
  * WHERE
  *     sessions.id = :sessionId!

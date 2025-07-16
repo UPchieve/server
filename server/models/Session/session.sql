@@ -350,6 +350,7 @@ UPDATE
     sessions
 SET
     ended_at = :endedAt!,
+    ended_by_user_id = :endedBy,
     updated_at = NOW()
 WHERE
     sessions.id = :sessionId!
