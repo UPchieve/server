@@ -821,11 +821,10 @@ export async function getCurrentSessionBySessionId(
 export type LatestSession = {
   id: string
   createdAt: Date
-  subject: string
-  timeTutored: number
   studentId: string
   volunteerId?: string
   endedByUserId?: string
+  timeTutored?: number
   endedAt?: Date
 }
 export async function getLatestSession(
@@ -838,12 +837,7 @@ export async function getLatestSession(
       getClient()
     )
     if (!result.length) return
-    return makeSomeRequired(result[0], [
-      'id',
-      'createdAt',
-      'subjectId',
-      'studentId',
-    ])
+    return makeSomeRequired(result[0], ['id', 'createdAt', 'studentId'])
   } catch (err) {
     throw new RepoReadError(err)
   }
