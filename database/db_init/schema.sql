@@ -1681,7 +1681,8 @@ CREATE TABLE upchieve.sessions (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
-    shadowbanned boolean
+    shadowbanned boolean,
+    ended_by_user_id uuid
 );
 
 
@@ -5489,6 +5490,14 @@ ALTER TABLE ONLY upchieve.sessions
 
 
 --
+-- Name: sessions sessions_ended_by_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions
+    ADD CONSTRAINT sessions_ended_by_user_id_fkey FOREIGN KEY (ended_by_user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: sessions_session_flags sessions_session_flags_session_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6406,4 +6415,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250521232143'),
     ('20250522020702'),
     ('20250522182628'),
-    ('20250530172930');
+    ('20250530172930'),
+    ('20250716141321');

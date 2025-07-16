@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -271,7 +271,7 @@ COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned) FROM stdin;
+COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned, ended_by_user_id) FROM stdin;
 \.
 
 

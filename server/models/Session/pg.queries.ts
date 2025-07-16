@@ -1136,6 +1136,7 @@ export interface ICreateSessionResult {
   createdAt: Date;
   endedAt: Date | null;
   endedByRoleId: number | null;
+  endedByUserId: string | null;
   hasWhiteboardDoc: boolean;
   id: string;
   mongoId: string | null;
