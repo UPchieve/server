@@ -1537,6 +1537,7 @@ export interface IGetLatestSessionParams {
 /** 'GetLatestSession' return type */
 export interface IGetLatestSessionResult {
   createdAt: Date;
+  endedAt: Date | null;
   endedByUserId: string | null;
   id: string;
   studentId: string;
@@ -1551,7 +1552,7 @@ export interface IGetLatestSessionQuery {
   result: IGetLatestSessionResult;
 }
 
-const getLatestSessionIR: any = {"usedParamSet":{"role":true,"userId":true},"params":[{"name":"role","required":true,"transform":{"type":"scalar"},"locs":[{"a":264,"b":269},{"a":343,"b":348}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":319,"b":326},{"a":406,"b":413}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    sessions.student_id,\n    sessions.volunteer_id,\n    sessions.ended_by_user_id\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE (:role!::text = 'student'\n    AND sessions.student_id = :userId!::uuid)\n    OR (:role!::text = 'volunteer'\n        AND sessions.volunteer_id = :userId!::uuid)\nORDER BY\n    created_at DESC\nLIMIT 1"};
+const getLatestSessionIR: any = {"usedParamSet":{"role":true,"userId":true},"params":[{"name":"role","required":true,"transform":{"type":"scalar"},"locs":[{"a":287,"b":292},{"a":366,"b":371}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":342,"b":349},{"a":429,"b":436}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    sessions.student_id,\n    sessions.volunteer_id,\n    sessions.ended_by_user_id,\n    sessions.ended_at\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE (:role!::text = 'student'\n    AND sessions.student_id = :userId!::uuid)\n    OR (:role!::text = 'volunteer'\n        AND sessions.volunteer_id = :userId!::uuid)\nORDER BY\n    created_at DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -1563,7 +1564,8 @@ const getLatestSessionIR: any = {"usedParamSet":{"role":true,"userId":true},"par
  *     subjects.name AS subject,
  *     sessions.student_id,
  *     sessions.volunteer_id,
- *     sessions.ended_by_user_id
+ *     sessions.ended_by_user_id,
+ *     sessions.ended_at
  * FROM
  *     sessions
  *     JOIN subjects ON sessions.subject_id = subjects.id

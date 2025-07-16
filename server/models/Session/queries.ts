@@ -826,6 +826,7 @@ export type LatestSession = {
   studentId: string
   volunteerId?: string
   endedByUserId?: string
+  endedAt?: Date
 }
 export async function getLatestSession(
   userId: Ulid | string,
@@ -837,7 +838,12 @@ export async function getLatestSession(
       getClient()
     )
     if (!result.length) return
-    return makeSomeOptional(result[0], ['endedByUserId'])
+    return makeSomeRequired(result[0], [
+      'id',
+      'createdAt',
+      'subjectId',
+      'studentId',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }

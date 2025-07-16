@@ -717,7 +717,8 @@ SELECT
     subjects.name AS subject,
     sessions.student_id,
     sessions.volunteer_id,
-    sessions.ended_by_user_id
+    sessions.ended_by_user_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
