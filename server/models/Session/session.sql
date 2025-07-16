@@ -715,11 +715,12 @@ SELECT
     sessions.created_at,
     time_tutored::int,
     subjects.name AS subject,
-    user_roles.name AS ended_by_user_role
+    sessions.student_id,
+    sessions.volunteer_id,
+    sessions.ended_by_user_id
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
 WHERE
     sessions.student_id = :studentId!
 ORDER BY
@@ -733,11 +734,12 @@ SELECT
     sessions.created_at,
     time_tutored::int,
     subjects.name AS subject,
-    user_roles.name AS ended_by_user_role
+    sessions.student_id,
+    sessions.volunteer_id,
+    sessions.ended_by_user_id
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
 WHERE
     sessions.volunteer_id = :volunteerId!
 ORDER BY

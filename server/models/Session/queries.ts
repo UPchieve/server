@@ -814,16 +814,18 @@ export async function getCurrentSessionBySessionId(
   }
 }
 
-export type StudentLatestSession = {
+export type LatestSession = {
   id: string
   createdAt: Date
   subject: string
   timeTutored: number
-  endedByUserRole?: string
+  studentId: string
+  volunteerId?: string
+  endedByUserId?: string
 }
 export async function getLatestSessionByStudentId(
   studentId: Ulid
-): Promise<StudentLatestSession | undefined> {
+): Promise<LatestSession | undefined> {
   try {
     const result = await pgQueries.getLatestSessionByStudentId.run(
       { studentId },
@@ -838,7 +840,7 @@ export async function getLatestSessionByStudentId(
 
 export async function getLatestSessionByVolunteerId(
   volunteerId: Ulid
-): Promise<StudentLatestSession | undefined> {
+): Promise<LatestSession | undefined> {
   try {
     const result = await pgQueries.getLatestSessionByVolunteerId.run(
       { volunteerId },

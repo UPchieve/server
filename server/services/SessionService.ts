@@ -32,6 +32,7 @@ import {
   CurrentSession,
   EndedSession,
   GetSessionByIdResult,
+  LatestSession,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -732,12 +733,16 @@ export async function getRecapSessionForDms(userId: Ulid) {
   return await SessionRepo.getRecapSessionForDmsBySessionId(userId)
 }
 
-export async function studentLatestSession(data: unknown) {
+export async function studentLatestSession(
+  data: unknown
+): Promise<LatestSession | undefined> {
   const userId = asString(data)
   return await SessionRepo.getLatestSessionByStudentId(userId)
 }
 
-export async function volunteerLatestSession(data: unknown) {
+export async function volunteerLatestSession(
+  data: unknown
+): Promise<LatestSession | undefined> {
   const userId = asString(data)
   return await SessionRepo.getLatestSessionByVolunteerId(userId)
 }
