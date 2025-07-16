@@ -16,6 +16,8 @@ import {
   UserSessionsFilter,
   MessageType,
   Session,
+  SessionToEnd,
+  EndedSession,
 } from './types'
 import 'moment-timezone'
 import {
@@ -183,19 +185,6 @@ export type SessionToEndUserInfo = {
   numPastSessions: number
   volunteerPartnerOrg?: string
 }
-
-export type SessionToEnd = Pick<
-  GetSessionByIdResult,
-  | 'id'
-  | 'createdAt'
-  | 'endedAt'
-  | 'reported'
-  | 'topic'
-  | 'subject'
-  | 'volunteerJoinedAt'
-> & {
-  student: SessionToEndUserInfo
-} & { volunteer?: SessionToEndUserInfo }
 
 export async function getSessionToEndById(
   sessionId: Ulid,
@@ -401,14 +390,22 @@ export async function updateSessionToEnd(
   endedAt: Date,
   endedBy: Ulid | null,
   tc: TransactionClient = getClient()
-): Promise<void> {
+): Promise<EndedSession> {
   try {
     const result = await pgQueries.updateSessionToEnd.run(
       { sessionId, endedAt, endedBy },
       tc
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    if (!result.length)
+      throw new Error(
+        'Failure in updateSessionToEnd: Did not get back updated session'
+      )
+    return makeSomeRequired(result[0], [
+      'id',
+      'createdAt',
+      'endedAt',
+      'endedByUserRole',
+    ])
   } catch (err) {
     throw new RepoUpdateError(err)
   }

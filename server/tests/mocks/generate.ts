@@ -335,7 +335,6 @@ export type SessionRow = {
   quillDoc?: string
   volunteerJoinedAt?: Date
   endedAt?: Date
-  endedByRoleId?: number
   reviewed: boolean
   toReview: boolean
   shadowbanned: boolean

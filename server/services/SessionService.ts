@@ -30,6 +30,7 @@ import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   CurrentSession,
+  EndedSession,
   GetSessionByIdResult,
   Session,
   SessionsToReview,
@@ -218,7 +219,7 @@ export async function endSession(
   isAdmin: boolean = false,
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
-) {
+): Promise<EndedSession> {
   const reqIdentifiers = identifiers
     ? sessionUtils.asRequestIdentifiers(identifiers)
     : undefined
@@ -238,8 +239,8 @@ export async function endSession(
       'Only session participants can end a session'
     )
 
-  await runInTransaction(async (tc: TransactionClient) => {
-    await SessionRepo.updateSessionToEnd(
+  const endedSession = await runInTransaction(async (tc: TransactionClient) => {
+    const endedSession = await SessionRepo.updateSessionToEnd(
       session.id,
       new Date(),
       // NOTE: endedBy is sometimes null when the session is ended by a worker job
@@ -269,6 +270,11 @@ export async function endSession(
         },
         tc
       )
+
+    return {
+      ...session,
+      ...endedSession,
+    }
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
@@ -295,6 +301,8 @@ export async function endSession(
       removeOnFail: false,
     }
   )
+
+  return endedSession
 }
 
 export async function getSessionWithAllDetails(

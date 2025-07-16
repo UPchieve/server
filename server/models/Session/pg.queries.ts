@@ -763,7 +763,12 @@ export interface IUpdateSessionToEndParams {
 
 /** 'UpdateSessionToEnd' return type */
 export interface IUpdateSessionToEndResult {
-  ok: string;
+  createdAt: Date;
+  endedAt: Date | null;
+  endedBy: string | null;
+  endedByUserRole: string | null;
+  id: string;
+  volunteerJoinedAt: Date | null;
 }
 
 /** 'UpdateSessionToEnd' query type */
@@ -772,7 +777,7 @@ export interface IUpdateSessionToEndQuery {
   result: IUpdateSessionToEndResult;
 }
 
-const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":true,"endedBy":true},"params":[{"name":"endedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":47}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":232,"b":242},{"a":506,"b":516}]},{"name":"endedBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":314,"b":321},{"a":387,"b":394}]}],"statement":"UPDATE\n    sessions\nSET\n    ended_at = :endedAt!,\n    ended_by_role_id = subquery.id,\n    updated_at = NOW()\nFROM (\n    SELECT\n        user_roles.id\n    FROM\n        sessions\n    LEFT JOIN user_roles ON TRUE\nWHERE\n    sessions.id = :sessionId!\n    AND user_roles.name = (\n        CASE WHEN sessions.volunteer_id = :endedBy THEN\n            'volunteer'\n        WHEN sessions.student_id = :endedBy THEN\n            'student'\n        ELSE\n            'admin'\n        END)) AS subquery\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    sessions.id AS ok"};
+const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":true,"endedBy":true},"params":[{"name":"endedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":47}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":107}]},{"name":"endedBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":222,"b":229},{"a":288,"b":295},{"a":359,"b":366}]}],"statement":"UPDATE\n    sessions\nSET\n    ended_at = :endedAt!,\n    updated_at = NOW()\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    sessions.id,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    :endedBy::uuid AS ended_by,\n    CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN\n        'volunteer'\n    WHEN sessions.student_id = :endedBy::uuid THEN\n        'student'\n    ELSE\n        'admin'\n    END AS ended_by_user_role"};
 
 /**
  * Query generated from SQL:
@@ -781,28 +786,22 @@ const updateSessionToEndIR: any = {"usedParamSet":{"endedAt":true,"sessionId":tr
  *     sessions
  * SET
  *     ended_at = :endedAt!,
- *     ended_by_role_id = subquery.id,
  *     updated_at = NOW()
- * FROM (
- *     SELECT
- *         user_roles.id
- *     FROM
- *         sessions
- *     LEFT JOIN user_roles ON TRUE
- * WHERE
- *     sessions.id = :sessionId!
- *     AND user_roles.name = (
- *         CASE WHEN sessions.volunteer_id = :endedBy THEN
- *             'volunteer'
- *         WHEN sessions.student_id = :endedBy THEN
- *             'student'
- *         ELSE
- *             'admin'
- *         END)) AS subquery
  * WHERE
  *     sessions.id = :sessionId!
  * RETURNING
- *     sessions.id AS ok
+ *     sessions.id,
+ *     sessions.created_at,
+ *     sessions.ended_at,
+ *     sessions.volunteer_joined_at,
+ *     :endedBy::uuid AS ended_by,
+ *     CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN
+ *         'volunteer'
+ *     WHEN sessions.student_id = :endedBy::uuid THEN
+ *         'student'
+ *     ELSE
+ *         'admin'
+ *     END AS ended_by_user_role
  * ```
  */
 export const updateSessionToEnd = new PreparedQuery<IUpdateSessionToEndParams,IUpdateSessionToEndResult>(updateSessionToEndIR);
