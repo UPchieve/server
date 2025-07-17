@@ -828,7 +828,7 @@ export type LatestSession = {
   endedAt?: Date
 }
 export async function getLatestSession(
-  userId: Ulid | string,
+  userId: Ulid,
   role: SessionUserRole
 ): Promise<LatestSession | undefined> {
   try {

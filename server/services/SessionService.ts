@@ -735,7 +735,7 @@ export async function getRecapSessionForDms(userId: Ulid) {
 }
 
 export async function getLatestSession(
-  userId: string,
+  userId: Ulid,
   role: SessionUserRole
 ): Promise<LatestSession | undefined> {
   return await SessionRepo.getLatestSession(userId, role)
