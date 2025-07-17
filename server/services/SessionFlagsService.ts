@@ -430,14 +430,15 @@ export async function processMetrics(
       flags: UserSessionFlags[],
       studentUSM: UserSessionMetrics,
       volunteerUSM?: UserSessionMetrics
-    ) => any[]
+    ) => UserSessionFlags[]
     triggerActions?: (
       sessionId: Uuid,
       flags: UserSessionFlags[],
       studentUSM: UserSessionMetrics,
       volunteerUSM?: UserSessionMetrics
     ) => Promise<void>
-  }
+  },
+  excludeFromReviewSessionFlags: UserSessionFlags[]
 ) {
   const session = await getSessionById(sessionId)
   const flags = await callbacks.computeSessionFlags(session)
@@ -466,8 +467,22 @@ export async function processMetrics(
     studentUserSessionMetrics,
     volunteerUserSessionMetrics
   )
-  if (reviewReasons.length)
+
+  const dontManualReviewReasons = []
+  const manualReviewReasons = []
+
+  reviewReasons.forEach((reviewReason) => {
+    if (excludeFromReviewSessionFlags.includes(reviewReason)) {
+      dontManualReviewReasons.push(reviewReason)
+    } else {
+      manualReviewReasons.push(reviewReason)
+    }
+  })
+
+  if (manualReviewReasons.length)
     await updateSessionReviewReasonsById(session.id, reviewReasons)
+  if (dontManualReviewReasons.length)
+    await updateSessionReviewReasonsById(session.id, reviewReasons, true)
 
   if (callbacks.triggerActions)
     await callbacks.triggerActions(
@@ -479,24 +494,36 @@ export async function processMetrics(
 }
 
 export async function processSessionMetrics(sessionId: Uuid) {
-  await processMetrics(sessionId, {
-    computeSessionFlags: computeSessionFlags,
-    computeReviewReasons: computeSessionReviewReasonsFromFlags,
-    triggerActions: triggerSessionActions,
-  })
+  await processMetrics(
+    sessionId,
+    {
+      computeSessionFlags: computeSessionFlags,
+      computeReviewReasons: computeSessionReviewReasonsFromFlags,
+      triggerActions: triggerSessionActions,
+    },
+    EXCLUDED_SESSION_FLAGS_FROM_REVIEW
+  )
 }
 
 export async function processFeedbackMetrics(sessionId: Uuid) {
-  await processMetrics(sessionId, {
-    computeSessionFlags: computeFeedbackFlags,
-    computeReviewReasons: computeFeedbackReviewReasonsFromFlags,
-    triggerActions: triggerFeedbackActions,
-  })
+  await processMetrics(
+    sessionId,
+    {
+      computeSessionFlags: computeFeedbackFlags,
+      computeReviewReasons: computeFeedbackReviewReasonsFromFlags,
+      triggerActions: triggerFeedbackActions,
+    },
+    EXCLUDED_SESSION_FLAGS_FROM_REVIEW
+  )
 }
 
 export async function processReportMetrics(sessionId: Uuid) {
-  await processMetrics(sessionId, {
-    computeSessionFlags: computeReportedFlags,
-    computeReviewReasons: computeReportedReviewReason,
-  })
+  await processMetrics(
+    sessionId,
+    {
+      computeSessionFlags: computeReportedFlags,
+      computeReviewReasons: computeReportedReviewReason,
+    },
+    EXCLUDED_SESSION_FLAGS_FROM_REVIEW
+  )
 }

@@ -1127,7 +1127,7 @@ export async function getSessionsForAdminFilter(
 
 export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
-  reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
+  reviewReasons: UserSessionFlags[],
   // Use this property to override the reviewed status of a session
   reviewed?: boolean,
   client?: TransactionClient
