@@ -1,6 +1,10 @@
 import moment from 'moment'
 import QueueService from './QueueService'
-import { SESSION_REPORT_REASON, UserSessionFlags } from '../constants'
+import {
+  SESSION_REPORT_REASON,
+  UserSessionFlags,
+  EXCLUDED_SESSION_FLAGS_FROM_REVIEW,
+} from '../constants'
 import { Uuid } from '../models/pgUtils'
 import {
   getMessagesForFrontend,
@@ -20,6 +24,7 @@ import {
 } from '../models/UserSessionMetrics'
 import { Jobs } from '../worker/jobs'
 import logger from '../logger'
+import { runInTransaction } from '../db'
 
 export const VOLUNTEER_WAITING_PERIOD_MIN = 10
 export const STUDENT_WAITING_PERIOD_MIN = 5
@@ -479,10 +484,22 @@ export async function processMetrics(
     }
   })
 
-  if (manualReviewReasons.length)
-    await updateSessionReviewReasonsById(session.id, reviewReasons)
-  if (dontManualReviewReasons.length)
-    await updateSessionReviewReasonsById(session.id, reviewReasons, true)
+  await runInTransaction(async (transactionClient) => {
+    if (manualReviewReasons.length)
+      await updateSessionReviewReasonsById(
+        session.id,
+        reviewReasons,
+        false,
+        transactionClient
+      )
+    if (dontManualReviewReasons.length)
+      await updateSessionReviewReasonsById(
+        session.id,
+        reviewReasons,
+        true,
+        transactionClient
+      )
+  })
 
   if (callbacks.triggerActions)
     await callbacks.triggerActions(
