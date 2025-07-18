@@ -709,37 +709,23 @@ GROUP BY
     cgl.current_grade_name;
 
 
-/* @name getLatestSessionByStudentId */
+/* @name getLatestSession */
 SELECT
     sessions.id,
     sessions.created_at,
     time_tutored::int,
     subjects.name AS subject,
-    user_roles.name AS ended_by_user_role
+    sessions.student_id,
+    sessions.volunteer_id,
+    sessions.ended_by_user_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
-WHERE
-    sessions.student_id = :studentId!
-ORDER BY
-    created_at DESC
-LIMIT 1;
-
-
-/* @name getLatestSessionByVolunteerId */
-SELECT
-    sessions.id,
-    sessions.created_at,
-    time_tutored::int,
-    subjects.name AS subject,
-    user_roles.name AS ended_by_user_role
-FROM
-    sessions
-    JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
-WHERE
-    sessions.volunteer_id = :volunteerId!
+WHERE (:role!::text = 'student'
+    AND sessions.student_id = :userId!::uuid)
+    OR (:role!::text = 'volunteer'
+        AND sessions.volunteer_id = :userId!::uuid)
 ORDER BY
     created_at DESC
 LIMIT 1;

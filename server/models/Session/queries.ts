@@ -44,6 +44,10 @@ import {
 } from '../Survey'
 import config from '../../config'
 import type { SessionHistoryFilter } from '../../services/SessionService'
+import {
+  PrimaryUserRole,
+  SessionUserRole,
+} from '../../services/UserRolesService'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -814,40 +818,28 @@ export async function getCurrentSessionBySessionId(
   }
 }
 
-export type StudentLatestSession = {
+export type LatestSession = {
   id: string
   createdAt: Date
-  subject: string
-  timeTutored: number
-  endedByUserRole?: string
+  studentId: string
+  volunteerId?: string
+  endedByUserId?: string
+  timeTutored?: number
+  endedAt?: Date
 }
-export async function getLatestSessionByStudentId(
-  studentId: Ulid
-): Promise<StudentLatestSession | undefined> {
+export async function getLatestSession(
+  userId: Ulid,
+  role: SessionUserRole
+): Promise<LatestSession | undefined> {
   try {
-    const result = await pgQueries.getLatestSessionByStudentId.run(
-      { studentId },
+    const result = await pgQueries.getLatestSession.run(
+      { userId, role },
       getClient()
     )
     if (!result.length) return
-    return makeSomeOptional(result[0], ['endedByUserRole'])
-  } catch (error) {
-    throw error
-  }
-}
-
-export async function getLatestSessionByVolunteerId(
-  volunteerId: Ulid
-): Promise<StudentLatestSession | undefined> {
-  try {
-    const result = await pgQueries.getLatestSessionByVolunteerId.run(
-      { volunteerId },
-      getClient()
-    )
-    if (!result.length) return
-    return makeSomeOptional(result[0], ['endedByUserRole'])
-  } catch (error) {
-    throw new RepoReadError(error)
+    return makeSomeRequired(result[0], ['id', 'createdAt', 'studentId'])
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
 

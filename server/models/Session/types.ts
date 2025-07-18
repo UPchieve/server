@@ -32,6 +32,7 @@ export type GetSessionByIdResult = {
   volunteerJoinedAt?: Date
   endedAt?: Date
   endedByRole?: string
+  endedByUserId?: Ulid
   reviewed: boolean
   toReview: boolean
   shadowbanned?: boolean

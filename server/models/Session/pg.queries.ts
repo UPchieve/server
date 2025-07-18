@@ -1528,27 +1528,31 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
 export const getSessionUsers = new PreparedQuery<IGetSessionUsersParams,IGetSessionUsersResult>(getSessionUsersIR);
 
 
-/** 'GetLatestSessionByStudentId' parameters type */
-export interface IGetLatestSessionByStudentIdParams {
+/** 'GetLatestSession' parameters type */
+export interface IGetLatestSessionParams {
+  role: string;
+  userId: string;
+}
+
+/** 'GetLatestSession' return type */
+export interface IGetLatestSessionResult {
+  createdAt: Date;
+  endedAt: Date | null;
+  endedByUserId: string | null;
+  id: string;
   studentId: string;
-}
-
-/** 'GetLatestSessionByStudentId' return type */
-export interface IGetLatestSessionByStudentIdResult {
-  createdAt: Date;
-  endedByUserRole: string;
-  id: string;
   subject: string;
   timeTutored: number | null;
+  volunteerId: string | null;
 }
 
-/** 'GetLatestSessionByStudentId' query type */
-export interface IGetLatestSessionByStudentIdQuery {
-  params: IGetLatestSessionByStudentIdParams;
-  result: IGetLatestSessionByStudentIdResult;
+/** 'GetLatestSession' query type */
+export interface IGetLatestSessionQuery {
+  params: IGetLatestSessionParams;
+  result: IGetLatestSessionResult;
 }
 
-const getLatestSessionByStudentIdIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":319,"b":329}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    user_roles.name AS ended_by_user_role\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id\nWHERE\n    sessions.student_id = :studentId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
+const getLatestSessionIR: any = {"usedParamSet":{"role":true,"userId":true},"params":[{"name":"role","required":true,"transform":{"type":"scalar"},"locs":[{"a":287,"b":292},{"a":366,"b":371}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":342,"b":349},{"a":429,"b":436}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    sessions.student_id,\n    sessions.volunteer_id,\n    sessions.ended_by_user_id,\n    sessions.ended_at\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE (:role!::text = 'student'\n    AND sessions.student_id = :userId!::uuid)\n    OR (:role!::text = 'volunteer'\n        AND sessions.volunteer_id = :userId!::uuid)\nORDER BY\n    created_at DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -1558,64 +1562,23 @@ const getLatestSessionByStudentIdIR: any = {"usedParamSet":{"studentId":true},"p
  *     sessions.created_at,
  *     time_tutored::int,
  *     subjects.name AS subject,
- *     user_roles.name AS ended_by_user_role
+ *     sessions.student_id,
+ *     sessions.volunteer_id,
+ *     sessions.ended_by_user_id,
+ *     sessions.ended_at
  * FROM
  *     sessions
  *     JOIN subjects ON sessions.subject_id = subjects.id
- *     LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
- * WHERE
- *     sessions.student_id = :studentId!
+ * WHERE (:role!::text = 'student'
+ *     AND sessions.student_id = :userId!::uuid)
+ *     OR (:role!::text = 'volunteer'
+ *         AND sessions.volunteer_id = :userId!::uuid)
  * ORDER BY
  *     created_at DESC
  * LIMIT 1
  * ```
  */
-export const getLatestSessionByStudentId = new PreparedQuery<IGetLatestSessionByStudentIdParams,IGetLatestSessionByStudentIdResult>(getLatestSessionByStudentIdIR);
-
-
-/** 'GetLatestSessionByVolunteerId' parameters type */
-export interface IGetLatestSessionByVolunteerIdParams {
-  volunteerId: string;
-}
-
-/** 'GetLatestSessionByVolunteerId' return type */
-export interface IGetLatestSessionByVolunteerIdResult {
-  createdAt: Date;
-  endedByUserRole: string;
-  id: string;
-  subject: string;
-  timeTutored: number | null;
-}
-
-/** 'GetLatestSessionByVolunteerId' query type */
-export interface IGetLatestSessionByVolunteerIdQuery {
-  params: IGetLatestSessionByVolunteerIdParams;
-  result: IGetLatestSessionByVolunteerIdResult;
-}
-
-const getLatestSessionByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":321,"b":333}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    time_tutored::int,\n    subjects.name AS subject,\n    user_roles.name AS ended_by_user_role\nFROM\n    sessions\n    JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id\nWHERE\n    sessions.volunteer_id = :volunteerId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     sessions.id,
- *     sessions.created_at,
- *     time_tutored::int,
- *     subjects.name AS subject,
- *     user_roles.name AS ended_by_user_role
- * FROM
- *     sessions
- *     JOIN subjects ON sessions.subject_id = subjects.id
- *     LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
- * WHERE
- *     sessions.volunteer_id = :volunteerId!
- * ORDER BY
- *     created_at DESC
- * LIMIT 1
- * ```
- */
-export const getLatestSessionByVolunteerId = new PreparedQuery<IGetLatestSessionByVolunteerIdParams,IGetLatestSessionByVolunteerIdResult>(getLatestSessionByVolunteerIdIR);
+export const getLatestSession = new PreparedQuery<IGetLatestSessionParams,IGetLatestSessionResult>(getLatestSessionIR);
 
 
 /** 'UpdateSessionVolunteerById' parameters type */

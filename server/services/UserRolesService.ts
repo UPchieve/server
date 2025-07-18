@@ -7,6 +7,7 @@ import config from '../config'
 import { InputError } from '../models/Errors'
 
 export type PrimaryUserRole = Exclude<UserRole, 'admin' | 'ambassador'>
+export type SessionUserRole = 'student' | 'volunteer'
 
 export class RoleContext {
   readonly roles: UserRole[]

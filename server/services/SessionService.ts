@@ -32,6 +32,7 @@ import {
   CurrentSession,
   EndedSession,
   GetSessionByIdResult,
+  LatestSession,
   Session,
   SessionsToReview,
   SessionTranscript,
@@ -39,7 +40,7 @@ import {
   updateSessionReviewReasonsById,
 } from '../models/Session'
 import * as SessionRepo from '../models/Session'
-import { UserContactInfo } from '../models/User'
+import { UserContactInfo, UserRole } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
   createAccountAction,
@@ -79,6 +80,7 @@ import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
+import { PrimaryUserRole, SessionUserRole } from './UserRolesService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -732,14 +734,11 @@ export async function getRecapSessionForDms(userId: Ulid) {
   return await SessionRepo.getRecapSessionForDmsBySessionId(userId)
 }
 
-export async function studentLatestSession(data: unknown) {
-  const userId = asString(data)
-  return await SessionRepo.getLatestSessionByStudentId(userId)
-}
-
-export async function volunteerLatestSession(data: unknown) {
-  const userId = asString(data)
-  return await SessionRepo.getLatestSessionByVolunteerId(userId)
+export async function getLatestSession(
+  userId: Ulid,
+  role: SessionUserRole
+): Promise<LatestSession | undefined> {
+  return await SessionRepo.getLatestSession(userId, role)
 }
 
 export async function sessionTimedOut(user: UserContactInfo, data: unknown) {
