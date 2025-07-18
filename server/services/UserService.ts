@@ -558,14 +558,17 @@ export async function switchActiveRoleForUser(
   userId: string,
   role: PrimaryUserRole
 ): Promise<{ activeRole: PrimaryUserRole; user: any }> {
-  const activeRole = await UserRolesService.switchActiveRole(userId, role)
+  const { newRoleContext } = await UserRolesService.switchActiveRole(
+    userId,
+    role
+  )
   const userContactInfo = await getUserContactInfo(userId)
   if (!userContactInfo)
     throw new Error(
       "Failed to switch user's active role: User contact info not found"
     )
   const parsedUser = await parseUser(userContactInfo)
-  return { activeRole, user: parsedUser }
+  return { activeRole: newRoleContext.activeRole, user: parsedUser }
 }
 
 export async function updatePreferredLanguage(
