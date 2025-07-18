@@ -63,6 +63,7 @@ export type LegacyUserModel = {
   referredBy?: Ulid
   sessionStats: UserSessionStats
   preferredLanguage: string
+  signupSource?: string
   // volunteer
   isOnboarded?: boolean
   isApproved?: boolean

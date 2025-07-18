@@ -503,7 +503,8 @@ users_roles.role_id,
 muted_users_subject_alerts_agg.muted_subject_alerts,
 number_of_student_classes.count AS number_of_student_classes,
 federated_credentials_agg.issuers,
-teacher_profiles.last_successful_clever_sync
+teacher_profiles.last_successful_clever_sync,
+COALESCE(users.other_signup_source, signup_sources.name) AS signup_source
 FROM
     users
     LEFT JOIN (
@@ -623,6 +624,7 @@ FROM
             federated_credentials
         WHERE
             federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE
+    LEFT JOIN signup_sources ON signup_sources.id = users.signup_source_id
 WHERE
     users.id = :userId!;
 
