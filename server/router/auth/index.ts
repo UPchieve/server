@@ -67,7 +67,7 @@ export function routes(app: Express) {
     passport.authenticate('local'),
     // If successfully authed, return user object (otherwise 401 is returned from middleware)
     async function (req: Request, res: Response) {
-      let user = await getLegacyUserObject(extractUser(req).id)
+      const user = await getLegacyUserObject(extractUser(req).id)
 
       if (
         req.body?.forceLoginWithRole &&
