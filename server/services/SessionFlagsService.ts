@@ -473,8 +473,8 @@ export async function processMetrics(
     volunteerUserSessionMetrics
   )
 
-  const dontManualReviewReasons = []
-  const manualReviewReasons = []
+  const dontManualReviewReasons: UserSessionFlags[] = []
+  const manualReviewReasons: UserSessionFlags[] = []
 
   reviewReasons.forEach((reviewReason) => {
     if (excludeFromReviewSessionFlags.includes(reviewReason)) {
@@ -488,14 +488,14 @@ export async function processMetrics(
     if (manualReviewReasons.length)
       await updateSessionReviewReasonsById(
         session.id,
-        reviewReasons,
+        manualReviewReasons,
         false,
         transactionClient
       )
     if (dontManualReviewReasons.length)
       await updateSessionReviewReasonsById(
         session.id,
-        reviewReasons,
+        dontManualReviewReasons,
         true,
         transactionClient
       )
