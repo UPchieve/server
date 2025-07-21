@@ -46,7 +46,7 @@ export enum UserSessionFlags {
 
 /*
 TODO: If this list gets big, we can split the 
-excluded session flags by their domain (feedback metric, sessionm, metric..etc)
+excluded session flags by their domain (feedback metric, session, metric..etc)
  */
 export const EXCLUDED_SESSION_FLAGS_FROM_REVIEW = [
   UserSessionFlags.absentStudent,
