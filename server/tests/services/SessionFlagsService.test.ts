@@ -37,7 +37,6 @@ import {
   processMetrics,
 } from '../../services/SessionFlagsService'
 import { Jobs } from '../../worker/jobs'
-import { getClient } from '../../db'
 
 jest.mock('../../models/Session')
 jest.mock('../../models/Survey')
