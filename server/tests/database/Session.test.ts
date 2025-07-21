@@ -518,7 +518,7 @@ describe('Session repo', () => {
     })
 
     it('Inserts a single review reason', async () => {
-      const reviewReason = USER_SESSION_METRICS.absentVolunteer
+      const reviewReason = UserSessionFlags.absentVolunteer
       const reviewReasonId = 2
       await updateSessionReviewReasonsById(session.id, [reviewReason])
       const actualReviewReasons = await dbClient.query(
@@ -533,7 +533,7 @@ describe('Session repo', () => {
 
     it('Inserts multiple review reasons', async () => {
       const reviewReasons = [
-        USER_SESSION_METRICS.absentVolunteer,
+        UserSessionFlags.absentVolunteer,
         UserSessionFlags.pii,
       ]
       const reviewReasonIds = [2, 28]
@@ -552,7 +552,7 @@ describe('Session repo', () => {
       const initialFlagId = 25
       const nextFlagsToInsert = [
         UserSessionFlags.pii,
-        USER_SESSION_METRICS.absentStudent,
+        UserSessionFlags.absentStudent,
       ]
       const nextFlagsToInsertIds = [1, 28]
 
