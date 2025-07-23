@@ -517,6 +517,9 @@ export async function sendBecomeAnAmbassadorEmail(args: {
 }): Promise<void> {
   const becomeAnAmbassadorTemplateId =
     config.sendgrid.becomeAnAmbassadorTemplate
+  const overrides = {
+    categories: ['become-an-abmassador-email'],
+  }
   await sendEmail(
     args.email,
     config.mail.senders.support,
@@ -525,7 +528,8 @@ export async function sendBecomeAnAmbassadorEmail(args: {
     {
       firstName: args.firstName,
       referralSignUpLink: args.referralSignUpLink,
-    }
+    },
+    overrides
   )
 }
 
@@ -577,6 +581,9 @@ export async function sendReferralSignUpCelebrationEmail(args: {
 }): Promise<void> {
   const referralSignUpCelebrationTemplateId =
     config.sendgrid.referralSignUpCelebrationTemplate
+  const overrides = {
+    categories: ['referral-signup-celebrations'],
+  }
   await sendEmail(
     args.email,
     config.mail.senders.support,
@@ -586,7 +593,8 @@ export async function sendReferralSignUpCelebrationEmail(args: {
       referrerFirstName: args.referrerFirstName,
       referredFirstName: args.referredFirstName,
       referralSignUpLink: args.referralSignUpLink,
-    }
+    },
+    overrides
   )
 }
 
