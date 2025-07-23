@@ -14,6 +14,7 @@ import {
 } from '../../constants'
 import { getUuid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session'
+import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics'
 import {
   getPostsessionSurveyResponsesForSessionMetrics,
   PostsessionSurveyResponse,
@@ -33,6 +34,7 @@ import {
   computeLowSessionRatingFromCoach,
   VOLUNTEER_WAITING_PERIOD_MIN,
   STUDENT_WAITING_PERIOD_MIN,
+  processMetrics,
 } from '../../services/SessionFlagsService'
 import { Jobs } from '../../worker/jobs'
 
@@ -40,12 +42,20 @@ jest.mock('../../models/Session')
 jest.mock('../../models/Survey')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/SessionService')
+jest.mock('../../models/UserSessionMetrics')
 
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedGetPostsessionSurveyResponsesForSessionMetrics = mocked(
   getPostsessionSurveyResponsesForSessionMetrics
 )
 const volunteerJoinedAt = new Date('2025-01-01 00:00:00.000000+00')
+
+const mockedUserSessionMetricsRepo = mocked(UserSessionMetricsRepo)
+const mockedComputeSessionFlags = jest.fn(() => [])
+const mockedComputeReviewReasons = jest.fn(() => [
+  UserSessionFlags.absentStudent,
+  UserSessionFlags.coachReportedStudentDm,
+])
 
 describe('SessionFlagsService', () => {
   beforeEach(() => {
@@ -972,6 +982,51 @@ describe('SessionFlagsService', () => {
           userId: session.studentId,
         },
         expect.anything()
+      )
+    })
+  })
+
+  describe('Test flagging for review', () => {
+    test("Don't mark excluded flags for review", async () => {
+      const studentId = getUuid()
+      const session = buildSession({
+        studentId,
+      })
+      const userMetrics = buildUserSessionMetrics({
+        userId: session.studentId,
+        onlyLookingForAnswers: 3,
+      })
+
+      mockedSessionRepo.getSessionById.mockResolvedValue(session)
+
+      mockedUserSessionMetricsRepo.getUserSessionMetricsByUserId.mockResolvedValue(
+        userMetrics
+      )
+
+      await processMetrics(
+        session.id,
+        {
+          computeSessionFlags: mockedComputeSessionFlags,
+          computeReviewReasons: mockedComputeReviewReasons,
+        },
+        [UserSessionFlags.absentStudent]
+      )
+
+      expect(
+        mockedSessionRepo.updateSessionReviewReasonsById
+      ).toHaveBeenNthCalledWith(
+        1,
+        session.id,
+        [UserSessionFlags.coachReportedStudentDm],
+        false
+      )
+      expect(
+        mockedSessionRepo.updateSessionReviewReasonsById
+      ).toHaveBeenNthCalledWith(
+        2,
+        session.id,
+        [UserSessionFlags.absentStudent],
+        true
       )
     })
   })
