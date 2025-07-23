@@ -24,7 +24,6 @@ import {
 } from '../models/UserSessionMetrics'
 import { Jobs } from '../worker/jobs'
 import logger from '../logger'
-import { runInTransaction } from '../db'
 
 export const VOLUNTEER_WAITING_PERIOD_MIN = 10
 export const STUDENT_WAITING_PERIOD_MIN = 5
@@ -484,22 +483,14 @@ export async function processMetrics(
     }
   })
 
-  await runInTransaction(async (transactionClient) => {
-    if (manualReviewReasons.length)
-      await updateSessionReviewReasonsById(
-        session.id,
-        manualReviewReasons,
-        false,
-        transactionClient
-      )
-    if (dontManualReviewReasons.length)
-      await updateSessionReviewReasonsById(
-        session.id,
-        dontManualReviewReasons,
-        true,
-        transactionClient
-      )
-  })
+  if (manualReviewReasons.length)
+    await updateSessionReviewReasonsById(session.id, manualReviewReasons, false)
+  if (dontManualReviewReasons.length)
+    await updateSessionReviewReasonsById(
+      session.id,
+      dontManualReviewReasons,
+      true
+    )
 
   if (callbacks.triggerActions)
     await callbacks.triggerActions(
