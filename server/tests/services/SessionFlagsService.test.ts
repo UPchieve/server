@@ -1018,8 +1018,7 @@ describe('SessionFlagsService', () => {
         1,
         session.id,
         [UserSessionFlags.coachReportedStudentDm],
-        false,
-        expect.anything()
+        false
       )
       expect(
         mockedSessionRepo.updateSessionReviewReasonsById
@@ -1027,8 +1026,7 @@ describe('SessionFlagsService', () => {
         2,
         session.id,
         [UserSessionFlags.absentStudent],
-        true,
-        expect.anything()
+        true
       )
     })
   })
