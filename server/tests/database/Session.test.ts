@@ -12,12 +12,14 @@ import { getClient } from '../../db'
 import {
   getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
+  getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
+  updateSessionToEnd,
 } from '../../models/Session'
-import { insertSingleRow } from '../db-utils'
+import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
 import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
@@ -516,7 +518,7 @@ describe('Session repo', () => {
     })
 
     it('Inserts a single review reason', async () => {
-      const reviewReason = USER_SESSION_METRICS.absentVolunteer
+      const reviewReason = UserSessionFlags.absentVolunteer
       const reviewReasonId = 2
       await updateSessionReviewReasonsById(session.id, [reviewReason])
       const actualReviewReasons = await dbClient.query(
@@ -531,7 +533,7 @@ describe('Session repo', () => {
 
     it('Inserts multiple review reasons', async () => {
       const reviewReasons = [
-        USER_SESSION_METRICS.absentVolunteer,
+        UserSessionFlags.absentVolunteer,
         UserSessionFlags.pii,
       ]
       const reviewReasonIds = [2, 28]
@@ -550,7 +552,7 @@ describe('Session repo', () => {
       const initialFlagId = 25
       const nextFlagsToInsert = [
         UserSessionFlags.pii,
-        USER_SESSION_METRICS.absentStudent,
+        UserSessionFlags.absentStudent,
       ]
       const nextFlagsToInsertIds = [1, 28]
 
@@ -577,6 +579,77 @@ describe('Session repo', () => {
       expect(new Set(finalFlagIds)).toEqual(
         new Set([initialFlagId, ...nextFlagsToInsertIds])
       )
+    })
+  })
+
+  describe('updateSessionToEnd', () => {
+    const getSessionRow = async (sessionId: string) => {
+      const rows = (
+        await dbClient.query('SELECT * FROM sessions WHERE id = $1', [
+          sessionId,
+        ])
+      ).rows
+      return camelCaseKeys(rows[0])
+    }
+
+    it('Sets endedBy to null when none is provided', async () => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId,
+        }),
+        dbClient
+      )
+      const initialRow = await getSessionRow(session.id)
+      expect(initialRow.endedByUserId).toBeNull()
+
+      const endedAt = new Date()
+      await updateSessionToEnd(session.id, endedAt, null, dbClient)
+      const updatedRow = await getSessionRow(session.id)
+      expect(updatedRow.id).toEqual(session.id)
+      expect(updatedRow.endedByUserId).toBeNull()
+      expect(updatedRow.endedAt).toEqual(endedAt)
+    })
+
+    it('Sets endedBy to the provided value', async () => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId,
+        }),
+        dbClient
+      )
+      const initialRow = await getSessionRow(session.id)
+      expect(initialRow.endedByUserId).toBeNull()
+
+      const endedAt = new Date()
+      await updateSessionToEnd(session.id, endedAt, volunteerId, dbClient)
+      const updatedRow = await getSessionRow(session.id)
+      expect(updatedRow.id).toEqual(session.id)
+      expect(updatedRow.endedByUserId).toEqual(volunteerId)
+      expect(updatedRow.endedAt).toEqual(endedAt)
+    })
+  })
+
+  describe('getLatestSession', () => {
+    it('Returns the correct session, or none if there is none', async () => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          volunteerId,
+          studentId,
+          endedAt: new Date(),
+          endedByUserId: volunteerId,
+        }),
+        dbClient
+      )
+      const asStudent = await getLatestSession(volunteerId, 'student')
+      expect(asStudent).toBeUndefined()
+      const asVolunteer = await getLatestSession(volunteerId, 'volunteer')
+      expect(asVolunteer?.id).toEqual(session.id)
+      expect(asVolunteer?.endedByUserId).toEqual(volunteerId)
     })
   })
 })

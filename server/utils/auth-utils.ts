@@ -341,6 +341,13 @@ export function isSupportedSsoProvider(provider?: string) {
   return supportedSsoProviders.has(provider as SsoProvider)
 }
 
+export function getSsoProviderFromReferer(referer?: string): SsoProvider | '' {
+  if (!referer) return ''
+  if (referer.includes('clever')) return 'clever'
+  if (referer.includes('classlink')) return 'classlink'
+  return ''
+}
+
 // Passport functions
 function setupPassport() {
   passport.serializeUser(function (user: Express.User, done: Function) {

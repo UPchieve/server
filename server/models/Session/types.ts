@@ -1,5 +1,6 @@
 import { Ulid, Uuid } from '../pgUtils'
 import { USER_ROLES_TYPE } from '../../constants'
+import { SessionToEndUserInfo } from './queries'
 
 export type Session = {
   id: Ulid
@@ -10,7 +11,6 @@ export type Session = {
   quillDoc?: string
   volunteerJoinedAt?: Date
   endedAt?: Date
-  endedByRoleId?: number
   reviewed: boolean
   toReview: boolean
   studentBanned?: boolean
@@ -18,12 +18,6 @@ export type Session = {
   shadowbanned?: boolean
   createdAt: Date
   updatedAt: Date
-}
-
-export type SessionWithSubjectAndTopic = Session & {
-  toolType: string
-  topic: string
-  subject: string
 }
 
 export type GetSessionByIdResult = {
@@ -38,6 +32,7 @@ export type GetSessionByIdResult = {
   volunteerJoinedAt?: Date
   endedAt?: Date
   endedByRole?: string
+  endedByUserId?: Ulid
   reviewed: boolean
   toReview: boolean
   shadowbanned?: boolean
@@ -138,4 +133,26 @@ export type SessionMetrics = {
   coachUncomfortable: boolean
   studentCrisis: boolean
   createdAt: Date
+}
+
+export type SessionToEnd = Pick<
+  GetSessionByIdResult,
+  | 'id'
+  | 'createdAt'
+  | 'endedAt'
+  | 'reported'
+  | 'topic'
+  | 'subject'
+  | 'volunteerJoinedAt'
+> & {
+  student: SessionToEndUserInfo
+} & { volunteer?: SessionToEndUserInfo }
+
+export type EndedSession = Pick<
+  GetSessionByIdResult,
+  'id' | 'createdAt' | 'volunteerJoinedAt'
+> & {
+  endedAt: Date
+  endedBy?: Ulid
+  endedByUserRole: string
 }

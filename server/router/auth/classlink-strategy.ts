@@ -10,8 +10,9 @@ import { Uuid } from '../../models/pgUtils'
 import { UserRole } from '../../models/User'
 import * as ClassLinkApiService from '../../services/ClassLinkApiService'
 import * as SchoolService from '../../services/SchoolService'
+import { SsoProvider } from '../../utils/auth-utils'
 
-export type TClassLinkPassportProfile = passport.Profile & {
+export type ClassLinkPassportProfile = passport.Profile & {
   issuer: string
   userType: UserRole
   schoolId?: Uuid
@@ -19,7 +20,7 @@ export type TClassLinkPassportProfile = passport.Profile & {
 
 // TODO: Centralize shared logic with CleverStrategy to helpers
 export default class ClassLinkStrategy extends OAuth2Strategy {
-  name: string = 'classlink'
+  name: SsoProvider = 'classlink'
   static baseUrl: string = 'https://launchpad.classlink.com'
   static authPath: string = '/oauth2/v2/auth'
   static tokenPath: string = '/oauth2/v2/token'
@@ -28,8 +29,8 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
     options: Partial<StrategyOptionsWithRequest>,
     verify: VerifyFunctionWithRequest
   ) {
-    options.authorizationURL = `${ClassLinkStrategy.baseUrl}${ClassLinkStrategy.authPath}`
-    options.tokenURL = `${ClassLinkStrategy.baseUrl}${ClassLinkStrategy.tokenPath}`
+    options.authorizationURL = `${ClassLinkStrategy.baseUrl + ClassLinkStrategy.authPath}`
+    options.tokenURL = `${ClassLinkStrategy.baseUrl + ClassLinkStrategy.tokenPath}`
     options.clientID = config.classlinkClientId
     options.clientSecret = config.classlinkClientSecret
     options.passReqToCallback = true
@@ -44,7 +45,7 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
       const userType = this.getUserType(user.Role)
       const schoolId = await this.getSchoolId(accessToken)
 
-      const profile: TClassLinkPassportProfile = {
+      const profile: ClassLinkPassportProfile = {
         id: user.UserId.toString(),
         displayName: user.DisplayName,
         emails: [{ value: user.Email ?? '' }],
@@ -66,7 +67,7 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
     }
   }
 
-  getUserType(role: ClassLinkApiService.ClassLinkProfileRoles): UserRole {
+  getUserType(role: ClassLinkApiService.ClassLinkProfileRole): UserRole {
     if (role === 'Tenant Administrator')
       throw new Error(`Unsupported ClassLink role: ${role}`)
     return role.toLowerCase() as UserRole

@@ -15,9 +15,9 @@ import {
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
-  SessionMetrics,
   Session,
-  SessionWithSubjectAndTopic,
+  SessionToEnd,
+  EndedSession,
 } from './types'
 import 'moment-timezone'
 import {
@@ -44,6 +44,10 @@ import {
 } from '../Survey'
 import config from '../../config'
 import type { SessionHistoryFilter } from '../../services/SessionService'
+import {
+  PrimaryUserRole,
+  SessionUserRole,
+} from '../../services/UserRolesService'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -185,19 +189,6 @@ export type SessionToEndUserInfo = {
   numPastSessions: number
   volunteerPartnerOrg?: string
 }
-
-export type SessionToEnd = Pick<
-  GetSessionByIdResult,
-  | 'id'
-  | 'createdAt'
-  | 'endedAt'
-  | 'reported'
-  | 'topic'
-  | 'subject'
-  | 'volunteerJoinedAt'
-> & {
-  student: SessionToEndUserInfo
-} & { volunteer?: SessionToEndUserInfo }
 
 export async function getSessionToEndById(
   sessionId: Ulid,
@@ -403,14 +394,22 @@ export async function updateSessionToEnd(
   endedAt: Date,
   endedBy: Ulid | null,
   tc: TransactionClient = getClient()
-): Promise<void> {
+): Promise<EndedSession> {
   try {
     const result = await pgQueries.updateSessionToEnd.run(
       { sessionId, endedAt, endedBy },
       tc
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    if (!result.length)
+      throw new Error(
+        'Failure in updateSessionToEnd: Did not get back updated session'
+      )
+    return makeSomeRequired(result[0], [
+      'id',
+      'createdAt',
+      'endedAt',
+      'endedByUserRole',
+    ])
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -662,7 +661,6 @@ export type CurrentSession = {
   endedBy?: Ulid
   toolType: string
   docEditorVersion?: number
-  useNewZwibblerVersion?: boolean
   studentBannedFromLiveMedia?: boolean
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
@@ -820,40 +818,28 @@ export async function getCurrentSessionBySessionId(
   }
 }
 
-export type StudentLatestSession = {
+export type LatestSession = {
   id: string
   createdAt: Date
-  subject: string
-  timeTutored: number
-  endedByUserRole?: string
+  studentId: string
+  volunteerId?: string
+  endedByUserId?: string
+  timeTutored?: number
+  endedAt?: Date
 }
-export async function getLatestSessionByStudentId(
-  studentId: Ulid
-): Promise<StudentLatestSession | undefined> {
+export async function getLatestSession(
+  userId: Ulid,
+  role: SessionUserRole
+): Promise<LatestSession | undefined> {
   try {
-    const result = await pgQueries.getLatestSessionByStudentId.run(
-      { studentId },
+    const result = await pgQueries.getLatestSession.run(
+      { userId, role },
       getClient()
     )
     if (!result.length) return
-    return makeSomeOptional(result[0], ['endedByUserRole'])
-  } catch (error) {
-    throw error
-  }
-}
-
-export async function getLatestSessionByVolunteerId(
-  volunteerId: Ulid
-): Promise<StudentLatestSession | undefined> {
-  try {
-    const result = await pgQueries.getLatestSessionByVolunteerId.run(
-      { volunteerId },
-      getClient()
-    )
-    if (!result.length) return
-    return makeSomeOptional(result[0], ['endedByUserRole'])
-  } catch (error) {
-    throw new RepoReadError(error)
+    return makeSomeRequired(result[0], ['id', 'createdAt', 'studentId'])
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
 
@@ -1141,7 +1127,7 @@ export async function getSessionsForAdminFilter(
 
 export async function updateSessionReviewReasonsById(
   sessionId: Ulid,
-  reviewReasons: (USER_SESSION_METRICS | UserSessionFlags)[],
+  reviewReasons: UserSessionFlags[],
   // Use this property to override the reviewed status of a session
   reviewed?: boolean,
   client?: TransactionClient

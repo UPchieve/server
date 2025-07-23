@@ -350,28 +350,23 @@ UPDATE
     sessions
 SET
     ended_at = :endedAt!,
-    ended_by_role_id = subquery.id,
+    ended_by_user_id = :endedBy,
     updated_at = NOW()
-FROM (
-    SELECT
-        user_roles.id
-    FROM
-        sessions
-    LEFT JOIN user_roles ON TRUE
-WHERE
-    sessions.id = :sessionId!
-    AND user_roles.name = (
-        CASE WHEN sessions.volunteer_id = :endedBy THEN
-            'volunteer'
-        WHEN sessions.student_id = :endedBy THEN
-            'student'
-        ELSE
-            'admin'
-        END)) AS subquery
 WHERE
     sessions.id = :sessionId!
 RETURNING
-    sessions.id AS ok;
+    sessions.id,
+    sessions.created_at,
+    sessions.ended_at,
+    sessions.volunteer_joined_at,
+    :endedBy::uuid AS ended_by,
+    CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN
+        'volunteer'
+    WHEN sessions.student_id = :endedBy::uuid THEN
+        'student'
+    ELSE
+        'admin'
+    END AS ended_by_user_role;
 
 
 /* @name getLongRunningSessions */
@@ -714,37 +709,23 @@ GROUP BY
     cgl.current_grade_name;
 
 
-/* @name getLatestSessionByStudentId */
+/* @name getLatestSession */
 SELECT
     sessions.id,
     sessions.created_at,
     time_tutored::int,
     subjects.name AS subject,
-    user_roles.name AS ended_by_user_role
+    sessions.student_id,
+    sessions.volunteer_id,
+    sessions.ended_by_user_id,
+    sessions.ended_at
 FROM
     sessions
     JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
-WHERE
-    sessions.student_id = :studentId!
-ORDER BY
-    created_at DESC
-LIMIT 1;
-
-
-/* @name getLatestSessionByVolunteerId */
-SELECT
-    sessions.id,
-    sessions.created_at,
-    time_tutored::int,
-    subjects.name AS subject,
-    user_roles.name AS ended_by_user_role
-FROM
-    sessions
-    JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN user_roles ON sessions.ended_by_role_id = user_roles.id
-WHERE
-    sessions.volunteer_id = :volunteerId!
+WHERE (:role!::text = 'student'
+    AND sessions.student_id = :userId!::uuid)
+    OR (:role!::text = 'volunteer'
+        AND sessions.volunteer_id = :userId!::uuid)
 ORDER BY
     created_at DESC
 LIMIT 1;

@@ -61,6 +61,8 @@ export type AnalyticPersonProperties = {
   usesClever?: boolean
   usesGoogle?: boolean
   hasSubjectCertification?: boolean
+  signupSource?: string
+  occupation?: string
 } & AnalyticCertificationStats
 
 export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
@@ -83,6 +85,8 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       hasStudentRole: user.roleContext.hasRole('student'),
       hasVolunteerRole: user.roleContext.hasRole('volunteer'),
       hasTeacherRole: user.roleContext.hasRole('teacher'),
+      signupSource: user.signupSource,
+      occupation: user.occupation,
       usesClever: user.usesClever ?? false,
     } as AnalyticPersonProperties
 

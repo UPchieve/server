@@ -44,6 +44,18 @@ export enum UserSessionFlags {
   generalModerationIssue = 'General moderation concern',
 }
 
+/*
+TODO: If this list gets big, we can split the 
+excluded session flags by their domain (feedback metric, session, metric..etc)
+ */
+export const EXCLUDED_SESSION_FLAGS_FROM_REVIEW = [
+  UserSessionFlags.absentStudent,
+  UserSessionFlags.absentVolunteer,
+  UserSessionFlags.lowCoachRatingFromStudent,
+  UserSessionFlags.lowSessionRatingFromCoach,
+  UserSessionFlags.lowSessionRatingFromStudent,
+]
+
 export const SESSION_REPORT_REASON = {
   STUDENT_RUDE: '[Immediate ban] Student extremely rude/inappropriate',
   STUDENT_SAFETY: 'I am worried for the immediate safety of this student',
