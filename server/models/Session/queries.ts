@@ -1332,7 +1332,7 @@ export async function isEligibleForSessionRecap(
   const client = await getClient().connect()
   try {
     const result = await pgQueries.isEligibleForSessionRecap.run(
-      { sessionId, minSessionLength: config.minSessionLength },
+      { sessionId },
       client
     )
     if (!result.length) return false

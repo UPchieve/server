@@ -1151,10 +1151,24 @@ FROM
     sessions
 WHERE
     sessions.id = :sessionId!
-    AND sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
-    AND sessions.ended_at IS NOT NULL;
+    AND sessions.ended_at IS NOT NULL
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            session_messages
+        WHERE
+            session_id = sessions.id
+            AND sender_id = sessions.volunteer_id)
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            session_messages
+        WHERE
+            session_id = sessions.id
+            AND sender_id = sessions.student_id);
 
 
 /* @name getTotalSessionHistory */
