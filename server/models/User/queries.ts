@@ -35,6 +35,7 @@ import {
   UserContactInfo,
   UserForCreateSendGridContact,
   UserForAdmin,
+  EditUserProfilePayload,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 
@@ -627,11 +628,15 @@ export async function updateUserPhoneNumberByUserId(
 }
 
 export async function updateUserProfileById(
-  userId: Ulid,
-  data: Partial<User>
+  userId: string,
+  data: Pick<
+    EditUserProfilePayload,
+    'deactivated' | 'phone' | 'smsConsent' | 'preferredLanguage'
+  >,
+  tc?: TransactionClient
 ): Promise<void> {
   try {
-    const result = await pgQueries.updateUserProfileById.run(
+    await pgQueries.updateUserProfileById.run(
       {
         userId,
         deactivated: data.deactivated,
@@ -639,38 +644,39 @@ export async function updateUserProfileById(
         smsConsent: data.smsConsent,
         preferredLanguage: data.preferredLanguage,
       },
-      getClient()
+      tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
-    // Update muted subject alerts for volunteers
-    if (data.mutedSubjectAlerts) {
-      if (data.mutedSubjectAlerts.length == 0) {
-        await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, getClient())
-      } else {
-        let subjectNameIdMapping: {
-          [name: string]: number
-        } = await getSubjectNameIdMapping()
-        let mutedSubjectAlertIds = []
-        for (const subjectName of data.mutedSubjectAlerts) {
-          mutedSubjectAlertIds.push(subjectNameIdMapping[subjectName])
-        }
-        let mutedSubjectAlertIdsWithUserId: {
-          userId: Ulid
-          subjectId: number
-        }[] = []
-        mutedSubjectAlertIds.forEach((subjectId) =>
-          mutedSubjectAlertIdsWithUserId.push({ userId, subjectId })
-        )
-        await pgQueries.insertMutedUserSubjectAlerts.run(
-          { mutedSubjectAlertIdsWithUserId },
-          getClient()
-        )
-        await pgQueries.deleteUnmutedUserSubjectAlerts.run(
-          { userId, mutedSubjectAlertIds },
-          getClient()
-        )
-      }
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSubjectAlerts(
+  userId: string,
+  mutedSubjectAlerts: string[] | undefined,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.deleteAllUserSubjectAlerts.run({ userId }, tc)
+
+    if (mutedSubjectAlerts?.length) {
+      const subjectNameIdMapping: {
+        [name: string]: number
+      } = await getSubjectNameIdMapping()
+
+      const mutedSubjectAlertIdsWithUserId: {
+        userId: Ulid
+        subjectId: number
+      }[] = mutedSubjectAlerts.map((subjectName) => ({
+        userId,
+        subjectId: subjectNameIdMapping[subjectName],
+      }))
+
+      await pgQueries.insertMutedUserSubjectAlerts.run(
+        { mutedSubjectAlertIdsWithUserId },
+        tc ?? getClient()
+      )
     }
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err

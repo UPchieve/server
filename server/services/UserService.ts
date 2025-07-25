@@ -21,7 +21,6 @@ import {
   UserContactInfo,
   getUsersForAdminSearch,
   deleteUser,
-  updateUserProfileById,
   deleteUserPhoneInfo,
   UserForAdmin,
   UserRole,
@@ -505,18 +504,6 @@ export async function getUsers(
   } catch (error) {
     throw new Error((error as Error).message)
   }
-}
-
-export async function updateUserProfile(
-  userId: Ulid,
-  opts: {
-    deactivated?: boolean
-    phone?: string
-    smsConsent?: boolean
-    mutedSubjectAlerts?: string[]
-  }
-) {
-  await updateUserProfileById(userId, opts)
 }
 
 export async function deletePhoneFromAccount(userId: Ulid) {
