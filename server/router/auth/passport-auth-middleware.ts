@@ -335,121 +335,50 @@ export function addPassportAuthMiddleware() {
 
   passport.use(
     'classlink',
-    new ClassLinkStrategy({ callbackURL: getRedirectURI() }, async function (
-      req: Request,
-      _accessToken: string,
-      _refreshToken: string,
-      profile: ClassLinkPassportProfile,
-      done: Function
-    ) {
-      return handleSSOStrategy(req, profile, done, {
-        providerName: 'ClassLink',
-        isStudent: (userType) => userType === 'student',
-        isTeacher: (userType) => userType === 'teacher',
-      })
-    })
-  )
-
-  // TODO: ClassLink and Clever passport strategies have mostly duplicated logic (SSO handling, account linking, account creation),
-  // refactor to handle shared logic
-  passport.use(
-    'classlink',
-    new ClassLinkStrategy({ callbackURL: getRedirectURI() }, async function (
-      req: Request,
-      _accessToken: string,
-      _refreshToken: string,
-      profile: ClassLinkPassportProfile,
-      done: Function
-    ) {
-      try {
-        const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-        // Check if the user has already used ClassLink SSO.
-        const existingFedCred = await FedCredService.getFedCredForUser(
-          profile.id,
-          profile.issuer
-        )
-        if (existingFedCred) {
-          if (userData && profile.userType === 'student') {
-            const data = {
-              schoolId: userData.schoolId,
-              studentPartnerOrgKey: (userData as RegisterStudentPayload)
-                .studentPartnerOrgKey,
-              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-                .studentPartnerOrgSiteName,
-              userId: existingFedCred.userId,
-            }
-            await UserCreationService.upsertStudent(data)
-          }
-          return done(null, { id: existingFedCred.userId })
-        }
-
-        const firstName = profile.name?.givenName
-        const lastName = profile.name?.familyName
-        if (!firstName || !lastName) {
-          return done(null, false, {
-            errorMessage: 'Missing required field in passport.Profile',
-          })
-        }
-
-        const email = profile.emails?.[0]?.value ?? userData?.email
-        if (!email)
-          return done(null, false, {
-            profileId: profile.id,
-            issuer: profile.issuer,
-            firstName,
-            lastName,
-          })
-
-        const existingUser = await getUserVerificationByEmails(
-          email,
-          userData?.email
-        )
-        if (existingUser) {
-          if (userData && profile.userType === 'student') {
-            const data = {
-              schoolId: userData.schoolId,
-              studentPartnerOrgKey: (userData as RegisterStudentPayload)
-                .studentPartnerOrgKey,
-              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-                .studentPartnerOrgSiteName,
-              userId: existingUser.id,
-            }
-            await UserCreationService.upsertStudent(data)
-          }
-          await FedCredService.linkAccount(
-            profile.id,
-            profile.issuer,
-            existingUser.id
-          )
-          return done(null, { id: existingUser.id })
-        }
-
-        // If the user doesn't exist, register them.
-        const data = {
-          ...userData,
-          email,
-          firstName,
-          issuer: profile.issuer,
-          lastName,
-          profileId: profile.id,
-          schoolId: profile.schoolId,
-        }
-        if (profile.userType === 'student') {
-          const student = await UserCreationService.registerStudent(data)
-          return done(null, student)
-        } else if (profile.userType === 'teacher') {
-          const teacher = await UserCreationService.registerTeacher(data)
-          return done(null, teacher)
-        }
-      } catch (err) {
-        logger.error(err, 'Failed ClassLink SSO.')
-        return done(null, false, {
-          userType: profile.userType,
-          errorMessage:
-            'Failed ClassLink SSO. Please try again or contact support.',
+    new ClassLinkStrategy(
+      {
+        callbackURL: getRedirectURI(),
+        clientID: config.classlinkClientId,
+        clientSecret: config.classlinkClientSecret,
+      },
+      async function (
+        req: Request,
+        _accessToken: string,
+        _refreshToken: string,
+        profile: ClassLinkPassportProfile,
+        done: Function
+      ) {
+        return handleSSOStrategy(req, profile, done, {
+          providerName: 'ClassLink',
+          isStudent: (userType) => userType === 'student',
+          isTeacher: (userType) => userType === 'teacher',
         })
       }
-    })
+    )
+  )
+
+  passport.use(
+    'classlink-launchpad',
+    new ClassLinkStrategy(
+      {
+        callbackURL: getRedirectURI(),
+        clientID: config.classLinkLaunchPadClientId,
+        clientSecret: config.classLinkLaunchPadClientSecret,
+      },
+      async function (
+        req: Request,
+        _accessToken: string,
+        _refreshToken: string,
+        profile: ClassLinkPassportProfile,
+        done: Function
+      ) {
+        return handleSSOStrategy(req, profile, done, {
+          providerName: 'ClassLink',
+          isStudent: (userType) => userType === 'student',
+          isTeacher: (userType) => userType === 'teacher',
+        })
+      }
+    )
   )
 }
 
@@ -462,6 +391,12 @@ async function getUserVerificationByEmails(
     const user = await UserRepo.getUserVerificationByEmail(e)
     if (user) return user
   }
+}
+
+export function getClassLinkStrategy(req: Request): string {
+  const connection = req.query.connection
+  if (connection === 'launchpad') return 'classlink-launchpad'
+  return 'classlink'
 }
 
 function getRedirectURI() {

@@ -248,6 +248,8 @@ export const Config = Record({
   classlinkClientId: String,
   classlinkClientSecret: String,
   classlinkRosterApiKey: String,
+  classLinkLaunchPadClientId: String,
+  classLinkLaunchPadClientSecret: String,
 
   minSessionLength: Number,
 
