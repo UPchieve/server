@@ -7,8 +7,6 @@ import * as cache from '../../cache'
 import { Router } from 'express'
 import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
-import { extractUser } from '../extract-user'
-import * as SurveyService from '../../services/SurveyService'
 
 export function routeVolunteers(router: Router): void {
   router.get(

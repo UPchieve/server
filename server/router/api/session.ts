@@ -493,16 +493,4 @@ export function routeSession(router: Router) {
       }
     }
   )
-
-  // TODO just for testing. remove
-  router.get('/sessions/:sessionId/feedback', async function (req, res) {
-    try {
-      const sessionId = asUlid(req.params.sessionId)
-      const studentFeedbackForVolunteer =
-        await getStudentFeedbackForSession(sessionId)
-      res.json({ studentFeedbackForVolunteer })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }

@@ -15,4 +15,5 @@ export enum FEATURE_FLAGS {
   GET_SESSION_SUMMARY = 'get-session-summary',
   DISPLAY_VOLUNTEER_LANGUAGES = 'display-volunteer-languages',
   SEND_AMBASSADOR_OPPORTUNITY_EMAIL = 'send-ambassador-opportunity-email',
+  SEND_POSITIVE_STUDENT_FEEDBACK_EMAIL = 'send-positive-student-feedback-email',
 }

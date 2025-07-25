@@ -22,28 +22,6 @@ export function routeSurvey(router: expressWs.Router): void {
     try {
       const user = extractUser(req)
       const data = SurveyService.asSaveUserSurveyAndSubmissions(req.body)
-      /*
-      TODO remove this
-      data = {
-        surveyId: 8, <- THIS IS THE LOCAL ID use `where surveys.name = 'Student Post-Session Survey'
-        surveyTypeId: 2, <- use `where survey_types.name = 'postsession'
-        sessionId: '0198385d-115f-320f-5800-ef6a0cf4d1c2',
-        submissions: [
-          { questionId: 6, <- ??? what is this, do we show it? "Your goal for this session was to %s. Did UPchieve help you achieve your goal?"
-          responseChoiceId: 47,
-          openResponse: '' },
-          { questionId: 9, <- `where survey_questions.question_text = 'Overall, how supportive was your coach today?'
-          responseChoiceId: 48, <- if survey_response_choices.score = 5 for this id, then we show it
-          openResponse: '' },
-          { questionId: 10, <- `where survey_questions.question_text = 'Overall, how much did your coach push you to do your best work today?'
-          responseChoiceId: 51, <- survey_response_choices.score = 5
-          openResponse: '' },
-          { questionId: 11, `where survey_questions.question_text = 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.'
-          responseChoiceId: 79,
-          openResponse: 'really good!' },
-        ],
-      }
-    */
       await SurveyService.saveUserSurvey(user.id, data)
       res.sendStatus(200)
     } catch (error) {
