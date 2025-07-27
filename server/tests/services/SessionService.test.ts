@@ -204,6 +204,22 @@ describe('SessionService', () => {
       )
       expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
     })
+
+    it('Is also true for students if the student-initiate-dms feature flag is on', async () => {
+      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      const actualForStudent = await isRecapDmsAvailable(
+        session.id,
+        session.studentId
+      )
+      expect(actualForStudent).toEqual({
+        eligible: true,
+      })
+    })
   })
 
   describe('isEligibleForSessionRecap', () => {

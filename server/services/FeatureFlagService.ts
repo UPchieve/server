@@ -186,3 +186,7 @@ export async function getSendPositiveStudentFeedbackEmailFeatureFlag(
     5 * 1000
   )
 }
+
+export async function getStudentsInitiateDmsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.STUDENTS_INITIATE_DMS, userId)
+}
