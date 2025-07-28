@@ -8,6 +8,7 @@ import { getClient } from '../../db'
 import {
   createUserStudentPartnerOrgInstance,
   deactivateUserStudentPartnerOrgInstance,
+  getFullStudentPartnerOrgByKey,
   getStudentPartnerOrgByKey,
   getStudentPartnerOrgBySchoolId,
 } from '../../models/StudentPartnerOrg'
@@ -47,6 +48,20 @@ test('getStudentPartnerOrgByKey with site', async () => {
   expect(actual?.siteId).toBe('01919662-87f5-aa97-e107-b2e537409c85')
   expect(actual?.siteName).toBe('Brooklyn')
   expect(actual?.schoolId).toBeUndefined()
+})
+  /**
+   * Allow for brand new signups to a partner
+   */
+  test('should return a partner org even if it has no instance', async () => {
+    const spo = buildStudentPartnerOrg()
+    if (!spo.key) throw new Error('spo.key is undefined')
+    await insertSingleRow('student_partner_orgs', spo, client)
+
+    const actual = await getFullStudentPartnerOrgByKey(spo.key)
+
+    expect(actual).toBeDefined()
+    expect(actual.key).toBe(spo.key)
+  })
 })
 
 describe('getStudentPartnerOrgBySchoolId', () => {

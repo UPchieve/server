@@ -58,6 +58,7 @@ SELECT
     high_school_signup,
     college_signup,
     school_signup_required,
+    spo.site_signup_shown,
     sites.sites,
     (
         CASE WHEN school_id IS NOT NULL THEN
@@ -79,7 +80,7 @@ FROM
             student_partner_org_sites spos
         WHERE
             spo.id = spos.student_partner_org_id) AS sites ON TRUE
-    JOIN ( SELECT DISTINCT ON (student_partner_org_id)
+    LEFT JOIN ( SELECT DISTINCT ON (student_partner_org_id)
             student_partner_org_id,
             deactivated_on
         FROM
