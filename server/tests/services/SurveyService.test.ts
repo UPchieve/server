@@ -14,7 +14,6 @@ import {
   buildUserSurveySubmission,
 } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
-import { InputError } from '../../models/Errors'
 import { FEEDBACK_EVENTS } from '../../constants'
 import { GetSessionByIdResult } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
@@ -27,6 +26,7 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../services/UserService')
 jest.mock('../../services/UserRolesService')
 jest.mock('../../services/SessionFlagsService')
+jest.mock('../../services/QueueService')
 
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedUserRepo = mocked(UserRepo)
