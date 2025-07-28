@@ -441,7 +441,12 @@ export async function getStudentFeedbackForSession(
       { sessionId },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeOptional(result[0], [
+        'response',
+        'howMuchDidYourCoachPushYouToDoYourBestWorkToday',
+        'howSupportiveWasYourCoachToday',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
