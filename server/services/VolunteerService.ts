@@ -19,7 +19,6 @@ import { Sponsorship } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import { countReferredUsers } from './UserService'
-import * as SurveyService from './SurveyService'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
