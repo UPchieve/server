@@ -49,6 +49,34 @@ test('getStudentPartnerOrgByKey with site', async () => {
   expect(actual?.siteName).toBe('Brooklyn')
   expect(actual?.schoolId).toBeUndefined()
 })
+
+describe('getFullStudentPartnerOrgByKey', () => {
+  test('should return siteSignupShown', async () => {
+    const spo = buildStudentPartnerOrg({
+      siteSignupShown: true,
+    })
+    if (!spo.key) throw new Error('spo.key is undefined')
+    await insertSingleRow('student_partner_orgs', spo, client)
+
+    const actual = await getFullStudentPartnerOrgByKey(spo.key)
+
+    expect(actual).toBeDefined()
+    expect(actual.siteSignupShown).toBe(true)
+  })
+
+  test('should return undefined for siteSignupShown if it is not set', async () => {
+    const spo = buildStudentPartnerOrg({
+      siteSignupShown: undefined,
+    })
+    if (!spo.key) throw new Error('spo.key is undefined')
+    await insertSingleRow('student_partner_orgs', spo, client)
+
+    const actual = await getFullStudentPartnerOrgByKey(spo.key)
+
+    expect(actual).toBeDefined()
+    expect(actual.siteSignupShown).toBeUndefined()
+  })
+
   /**
    * Allow for brand new signups to a partner
    */
