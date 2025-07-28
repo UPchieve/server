@@ -7,7 +7,7 @@ import * as UserCreationService from '../../services/UserCreationService'
 import { switchActiveRole } from '../../services/UserRolesService'
 import {
   authPassport,
-  getSsoProviderFromReferer,
+  getSsoProviderFromRequest,
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
@@ -117,8 +117,7 @@ export function routes(app: Express) {
   // Redirect URI for SSO providers.
   router.route('/oauth2/redirect').get((req, res) => {
     const {
-      provider = getSsoProviderFromReferer(req.headers.referer) ||
-        asString(req.query.provider),
+      provider = getSsoProviderFromRequest(req),
       isLogin = true,
       redirect = '',
       errorRedirect = '',

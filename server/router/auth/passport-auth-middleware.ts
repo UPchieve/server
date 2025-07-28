@@ -393,7 +393,9 @@ async function getUserVerificationByEmails(
   }
 }
 
-export function getClassLinkStrategy(req: Request): string {
+export function getClassLinkStrategy(
+  req: Request
+): 'classlink' | 'classlink-launchpad' {
   const connection = req.query.connection
   if (connection === 'launchpad') return 'classlink-launchpad'
   return 'classlink'
