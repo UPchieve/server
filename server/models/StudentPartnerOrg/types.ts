@@ -15,6 +15,7 @@ export type StudentPartnerOrg = {
   isSchool: boolean
   deactivated?: boolean
   schoolId?: string
+  siteSignupShown?: boolean
 }
 
 export type CreateUserStudentPartnerOrgInstancePayload = {

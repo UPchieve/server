@@ -24,6 +24,13 @@ CREATE SCHEMA basic_access;
 
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -1865,7 +1872,8 @@ CREATE TABLE upchieve.student_partner_orgs (
     school_signup_required boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    school_id uuid
+    school_id uuid,
+    site_signup_shown boolean
 );
 
 
@@ -6416,4 +6424,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250522020702'),
     ('20250522182628'),
     ('20250530172930'),
+    ('20250714033154'),
     ('20250716141321');

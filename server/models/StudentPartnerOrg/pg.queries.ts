@@ -156,6 +156,7 @@ export interface IGetFullStudentPartnerOrgByKeyResult {
   schoolSignupRequired: boolean;
   signupCode: string | null;
   sites: stringArray | null;
+  siteSignupShown: boolean | null;
 }
 
 /** 'GetFullStudentPartnerOrgByKey' query type */
@@ -164,7 +165,7 @@ export interface IGetFullStudentPartnerOrgByKeyQuery {
   result: IGetFullStudentPartnerOrgByKeyResult;
 }
 
-const getFullStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":976,"b":980}]}],"statement":"SELECT\n    KEY,\n    spo.name,\n    signup_code,\n    high_school_signup,\n    college_signup,\n    school_signup_required,\n    sites.sites,\n    (\n        CASE WHEN school_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_school,\n    CASE WHEN spoui.deactivated_on IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS deactivated\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\n    JOIN ( SELECT DISTINCT ON (student_partner_org_id)\n            student_partner_org_id,\n            deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances\n        ORDER BY\n            student_partner_org_id,\n            created_at DESC,\n            updated_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id\nWHERE\n    KEY = :key!"};
+const getFullStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":1008,"b":1012}]}],"statement":"SELECT\n    KEY,\n    spo.name,\n    signup_code,\n    high_school_signup,\n    college_signup,\n    school_signup_required,\n    spo.site_signup_shown,\n    sites.sites,\n    (\n        CASE WHEN school_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_school,\n    CASE WHEN spoui.deactivated_on IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS deactivated\nFROM\n    student_partner_orgs spo\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS sites\n        FROM\n            student_partner_org_sites spos\n        WHERE\n            spo.id = spos.student_partner_org_id) AS sites ON TRUE\n    LEFT JOIN ( SELECT DISTINCT ON (student_partner_org_id)\n            student_partner_org_id,\n            deactivated_on\n        FROM\n            student_partner_orgs_upchieve_instances\n        ORDER BY\n            student_partner_org_id,\n            created_at DESC,\n            updated_at DESC) AS spoui ON spo.id = spoui.student_partner_org_id\nWHERE\n    KEY = :key!"};
 
 /**
  * Query generated from SQL:
@@ -176,6 +177,7 @@ const getFullStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"param
  *     high_school_signup,
  *     college_signup,
  *     school_signup_required,
+ *     spo.site_signup_shown,
  *     sites.sites,
  *     (
  *         CASE WHEN school_id IS NOT NULL THEN
@@ -197,7 +199,7 @@ const getFullStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"key":true},"param
  *             student_partner_org_sites spos
  *         WHERE
  *             spo.id = spos.student_partner_org_id) AS sites ON TRUE
- *     JOIN ( SELECT DISTINCT ON (student_partner_org_id)
+ *     LEFT JOIN ( SELECT DISTINCT ON (student_partner_org_id)
  *             student_partner_org_id,
  *             deactivated_on
  *         FROM
