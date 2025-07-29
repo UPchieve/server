@@ -18,6 +18,7 @@ import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { GetSessionByIdResult } from '../../models/Session'
 import {
   DmIneligibilityReason,
+  isEligibleForSessionRecap,
   isRecapDmsAvailable,
 } from '../../services/SessionService'
 
@@ -202,6 +203,83 @@ describe('SessionService', () => {
         session.studentId
       )
       expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
+    })
+
+    it('Is also true for students if the student-initiate-dms feature flag is on', async () => {
+      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
+        true
+      )
+      const actualForStudent = await isRecapDmsAvailable(
+        session.id,
+        session.studentId
+      )
+      expect(actualForStudent).toEqual({
+        eligible: true,
+      })
+    })
+  })
+
+  describe('isEligibleForSessionRecap', () => {
+    const sessionId = getDbUlid()
+    const studentId = getDbUlid()
+    const volunteerId = getDbUlid()
+
+    it('If the FF is off, the user is only eligible if they are not a partner student', async () => {
+      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
+        false
+      )
+      mockSessionRepo.isEligibleForSessionRecap.mockResolvedValue(true)
+
+      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
+        id: studentId,
+      })
+      expect(
+        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
+      ).toEqual(true)
+
+      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
+        id: studentId,
+        studentPartnerOrg: 'some-partner',
+      })
+      expect(
+        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
+      ).toEqual(false)
+    })
+
+    it('If the FF is on, the user is eligible even if they are a partner student', async () => {
+      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
+        true
+      )
+      mockSessionRepo.isEligibleForSessionRecap.mockResolvedValue(true)
+
+      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
+        id: studentId,
+      })
+      expect(
+        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
+      ).toEqual(true)
+
+      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
+        id: studentId,
+        studentPartnerOrg: 'some-partner',
+      })
+      expect(
+        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
+      ).toEqual(true)
+    })
+
+    it('If the FF is on, the user is still ineligible if their session does not meet the criteria', async () => {
+      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
+        true
+      )
+      mockSessionRepo.isEligibleForSessionRecap.mockResolvedValue(false)
+
+      expect(
+        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
+      ).toEqual(false)
     })
   })
 })

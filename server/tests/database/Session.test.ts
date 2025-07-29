@@ -15,6 +15,7 @@ import {
   getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
+  isEligibleForSessionRecap,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
   updateSessionToEnd,
@@ -650,6 +651,59 @@ describe('Session repo', () => {
       const asVolunteer = await getLatestSession(volunteerId, 'volunteer')
       expect(asVolunteer?.id).toEqual(session.id)
       expect(asVolunteer?.endedByUserId).toEqual(volunteerId)
+    })
+  })
+
+  describe('isEligibleForSessionRecap', () => {
+    it('Returns isEligible = true when the session meets all the criteria', async () => {
+      const baseSession = await buildSessionRow(
+        {
+          studentId,
+        },
+        dbClient
+      )
+
+      const baseSessionFromDb = await insertSingleRow(
+        'sessions',
+        baseSession,
+        dbClient
+      )
+      const sessionId = baseSessionFromDb.id
+
+      const getResult = async () => {
+        return isEligibleForSessionRecap(sessionId)
+      }
+
+      // Unmatched, ongoing session is not eligible
+      expect(await getResult()).toEqual(false)
+
+      // Matched, ongoing session is not eligible
+      await dbClient.query(
+        'UPDATE sessions SET volunteer_id = $1 WHERE id = $2',
+        [volunteerId, sessionId]
+      )
+      expect(await getResult()).toEqual(false)
+
+      // Matched, complete session is not eligible
+      await dbClient.query(
+        'UPDATE sessions SET ended_at = NOW() where id = $1',
+        [sessionId]
+      )
+      expect(await getResult()).toEqual(false)
+
+      // Session with at least 1 message from each user is eligible
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(studentId, sessionId),
+        dbClient
+      )
+      expect(await getResult()).toEqual(false)
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(volunteerId, sessionId),
+        dbClient
+      )
+      expect(await getResult()).toEqual(true)
     })
   })
 })

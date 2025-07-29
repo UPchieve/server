@@ -16,4 +16,5 @@ export enum FEATURE_FLAGS {
   DISPLAY_VOLUNTEER_LANGUAGES = 'display-volunteer-languages',
   SEND_AMBASSADOR_OPPORTUNITY_EMAIL = 'send-ambassador-opportunity-email',
   SEND_POSITIVE_STUDENT_FEEDBACK_EMAIL = 'send-positive-student-feedback-email',
+  STUDENTS_INITIATE_DMS = 'students-initiate-dms',
 }

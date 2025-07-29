@@ -80,7 +80,9 @@ import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
-import { PrimaryUserRole, SessionUserRole } from './UserRolesService'
+import { SessionUserRole } from './UserRolesService'
+import * as FeatureFlagsService from './FeatureFlagService'
+import { isStudent } from './CleverAPIService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1178,6 +1180,7 @@ export async function isRecapDmsAvailable(
     return { eligible: false, ineligibleReason: DmIneligibilityReason.Other }
   }
   const isVolunteer = userId === volunteerId
+  const isStudent = userId === studentId
 
   const isAllowDmsToPartnerStudentsActive =
     await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
@@ -1200,13 +1203,21 @@ export async function isRecapDmsAvailable(
   // Students may send DMs if a DM conversation has already been started
   const sentMessages =
     await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
-  if (!isVolunteer && !sentMessages) {
+
+  // Students may only initiate DMs if the FF is on
+  const isStudentsInitiateDmsEnabled =
+    await FeatureFlagsService.getStudentsInitiateDmsFeatureFlag(userId)
+  if (isStudent) {
+    if (sentMessages || isStudentsInitiateDmsEnabled) {
+      return { eligible: true }
+    }
     return {
       eligible: false,
       ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
     }
   }
-  return { eligible: sentMessages || isVolunteer }
+
+  return { eligible: isVolunteer }
 }
 
 export async function getStudentSessionDetails(
