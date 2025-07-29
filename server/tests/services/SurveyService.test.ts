@@ -141,7 +141,7 @@ describe('saveUserSurvey', () => {
     )
   })
 
-  test(`Should not queue send positive feedback jbo after saving volunteer postsession survey`, async () => {
+  test(`Should not queue send positive feedback job after saving volunteer postsession survey`, async () => {
     mockedUserRolesService.getRoleContext.mockResolvedValue({
       activeRole: 'volunteer',
     } as any)
