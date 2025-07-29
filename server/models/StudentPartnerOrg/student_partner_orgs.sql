@@ -28,10 +28,9 @@ SELECT
 FROM
     student_partner_orgs spo
     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+        AND spos.name = :partnerSite
 WHERE
-    spo.key = :partnerKey!
-    AND ((:partnerSite)::text IS NULL
-        OR spos.name = :partnerSite);
+    spo.key = :partnerKey!;
 
 
 /* @name getStudentPartnerOrgBySchoolId */

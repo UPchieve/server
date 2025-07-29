@@ -72,7 +72,7 @@ export interface IGetStudentPartnerOrgByKeyQuery {
   result: IGetStudentPartnerOrgByKeyResult;
 }
 
-const getStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerKey":true,"partnerSite":true},"params":[{"name":"partnerKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":313,"b":324}]},{"name":"partnerSite","required":false,"transform":{"type":"scalar"},"locs":[{"a":336,"b":347},{"a":387,"b":398}]}],"statement":"SELECT\n    spo.id AS partner_id,\n    spo.key AS partner_key,\n    spo.name AS partner_name,\n    spos.id AS site_id,\n    spos.name AS site_name,\n    spo.school_id AS school_id\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\nWHERE\n    spo.key = :partnerKey!\n    AND ((:partnerSite)::text IS NULL\n        OR spos.name = :partnerSite)"};
+const getStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerSite":true,"partnerKey":true},"params":[{"name":"partnerSite","required":false,"transform":{"type":"scalar"},"locs":[{"a":317,"b":328}]},{"name":"partnerKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":350,"b":361}]}],"statement":"SELECT\n    spo.id AS partner_id,\n    spo.key AS partner_key,\n    spo.name AS partner_name,\n    spos.id AS site_id,\n    spos.name AS site_name,\n    spo.school_id AS school_id\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id\n        AND spos.name = :partnerSite\nWHERE\n    spo.key = :partnerKey!"};
 
 /**
  * Query generated from SQL:
@@ -87,10 +87,9 @@ const getStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerKey":true,"par
  * FROM
  *     student_partner_orgs spo
  *     LEFT JOIN student_partner_org_sites spos ON spo.id = spos.student_partner_org_id
+ *         AND spos.name = :partnerSite
  * WHERE
  *     spo.key = :partnerKey!
- *     AND ((:partnerSite)::text IS NULL
- *         OR spos.name = :partnerSite)
  * ```
  */
 export const getStudentPartnerOrgByKey = new PreparedQuery<IGetStudentPartnerOrgByKeyParams,IGetStudentPartnerOrgByKeyResult>(getStudentPartnerOrgByKeyIR);

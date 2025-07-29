@@ -50,6 +50,18 @@ test('getStudentPartnerOrgByKey with site', async () => {
   expect(actual?.schoolId).toBeUndefined()
 })
 
+test('getStudentPartnerOrgByKey with a partner that has sites, but no site is provided', async () => {
+  const actual = await getStudentPartnerOrgByKey(client, 'college-mentors')
+
+  expect(actual).toBeTruthy()
+  expect(actual?.partnerId).toBe('01919662-87dc-1b9c-e053-326c64a2edbc')
+  expect(actual?.partnerKey).toBe('college-mentors')
+  expect(actual?.partnerName).toBe('College Mentors')
+  expect(actual?.siteId).toBeUndefined()
+  expect(actual?.siteName).toBeUndefined()
+  expect(actual?.schoolId).toBeUndefined()
+})
+
 describe('getFullStudentPartnerOrgByKey', () => {
   test('should return siteSignupShown', async () => {
     const spo = buildStudentPartnerOrg({
