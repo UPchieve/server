@@ -750,13 +750,6 @@ RETURNING
     id;
 
 
-/* @name insertNewVoiceMessage */
-INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)
-    VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())
-RETURNING
-    id;
-
-
 /* @name getSessionsWithAvgWaitTimePerDayAndHour */
 SELECT
     extract(isodow FROM sessions.created_at)::int AS day,

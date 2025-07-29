@@ -1648,39 +1648,6 @@ const insertNewMessageIR: any = {"usedParamSet":{"id":true,"senderId":true,"cont
 export const insertNewMessage = new PreparedQuery<IInsertNewMessageParams,IInsertNewMessageResult>(insertNewMessageIR);
 
 
-/** 'InsertNewVoiceMessage' parameters type */
-export interface IInsertNewVoiceMessageParams {
-  id: string;
-  senderId: string;
-  sessionId: string;
-  transcript?: string | null | void;
-}
-
-/** 'InsertNewVoiceMessage' return type */
-export interface IInsertNewVoiceMessageResult {
-  id: string;
-}
-
-/** 'InsertNewVoiceMessage' query type */
-export interface IInsertNewVoiceMessageQuery {
-  params: IInsertNewVoiceMessageParams;
-  result: IInsertNewVoiceMessageResult;
-}
-
-const insertNewVoiceMessageIR: any = {"usedParamSet":{"id":true,"sessionId":true,"senderId":true,"transcript":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":114}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":127}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":130,"b":139}]},{"name":"transcript","required":false,"transform":{"type":"scalar"},"locs":[{"a":142,"b":152}]}],"statement":"INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())\nRETURNING\n    id"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)
- *     VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())
- * RETURNING
- *     id
- * ```
- */
-export const insertNewVoiceMessage = new PreparedQuery<IInsertNewVoiceMessageParams,IInsertNewVoiceMessageResult>(insertNewVoiceMessageIR);
-
-
 /** 'GetSessionsWithAvgWaitTimePerDayAndHour' parameters type */
 export interface IGetSessionsWithAvgWaitTimePerDayAndHourParams {
   end: DateOrString;

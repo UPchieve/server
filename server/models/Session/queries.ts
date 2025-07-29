@@ -875,24 +875,6 @@ export async function addMessageToSessionById(
   }
 }
 
-export async function addVoiceMessageToSessionById(
-  sessionId: Ulid,
-  senderId: Ulid,
-  voiceMessageId: Ulid,
-  transcript: string
-): Promise<string> {
-  try {
-    const result = await pgQueries.insertNewVoiceMessage.run(
-      { id: voiceMessageId, sessionId, senderId, transcript },
-      getClient()
-    )
-    if (!result.length) throw new RepoCreateError('Insert did not return ok')
-    return makeRequired(result[0]).id
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
 export type SessionsWithAvgWaitTimePerDayAndHour = {
   averageWaitTime: number
   day: number

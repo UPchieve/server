@@ -211,32 +211,6 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.post(
-    '/session/:sessionId/voice-message',
-    upload.single('message'),
-    async function (req, res) {
-      try {
-        // 1. save to database
-        // 2. upload to storage
-        // 3. return voiceMessageId
-        const { senderId, sessionId, transcript } = req.body
-        const message = req.file
-        if (typeof message === 'undefined') {
-          throw 'No voice message file uploaded'
-        }
-        const voiceMessageId = await SessionService.saveVoiceMessage({
-          senderId,
-          sessionId,
-          message,
-          transcript,
-        })
-        res.json({ voiceMessageId })
-      } catch (error) {
-        resError(res, error)
-      }
-    }
-  )
-
   router.post('/session/:sessionId/report', async function (req, res) {
     try {
       const { sessionId } = req.params
