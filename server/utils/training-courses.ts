@@ -703,7 +703,6 @@ export const courses: TrainingCourse[] = [
     modules: [
       {
         name: 'Introduction',
-        key: 'introduction',
         materials: [
           {
             name: 'Introduction',
@@ -715,7 +714,6 @@ export const courses: TrainingCourse[] = [
       },
       {
         name: 'Implementing Effective Coaching Strategies',
-        key: 'effective-coaching',
         quizKey: 'coachingStrategies',
         materials: [
           {
@@ -729,7 +727,6 @@ export const courses: TrainingCourse[] = [
       },
       {
         name: 'Academic Integrity',
-        key: 'academic-integrity',
         quizKey: 'academicIntegrity',
         materials: [
           {
@@ -742,7 +739,6 @@ export const courses: TrainingCourse[] = [
       },
       {
         name: 'Diversity, Equity, and Inclusion',
-        key: 'dei',
         quizKey: 'dei',
         materials: [
           {
@@ -755,7 +751,6 @@ export const courses: TrainingCourse[] = [
       },
       {
         name: 'Community Safety',
-        key: 'safety',
         quizKey: 'communitySafety',
         materials: [
           {
