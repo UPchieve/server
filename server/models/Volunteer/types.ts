@@ -58,6 +58,7 @@ export type UserTrainingCourse = TrainingCourseData & {
 
 export type TrainingCourses = {
   [TRAINING.UPCHIEVE_101]: TrainingCourseData
+  [TRAINING.UPCHIEVE_TRAINING]: TrainingCourseData
   [TRAINING.TUTORING_SKILLS]: TrainingCourseData
   [TRAINING.COLLEGE_COUNSELING]: TrainingCourseData
   [TRAINING.COLLEGE_SKILLS]: TrainingCourseData
