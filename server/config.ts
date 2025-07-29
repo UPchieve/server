@@ -360,6 +360,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_ASSIGNMENTS_FRONTDOOR_HOSTNAME || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
+  // production: https://ipwhois.pro/json
+  ipWhoIsUrl: process.env.SUBWAY_IP_WHO_IS_URL || 'http://free.ipwhois.io/json',
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
   favoriteVolunteerLimit:
     Number(process.env.SUBWAY_FAVORITE_VOLUNTEER_LIMIT) || 20,

@@ -11,23 +11,14 @@ import { asString } from '../utils/type-utils'
 import net from 'net'
 import { cleanIpString } from '../utils/clean-ip-string'
 import config from '../config'
-import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
+import { isValidConfigToken } from '../utils/environments'
 
 export async function getIpWhoIs(rawIpString: string) {
-  if (isE2eEnvironment()) {
-    return {
-      data: {
-        success: true,
-      },
-    }
-  }
   const ipString = cleanIpString(rawIpString)
-  const ipWhoIs = isDevEnvironment()
-    ? `http://free.ipwhois.io/json/${ipString}`
-    : `http://ipwhois.pro/json/${ipString}?key=${config.ipWhoIsApiKey}`
+  const ipWhoIsUrl = getIpWhoIsUrl(ipString)
 
   try {
-    const { data } = (await axios.get(ipWhoIs, {
+    const { data } = (await axios.get(ipWhoIsUrl, {
       timeout: 1500,
     })) as any
     return data
@@ -37,6 +28,15 @@ export async function getIpWhoIs(rawIpString: string) {
     // TODO: should we just throw here?
     return {}
   }
+}
+
+function getIpWhoIsUrl(ipString: string): string {
+  const baseUrl = config.ipWhoIsUrl
+  const urlWithPath = `${baseUrl}/${ipString}`
+  if (isValidConfigToken(config.ipWhoIsApiKey)) {
+    return `${urlWithPath}?key=${config.ipWhoIsApiKey}`
+  }
+  return urlWithPath
 }
 
 export async function findOrCreateIpAddress(

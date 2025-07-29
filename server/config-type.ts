@@ -230,6 +230,7 @@ export const Config = Record({
   assignmentsFrontdoorHostName: String,
   version: String,
   fileWorkRootPath: String,
+  ipWhoIsUrl: String,
   ipWhoIsApiKey: String,
   favoriteVolunteerLimit: Number,
   eligibleIncomeThreshold: Number,

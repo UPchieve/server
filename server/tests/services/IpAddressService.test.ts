@@ -2,6 +2,7 @@ import { mocked } from 'jest-mock'
 import axios, { AxiosResponse } from 'axios'
 import * as IpAddressService from '../../services/IpAddressService'
 import { NotAllowedError, InputError } from '../../models/Errors'
+import config from '../../config'
 jest.mock('axios')
 const mockedAxios = mocked(axios)
 
@@ -38,7 +39,7 @@ describe('checkIpAddress', () => {
     const invalidIpAddress = '999.999.999.999'
     await expect(
       IpAddressService.checkIpAddress(invalidIpAddress)
-    ).rejects.toThrowError('Not a valid IP address')
+    ).rejects.toThrow('Not a valid IP address')
   })
 
   test('Should throw NotAllowedError if IP address is outside of the U.S.', async () => {
@@ -66,5 +67,30 @@ describe('checkIpAddress', () => {
     expect(() =>
       IpAddressService.checkIpAddress(newYorkIpAddress)
     ).not.toThrow()
+  })
+
+  describe('getIpWhoIsUrl', () => {
+    const ipAddress = '1.2.3.4'
+
+    test('should use the configured URL', async () => {
+      config.ipWhoIsUrl = 'http://configured-url'
+      mockedAxios.get.mockResolvedValue(mockIpWhoIsReturnValue('US'))
+
+      // Without API key
+      config.ipWhoIsApiKey = 'bogus' // pragma: allowlist secret
+      await IpAddressService.checkIpAddress(ipAddress)
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        'http://configured-url/1.2.3.4',
+        expect.any(Object)
+      )
+
+      // With API key
+      config.ipWhoIsApiKey = 'real-api-key' // pragma: allowlist secret
+      await IpAddressService.checkIpAddress(ipAddress)
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        'http://configured-url/1.2.3.4?key=real-api-key',
+        expect.any(Object)
+      )
+    })
   })
 })
