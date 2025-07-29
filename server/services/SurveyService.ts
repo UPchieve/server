@@ -100,11 +100,14 @@ export async function saveUserSurvey(
     if (surveyType === 'postsession') {
       await processFeedbackMetrics(userSurvey.sessionId)
 
-      await QueueService.add(
-        Jobs.MaybeSendStudentFeedbackToVolunteer,
-        { sessionId: userSurvey.sessionId },
-        { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
-      )
+      const role = await UserRolesService.getRoleContext(userId)
+      if (role.activeRole === 'student') {
+        await QueueService.add(
+          Jobs.MaybeSendStudentFeedbackToVolunteer,
+          { sessionId: userSurvey.sessionId },
+          { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
+        )
+      }
     }
   }
 }
