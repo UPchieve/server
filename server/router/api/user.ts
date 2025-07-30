@@ -13,7 +13,7 @@ import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
-import { InputError, NotAllowedError } from '../../models/Errors'
+import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -304,6 +304,25 @@ export function routeUser(router: Router): void {
         user.id,
         asString(req.body.preferredLanguage)
       )
+      return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.post('/user/track-presence/ping', async function (req, res) {
+    try {
+      const user = await extractUser(req)
+      console.log(`\n\n\n\nTRACK PING`, user)
+      return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.post('/user/track-presence/end', async function (req, res) {
+    try {
+      console.log(req)
+      const user = await extractUser(req)
+      console.log(`\n\n\n\nTRACK END`, user)
       return res.sendStatus(200)
     } catch (err) {
       resError(res, err)
