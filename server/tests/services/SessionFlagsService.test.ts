@@ -1016,7 +1016,7 @@ describe('SessionFlagsService', () => {
           computeSessionFlags: mockedComputeSessionFlags,
           computeReviewReasons: mockedComputeReviewReasons,
         },
-        [UserSessionFlags.absentStudent]
+        new Set<UserSessionFlags>([UserSessionFlags.absentStudent])
       )
 
       expect(
@@ -1056,7 +1056,7 @@ describe('SessionFlagsService', () => {
           computeSessionFlags: mockedComputeSessionFlags,
           computeReviewReasons: mockedOnlyExcludedReviewReasons,
         },
-        [UserSessionFlags.absentStudent]
+        new Set<UserSessionFlags>([UserSessionFlags.absentStudent])
       )
 
       expect(

@@ -438,7 +438,7 @@ export async function processMetrics(
       volunteerUSM?: UserSessionMetrics
     ) => Promise<void>
   },
-  excludeFromReviewSessionFlags: UserSessionFlags[] = []
+  excludeFromReviewSessionFlags: Set<UserSessionFlags> = new Set<UserSessionFlags>()
 ) {
   const session = await getSessionById(sessionId)
   const flags = await callbacks.computeSessionFlags(session)
@@ -469,7 +469,7 @@ export async function processMetrics(
   )
 
   const dontReview = reviewReasons.every((reviewReason) =>
-    excludeFromReviewSessionFlags.includes(reviewReason)
+    excludeFromReviewSessionFlags.has(reviewReason)
   )
 
   if (!dontReview && reviewReasons.length)
@@ -492,7 +492,10 @@ export async function processSessionMetrics(sessionId: Uuid) {
       computeReviewReasons: computeSessionReviewReasonsFromFlags,
       triggerActions: triggerSessionActions,
     },
-    [UserSessionFlags.absentStudent, UserSessionFlags.absentVolunteer]
+    new Set<UserSessionFlags>([
+      UserSessionFlags.absentStudent,
+      UserSessionFlags.absentVolunteer,
+    ])
   )
 }
 
@@ -504,11 +507,11 @@ export async function processFeedbackMetrics(sessionId: Uuid) {
       computeReviewReasons: computeFeedbackReviewReasonsFromFlags,
       triggerActions: triggerFeedbackActions,
     },
-    [
+    new Set<UserSessionFlags>([
       UserSessionFlags.lowCoachRatingFromStudent,
       UserSessionFlags.lowSessionRatingFromCoach,
       UserSessionFlags.lowSessionRatingFromStudent,
-    ]
+    ])
   )
 }
 
