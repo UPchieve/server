@@ -57,6 +57,10 @@ const mockedComputeReviewReasons = jest.fn(() => [
   UserSessionFlags.coachReportedStudentDm,
 ])
 
+const mockedOnlyExcludedReviewReasons = jest.fn(() => [
+  UserSessionFlags.absentStudent,
+])
+
 describe('SessionFlagsService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -987,14 +991,17 @@ describe('SessionFlagsService', () => {
   })
 
   describe('Test flagging for review', () => {
-    test("Don't mark excluded flags for review", async () => {
+    test("Set session for review if review reasons aren't all excluded from review", async () => {
       const studentId = getUuid()
       const session = buildSession({
         studentId,
+        reported: true,
       })
       const userMetrics = buildUserSessionMetrics({
         userId: session.studentId,
         onlyLookingForAnswers: 3,
+        absentStudent: 1,
+        absentVolunteer: 1,
       })
 
       mockedSessionRepo.getSessionById.mockResolvedValue(session)
@@ -1009,25 +1016,52 @@ describe('SessionFlagsService', () => {
           computeSessionFlags: mockedComputeSessionFlags,
           computeReviewReasons: mockedComputeReviewReasons,
         },
-        [UserSessionFlags.absentStudent]
+        new Set<UserSessionFlags>([UserSessionFlags.absentStudent])
       )
 
       expect(
         mockedSessionRepo.updateSessionReviewReasonsById
-      ).toHaveBeenNthCalledWith(
-        1,
+      ).toHaveBeenCalledWith(
         session.id,
-        [UserSessionFlags.coachReportedStudentDm],
+        [
+          UserSessionFlags.absentStudent,
+          UserSessionFlags.coachReportedStudentDm,
+        ],
         false
       )
+    })
+
+    test("Don't set session for review if review reasons are all excluded from review", async () => {
+      const studentId = getUuid()
+      const session = buildSession({
+        studentId,
+        reported: true,
+      })
+      const userMetrics = buildUserSessionMetrics({
+        userId: session.studentId,
+        onlyLookingForAnswers: 3,
+        absentStudent: 1,
+        absentVolunteer: 1,
+      })
+
+      mockedSessionRepo.getSessionById.mockResolvedValue(session)
+
+      mockedUserSessionMetricsRepo.getUserSessionMetricsByUserId.mockResolvedValue(
+        userMetrics
+      )
+
+      await processMetrics(
+        session.id,
+        {
+          computeSessionFlags: mockedComputeSessionFlags,
+          computeReviewReasons: mockedOnlyExcludedReviewReasons,
+        },
+        new Set<UserSessionFlags>([UserSessionFlags.absentStudent])
+      )
+
       expect(
         mockedSessionRepo.updateSessionReviewReasonsById
-      ).toHaveBeenNthCalledWith(
-        2,
-        session.id,
-        [UserSessionFlags.absentStudent],
-        true
-      )
+      ).toHaveBeenCalledTimes(0)
     })
   })
 })
