@@ -14,6 +14,7 @@ import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
   SessionWithSsoData,
+  SsoProviderNames,
   verifyPassword,
 } from '../../utils/auth-utils'
 import { isDevEnvironment } from '../../utils/environments'
@@ -105,7 +106,7 @@ type SSOProfile = passport.Profile & {
 }
 
 type SSOHandlerOptions = {
-  providerName: 'Clever' | 'ClassLink'
+  providerName: SsoProviderNames.CLEVER | SsoProviderNames.CLASSLINK
   isStudent: (userType: USER_ROLES_TYPE) => boolean
   isTeacher: (userType: USER_ROLES_TYPE) => boolean
   // TODO: When including ClassLink rostering, normalize to a similar type
@@ -306,10 +307,18 @@ export function addPassportAuthMiddleware() {
       ) {
         const { isLogin } = (req.session as SessionWithSsoData).sso ?? {}
         if (isLogin) {
+          // TODO: Consider passportLoginUser to support logging in users who haven't used Google SSO before,
+          // but have an UPchieve account with a matching email similar to Clever/ClassLink SSO behavior
           return passportLoginUser(profile.id, issuer, done)
         } else {
           const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-          return passportRegisterUser(profile, issuer, 'Google', userData, done)
+          return passportRegisterUser(
+            profile,
+            issuer,
+            SsoProviderNames.GOOGLE,
+            userData,
+            done
+          )
         }
       }
     )
@@ -325,9 +334,9 @@ export function addPassportAuthMiddleware() {
       done: Function
     ) {
       return handleSSOStrategy(req, profile, done, {
-        providerName: 'Clever',
-        isStudent: CleverAPIService.isStudent,
-        isTeacher: CleverAPIService.isTeacher,
+        providerName: SsoProviderNames.CLEVER,
+        isStudent,
+        isTeacher,
         rosterTeacher: CleverRosterService.rosterTeacherClasses,
       })
     })
@@ -349,9 +358,9 @@ export function addPassportAuthMiddleware() {
         done: Function
       ) {
         return handleSSOStrategy(req, profile, done, {
-          providerName: 'ClassLink',
-          isStudent: (userType) => userType === 'student',
-          isTeacher: (userType) => userType === 'teacher',
+          providerName: SsoProviderNames.CLASSLINK,
+          isStudent,
+          isTeacher,
         })
       }
     )
@@ -373,9 +382,9 @@ export function addPassportAuthMiddleware() {
         done: Function
       ) {
         return handleSSOStrategy(req, profile, done, {
-          providerName: 'ClassLink',
-          isStudent: (userType) => userType === 'student',
-          isTeacher: (userType) => userType === 'teacher',
+          providerName: SsoProviderNames.CLASSLINK,
+          isStudent,
+          isTeacher,
         })
       }
     )
@@ -406,4 +415,12 @@ function getRedirectURI() {
     ? `http://localhost:3000`
     : `${config.protocol}://${config.host}`
   return `${host}/auth/oauth2/redirect`
+}
+
+function isStudent(userType: USER_ROLES_TYPE): boolean {
+  return userType === 'student'
+}
+
+function isTeacher(userType: USER_ROLES_TYPE): boolean {
+  return userType === 'teacher'
 }

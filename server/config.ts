@@ -112,6 +112,7 @@ const config: Static<typeof Config> = {
     stillTimeForQualifyingSessionTemplate: 'd-61b7eff0a57f4a69a0e11b63c4d15fbe',
     fallIncentiveCompletedChallengeTemplate:
       'd-e7e5b09cc1444128aceaa6807981c595',
+    volunteerPositiveStudentFeedback: 'd-a8ebf5652afc4a6e97e8f582abc172e4',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

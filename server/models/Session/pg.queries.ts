@@ -1648,39 +1648,6 @@ const insertNewMessageIR: any = {"usedParamSet":{"id":true,"senderId":true,"cont
 export const insertNewMessage = new PreparedQuery<IInsertNewMessageParams,IInsertNewMessageResult>(insertNewMessageIR);
 
 
-/** 'InsertNewVoiceMessage' parameters type */
-export interface IInsertNewVoiceMessageParams {
-  id: string;
-  senderId: string;
-  sessionId: string;
-  transcript?: string | null | void;
-}
-
-/** 'InsertNewVoiceMessage' return type */
-export interface IInsertNewVoiceMessageResult {
-  id: string;
-}
-
-/** 'InsertNewVoiceMessage' query type */
-export interface IInsertNewVoiceMessageQuery {
-  params: IInsertNewVoiceMessageParams;
-  result: IInsertNewVoiceMessageResult;
-}
-
-const insertNewVoiceMessageIR: any = {"usedParamSet":{"id":true,"sessionId":true,"senderId":true,"transcript":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":114}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":127}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":130,"b":139}]},{"name":"transcript","required":false,"transform":{"type":"scalar"},"locs":[{"a":142,"b":152}]}],"statement":"INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)\n    VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())\nRETURNING\n    id"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)
- *     VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())
- * RETURNING
- *     id
- * ```
- */
-export const insertNewVoiceMessage = new PreparedQuery<IInsertNewVoiceMessageParams,IInsertNewVoiceMessageResult>(insertNewVoiceMessageIR);
-
-
 /** 'GetSessionsWithAvgWaitTimePerDayAndHour' parameters type */
 export interface IGetSessionsWithAvgWaitTimePerDayAndHourParams {
   end: DateOrString;
@@ -2417,7 +2384,6 @@ export const getFilteredSessionHistoryTotalCount = new PreparedQuery<IGetFiltere
 
 /** 'IsEligibleForSessionRecap' parameters type */
 export interface IIsEligibleForSessionRecapParams {
-  minSessionLength: number;
   sessionId: string;
 }
 
@@ -2432,7 +2398,7 @@ export interface IIsEligibleForSessionRecapQuery {
   result: IIsEligibleForSessionRecapResult;
 }
 
-const isEligibleForSessionRecapIR: any = {"usedParamSet":{"sessionId":true,"minSessionLength":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":161}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":237,"b":254}]}],"statement":"SELECT\n    CASE WHEN sessions.id IS NOT NULL THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS is_eligible\nFROM\n    sessions\nWHERE\n    sessions.id = :sessionId!\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength!::int\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL"};
+const isEligibleForSessionRecapIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":161}]}],"statement":"SELECT\n    CASE WHEN sessions.id IS NOT NULL THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS is_eligible\nFROM\n    sessions\nWHERE\n    sessions.id = :sessionId!\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            session_messages\n        WHERE\n            session_id = sessions.id\n            AND sender_id = sessions.volunteer_id)\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            session_messages\n        WHERE\n            session_id = sessions.id\n            AND sender_id = sessions.student_id)"};
 
 /**
  * Query generated from SQL:
@@ -2447,10 +2413,24 @@ const isEligibleForSessionRecapIR: any = {"usedParamSet":{"sessionId":true,"minS
  *     sessions
  * WHERE
  *     sessions.id = :sessionId!
- *     AND sessions.time_tutored IS NOT NULL
- *     AND sessions.time_tutored > :minSessionLength!::int
  *     AND sessions.volunteer_id IS NOT NULL
  *     AND sessions.ended_at IS NOT NULL
+ *     AND EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             session_messages
+ *         WHERE
+ *             session_id = sessions.id
+ *             AND sender_id = sessions.volunteer_id)
+ *     AND EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             session_messages
+ *         WHERE
+ *             session_id = sessions.id
+ *             AND sender_id = sessions.student_id)
  * ```
  */
 export const isEligibleForSessionRecap = new PreparedQuery<IIsEligibleForSessionRecapParams,IIsEligibleForSessionRecapResult>(isEligibleForSessionRecapIR);

@@ -6,6 +6,7 @@ import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SurveyRepo from '../../models/Survey/queries'
 import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
+import * as QueueService from '../../services/QueueService'
 import {
   buildPostsessionSurveyGoalResponse,
   buildSession,
@@ -14,7 +15,6 @@ import {
   buildUserSurveySubmission,
 } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
-import { InputError } from '../../models/Errors'
 import { FEEDBACK_EVENTS } from '../../constants'
 import { GetSessionByIdResult } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
@@ -27,6 +27,7 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../services/UserService')
 jest.mock('../../services/UserRolesService')
 jest.mock('../../services/SessionFlagsService')
+jest.mock('../../services/QueueService')
 
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedUserRepo = mocked(UserRepo)
@@ -34,6 +35,7 @@ const mockedSessionRepo = mocked(SessionRepo)
 const mockedUserService = mocked(UserService)
 const mockedUserRolesService = mocked(UserRolesService)
 const mockedSessionFlagsService = mocked(SessionFlagsService)
+const mockedQueueService = mocked(QueueService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
@@ -95,6 +97,9 @@ describe('saveUserSurvey', () => {
   })
 
   test(`Should trigger ${FEEDBACK_EVENTS.FEEDBACK_SAVED} after saving postsession survey`, async () => {
+    mockedUserRolesService.getRoleContext.mockResolvedValue({
+      activeRole: 'student',
+    } as any)
     const sessionId = getDbUlid()
     const userSurvey = buildUserSurvey({ sessionId })
     const submissions = [
@@ -129,6 +134,35 @@ describe('saveUserSurvey', () => {
     expect(
       mockedSessionFlagsService.processFeedbackMetrics
     ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
+    expect(mockedQueueService.default.add).toHaveBeenCalledWith(
+      'MaybeSendStudentFeedbackToVolunteer',
+      { sessionId: expectedUserSurvey.sessionId },
+      { delay: 300000, removeOnComplete: true, removeOnFail: false }
+    )
+  })
+
+  test(`Should not queue send positive feedback job after saving volunteer postsession survey`, async () => {
+    mockedUserRolesService.getRoleContext.mockResolvedValue({
+      activeRole: 'volunteer',
+    } as any)
+    const sessionId = getDbUlid()
+    const userSurvey = buildUserSurvey({ sessionId })
+    const submissions = [
+      buildUserSurveySubmission({ responseChoiceId: 1, questionId: 1 }),
+      buildUserSurveySubmission({ responseChoiceId: 5, questionId: 5 }),
+      buildUserSurveySubmission({ responseChoiceId: 10, questionId: 10 }),
+    ]
+    const data = { ...userSurvey, submissions }
+    const userId = getDbUlid()
+
+    mockedSurveyRepo.saveUserSurveyAndSubmissions.mockResolvedValueOnce()
+    mockedSurveyRepo.getSurveyTypeFromSurveyTypeId.mockResolvedValueOnce(
+      'postsession'
+    )
+
+    await SurveyService.saveUserSurvey(userId, data)
+
+    expect(mockedQueueService.default.add).not.toHaveBeenCalled()
   })
 })
 

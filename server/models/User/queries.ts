@@ -218,12 +218,16 @@ export async function getUserByReferralCode(
 }
 
 export async function getUserReferralLink(
-  id: Ulid
+  id: Ulid,
+  tc?: TransactionClient
 ): Promise<
   { firstName: string; email: string; referralCode: string } | undefined
 > {
   try {
-    const result = await pgQueries.getUserReferralLink.run({ id }, getClient())
+    const result = await pgQueries.getUserReferralLink.run(
+      { id },
+      tc ?? getClient()
+    )
     if (result.length) {
       return makeRequired(result[0])
     }

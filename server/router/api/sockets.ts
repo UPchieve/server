@@ -34,10 +34,9 @@ import {
 import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
-import * as UserRolesService from '../../services/UserRolesService'
 import { SessionJoinError } from '../../models/Errors'
 
-export type SessionMessageType = 'voice' | 'audio-transcription' // todo - add 'chat' later
+export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
 async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
@@ -391,9 +390,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             if (type) {
               saveMessageData.type = type
             }
-            if (type === 'voice') {
-              saveMessageData.transcript = transcript
-            }
             if (type === 'audio-transcription') {
               const result = await moderateIndividualTranscription({
                 transcript: message,
@@ -443,9 +439,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
             if (type) {
               messageData.type = type
-              if (type === 'voice') {
-                messageData.transcript = transcript
-              }
             }
 
             // If the message is coming from the recap page, queue the message to send a notification

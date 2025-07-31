@@ -84,6 +84,8 @@ export const Config = Record({
     qualifiedForGiftCardTemplate: String,
     stillTimeForQualifyingSessionTemplate: String,
     fallIncentiveCompletedChallengeTemplate: String,
+    volunteerPositiveStudentFeedback: String,
+
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number,
