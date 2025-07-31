@@ -3,6 +3,7 @@ import * as UserService from '../../services/UserService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as UserRolesService from '../../services/UserRolesService'
+import * as PresenceService from '../../services/PresenceService'
 import { updateUserProfile } from '../../services/UserProfileService'
 import {
   getUserForAdminDetail,
@@ -13,7 +14,7 @@ import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
-import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
+import { InputError, NotAllowedError } from '../../models/Errors'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -311,8 +312,16 @@ export function routeUser(router: Router): void {
   })
   router.post('/user/track-presence/ping', async function (req, res) {
     try {
-      const user = await extractUser(req)
-      console.log(`\n\n\n\nTRACK PING`, user)
+      const user = extractUser(req)
+      const userAgent = req.get('User-Agent') || ''
+      const ip = req.ip
+      const clientUUID = req.body.clientUUID
+      await PresenceService.track({
+        userId: user.id,
+        userAgent,
+        ip,
+        clientUUID,
+      })
       return res.sendStatus(200)
     } catch (err) {
       resError(res, err)
@@ -320,9 +329,11 @@ export function routeUser(router: Router): void {
   })
   router.post('/user/track-presence/end', async function (req, res) {
     try {
-      console.log(req)
-      const user = await extractUser(req)
-      console.log(`\n\n\n\nTRACK END`, user)
+      const user = extractUser(req)
+      const userAgent = req.get('User-Agent') || ''
+      const ip = req.ip
+      const clientUUID = req.body.clientUUID
+      await PresenceService.end({ userId: user.id, userAgent, ip, clientUUID })
       return res.sendStatus(200)
     } catch (err) {
       resError(res, err)
