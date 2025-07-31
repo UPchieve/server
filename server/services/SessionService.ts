@@ -80,7 +80,9 @@ import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
-import { PrimaryUserRole, SessionUserRole } from './UserRolesService'
+import { SessionUserRole } from './UserRolesService'
+import * as FeatureFlagsService from './FeatureFlagService'
+import { isStudent } from './CleverAPIService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -893,35 +895,6 @@ export async function ensureCanJoinSession(
   return session
 }
 
-export async function saveVoiceMessage({
-  senderId,
-  sessionId,
-  message,
-  transcript,
-}: {
-  senderId: Ulid
-  sessionId: Ulid
-  message: Express.Multer.File
-  transcript: string
-}) {
-  const voiceMessageId = getDbUlid()
-  const wasUploaded = await VoiceMessageService.uploadedToStorage(
-    voiceMessageId,
-    message
-  )
-
-  if (wasUploaded) {
-    return await SessionRepo.addVoiceMessageToSessionById(
-      sessionId,
-      senderId,
-      voiceMessageId,
-      transcript
-    )
-  } else {
-    throw new Error('Unable to upload voice message')
-  }
-}
-
 // TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
 export async function saveMessage(
   user: any,
@@ -944,9 +917,7 @@ export async function saveMessage(
   )
     throw new Error('Only session participants are allowed to send messages')
 
-  if (data.type === 'voice') {
-    return message
-  } else if (data.type === 'audio-transcription') {
+  if (data.type === 'audio-transcription') {
     return await TranscriptMessagesRepo.insertSessionAudioTranscriptMessage({
       userId: user.id,
       sessionId,
@@ -1178,6 +1149,7 @@ export async function isRecapDmsAvailable(
     return { eligible: false, ineligibleReason: DmIneligibilityReason.Other }
   }
   const isVolunteer = userId === volunteerId
+  const isStudent = userId === studentId
 
   const isAllowDmsToPartnerStudentsActive =
     await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
@@ -1200,13 +1172,21 @@ export async function isRecapDmsAvailable(
   // Students may send DMs if a DM conversation has already been started
   const sentMessages =
     await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
-  if (!isVolunteer && !sentMessages) {
+
+  // Students may only initiate DMs if the FF is on
+  const isStudentsInitiateDmsEnabled =
+    await FeatureFlagsService.getStudentsInitiateDmsFeatureFlag(userId)
+  if (isStudent) {
+    if (sentMessages || isStudentsInitiateDmsEnabled) {
+      return { eligible: true }
+    }
     return {
       eligible: false,
       ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
     }
   }
-  return { eligible: sentMessages || isVolunteer }
+
+  return { eligible: isVolunteer }
 }
 
 export async function getStudentSessionDetails(

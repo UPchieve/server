@@ -1,10 +1,6 @@
 import moment from 'moment'
 import QueueService from './QueueService'
-import {
-  SESSION_REPORT_REASON,
-  UserSessionFlags,
-  EXCLUDED_SESSION_FLAGS_FROM_REVIEW,
-} from '../constants'
+import { SESSION_REPORT_REASON, UserSessionFlags } from '../constants'
 import { Uuid } from '../models/pgUtils'
 import {
   getMessagesForFrontend,
@@ -442,7 +438,7 @@ export async function processMetrics(
       volunteerUSM?: UserSessionMetrics
     ) => Promise<void>
   },
-  excludeFromReviewSessionFlags: UserSessionFlags[]
+  excludeFromReviewSessionFlags: Set<UserSessionFlags> = new Set<UserSessionFlags>()
 ) {
   const session = await getSessionById(sessionId)
   const flags = await callbacks.computeSessionFlags(session)
@@ -472,25 +468,12 @@ export async function processMetrics(
     volunteerUserSessionMetrics
   )
 
-  const dontManualReviewReasons: UserSessionFlags[] = []
-  const manualReviewReasons: UserSessionFlags[] = []
+  const dontReview = reviewReasons.every((reviewReason) =>
+    excludeFromReviewSessionFlags.has(reviewReason)
+  )
 
-  reviewReasons.forEach((reviewReason) => {
-    if (excludeFromReviewSessionFlags.includes(reviewReason)) {
-      dontManualReviewReasons.push(reviewReason)
-    } else {
-      manualReviewReasons.push(reviewReason)
-    }
-  })
-
-  if (manualReviewReasons.length)
-    await updateSessionReviewReasonsById(session.id, manualReviewReasons, false)
-  if (dontManualReviewReasons.length)
-    await updateSessionReviewReasonsById(
-      session.id,
-      dontManualReviewReasons,
-      true
-    )
+  if (!dontReview && reviewReasons.length)
+    await updateSessionReviewReasonsById(session.id, reviewReasons, false)
 
   if (callbacks.triggerActions)
     await callbacks.triggerActions(
@@ -509,7 +492,10 @@ export async function processSessionMetrics(sessionId: Uuid) {
       computeReviewReasons: computeSessionReviewReasonsFromFlags,
       triggerActions: triggerSessionActions,
     },
-    EXCLUDED_SESSION_FLAGS_FROM_REVIEW
+    new Set<UserSessionFlags>([
+      UserSessionFlags.absentStudent,
+      UserSessionFlags.absentVolunteer,
+    ])
   )
 }
 
@@ -521,17 +507,17 @@ export async function processFeedbackMetrics(sessionId: Uuid) {
       computeReviewReasons: computeFeedbackReviewReasonsFromFlags,
       triggerActions: triggerFeedbackActions,
     },
-    EXCLUDED_SESSION_FLAGS_FROM_REVIEW
+    new Set<UserSessionFlags>([
+      UserSessionFlags.lowCoachRatingFromStudent,
+      UserSessionFlags.lowSessionRatingFromCoach,
+      UserSessionFlags.lowSessionRatingFromStudent,
+    ])
   )
 }
 
 export async function processReportMetrics(sessionId: Uuid) {
-  await processMetrics(
-    sessionId,
-    {
-      computeSessionFlags: computeReportedFlags,
-      computeReviewReasons: computeReportedReviewReason,
-    },
-    EXCLUDED_SESSION_FLAGS_FROM_REVIEW
-  )
+  await processMetrics(sessionId, {
+    computeSessionFlags: computeReportedFlags,
+    computeReviewReasons: computeReportedReviewReason,
+  })
 }

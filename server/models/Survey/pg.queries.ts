@@ -979,3 +979,57 @@ const getSurveyTypeFromSurveyTypeIdIR: any = {"usedParamSet":{"surveyTypeId":tru
 export const getSurveyTypeFromSurveyTypeId = new PreparedQuery<IGetSurveyTypeFromSurveyTypeIdParams,IGetSurveyTypeFromSurveyTypeIdResult>(getSurveyTypeFromSurveyTypeIdIR);
 
 
+/** 'GetStudentFeedbackForSession' parameters type */
+export interface IGetStudentFeedbackForSessionParams {
+  sessionId: string;
+}
+
+/** 'GetStudentFeedbackForSession' return type */
+export interface IGetStudentFeedbackForSessionResult {
+  howMuchDidYourCoachPushYouToDoYourBestWorkToday: number | null;
+  howSupportiveWasYourCoachToday: number | null;
+  response: string | null;
+  sessionId: string | null;
+}
+
+/** 'GetStudentFeedbackForSession' query type */
+export interface IGetStudentFeedbackForSessionQuery {
+  params: IGetStudentFeedbackForSessionParams;
+  result: IGetStudentFeedbackForSessionResult;
+}
+
+const getStudentFeedbackForSessionIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":949,"b":959}]}],"statement":"SELECT\n    us.session_id,\n    array_to_string(array_agg(DISTINCT uss.open_response) FILTER (WHERE uss.open_response IS NOT NULL), ',') AS response,\n    max(\n        CASE WHEN q.question_text = 'Overall, how much did your coach push you to do your best work today?' THEN\n            src.score\n        END) AS \"How much did your coach push you to do your best work today?\",\n    max(\n        CASE WHEN q.question_text = 'Overall, how supportive was your coach today?' THEN\n            src.score\n        END) AS \"How supportive was your coach today?\"\nFROM\n    upchieve.users_surveys us\n    JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id\n    JOIN upchieve.survey_types st ON us.survey_type_id = st.id\n    JOIN upchieve.surveys s ON s.id = us.survey_id\n    JOIN survey_questions q ON q.id = uss.survey_question_id\n    JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id\nWHERE\n    us.session_id = :sessionId!\n    AND st.name = 'postsession'\n    AND s.role_id = 1\n    AND q.question_text IN ('Overall, how supportive was your coach today?', 'Overall, how much did your coach push you to do your best work today?', 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.')\nGROUP BY\n    us.session_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     us.session_id,
+ *     array_to_string(array_agg(DISTINCT uss.open_response) FILTER (WHERE uss.open_response IS NOT NULL), ',') AS response,
+ *     max(
+ *         CASE WHEN q.question_text = 'Overall, how much did your coach push you to do your best work today?' THEN
+ *             src.score
+ *         END) AS "How much did your coach push you to do your best work today?",
+ *     max(
+ *         CASE WHEN q.question_text = 'Overall, how supportive was your coach today?' THEN
+ *             src.score
+ *         END) AS "How supportive was your coach today?"
+ * FROM
+ *     upchieve.users_surveys us
+ *     JOIN upchieve.users_surveys_submissions uss ON us.id = uss.user_survey_id
+ *     JOIN upchieve.survey_types st ON us.survey_type_id = st.id
+ *     JOIN upchieve.surveys s ON s.id = us.survey_id
+ *     JOIN survey_questions q ON q.id = uss.survey_question_id
+ *     JOIN upchieve.survey_response_choices src ON uss.survey_response_choice_id = src.id
+ * WHERE
+ *     us.session_id = :sessionId!
+ *     AND st.name = 'postsession'
+ *     AND s.role_id = 1
+ *     AND q.question_text IN ('Overall, how supportive was your coach today?', 'Overall, how much did your coach push you to do your best work today?', 'This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.')
+ * GROUP BY
+ *     us.session_id
+ * ```
+ */
+export const getStudentFeedbackForSession = new PreparedQuery<IGetStudentFeedbackForSessionParams,IGetStudentFeedbackForSessionResult>(getStudentFeedbackForSessionIR);
+
+

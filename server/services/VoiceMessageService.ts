@@ -46,59 +46,14 @@ export async function getBlob(
   return blobContent
 }
 
-export async function uploadBlob(
-  containerName: string,
-  blobName: string,
-  content: { buffer: Express.Multer.File['buffer'] }
-): Promise<void> {
-  const containerClient = blobServiceClient.getContainerClient(containerName)
-  const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-  await blockBlobClient.upload(content.buffer, content.buffer.length)
-}
-
-export const uploadedToStorage = async (
-  voiceMessageId: Ulid,
-  voiceMessage: Express.Multer.File,
-  attempts = 0
-): Promise<boolean> => {
-  try {
-    await uploadBlob(
-      config.voiceMessageStorageContainer,
-      voiceMessageId,
-      voiceMessage
-    )
-    return true
-  } catch (error) {
-    if (attempts === 1) {
-      logger.error(
-        `Retry uploading of voice message failed ${voiceMessageId}: ${
-          (error as Error).message
-        }`
-      )
-
-      return false
-    }
-
-    logger.error(
-      `Uploading of voice message failed ${voiceMessageId}, retrying: ${
-        (error as Error).message
-      }`
-    )
-    attempts++
-    return uploadedToStorage(voiceMessageId, voiceMessage, attempts)
-  }
-}
-
 export const getFromStorage = async (
   voiceMessageId: Ulid
 ): Promise<Buffer | string> => {
   try {
-    const voiceMessage = await getBlob(
+    return await getBlob(
       config.voiceMessageStorageContainer,
       voiceMessageId.toString()
     )
-
-    return voiceMessage
   } catch (error) {
     logger.error(
       `Getting the voice message failed ${voiceMessageId}: ${

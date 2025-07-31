@@ -750,13 +750,6 @@ RETURNING
     id;
 
 
-/* @name insertNewVoiceMessage */
-INSERT INTO session_voice_messages (id, session_id, sender_id, transcript, created_at, updated_at)
-    VALUES (:id!, :sessionId!, :senderId!, :transcript, NOW(), NOW())
-RETURNING
-    id;
-
-
 /* @name getSessionsWithAvgWaitTimePerDayAndHour */
 SELECT
     extract(isodow FROM sessions.created_at)::int AS day,
@@ -1151,10 +1144,24 @@ FROM
     sessions
 WHERE
     sessions.id = :sessionId!
-    AND sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
-    AND sessions.ended_at IS NOT NULL;
+    AND sessions.ended_at IS NOT NULL
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            session_messages
+        WHERE
+            session_id = sessions.id
+            AND sender_id = sessions.volunteer_id)
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            session_messages
+        WHERE
+            session_id = sessions.id
+            AND sender_id = sessions.student_id);
 
 
 /* @name getTotalSessionHistory */
