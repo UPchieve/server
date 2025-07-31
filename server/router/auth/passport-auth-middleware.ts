@@ -307,6 +307,8 @@ export function addPassportAuthMiddleware() {
       ) {
         const { isLogin } = (req.session as SessionWithSsoData).sso ?? {}
         if (isLogin) {
+          // TODO: Consider passportLoginUser to support logging in users who haven't used Google SSO before,
+          // but have an UPchieve account with a matching email similar to Clever/ClassLink SSO behavior
           return passportLoginUser(profile.id, issuer, done)
         } else {
           const { userData } = (req.session as SessionWithSsoData).sso ?? {}
