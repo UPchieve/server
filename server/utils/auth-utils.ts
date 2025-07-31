@@ -346,10 +346,13 @@ export function isSupportedSsoProvider(provider?: string) {
   return supportedSsoProviders.has(provider as SsoProvider)
 }
 
-export function getSsoProviderFromReferer(referer?: string): SsoProvider | '' {
-  if (!referer) return ''
-  if (referer.includes('clever')) return 'clever'
-  if (referer.includes('classlink')) return 'classlink'
+export function getSsoProviderFromRequest(req: Request): SsoProvider | '' {
+  const referer = req.headers.referer
+  const queryProvider = asString(req.query.provider)
+
+  if (referer?.includes('clever')) return 'clever'
+  if (referer?.includes('classlink')) return 'classlink'
+  if (isSupportedSsoProvider(queryProvider)) return queryProvider as SsoProvider
   return ''
 }
 

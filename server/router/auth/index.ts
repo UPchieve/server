@@ -7,7 +7,7 @@ import * as UserCreationService from '../../services/UserCreationService'
 import { switchActiveRole } from '../../services/UserRolesService'
 import {
   authPassport,
-  getSsoProviderFromReferer,
+  getSsoProviderFromRequest,
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
@@ -25,6 +25,7 @@ import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
+import { getClassLinkStrategy } from './passport-auth-middleware'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
@@ -116,7 +117,7 @@ export function routes(app: Express) {
   // Redirect URI for SSO providers.
   router.route('/oauth2/redirect').get((req, res) => {
     const {
-      provider = getSsoProviderFromReferer(req.headers.referer),
+      provider = getSsoProviderFromRequest(req),
       isLogin = true,
       redirect = '',
       errorRedirect = '',
@@ -134,7 +135,8 @@ export function routes(app: Express) {
       )
       return
     }
-    const strategy = provider
+    const strategy =
+      provider === 'classlink' ? getClassLinkStrategy(req) : provider
     passport.authenticate(strategy, async function (_, user, data) {
       if (data?.profileId && data?.issuer) {
         const validator = getUuid()
