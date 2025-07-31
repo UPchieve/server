@@ -329,6 +329,11 @@ export function getApiKeyFromHeader(req: Request) {
 }
 
 export type SsoProvider = 'google' | 'clever' | 'classlink'
+export enum SsoProviderNames {
+  GOOGLE = 'GOOGLE',
+  CLEVER = 'Clever',
+  CLASSLINK = 'ClassLink',
+}
 
 const supportedSsoProviders = new Set<SsoProvider>([
   'google',

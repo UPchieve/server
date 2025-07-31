@@ -14,11 +14,14 @@ import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
   SessionWithSsoData,
+  SsoProviderNames,
   verifyPassword,
 } from '../../utils/auth-utils'
 import { isDevEnvironment } from '../../utils/environments'
 import config from '../../config'
 import logger from '../../logger'
+import { Uuid } from '../../models/pgUtils'
+import { USER_ROLES_TYPE } from '../../constants'
 
 async function passportLoginUser(
   profileId: string,
@@ -91,6 +94,162 @@ async function passportRegisterUser(
   }
 }
 
+type SSOProfile = passport.Profile & {
+  issuer: string
+  userType: USER_ROLES_TYPE
+  schoolId?: Uuid
+  // TODO: When including ClassLink rostering, normalize to a similar type
+  teacher?: {
+    classes: CleverAPIService.TCleverSectionData[]
+    students: CleverAPIService.TCleverStudentData[]
+  }
+}
+
+type SSOHandlerOptions = {
+  providerName: SsoProviderNames.CLEVER | SsoProviderNames.CLASSLINK
+  isStudent: (userType: USER_ROLES_TYPE) => boolean
+  isTeacher: (userType: USER_ROLES_TYPE) => boolean
+  // TODO: When including ClassLink rostering, normalize to a similar type
+  rosterTeacher?: (
+    userId: Uuid,
+    classes: CleverAPIService.TCleverSectionData[],
+    students: CleverAPIService.TCleverStudentData[]
+  ) => Promise<void>
+}
+
+async function handleSSOStrategy(
+  req: Request,
+  profile: SSOProfile,
+  done: Function,
+  options: SSOHandlerOptions
+) {
+  try {
+    const { userData } = (req.session as SessionWithSsoData).sso ?? {}
+    // Check if the user already has used SSO provider
+    const existingFedCred = await FedCredService.getFedCredForUser(
+      profile.id,
+      profile.issuer
+    )
+
+    if (existingFedCred) {
+      if (userData && options.isStudent(profile.userType)) {
+        const data = {
+          schoolId: userData.schoolId,
+          studentPartnerOrgKey: (userData as RegisterStudentPayload)
+            .studentPartnerOrgKey,
+          studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
+            .studentPartnerOrgSiteName,
+          userId: existingFedCred.userId,
+        }
+        // Always upsert the student if there is data.
+        await UserCreationService.upsertStudent(data)
+      } else if (
+        options.isTeacher(profile.userType) &&
+        profile.teacher &&
+        options.rosterTeacher
+      ) {
+        // Always update the teacher's classes whenever they sign in.
+        await options.rosterTeacher(
+          existingFedCred.userId,
+          profile.teacher.classes,
+          profile.teacher.students
+        )
+      }
+      return done(null, { id: existingFedCred.userId })
+    }
+
+    const firstName = profile.name?.givenName
+    const lastName = profile.name?.familyName
+    const email = profile.emails?.[0]?.value ?? userData?.email
+    if (!firstName || !lastName) {
+      return done(null, false, {
+        errorMessage: 'Missing required field in passport.Profile',
+      })
+    }
+
+    if (!email) {
+      // Redirect to get the email from the user so we can link
+      // their account if an account already exists, or create an
+      // account.
+      return done(null, false, {
+        profileId: profile.id,
+        issuer: profile.issuer,
+        firstName,
+        lastName,
+      })
+    }
+
+    // Check if the user already exists, but just hadn't used
+    // Clever SSO before.
+    const existingUser = await getUserVerificationByEmails(
+      email,
+      userData?.email
+    )
+
+    if (existingUser) {
+      if (userData && options.isStudent(profile.userType)) {
+        const data = {
+          schoolId: userData.schoolId,
+          studentPartnerOrgKey: (userData as RegisterStudentPayload)
+            .studentPartnerOrgKey,
+          studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
+            .studentPartnerOrgSiteName,
+          userId: existingUser.id,
+        }
+        await UserCreationService.upsertStudent(data)
+      } else if (
+        options.isTeacher(profile.userType) &&
+        profile.teacher &&
+        options.rosterTeacher
+      ) {
+        await options.rosterTeacher(
+          existingUser.id,
+          profile.teacher.classes,
+          profile.teacher.students
+        )
+      }
+      await FedCredService.linkAccount(
+        profile.id,
+        profile.issuer,
+        existingUser.id
+      )
+      return done(null, { id: existingUser.id })
+    }
+
+    // If the user doesn't exist, register them.
+    const data = {
+      ...userData,
+      email,
+      firstName,
+      issuer: profile.issuer,
+      lastName,
+      profileId: profile.id,
+      schoolId: profile.schoolId,
+    }
+
+    if (options.isStudent(profile.userType)) {
+      const student = await UserCreationService.registerStudent(data)
+      return done(null, student)
+    } else if (options.isTeacher(profile.userType)) {
+      const teacher = await UserCreationService.registerTeacher(data)
+      if (profile.teacher && options.rosterTeacher) {
+        await options.rosterTeacher(
+          teacher.id,
+          profile.teacher.classes,
+          profile.teacher.students
+        )
+      }
+      return done(null, teacher)
+    }
+  } catch (err) {
+    logger.error(err, `Failed ${options.providerName} SSO.`)
+    return done(null, false, {
+      userType: profile.userType,
+      errorMessage: `Failed ${options.providerName} SSO. Please try again or contact support.`,
+    })
+  }
+}
+
 export function addPassportAuthMiddleware() {
   passport.use(
     new LocalStrategy(
@@ -148,10 +307,18 @@ export function addPassportAuthMiddleware() {
       ) {
         const { isLogin } = (req.session as SessionWithSsoData).sso ?? {}
         if (isLogin) {
+          // TODO: Consider passportLoginUser to support logging in users who haven't used Google SSO before,
+          // but have an UPchieve account with a matching email similar to Clever/ClassLink SSO behavior
           return passportLoginUser(profile.id, issuer, done)
         } else {
           const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-          return passportRegisterUser(profile, issuer, 'Google', userData, done)
+          return passportRegisterUser(
+            profile,
+            issuer,
+            SsoProviderNames.GOOGLE,
+            userData,
+            done
+          )
         }
       }
     )
@@ -166,133 +333,15 @@ export function addPassportAuthMiddleware() {
       profile: TCleverPassportProfile,
       done: Function
     ) {
-      try {
-        const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-        // Check if the user has already used Clever SSO.
-        const existingFedCred = await FedCredService.getFedCredForUser(
-          profile.id,
-          profile.issuer
-        )
-        if (existingFedCred) {
-          if (userData && CleverAPIService.isStudent(profile.userType)) {
-            const data = {
-              schoolId: userData.schoolId,
-              studentPartnerOrgKey: (userData as RegisterStudentPayload)
-                .studentPartnerOrgKey,
-              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-                .studentPartnerOrgSiteName,
-              userId: existingFedCred.userId,
-            }
-            // Always upsert the student if there is data.
-            await UserCreationService.upsertStudent(data)
-          } else if (
-            CleverAPIService.isTeacher(profile.userType) &&
-            profile.teacher
-          ) {
-            // Always update the teacher's classes whenever they sign in.
-            await CleverRosterService.rosterTeacherClasses(
-              existingFedCred.userId,
-              profile.teacher.classes,
-              profile.teacher.students
-            )
-          }
-          return done(null, { id: existingFedCred.userId })
-        }
-
-        const firstName = profile.name?.givenName
-        const lastName = profile.name?.familyName
-        if (!firstName || !lastName) {
-          return done(null, false, {
-            errorMessage: 'Missing required field in passport.Profile',
-          })
-        }
-
-        const email = profile.emails?.[0]?.value ?? userData?.email
-        if (!email) {
-          // Redirect to get the email from the user so we can link
-          // their account if an account already exists, or create an
-          // account.
-          return done(null, false, {
-            profileId: profile.id,
-            issuer: profile.issuer,
-            firstName,
-            lastName,
-          })
-        }
-
-        // Check if the user already exists, but just hadn't used
-        // Clever SSO before.
-        const existingUser = await getUserVerificationByEmails(
-          email,
-          userData?.email
-        )
-        if (existingUser) {
-          if (userData && CleverAPIService.isStudent(profile.userType)) {
-            const data = {
-              schoolId: userData.schoolId,
-              studentPartnerOrgKey: (userData as RegisterStudentPayload)
-                .studentPartnerOrgKey,
-              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-                .studentPartnerOrgSiteName,
-              userId: existingUser.id,
-            }
-            await UserCreationService.upsertStudent(data)
-          } else if (
-            CleverAPIService.isTeacher(profile.userType) &&
-            profile.teacher
-          ) {
-            await CleverRosterService.rosterTeacherClasses(
-              existingUser.id,
-              profile.teacher.classes,
-              profile.teacher.students
-            )
-          }
-          await FedCredService.linkAccount(
-            profile.id,
-            profile.issuer,
-            existingUser.id
-          )
-          return done(null, { id: existingUser.id })
-        }
-
-        // If the user doesn't exist, register them.
-        const data = {
-          ...userData,
-          email,
-          firstName,
-          issuer: profile.issuer,
-          lastName,
-          profileId: profile.id,
-          schoolId: profile.schoolId,
-        }
-        if (CleverAPIService.isStudent(profile.userType)) {
-          const student = await UserCreationService.registerStudent(data)
-          return done(null, student)
-        } else if (
-          CleverAPIService.isTeacher(profile.userType) &&
-          profile.teacher
-        ) {
-          const teacher = await UserCreationService.registerTeacher(data)
-          await CleverRosterService.rosterTeacherClasses(
-            teacher.id,
-            profile.teacher.classes,
-            profile.teacher.students
-          )
-          return done(null, teacher)
-        }
-      } catch (err) {
-        logger.error(err, 'Failed Clever SSO.')
-        return done(null, false, {
-          userType: profile.userType,
-          errorMessage:
-            'Failed Clever SSO. Please try again or contact support.',
-        })
-      }
+      return handleSSOStrategy(req, profile, done, {
+        providerName: SsoProviderNames.CLEVER,
+        isStudent,
+        isTeacher,
+        rosterTeacher: CleverRosterService.rosterTeacherClasses,
+      })
     })
   )
 
-  // TODO: ClassLink and Clever passport strategies have mostly duplicated logic (SSO handling, account linking, account creation),
-  // refactor to handle shared logic
   passport.use(
     'classlink',
     new ClassLinkStrategy({ callbackURL: getRedirectURI() }, async function (
@@ -302,94 +351,11 @@ export function addPassportAuthMiddleware() {
       profile: ClassLinkPassportProfile,
       done: Function
     ) {
-      try {
-        const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-        // Check if the user has already used ClassLink SSO.
-        const existingFedCred = await FedCredService.getFedCredForUser(
-          profile.id,
-          profile.issuer
-        )
-        if (existingFedCred) {
-          if (userData && profile.userType === 'student') {
-            const data = {
-              schoolId: userData.schoolId,
-              studentPartnerOrgKey: (userData as RegisterStudentPayload)
-                .studentPartnerOrgKey,
-              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-                .studentPartnerOrgSiteName,
-              userId: existingFedCred.userId,
-            }
-            await UserCreationService.upsertStudent(data)
-          }
-          return done(null, { id: existingFedCred.userId })
-        }
-
-        const firstName = profile.name?.givenName
-        const lastName = profile.name?.familyName
-        if (!firstName || !lastName) {
-          return done(null, false, {
-            errorMessage: 'Missing required field in passport.Profile',
-          })
-        }
-
-        const email = profile.emails?.[0]?.value ?? userData?.email
-        if (!email)
-          return done(null, false, {
-            profileId: profile.id,
-            issuer: profile.issuer,
-            firstName,
-            lastName,
-          })
-
-        const existingUser = await getUserVerificationByEmails(
-          email,
-          userData?.email
-        )
-        if (existingUser) {
-          if (userData && profile.userType === 'student') {
-            const data = {
-              schoolId: userData.schoolId,
-              studentPartnerOrgKey: (userData as RegisterStudentPayload)
-                .studentPartnerOrgKey,
-              studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
-                .studentPartnerOrgSiteName,
-              userId: existingUser.id,
-            }
-            await UserCreationService.upsertStudent(data)
-          }
-          await FedCredService.linkAccount(
-            profile.id,
-            profile.issuer,
-            existingUser.id
-          )
-          return done(null, { id: existingUser.id })
-        }
-
-        // If the user doesn't exist, register them.
-        const data = {
-          ...userData,
-          email,
-          firstName,
-          issuer: profile.issuer,
-          lastName,
-          profileId: profile.id,
-          schoolId: profile.schoolId,
-        }
-        if (profile.userType === 'student') {
-          const student = await UserCreationService.registerStudent(data)
-          return done(null, student)
-        } else if (profile.userType === 'teacher') {
-          const teacher = await UserCreationService.registerTeacher(data)
-          return done(null, teacher)
-        }
-      } catch (err) {
-        logger.error(err, 'Failed ClassLink SSO.')
-        return done(null, false, {
-          userType: profile.userType,
-          errorMessage:
-            'Failed ClassLink SSO. Please try again or contact support.',
-        })
-      }
+      return handleSSOStrategy(req, profile, done, {
+        providerName: SsoProviderNames.CLASSLINK,
+        isStudent,
+        isTeacher,
+      })
     })
   )
 }
@@ -410,4 +376,12 @@ function getRedirectURI() {
     ? `http://localhost:3000`
     : `${config.protocol}://${config.host}`
   return `${host}/auth/oauth2/redirect`
+}
+
+function isStudent(userType: USER_ROLES_TYPE): boolean {
+  return userType === 'student'
+}
+
+function isTeacher(userType: USER_ROLES_TYPE): boolean {
+  return userType === 'teacher'
 }
