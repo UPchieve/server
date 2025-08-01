@@ -305,6 +305,7 @@ export interface ICreateAccountActionParams {
   action: string;
   actionType: string;
   banReason?: string | null | void;
+  clientUUID?: string | null | void;
   ipAddressId?: NumberOrString | null | void;
   referenceEmail?: string | null | void;
   sessionId?: string | null | void;
@@ -323,13 +324,13 @@ export interface ICreateAccountActionQuery {
   result: ICreateAccountActionResult;
 }
 
-const createAccountActionIR: any = {"usedParamSet":{"userId":true,"actionType":true,"action":true,"ipAddressId":true,"referenceEmail":true,"volunteerId":true,"sessionId":true,"banReason":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":162,"b":169}]},{"name":"actionType","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":183}]},{"name":"action","required":true,"transform":{"type":"scalar"},"locs":[{"a":186,"b":193}]},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"locs":[{"a":196,"b":207}]},{"name":"referenceEmail","required":false,"transform":{"type":"scalar"},"locs":[{"a":210,"b":224}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":227,"b":238}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":241,"b":250}]},{"name":"banReason","required":false,"transform":{"type":"scalar"},"locs":[{"a":253,"b":262}]}],"statement":"INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)\n    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())\nRETURNING\n    id AS ok"};
+const createAccountActionIR: any = {"usedParamSet":{"userId":true,"actionType":true,"action":true,"ipAddressId":true,"referenceEmail":true,"volunteerId":true,"sessionId":true,"banReason":true,"clientUUID":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":174,"b":181}]},{"name":"actionType","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":195}]},{"name":"action","required":true,"transform":{"type":"scalar"},"locs":[{"a":198,"b":205}]},{"name":"ipAddressId","required":false,"transform":{"type":"scalar"},"locs":[{"a":208,"b":219}]},{"name":"referenceEmail","required":false,"transform":{"type":"scalar"},"locs":[{"a":222,"b":236}]},{"name":"volunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":239,"b":250}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":253,"b":262}]},{"name":"banReason","required":false,"transform":{"type":"scalar"},"locs":[{"a":265,"b":274}]},{"name":"clientUUID","required":false,"transform":{"type":"scalar"},"locs":[{"a":291,"b":301}]}],"statement":"INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at, clientUUID)\n    VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW(), :clientUUID)\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at)
- *     VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW())
+ * INSERT INTO user_actions (user_id, action_type, action, ip_address_id, reference_email, volunteer_id, session_id, ban_reason, created_at, updated_at, clientUUID)
+ *     VALUES (:userId!, :actionType!, :action!, :ipAddressId, :referenceEmail, :volunteerId, :sessionId, :banReason, NOW(), NOW(), :clientUUID)
  * RETURNING
  *     id AS ok
  * ```

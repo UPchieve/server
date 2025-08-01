@@ -310,16 +310,16 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
-  router.post('/user/track-presence/ping', async function (req, res) {
+  router.post('/user/track-presence/active', async function (req, res) {
     try {
       const user = extractUser(req)
       const userAgent = req.get('User-Agent') || ''
-      const ip = req.ip
+      const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
-      await PresenceService.track({
+      await PresenceService.trackActive({
         userId: user.id,
         userAgent,
-        ip,
+        ipAddress,
         clientUUID,
       })
       return res.sendStatus(200)
@@ -327,13 +327,18 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
-  router.post('/user/track-presence/end', async function (req, res) {
+  router.post('/user/track-presence/inactive', async function (req, res) {
     try {
       const user = extractUser(req)
       const userAgent = req.get('User-Agent') || ''
-      const ip = req.ip
+      const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
-      await PresenceService.end({ userId: user.id, userAgent, ip, clientUUID })
+      await PresenceService.trackInactive({
+        userId: user.id,
+        userAgent,
+        ipAddress,
+        clientUUID,
+      })
       return res.sendStatus(200)
     } catch (err) {
       resError(res, err)
