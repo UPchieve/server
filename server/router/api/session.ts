@@ -329,15 +329,12 @@ export function routeSession(router: Router) {
       const user = extractUser(req)
       const filter = SessionService.asSessionHistoryFilter(req.query)
 
-      const { pastSessions, page, isLastPage, totalCount } =
-        await SessionService.getSessionHistory(
-          user.id,
-          asNumber(req.query.page),
-          req.query.limit ? asNumber(req.query.limit) : undefined,
-          filter
-        )
+      const pastSessions = await SessionService.getSessionHistory(
+        user.id,
+        filter
+      )
 
-      res.json({ page, isLastPage, pastSessions, totalCount })
+      res.json({ pastSessions })
     } catch (err) {
       resError(res, err)
     }
