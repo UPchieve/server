@@ -568,7 +568,10 @@ export async function sendPositiveStudentFeedbackEmailToVolunteer({
     config.mail.senders.support,
     'UPchieve',
     templateId,
-    emailArgs
+    emailArgs,
+    {
+      categories: ['volunteer feedback'],
+    }
   )
 }
 
