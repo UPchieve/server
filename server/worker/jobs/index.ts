@@ -11,6 +11,7 @@ import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-ela
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
+import deleteUser from './deleteUser'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
@@ -138,6 +139,7 @@ export enum Jobs {
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
+  DeleteUser = 'DeleteUser',
 
   // Migration scripts
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
@@ -466,6 +468,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MaybeSendStudentFeedbackToVolunteer,
     processor: maybeSendStudentFeedbackToVolunteer,
+  },
+  {
+    name: Jobs.DeleteUser,
+    processor: deleteUser,
   },
 ]
 
