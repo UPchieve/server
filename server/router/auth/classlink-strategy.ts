@@ -51,8 +51,8 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
         emails: [{ value: user.Email ?? '' }],
         issuer: ClassLinkStrategy.baseUrl,
         name: {
-          familyName: user.FirstName,
-          givenName: user.LastName,
+          familyName: user.LastName,
+          givenName: user.FirstName,
         },
         provider: 'ClassLink',
         schoolId,
