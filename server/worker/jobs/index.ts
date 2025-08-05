@@ -12,6 +12,7 @@ import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-ela
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
+import deidentifyUser from './deidentify-user'
 import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
@@ -80,6 +81,7 @@ export enum Jobs {
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
+  DeidentifyUser = 'DeidentifyUser',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -198,6 +200,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.ClearBullJobsByStatus,
     processor: clearBullJobByStatus,
+  },
+  {
+    name: Jobs.DeidentifyUser,
+    processor: deidentifyUser,
   },
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
