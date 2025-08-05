@@ -344,26 +344,19 @@ export function addPassportAuthMiddleware() {
 
   passport.use(
     'classlink',
-    new ClassLinkStrategy(
-      {
-        callbackURL: getRedirectURI(),
-        clientID: config.classlinkClientId,
-        clientSecret: config.classlinkClientSecret,
-      },
-      async function (
-        req: Request,
-        _accessToken: string,
-        _refreshToken: string,
-        profile: ClassLinkPassportProfile,
-        done: Function
-      ) {
-        return handleSSOStrategy(req, profile, done, {
-          providerName: SsoProviderNames.CLASSLINK,
-          isStudent,
-          isTeacher,
-        })
-      }
-    )
+    new ClassLinkStrategy({ callbackURL: getRedirectURI() }, async function (
+      req: Request,
+      _accessToken: string,
+      _refreshToken: string,
+      profile: ClassLinkPassportProfile,
+      done: Function
+    ) {
+      return handleSSOStrategy(req, profile, done, {
+        providerName: SsoProviderNames.CLASSLINK,
+        isStudent,
+        isTeacher,
+      })
+    })
   )
 }
 
