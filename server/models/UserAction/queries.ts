@@ -19,6 +19,7 @@ import {
   USER_ACTION_TYPES,
 } from '../../constants'
 import { getSubjectType } from '../Subjects'
+import { getUserAgentInfo } from '../../utils/parse-user-agent'
 
 export async function getQuizzesPassedForDateRangeById(
   userId: Ulid,

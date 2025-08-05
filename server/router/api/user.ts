@@ -313,12 +313,10 @@ export function routeUser(router: Router): void {
   router.post('/user/track-presence/active', async function (req, res) {
     try {
       const user = extractUser(req)
-      const userAgent = req.get('User-Agent') || ''
       const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
       await PresenceService.trackActive({
         userId: user.id,
-        userAgent,
         ipAddress,
         clientUUID,
       })
@@ -330,12 +328,10 @@ export function routeUser(router: Router): void {
   router.post('/user/track-presence/inactive', async function (req, res) {
     try {
       const user = extractUser(req)
-      const userAgent = req.get('User-Agent') || ''
       const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
       await PresenceService.trackInactive({
         userId: user.id,
-        userAgent,
         ipAddress,
         clientUUID,
       })
